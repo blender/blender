@@ -36,13 +36,13 @@ void BLF_default_set(int fontid)
   }
 }
 
-int BLF_default(void)
+int BLF_default()
 {
   ASSERT_DEFAULT_SET;
   return global_font_default;
 }
 
-int BLF_set_default(void)
+int BLF_set_default()
 {
   ASSERT_DEFAULT_SET;
 

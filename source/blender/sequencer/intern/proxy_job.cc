@@ -48,7 +48,7 @@ static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progre
   LinkData *link;
 
   for (link = static_cast<LinkData *>(pj->queue.first); link; link = link->next) {
-    struct SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
+    SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
 
     SEQ_proxy_rebuild(context, stop, do_update, progress);
 
@@ -78,7 +78,7 @@ static void proxy_endjob(void *pjv)
 ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
 {
   Scene *scene = CTX_data_scene(C);
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
     pj = static_cast<ProxyJob *>(MEM_callocN(sizeof(ProxyJob), "proxy rebuild job"));

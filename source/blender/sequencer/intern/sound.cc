@@ -51,7 +51,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       float fac;
 
       seq->len = MAX2(1, round((info.length - seq->sound->offset_time) * FPS));
-      fac = (float)seq->len / (float)old;
+      fac = float(seq->len) / float(old);
       old = seq->startofs;
       seq->startofs *= fac;
       seq->endofs *= fac;

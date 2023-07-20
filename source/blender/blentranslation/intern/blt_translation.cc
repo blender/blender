@@ -63,7 +63,7 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid)
 #endif
 }
 
-bool BLT_translate(void)
+bool BLT_translate()
 {
 #ifdef WITH_INTERNATIONAL
   return BLI_thread_is_main();
@@ -72,7 +72,7 @@ bool BLT_translate(void)
 #endif
 }
 
-bool BLT_translate_iface(void)
+bool BLT_translate_iface()
 {
 #ifdef WITH_INTERNATIONAL
   return BLT_translate() && (U.transopts & USER_TR_IFACE);
@@ -81,7 +81,7 @@ bool BLT_translate_iface(void)
 #endif
 }
 
-bool BLT_translate_tooltips(void)
+bool BLT_translate_tooltips()
 {
 #ifdef WITH_INTERNATIONAL
   return BLT_translate() && (U.transopts & USER_TR_TOOLTIPS);
@@ -90,7 +90,7 @@ bool BLT_translate_tooltips(void)
 #endif
 }
 
-bool BLT_translate_new_dataname(void)
+bool BLT_translate_new_dataname()
 {
 #ifdef WITH_INTERNATIONAL
   return BLT_translate() && (U.transopts & USER_TR_NEWDATANAME);

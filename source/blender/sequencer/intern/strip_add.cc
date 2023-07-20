@@ -165,7 +165,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
       seqbase, load_data->start_frame, load_data->channel, load_data->effect.type);
 
   seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
-  struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
+  SeqEffectHandle sh = SEQ_effect_handle_get(seq);
   sh.init(seq);
   seq->seq1 = load_data->effect.seq1;
   seq->seq2 = load_data->effect.seq2;
@@ -293,7 +293,7 @@ static void seq_add_sound_av_sync(Main *bmain, Scene *scene, Sequence *seq, SeqL
   const double av_stream_offset = sound_stream.start - load_data->r_video_stream_start;
   const int frame_offset = av_stream_offset * FPS;
   /* Set sub-frame offset. */
-  seq->sound->offset_time = ((double)frame_offset / FPS) - av_stream_offset;
+  seq->sound->offset_time = (double(frame_offset) / FPS) - av_stream_offset;
   SEQ_transform_translate_sequence(scene, seq, frame_offset);
 }
 
@@ -391,8 +391,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  struct anim **anim_arr = static_cast<anim **>(
-      MEM_callocN(sizeof(struct anim *) * totfiles, "Video files"));
+  anim **anim_arr = static_cast<anim **>(MEM_callocN(sizeof(anim *) * totfiles, "Video files"));
   int i;
   int orig_width = 0;
   int orig_height = 0;
@@ -487,7 +486,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     short frs_sec;
     float frs_sec_base;
     if (IMB_anim_get_fps(anim_arr[0], &frs_sec, &frs_sec_base, true)) {
-      seq->media_playback_rate = (float)frs_sec / frs_sec_base;
+      seq->media_playback_rate = float(frs_sec) / frs_sec_base;
     }
   }
 
@@ -575,7 +574,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
-            struct anim *anim;
+            anim *anim;
             char filepath_view[FILE_MAX];
 
             seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
@@ -596,7 +595,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       }
 
       if (is_multiview_loaded == false) {
-        struct anim *anim;
+        anim *anim;
         anim = openanim(filepath,
                         IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                         seq->streamindex,
@@ -658,7 +657,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       if (!seq->sound) {
         return;
       }
-      seq->len = ceil((double)BKE_sound_get_length(bmain, seq->sound) * FPS);
+      seq->len = ceil(double(BKE_sound_get_length(bmain, seq->sound)) * FPS);
       seq->len -= seq->anim_startofs;
       seq->len -= seq->anim_endofs;
       if (seq->len < 0) {

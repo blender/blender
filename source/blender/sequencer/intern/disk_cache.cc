@@ -91,7 +91,7 @@ struct SeqDiskCache {
 };
 
 struct DiskCacheFile {
-  struct DiskCacheFile *next, *prev;
+  DiskCacheFile *next, *prev;
   char filepath[FILE_MAX];
   char dir[FILE_MAXDIR];
   char file[FILE_MAX];
@@ -106,12 +106,12 @@ struct DiskCacheFile {
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
 
-static char *seq_disk_cache_base_dir(void)
+static char *seq_disk_cache_base_dir()
 {
   return U.sequencer_disk_cache_dir;
 }
 
-static int seq_disk_cache_compression_level(void)
+static int seq_disk_cache_compression_level()
 {
   switch (U.sequencer_disk_cache_compression) {
     case USER_SEQ_DISK_CACHE_COMPRESSION_NONE:
@@ -125,9 +125,9 @@ static int seq_disk_cache_compression_level(void)
   return U.sequencer_disk_cache_compression;
 }
 
-static size_t seq_disk_cache_size_limit(void)
+static size_t seq_disk_cache_size_limit()
 {
-  return (size_t)U.sequencer_disk_cache_size_limit * (1024 * 1024 * 1024);
+  return size_t(U.sequencer_disk_cache_size_limit) * (1024 * 1024 * 1024);
 }
 
 bool seq_disk_cache_is_enabled(Main *bmain)
@@ -163,7 +163,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache,
 
 static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *dirpath)
 {
-  struct direntry *filelist, *fl;
+  direntry *filelist, *fl;
   uint i;
   disk_cache->size_total = 0;
 
@@ -324,7 +324,7 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
                                          size_t filepath_maxncpy)
 {
   seq_disk_cache_get_dir(disk_cache, key->context.scene, key->seq, filepath, filepath_maxncpy);
-  int frameno = (int)key->frame_index / DCACHE_IMAGES_PER_FILE;
+  int frameno = int(key->frame_index) / DCACHE_IMAGES_PER_FILE;
   char cache_filename[FILE_MAXFILE];
   SNPRINTF(cache_filename,
            DCACHE_FNAME_FORMAT,
@@ -635,8 +635,8 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   }
 
   ImBuf *ibuf;
-  uint64_t size_char = (uint64_t)key->context.rectx * key->context.recty * 4;
-  uint64_t size_float = (uint64_t)key->context.rectx * key->context.recty * 16;
+  uint64_t size_char = uint64_t(key->context.rectx) * key->context.recty * 4;
+  uint64_t size_float = uint64_t(key->context.rectx) * key->context.recty * 16;
   size_t expected_size;
 
   if (header.entry[entry_index].size_raw == size_char) {

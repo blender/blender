@@ -60,7 +60,7 @@
 #include "strip_time.h"
 #include "utils.h"
 
-static struct SeqEffectHandle get_sequence_effect_impl(int seq_type);
+static SeqEffectHandle get_sequence_effect_impl(int seq_type);
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
@@ -438,7 +438,7 @@ static void do_cross_effect_byte(float fac, int x, int y, uchar *rect1, uchar *r
   uchar *rt2 = rect2;
   uchar *rt = out;
 
-  int temp_fac = (int)(256.0f * fac);
+  int temp_fac = int(256.0f * fac);
   int temp_mfac = 256 - temp_fac;
 
   for (int i = 0; i < y; i++) {
@@ -536,7 +536,7 @@ static void makeGammaTables(float gamma)
   valid_gamma = gamma;
   valid_inv_gamma = 1.0f / gamma;
   color_step = 1.0f / RE_GAMMA_TABLE_SIZE;
-  inv_color_step = (float)RE_GAMMA_TABLE_SIZE;
+  inv_color_step = float(RE_GAMMA_TABLE_SIZE);
 
   /* We could squeeze out the two range tables to gain some memory */
   for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
@@ -644,7 +644,7 @@ static void gamtabs(float gamma)
   }
 }
 
-static void build_gammatabs(void)
+static void build_gammatabs()
 {
   if (gamma_tabs_init == false) {
     gamtabs(2.0f);
@@ -762,11 +762,11 @@ static void do_add_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rec
   uchar *cp2 = rect2;
   uchar *rt = out;
 
-  int temp_fac = (int)(256.0f * fac);
+  int temp_fac = int(256.0f * fac);
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      const int temp_fac2 = temp_fac * (int)cp2[3];
+      const int temp_fac2 = temp_fac * int(cp2[3]);
       rt[0] = min_ii(cp1[0] + ((temp_fac2 * cp2[0]) >> 16), 255);
       rt[1] = min_ii(cp1[1] + ((temp_fac2 * cp2[1]) >> 16), 255);
       rt[2] = min_ii(cp1[2] + ((temp_fac2 * cp2[2]) >> 16), 255);
@@ -841,11 +841,11 @@ static void do_sub_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rec
   uchar *cp2 = rect2;
   uchar *rt = out;
 
-  int temp_fac = (int)(256.0f * fac);
+  int temp_fac = int(256.0f * fac);
 
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
-      const int temp_fac2 = temp_fac * (int)cp2[3];
+      const int temp_fac2 = temp_fac * int(cp2[3]);
       rt[0] = max_ii(cp1[0] - ((temp_fac2 * cp2[0]) >> 16), 0);
       rt[1] = max_ii(cp1[1] - ((temp_fac2 * cp2[1]) >> 16), 0);
       rt[2] = max_ii(cp1[2] - ((temp_fac2 * cp2[2]) >> 16), 0);
@@ -925,7 +925,7 @@ static void do_drop_effect_byte(float fac, int x, int y, uchar *rect2i, uchar *r
   const int xoff = min_ii(XOFF, x);
   const int yoff = min_ii(YOFF, y);
 
-  int temp_fac = (int)(70.0f * fac);
+  int temp_fac = int(70.0f * fac);
 
   uchar *rt2 = rect2i + yoff * 4 * x;
   uchar *rt1 = rect1i;
@@ -999,7 +999,7 @@ static void do_mul_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rec
   uchar *rt2 = rect2;
   uchar *rt = out;
 
-  int temp_fac = (int)(256.0f * fac);
+  int temp_fac = int(256.0f * fac);
 
   /* Formula:
    * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + axaux = c * px + py * s;` // + centx
@@ -1095,7 +1095,7 @@ BLI_INLINE void apply_blend_function_byte(float fac,
   for (int i = 0; i < y; i++) {
     for (int j = 0; j < x; j++) {
       uint achannel = rt2[3];
-      rt2[3] = (uint)achannel * fac;
+      rt2[3] = uint(achannel) * fac;
       blend_function(rt, rt1, rt2);
       rt2[3] = achannel;
       rt[3] = rt1[3];
@@ -1374,7 +1374,7 @@ static void precalc_wipe_zone(WipeZone *wipezone, WipeVars *wipe, int xo, int yo
   wipezone->angle = tanf(fabsf(wipe->angle));
   wipezone->xo = xo;
   wipezone->yo = yo;
-  wipezone->width = (int)(wipe->edgeWidth * ((xo + yo) / 2.0f));
+  wipezone->width = int(wipe->edgeWidth * ((xo + yo) / 2.0f));
   wipezone->pythangle = 1.0f / sqrtf(wipezone->angle * wipezone->angle + 1.0f);
 }
 
@@ -1386,11 +1386,11 @@ static float in_band(float width, float dist, int side, int dir)
   float alpha;
 
   if (width == 0) {
-    return (float)side;
+    return float(side);
   }
 
   if (width < dist) {
-    return (float)side;
+    return float(side);
   }
 
   if (side == 1) {
@@ -1531,11 +1531,11 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
        * temp4: angle of high side of blur
        */
       output = 1.0f - fac;
-      widthf = wipe->edgeWidth * 2.0f * (float)M_PI;
-      temp1 = 2.0f * (float)M_PI * fac;
+      widthf = wipe->edgeWidth * 2.0f * float(M_PI);
+      temp1 = 2.0f * float(M_PI) * fac;
 
       if (wipe->forward) {
-        temp1 = 2.0f * (float)M_PI - temp1;
+        temp1 = 2.0f * float(M_PI) - temp1;
       }
 
       x = x - halfx;
@@ -1543,13 +1543,13 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
       temp2 = asin(abs(y) / hypot(x, y));
       if (x <= 0 && y >= 0) {
-        temp2 = (float)M_PI - temp2;
+        temp2 = float(M_PI) - temp2;
       }
       else if (x <= 0 && y <= 0) {
-        temp2 += (float)M_PI;
+        temp2 += float(M_PI);
       }
       else if (x >= 0 && y <= 0) {
-        temp2 = 2.0f * (float)M_PI - temp2;
+        temp2 = 2.0f * float(M_PI) - temp2;
       }
 
       if (wipe->forward) {
@@ -1563,8 +1563,8 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
       if (temp3 < 0) {
         temp3 = 0;
       }
-      if (temp4 > 2.0f * (float)M_PI) {
-        temp4 = 2.0f * (float)M_PI;
+      if (temp4 > 2.0f * float(M_PI)) {
+        temp4 = 2.0f * float(M_PI);
       }
 
       if (temp2 < temp3) {
@@ -1636,7 +1636,7 @@ static void init_wipe_effect(Sequence *seq)
   seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
 }
 
-static int num_inputs_wipe(void)
+static int num_inputs_wipe()
 {
   return 2;
 }
@@ -1829,7 +1829,7 @@ static void init_transform_effect(Sequence *seq)
   transform->uniform_scale = 0;
 }
 
-static int num_inputs_transform(void)
+static int num_inputs_transform()
 {
   return 1;
 }
@@ -1999,10 +1999,10 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
    * Blancmange <bmange@airdmhor.gen.nz>
    */
 
-  k = -1.0f / (2.0f * (float)M_PI * blur * blur);
+  k = -1.0f / (2.0f * float(M_PI) * blur * blur);
 
   for (ix = 0; ix < halfWidth; ix++) {
-    weight = (float)exp(k * (ix * ix));
+    weight = float(exp(k * (ix * ix)));
     filter[halfWidth - ix] = weight;
     filter[halfWidth + ix] = weight;
   }
@@ -2173,7 +2173,7 @@ static void init_glow_effect(Sequence *seq)
   glow->bNoComp = 0;
 }
 
-static int num_inputs_glow(void)
+static int num_inputs_glow()
 {
   return 1;
 }
@@ -2298,7 +2298,7 @@ static void init_solid_color(Sequence *seq)
   cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
 }
 
-static int num_inputs_color(void)
+static int num_inputs_color()
 {
   return 0;
 }
@@ -2384,7 +2384,7 @@ static ImBuf *do_solid_color(const SeqRenderData *context,
  * \{ */
 
 /** No effect inputs for multi-camera, we use #give_ibuf_seq. */
-static int num_inputs_multicam(void)
+static int num_inputs_multicam()
 {
   return 0;
 }
@@ -2432,7 +2432,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
  * \{ */
 
 /** No effect inputs for adjustment, we use #give_ibuf_seq. */
-static int num_inputs_adjustment(void)
+static int num_inputs_adjustment()
 {
   return 0;
 }
@@ -2532,7 +2532,7 @@ static void load_speed_effect(Sequence *seq)
   v->frameMap = nullptr;
 }
 
-static int num_inputs_speed(void)
+static int num_inputs_speed()
 {
   return 1;
 }
@@ -2681,7 +2681,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
                               ImBuf *ibuf3)
 {
   SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
-  struct SeqEffectHandle cross_effect = get_sequence_effect_impl(SEQ_TYPE_CROSS);
+  SeqEffectHandle cross_effect = get_sequence_effect_impl(SEQ_TYPE_CROSS);
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
@@ -2759,7 +2759,7 @@ static void init_gaussian_blur_effect(Sequence *seq)
   seq->effectdata = MEM_callocN(sizeof(WipeVars), "wipevars");
 }
 
-static int num_inputs_gaussian_blur(void)
+static int num_inputs_gaussian_blur()
 {
   return 1;
 }
@@ -2797,7 +2797,7 @@ static float *make_gaussian_blur_kernel(float rad, int size)
   sum = 0.0f;
   fac = (rad > 0.0f ? 1.0f / rad : 0.0f);
   for (i = -size; i <= size; i++) {
-    val = RE_filter_value(R_FILTER_GAUSS, (float)i * fac);
+    val = RE_filter_value(R_FILTER_GAUSS, float(i) * fac);
     sum += val;
     gausstab[i + size] = val;
   }
@@ -2821,7 +2821,7 @@ static void do_gaussian_blur_effect_byte_x(Sequence *seq,
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
-  const int size_x = (int)(data->size_x + 0.5f);
+  const int size_x = int(data->size_x + 0.5f);
   int i, j;
 
   /* Make gaussian weight table. */
@@ -2871,7 +2871,7 @@ static void do_gaussian_blur_effect_byte_y(Sequence *seq,
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
-  const int size_y = (int)(data->size_y + 0.5f);
+  const int size_y = int(data->size_y + 0.5f);
   int i, j;
 
   /* Make gaussian weight table. */
@@ -2919,7 +2919,7 @@ static void do_gaussian_blur_effect_float_x(Sequence *seq,
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
-  const int size_x = (int)(data->size_x + 0.5f);
+  const int size_x = int(data->size_x + 0.5f);
   int i, j;
 
   /* Make gaussian weight table. */
@@ -2960,7 +2960,7 @@ static void do_gaussian_blur_effect_float_y(Sequence *seq,
 {
 #define INDEX(_x, _y) (((_y) * (x) + (_x)) * 4)
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
-  const int size_y = (int)(data->size_y + 0.5f);
+  const int size_y = int(data->size_y + 0.5f);
   int i, j;
 
   /* Make gaussian weight table. */
@@ -3240,7 +3240,7 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 
-    data->text_blf_id = BLF_load_mem(name, static_cast<const unsigned char *>(pf->data), pf->size);
+    data->text_blf_id = BLF_load_mem(name, static_cast<const uchar *>(pf->data), pf->size);
   }
   else {
     char filepath[FILE_MAX];
@@ -3278,7 +3278,7 @@ static void copy_text_effect(Sequence *dst, Sequence *src, const int flag)
   SEQ_effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 }
 
-static int num_inputs_text(void)
+static int num_inputs_text()
 {
   return 0;
 }
@@ -3356,7 +3356,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
 
   /* vars for calculating wordwrap and optional box */
   struct {
-    struct ResultBLF info;
+    ResultBLF info;
     rcti rect;
   } wrap;
 
@@ -3427,7 +3427,7 @@ static void load_noop(Sequence * /*seq*/) {}
 
 static void free_noop(Sequence * /*seq*/, const bool /*do_id_user*/) {}
 
-static int num_inputs_default(void)
+static int num_inputs_default()
 {
   return 2;
 }
@@ -3487,7 +3487,7 @@ static void get_default_fac_fade(const Scene *scene,
                                  float timeline_frame,
                                  float *fac)
 {
-  *fac = (float)(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
+  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
   *fac /= SEQ_time_strip_length_get(scene, seq);
 }
 
@@ -3501,9 +3501,9 @@ static ImBuf *init_execution(const SeqRenderData *context,
   return out;
 }
 
-static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
+static SeqEffectHandle get_sequence_effect_impl(int seq_type)
 {
-  struct SeqEffectHandle rval;
+  SeqEffectHandle rval;
   int sequence_type = seq_type;
 
   rval.multithreaded = false;
@@ -3676,9 +3676,9 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 /** \name Public Sequencer Effect API
  * \{ */
 
-struct SeqEffectHandle SEQ_effect_handle_get(Sequence *seq)
+SeqEffectHandle SEQ_effect_handle_get(Sequence *seq)
 {
-  struct SeqEffectHandle rval = {false, false, nullptr};
+  SeqEffectHandle rval = {false, false, nullptr};
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     rval = get_sequence_effect_impl(seq->type);
@@ -3691,9 +3691,9 @@ struct SeqEffectHandle SEQ_effect_handle_get(Sequence *seq)
   return rval;
 }
 
-struct SeqEffectHandle seq_effect_get_sequence_blend(Sequence *seq)
+SeqEffectHandle seq_effect_get_sequence_blend(Sequence *seq)
 {
-  struct SeqEffectHandle rval = {false, false, nullptr};
+  SeqEffectHandle rval = {false, false, nullptr};
 
   if (seq->blend_mode != 0) {
     if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
@@ -3715,7 +3715,7 @@ struct SeqEffectHandle seq_effect_get_sequence_blend(Sequence *seq)
 
 int SEQ_effect_get_num_inputs(int seq_type)
 {
-  struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
+  SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 
   int count = rval.num_inputs();
   if (rval.execute || (rval.execute_slice && rval.init_execution)) {

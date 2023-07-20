@@ -105,11 +105,11 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
     FT_Fixed advance = 0;
     FT_Get_Advance(font->face, gindex, FT_LOAD_NO_HINTING, &advance);
     /* Use CSS 'ch unit' width, advance of zero character. */
-    gc->fixed_width = (int)(advance >> 16);
+    gc->fixed_width = int(advance >> 16);
   }
   else {
     /* Font does not have a face or does not contain "0" so use CSS fallback of 1/2 of em. */
-    gc->fixed_width = (int)((font->ft_size->metrics.height / 2) >> 6);
+    gc->fixed_width = int((font->ft_size->metrics.height / 2) >> 6);
   }
   if (gc->fixed_width < 1) {
     gc->fixed_width = 1;
@@ -237,8 +237,8 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
   g->advance_x = (ft_pix)glyph->advance.x;
   g->pos[0] = glyph->bitmap_left;
   g->pos[1] = glyph->bitmap_top;
-  g->dims[0] = (int)glyph->bitmap.width;
-  g->dims[1] = (int)glyph->bitmap.rows;
+  g->dims[0] = int(glyph->bitmap.width);
+  g->dims[1] = int(glyph->bitmap.rows);
   g->pitch = glyph->bitmap.pitch;
 
   FT_BBox bbox;
@@ -252,7 +252,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
   g->lsb_delta = (ft_pix)glyph->lsb_delta;
   g->rsb_delta = (ft_pix)glyph->rsb_delta;
 
-  const int buffer_size = (int)(glyph->bitmap.width * glyph->bitmap.rows);
+  const int buffer_size = int(glyph->bitmap.width * glyph->bitmap.rows);
   if (buffer_size != 0) {
     if (font->flags & BLF_MONOCHROME) {
       /* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range. */
@@ -268,8 +268,8 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
       }
 #endif /* BLF_GAMMA_CORRECT_GLYPHS */
     }
-    g->bitmap = static_cast<unsigned char *>(MEM_mallocN((size_t)buffer_size, "glyph bitmap"));
-    memcpy(g->bitmap, glyph->bitmap.buffer, (size_t)buffer_size);
+    g->bitmap = static_cast<uchar *>(MEM_mallocN(size_t(buffer_size), "glyph bitmap"));
+    memcpy(g->bitmap, glyph->bitmap.buffer, size_t(buffer_size));
   }
 
   const uint key = blf_hash(g->c);
@@ -298,7 +298,7 @@ struct UnicodeBlock {
    * https://en.wikipedia.org/wiki/Unicode_block */
 };
 
-static const struct UnicodeBlock unicode_blocks[] = {
+static const UnicodeBlock unicode_blocks[] = {
     /* Must be in ascending order by start of range. */
     {0x0, 0x7F, 0},           /* Basic Latin. */
     {0x80, 0xFF, 1},          /* Latin-1 Supplement. */
@@ -560,7 +560,7 @@ static const struct UnicodeBlock unicode_blocks[] = {
 /**
  * Find a unicode block that a `charcode` belongs to.
  */
-static const struct UnicodeBlock *blf_charcode_to_unicode_block(const uint charcode)
+static const UnicodeBlock *blf_charcode_to_unicode_block(const uint charcode)
 {
   if (charcode < 0x80) {
     /* Shortcut to Basic Latin. */
@@ -595,7 +595,7 @@ static const struct UnicodeBlock *blf_charcode_to_unicode_block(const uint charc
 static int blf_charcode_to_coverage_bit(uint charcode)
 {
   int coverage_bit = -1;
-  const struct UnicodeBlock *block = blf_charcode_to_unicode_block(charcode);
+  const UnicodeBlock *block = blf_charcode_to_unicode_block(charcode);
   if (block) {
     coverage_bit = block->coverage_bit;
   }
@@ -614,7 +614,7 @@ static bool blf_font_has_coverage_bit(const FontBLF *font, int coverage_bit)
   if (coverage_bit < 0) {
     return false;
   }
-  return (font->unicode_ranges[(uint)coverage_bit >> 5] & (1u << ((uint)coverage_bit % 32)));
+  return (font->unicode_ranges[uint(coverage_bit) >> 5] & (1u << (uint(coverage_bit) % 32)));
 }
 
 /**
@@ -807,7 +807,7 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
   if (!variations) {
     return nullptr;
   }
-  for (int i = 0; i < (int)variations->num_axis; i++) {
+  for (int i = 0; i < int(variations->num_axis); i++) {
     if (variations->axis[i].tag == tag) {
       *r_axis_index = i;
       return &(variations->axis)[i];
@@ -828,11 +828,11 @@ static FT_Fixed blf_factor_to_coordinate(const FT_Var_Axis *axis, const float fa
   FT_Fixed value = axis->def;
   if (factor > 0) {
     /* Map 0-1 to axis->def - axis->maximum */
-    value += (FT_Fixed)((double)(axis->maximum - axis->def) * factor);
+    value += (FT_Fixed)(double(axis->maximum - axis->def) * factor);
   }
   else if (factor < 0) {
     /* Map -1-0 to axis->minimum - axis->def */
-    value += (FT_Fixed)((double)(axis->def - axis->minimum) * factor);
+    value += (FT_Fixed)(double(axis->def - axis->minimum) * factor);
   }
   return value;
 }
@@ -895,7 +895,7 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
     /* Fake bold if the font does not have this variable axis. */
     const FontBLF *font = (FontBLF *)glyph->face->generic.data;
     const FT_Pos average_width = font->ft_size->metrics.height;
-    FT_Pos change = (FT_Pos)((float)average_width * factor * 0.1f);
+    FT_Pos change = (FT_Pos)(float(average_width) * factor * 0.1f);
     FT_Outline_EmboldenXY(&glyph->outline, change, change / 2);
     if (monospaced) {
       /* Widened fixed-pitch font needs a nudge left. */
@@ -939,7 +939,7 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
     float scale = (factor * 0.4f) + 1.0f; /* 0.6f - 1.4f */
     FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &matrix);
-    glyph->advance.x = (FT_Pos)((double)glyph->advance.x * scale);
+    glyph->advance.x = (FT_Pos)(double(glyph->advance.x) * scale);
     return true;
   }
   return false;
@@ -955,7 +955,7 @@ static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
   if (glyph->advance.x > 0) {
     const FontBLF *font = (FontBLF *)glyph->face->generic.data;
     const long int size = font->ft_size->metrics.height;
-    glyph->advance.x += (FT_Pos)(factor * (float)size / 6.0f);
+    glyph->advance.x += (FT_Pos)(factor * float(size) / 6.0f);
     return true;
   }
   return false;
@@ -973,7 +973,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
       const FT_Pos embolden = (FT_Pos)((current - target) >> 13);
       /* Horizontally widen strokes to counteract narrowing. */
       FT_Outline_EmboldenXY(&glyph->outline, embolden, 0);
-      const float scale = (float)(target - (embolden << 9)) / (float)current;
+      const float scale = float(target - (embolden << 9)) / float(current);
       FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
       FT_Outline_Transform(&glyph->outline, &matrix);
     }
@@ -1056,7 +1056,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   }
 
   if ((settings_font->flags & BLF_MONOSPACED) && (settings_font != glyph_font)) {
-    blf_glyph_transform_monospace(glyph, BLI_wcwidth((char32_t)charcode) * fixed_width);
+    blf_glyph_transform_monospace(glyph, BLI_wcwidth(char32_t(charcode)) * fixed_width);
   }
 
   /* Fallback glyph transforms, but only if required and not yet done. */
@@ -1162,11 +1162,11 @@ static void blf_texture_draw(const uchar color[4],
   /* Only one vertex per glyph, geometry shader expand it into a quad. */
   /* TODO: Get rid of Geom Shader because it's not optimal AT ALL for the GPU. */
   copy_v4_fl4(static_cast<float *>(GPU_vertbuf_raw_step(&g_batch.pos_step)),
-              (float)(x1 + g_batch.ofs[0]),
-              (float)(y1 + g_batch.ofs[1]),
-              (float)(x2 + g_batch.ofs[0]),
-              (float)(y2 + g_batch.ofs[1]));
-  copy_v4_v4_uchar(static_cast<unsigned char *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
+              float(x1 + g_batch.ofs[0]),
+              float(y1 + g_batch.ofs[1]),
+              float(x2 + g_batch.ofs[0]),
+              float(y2 + g_batch.ofs[1]));
+  copy_v4_v4_uchar(static_cast<uchar *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
   copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), glyph_size);
   *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = offset;
 
@@ -1231,7 +1231,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
 
       gc->bitmap_len_alloc = w * h;
       gc->bitmap_result = static_cast<char *>(
-          MEM_reallocN(gc->bitmap_result, (size_t)gc->bitmap_len_alloc));
+          MEM_reallocN(gc->bitmap_result, size_t(gc->bitmap_len_alloc)));
 
       /* Keep in sync with the texture. */
       if (gc->texture) {
@@ -1243,7 +1243,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       gc->bitmap_len_landed = 0;
     }
 
-    memcpy(&gc->bitmap_result[gc->bitmap_len], g->bitmap, (size_t)buff_size);
+    memcpy(&gc->bitmap_result[gc->bitmap_len], g->bitmap, size_t(buff_size));
     gc->bitmap_len = bitmap_len;
 
     g->glyph_cache = gc;
@@ -1262,7 +1262,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
     }
 
     rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, (int)((float)x * xa), (int)((float)y * ya));
+    blf_glyph_calc_rect_test(&rect_test, g, int(float(x) * xa), int(float(y) * ya));
     BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;

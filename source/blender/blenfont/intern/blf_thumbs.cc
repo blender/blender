@@ -255,10 +255,10 @@ static const char32_t *blf_get_sample_text(FT_Face face)
     return U"\xE000\xFFFF";
   }
 
-  int language_count = count_bits_i((uint)os2_table->ulUnicodeRange1) +
-                       count_bits_i((uint)os2_table->ulUnicodeRange2) +
-                       count_bits_i((uint)os2_table->ulUnicodeRange3) +
-                       count_bits_i((uint)os2_table->ulUnicodeRange4);
+  int language_count = count_bits_i(uint(os2_table->ulUnicodeRange1)) +
+                       count_bits_i(uint(os2_table->ulUnicodeRange2)) +
+                       count_bits_i(uint(os2_table->ulUnicodeRange3)) +
+                       count_bits_i(uint(os2_table->ulUnicodeRange4));
 
   /* Use OS/2 Table code page range bits to differentiate between (combined) CJK fonts.
    * See https://learn.microsoft.com/en-us/typography/opentype/spec/os2#cpr */
@@ -354,13 +354,13 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
     glyph_ids[i] = FT_Get_Char_Index(face, codepoints[i]);
     /* If sample glyph is not found, use another. */
     if (!glyph_ids[i]) {
-      glyph_ids[i] = (uint)(face->num_glyphs / (BLF_SAMPLE_LEN + 1)) * (i + 1);
+      glyph_ids[i] = uint(face->num_glyphs / (BLF_SAMPLE_LEN + 1)) * (i + 1);
     }
     /* Get advance without loading the glyph. */
     FT_Fixed advance;
     FT_Get_Advance(face, glyph_ids[i], FT_LOAD_NO_HINTING, &advance);
     /* Advance is returned in 16.16 format, so divide by 65536 for pixels. */
-    width += (int)(advance >> 16);
+    width += int(advance >> 16);
   }
 
   int height = ft_pix_to_int((ft_pix)face->size->metrics.ascender -
@@ -368,11 +368,11 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
   width = MAX2(width, height);
 
   /* Fill up to 96% horizontally or vertically. */
-  float font_size = MIN3((float)w,
-                         ((float)w * 0.96f / (float)width * (float)w),
-                         (float)h * 0.96f / (float)height * (float)h);
+  float font_size = MIN3(float(w),
+                         (float(w) * 0.96f / float(width) * float(w)),
+                         float(h) * 0.96f / float(height) * float(h));
 
-  if (font_size < 1 || FT_Set_Char_Size(face, (int)(font_size * 64.0f), 0, 72, 72) != FT_Err_Ok) {
+  if (font_size < 1 || FT_Set_Char_Size(face, int(font_size * 64.0f), 0, 72, 72) != FT_Err_Ok) {
     /* Sizing can fail, but very rarely. */
     FT_Done_Face(face);
     FT_Done_FreeType(ft_lib);
@@ -380,8 +380,8 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
   }
 
   /* Horizontally center, line up baselines vertically. */
-  int left = (int)(((float)w - ((float)width * (font_size / (float)w))) / 2.0f);
-  int top = (int)((float)h * 0.7f);
+  int left = int((float(w) - (float(width) * (font_size / float(w)))) / 2.0f);
+  int top = int(float(h) * 0.7f);
 
   /* Print out to buffer. */
 
@@ -402,15 +402,15 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*cha
 
     glyph_count++;
 
-    for (int y = 0; y < (int)face->glyph->bitmap.rows; y++) {
-      int dest_row = (h - y - 1 + (int)face->glyph->bitmap_top - top);
+    for (int y = 0; y < int(face->glyph->bitmap.rows); y++) {
+      int dest_row = (h - y - 1 + int(face->glyph->bitmap_top) - top);
       if (dest_row >= 0 && dest_row < h) {
-        for (int x = 0; x < (int)face->glyph->bitmap.width; x++) {
+        for (int x = 0; x < int(face->glyph->bitmap.width); x++) {
           int dest_col = (x + ft_pix_to_int((ft_pix)advance_x) + face->glyph->bitmap_left + left);
           if (dest_col >= 0 && dest_col < w) {
-            uchar *source = &face->glyph->bitmap.buffer[y * (int)face->glyph->bitmap.width + x];
+            uchar *source = &face->glyph->bitmap.buffer[y * int(face->glyph->bitmap.width) + x];
             uchar *dest = &buf[dest_row * w * 4 + (dest_col * 4 + 3)];
-            *dest = (uchar)MIN2(((uint)*dest + (uint)*source), 255u);
+            *dest = uchar(MIN2((uint(*dest) + uint(*source)), 255u));
           }
         }
       }

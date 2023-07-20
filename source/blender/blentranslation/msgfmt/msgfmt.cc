@@ -148,7 +148,7 @@ BLI_INLINE size_t uint32_to_bytes(const int value, char *bytes)
 {
   size_t i;
   for (i = 0; i < sizeof(value); i++) {
-    bytes[i] = (char)((value >> ((int)i * 8)) & 0xff);
+    bytes[i] = char((value >> (int(i) * 8)) & 0xff);
   }
   return i;
 }
@@ -188,11 +188,11 @@ static char *generate(GHash *messages, size_t *r_output_size)
     /* For each string, we need size and file offset.
      * Each string is nullptr terminated; the nullptr does not count into the size. */
     off->key_offset = tot_keys_len;
-    off->key_len = (uint32_t)strlen(keys[i]);
+    off->key_len = uint32_t(strlen(keys[i]));
     tot_keys_len += off->key_len + 1;
 
     off->val_offset = tot_vals_len;
-    off->val_len = (uint32_t)strlen(vals[i]);
+    off->val_len = uint32_t(strlen(vals[i]));
     tot_vals_len += off->val_len + 1;
   }
 
@@ -252,9 +252,9 @@ static char *generate(GHash *messages, size_t *r_output_size)
 /* Add a non-fuzzy translation to the dictionary. */
 static void add(GHash *messages, MemArena *memarena, const Message *msg)
 {
-  const size_t msgctxt_len = (size_t)BLI_dynstr_get_len(msg->ctxt);
-  const size_t msgid_len = (size_t)BLI_dynstr_get_len(msg->id);
-  const size_t msgstr_len = (size_t)BLI_dynstr_get_len(msg->str);
+  const size_t msgctxt_len = size_t(BLI_dynstr_get_len(msg->ctxt));
+  const size_t msgid_len = size_t(BLI_dynstr_get_len(msg->id));
+  const size_t msgstr_len = size_t(BLI_dynstr_get_len(msg->str));
   const size_t msgkey_len = msgid_len + ((msgctxt_len == 0) ? 0 : msgctxt_len + 1);
 
   if (!msg->is_fuzzy && msgstr_len != 0) {

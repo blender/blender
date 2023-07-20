@@ -54,7 +54,7 @@
 /** \name Allocate / Free Functions
  * \{ */
 
-StripProxy *seq_strip_proxy_alloc(void)
+StripProxy *seq_strip_proxy_alloc()
 {
   StripProxy *strip_proxy = static_cast<StripProxy *>(
       MEM_callocN(sizeof(StripProxy), "StripProxy"));
@@ -172,7 +172,7 @@ static void seq_sequence_free_ex(Scene *scene,
   SEQ_relations_sequence_free_anim(seq);
 
   if (seq->type & SEQ_TYPE_EFFECT) {
-    struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
+    SeqEffectHandle sh = SEQ_effect_handle_get(seq);
     sh.free(seq, do_id_user);
   }
 
@@ -325,7 +325,7 @@ static void seq_new_fix_links_recursive(Sequence *seq)
   }
 }
 
-SequencerToolSettings *SEQ_tool_settings_init(void)
+SequencerToolSettings *SEQ_tool_settings_init()
 {
   SequencerToolSettings *tool_settings = static_cast<SequencerToolSettings *>(
       MEM_callocN(sizeof(SequencerToolSettings), "Sequencer tool settings"));
@@ -559,7 +559,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
     seqn->strip->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->strip->stripdata));
   }
   else if (seq->type & SEQ_TYPE_EFFECT) {
-    struct SeqEffectHandle sh;
+    SeqEffectHandle sh;
     sh = SEQ_effect_handle_get(seq);
     if (sh.copy) {
       sh.copy(seqn, seq, flag);

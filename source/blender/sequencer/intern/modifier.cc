@@ -330,7 +330,7 @@ MINLINE float color_balance_fl_sop(float in,
 static void make_cb_table_float_lgg(float lift, float gain, float gamma, float *table, float mul)
 {
   for (int y = 0; y < 256; y++) {
-    float v = color_balance_fl_lgg((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
+    float v = color_balance_fl_lgg(float(y) * (1.0f / 255.0f), lift, gain, gamma, mul);
 
     table[y] = v;
   }
@@ -340,7 +340,7 @@ static void make_cb_table_float_sop(
     float slope, float offset, float power, float pivot, float *table, float mul)
 {
   for (int y = 0; y < 256; y++) {
-    float v = color_balance_fl_sop((float)y * (1.0f / 255.0f), slope, offset, power, pivot, mul);
+    float v = color_balance_fl_sop(float(y) * (1.0f / 255.0f), slope, offset, power, pivot, mul);
 
     table[y] = v;
   }
@@ -372,7 +372,7 @@ static void color_balance_byte_byte(
       }
 
       if (m) {
-        float m_normal = (float)m[c] / 255.0f;
+        float m_normal = float(m[c]) / 255.0f;
 
         p[c] = p[c] * (1.0f - m_normal) + t * m_normal;
       }
@@ -420,7 +420,7 @@ static void color_balance_byte_float(StripColorBalance *cb_,
   }
 
   for (i = 0; i < 256; i++) {
-    cb_tab[3][i] = ((float)i) * (1.0f / 255.0f);
+    cb_tab[3][i] = float(i) * (1.0f / 255.0f);
   }
 
   while (p < e) {
@@ -1026,14 +1026,14 @@ static void brightcontrast_apply_threaded(int width,
         uchar *pixel = rect + pixel_index;
 
         for (c = 0; c < 3; c++) {
-          i = (float)pixel[c] / 255.0f;
+          i = float(pixel[c]) / 255.0f;
           v = a * i + b;
 
           if (mask_rect) {
             uchar *m = mask_rect + pixel_index;
-            float t = (float)m[c] / 255.0f;
+            float t = float(m[c]) / 255.0f;
 
-            v = (float)pixel[c] / 255.0f * (1.0f - t) + v * t;
+            v = float(pixel[c]) / 255.0f * (1.0f - t) + v * t;
           }
 
           pixel[c] = unit_float_to_uchar_clamp(v);
@@ -1118,7 +1118,7 @@ static void maskmodifier_apply_threaded(int width,
          * this is the only way to alpha-over byte strip after
          * applying mask modifier.
          */
-        pixel[3] = (float)(pixel[3] * mask) / 255.0f;
+        pixel[3] = float(pixel[3] * mask) / 255.0f;
       }
       else if (rect_float) {
         int c;
@@ -1378,7 +1378,7 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
 /** \name Public Modifier Functions
  * \{ */
 
-static void sequence_modifier_type_info_init(void)
+static void sequence_modifier_type_info_init()
 {
 #define INIT_TYPE(typeName) (modifiersTypes[seqModifierType_##typeName] = &seqModifier_##typeName)
 

@@ -79,7 +79,7 @@ struct SeqCache {
   BLI_mempool *keys_pool;
   BLI_mempool *items_pool;
   SeqCacheKey *last_key;
-  struct SeqDiskCache *disk_cache;
+  SeqDiskCache *disk_cache;
   int thumbnail_count;
 };
 
@@ -104,9 +104,9 @@ static uint seq_hash_render_data(const SeqRenderData *a)
   uint rval = a->rectx + a->recty;
 
   rval ^= a->preview_render_size;
-  rval ^= ((intptr_t)a->bmain) << 6;
-  rval ^= ((intptr_t)a->scene) << 6;
-  rval ^= (int)(a->motion_blur_shutter * 100.0f) << 10;
+  rval ^= intptr_t(a->bmain) << 6;
+  rval ^= intptr_t(a->scene) << 6;
+  rval ^= int(a->motion_blur_shutter * 100.0f) << 10;
   rval ^= a->motion_blur_samples << 16;
   rval ^= ((a->scene->r.views_format * 2) + a->view_id) << 24;
 
@@ -120,7 +120,7 @@ static uint seq_cache_hashhash(const void *key_)
 
   rval ^= *(const uint *)&key->frame_index;
   rval += key->type;
-  rval ^= ((intptr_t)key->seq) << 6;
+  rval ^= intptr_t(key->seq) << 6;
 
   return rval;
 }
@@ -181,9 +181,9 @@ static void seq_cache_unlock(Scene *scene)
   }
 }
 
-static size_t seq_cache_get_mem_total(void)
+static size_t seq_cache_get_mem_total()
 {
-  return ((size_t)U.memcachelimit) * 1024 * 1024;
+  return (size_t(U.memcachelimit)) * 1024 * 1024;
 }
 
 static void seq_cache_keyfree(void *val)
@@ -718,7 +718,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
 
     const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(scene, key->seq);
     const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(scene, key->seq);
-    const int relative_base_frame = round_fl_to_int(frame_index / (float)frame_step) * frame_step;
+    const int relative_base_frame = round_fl_to_int(frame_index / float(frame_step)) * frame_step;
     const int nearest_guaranted_absolute_frame = relative_base_frame +
                                                  SEQ_time_left_handle_frame_get(scene, key->seq);
 
@@ -933,7 +933,7 @@ void SEQ_cache_iterate(
   seq_cache_unlock(scene);
 }
 
-bool seq_cache_is_full(void)
+bool seq_cache_is_full()
 {
   return seq_cache_get_mem_total() < MEM_get_memory_in_use();
 }

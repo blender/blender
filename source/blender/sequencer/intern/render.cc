@@ -254,7 +254,7 @@ StripElem *SEQ_render_give_stripelem(const Scene *scene, Sequence *seq, int time
      * all other strips don't use this...
      */
 
-    int frame_index = (int)SEQ_give_frame_index(scene, seq, timeline_frame);
+    int frame_index = int(SEQ_give_frame_index(scene, seq, timeline_frame));
 
     if (frame_index == -1 || se == nullptr) {
       return nullptr;
@@ -447,7 +447,7 @@ static void sequencer_image_crop_init(const Sequence *seq,
 
 static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
 {
-  float image_scale_factor = (float)out->x / in->x;
+  float image_scale_factor = float(out->x) / in->x;
   float transform_matrix[4][4];
 
   /* Set to keep same loc,scale,rot but change scale to thumb size limit. */
@@ -519,7 +519,7 @@ static void sequencer_preprocess_transform_crop(
 {
   const Scene *scene = context->scene;
   const float preview_scale_factor = context->preview_render_size == SEQ_RENDER_SIZE_SCENE ?
-                                         (float)scene->r.size / 100 :
+                                         float(scene->r.size) / 100 :
                                          SEQ_rendersize_to_scale_factor(
                                              context->preview_render_size);
   const bool do_scale_to_render_size = seq_need_scale_to_render_size(seq, is_proxy_image);
@@ -580,7 +580,7 @@ static void multibuf(ImBuf *ibuf, const float fmul)
   rt_float = ibuf->float_buffer.data;
 
   if (rt) {
-    const int imul = (int)(256.0f * fmul);
+    const int imul = int(256.0f * fmul);
     a = ibuf->x * ibuf->y;
     while (a--) {
       rt[0] = min_ii((imul * rt[0]) >> 8, 255);
@@ -715,7 +715,7 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
 }
 
 struct RenderEffectInitData {
-  struct SeqEffectHandle *sh;
+  SeqEffectHandle *sh;
   const SeqRenderData *context;
   Sequence *seq;
   float timeline_frame, fac;
@@ -725,7 +725,7 @@ struct RenderEffectInitData {
 };
 
 struct RenderEffectThread {
-  struct SeqEffectHandle *sh;
+  SeqEffectHandle *sh;
   const SeqRenderData *context;
   Sequence *seq;
   float timeline_frame, fac;
@@ -775,7 +775,7 @@ static void *render_effect_execute_do_thread(void *thread_data_v)
   return nullptr;
 }
 
-ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
+ImBuf *seq_render_effect_execute_threaded(SeqEffectHandle *sh,
                                           const SeqRenderData *context,
                                           Sequence *seq,
                                           float timeline_frame,
@@ -815,7 +815,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
   float fac;
   int early_out;
   int i;
-  struct SeqEffectHandle sh = SEQ_effect_handle_get(seq);
+  SeqEffectHandle sh = SEQ_effect_handle_get(seq);
   FCurve *fcu = nullptr;
   ImBuf *ibuf[3];
   Sequence *input[3];
@@ -1065,7 +1065,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
     }
   }
 
-  int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
+  int frameno = int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
                 seq->anim_startofs;
   return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
@@ -1361,7 +1361,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     ub_dst = ibuf->byte_buffer.data;
     i = context->rectx * context->recty;
     while (--i) {
-      ub_dst[0] = ub_dst[1] = ub_dst[2] = (uchar)(*fp_src * 255.0f); /* already clamped */
+      ub_dst[0] = ub_dst[1] = ub_dst[2] = uchar(*fp_src * 255.0f); /* already clamped */
       ub_dst[3] = 255;
 
       fp_src += 1;
@@ -1452,7 +1452,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
   }
 
   scene = seq->scene;
-  frame = (double)scene->r.sfra + (double)frame_index + (double)seq->anim_startofs;
+  frame = double(scene->r.sfra) + double(frame_index) + double(seq->anim_startofs);
 
 #if 0 /* UNUSED */
   have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
@@ -1824,7 +1824,7 @@ static bool seq_must_swap_input_in_blend_mode(Sequence *seq)
 
 static int seq_get_early_out_for_blend_mode(Sequence *seq)
 {
-  struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
+  SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
   float fac = seq->blend_opacity / 100.0f;
   int early_out = sh.early_out(seq, fac);
 
@@ -1847,7 +1847,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, ImBuf *ibuf1, ImBuf *ibuf2)
 {
   ImBuf *out;
-  struct SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
+  SeqEffectHandle sh = seq_effect_get_sequence_blend(seq);
   float fac = seq->blend_opacity / 100.0f;
   int swap_input = seq_must_swap_input_in_blend_mode(seq);
 
@@ -2065,8 +2065,7 @@ float SEQ_render_thumbnail_first_frame_get(const Scene *scene,
     return SEQ_time_left_handle_frame_get(scene, seq);
   }
 
-  float aligned_frame_offset = (int)((first_drawable_frame - seq->start) / frame_step) *
-                               frame_step;
+  float aligned_frame_offset = int((first_drawable_frame - seq->start) / frame_step) * frame_step;
   return seq->start + aligned_frame_offset;
 }
 
@@ -2079,7 +2078,7 @@ float SEQ_render_thumbnail_next_frame_get(const Scene *scene,
 
   /* If handle position was displayed, align next frame with `seq->start`. */
   if (last_frame == SEQ_time_left_handle_frame_get(scene, seq)) {
-    next_frame = seq->start + ((int)((last_frame - seq->start) / frame_step) + 1) * frame_step;
+    next_frame = seq->start + (int((last_frame - seq->start) / frame_step) + 1) * frame_step;
   }
 
   return next_frame;
@@ -2098,7 +2097,7 @@ static ImBuf *seq_get_uncached_thumbnail(const SeqRenderData *context,
     return nullptr;
   }
 
-  float aspect_ratio = (float)ibuf->x / ibuf->y;
+  float aspect_ratio = float(ibuf->x) / ibuf->y;
   int rectx, recty;
   /* Calculate new dimensions - THUMB_SIZE (256) for x or y. */
   if (ibuf->x > ibuf->y) {

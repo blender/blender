@@ -18,7 +18,7 @@
 
 #include "multiview.h"
 
-void seq_anim_add_suffix(Scene *scene, struct anim *anim, const int view_id)
+void seq_anim_add_suffix(Scene *scene, anim *anim, const int view_id)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
   IMB_suffix_anim(anim, suffix);

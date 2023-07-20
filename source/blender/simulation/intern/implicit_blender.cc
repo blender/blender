@@ -179,7 +179,7 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
    * different results each time you run it!
    * schedule(guided, 2) */
   //#pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
-  for (i = 0; i < (long)verts; i++) {
+  for (i = 0; i < long(verts); i++) {
     temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
   }
   return temp;
@@ -1590,7 +1590,7 @@ static void edge_wind_vertex(const float dir[3],
   /* angle of wind direction to edge */
   cos_alpha = dot_v3v3(wind, dir) / windlen;
   sin_alpha = sqrtf(1.0f - cos_alpha * cos_alpha);
-  cross_section = radius * ((float)M_PI * radius * sin_alpha + length * cos_alpha);
+  cross_section = radius * (float(M_PI) * radius * sin_alpha + length * cos_alpha);
 
   mul_v3_v3fl(f, wind, density * cross_section);
 }
@@ -1851,7 +1851,7 @@ bool SIM_mass_spring_force_spring_bending(
 
 BLI_INLINE void poly_avg(lfVector *data, const int *inds, int len, float r_avg[3])
 {
-  float fact = 1.0f / (float)len;
+  float fact = 1.0f / float(len);
 
   zero_v3(r_avg);
 

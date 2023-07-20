@@ -52,7 +52,7 @@ int BLF_load_mono_default(const bool unique)
   return font_id;
 }
 
-static void blf_load_datafiles_dir(void)
+static void blf_load_datafiles_dir()
 {
   const char *datafiles_fonts_dir = BLF_DATAFILES_FONTS_DIR SEP_STR;
   const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, datafiles_fonts_dir);
@@ -65,7 +65,7 @@ static void blf_load_datafiles_dir(void)
     return;
   }
 
-  struct direntry *file_list;
+  direntry *file_list;
   uint file_list_num = BLI_filelist_dir_contents(path, &file_list);
   for (int i = 0; i < file_list_num; i++) {
     if (S_ISDIR(file_list[i].s.st_mode)) {
@@ -94,7 +94,7 @@ static void blf_load_datafiles_dir(void)
   BLI_filelist_free(file_list, file_list_num);
 }
 
-void BLF_load_font_stack(void)
+void BLF_load_font_stack()
 {
   /* Load these if not already, might have been replaced by user custom. */
   BLF_load_default(false);

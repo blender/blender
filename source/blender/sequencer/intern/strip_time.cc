@@ -50,7 +50,7 @@ float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence
     return 1.0f;
   }
 
-  float scene_playback_rate = (float)scene->r.frs_sec / scene->r.frs_sec_base;
+  float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
   return seq->media_playback_rate / scene_playback_rate;
 }
 
@@ -105,7 +105,7 @@ float SEQ_give_frame_index(const Scene *scene, Sequence *seq, float timeline_fra
   }
 
   if (seq->strobe > 1.0f) {
-    frame_index -= fmodf((double)frame_index, (double)seq->strobe);
+    frame_index -= fmodf(double(frame_index), double(seq->strobe));
   }
 
   return frame_index;
@@ -349,7 +349,7 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
       short frs_sec;
       float frs_sec_base;
       if (IMB_anim_get_fps(strip_anim->anim, &frs_sec, &frs_sec_base, true)) {
-        return (float)frs_sec / frs_sec_base;
+        return float(frs_sec) / frs_sec_base;
       }
       break;
     }
@@ -360,7 +360,7 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
       break;
     case SEQ_TYPE_SCENE:
       if (seq->scene != nullptr) {
-        return (float)seq->scene->r.frs_sec / seq->scene->r.frs_sec_base;
+        return float(seq->scene->r.frs_sec) / seq->scene->r.frs_sec_base;
       }
       break;
   }
@@ -421,8 +421,8 @@ void seq_time_gap_info_get(const Scene *scene,
   rctf rectf;
   /* Get first and last frame. */
   SEQ_timeline_boundbox(scene, seqbase, &rectf);
-  const int sfra = (int)rectf.xmin;
-  const int efra = (int)rectf.xmax;
+  const int sfra = int(rectf.xmin);
+  const int efra = int(rectf.xmax);
   int timeline_frame = initial_frame;
   r_gap_info->gap_exists = false;
 

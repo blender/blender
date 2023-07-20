@@ -50,7 +50,7 @@
 #include "render.h"
 
 struct PrefetchJob {
-  struct PrefetchJob *next, *prev;
+  PrefetchJob *next, *prev;
 
   Main *bmain;
   Main *bmain_eval;
@@ -248,7 +248,7 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   }
 }
 
-void SEQ_prefetch_stop_all(void)
+void SEQ_prefetch_stop_all()
 {
   /* TODO(Richard): Use wm_jobs for prefetch, or pass main. */
   for (Scene *scene = static_cast<Scene *>(G.main->scenes.first); scene;
@@ -572,7 +572,7 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;
   Editing *ed = scene->ed;
-  bool has_strips = (bool)ed->seqbasep->first;
+  bool has_strips = bool(ed->seqbasep->first);
 
   if (!context->is_prefetch_render && !context->is_proxy_render) {
     bool playing = seq_prefetch_is_playing(context->bmain);

@@ -502,18 +502,18 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
 
   switch (fit_method) {
     case SEQ_SCALE_TO_FIT:
-      transform->scale_x = transform->scale_y = MIN2((float)preview_width / (float)image_width,
-                                                     (float)preview_height / (float)image_height);
+      transform->scale_x = transform->scale_y = MIN2(float(preview_width) / float(image_width),
+                                                     float(preview_height) / float(image_height));
 
       break;
     case SEQ_SCALE_TO_FILL:
 
-      transform->scale_x = transform->scale_y = MAX2((float)preview_width / (float)image_width,
-                                                     (float)preview_height / (float)image_height);
+      transform->scale_x = transform->scale_y = MAX2(float(preview_width) / float(image_width),
+                                                     float(preview_height) / float(image_height));
       break;
     case SEQ_STRETCH_TO_FILL:
-      transform->scale_x = (float)preview_width / (float)image_width;
-      transform->scale_y = (float)preview_height / (float)image_height;
+      transform->scale_x = float(preview_width) / float(image_width);
+      transform->scale_y = float(preview_height) / float(image_height);
       break;
     case SEQ_USE_ORIGINAL_SIZE:
       transform->scale_x = 1.0f;

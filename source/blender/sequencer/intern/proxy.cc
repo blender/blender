@@ -54,7 +54,7 @@
 #include "utils.h"
 
 struct SeqIndexBuildContext {
-  struct IndexBuildContext *index_context;
+  IndexBuildContext *index_context;
 
   int tc_flags;
   int size_flags;
@@ -213,7 +213,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
+    int frameno = int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
                   seq->anim_startofs;
     if (proxy->anim == nullptr) {
       if (seq_proxy_get_filepath(
@@ -292,7 +292,7 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
     ibuf = IMB_dupImBuf(ibuf_tmp);
     IMB_metadata_copy(ibuf, ibuf_tmp);
     IMB_freeImBuf(ibuf_tmp);
-    IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
+    IMB_scalefastImBuf(ibuf, short(rectx), short(recty));
   }
   else {
     ibuf = ibuf_tmp;
@@ -411,7 +411,7 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-static bool seq_proxy_need_rebuild(Sequence *seq, struct anim *anim)
+static bool seq_proxy_need_rebuild(Sequence *seq, anim *anim)
 {
   if ((seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0) {
     return true;
@@ -565,7 +565,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, bool *stop, bool *do_updat
       seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 100, overwrite);
     }
 
-    *progress = (float)(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq)) /
+    *progress = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq)) /
                 (SEQ_time_right_handle_frame_get(scene, seq) -
                  SEQ_time_left_handle_frame_get(scene, seq));
     *do_update = true;
@@ -606,7 +606,7 @@ void SEQ_proxy_set(Sequence *seq, bool value)
   }
 }
 
-void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir)
+void seq_proxy_index_dir_set(anim *anim, const char *base_dir)
 {
   char dirname[FILE_MAX];
   char filename[FILE_MAXFILE];

@@ -59,7 +59,7 @@ static FontBLF *blf_get(int fontid)
   return nullptr;
 }
 
-int BLF_init(void)
+int BLF_init()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     global_font[i] = nullptr;
@@ -68,7 +68,7 @@ int BLF_init(void)
   return blf_font_init();
 }
 
-void BLF_exit(void)
+void BLF_exit()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
@@ -81,7 +81,7 @@ void BLF_exit(void)
   blf_font_exit();
 }
 
-void BLF_cache_clear(void)
+void BLF_cache_clear()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
@@ -123,7 +123,7 @@ static int blf_search_by_filepath(const char *filepath)
   return -1;
 }
 
-static int blf_search_available(void)
+static int blf_search_available()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     if (!global_font[i]) {
@@ -277,7 +277,7 @@ void BLF_unload_id(int fontid)
   }
 }
 
-void BLF_unload_all(void)
+void BLF_unload_all()
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
@@ -486,20 +486,20 @@ void BLF_color3f(int fontid, float r, float g, float b)
   BLF_color4fv(fontid, rgba);
 }
 
-void BLF_batch_draw_begin(void)
+void BLF_batch_draw_begin()
 {
   BLI_assert(g_batch.enabled == false);
   g_batch.enabled = true;
 }
 
-void BLF_batch_draw_flush(void)
+void BLF_batch_draw_flush()
 {
   if (g_batch.enabled) {
     blf_batch_draw();
   }
 }
 
-void BLF_batch_draw_end(void)
+void BLF_batch_draw_end()
 {
   BLI_assert(g_batch.enabled == true);
   blf_batch_draw(); /* Draw remaining glyphs */
@@ -541,7 +541,7 @@ static void blf_draw_gl__end(const FontBLF *font)
   }
 }
 
-void BLF_draw_ex(int fontid, const char *str, const size_t str_len, struct ResultBLF *r_info)
+void BLF_draw_ex(int fontid, const char *str, const size_t str_len, ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -640,7 +640,7 @@ size_t BLF_width_to_strlen(
     int width_result;
     ret = blf_font_width_to_strlen(font, str, str_len, width / xa, &width_result);
     if (r_width) {
-      *r_width = (float)width_result * xa;
+      *r_width = float(width_result) * xa;
     }
     return ret;
   }
@@ -662,7 +662,7 @@ size_t BLF_width_to_rstrlen(
     int width_result;
     ret = blf_font_width_to_rstrlen(font, str, str_len, width / xa, &width_result);
     if (r_width) {
-      *r_width = (float)width_result * xa;
+      *r_width = float(width_result) * xa;
     }
     return ret;
   }
@@ -674,7 +674,7 @@ size_t BLF_width_to_rstrlen(
 }
 
 void BLF_boundbox_ex(
-    int fontid, const char *str, const size_t str_len, rcti *r_box, struct ResultBLF *r_info)
+    int fontid, const char *str, const size_t str_len, rcti *r_box, ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -708,7 +708,7 @@ void BLF_width_and_height(
   }
 }
 
-float BLF_width_ex(int fontid, const char *str, const size_t str_len, struct ResultBLF *r_info)
+float BLF_width_ex(int fontid, const char *str, const size_t str_len, ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -737,7 +737,7 @@ float BLF_fixed_width(int fontid)
   return 0.0f;
 }
 
-float BLF_height_ex(int fontid, const char *str, const size_t str_len, struct ResultBLF *r_info)
+float BLF_height_ex(int fontid, const char *str, const size_t str_len, ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 
@@ -887,12 +887,9 @@ void blf_draw_buffer__start(FontBLF *font)
     srgb_to_linearrgb_v4(buf_info->col_float, buf_info->col_init);
   }
 }
-void blf_draw_buffer__end(void) {}
+void blf_draw_buffer__end() {}
 
-void BLF_draw_buffer_ex(int fontid,
-                        const char *str,
-                        const size_t str_len,
-                        struct ResultBLF *r_info)
+void BLF_draw_buffer_ex(int fontid, const char *str, const size_t str_len, ResultBLF *r_info)
 {
   FontBLF *font = blf_get(fontid);
 

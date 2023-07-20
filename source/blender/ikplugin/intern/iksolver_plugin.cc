@@ -262,10 +262,7 @@ static void where_is_ik_bone(bPoseChannel *pchan,
  * Called from within the core #BKE_pose_where_is loop, all animation-systems and constraints
  * were executed & assigned. Now as last we do an IK pass.
  */
-static void execute_posetree(struct Depsgraph *depsgraph,
-                             struct Scene *scene,
-                             Object *ob,
-                             PoseTree *tree)
+static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, PoseTree *tree)
 {
   float R_parmat[3][3], identity[3][3];
   float iR_parmat[3][3];
@@ -575,8 +572,8 @@ static void free_posetree(PoseTree *tree)
 /* ------------------------------
  * Plugin API for legacy iksolver */
 
-void iksolver_initialize_tree(struct Depsgraph * /*depsgraph*/,
-                              struct Scene * /*scene*/,
+void iksolver_initialize_tree(Depsgraph * /*depsgraph*/,
+                              Scene * /*scene*/,
                               Object *ob,
                               float /*ctime*/)
 {
@@ -590,11 +587,8 @@ void iksolver_initialize_tree(struct Depsgraph * /*depsgraph*/,
   ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void iksolver_execute_tree(struct Depsgraph *depsgraph,
-                           struct Scene *scene,
-                           Object *ob,
-                           bPoseChannel *pchan_root,
-                           float ctime)
+void iksolver_execute_tree(
+    Depsgraph *depsgraph, Scene *scene, Object *ob, bPoseChannel *pchan_root, float ctime)
 {
   while (pchan_root->iktree.first) {
     PoseTree *tree = static_cast<PoseTree *>(pchan_root->iktree.first);
@@ -635,7 +629,7 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
   }
 }
 
-void iksolver_release_tree(struct Scene * /*scene*/, Object *ob, float /*ctime*/)
+void iksolver_release_tree(Scene * /*scene*/, Object *ob, float /*ctime*/)
 {
   iksolver_clear_data(ob->pose);
 }
