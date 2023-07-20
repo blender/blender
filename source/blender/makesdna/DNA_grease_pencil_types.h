@@ -494,6 +494,13 @@ typedef struct GreasePencil {
 
   void remove_drawing(int index);
 
+  /**
+   * Returns an editable drawing on \a layer at frame \a frame_number or `nullptr` if no such
+   * drawing exists.
+   */
+  blender::bke::greasepencil::Drawing *get_editable_drawing_at(
+      const blender::bke::greasepencil::Layer *layer, int frame_number) const;
+
   void foreach_visible_drawing(
       int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function);
   void foreach_editable_drawing(
