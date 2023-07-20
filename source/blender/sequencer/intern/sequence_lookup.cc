@@ -26,12 +26,12 @@
 
 static ThreadMutex lookup_lock = BLI_MUTEX_INITIALIZER;
 
-typedef struct SequenceLookup {
+struct SequenceLookup {
   GHash *seq_by_name;
   GHash *meta_by_seq;
   GHash *effects_by_seq;
   eSequenceLookupTag tag;
-} SequenceLookup;
+};
 
 static void seq_sequence_lookup_init(SequenceLookup *lookup)
 {
@@ -45,12 +45,13 @@ static void seq_sequence_lookup_append_effect(Sequence *input,
                                               Sequence *effect,
                                               SequenceLookup *lookup)
 {
-  if (input == NULL) {
+  if (input == nullptr) {
     return;
   }
 
-  SeqCollection *effects = BLI_ghash_lookup(lookup->effects_by_seq, input);
-  if (effects == NULL) {
+  SeqCollection *effects = static_cast<SeqCollection *>(
+      BLI_ghash_lookup(lookup->effects_by_seq, input));
+  if (effects == nullptr) {
     effects = SEQ_collection_create(__func__);
     BLI_ghash_insert(lookup->effects_by_seq, input, effects);
   }
@@ -86,31 +87,32 @@ static void seq_sequence_lookup_build_from_seqbase(Sequence *parent_meta,
 static void seq_sequence_lookup_build(const Scene *scene, SequenceLookup *lookup)
 {
   Editing *ed = SEQ_editing_get(scene);
-  seq_sequence_lookup_build_from_seqbase(NULL, &ed->seqbase, lookup);
+  seq_sequence_lookup_build_from_seqbase(nullptr, &ed->seqbase, lookup);
   lookup->tag &= ~SEQ_LOOKUP_TAG_INVALID;
 }
 
 static SequenceLookup *seq_sequence_lookup_new(void)
 {
-  SequenceLookup *lookup = MEM_callocN(sizeof(SequenceLookup), __func__);
+  SequenceLookup *lookup = static_cast<SequenceLookup *>(
+      MEM_callocN(sizeof(SequenceLookup), __func__));
   seq_sequence_lookup_init(lookup);
   return lookup;
 }
 
 static void seq_sequence_lookup_free(SequenceLookup **lookup)
 {
-  if (*lookup == NULL) {
+  if (*lookup == nullptr) {
     return;
   }
 
-  BLI_ghash_free((*lookup)->seq_by_name, NULL, NULL);
-  BLI_ghash_free((*lookup)->meta_by_seq, NULL, NULL);
-  BLI_ghash_free((*lookup)->effects_by_seq, NULL, SEQ_collection_free_void_p);
-  (*lookup)->seq_by_name = NULL;
-  (*lookup)->meta_by_seq = NULL;
-  (*lookup)->effects_by_seq = NULL;
+  BLI_ghash_free((*lookup)->seq_by_name, nullptr, nullptr);
+  BLI_ghash_free((*lookup)->meta_by_seq, nullptr, nullptr);
+  BLI_ghash_free((*lookup)->effects_by_seq, nullptr, SEQ_collection_free_void_p);
+  (*lookup)->seq_by_name = nullptr;
+  (*lookup)->meta_by_seq = nullptr;
+  (*lookup)->effects_by_seq = nullptr;
   MEM_freeN(*lookup);
-  *lookup = NULL;
+  *lookup = nullptr;
 }
 
 static void seq_sequence_lookup_rebuild(const Scene *scene, SequenceLookup **lookup)
@@ -152,7 +154,7 @@ Sequence *SEQ_sequence_lookup_seq_by_name(const Scene *scene, const char *key)
   BLI_mutex_lock(&lookup_lock);
   seq_sequence_lookup_update_if_needed(scene, &scene->ed->runtime.sequence_lookup);
   SequenceLookup *lookup = scene->ed->runtime.sequence_lookup;
-  Sequence *seq = BLI_ghash_lookup(lookup->seq_by_name, key);
+  Sequence *seq = static_cast<Sequence *>(BLI_ghash_lookup(lookup->seq_by_name, key));
   BLI_mutex_unlock(&lookup_lock);
   return seq;
 }
@@ -163,7 +165,7 @@ Sequence *seq_sequence_lookup_meta_by_seq(const Scene *scene, const Sequence *ke
   BLI_mutex_lock(&lookup_lock);
   seq_sequence_lookup_update_if_needed(scene, &scene->ed->runtime.sequence_lookup);
   SequenceLookup *lookup = scene->ed->runtime.sequence_lookup;
-  Sequence *seq = BLI_ghash_lookup(lookup->meta_by_seq, key);
+  Sequence *seq = static_cast<Sequence *>(BLI_ghash_lookup(lookup->meta_by_seq, key));
   BLI_mutex_unlock(&lookup_lock);
   return seq;
 }
@@ -174,7 +176,8 @@ SeqCollection *seq_sequence_lookup_effects_by_seq(const Scene *scene, const Sequ
   BLI_mutex_lock(&lookup_lock);
   seq_sequence_lookup_update_if_needed(scene, &scene->ed->runtime.sequence_lookup);
   SequenceLookup *lookup = scene->ed->runtime.sequence_lookup;
-  SeqCollection *effects = BLI_ghash_lookup(lookup->effects_by_seq, key);
+  SeqCollection *effects = static_cast<SeqCollection *>(
+      BLI_ghash_lookup(lookup->effects_by_seq, key));
   BLI_mutex_unlock(&lookup_lock);
   return effects;
 }
@@ -187,7 +190,7 @@ void SEQ_sequence_lookup_tag(const Scene *scene, eSequenceLookupTag tag)
 
   BLI_mutex_lock(&lookup_lock);
   SequenceLookup *lookup = scene->ed->runtime.sequence_lookup;
-  if (lookup != NULL) {
+  if (lookup != nullptr) {
     lookup->tag |= tag;
   }
   BLI_mutex_unlock(&lookup_lock);

@@ -35,7 +35,8 @@ void SEQ_channels_ensure(ListBase *channels)
 {
   /* Allocate channels. Channel 0 is never used, but allocated to prevent off by 1 issues. */
   for (int i = 0; i < MAXSEQ + 1; i++) {
-    SeqTimelineChannel *channel = MEM_callocN(sizeof(SeqTimelineChannel), "seq timeline channel");
+    SeqTimelineChannel *channel = static_cast<SeqTimelineChannel *>(
+        MEM_callocN(sizeof(SeqTimelineChannel), "seq timeline channel"));
     SNPRINTF(channel->name, "Channel %d", i);
     channel->index = i;
     BLI_addtail(channels, channel);
@@ -45,7 +46,8 @@ void SEQ_channels_ensure(ListBase *channels)
 void SEQ_channels_duplicate(ListBase *channels_dst, ListBase *channels_src)
 {
   LISTBASE_FOREACH (SeqTimelineChannel *, channel, channels_src) {
-    SeqTimelineChannel *channel_duplicate = MEM_dupallocN(channel);
+    SeqTimelineChannel *channel_duplicate = static_cast<SeqTimelineChannel *>(
+        MEM_dupallocN(channel));
     BLI_addtail(channels_dst, channel_duplicate);
   }
 }
@@ -59,7 +61,7 @@ void SEQ_channels_free(ListBase *channels)
 
 SeqTimelineChannel *SEQ_channel_get_by_index(const ListBase *channels, const int channel_index)
 {
-  return BLI_findlink(channels, channel_index);
+  return static_cast<SeqTimelineChannel *>(BLI_findlink(channels, channel_index));
 }
 
 char *SEQ_channel_name_get(ListBase *channels, const int channel_index)
@@ -85,7 +87,7 @@ bool SEQ_channel_is_muted(const SeqTimelineChannel *channel)
 
 ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Sequence *seq)
 {
-  ListBase *lb = NULL;
+  ListBase *lb = nullptr;
 
   LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
     if (seq == iseq) {
@@ -96,5 +98,5 @@ ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const S
     }
   }
 
-  return NULL;
+  return nullptr;
 }

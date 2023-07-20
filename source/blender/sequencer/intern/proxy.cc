@@ -53,7 +53,7 @@
 #include "strip_time.h"
 #include "utils.h"
 
-typedef struct SeqIndexBuildContext {
+struct SeqIndexBuildContext {
   struct IndexBuildContext *index_context;
 
   int tc_flags;
@@ -67,7 +67,7 @@ typedef struct SeqIndexBuildContext {
   Scene *scene;
   Sequence *seq, *orig_seq;
   SessionUUID orig_seq_uuid;
-} SeqIndexBuildContext;
+};
 
 int SEQ_rendersize_to_proxysize(int render_size)
 {
@@ -104,7 +104,7 @@ bool seq_proxy_get_custom_file_filepath(Sequence *seq, char *filepath, const int
   char suffix[24];
   StripProxy *proxy = seq->strip->proxy;
 
-  if (proxy == NULL) {
+  if (proxy == nullptr) {
     return false;
   }
 
@@ -137,7 +137,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   Editing *ed = SEQ_editing_get(scene);
   StripProxy *proxy = seq->strip->proxy;
 
-  if (proxy == NULL) {
+  if (proxy == nullptr) {
     return false;
   }
 
@@ -191,7 +191,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
 
 bool SEQ_can_use_proxy(const SeqRenderData *context, Sequence *seq, int psize)
 {
-  if (seq->strip->proxy == NULL || !context->use_proxies) {
+  if (seq->strip->proxy == nullptr || !context->use_proxies) {
     return false;
   }
 
@@ -203,35 +203,36 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
 {
   char filepath[PROXY_MAXFILE];
   StripProxy *proxy = seq->strip->proxy;
-  const eSpaceSeq_Proxy_RenderSize psize = context->preview_render_size;
+  const eSpaceSeq_Proxy_RenderSize psize = eSpaceSeq_Proxy_RenderSize(
+      context->preview_render_size);
   StripAnim *sanim;
 
   /* only use proxies, if they are enabled (even if present!) */
   if (!SEQ_can_use_proxy(context, seq, SEQ_rendersize_to_proxysize(psize))) {
-    return NULL;
+    return nullptr;
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
     int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                   seq->anim_startofs;
-    if (proxy->anim == NULL) {
+    if (proxy->anim == nullptr) {
       if (seq_proxy_get_filepath(
               context->scene, seq, timeline_frame, psize, filepath, context->view_id) == 0)
       {
-        return NULL;
+        return nullptr;
       }
 
       proxy->anim = openanim(filepath, IB_rect, 0, seq->strip->colorspace_settings.name);
     }
-    if (proxy->anim == NULL) {
-      return NULL;
+    if (proxy->anim == nullptr) {
+      return nullptr;
     }
 
     seq_open_anim_file(context->scene, seq, true);
-    sanim = seq->anims.first;
+    sanim = static_cast<StripAnim *>(seq->anims.first);
 
     frameno = IMB_anim_index_get_frame_index(
-        sanim ? sanim->anim : NULL, seq->strip->proxy->tc, frameno);
+        sanim ? sanim->anim : nullptr, IMB_Timecode_Type(seq->strip->proxy->tc), frameno);
 
     return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
   }
@@ -239,11 +240,11 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   if (seq_proxy_get_filepath(
           context->scene, seq, timeline_frame, psize, filepath, context->view_id) == 0)
   {
-    return NULL;
+    return nullptr;
   }
 
   if (BLI_exists(filepath)) {
-    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, NULL);
+    ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
 
     if (ibuf) {
       seq_imbuf_assign_spaces(context->scene, ibuf);
@@ -252,7 +253,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
     return ibuf;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void seq_proxy_build_frame(const SeqRenderData *context,
@@ -268,8 +269,12 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
   ImBuf *ibuf_tmp, *ibuf;
   Scene *scene = context->scene;
 
-  if (!seq_proxy_get_filepath(
-          scene, seq, timeline_frame, proxy_render_size, filepath, context->view_id))
+  if (!seq_proxy_get_filepath(scene,
+                              seq,
+                              timeline_frame,
+                              eSpaceSeq_Proxy_RenderSize(proxy_render_size),
+                              filepath,
+                              context->view_id))
   {
     return;
   }
@@ -317,10 +322,10 @@ static void seq_proxy_build_frame(const SeqRenderData *context,
 /**
  * Cache the result of #BKE_scene_multiview_view_prefix_get.
  */
-typedef struct MultiViewPrefixVars {
+struct MultiViewPrefixVars {
   char prefix[FILE_MAX];
   const char *ext;
-} MultiViewPrefixVars;
+};
 
 /**
  * Returns whether the file this context would read from even exist,
@@ -345,7 +350,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq,
     if (view_id == 0) {
       /* Clear on first use. */
       prefix_vars->prefix[0] = '\0';
-      prefix_vars->ext = NULL;
+      prefix_vars->ext = nullptr;
 
       char filepath[FILE_MAX];
       BLI_path_join(
@@ -394,8 +399,8 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
           num_views = 2;
           break;
         case R_IMF_VIEWS_MULTIVIEW:
-          /* not supported at the moment */
-          /* pass through */
+        /* not supported at the moment */
+        /* pass through */
         default:
           num_views = 1;
       }
@@ -412,7 +417,7 @@ static bool seq_proxy_need_rebuild(Sequence *seq, struct anim *anim)
     return true;
   }
 
-  IMB_Proxy_Size required_proxies = seq->strip->proxy->build_size_flags;
+  IMB_Proxy_Size required_proxies = IMB_Proxy_Size(seq->strip->proxy->build_size_flags);
   int built_proxies = IMB_anim_proxy_get_existing(anim);
   return (required_proxies & built_proxies) != required_proxies;
 }
@@ -450,16 +455,17 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     /* Check if proxies are already built here, because actually opening anims takes a lot of
      * time. */
     seq_open_anim_file(scene, seq, false);
-    StripAnim *sanim = BLI_findlink(&seq->anims, i);
+    StripAnim *sanim = static_cast<StripAnim *>(BLI_findlink(&seq->anims, i));
     if (sanim->anim && !seq_proxy_need_rebuild(seq, sanim->anim)) {
       continue;
     }
 
     SEQ_relations_sequence_free_anim(seq);
 
-    context = MEM_callocN(sizeof(SeqIndexBuildContext), "seq proxy rebuild context");
+    context = static_cast<SeqIndexBuildContext *>(
+        MEM_callocN(sizeof(SeqIndexBuildContext), "seq proxy rebuild context"));
 
-    nseq = SEQ_sequence_dupli_recursive(scene, scene, NULL, seq, 0);
+    nseq = SEQ_sequence_dupli_recursive(scene, scene, nullptr, seq, 0);
 
     context->tc_flags = nseq->strip->proxy->build_tc_flags;
     context->size_flags = nseq->strip->proxy->build_size_flags;
@@ -477,16 +483,17 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 
     if (nseq->type == SEQ_TYPE_MOVIE) {
       seq_open_anim_file(scene, nseq, true);
-      sanim = BLI_findlink(&nseq->anims, i);
+      sanim = static_cast<StripAnim *>(BLI_findlink(&nseq->anims, i));
 
       if (sanim->anim) {
-        context->index_context = IMB_anim_index_rebuild_context(sanim->anim,
-                                                                context->tc_flags,
-                                                                context->size_flags,
-                                                                context->quality,
-                                                                context->overwrite,
-                                                                file_list,
-                                                                build_only_on_bad_performance);
+        context->index_context = IMB_anim_index_rebuild_context(
+            sanim->anim,
+            IMB_Timecode_Type(context->tc_flags),
+            context->size_flags,
+            context->quality,
+            context->overwrite,
+            file_list,
+            build_only_on_bad_performance);
       }
       if (!context->index_context) {
         MEM_freeN(context);
@@ -574,14 +581,14 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
   if (context->index_context) {
     StripAnim *sanim;
 
-    for (sanim = context->seq->anims.first; sanim; sanim = sanim->next) {
+    for (sanim = static_cast<StripAnim *>(context->seq->anims.first); sanim; sanim = sanim->next) {
       IMB_close_anim_proxies(sanim->anim);
     }
 
     IMB_anim_index_rebuild_finish(context->index_context, stop);
   }
 
-  seq_free_sequence_recurse(NULL, context->seq, true);
+  seq_free_sequence_recurse(nullptr, context->seq, true);
 
   MEM_freeN(context);
 }
@@ -590,7 +597,7 @@ void SEQ_proxy_set(Sequence *seq, bool value)
 {
   if (value) {
     seq->flag |= SEQ_USE_PROXY;
-    if (seq->strip->proxy == NULL) {
+    if (seq->strip->proxy == nullptr) {
       seq->strip->proxy = seq_strip_proxy_alloc();
     }
   }
@@ -613,6 +620,6 @@ void free_proxy_seq(Sequence *seq)
 {
   if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
     IMB_free_anim(seq->strip->proxy->anim);
-    seq->strip->proxy->anim = NULL;
+    seq->strip->proxy->anim = nullptr;
   }
 }

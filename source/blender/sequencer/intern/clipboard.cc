@@ -56,7 +56,7 @@ void SEQ_clipboard_free(void)
   seq_clipboard_pointers_free(&seqbase_clipboard);
 
   LISTBASE_FOREACH_MUTABLE (Sequence *, seq, &seqbase_clipboard) {
-    seq_free_sequence_recurse(NULL, seq, false);
+    seq_free_sequence_recurse(nullptr, seq, false);
   }
   BLI_listbase_clear(&seqbase_clipboard);
 
@@ -72,19 +72,19 @@ void SEQ_clipboard_free(void)
 }
 
 #define ID_PT (*id_pt)
-static void seqclipboard_ptr_free(Main *UNUSED(bmain), ID **id_pt)
+static void seqclipboard_ptr_free(Main * /*bmain*/, ID **id_pt)
 {
   if (ID_PT) {
-    BLI_assert(ID_PT->newid != NULL);
+    BLI_assert(ID_PT->newid != nullptr);
     MEM_freeN(ID_PT);
-    ID_PT = NULL;
+    ID_PT = nullptr;
   }
 }
-static void seqclipboard_ptr_store(Main *UNUSED(bmain), ID **id_pt)
+static void seqclipboard_ptr_store(Main * /*bmain*/, ID **id_pt)
 {
   if (ID_PT) {
     ID *id_prev = ID_PT;
-    ID_PT = MEM_dupallocN(ID_PT);
+    ID_PT = static_cast<ID *>(MEM_dupallocN(ID_PT));
     ID_PT->newid = id_prev;
   }
 }
@@ -94,7 +94,7 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
     const ListBase *lb = which_libbase(bmain, GS(ID_PT->name));
     void *id_restore;
 
-    BLI_assert(ID_PT->newid != NULL);
+    BLI_assert(ID_PT->newid != nullptr);
     if (BLI_findindex(lb, (ID_PT)->newid) != -1) {
       /* the pointer is still valid */
       id_restore = (ID_PT)->newid;
@@ -104,23 +104,23 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
       id_restore = BLI_findstring(lb, (ID_PT)->name + 2, offsetof(ID, name) + 2);
     }
 
-    if (id_restore == NULL) {
+    if (id_restore == nullptr) {
       /* check for a data with the same filename */
       switch (GS(ID_PT->name)) {
         case ID_SO: {
           id_restore = BLI_findstring(lb, ((bSound *)ID_PT)->filepath, offsetof(bSound, filepath));
-          if (id_restore == NULL) {
+          if (id_restore == nullptr) {
             id_restore = BKE_sound_new_file(bmain, ((bSound *)ID_PT)->filepath);
-            (ID_PT)->newid = id_restore; /* reuse next time */
+            (ID_PT)->newid = static_cast<ID *>(id_restore); /* reuse next time */
           }
           break;
         }
         case ID_MC: {
           id_restore = BLI_findstring(
               lb, ((MovieClip *)ID_PT)->filepath, offsetof(MovieClip, filepath));
-          if (id_restore == NULL) {
+          if (id_restore == nullptr) {
             id_restore = BKE_movieclip_file_add(bmain, ((MovieClip *)ID_PT)->filepath);
-            (ID_PT)->newid = id_restore; /* reuse next time */
+            (ID_PT)->newid = static_cast<ID *>(id_restore); /* reuse next time */
           }
           break;
         }
@@ -131,7 +131,7 @@ static void seqclipboard_ptr_restore(Main *bmain, ID **id_pt)
 
     /* Replace with pointer to actual data-block. */
     seqclipboard_ptr_free(bmain, id_pt);
-    ID_PT = id_restore;
+    ID_PT = static_cast<ID *>(id_restore);
   }
 }
 #undef ID_PT
@@ -147,7 +147,7 @@ static void sequence_clipboard_pointers(Main *bmain,
   callback(bmain, (ID **)&seq->sound);
 
   if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-    TextVars *text_data = seq->effectdata;
+    TextVars *text_data = static_cast<TextVars *>(seq->effectdata);
     callback(bmain, (ID **)&text_data->text_font);
   }
 }
@@ -156,15 +156,15 @@ static void sequence_clipboard_pointers(Main *bmain,
 void seq_clipboard_pointers_free(ListBase *seqbase)
 {
   Sequence *seq;
-  for (seq = seqbase->first; seq; seq = seq->next) {
-    sequence_clipboard_pointers(NULL, seq, seqclipboard_ptr_free);
+  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+    sequence_clipboard_pointers(nullptr, seq, seqclipboard_ptr_free);
     seq_clipboard_pointers_free(&seq->seqbase);
   }
 }
 void SEQ_clipboard_pointers_store(Main *bmain, ListBase *seqbase)
 {
   Sequence *seq;
-  for (seq = seqbase->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
     sequence_clipboard_pointers(bmain, seq, seqclipboard_ptr_store);
     SEQ_clipboard_pointers_store(bmain, &seq->seqbase);
   }
@@ -172,7 +172,7 @@ void SEQ_clipboard_pointers_store(Main *bmain, ListBase *seqbase)
 void SEQ_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
 {
   Sequence *seq;
-  for (seq = seqbase->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
     sequence_clipboard_pointers(bmain, seq, seqclipboard_ptr_restore);
     SEQ_clipboard_pointers_restore(&seq->seqbase, bmain);
   }
@@ -181,7 +181,7 @@ void SEQ_clipboard_pointers_restore(ListBase *seqbase, Main *bmain)
 void SEQ_clipboard_active_seq_name_store(Scene *scene)
 {
   Sequence *active_seq = SEQ_select_active_get(scene);
-  if (active_seq != NULL) {
+  if (active_seq != nullptr) {
     STRNCPY(seq_clipboard_active_seq_name, active_seq->name);
   }
   else {

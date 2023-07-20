@@ -72,7 +72,7 @@
 
 #define THUMB_CACHE_LIMIT 5000
 
-typedef struct SeqCache {
+struct SeqCache {
   Main *bmain;
   GHash *hash;
   ThreadMutex iterator_mutex;
@@ -81,12 +81,12 @@ typedef struct SeqCache {
   SeqCacheKey *last_key;
   struct SeqDiskCache *disk_cache;
   int thumbnail_count;
-} SeqCache;
+};
 
-typedef struct SeqCacheItem {
+struct SeqCacheItem {
   SeqCache *cache_owner;
   ImBuf *ibuf;
-} SeqCacheItem;
+};
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
 
@@ -115,7 +115,7 @@ static uint seq_hash_render_data(const SeqRenderData *a)
 
 static uint seq_cache_hashhash(const void *key_)
 {
-  const SeqCacheKey *key = key_;
+  const SeqCacheKey *key = static_cast<const SeqCacheKey *>(key_);
   uint rval = seq_hash_render_data(&key->context);
 
   rval ^= *(const uint *)&key->frame_index;
@@ -127,8 +127,8 @@ static uint seq_cache_hashhash(const void *key_)
 
 static bool seq_cache_hashcmp(const void *a_, const void *b_)
 {
-  const SeqCacheKey *a = a_;
-  const SeqCacheKey *b = b_;
+  const SeqCacheKey *a = static_cast<const SeqCacheKey *>(a_);
+  const SeqCacheKey *b = static_cast<const SeqCacheKey *>(b_);
 
   return ((a->seq != b->seq) || (a->frame_index != b->frame_index) || (a->type != b->type) ||
           seq_cmp_render_data(&a->context, &b->context));
@@ -160,7 +160,7 @@ static SeqCache *seq_cache_get_from_scene(Scene *scene)
     return scene->ed->cache;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void seq_cache_lock(Scene *scene)
@@ -188,7 +188,7 @@ static size_t seq_cache_get_mem_total(void)
 
 static void seq_cache_keyfree(void *val)
 {
-  SeqCacheKey *key = val;
+  SeqCacheKey *key = static_cast<SeqCacheKey *>(val);
   BLI_mempool_free(key->cache_owner->keys_pool, key);
 }
 
@@ -223,7 +223,7 @@ static void seq_cache_put_ex(Scene *scene, SeqCacheKey *key, ImBuf *ibuf)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   SeqCacheItem *item;
-  item = BLI_mempool_alloc(cache->items_pool);
+  item = static_cast<SeqCacheItem *>(BLI_mempool_alloc(cache->items_pool));
   item->cache_owner = cache;
   item->ibuf = ibuf;
 
@@ -255,13 +255,13 @@ static void seq_cache_put_ex(Scene *scene, SeqCacheKey *key, ImBuf *ibuf)
 
   /* Reset linking. */
   if (key->type == SEQ_CACHE_STORE_FINAL_OUT) {
-    cache->last_key = NULL;
+    cache->last_key = nullptr;
   }
 }
 
 static ImBuf *seq_cache_get_ex(SeqCache *cache, SeqCacheKey *key)
 {
-  SeqCacheItem *item = BLI_ghash_lookup(cache->hash, key);
+  SeqCacheItem *item = static_cast<SeqCacheItem *>(BLI_ghash_lookup(cache->hash, key));
 
   if (item && item->ibuf) {
     IMB_refImBuf(item->ibuf);
@@ -269,7 +269,7 @@ static ImBuf *seq_cache_get_ex(SeqCache *cache, SeqCacheKey *key)
     return item->ibuf;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void seq_cache_key_unlink(SeqCacheKey *key)
@@ -288,7 +288,7 @@ static void seq_cache_key_unlink(SeqCacheKey *key)
  * to recycle based on currently used strategy */
 static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCacheKey *rkey)
 {
-  SeqCacheKey *finalkey = NULL;
+  SeqCacheKey *finalkey = nullptr;
 
   /* Ideally, cache would not need to check the state of prefetching task
    * that is tricky to do however, because prefetch would need to know,
@@ -316,7 +316,7 @@ static SeqCacheKey *seq_cache_choose_key(Scene *scene, SeqCacheKey *lkey, SeqCac
       }
     }
 
-    return NULL;
+    return nullptr;
   }
 
   if (rkey && lkey) {
@@ -362,9 +362,9 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
     }
 
     SeqCacheKey *prev = base->link_prev;
-    if (prev != NULL && prev->link_next != base) {
+    if (prev != nullptr && prev->link_next != base) {
       /* Key has been removed and replaced and doesn't belong to this chain anymore. */
-      base->link_prev = NULL;
+      base->link_prev = nullptr;
       break;
     }
 
@@ -381,9 +381,9 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
     }
 
     next = base->link_next;
-    if (next != NULL && next->link_prev != base) {
+    if (next != nullptr && next->link_prev != base) {
       /* Key has been removed and replaced and doesn't belong to this chain anymore. */
-      base->link_next = NULL;
+      base->link_next = nullptr;
       break;
     }
 
@@ -397,20 +397,20 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
 static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
-  SeqCacheKey *finalkey = NULL;
+  SeqCacheKey *finalkey = nullptr;
   /* Leftmost key. */
-  SeqCacheKey *lkey = NULL;
+  SeqCacheKey *lkey = nullptr;
   /* Rightmost key. */
-  SeqCacheKey *rkey = NULL;
-  SeqCacheKey *key = NULL;
+  SeqCacheKey *rkey = nullptr;
+  SeqCacheKey *key = nullptr;
 
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   int total_count = 0;
 
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    key = BLI_ghashIterator_getKey(&gh_iter);
-    SeqCacheItem *item = BLI_ghashIterator_getValue(&gh_iter);
+    key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
+    SeqCacheItem *item = static_cast<SeqCacheItem *>(BLI_ghashIterator_getValue(&gh_iter));
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
@@ -422,7 +422,7 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
       continue;
     }
 
-    if (key->is_temp_cache || key->link_next != NULL) {
+    if (key->is_temp_cache || key->link_next != nullptr) {
       continue;
     }
 
@@ -503,19 +503,19 @@ static void seq_cache_set_temp_cache_linked(Scene *scene, SeqCacheKey *base)
 static void seq_cache_create(Main *bmain, Scene *scene)
 {
   BLI_mutex_lock(&cache_create_lock);
-  if (scene->ed->cache == NULL) {
-    SeqCache *cache = MEM_callocN(sizeof(SeqCache), "SeqCache");
+  if (scene->ed->cache == nullptr) {
+    SeqCache *cache = static_cast<SeqCache *>(MEM_callocN(sizeof(SeqCache), "SeqCache"));
     cache->keys_pool = BLI_mempool_create(sizeof(SeqCacheKey), 0, 64, BLI_MEMPOOL_NOP);
     cache->items_pool = BLI_mempool_create(sizeof(SeqCacheItem), 0, 64, BLI_MEMPOOL_NOP);
     cache->hash = BLI_ghash_new(seq_cache_hashhash, seq_cache_hashcmp, "SeqCache hash");
-    cache->last_key = NULL;
+    cache->last_key = nullptr;
     cache->bmain = bmain;
     cache->thumbnail_count = 0;
     BLI_mutex_init(&cache->iterator_mutex);
     scene->ed->cache = cache;
 
     if (scene->ed->disk_cache_timestamp == 0) {
-      scene->ed->disk_cache_timestamp = time(NULL);
+      scene->ed->disk_cache_timestamp = time(nullptr);
     }
   }
   BLI_mutex_unlock(&cache_create_lock);
@@ -534,8 +534,8 @@ static void seq_cache_populate_key(SeqCacheKey *key,
       context->scene, seq, timeline_frame, type);
   key->timeline_frame = timeline_frame;
   key->type = type;
-  key->link_prev = NULL;
-  key->link_next = NULL;
+  key->link_prev = nullptr;
+  key->link_next = nullptr;
   key->is_temp_cache = true;
   key->task_id = context->task_id;
 }
@@ -546,7 +546,7 @@ static SeqCacheKey *seq_cache_allocate_key(SeqCache *cache,
                                            const float timeline_frame,
                                            const int type)
 {
-  SeqCacheKey *key = BLI_mempool_alloc(cache->keys_pool);
+  SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_mempool_alloc(cache->keys_pool));
   seq_cache_populate_key(key, context, seq, timeline_frame, type);
   return key;
 }
@@ -565,7 +565,7 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+    SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
@@ -598,17 +598,19 @@ void seq_cache_destruct(Scene *scene)
   BLI_mempool_destroy(cache->items_pool);
   BLI_mutex_end(&cache->iterator_mutex);
 
-  if (cache->disk_cache != NULL) {
+  if (cache->disk_cache != nullptr) {
     seq_disk_cache_free(cache->disk_cache);
   }
 
   MEM_freeN(cache);
-  scene->ed->cache = NULL;
+  scene->ed->cache = nullptr;
 }
 
 void seq_cache_cleanup_all(Main *bmain)
 {
-  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+  for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene != nullptr;
+       scene = static_cast<Scene *>(scene->id.next))
+  {
     SEQ_cache_cleanup(scene);
   }
 }
@@ -626,7 +628,7 @@ void SEQ_cache_cleanup(Scene *scene)
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+    SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
     BLI_assert(key->cache_owner == cache);
 
     BLI_ghashIterator_step(&gh_iter);
@@ -634,7 +636,7 @@ void SEQ_cache_cleanup(Scene *scene)
     /* NOTE: no need to call #seq_cache_key_unlink as all keys are removed. */
     BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
   }
-  cache->last_key = NULL;
+  cache->last_key = nullptr;
   cache->thumbnail_count = 0;
   seq_cache_unlock(scene);
 }
@@ -650,7 +652,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
     return;
   }
 
-  if (seq_disk_cache_is_enabled(cache->bmain) && cache->disk_cache != NULL) {
+  if (seq_disk_cache_is_enabled(cache->bmain) && cache->disk_cache != nullptr) {
     seq_disk_cache_invalidate(cache->disk_cache, scene, seq, seq_changed, invalidate_types);
   }
 
@@ -671,7 +673,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+    SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
@@ -690,7 +692,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
   }
-  cache->last_key = NULL;
+  cache->last_key = nullptr;
   seq_cache_unlock(scene);
 }
 
@@ -710,7 +712,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
   GHashIterator gh_iter;
   BLI_ghashIterator_init(&gh_iter, cache->hash);
   while (!BLI_ghashIterator_done(&gh_iter)) {
-    SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+    SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
@@ -734,14 +736,14 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
       cache->thumbnail_count--;
     }
   }
-  cache->last_key = NULL;
+  cache->last_key = nullptr;
 }
 
 ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
 {
 
   if (context->skip_cache || context->is_proxy_render || !seq) {
-    return NULL;
+    return nullptr;
   }
 
   Scene *scene = context->scene;
@@ -753,7 +755,7 @@ ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline
   }
 
   if (!seq) {
-    return NULL;
+    return nullptr;
   }
 
   if (!scene->ed->cache) {
@@ -762,7 +764,7 @@ ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline
 
   seq_cache_lock(scene);
   SeqCache *cache = seq_cache_get_from_scene(scene);
-  ImBuf *ibuf = NULL;
+  ImBuf *ibuf = nullptr;
   SeqCacheKey key;
 
   /* Try RAM cache: */
@@ -778,14 +780,14 @@ ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline
 
   /* Try disk cache: */
   if (seq_disk_cache_is_enabled(context->bmain)) {
-    if (cache->disk_cache == NULL) {
+    if (cache->disk_cache == nullptr) {
       cache->disk_cache = seq_disk_cache_create(context->bmain, context->scene);
     }
 
     ibuf = seq_disk_cache_read_file(cache->disk_cache, &key);
 
-    if (ibuf == NULL) {
-      return NULL;
+    if (ibuf == nullptr) {
+      return nullptr;
     }
 
     /* Store read image in RAM. Only recycle item for final type. */
@@ -819,7 +821,7 @@ bool seq_cache_put_if_possible(
   }
 
   seq_cache_set_temp_cache_linked(scene, scene->ed->cache->last_key);
-  scene->ed->cache->last_key = NULL;
+  scene->ed->cache->last_key = nullptr;
   return false;
 }
 
@@ -860,7 +862,7 @@ void seq_cache_thumbnail_put(const SeqRenderData *context,
 void seq_cache_put(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i)
 {
-  if (i == NULL || context->skip_cache || context->is_proxy_render || !seq) {
+  if (i == nullptr || context->skip_cache || context->is_proxy_render || !seq) {
     return;
   }
 
@@ -870,7 +872,7 @@ void seq_cache_put(
     context = seq_prefetch_get_original_context(context);
     scene = context->scene;
     seq = seq_prefetch_get_original_sequence(seq, scene);
-    BLI_assert(seq != NULL);
+    BLI_assert(seq != nullptr);
   }
 
   /* Prevent reinserting, it breaks cache key linking. */
@@ -892,7 +894,7 @@ void seq_cache_put(
 
   if (!key->is_temp_cache) {
     if (seq_disk_cache_is_enabled(context->bmain)) {
-      if (cache->disk_cache == NULL) {
+      if (cache->disk_cache == nullptr) {
         seq_disk_cache_create(context->bmain, context->scene);
       }
 
@@ -920,14 +922,14 @@ void SEQ_cache_iterate(
   BLI_ghashIterator_init(&gh_iter, cache->hash);
 
   while (!BLI_ghashIterator_done(&gh_iter) && !interrupt) {
-    SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
+    SeqCacheKey *key = static_cast<SeqCacheKey *>(BLI_ghashIterator_getKey(&gh_iter));
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
     interrupt = callback_iter(userdata, key->seq, key->timeline_frame, key->type);
   }
 
-  cache->last_key = NULL;
+  cache->last_key = nullptr;
   seq_cache_unlock(scene);
 }
 

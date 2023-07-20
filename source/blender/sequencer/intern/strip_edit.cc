@@ -68,7 +68,7 @@ bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, cons
     }
   }
 
-  SWAP(Sequence, *seq_a, *seq_b);
+  blender::dna::shallow_swap(*seq_a, *seq_b);
 
   /* swap back names so animation fcurves don't get swapped */
   STRNCPY(name, seq_a->name + 2);
@@ -100,7 +100,7 @@ static void seq_update_muting_recursive(ListBase *channels,
 
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
-  for (seq = seqbasep->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
     bool seqmute = (mute || SEQ_render_is_muted(channels, seq));
 
     if (seq->type == SEQ_TYPE_META) {
@@ -124,13 +124,13 @@ void SEQ_edit_update_muting(Editing *ed)
 {
   if (ed) {
     /* mute all sounds up to current metastack list */
-    MetaStack *ms = ed->metastack.last;
+    MetaStack *ms = static_cast<MetaStack *>(ed->metastack.last);
 
     if (ms) {
       seq_update_muting_recursive(&ed->channels, &ed->seqbase, ms->parseq, true);
     }
     else {
-      seq_update_muting_recursive(&ed->channels, &ed->seqbase, NULL, false);
+      seq_update_muting_recursive(&ed->channels, &ed->seqbase, nullptr, false);
     }
   }
 }
@@ -145,9 +145,10 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Se
 
     /* Clear seq from modifiers. */
     SequenceModifierData *smd;
-    for (smd = user_seq->modifiers.first; smd; smd = smd->next) {
+    for (smd = static_cast<SequenceModifierData *>(user_seq->modifiers.first); smd;
+         smd = smd->next) {
       if (smd->mask_sequence == seq) {
-        smd->mask_sequence = NULL;
+        smd->mask_sequence = nullptr;
       }
     }
 
@@ -162,7 +163,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Se
 
 void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Sequence *seq)
 {
-  if (seq == NULL || (seq->flag & SEQ_FLAG_DELETE) != 0) {
+  if (seq == nullptr || (seq->flag & SEQ_FLAG_DELETE) != 0) {
     return;
   }
 
@@ -419,7 +420,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
                                const char **r_error)
 {
   if (!seq_edit_split_effect_intersect_check(scene, seq, timeline_frame)) {
-    return NULL;
+    return nullptr;
   }
 
   /* Whole strip chain must be duplicated in order to preserve relationships. */
@@ -429,14 +430,14 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
 
   if (!seq_edit_split_operation_permitted_check(scene, collection, timeline_frame, r_error)) {
     SEQ_collection_free(collection);
-    return NULL;
+    return nullptr;
   }
 
   /* Store `F-Curves`, so original ones aren't renamed. */
-  SeqAnimationBackup animation_backup = {0};
+  SeqAnimationBackup animation_backup{};
   SEQ_animation_backup_original(scene, &animation_backup);
 
-  ListBase left_strips = {NULL, NULL};
+  ListBase left_strips = {nullptr, nullptr};
   SEQ_ITERATOR_FOREACH (seq, collection) {
     /* Move strips in collection from seqbase to new ListBase. */
     BLI_remlink(seqbase, seq);
@@ -449,12 +450,12 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   SEQ_collection_free(collection);
 
   /* Duplicate ListBase. */
-  ListBase right_strips = {NULL, NULL};
+  ListBase right_strips = {nullptr, nullptr};
   SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, SEQ_DUPE_ALL, 0);
 
-  Sequence *left_seq = left_strips.first;
-  Sequence *right_seq = right_strips.first;
-  Sequence *return_seq = NULL;
+  Sequence *left_seq = static_cast<Sequence *>(left_strips.first);
+  Sequence *right_seq = static_cast<Sequence *>(right_strips.first);
+  Sequence *return_seq = nullptr;
 
   /* Move strips from detached `ListBase`, otherwise they can't be flagged for removal. */
   BLI_movelisttolist(seqbase, &left_strips);
@@ -475,7 +476,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
     else if (SEQ_time_right_handle_frame_get(scene, right_seq) <= timeline_frame) {
       SEQ_edit_flag_for_removal(scene, seqbase, right_seq);
     }
-    else if (return_seq == NULL) {
+    else if (return_seq == nullptr) {
       /* Store return value - pointer to strip that will not be removed. */
       return_seq = right_seq;
     }

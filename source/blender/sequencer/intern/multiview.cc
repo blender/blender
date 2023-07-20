@@ -45,6 +45,6 @@ void seq_multiview_name(Scene *scene,
                         size_t r_size)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
-  BLI_assert(ext != NULL && suffix != NULL && prefix != NULL);
+  BLI_assert(ext != nullptr && suffix != nullptr && prefix != nullptr);
   BLI_snprintf(r_path, r_size, "%s%s%s", prefix, suffix, ext);
 }

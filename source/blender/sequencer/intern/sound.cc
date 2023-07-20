@@ -35,7 +35,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
   Sequence *seq;
   bool changed = false;
 
-  for (seq = seqbase->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
         changed = true;
@@ -82,7 +82,7 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   if (ed) {
     Sequence *seq;
 
-    for (seq = ed->seqbase.first; seq; seq = seq->next) {
+    for (seq = static_cast<Sequence *>(ed->seqbase.first); seq; seq = seq->next) {
       if (seq->type == SEQ_TYPE_META) {
         seq_update_sound_bounds_recursive(scene, seq);
       }
@@ -118,7 +118,7 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
 {
   Sequence *seq;
 
-  for (seq = seqbasep->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_recursive(scene, &seq->seqbase, sound);
     }
@@ -140,7 +140,7 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
 float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
 {
   const Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
-  if (meta_parent != NULL) {
+  if (meta_parent != nullptr) {
     return seq->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }
   return seq->speed_factor;

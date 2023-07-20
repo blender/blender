@@ -34,7 +34,7 @@
 
 static void proxy_freejob(void *pjv)
 {
-  ProxyJob *pj = pjv;
+  ProxyJob *pj = static_cast<ProxyJob *>(pjv);
 
   BLI_freelistN(&pj->queue);
 
@@ -44,11 +44,11 @@ static void proxy_freejob(void *pjv)
 /* Only this runs inside thread. */
 static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
-  ProxyJob *pj = pjv;
+  ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   LinkData *link;
 
-  for (link = pj->queue.first; link; link = link->next) {
-    struct SeqIndexBuildContext *context = link->data;
+  for (link = static_cast<LinkData *>(pj->queue.first); link; link = link->next) {
+    struct SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
 
     SEQ_proxy_rebuild(context, stop, do_update, progress);
 
@@ -62,12 +62,12 @@ static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progre
 
 static void proxy_endjob(void *pjv)
 {
-  ProxyJob *pj = pjv;
+  ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   Editing *ed = SEQ_editing_get(pj->scene);
   LinkData *link;
 
-  for (link = pj->queue.first; link; link = link->next) {
-    SEQ_proxy_rebuild_finish(link->data, pj->stop);
+  for (link = static_cast<LinkData *>(pj->queue.first); link; link = link->next) {
+    SEQ_proxy_rebuild_finish(static_cast<SeqIndexBuildContext *>(link->data), pj->stop);
   }
 
   SEQ_relations_free_imbuf(pj->scene, &ed->seqbase, false);
@@ -79,15 +79,15 @@ ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
 {
   Scene *scene = CTX_data_scene(C);
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  ProxyJob *pj = WM_jobs_customdata_get(wm_job);
+  ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
-    pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
+    pj = static_cast<ProxyJob *>(MEM_callocN(sizeof(ProxyJob), "proxy rebuild job"));
     pj->depsgraph = depsgraph;
     pj->scene = scene;
     pj->main = CTX_data_main(C);
     WM_jobs_customdata_set(wm_job, pj, proxy_freejob);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
-    WM_jobs_callbacks(wm_job, proxy_startjob, NULL, NULL, proxy_endjob);
+    WM_jobs_callbacks(wm_job, proxy_startjob, nullptr, nullptr, proxy_endjob);
   }
   return pj;
 }

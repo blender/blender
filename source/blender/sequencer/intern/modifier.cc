@@ -51,15 +51,15 @@ typedef void (*modifier_apply_threaded_cb)(int width,
                                            const float *mask_rect_float,
                                            void *data_v);
 
-typedef struct ModifierInitData {
+struct ModifierInitData {
   ImBuf *ibuf;
   ImBuf *mask;
   void *user_data;
 
   modifier_apply_threaded_cb apply_callback;
-} ModifierInitData;
+};
 
-typedef struct ModifierThread {
+struct ModifierThread {
   int width, height;
 
   uchar *rect, *mask_rect;
@@ -68,7 +68,7 @@ typedef struct ModifierThread {
   void *user_data;
 
   modifier_apply_threaded_cb apply_callback;
-} ModifierThread;
+};
 
 /**
  * \a timeline_frame is offset by \a fra_offset only in case we are using a real mask.
@@ -81,7 +81,7 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
                                          int fra_offset,
                                          bool make_float)
 {
-  ImBuf *mask_input = NULL;
+  ImBuf *mask_input = nullptr;
 
   if (mask_input_type == SEQUENCE_MASK_INPUT_STRIP) {
     if (mask_sequence) {
@@ -158,8 +158,8 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
     }
   }
   else {
-    handle->mask_rect = NULL;
-    handle->mask_rect_float = NULL;
+    handle->mask_rect = nullptr;
+    handle->mask_rect_float = nullptr;
   }
 }
 
@@ -175,7 +175,7 @@ static void *modifier_do_thread(void *thread_data_v)
                      td->mask_rect_float,
                      td->user_data);
 
-  return NULL;
+  return nullptr;
 }
 
 static void modifier_apply_threaded(ImBuf *ibuf,
@@ -484,15 +484,15 @@ static void color_balance_float_float(StripColorBalance *cb_,
   }
 }
 
-typedef struct ColorBalanceInitData {
+struct ColorBalanceInitData {
   StripColorBalance *cb;
   ImBuf *ibuf;
   float mul;
   ImBuf *mask;
   bool make_float;
-} ColorBalanceInitData;
+};
 
-typedef struct ColorBalanceThread {
+struct ColorBalanceThread {
   StripColorBalance *cb;
   float mul;
 
@@ -502,7 +502,7 @@ typedef struct ColorBalanceThread {
   float *rect_float, *mask_rect_float;
 
   bool make_float;
-} ColorBalanceThread;
+};
 
 static void color_balance_init_handle(void *handle_v,
                                       int start_line,
@@ -542,8 +542,8 @@ static void color_balance_init_handle(void *handle_v,
     }
   }
   else {
-    handle->mask_rect = NULL;
-    handle->mask_rect_float = NULL;
+    handle->mask_rect = nullptr;
+    handle->mask_rect_float = nullptr;
   }
 }
 
@@ -568,7 +568,7 @@ static void *color_balance_do_thread(void *thread_data_v)
     color_balance_byte_byte(cb, rect, mask_rect, width, height, mul);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void colorBalance_init_data(SequenceModifierData *smd)
@@ -631,8 +631,8 @@ static SequenceModifierTypeInfo seqModifier_ColorBalance = {
     /*struct_name*/ "ColorBalanceModifierData",
     /*struct_size*/ sizeof(ColorBalanceModifierData),
     /*init_data*/ colorBalance_init_data,
-    /*free_data*/ NULL,
-    /*copy_data*/ NULL,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
     /*apply*/ colorBalance_apply,
 };
 
@@ -648,9 +648,9 @@ static void whiteBalance_init_data(SequenceModifierData *smd)
   copy_v3_fl(cbmd->white_value, 1.0f);
 }
 
-typedef struct WhiteBalanceThreadData {
+struct WhiteBalanceThreadData {
   float white[3];
-} WhiteBalanceThreadData;
+};
 
 static void whiteBalance_apply_threaded(int width,
                                         int height,
@@ -727,8 +727,8 @@ static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
     /*struct_name*/ "WhiteBalanceModifierData",
     /*struct_size*/ sizeof(WhiteBalanceModifierData),
     /*init_data*/ whiteBalance_init_data,
-    /*free_data*/ NULL,
-    /*copy_data*/ NULL,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
     /*apply*/ whiteBalance_apply,
 };
 
@@ -980,10 +980,10 @@ static SequenceModifierTypeInfo seqModifier_HueCorrect = {
 /** \name Brightness/Contrast Modifier
  * \{ */
 
-typedef struct BrightContrastThreadData {
+struct BrightContrastThreadData {
   float bright;
   float contrast;
-} BrightContrastThreadData;
+};
 
 static void brightcontrast_apply_threaded(int width,
                                           int height,
@@ -1075,9 +1075,9 @@ static SequenceModifierTypeInfo seqModifier_BrightContrast = {
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Brightness/Contrast"),
     /*struct_name*/ "BrightContrastModifierData",
     /*struct_size*/ sizeof(BrightContrastModifierData),
-    /*init_data*/ NULL,
-    /*free_data*/ NULL,
-    /*copy_data*/ NULL,
+    /*init_data*/ nullptr,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
     /*apply*/ brightcontrast_apply,
 };
 
@@ -1093,7 +1093,7 @@ static void maskmodifier_apply_threaded(int width,
                                         float *rect_float,
                                         uchar *mask_rect,
                                         const float *mask_rect_float,
-                                        void *UNUSED(data_v))
+                                        void * /*data_v*/)
 {
   int x, y;
 
@@ -1137,11 +1137,11 @@ static void maskmodifier_apply_threaded(int width,
   }
 }
 
-static void maskmodifier_apply(SequenceModifierData *UNUSED(smd), ImBuf *ibuf, ImBuf *mask)
+static void maskmodifier_apply(SequenceModifierData * /*smd*/, ImBuf *ibuf, ImBuf *mask)
 {
   // SequencerMaskModifierData *bcmd = (SequencerMaskModifierData *)smd;
 
-  modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, NULL);
+  modifier_apply_threaded(ibuf, mask, maskmodifier_apply_threaded, nullptr);
   ibuf->planes = R_IMF_PLANES_RGBA;
 }
 
@@ -1149,9 +1149,9 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"),
     /*struct_name*/ "SequencerMaskModifierData",
     /*struct_size*/ sizeof(SequencerMaskModifierData),
-    /*init_data*/ NULL,
-    /*free_data*/ NULL,
-    /*copy_data*/ NULL,
+    /*init_data*/ nullptr,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
     /*apply*/ maskmodifier_apply,
 };
 
@@ -1161,7 +1161,7 @@ static SequenceModifierTypeInfo seqModifier_Mask = {
 /** \name Tonemap Modifier
  * \{ */
 
-typedef struct AvgLogLum {
+struct AvgLogLum {
   SequencerTonemapModifierData *tmmd;
   ColorSpace *colorspace;
   float al;
@@ -1169,7 +1169,7 @@ typedef struct AvgLogLum {
   float lav;
   float cav[4];
   float igm;
-} AvgLogLum;
+};
 
 static void tonemapmodifier_init_data(SequenceModifierData *smd)
 {
@@ -1312,8 +1312,8 @@ static void tonemapmodifier_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf 
   SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
   AvgLogLum data;
   data.tmmd = tmmd;
-  data.colorspace = (ibuf->float_buffer.data != NULL) ? ibuf->float_buffer.colorspace :
-                                                        ibuf->byte_buffer.colorspace;
+  data.colorspace = (ibuf->float_buffer.data != nullptr) ? ibuf->float_buffer.colorspace :
+                                                           ibuf->byte_buffer.colorspace;
   float lsum = 0.0f;
   int p = ibuf->x * ibuf->y;
   float *fp = ibuf->float_buffer.data;
@@ -1324,7 +1324,7 @@ static void tonemapmodifier_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf 
   float cav[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   while (p--) {
     float pixel[4];
-    if (fp != NULL) {
+    if (fp != nullptr) {
       copy_v4_v4(pixel, fp);
     }
     else {
@@ -1337,7 +1337,7 @@ static void tonemapmodifier_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf 
     lsum += logf(max_ff(L, 0.0f) + 1e-5f);
     maxl = (L > maxl) ? L : maxl;
     minl = (L < minl) ? L : minl;
-    if (fp != NULL) {
+    if (fp != nullptr) {
       fp += 4;
     }
     else {
@@ -1367,8 +1367,8 @@ static SequenceModifierTypeInfo seqModifier_Tonemap = {
     /*struct_name*/ "SequencerTonemapModifierData",
     /*struct_size*/ sizeof(SequencerTonemapModifierData),
     /*init_data*/ tonemapmodifier_init_data,
-    /*free_data*/ NULL,
-    /*copy_data*/ NULL,
+    /*free_data*/ nullptr,
+    /*copy_data*/ nullptr,
     /*apply*/ tonemapmodifier_apply,
 };
 
@@ -1408,7 +1408,7 @@ SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type
   SequenceModifierData *smd;
   const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(type);
 
-  smd = MEM_callocN(smti->struct_size, "sequence modifier");
+  smd = static_cast<SequenceModifierData *>(MEM_callocN(smti->struct_size, "sequence modifier"));
 
   smd->type = type;
   smd->flag |= SEQUENCE_MODIFIER_EXPANDED;
@@ -1447,7 +1447,7 @@ void SEQ_modifier_clear(Sequence *seq)
 {
   SequenceModifierData *smd, *smd_next;
 
-  for (smd = seq->modifiers.first; smd; smd = smd_next) {
+  for (smd = static_cast<SequenceModifierData *>(seq->modifiers.first); smd; smd = smd_next) {
     smd_next = smd->next;
     SEQ_modifier_free(smd);
   }
@@ -1480,7 +1480,8 @@ void SEQ_modifier_unique_name(Sequence *seq, SequenceModifierData *smd)
 
 SequenceModifierData *SEQ_modifier_find_by_name(Sequence *seq, const char *name)
 {
-  return BLI_findstring(&(seq->modifiers), name, offsetof(SequenceModifierData, name));
+  return static_cast<SequenceModifierData *>(
+      BLI_findstring(&(seq->modifiers), name, offsetof(SequenceModifierData, name)));
 }
 
 ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
@@ -1496,7 +1497,7 @@ ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
     SEQ_render_imbuf_from_sequencer_space(context->scene, processed_ibuf);
   }
 
-  for (smd = seq->modifiers.first; smd; smd = smd->next) {
+  for (smd = static_cast<SequenceModifierData *>(seq->modifiers.first); smd; smd = smd->next) {
     const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
     /* could happen if modifier is being removed or not exists in current version of blender */
@@ -1519,7 +1520,7 @@ ImBuf *SEQ_modifier_apply_stack(const SeqRenderData *context,
       }
 
       ImBuf *mask = modifier_mask_get(
-          smd, context, timeline_frame, frame_offset, ibuf->float_buffer.data != NULL);
+          smd, context, timeline_frame, frame_offset, ibuf->float_buffer.data != nullptr);
 
       if (processed_ibuf == ibuf) {
         processed_ibuf = IMB_dupImBuf(ibuf);
@@ -1544,17 +1545,17 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
 {
   SequenceModifierData *smd;
 
-  for (smd = seq->modifiers.first; smd; smd = smd->next) {
+  for (smd = static_cast<SequenceModifierData *>(seq->modifiers.first); smd; smd = smd->next) {
     SequenceModifierData *smdn;
     const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
-    smdn = MEM_dupallocN(smd);
+    smdn = static_cast<SequenceModifierData *>(MEM_dupallocN(smd));
 
     if (smti && smti->copy_data) {
       smti->copy_data(smdn, smd);
     }
 
-    smdn->next = smdn->prev = NULL;
+    smdn->next = smdn->prev = nullptr;
     BLI_addtail(&seqn->modifiers, smdn);
   }
 }

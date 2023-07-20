@@ -69,28 +69,28 @@
 #define DCACHE_CURRENT_VERSION 2
 #define COLORSPACE_NAME_MAX 64 /* XXX: defined in IMB intern. */
 
-typedef struct DiskCacheHeaderEntry {
+struct DiskCacheHeaderEntry {
   uchar encoding;
   uint64_t frameno;
   uint64_t size_compressed;
   uint64_t size_raw;
   uint64_t offset;
   char colorspace_name[COLORSPACE_NAME_MAX];
-} DiskCacheHeaderEntry;
+};
 
-typedef struct DiskCacheHeader {
+struct DiskCacheHeader {
   DiskCacheHeaderEntry entry[DCACHE_IMAGES_PER_FILE];
-} DiskCacheHeader;
+};
 
-typedef struct SeqDiskCache {
+struct SeqDiskCache {
   Main *bmain;
   int64_t timestamp;
   ListBase files;
   ThreadMutex read_write_mutex;
   size_t size_total;
-} SeqDiskCache;
+};
 
-typedef struct DiskCacheFile {
+struct DiskCacheFile {
   struct DiskCacheFile *next, *prev;
   char filepath[FILE_MAX];
   char dir[FILE_MAXDIR];
@@ -102,7 +102,7 @@ typedef struct DiskCacheFile {
   int render_size;
   int view_id;
   int start_frame;
-} DiskCacheFile;
+};
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
 
@@ -141,7 +141,8 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache,
                                                       const char *filepath)
 {
 
-  DiskCacheFile *cache_file = MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile");
+  DiskCacheFile *cache_file = static_cast<DiskCacheFile *>(
+      MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile"));
   char dir[FILE_MAXDIR], file[FILE_MAX];
   BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
   STRNCPY(cache_file->filepath, filepath);
@@ -203,9 +204,9 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *dirpath)
 
 static DiskCacheFile *seq_disk_cache_get_oldest_file(SeqDiskCache *disk_cache)
 {
-  DiskCacheFile *oldest_file = disk_cache->files.first;
-  if (oldest_file == NULL) {
-    return NULL;
+  DiskCacheFile *oldest_file = static_cast<DiskCacheFile *>(disk_cache->files.first);
+  if (oldest_file == nullptr) {
+    return nullptr;
   }
   for (DiskCacheFile *cache_file = oldest_file->next; cache_file; cache_file = cache_file->next) {
     if (cache_file->fstat.st_mtime < oldest_file->fstat.st_mtime) {
@@ -253,7 +254,7 @@ bool seq_disk_cache_enforce_limits(SeqDiskCache *disk_cache)
 static DiskCacheFile *seq_disk_cache_get_file_entry_by_path(SeqDiskCache *disk_cache,
                                                             char *filepath)
 {
-  DiskCacheFile *cache_file = disk_cache->files.first;
+  DiskCacheFile *cache_file = static_cast<DiskCacheFile *>(disk_cache->files.first);
 
   for (; cache_file; cache_file = cache_file->next) {
     if (BLI_strcasecmp(cache_file->filepath, filepath) == 0) {
@@ -261,7 +262,7 @@ static DiskCacheFile *seq_disk_cache_get_file_entry_by_path(SeqDiskCache *disk_c
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Update file size and timestamp. */
@@ -385,7 +386,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
                                                 int range_start,
                                                 int range_end)
 {
-  DiskCacheFile *next_file, *cache_file = disk_cache->files.first;
+  DiskCacheFile *next_file, *cache_file = static_cast<DiskCacheFile *>(disk_cache->files.first);
   char cache_dir[FILE_MAX];
   seq_disk_cache_get_dir(disk_cache, scene, seq, cache_dir, sizeof(cache_dir));
   BLI_path_slash_ensure(cache_dir, sizeof(cache_dir));
@@ -429,8 +430,8 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
                                     int level,
                                     DiskCacheHeaderEntry *header_entry)
 {
-  void *data = (ibuf->byte_buffer.data != NULL) ? (void *)ibuf->byte_buffer.data :
-                                                  (void *)ibuf->float_buffer.data;
+  void *data = (ibuf->byte_buffer.data != nullptr) ? (void *)ibuf->byte_buffer.data :
+                                                     (void *)ibuf->float_buffer.data;
 
   /* Apply compression if wanted, otherwise just write directly to the file. */
   if (level > 0) {
@@ -444,8 +445,8 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
 
 static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntry *header_entry)
 {
-  void *data = (ibuf->byte_buffer.data != NULL) ? (void *)ibuf->byte_buffer.data :
-                                                  (void *)ibuf->float_buffer.data;
+  void *data = (ibuf->byte_buffer.data != nullptr) ? (void *)ibuf->byte_buffer.data :
+                                                     (void *)ibuf->float_buffer.data;
   char header[4];
   fseek(file, header_entry->offset, SEEK_SET);
   if (fread(header, 1, sizeof(header), file) != sizeof(header)) {
@@ -616,13 +617,13 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   FILE *file = BLI_fopen(filepath, "rb");
   if (!file) {
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
-    return NULL;
+    return nullptr;
   }
 
   if (!seq_disk_cache_read_header(file, &header)) {
     fclose(file);
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
-    return NULL;
+    return nullptr;
   }
   int entry_index = seq_disk_cache_get_header_entry(key, &header);
 
@@ -630,7 +631,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   if (entry_index < 0) {
     fclose(file);
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
-    return NULL;
+    return nullptr;
   }
 
   ImBuf *ibuf;
@@ -651,7 +652,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   else {
     fclose(file);
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
-    return NULL;
+    return nullptr;
   }
 
   size_t bytes_read = inflate_file_to_imbuf(ibuf, file, &header.entry[entry_index]);
@@ -661,7 +662,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
     fclose(file);
     IMB_freeImBuf(ibuf);
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
-    return NULL;
+    return nullptr;
   }
   BLI_file_touch(filepath);
   seq_disk_cache_update_file(disk_cache, filepath);
@@ -673,7 +674,8 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
 
 SeqDiskCache *seq_disk_cache_create(Main *bmain, Scene *scene)
 {
-  SeqDiskCache *disk_cache = MEM_callocN(sizeof(SeqDiskCache), "SeqDiskCache");
+  SeqDiskCache *disk_cache = static_cast<SeqDiskCache *>(
+      MEM_callocN(sizeof(SeqDiskCache), "SeqDiskCache"));
   disk_cache->bmain = bmain;
   BLI_mutex_init(&disk_cache->read_write_mutex);
   seq_disk_cache_handle_versioning(disk_cache);

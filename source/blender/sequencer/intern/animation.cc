@@ -25,13 +25,13 @@
 
 bool SEQ_animation_curves_exist(Scene *scene)
 {
-  return scene->adt != NULL && scene->adt->action != NULL &&
+  return scene->adt != nullptr && scene->adt->action != nullptr &&
          !BLI_listbase_is_empty(&scene->adt->action->curves);
 }
 
 bool SEQ_animation_drivers_exist(Scene *scene)
 {
-  return scene->adt != NULL && !BLI_listbase_is_empty(&scene->adt->drivers);
+  return scene->adt != nullptr && !BLI_listbase_is_empty(&scene->adt->drivers);
 }
 
 /* r_prefix + [" + escaped_name + "] + \0 */
@@ -52,10 +52,10 @@ GSet *SEQ_fcurves_by_strip_get(const Sequence *seq, ListBase *fcurve_base)
   size_t rna_path_len = sequencer_rna_path_prefix(rna_path, seq->name + 2);
 
   /* Only allocate `fcurves` if it's needed as it's possible there is no animation for `seq`. */
-  GSet *fcurves = NULL;
+  GSet *fcurves = nullptr;
   LISTBASE_FOREACH (FCurve *, fcurve, fcurve_base) {
     if (STREQLEN(fcurve->rna_path, rna_path, rna_path_len)) {
-      if (fcurves == NULL) {
+      if (fcurves == nullptr) {
         fcurves = BLI_gset_ptr_new(__func__);
       }
       BLI_gset_add(fcurves, fcurve);
@@ -73,7 +73,7 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
     return;
   }
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
-  if (fcurves == NULL) {
+  if (fcurves == nullptr) {
     return;
   }
 
@@ -95,7 +95,7 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
     }
   }
   GSET_FOREACH_END();
-  BLI_gset_free(fcurves, NULL);
+  BLI_gset_free(fcurves, nullptr);
 
   DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION);
 }
@@ -106,7 +106,7 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
     return;
   }
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
-  if (fcurves == NULL) {
+  if (fcurves == nullptr) {
     return;
   }
 
@@ -115,7 +115,7 @@ void SEQ_free_animdata(Scene *scene, Sequence *seq)
     BKE_fcurve_free(fcu);
   }
   GSET_FOREACH_END();
-  BLI_gset_free(fcurves, NULL);
+  BLI_gset_free(fcurves, nullptr);
 }
 
 void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
@@ -147,7 +147,7 @@ static void seq_animation_duplicate(Scene *scene, Sequence *seq, ListBase *dst, 
   }
 
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, src);
-  if (fcurves == NULL) {
+  if (fcurves == nullptr) {
     return;
   }
 
@@ -156,7 +156,7 @@ static void seq_animation_duplicate(Scene *scene, Sequence *seq, ListBase *dst, 
     BLI_addtail(dst, fcu_cpy);
   }
   GSET_FOREACH_END();
-  BLI_gset_free(fcurves, NULL);
+  BLI_gset_free(fcurves, nullptr);
 }
 
 void SEQ_animation_duplicate_backup_to_scene(Scene *scene,

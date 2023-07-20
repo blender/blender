@@ -44,7 +44,7 @@ bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Seque
   BLI_gsetIterator_init(&iterator->gsi, iterator->collection->set);
   iterator->iterator_initialized = true;
 
-  *r_seq = BLI_gsetIterator_getKey(&iterator->gsi);
+  *r_seq = static_cast<Sequence *>(BLI_gsetIterator_getKey(&iterator->gsi));
   BLI_gsetIterator_step(&iterator->gsi);
 
   return true;
@@ -52,8 +52,8 @@ bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Seque
 
 Sequence *SEQ_iterator_yield(SeqIterator *iterator)
 {
-  Sequence *seq = BLI_gsetIterator_done(&iterator->gsi) ? NULL :
-                                                          BLI_gsetIterator_getKey(&iterator->gsi);
+  Sequence *seq = static_cast<Sequence *>(
+      BLI_gsetIterator_done(&iterator->gsi) ? nullptr : BLI_gsetIterator_getKey(&iterator->gsi));
   BLI_gsetIterator_step(&iterator->gsi);
   return seq;
 }
@@ -81,13 +81,14 @@ void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *use
 
 void SEQ_collection_free(SeqCollection *collection)
 {
-  BLI_gset_free(collection->set, NULL);
+  BLI_gset_free(collection->set, nullptr);
   MEM_freeN(collection);
 }
 
 SeqCollection *SEQ_collection_create(const char *name)
 {
-  SeqCollection *collection = MEM_callocN(sizeof(SeqCollection), name);
+  SeqCollection *collection = static_cast<SeqCollection *>(
+      MEM_callocN(sizeof(SeqCollection), name));
   collection->set = BLI_gset_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "SeqCollection GSet");
   return collection;
@@ -128,7 +129,7 @@ bool SEQ_collection_append_strip(Sequence *seq, SeqCollection *collection)
 
 bool SEQ_collection_remove_strip(Sequence *seq, SeqCollection *collection)
 {
-  return BLI_gset_remove(collection->set, seq, NULL);
+  return BLI_gset_remove(collection->set, seq, nullptr);
 }
 
 void SEQ_collection_merge(SeqCollection *collection_dst, SeqCollection *collection_src)

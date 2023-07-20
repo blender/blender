@@ -49,7 +49,7 @@
 #include "prefetch.h"
 #include "render.h"
 
-typedef struct PrefetchJob {
+struct PrefetchJob {
   struct PrefetchJob *next, *prev;
 
   Main *bmain;
@@ -77,11 +77,13 @@ typedef struct PrefetchJob {
   bool running;
   bool waiting;
   bool stop;
-} PrefetchJob;
+};
 
 static bool seq_prefetch_is_playing(const Main *bmain)
 {
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+       screen = static_cast<bScreen *>(screen->id.next))
+  {
     if (screen->animtimer) {
       return true;
     }
@@ -92,7 +94,9 @@ static bool seq_prefetch_is_playing(const Main *bmain)
 static bool seq_prefetch_is_scrubbing(const Main *bmain)
 {
 
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+  for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+       screen = static_cast<bScreen *>(screen->id.next))
+  {
     if (screen->scrubbing) {
       return true;
     }
@@ -105,7 +109,7 @@ static PrefetchJob *seq_prefetch_job_get(Scene *scene)
   if (scene && scene->ed) {
     return scene->ed->prefetch_job;
   }
-  return NULL;
+  return nullptr;
 }
 
 bool seq_prefetch_job_is_running(Scene *scene)
@@ -139,13 +143,13 @@ static Sequence *sequencer_prefetch_get_original_sequence(Sequence *seq, ListBas
 
     if (seq_orig->type == SEQ_TYPE_META) {
       Sequence *match = sequencer_prefetch_get_original_sequence(seq, &seq_orig->seqbase);
-      if (match != NULL) {
+      if (match != nullptr) {
         return match;
       }
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 Sequence *seq_prefetch_get_original_sequence(Sequence *seq, Scene *scene)
@@ -191,11 +195,11 @@ void seq_prefetch_get_time_range(Scene *scene, int *start, int *end)
 
 static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)
 {
-  if (pfjob->depsgraph != NULL) {
+  if (pfjob->depsgraph != nullptr) {
     DEG_graph_free(pfjob->depsgraph);
   }
-  pfjob->depsgraph = NULL;
-  pfjob->scene_eval = NULL;
+  pfjob->depsgraph = nullptr;
+  pfjob->scene_eval = nullptr;
 }
 
 static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
@@ -247,7 +251,9 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
 void SEQ_prefetch_stop_all(void)
 {
   /* TODO(Richard): Use wm_jobs for prefetch, or pass main. */
-  for (Scene *scene = G.main->scenes.first; scene; scene = scene->id.next) {
+  for (Scene *scene = static_cast<Scene *>(G.main->scenes.first); scene;
+       scene = static_cast<Scene *>(scene->id.next))
+  {
     SEQ_prefetch_stop(scene);
   }
 }
@@ -319,7 +325,7 @@ static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
   MetaStack *ms_orig = SEQ_meta_stack_active_get(SEQ_editing_get(pfjob->scene));
   Editing *ed_eval = SEQ_editing_get(pfjob->scene_eval);
 
-  if (ms_orig != NULL) {
+  if (ms_orig != nullptr) {
     Sequence *meta_eval = seq_prefetch_get_original_sequence(ms_orig->parseq, pfjob->scene_eval);
     SEQ_seqbase_active_set(ed_eval, &meta_eval->seqbase);
   }
@@ -353,7 +359,7 @@ void seq_prefetch_free(Scene *scene)
   seq_prefetch_free_depsgraph(pfjob);
   BKE_main_free(pfjob->bmain_eval);
   MEM_freeN(pfjob);
-  scene->ed->prefetch_job = NULL;
+  scene->ed->prefetch_job = nullptr;
 }
 
 static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
@@ -364,13 +370,13 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
   float cfra = seq_prefetch_cfra(pfjob);
 
   ImBuf *ibuf = seq_cache_get(ctx, seq, cfra, SEQ_CACHE_STORE_PREPROCESSED);
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     IMB_freeImBuf(ibuf);
     return true;
   }
 
   ibuf = seq_cache_get(ctx, seq, cfra, SEQ_CACHE_STORE_RAW);
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     IMB_freeImBuf(ibuf);
     return true;
   }
@@ -380,7 +386,7 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
   }
 
   ibuf = seq_cache_get(ctx, seq, cfra, SEQ_CACHE_STORE_FINAL_OUT);
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     IMB_freeImBuf(ibuf);
     return true;
   }
@@ -474,7 +480,7 @@ static void *seq_prefetch_frames(void *job)
   PrefetchJob *pfjob = (PrefetchJob *)job;
 
   while (seq_prefetch_cfra(pfjob) <= pfjob->scene->r.efra) {
-    pfjob->scene_eval->ed->prefetch_job = NULL;
+    pfjob->scene_eval->ed->prefetch_job = nullptr;
 
     seq_prefetch_update_depsgraph(pfjob);
     AnimData *adt = BKE_animdata_from_id(&pfjob->context_cpy.scene->id);
@@ -486,7 +492,7 @@ static void *seq_prefetch_frames(void *job)
      * We need cross-reference original scene with copy for cache.
      * However depsgraph must not have this data, because it will try to kill this job.
      * Scene copy don't reference original scene. Perhaps, this could be done by depsgraph.
-     * Set to NULL before return!
+     * Set to nullptr before return!
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
@@ -520,9 +526,9 @@ static void *seq_prefetch_frames(void *job)
 
   seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
   pfjob->running = false;
-  pfjob->scene_eval->ed->prefetch_job = NULL;
+  pfjob->scene_eval->ed->prefetch_job = nullptr;
 
-  return NULL;
+  return nullptr;
 }
 
 static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cfra)

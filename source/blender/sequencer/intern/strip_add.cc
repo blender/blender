@@ -63,10 +63,10 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
                             const int channel)
 {
   memset(load_data, 0, sizeof(SeqLoadData));
-  if (name != NULL) {
+  if (name != nullptr) {
     STRNCPY(load_data->name, name);
   }
-  if (path != NULL) {
+  if (path != nullptr) {
     STRNCPY(load_data->path, path);
   }
   load_data->start_frame = start_frame;
@@ -236,7 +236,8 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_IMAGE);
   seq->len = load_data->image.len;
   Strip *strip = seq->strip;
-  strip->stripdata = MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem");
+  strip->stripdata = static_cast<StripElem *>(
+      MEM_callocN(load_data->image.len * sizeof(StripElem), "stripelem"));
 
   if (seq->len == 1) {
     seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
@@ -256,7 +257,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   STRNCPY(file_path, load_data->path);
   BLI_path_abs(file_path, BKE_main_blendfile_path(bmain));
   ImBuf *ibuf = IMB_loadiffname(file_path, IB_rect, seq->strip->colorspace_settings.name);
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     /* Set image resolution. Assume that all images in sequence are same size. This fields are only
      * informative. */
     StripElem *strip_elem = strip->stripdata;
@@ -304,18 +305,18 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   if (!sound_loaded && !load_data->allow_invalid_file) {
     BKE_id_free(bmain, sound);
-    return NULL;
+    return nullptr;
   }
 
   if (info.specs.channels == SOUND_CHANNELS_INVALID && !load_data->allow_invalid_file) {
     BKE_id_free(bmain, sound);
-    return NULL;
+    return nullptr;
   }
 
   Sequence *seq = SEQ_sequence_alloc(
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SOUND_RAM);
   seq->sound = sound;
-  seq->scene_sound = NULL;
+  seq->scene_sound = nullptr;
 
   /* We round the frame duration as the audio sample lengths usually does not
    * line up with the video frames. Therefore we round this number to the
@@ -326,11 +327,12 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   Strip *strip = seq->strip;
   /* We only need 1 element to store the filename. */
-  StripElem *se = strip->stripdata = MEM_callocN(sizeof(StripElem), "stripelem");
+  StripElem *se = strip->stripdata = static_cast<StripElem *>(
+      MEM_callocN(sizeof(StripElem), "stripelem"));
   BLI_path_split_dir_file(
       load_data->path, strip->dirpath, sizeof(strip->dirpath), se->filename, sizeof(se->filename));
 
-  if (seq != NULL && seq->sound != NULL) {
+  if (seq != nullptr && seq->sound != nullptr) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
       seq->sound->flags |= SOUND_FLAGS_MONO;
     }
@@ -353,12 +355,12 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 }
 
 #else   // WITH_AUDASPACE
-Sequence *SEQ_add_sound_strip(Main *UNUSED(bmain),
-                              Scene *UNUSED(scene),
-                              ListBase *UNUSED(seqbase),
-                              SeqLoadData *UNUSED(load_data))
+Sequence *SEQ_add_sound_strip(Main * /*bmain*/,
+                              Scene * /*scene*/,
+                              ListBase * /*seqbase*/,
+                              SeqLoadData * /*load_data*/)
 {
-  return NULL;
+  return nullptr;
 }
 #endif  // WITH_AUDASPACE
 
@@ -389,14 +391,15 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  struct anim **anim_arr = MEM_callocN(sizeof(struct anim *) * totfiles, "Video files");
+  struct anim **anim_arr = static_cast<anim **>(
+      MEM_callocN(sizeof(struct anim *) * totfiles, "Video files"));
   int i;
   int orig_width = 0;
   int orig_height = 0;
 
   if (load_data->use_multiview && (load_data->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     char prefix[FILE_MAX];
-    const char *ext = NULL;
+    const char *ext = nullptr;
     size_t j = 0;
 
     BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
@@ -421,15 +424,15 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     anim_arr[0] = openanim(path, IB_rect, 0, colorspace);
   }
 
-  if (anim_arr[0] == NULL && !load_data->allow_invalid_file) {
+  if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {
     MEM_freeN(anim_arr);
-    return NULL;
+    return nullptr;
   }
 
   float video_fps = 0.0f;
   load_data->r_video_stream_start = 0.0;
 
-  if (anim_arr[0] != NULL) {
+  if (anim_arr[0] != nullptr) {
     short fps_denom;
     float fps_num;
 
@@ -461,7 +464,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   for (i = 0; i < totfiles; i++) {
     if (anim_arr[i]) {
-      StripAnim *sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+      StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
       BLI_addtail(&seq->anims, sanim);
       sanim->anim = anim_arr[i];
     }
@@ -470,7 +473,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     }
   }
 
-  if (anim_arr[0] != NULL) {
+  if (anim_arr[0] != nullptr) {
     seq->len = IMB_anim_get_duration(anim_arr[0], IMB_TC_RECORD_RUN);
 
     IMB_anim_load_metadata(anim_arr[0]);
@@ -498,7 +501,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   Strip *strip = seq->strip;
   /* We only need 1 element for MOVIE strips. */
   StripElem *se;
-  strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
+  strip->stripdata = se = static_cast<StripElem *>(MEM_callocN(sizeof(StripElem), "stripelem"));
   strip->stripdata->orig_width = orig_width;
   strip->stripdata->orig_height = orig_height;
   strip->stripdata->orig_fps = video_fps;
@@ -564,7 +567,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
       if (is_multiview && (seq->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
         char prefix[FILE_MAX];
-        const char *ext = NULL;
+        const char *ext = nullptr;
         const int totfiles = seq_num_files(scene, seq->views_format, true);
         int i = 0;
 
@@ -583,7 +586,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
             if (anim) {
               seq_anim_add_suffix(scene, anim, i);
-              sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+              sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
               BLI_addtail(&seq->anims, sanim);
               sanim->anim = anim;
             }
@@ -599,14 +602,14 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
                         seq->streamindex,
                         seq->strip->colorspace_settings.name);
         if (anim) {
-          sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+          sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
           BLI_addtail(&seq->anims, sanim);
           sanim->anim = anim;
         }
       }
 
       /* use the first video as reference for everything */
-      sanim = seq->anims.first;
+      sanim = static_cast<StripAnim *>(seq->anims.first);
 
       if ((!sanim) || (!sanim->anim)) {
         return;
@@ -615,7 +618,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       IMB_anim_load_metadata(sanim->anim);
 
       seq->len = IMB_anim_get_duration(
-          sanim->anim, seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN);
+          sanim->anim,
+          IMB_Timecode_Type(seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN));
 
       seq->len -= seq->anim_startofs;
       seq->len -= seq->anim_endofs;
@@ -625,7 +629,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       break;
     }
     case SEQ_TYPE_MOVIECLIP:
-      if (seq->clip == NULL) {
+      if (seq->clip == nullptr) {
         return;
       }
 
@@ -638,7 +642,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       }
       break;
     case SEQ_TYPE_MASK:
-      if (seq->mask == NULL) {
+      if (seq->mask == nullptr) {
         return;
       }
       seq->len = BKE_mask_get_duration(seq->mask);

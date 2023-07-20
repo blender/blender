@@ -45,18 +45,18 @@
 #include "sequencer.h"
 #include "utils.h"
 
-typedef struct SeqUniqueInfo {
+struct SeqUniqueInfo {
   Sequence *seq;
   char name_src[SEQ_NAME_MAXSTR];
   char name_dest[SEQ_NAME_MAXSTR];
   int count;
   int match;
-} SeqUniqueInfo;
+};
 
 static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
   Sequence *seq;
-  for (seq = seqbasep->first; seq; seq = seq->next) {
+  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
     if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
       /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
       SNPRINTF(
@@ -158,7 +158,7 @@ static const char *give_seqname_by_type(int type)
     case SEQ_TYPE_TEXT:
       return DATA_("Text");
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -178,7 +178,7 @@ const char *SEQ_sequence_give_name(Sequence *seq)
 
 ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, int *r_offset)
 {
-  ListBase *seqbase = NULL;
+  ListBase *seqbase = nullptr;
 
   switch (seq->type) {
     case SEQ_TYPE_META: {
@@ -214,7 +214,9 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                             (scene->r.scemode & R_MULTIVIEW) != 0;
 
-  if ((seq->anims.first != NULL) && (((StripAnim *)seq->anims.first)->anim != NULL) && !openfile) {
+  if ((seq->anims.first != nullptr) && (((StripAnim *)seq->anims.first)->anim != nullptr) &&
+      !openfile)
+  {
     return;
   }
 
@@ -247,7 +249,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
     int totfiles = seq_num_files(scene, seq->views_format, true);
     char prefix[FILE_MAX];
-    const char *ext = NULL;
+    const char *ext = nullptr;
     int i;
 
     BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
@@ -256,7 +258,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
       for (i = 0; i < totfiles; i++) {
         const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
         char filepath_view[FILE_MAX];
-        StripAnim *sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+        StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
 
         BLI_addtail(&seq->anims, sanim);
 
@@ -310,7 +312,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   if (is_multiview_loaded == false) {
     StripAnim *sanim;
 
-    sanim = MEM_mallocN(sizeof(StripAnim), "Strip Anim");
+    sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
     BLI_addtail(&seq->anims, sanim);
 
     if (openfile) {
@@ -337,14 +339,14 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   Editing *ed = scene->ed;
 
   if (!ed) {
-    return NULL;
+    return nullptr;
   }
 
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  const Sequence *seq, *best_seq = NULL;
+  const Sequence *seq, *best_seq = nullptr;
   int best_machine = -1;
 
-  for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+  for (seq = static_cast<const Sequence *>(ed->seqbasep->first); seq; seq = seq->next) {
     if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(scene, seq, frame))
     {
       continue;
@@ -374,20 +376,20 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
   ListBase *main_seqbase = &ed->seqbase;
   Sequence *seq_meta = seq_sequence_lookup_meta_by_seq(scene, seq);
 
-  if (seq_meta != NULL) {
+  if (seq_meta != nullptr) {
     return &seq_meta->seqbase;
   }
   if (BLI_findindex(main_seqbase, seq) != -1) {
     return main_seqbase;
   }
-  return NULL;
+  return nullptr;
 }
 
 Sequence *SEQ_get_meta_by_seqbase(ListBase *seqbase_main, ListBase *meta_seqbase)
 {
   SeqCollection *strips = SEQ_query_all_strips_recursive(seqbase_main);
 
-  Sequence *seq = NULL;
+  Sequence *seq = nullptr;
   SEQ_ITERATOR_FOREACH (seq, strips) {
     if (seq->type == SEQ_TYPE_META && &seq->seqbase == meta_seqbase) {
       break;
@@ -402,7 +404,7 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
   Sequence *iseq;
 
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
+  for (iseq = static_cast<Sequence *>(seqbase->first); iseq; iseq = iseq->next) {
     Sequence *seq_found;
     if ((iseq->strip && iseq->strip->stripdata) &&
         ARRAY_HAS_ITEM(se, iseq->strip->stripdata, iseq->len))
@@ -420,10 +422,10 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 
 Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
-  Sequence *iseq = NULL;
-  Sequence *rseq = NULL;
+  Sequence *iseq = nullptr;
+  Sequence *rseq = nullptr;
 
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
+  for (iseq = static_cast<Sequence *>(seqbase->first); iseq; iseq = iseq->next) {
     if (STREQ(name, iseq->name + 2)) {
       return iseq;
     }
@@ -434,7 +436,7 @@ Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool rec
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 Mask *SEQ_active_mask_get(Scene *scene)
@@ -445,7 +447,7 @@ Mask *SEQ_active_mask_get(Scene *scene)
     return seq_act->mask;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void SEQ_alpha_mode_from_file_extension(Sequence *seq)
@@ -462,13 +464,13 @@ bool SEQ_sequence_has_source(const Sequence *seq)
    * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
   switch (seq->type) {
     case SEQ_TYPE_MASK:
-      return (seq->mask != NULL);
+      return (seq->mask != nullptr);
     case SEQ_TYPE_MOVIECLIP:
-      return (seq->clip != NULL);
+      return (seq->clip != nullptr);
     case SEQ_TYPE_SCENE:
-      return (seq->scene != NULL);
+      return (seq->scene != nullptr);
     case SEQ_TYPE_SOUND_RAM:
-      return (seq->sound != NULL);
+      return (seq->sound != nullptr);
   }
 
   return true;
@@ -526,8 +528,15 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
 
   STRNCPY_UTF8(name, seq->name + 2);
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
-  BKE_animdata_fix_paths_rename(
-      &scene->id, scene->adt, NULL, "sequence_editor.sequences_all", name, seq->name + 2, 0, 0, 0);
+  BKE_animdata_fix_paths_rename(&scene->id,
+                                scene->adt,
+                                nullptr,
+                                "sequence_editor.sequences_all",
+                                name,
+                                seq->name + 2,
+                                0,
+                                0,
+                                0);
 
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
