@@ -2109,7 +2109,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_active_layer_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_BRUSH_ACTIVE_LAYER_ONLY);
-  RNA_def_property_ui_text(prop, "Active Layer", "Only edit the active layer of the object.");
+  RNA_def_property_ui_text(prop, "Active Layer", "Only edit the active layer of the object");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
 
