@@ -165,7 +165,7 @@ static void id_release_gc(struct ID *id)
 #endif
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-//#define DEBUG_RNA_WEAKREF
+// #define DEBUG_RNA_WEAKREF
 
 struct GHash *id_weakref_pool = nullptr;
 static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref);
@@ -177,14 +177,14 @@ static PyMethodDef id_free_weakref_cb_def = {
  */
 static void id_weakref_pool_free_value_fn(void *p)
 {
-  GHash *weakinfo_hash = p;
+  GHash *weakinfo_hash = static_cast<GHash *>(p);
   BLI_ghash_free(weakinfo_hash, nullptr, nullptr);
 }
 
 /* Adds a reference to the list, remember to decref. */
 static GHash *id_weakref_pool_get(ID *id)
 {
-  GHash *weakinfo_hash = BLI_ghash_lookup(id_weakref_pool, (void *)id);
+  GHash *weakinfo_hash = static_cast<GHash *>(BLI_ghash_lookup(id_weakref_pool, (void *)id));
   if (weakinfo_hash == nullptr) {
     /* This could be a set, values are used to keep a reference back to the ID
      * (all of them are the same). */
@@ -232,7 +232,7 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash);
 static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
 {
   /* Important to search backwards. */
-  GHash *weakinfo_hash = PyCapsule_GetPointer(weakinfo_pair, nullptr);
+  GHash *weakinfo_hash = static_cast<GHash *>(PyCapsule_GetPointer(weakinfo_pair, nullptr));
 
   if (BLI_ghash_len(weakinfo_hash) > 1) {
     BLI_ghash_remove(weakinfo_hash, weakref, nullptr, nullptr);
@@ -280,7 +280,7 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 
 static void id_release_weakref(struct ID *id)
 {
-  GHash *weakinfo_hash = BLI_ghash_lookup(id_weakref_pool, (void *)id);
+  GHash *weakinfo_hash = static_cast<GHash *>(BLI_ghash_lookup(id_weakref_pool, (void *)id));
   if (weakinfo_hash) {
     id_release_weakref_list(id, weakinfo_hash);
   }
@@ -7676,7 +7676,7 @@ void BPY_rna_exit()
     printf("Found %d unreleased ID's\n", id_weakref_pool_len);
     GHashIterator gh_iter;
     GHASH_ITER (gh_iter, id_weakref_pool) {
-      ID *id = BLI_ghashIterator_getKey(&gh_iter);
+      ID *id = static_cast<ID *>(BLI_ghashIterator_getKey(&gh_iter));
       printf("ID: %s\n", id->name);
     }
   }
