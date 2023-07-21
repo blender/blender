@@ -403,45 +403,52 @@ static void GREASE_PENCIL_OT_stroke_smooth(wmOperatorType *ot)
 /**
  * An implementation of the Ramer-Douglas-Peucker algorithm.
  *
+ * \param range: The range to simplify.
  * \param epsilon: The threshold distance from the coord between two points for when a point
  * in-between needs to be kept.
+ * \param dist_function: A function that computes the distance to a point at an index in the range.
+ * The IndexRange is a subrange of \a range and the index is an index relative to the subrange.
  * \param points_to_delete: Writes true to the indecies for which the points should be removed.
+ * \returns the total number of points to remove.
  */
-void ramer_douglas_peucker_simplify(const Span<float3> src,
-                                    const float epsilon,
-                                    MutableSpan<bool> points_to_delete)
+int64_t ramer_douglas_peucker_simplify(const IndexRange range,
+                                       const float epsilon,
+                                       const FunctionRef<float(IndexRange, int64_t)> dist_function,
+                                       MutableSpan<bool> points_to_delete)
 {
-  BLI_assert(src.size() == points_to_delete.size());
-
   /* Mark all points to not be removed. */
-  points_to_delete.fill(false);
+  points_to_delete.slice(range).fill(false);
+  int64_t total_points_to_remove = 0;
 
   Stack<IndexRange> stack;
-  stack.push(src.index_range());
+  stack.push(range);
   while (!stack.is_empty()) {
-    const IndexRange range = stack.pop();
-    const Span<float3> slice = src.slice(range);
+    const IndexRange sub_range = stack.pop();
 
+    /* Compute the maximum distance and the corresponding distance. */
     float max_dist = -1.0f;
     int max_index = -1;
-    for (const int64_t index : slice.index_range().drop_front(1).drop_back(1)) {
-      const float dist = dist_to_line_v3(slice[index], slice.first(), slice.last());
+    for (const int64_t sub_index : sub_range.index_range().drop_front(1).drop_back(1)) {
+      const float dist = dist_function(sub_range, sub_index);
       if (dist > max_dist) {
         max_dist = dist;
-        max_index = index;
+        max_index = sub_index;
       }
     }
 
     if (max_dist > epsilon) {
-      /* Found point outside the epsilon-sized tube. Repeat the search on the left & right side. */
-      stack.push(IndexRange(range.first(), max_index + 1));
-      stack.push(IndexRange(range.first() + max_index, range.size() - max_index));
+      /* Found point outside the epsilon-sized strip. Repeat the search on the left & right side. */
+      stack.push(sub_range.slice(IndexRange(max_index + 1)));
+      stack.push(sub_range.slice(IndexRange(max_index, sub_range.size() - max_index)));
     }
     else {
-      /* Points in `range` are inside the epsilon-sized tube. Mark them to be deleted. */
-      points_to_delete.slice(range.drop_front(1).drop_back(1)).fill(true);
+      /* Points in `sub_range` are inside the epsilon-sized strip. Mark them to be deleted. */
+      const IndexRange inside_range = sub_range.drop_front(1).drop_back(1);
+      total_points_to_remove += inside_range.size();
+      points_to_delete.slice(inside_range).fill(true);
     }
   }
+  return total_points_to_remove;
 }
 
 static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
@@ -466,6 +473,15 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
         }
 
         const Span<float3> positions = curves.positions();
+
+        /* Distance function for `ramer_douglas_peucker_simplify`. */
+        auto dist_func = [&](IndexRange range, int64_t index_in_range) {
+          const Span<float3> position_slice = positions.slice(range);
+          const float dist_position = dist_to_line_v3(
+              position_slice[index_in_range], position_slice.first(), position_slice.last());
+          return dist_position;
+        };
+
         const VArray<bool> cyclic = curves.cyclic();
         const OffsetIndices<int> points_by_curve = curves.points_by_curve();
         const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
@@ -474,6 +490,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
         Array<bool> points_to_delete(curves.points_num());
         selection.materialize(points_to_delete);
 
+        std::atomic<int64_t> total_points_to_delete = 0;
         threading::parallel_for(curves.curves_range(), 128, [&](const IndexRange range) {
           for (const int curve_i : range) {
             const IndexRange points = points_by_curve[curve_i];
@@ -488,13 +505,14 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
             const Vector<IndexRange> selection_ranges = array_utils::find_all_ranges(
                 curve_selection, true);
             threading::parallel_for(
-                selection_ranges.index_range(), 16, [&](const IndexRange range_of_ranges) {
+                selection_ranges.index_range(), 1024, [&](const IndexRange range_of_ranges) {
                   for (const IndexRange range : selection_ranges.as_span().slice(range_of_ranges))
                   {
-                    ramer_douglas_peucker_simplify(
-                        positions.slice(range.shift(points.start())),
+                    total_points_to_delete += ramer_douglas_peucker_simplify(
+                        range.shift(points.start()),
                         epsilon,
-                        points_to_delete.as_mutable_span().slice(range.shift(points.start())));
+                        dist_func,
+                        points_to_delete.as_mutable_span());
                   }
                 });
 
@@ -504,12 +522,13 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
                   positions[points.last()], positions[points.last(1)], positions[points.first()]);
               if (dist <= epsilon) {
                 points_to_delete[points.last()] = true;
+                total_points_to_delete++;
               }
             }
           }
         });
 
-        if (points_to_delete.as_span().contains(true)) {
+        if (total_points_to_delete > 0) {
           IndexMaskMemory memory;
           curves.remove_points(IndexMask::from_bools(points_to_delete, memory));
           drawing.tag_topology_changed();
