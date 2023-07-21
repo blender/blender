@@ -3654,7 +3654,7 @@ static void MatrixAccess_dealloc(MatrixAccessObject *self)
 /** \name Matrix-Access Type: Sequence Protocol
  * \{ */
 
-static int MatrixAccess_len(MatrixAccessObject *self)
+static Py_ssize_t MatrixAccess_len(MatrixAccessObject *self)
 {
   return (self->type == MAT_ACCESS_ROW) ? self->matrix_user->row_num : self->matrix_user->col_num;
 }
