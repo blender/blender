@@ -89,8 +89,70 @@ struct ArmatureDrawContext {
   bool do_relations;
   bool transparent;
   bool show_relations;
+  bool draw_relation_from_head;
 
   const ThemeWireColor *bcolor; /* pchan color */
+};
+
+/**
+ * Bone drawing strategy class.
+ *
+ * Depending on the armature display mode, a different subclass is used to
+ * manage drawing. These subclasses are defined further down in the file. This
+ * abstract class needs to be defined before any function that uses it, though.
+ */
+
+class ArmatureBoneDrawStrategy {
+ public:
+  virtual void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const = 0;
+
+  /**
+   * Culling test.
+   * \return true when a part of this bPoseChannel is visible in the viewport.
+   */
+  virtual bool culling_test(const DRWView *view,
+                            const Object *ob,
+                            const bPoseChannel *pchan) const = 0;
+
+  virtual void draw_context_setup(ArmatureDrawContext *ctx,
+                                  OVERLAY_ArmatureCallBuffersInner *cb,
+                                  const bool is_filled,
+                                  const bool do_envelope_dist) const = 0;
+
+  virtual void draw_bone(ArmatureDrawContext *ctx,
+                         const EditBone *eBone,
+                         const bPoseChannel *pchan,
+                         const bArmature *arm,
+                         const int boneflag,
+                         const short constflag,
+                         const int select_id) const = 0;
+
+  /** Should the relationship line between this bone and its parent be drawn? */
+  virtual bool should_draw_relation_to_parent(const EditBone *ebone,
+                                              const bPoseChannel *pchan,
+                                              const int boneflag) const
+  {
+    if (ebone && ebone->parent) {
+      /* Always draw for unconnected bones, regardless of selection,
+       * since riggers will want to know about the links between bones
+       */
+      return (boneflag & BONE_CONNECTED) == 0;
+    }
+
+    if (pchan && pchan->parent) {
+      /* Only draw between unconnected bones. */
+      if (boneflag & BONE_CONNECTED) {
+        return false;
+      }
+
+      /* Only draw if bone or its parent is selected - reduces viewport
+       * complexity with complex rigs */
+      return (boneflag & BONE_SELECTED) ||
+             (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED));
+    }
+
+    return false;
+  }
 };
 
 bool OVERLAY_armature_is_pose_mode(Object *ob, const DRWContextState *draw_ctx)
@@ -1379,6 +1441,7 @@ static void ebone_spline_preview(EditBone *ebone, const float result_array[MAX_B
   ebone->segments = BKE_pchan_bbone_spline_compute(&param, false, (Mat4 *)result_array);
 }
 
+/* This function is used for both B-Bone and Wire matrix updates. */
 static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pchan)
 {
   float s[4][4], ebmat[4][4];
@@ -1445,33 +1508,6 @@ static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pc
 
   /* Grrr... We need default display matrix to draw end points, axes, etc. :( */
   draw_bone_update_disp_matrix_default(eBone, pchan);
-}
-
-static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
-{
-  float bone_scale[3];
-  float(*bone_mat)[4];
-  float(*disp_mat)[4];
-  float(*disp_tail_mat)[4];
-  float rot_mat[3][3];
-
-  /* See TODO: above. */
-  mul_v3_v3fl(bone_scale, pchan->custom_scale_xyz, PCHAN_CUSTOM_BONE_LENGTH(pchan));
-  bone_mat = pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat;
-  disp_mat = pchan->disp_mat;
-  disp_tail_mat = pchan->disp_tail_mat;
-
-  eulO_to_mat3(rot_mat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
-
-  copy_m4_m4(disp_mat, bone_mat);
-  translate_m4(disp_mat,
-               pchan->custom_translation[0],
-               pchan->custom_translation[1],
-               pchan->custom_translation[2]);
-  mul_m4_m4m3(disp_mat, disp_mat, rot_mat);
-  rescale_m4(disp_mat, bone_scale);
-  copy_m4_m4(disp_tail_mat, disp_mat);
-  translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
 
 static void draw_axes(ArmatureDrawContext *ctx,
@@ -1611,268 +1647,6 @@ static void draw_points(ArmatureDrawContext *ctx,
   if (select_id != -1) {
     DRW_select_load_id(-1);
   }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Draw Bones
- * \{ */
-
-static void draw_bone_custom_shape(ArmatureDrawContext *ctx,
-                                   EditBone *eBone,
-                                   bPoseChannel *pchan,
-                                   bArmature *arm,
-                                   const int boneflag,
-                                   const short constflag,
-                                   const int select_id)
-{
-  const float *col_solid = get_bone_solid_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float(*disp_mat)[4] = pchan->disp_mat;
-
-  if (select_id != -1) {
-    DRW_select_load_id(select_id | BONESEL_BONE);
-  }
-
-  if (pchan->custom->type == OB_EMPTY) {
-    Object *ob = pchan->custom;
-    if (ob->empty_drawtype != OB_EMPTY_IMAGE) {
-      drw_shgroup_bone_custom_empty(ctx, disp_mat, col_wire, pchan->custom);
-    }
-  }
-  if ((boneflag & BONE_DRAWWIRE) == 0 && (boneflag & BONE_DRAW_LOCKED_WEIGHT) == 0) {
-    drw_shgroup_bone_custom_solid(ctx, disp_mat, col_solid, col_hint, col_wire, pchan->custom);
-  }
-  else {
-    drw_shgroup_bone_custom_wire(ctx, disp_mat, col_wire, pchan->custom);
-  }
-
-  if (select_id != -1) {
-    DRW_select_load_id(-1);
-  }
-}
-
-static void draw_bone_envelope(ArmatureDrawContext *ctx,
-                               EditBone *eBone,
-                               bPoseChannel *pchan,
-                               bArmature *arm,
-                               const int boneflag,
-                               const short constflag,
-                               const int select_id)
-{
-  const float *col_solid = get_bone_solid_with_consts_color(
-      ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
-
-  float *rad_head, *rad_tail, *distance;
-  if (eBone) {
-    rad_tail = &eBone->rad_tail;
-    distance = &eBone->dist;
-    rad_head = (eBone->parent && (boneflag & BONE_CONNECTED)) ? &eBone->parent->rad_tail :
-                                                                &eBone->rad_head;
-  }
-  else {
-    rad_tail = &pchan->bone->rad_tail;
-    distance = &pchan->bone->dist;
-    rad_head = (pchan->parent && (boneflag & BONE_CONNECTED)) ? &pchan->parent->bone->rad_tail :
-                                                                &pchan->bone->rad_head;
-  }
-
-  if ((select_id == -1) && (boneflag & BONE_NO_DEFORM) == 0 &&
-      ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
-  {
-    drw_shgroup_bone_envelope_distance(
-        ctx, BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance);
-  }
-
-  if (select_id != -1) {
-    DRW_select_load_id(select_id | BONESEL_BONE);
-  }
-
-  drw_shgroup_bone_envelope(
-      ctx, BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire, rad_head, rad_tail);
-
-  if (select_id != -1) {
-    DRW_select_load_id(-1);
-  }
-
-  draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
-}
-
-static void draw_bone_line(ArmatureDrawContext *ctx,
-                           EditBone *eBone,
-                           bPoseChannel *pchan,
-                           bArmature *arm,
-                           const int boneflag,
-                           const short constflag,
-                           const int select_id)
-{
-  const float *col_bone = get_bone_solid_with_consts_color(
-      ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float no_display[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  const float *col_head = no_display;
-  const float *col_tail = col_bone;
-
-  if (ctx->const_color != nullptr) {
-    col_wire = no_display; /* actually shrink the display. */
-    col_bone = col_head = col_tail = ctx->const_color;
-  }
-  else {
-    if (eBone) {
-      if (eBone->flag & BONE_TIPSEL) {
-        col_tail = G_draw.block.color_vertex_select;
-      }
-      if (boneflag & BONE_SELECTED) {
-        col_bone = G_draw.block.color_bone_active;
-      }
-      col_wire = G_draw.block.color_wire;
-    }
-
-    /* Draw root point if we are not connected to our parent. */
-    if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
-                  (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
-    {
-
-      if (eBone) {
-        col_head = (eBone->flag & BONE_ROOTSEL) ? &G_draw.block.color_vertex_select.x : col_bone;
-      }
-      else {
-        col_head = col_bone;
-      }
-    }
-  }
-
-  if (select_id == -1) {
-    /* Not in selection mode, draw everything at once. */
-    drw_shgroup_bone_stick(
-        ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail);
-  }
-  else {
-    /* In selection mode, draw bone, root and tip separately. */
-    DRW_select_load_id(select_id | BONESEL_BONE);
-    drw_shgroup_bone_stick(
-        ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display);
-
-    if (col_head[3] > 0.0f) {
-      DRW_select_load_id(select_id | BONESEL_ROOT);
-      drw_shgroup_bone_stick(
-          ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display);
-    }
-
-    DRW_select_load_id(select_id | BONESEL_TIP);
-    drw_shgroup_bone_stick(
-        ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail);
-
-    DRW_select_load_id(-1);
-  }
-}
-
-static void draw_bone_wire(ArmatureDrawContext *ctx,
-                           EditBone *eBone,
-                           bPoseChannel *pchan,
-                           bArmature *arm,
-                           const int boneflag,
-                           const short constflag,
-                           const int select_id)
-{
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-
-  if (select_id != -1) {
-    DRW_select_load_id(select_id | BONESEL_BONE);
-  }
-
-  if (pchan) {
-    Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
-    BLI_assert(bbones_mat != nullptr);
-
-    for (int i = pchan->bone->segments; i--; bbones_mat++) {
-      drw_shgroup_bone_wire(ctx, bbones_mat->mat, col_wire);
-    }
-  }
-  else if (eBone) {
-    for (int i = 0; i < eBone->segments; i++) {
-      drw_shgroup_bone_wire(ctx, eBone->disp_bbone_mat[i], col_wire);
-    }
-  }
-
-  if (select_id != -1) {
-    DRW_select_load_id(-1);
-  }
-
-  if (eBone) {
-    draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
-  }
-}
-
-static void draw_bone_box(ArmatureDrawContext *ctx,
-                          EditBone *eBone,
-                          bPoseChannel *pchan,
-                          bArmature *arm,
-                          const int boneflag,
-                          const short constflag,
-                          const int select_id)
-{
-  const float *col_solid = get_bone_solid_with_consts_color(
-      ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
-
-  if (select_id != -1) {
-    DRW_select_load_id(select_id | BONESEL_BONE);
-  }
-
-  if (pchan) {
-    Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
-    BLI_assert(bbones_mat != nullptr);
-
-    for (int i = pchan->bone->segments; i--; bbones_mat++) {
-      drw_shgroup_bone_box(ctx, bbones_mat->mat, col_solid, col_hint, col_wire);
-    }
-  }
-  else if (eBone) {
-    for (int i = 0; i < eBone->segments; i++) {
-      drw_shgroup_bone_box(ctx, eBone->disp_bbone_mat[i], col_solid, col_hint, col_wire);
-    }
-  }
-
-  if (select_id != -1) {
-    DRW_select_load_id(-1);
-  }
-
-  if (eBone) {
-    draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
-  }
-}
-
-static void draw_bone_octahedral(ArmatureDrawContext *ctx,
-                                 EditBone *eBone,
-                                 bPoseChannel *pchan,
-                                 bArmature *arm,
-                                 const int boneflag,
-                                 const short constflag,
-                                 const int select_id)
-{
-  const float *col_solid = get_bone_solid_with_consts_color(
-      ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
-  const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
-
-  if (select_id != -1) {
-    DRW_select_load_id(select_id | BONESEL_BONE);
-  }
-
-  drw_shgroup_bone_octahedral(
-      ctx, BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire);
-
-  if (select_id != -1) {
-    DRW_select_load_id(-1);
-  }
-
-  draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
 }
 
 /** \} */
@@ -2029,10 +1803,9 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
 static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
                                              const float bone_head[3],
                                              const float parent_head[3],
-                                             const float parent_tail[3],
-                                             const eArmature_Flag armature_flags)
+                                             const float parent_tail[3])
 {
-  if (armature_flags & ARM_DRAW_RELATION_FROM_HEAD) {
+  if (ctx->draw_relation_from_head) {
     drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_head);
   }
   else {
@@ -2041,6 +1814,7 @@ static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
 }
 
 static void draw_bone_relations(ArmatureDrawContext *ctx,
+                                const ArmatureBoneDrawStrategy &draw_strategy,
                                 EditBone *ebone,
                                 bPoseChannel *pchan,
                                 bArmature *arm,
@@ -2048,31 +1822,16 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
                                 const short constflag)
 {
   if (ebone && ebone->parent) {
-    if (ctx->do_relations) {
-      /* Always draw for unconnected bones, regardless of selection,
-       * since riggers will want to know about the links between bones
-       */
-      if ((boneflag & BONE_CONNECTED) == 0) {
-        draw_bone_bone_relationship_line(
-            ctx, ebone->head, ebone->parent->head, ebone->parent->tail, eArmature_Flag(arm->flag));
-      }
+    if (ctx->do_relations && draw_strategy.should_draw_relation_to_parent(ebone, pchan, boneflag))
+    {
+      draw_bone_bone_relationship_line(ctx, ebone->head, ebone->parent->head, ebone->parent->tail);
     }
   }
   else if (pchan && pchan->parent) {
-    if (ctx->do_relations) {
-      /* Only draw if bone or its parent is selected - reduces viewport complexity with complex
-       * rigs */
-      if ((boneflag & BONE_SELECTED) ||
-          (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
-      {
-        if ((boneflag & BONE_CONNECTED) == 0) {
-          draw_bone_bone_relationship_line(ctx,
-                                           pchan->pose_head,
-                                           pchan->parent->pose_head,
-                                           pchan->parent->pose_tail,
-                                           eArmature_Flag(arm->flag));
-        }
-      }
+    if (ctx->do_relations && draw_strategy.should_draw_relation_to_parent(ebone, pchan, boneflag))
+    {
+      draw_bone_bone_relationship_line(
+          ctx, pchan->pose_head, pchan->parent->pose_head, pchan->parent->pose_tail);
     }
 
     /* Draw a line to IK root bone if bone is selected. */
@@ -2165,79 +1924,549 @@ static bool pchan_culling_test_with_radius_scale(const DRWView *view,
   return DRW_culling_sphere_test(view, &bsphere);
 }
 
-static bool pchan_culling_test_custom(const DRWView *view,
-                                      const Object *ob,
-                                      const bPoseChannel *pchan)
-{
-  /* For more aggressive culling the bounding box of the custom-object could be used. */
-  return pchan_culling_test_simple(view, ob, pchan);
-}
+/** \} */
 
-static bool pchan_culling_test_wire(const DRWView *view,
-                                    const Object *ob,
-                                    const bPoseChannel *pchan)
-{
-  BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_WIRE);
-  return pchan_culling_test_simple(view, ob, pchan);
-}
+/* -------------------------------------------------------------------- */
+/** \name Bone Drawing Strategies
+ *
+ * Bone drawing uses a strategy pattern for the different armature drawing modes.
+ *
+ * \{ */
 
-static bool pchan_culling_test_line(const DRWView *view,
-                                    const Object *ob,
-                                    const bPoseChannel *pchan)
-{
-  BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_LINE);
-  /* Account for the end-points, as the line end-points size is in pixels, this is a rough value.
-   * Since the end-points are small the difference between having any margin or not is unlikely
-   * to be noticeable. */
-  const float scale = 1.1f;
-  return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
-}
+/** Bone drawing strategy for unknown draw types.
+ * This doesn't do anything, except call the default matrix update function.
+ */
+class ArmatureBoneDrawStrategyEmpty : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_default(eBone, pchan);
+  }
 
-static bool pchan_culling_test_envelope(const DRWView *view,
-                                        const Object *ob,
-                                        const bPoseChannel *pchan)
-{
-  const bArmature *arm = static_cast<bArmature *>(ob->data);
-  BLI_assert(arm->drawtype == ARM_ENVELOPE);
-  UNUSED_VARS_NDEBUG(arm);
-  BoundSphere bsphere;
-  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
-  bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
-                    mat4_to_size_max_axis(ob->object_to_world) *
-                    mat4_to_size_max_axis(pchan->disp_mat);
-  return DRW_culling_sphere_test(view, &bsphere);
-}
+  bool culling_test(const DRWView * /*view*/,
+                    const Object * /*ob*/,
+                    const bPoseChannel * /*pchan*/) const override
+  {
+    return false;
+  }
 
-static bool pchan_culling_test_bbone(const DRWView *view,
-                                     const Object *ob,
-                                     const bPoseChannel *pchan)
-{
-  const bArmature *arm = static_cast<bArmature *>(ob->data);
-  BLI_assert(arm->drawtype == ARM_B_BONE);
-  UNUSED_VARS_NDEBUG(arm);
-  const float ob_scale = mat4_to_size_max_axis(ob->object_to_world);
-  const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
-  for (int i = pchan->bone->segments; i--; bbones_mat++) {
-    BoundSphere bsphere;
-    float size[3];
-    mat4_to_size(size, bbones_mat->mat);
-    mul_v3_m4v3(bsphere.center, ob->object_to_world, bbones_mat->mat[3]);
-    bsphere.radius = len_v3(size) * ob_scale;
-    if (DRW_culling_sphere_test(view, &bsphere)) {
-      return true;
+  void draw_context_setup(ArmatureDrawContext * /*ctx*/,
+                          OVERLAY_ArmatureCallBuffersInner * /*cb*/,
+                          const bool /*is_filled*/,
+                          const bool /*do_envelope_dist*/) const override
+  {
+  }
+
+  void draw_bone(ArmatureDrawContext * /*ctx*/,
+                 const EditBone * /*eBone*/,
+                 const bPoseChannel * /*pchan*/,
+                 const bArmature * /*arm*/,
+                 const int /*boneflag*/,
+                 const short /*constflag*/,
+                 const int /*select_id*/) const override
+  {
+  }
+};
+
+/** Bone drawing strategy for custom bone shapes. */
+class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone * /*eBone*/, bPoseChannel *pchan) const override
+  {
+    float bone_scale[3];
+    float(*bone_mat)[4];
+    float(*disp_mat)[4];
+    float(*disp_tail_mat)[4];
+    float rot_mat[3][3];
+
+    /* TODO: This should be moved to depsgraph or armature refresh
+     * and not be tight to the draw pass creation.
+     * This would refresh armature without invalidating the draw cache. */
+    mul_v3_v3fl(bone_scale, pchan->custom_scale_xyz, PCHAN_CUSTOM_BONE_LENGTH(pchan));
+    bone_mat = pchan->custom_tx ? pchan->custom_tx->pose_mat : pchan->pose_mat;
+    disp_mat = pchan->disp_mat;
+    disp_tail_mat = pchan->disp_tail_mat;
+
+    eulO_to_mat3(rot_mat, pchan->custom_rotation_euler, ROT_MODE_XYZ);
+
+    copy_m4_m4(disp_mat, bone_mat);
+    translate_m4(disp_mat,
+                 pchan->custom_translation[0],
+                 pchan->custom_translation[1],
+                 pchan->custom_translation[2]);
+    mul_m4_m4m3(disp_mat, disp_mat, rot_mat);
+    rescale_m4(disp_mat, bone_scale);
+    copy_m4_m4(disp_tail_mat, disp_mat);
+    translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    /* For more aggressive culling the bounding box of the custom-object could be used. */
+    return pchan_culling_test_simple(view, ob, pchan);
+  }
+
+  void draw_context_setup(ArmatureDrawContext * /*ctx*/,
+                          OVERLAY_ArmatureCallBuffersInner * /*cb*/,
+                          const bool /*is_filled*/,
+                          const bool /*do_envelope_dist*/) const override
+  {
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_solid = get_bone_solid_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float(*disp_mat)[4] = pchan->disp_mat;
+
+    if (select_id != -1) {
+      DRW_select_load_id(select_id | BONESEL_BONE);
+    }
+
+    if (pchan->custom->type == OB_EMPTY) {
+      Object *ob = pchan->custom;
+      if (ob->empty_drawtype != OB_EMPTY_IMAGE) {
+        drw_shgroup_bone_custom_empty(ctx, disp_mat, col_wire, pchan->custom);
+      }
+    }
+    if ((boneflag & BONE_DRAWWIRE) == 0 && (boneflag & BONE_DRAW_LOCKED_WEIGHT) == 0) {
+      drw_shgroup_bone_custom_solid(ctx, disp_mat, col_solid, col_hint, col_wire, pchan->custom);
+    }
+    else {
+      drw_shgroup_bone_custom_wire(ctx, disp_mat, col_wire, pchan->custom);
+    }
+
+    if (select_id != -1) {
+      DRW_select_load_id(-1);
     }
   }
-  return false;
-}
+};
 
-static bool pchan_culling_test_octohedral(const DRWView *view,
-                                          const Object *ob,
-                                          const bPoseChannel *pchan)
+/** Bone drawing strategy for ARM_OCTA. */
+class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_default(eBone, pchan);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    /* No type assertion as this is a fallback (files from the future will end up here). */
+    /* Account for spheres on the end-points. */
+    const float scale = 1.2f;
+    return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
+  }
+
+  void draw_context_setup(ArmatureDrawContext *ctx,
+                          OVERLAY_ArmatureCallBuffersInner *cb,
+                          const bool is_filled,
+                          const bool /*do_envelope_dist*/) const override
+  {
+    ctx->outline = cb->octa_outline;
+    ctx->solid = (is_filled) ? cb->octa_fill : nullptr;
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_solid = get_bone_solid_with_consts_color(
+        ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
+
+    if (select_id != -1) {
+      DRW_select_load_id(select_id | BONESEL_BONE);
+    }
+
+    drw_shgroup_bone_octahedral(
+        ctx, BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire);
+
+    if (select_id != -1) {
+      DRW_select_load_id(-1);
+    }
+
+    draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
+  }
+};
+
+/** Bone drawing strategy for ARM_LINE. */
+class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_default(eBone, pchan);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    /* Account for the end-points, as the line end-points size is in pixels, this is a rough
+     * value. Since the end-points are small the difference between having any margin or not is
+     * unlikely to be noticeable. */
+    const float scale = 1.1f;
+    return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
+  }
+
+  void draw_context_setup(ArmatureDrawContext *ctx,
+                          OVERLAY_ArmatureCallBuffersInner *cb,
+                          const bool /*is_filled*/,
+                          const bool /*do_envelope_dist*/) const override
+  {
+    ctx->stick = cb->stick;
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_bone = get_bone_solid_with_consts_color(
+        ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float no_display[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float *col_head = no_display;
+    const float *col_tail = col_bone;
+
+    if (ctx->const_color != nullptr) {
+      col_wire = no_display; /* actually shrink the display. */
+      col_bone = col_head = col_tail = ctx->const_color;
+    }
+    else {
+      if (eBone) {
+        if (eBone->flag & BONE_TIPSEL) {
+          col_tail = G_draw.block.color_vertex_select;
+        }
+        if (boneflag & BONE_SELECTED) {
+          col_bone = G_draw.block.color_bone_active;
+        }
+        col_wire = G_draw.block.color_wire;
+      }
+
+      /* Draw root point if we are not connected to our parent. */
+      if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
+                    (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
+      {
+
+        if (eBone) {
+          col_head = (eBone->flag & BONE_ROOTSEL) ? &G_draw.block.color_vertex_select.x : col_bone;
+        }
+        else {
+          col_head = col_bone;
+        }
+      }
+    }
+
+    if (select_id == -1) {
+      /* Not in selection mode, draw everything at once. */
+      drw_shgroup_bone_stick(
+          ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail);
+    }
+    else {
+      /* In selection mode, draw bone, root and tip separately. */
+      DRW_select_load_id(select_id | BONESEL_BONE);
+      drw_shgroup_bone_stick(
+          ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display);
+
+      if (col_head[3] > 0.0f) {
+        DRW_select_load_id(select_id | BONESEL_ROOT);
+        drw_shgroup_bone_stick(
+            ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, col_head, no_display);
+      }
+
+      DRW_select_load_id(select_id | BONESEL_TIP);
+      drw_shgroup_bone_stick(
+          ctx, BONE_VAR(eBone, pchan, disp_mat), col_wire, no_display, no_display, col_tail);
+
+      DRW_select_load_id(-1);
+    }
+  }
+};
+
+/** Bone drawing strategy for ARM_B_BONE. */
+class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_bbone(eBone, pchan);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    const bArmature *arm = static_cast<bArmature *>(ob->data);
+    BLI_assert(arm->drawtype == ARM_B_BONE);
+    UNUSED_VARS_NDEBUG(arm);
+    const float ob_scale = mat4_to_size_max_axis(ob->object_to_world);
+    const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
+    for (int i = pchan->bone->segments; i--; bbones_mat++) {
+      BoundSphere bsphere;
+      float size[3];
+      mat4_to_size(size, bbones_mat->mat);
+      mul_v3_m4v3(bsphere.center, ob->object_to_world, bbones_mat->mat[3]);
+      bsphere.radius = len_v3(size) * ob_scale;
+      if (DRW_culling_sphere_test(view, &bsphere)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void draw_context_setup(ArmatureDrawContext *ctx,
+                          OVERLAY_ArmatureCallBuffersInner *cb,
+                          const bool is_filled,
+                          const bool /*do_envelope_dist*/) const override
+  {
+    ctx->outline = cb->box_outline;
+    ctx->solid = (is_filled) ? cb->box_fill : nullptr;
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_solid = get_bone_solid_with_consts_color(
+        ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
+
+    if (select_id != -1) {
+      DRW_select_load_id(select_id | BONESEL_BONE);
+    }
+
+    if (pchan) {
+      Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
+      BLI_assert(bbones_mat != nullptr);
+
+      for (int i = pchan->bone->segments; i--; bbones_mat++) {
+        drw_shgroup_bone_box(ctx, bbones_mat->mat, col_solid, col_hint, col_wire);
+      }
+    }
+    else if (eBone) {
+      for (int i = 0; i < eBone->segments; i++) {
+        drw_shgroup_bone_box(ctx, eBone->disp_bbone_mat[i], col_solid, col_hint, col_wire);
+      }
+    }
+
+    if (select_id != -1) {
+      DRW_select_load_id(-1);
+    }
+
+    if (eBone) {
+      draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
+    }
+  }
+};
+
+/** Bone drawing strategy for ARM_ENVELOPE. */
+class ArmatureBoneDrawStrategyEnvelope : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_default(eBone, pchan);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    const bArmature *arm = static_cast<bArmature *>(ob->data);
+    BLI_assert(arm->drawtype == ARM_ENVELOPE);
+    UNUSED_VARS_NDEBUG(arm);
+    BoundSphere bsphere;
+    pchan_culling_calc_bsphere(ob, pchan, &bsphere);
+    bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
+                      mat4_to_size_max_axis(ob->object_to_world) *
+                      mat4_to_size_max_axis(pchan->disp_mat);
+    return DRW_culling_sphere_test(view, &bsphere);
+  }
+
+  void draw_context_setup(ArmatureDrawContext *ctx,
+                          OVERLAY_ArmatureCallBuffersInner *cb,
+                          const bool is_filled,
+                          const bool do_envelope_dist) const override
+  {
+    ctx->envelope_outline = cb->envelope_outline;
+    ctx->envelope_solid = (is_filled) ? cb->envelope_fill : nullptr;
+    ctx->envelope_distance = (do_envelope_dist) ? cb->envelope_distance : nullptr;
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_solid = get_bone_solid_with_consts_color(
+        ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+    const float *col_hint = get_bone_hint_color(ctx, eBone, pchan, arm, boneflag, constflag);
+
+    const float *rad_head, *rad_tail, *distance;
+    if (eBone) {
+      rad_tail = &eBone->rad_tail;
+      distance = &eBone->dist;
+      rad_head = (eBone->parent && (boneflag & BONE_CONNECTED)) ? &eBone->parent->rad_tail :
+                                                                  &eBone->rad_head;
+    }
+    else {
+      rad_tail = &pchan->bone->rad_tail;
+      distance = &pchan->bone->dist;
+      rad_head = (pchan->parent && (boneflag & BONE_CONNECTED)) ? &pchan->parent->bone->rad_tail :
+                                                                  &pchan->bone->rad_head;
+    }
+
+    if ((select_id == -1) && (boneflag & BONE_NO_DEFORM) == 0 &&
+        ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
+    {
+      drw_shgroup_bone_envelope_distance(
+          ctx, BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance);
+    }
+
+    if (select_id != -1) {
+      DRW_select_load_id(select_id | BONESEL_BONE);
+    }
+
+    drw_shgroup_bone_envelope(
+        ctx, BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire, rad_head, rad_tail);
+
+    if (select_id != -1) {
+      DRW_select_load_id(-1);
+    }
+
+    draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
+  }
+};
+
+/** Bone drawing strategy for ARM_WIRE. */
+class ArmatureBoneDrawStrategyWire : public ArmatureBoneDrawStrategy {
+ public:
+  void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const override
+  {
+    draw_bone_update_disp_matrix_bbone(eBone, pchan);
+  }
+
+  bool culling_test(const DRWView *view,
+                    const Object *ob,
+                    const bPoseChannel *pchan) const override
+  {
+    BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_WIRE);
+    return pchan_culling_test_simple(view, ob, pchan);
+  }
+
+  void draw_context_setup(ArmatureDrawContext *ctx,
+                          OVERLAY_ArmatureCallBuffersInner *cb,
+                          const bool /*is_filled*/,
+                          const bool /*do_envelope_dist*/) const override
+  {
+    ctx->wire = cb->wire;
+    ctx->const_wire = 1.5f;
+  }
+
+  void draw_bone(ArmatureDrawContext *ctx,
+                 const EditBone *eBone,
+                 const bPoseChannel *pchan,
+                 const bArmature *arm,
+                 const int boneflag,
+                 const short constflag,
+                 const int select_id) const override
+  {
+    const float *col_wire = get_bone_wire_color(ctx, eBone, pchan, arm, boneflag, constflag);
+
+    if (select_id != -1) {
+      DRW_select_load_id(select_id | BONESEL_BONE);
+    }
+
+    if (pchan) {
+      Mat4 *bbones_mat = (Mat4 *)pchan->draw_data->bbone_matrix;
+      BLI_assert(bbones_mat != nullptr);
+
+      for (int i = pchan->bone->segments; i--; bbones_mat++) {
+        drw_shgroup_bone_wire(ctx, bbones_mat->mat, col_wire);
+      }
+    }
+    else if (eBone) {
+      for (int i = 0; i < eBone->segments; i++) {
+        drw_shgroup_bone_wire(ctx, eBone->disp_bbone_mat[i], col_wire);
+      }
+    }
+
+    if (select_id != -1) {
+      DRW_select_load_id(-1);
+    }
+
+    if (eBone) {
+      draw_points(ctx, eBone, pchan, arm, boneflag, constflag, select_id);
+    }
+  }
+};
+
+namespace {
+/** Armature drawing strategies.
+ *
+ * Declared statically here because they cost almost no memory (no fields in any
+ * of the structs, so just the virtual function table), and this makes it very
+ * simple to just pass references to them around.
+ *
+ * See the functions below.
+ */
+static ArmatureBoneDrawStrategyOcta strat_octa;
+static ArmatureBoneDrawStrategyLine strat_line;
+static ArmatureBoneDrawStrategyBBone strat_b_bone;
+static ArmatureBoneDrawStrategyEnvelope strat_envelope;
+static ArmatureBoneDrawStrategyWire strat_wire;
+static ArmatureBoneDrawStrategyEmpty strat_empty;
+};  // namespace
+
+/**
+ * Return the armature bone drawing strategy for the given draw type.
+ *
+ * Note that this does not consider custom bone shapes, as those can be set per bone.
+ * For those occasions just instance a `ArmatureBoneDrawStrategyCustomShape` and use that.
+ */
+static ArmatureBoneDrawStrategy &strategy_for_armature_drawtype(const eArmature_Drawtype drawtype)
 {
-  /* No type assertion as this is a fallback (files from the future will end up here). */
-  /* Account for spheres on the end-points. */
-  const float scale = 1.2f;
-  return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
+  switch (drawtype) {
+    case ARM_OCTA:
+      return strat_octa;
+    case ARM_LINE:
+      return strat_line;
+    case ARM_B_BONE:
+      return strat_b_bone;
+    case ARM_ENVELOPE:
+      return strat_envelope;
+    case ARM_WIRE:
+      return strat_wire;
+  }
+  BLI_assert_unreachable();
+  return strat_empty;
 }
 
 /** \} */
@@ -2263,6 +2492,10 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
 
   edbo_compute_bbone_child(arm);
 
+  /* Determine drawing strategy. */
+  const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(
+      eArmature_Drawtype(arm->drawtype));
+
   for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime.select_id;
        eBone;
        eBone = eBone->next, index += 0x10000)
@@ -2286,29 +2519,11 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
         boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
 
         if (!is_select) {
-          draw_bone_relations(ctx, eBone, nullptr, arm, boneflag, constflag);
+          draw_bone_relations(ctx, draw_strat, eBone, nullptr, arm, boneflag, constflag);
         }
 
-        if (arm->drawtype == ARM_ENVELOPE) {
-          draw_bone_update_disp_matrix_default(eBone, nullptr);
-          draw_bone_envelope(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
-        }
-        else if (arm->drawtype == ARM_LINE) {
-          draw_bone_update_disp_matrix_default(eBone, nullptr);
-          draw_bone_line(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
-        }
-        else if (arm->drawtype == ARM_WIRE) {
-          draw_bone_update_disp_matrix_bbone(eBone, nullptr);
-          draw_bone_wire(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
-        }
-        else if (arm->drawtype == ARM_B_BONE) {
-          draw_bone_update_disp_matrix_bbone(eBone, nullptr);
-          draw_bone_box(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
-        }
-        else {
-          draw_bone_update_disp_matrix_default(eBone, nullptr);
-          draw_bone_octahedral(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
-        }
+        draw_strat.update_display_matrix(eBone, nullptr);
+        draw_strat.draw_bone(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
 
         if (!is_select) {
           if (show_text && (arm->flag & ARM_DRAWNAMES)) {
@@ -2375,8 +2590,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   {
     draw_locked_weights = true;
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    for (bPoseChannel *pchan : ListBaseWrapper<bPoseChannel>(ob->pose->chanbase)) {
       pchan->bone->flag &= ~BONE_DRAW_LOCKED_WEIGHT;
     }
 
@@ -2384,17 +2598,24 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
     const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
     for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {
-      if (dg->flag & DG_LOCK_WEIGHT) {
-        pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
-
-        if (pchan) {
-          pchan->bone->flag |= BONE_DRAW_LOCKED_WEIGHT;
-        }
+      if ((dg->flag & DG_LOCK_WEIGHT) == 0) {
+        continue;
       }
+
+      pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
+      if (!pchan) {
+        continue;
+      }
+
+      pchan->bone->flag |= BONE_DRAW_LOCKED_WEIGHT;
     }
   }
 
   const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
+
+  const ArmatureBoneDrawStrategy &draw_strat_normal = strategy_for_armature_drawtype(
+      eArmature_Drawtype(arm->drawtype));
+  const ArmatureBoneDrawStrategyCustomShape draw_strat_custom;
 
   for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
        pchan = pchan->next, index += 0x10000)
@@ -2417,75 +2638,45 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
           set_pchan_colorset(ctx, ob, pchan);
         }
 
-        /* catch exception for bone with hidden parent */
         int boneflag = bone->flag;
-        if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+        if (bone->parent && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+          /* Avoid drawing connection line to hidden parent. */
           boneflag &= ~BONE_CONNECTED;
         }
-
-        /* set temporary flag for drawing bone as active, but only if selected */
         if (bone == arm->act_bone) {
+          /* Draw bone as active, but only if selected. */
           boneflag |= BONE_DRAW_ACTIVE;
         }
-
         if (!draw_locked_weights) {
           boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
         }
 
+        const bool use_custom_shape = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
+        const ArmatureBoneDrawStrategy &draw_strat = use_custom_shape ? draw_strat_custom :
+                                                                        draw_strat_normal;
+
         if (!is_pose_select) {
-          draw_bone_relations(ctx, nullptr, pchan, arm, boneflag, constflag);
+          draw_bone_relations(ctx, draw_strat, nullptr, pchan, arm, boneflag, constflag);
         }
 
-        if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
-          draw_bone_update_disp_matrix_custom(pchan);
-          if (!is_pose_select || pchan_culling_test_custom(view, ob, pchan)) {
-            draw_bone_custom_shape(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
-        }
-        else if (arm->drawtype == ARM_ENVELOPE) {
-          draw_bone_update_disp_matrix_default(nullptr, pchan);
-          if (!is_pose_select || pchan_culling_test_envelope(view, ob, pchan)) {
-            draw_bone_envelope(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
-        }
-        else if (arm->drawtype == ARM_LINE) {
-          draw_bone_update_disp_matrix_default(nullptr, pchan);
-          if (!is_pose_select || pchan_culling_test_line(view, ob, pchan)) {
-            draw_bone_line(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
-        }
-        else if (arm->drawtype == ARM_WIRE) {
-          draw_bone_update_disp_matrix_bbone(nullptr, pchan);
-          if (!is_pose_select || pchan_culling_test_wire(view, ob, pchan)) {
-            draw_bone_wire(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
-        }
-        else if (arm->drawtype == ARM_B_BONE) {
-          draw_bone_update_disp_matrix_bbone(nullptr, pchan);
-          if (!is_pose_select || pchan_culling_test_bbone(view, ob, pchan)) {
-            draw_bone_box(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
-        }
-        else if (arm->drawtype == ARM_OCTA) {
-          draw_bone_update_disp_matrix_default(nullptr, pchan);
-          if (!is_pose_select || pchan_culling_test_octohedral(view, ob, pchan)) {
-            draw_bone_octahedral(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-          }
+        draw_strat.update_display_matrix(nullptr, pchan);
+        if (!is_pose_select || draw_strat.culling_test(view, ob, pchan)) {
+          draw_strat.draw_bone(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
         }
 
-        /* These aren't included in the selection. */
-        if (!is_pose_select) {
-          if (draw_dofs) {
-            draw_bone_degrees_of_freedom(ctx, pchan);
-          }
+        /* Below this point nothing is used for selection queries. */
+        if (is_pose_select) {
+          continue;
+        }
 
-          if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-            draw_bone_name(ctx, nullptr, pchan, arm, boneflag);
-          }
-
-          if (arm->flag & ARM_DRAWAXES) {
-            draw_axes(ctx, nullptr, pchan, arm);
-          }
+        if (draw_dofs) {
+          draw_bone_degrees_of_freedom(ctx, pchan);
+        }
+        if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+          draw_bone_name(ctx, nullptr, pchan, arm, boneflag);
+        }
+        if (arm->flag & ARM_DRAWAXES) {
+          draw_axes(ctx, nullptr, pchan, arm);
         }
       }
     }
@@ -2514,27 +2705,6 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
 
   static const float select_const_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-  switch (arm->drawtype) {
-    case ARM_ENVELOPE:
-      ctx->envelope_outline = cb->envelope_outline;
-      ctx->envelope_solid = (is_filled) ? cb->envelope_fill : nullptr;
-      ctx->envelope_distance = (do_envelope_dist) ? cb->envelope_distance : nullptr;
-      break;
-    case ARM_LINE:
-      ctx->stick = cb->stick;
-      break;
-    case ARM_WIRE:
-      ctx->wire = cb->wire;
-      break;
-    case ARM_B_BONE:
-      ctx->outline = cb->box_outline;
-      ctx->solid = (is_filled) ? cb->box_fill : nullptr;
-      break;
-    case ARM_OCTA:
-      ctx->outline = cb->octa_outline;
-      ctx->solid = (is_filled) ? cb->octa_fill : nullptr;
-      break;
-  }
   ctx->ob = ob;
   ctx->extras = &pd->extra_call_buffers[is_xray];
   ctx->dof_lines = cb->dof_lines;
@@ -2549,10 +2719,16 @@ static void armature_context_setup(ArmatureDrawContext *ctx,
   ctx->do_relations = !DRW_state_is_select() && pd->armature.show_relations &&
                       (is_edit_mode | is_pose_mode);
   ctx->const_color = DRW_state_is_select() ? select_const_color : const_color;
-  ctx->const_wire = ((((ob->base_flag & BASE_SELECTED) && (pd->v3d_flag & V3D_SELECT_OUTLINE)) ||
-                      (arm->drawtype == ARM_WIRE)) ?
+  ctx->const_wire = ((ob->base_flag & BASE_SELECTED) && (pd->v3d_flag & V3D_SELECT_OUTLINE) ?
                          1.5f :
                          ((!is_filled || is_transparent) ? 1.0f : 0.0f));
+  ctx->draw_relation_from_head = (arm->flag & ARM_DRAW_RELATION_FROM_HEAD);
+
+  /* Call the draw strategy after setting the generic context properties, so
+   * that they can be overridden. */
+  const eArmature_Drawtype drawtype = eArmature_Drawtype(arm->drawtype);
+  const ArmatureBoneDrawStrategy &draw_strat = strategy_for_armature_drawtype(drawtype);
+  draw_strat.draw_context_setup(ctx, cb, is_filled, do_envelope_dist);
 }
 
 void OVERLAY_edit_armature_cache_populate(OVERLAY_Data *vedata, Object *ob)
