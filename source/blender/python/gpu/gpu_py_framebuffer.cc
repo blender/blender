@@ -594,7 +594,8 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
     const Py_ssize_t shape[3] = {h, w, channels};
     py_buffer = BPyGPU_Buffer_CreatePyObject(pygpu_dataformat.value_found, shape, 3, nullptr);
     BLI_assert(bpygpu_Buffer_size(py_buffer) ==
-               w * h * channels * GPU_texture_dataformat_size(pygpu_dataformat.value_found));
+               w * h * channels *
+                   GPU_texture_dataformat_size(eGPUDataFormat(pygpu_dataformat.value_found)));
   }
 
   GPU_framebuffer_read_color(self->fb,
