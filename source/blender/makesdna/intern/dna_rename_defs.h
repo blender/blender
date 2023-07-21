@@ -11,7 +11,7 @@
  * - When renaming the member of a struct which has itself been renamed
  *   refer to the newer name, not the original.
  *
- * - Changes here only change generated code for `makesdna.cc` and `makesrna.c`
+ * - Changes here only change generated code for `makesdna.cc` and `makesrna.cc`
  *   without impacting Blender's run-time, besides allowing us to use the new names.
  *
  * - Renaming something that has already been renamed can be done

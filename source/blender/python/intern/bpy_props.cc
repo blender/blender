@@ -3326,7 +3326,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   const char *translation_context = nullptr;
   int min = INT_MIN, max = INT_MAX, soft_min = INT_MIN, soft_max = INT_MAX;
   int step = 1;
-  int default_value[RNA_MAX_ARRAY_DIMENSION][PYRNA_STACK_ARRAY] = {0};
+  int default_value[RNA_MAX_ARRAY_DIMENSION][PYRNA_STACK_ARRAY] = {};
   BPyPropArrayLength array_len_info{};
   array_len_info.len_total = 3;
   PropertyRNA *prop;

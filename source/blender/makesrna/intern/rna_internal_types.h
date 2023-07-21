@@ -505,7 +505,7 @@ typedef struct CollectionPropertyRNA {
   struct StructRNA *item_type; /* the type of this item */
 } CollectionPropertyRNA;
 
-/* changes to this struct require updating rna_generate_struct in makesrna.c */
+/* changes to this struct require updating rna_generate_struct in makesrna.cc */
 struct StructRNA {
   /* structs are containers of properties */
   ContainerRNA cont;

@@ -39,7 +39,7 @@
 
 static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
 {
-  /* NOTE: names based on `rna_rna.c`. */
+  /* NOTE: names based on `rna_rna.cc`. */
   PyObject *empty_tuple = PyTuple_New(0);
 
   struct {

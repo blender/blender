@@ -2620,7 +2620,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
   RNA_def_property_collection_sdna(prop, nullptr, "mat", "totcol");
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_ui_text(prop, "Materials", "");
-  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
+  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.cc */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Mesh_materials_override_apply");
   RNA_def_property_collection_funcs(prop,
