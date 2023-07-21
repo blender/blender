@@ -1073,7 +1073,15 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             /* struct alignment */
             if (type >= firststruct) {
               if (sizeof(void *) == 8 && (size_native % 8)) {
-                fprintf(stderr, "Align struct error: %s %s\n", types[structtype], cp);
+                fprintf(stderr,
+                        "Align struct error: %s::%s (starts at %d on the native platform; "
+                        "%d %% %lu = %d bytes)\n",
+                        types[structtype],
+                        cp,
+                        size_native,
+                        size_native,
+                        sizeof(void *),
+                        size_native % 8);
                 dna_error = 1;
               }
             }
