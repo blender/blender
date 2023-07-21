@@ -1741,7 +1741,7 @@ class _defs_paint_grease_pencil:
             icon="brush.gpencil_draw.draw",
             data_block='DRAW',
         )
-    
+
     @ToolDef.from_fn
     def erase():
         def draw_settings(context, layout, _tool):

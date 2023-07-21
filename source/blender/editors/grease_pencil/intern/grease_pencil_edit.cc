@@ -437,7 +437,8 @@ int64_t ramer_douglas_peucker_simplify(const IndexRange range,
     }
 
     if (max_dist > epsilon) {
-      /* Found point outside the epsilon-sized strip. Repeat the search on the left & right side. */
+      /* Found point outside the epsilon-sized strip. Repeat the search on the left & right side.
+       */
       stack.push(sub_range.slice(IndexRange(max_index + 1)));
       stack.push(sub_range.slice(IndexRange(max_index, sub_range.size() - max_index)));
     }
