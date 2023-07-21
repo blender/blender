@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blentranslation
   ../../bmesh
   ../../geometry
   ../../gpu
@@ -37,6 +36,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

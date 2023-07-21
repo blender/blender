@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenfont
-  ../../blentranslation
   ../../bmesh
   ../../gpu
   ../../ikplugin
@@ -115,6 +114,7 @@ set(LIB
   bf_blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

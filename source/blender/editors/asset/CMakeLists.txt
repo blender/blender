@@ -7,7 +7,6 @@ set(INC
   ../include
   ../../asset_system
   ../../blenloader
-  ../../blentranslation
   ../../makesrna
   ../../../../intern/clog
   # RNA_prototypes.h
@@ -50,6 +49,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_blenloader
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

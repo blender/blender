@@ -10,7 +10,6 @@ if(WITH_COMPOSITOR_CPU)
     intern
     nodes
     operations
-    ../blentranslation
     ../imbuf
     ../makesrna
     ../nodes
@@ -593,6 +592,7 @@ if(WITH_COMPOSITOR_CPU)
   set(LIB
     PRIVATE bf::blenkernel
     PRIVATE bf::blenlib
+    PRIVATE bf::blentranslation
     PRIVATE bf::depsgraph
     PRIVATE bf::dna
     PRIVATE bf::intern::guardedalloc

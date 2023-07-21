@@ -6,7 +6,6 @@ set(INC
   .
   algorithms
   cached_resources
-  ../../blentranslation
   ../../draw
   ../../gpu
   ../../imbuf
@@ -97,6 +96,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   bf_gpu
   PRIVATE bf::intern::guardedalloc

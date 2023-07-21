@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../asset_system
   ../../blenloader
-  ../../blentranslation
   ../../makesrna
   ../../../../intern/clog
   ../../bmesh
@@ -26,6 +25,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   bf_editor_curve
   bf_editor_curves

@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../blentranslation
   ../functions
   ../makesrna
   ../../../intern/eigen
@@ -57,6 +56,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )

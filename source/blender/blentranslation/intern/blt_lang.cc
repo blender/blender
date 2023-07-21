@@ -27,8 +27,6 @@
 
 #include "BKE_appdir.h"
 
-#include "IMB_thumbs.h"
-
 #include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"

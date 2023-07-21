@@ -7,7 +7,6 @@ set(INC
   ../asset_system
   ../blenfont
   ../blenloader
-  ../blentranslation
   ../bmesh
   ../draw
   ../functions
@@ -528,7 +527,7 @@ set(LIB
   bf_blenfont
   PRIVATE bf::blenlib
   bf_blenloader
-  bf_blentranslation
+  PRIVATE bf::blentranslation
   bf_bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

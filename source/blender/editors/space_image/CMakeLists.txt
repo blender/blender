@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenfont
   ../../blenloader
-  ../../blentranslation
   ../../bmesh
   ../../draw
   ../../gpu
@@ -37,6 +36,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_uvedit
