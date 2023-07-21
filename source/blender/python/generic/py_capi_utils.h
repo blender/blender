@@ -10,12 +10,12 @@
 #ifndef __PY_CAPI_UTILS_H__
 #define __PY_CAPI_UTILS_H__
 
+#include "BLI_sys_types.h"
+#include "BLI_utildefines_variadic.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_sys_types.h"
-#include "BLI_utildefines_variadic.h"
 
 /** Useful to print Python objects while debugging. */
 void PyC_ObSpit(const char *name, PyObject *var);
@@ -83,17 +83,6 @@ PyObject *PyC_Tuple_PackArray_F64(const double *array, uint len);
 PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
 PyObject *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
-
-#define PyC_Tuple_Pack_F32(...) \
-  PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_F64(...) \
-  PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_I32(...) \
-  PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_I32FromBool(...) \
-  PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
-#define PyC_Tuple_Pack_Bool(...) \
-  PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 
 PyObject *PyC_Tuple_PackArray_Multi_F32(const float *array, const int dims[], int dims_len);
 PyObject *PyC_Tuple_PackArray_Multi_F64(const double *array, const int dims[], int dims_len);
@@ -295,6 +284,45 @@ bool PyC_StructFmt_type_is_bool(char format);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+#  include "BLI_span.hh"
+
+inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
+{
+  return PyC_Tuple_PackArray_F32(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_F64(const blender::Span<double> values)
+{
+  return PyC_Tuple_PackArray_F64(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_I32(const blender::Span<int> values)
+{
+  return PyC_Tuple_PackArray_I32(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_I32FromBool(const blender::Span<int> values)
+{
+  return PyC_Tuple_PackArray_I32FromBool(values.data(), values.size());
+}
+inline PyObject *PyC_Tuple_Pack_Bool(const blender::Span<bool> values)
+{
+  return PyC_Tuple_PackArray_Bool(values.data(), values.size());
+}
+
+#else
+
+#  define PyC_Tuple_Pack_F32(...) \
+    PyC_Tuple_PackArray_F32(((const float[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_F64(...) \
+    PyC_Tuple_PackArray_F64(((const double[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_I32(...) \
+    PyC_Tuple_PackArray_I32(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_I32FromBool(...) \
+    PyC_Tuple_PackArray_I32FromBool(((const int[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#  define PyC_Tuple_Pack_Bool(...) \
+    PyC_Tuple_PackArray_Bool(((const bool[]){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+
 #endif
 
 #endif /* __PY_CAPI_UTILS_H__ */

@@ -9,7 +9,6 @@
  */
 
 struct BPy_StructRNA;
-struct PyObject;
 
 #ifdef __cplusplus
 extern "C" {

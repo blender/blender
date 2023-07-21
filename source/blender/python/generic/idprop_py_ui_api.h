@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct IDProperty;
 
 extern PyTypeObject BPy_IDPropertyUIManager_Type;
@@ -18,3 +22,7 @@ typedef struct BPy_IDPropertyUIManager {
 } BPy_IDPropertyUIManager;
 
 void IDPropertyUIData_Init_Types(void);
+
+#ifdef __cplusplus
+}
+#endif
