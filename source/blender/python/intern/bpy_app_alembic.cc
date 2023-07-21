@@ -60,7 +60,7 @@ static PyObject *make_alembic_info(void)
   SetObjItem(PyUnicode_FromFormat("%2d, %2d, %2d", major, minor, patch));
 #else
   SetObjItem(PyBool_FromLong(0));
-  SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
+  SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));
   SetStrItem("Unknown");
 #endif
 

@@ -97,7 +97,7 @@ static PyObject *make_sdl_info(void)
 
 #else /* WITH_SDL=OFF */
   SetObjItem(PyBool_FromLong(0));
-  SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
+  SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));
   SetStrItem("Unknown");
   SetObjItem(PyBool_FromLong(0));
 #endif

@@ -709,7 +709,7 @@ int BaseMathObject_clear(BaseMathObject *self)
 static bool BaseMathObject_is_tracked(BaseMathObject *self)
 {
   PyObject *cb_user = self->cb_user;
-  self->cb_user = (void *)(uintptr_t)-1;
+  self->cb_user = (PyObject *)uintptr_t(-1);
   bool is_tracked = PyObject_GC_IsTracked((PyObject *)self);
   self->cb_user = cb_user;
   return is_tracked;

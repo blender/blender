@@ -65,7 +65,7 @@ static PyObject *make_ocio_info(void)
       "%2d, %2d, %2d", curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256));
 #else
   SetObjItem(PyBool_FromLong(0));
-  SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
+  SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));
   SetStrItem("Unknown");
 #endif
 

@@ -58,7 +58,7 @@ static PyObject *make_opensubdiv_info(void)
       "%2d, %2d, %2d", curversion / 10000, (curversion / 100) % 100, curversion % 100));
 #else
   SetObjItem(PyBool_FromLong(0));
-  SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
+  SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));
   SetStrItem("Unknown");
 #endif
 
