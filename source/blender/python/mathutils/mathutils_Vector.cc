@@ -2749,6 +2749,11 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 /** \name Vector Type: Get/Set Item Definitions
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyGetSetDef Vector_getseters[] = {
     {"x", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_x_doc, (void *)0},
     {"y", (getter)Vector_axis_get, (setter)Vector_axis_set, Vector_axis_y_doc, (void *)1},
@@ -3233,11 +3238,20 @@ static PyGetSetDef Vector_getseters[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Vector Type: Method Definitions
  * \{ */
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
 
 static PyMethodDef Vector_methods[] = {
     /* Class Methods */
@@ -3289,6 +3303,10 @@ static PyMethodDef Vector_methods[] = {
     {"__deepcopy__", (PyCFunction)Vector_deepcopy, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /** \} */
 

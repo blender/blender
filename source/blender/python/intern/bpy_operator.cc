@@ -425,6 +425,11 @@ static PyObject *pyop_get_bl_options(PyObject * /*self*/, PyObject *value)
   return pyrna_enum_bitfield_as_set(rna_enum_operator_type_flag_items, ot->flag);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_ops_methods[] = {
     {"poll", (PyCFunction)pyop_poll, METH_VARARGS, nullptr},
     {"call", (PyCFunction)pyop_call, METH_VARARGS, nullptr},
@@ -435,6 +440,10 @@ static PyMethodDef bpy_ops_methods[] = {
     {"macro_define", (PyCFunction)PYOP_wrap_macro_define, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyModuleDef bpy_ops_module = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

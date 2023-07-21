@@ -1057,6 +1057,11 @@ static PyGetSetDef Color_getseters[] = {
 /** \name Color Type: Method Definitions
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef Color_methods[] = {
     {"copy", (PyCFunction)Color_copy, METH_NOARGS, Color_copy_doc},
     {"__copy__", (PyCFunction)Color_copy, METH_NOARGS, Color_copy_doc},
@@ -1103,6 +1108,10 @@ static PyMethodDef Color_methods[] = {
 
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /** \} */
 

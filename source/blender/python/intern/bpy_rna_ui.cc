@@ -41,9 +41,18 @@ static PyObject *bpy_rna_uilayout_introspect(PyObject *self)
   return result;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef BPY_rna_uilayout_introspect_method_def = {
     "introspect",
     (PyCFunction)bpy_rna_uilayout_introspect,
     METH_NOARGS,
     bpy_rna_uilayout_introspect_doc,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif

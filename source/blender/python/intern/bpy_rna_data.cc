@@ -38,11 +38,20 @@ static PyObject *bpy_rna_data_temp_data(PyObject *self, PyObject *args, PyObject
 static PyObject *bpy_rna_data_context_enter(BPy_DataContext *self);
 static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject *args);
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_rna_data_context_methods[] = {
     {"__enter__", (PyCFunction)bpy_rna_data_context_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)bpy_rna_data_context_exit, METH_VARARGS},
     {nullptr} /* sentinel */
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static int bpy_rna_data_context_traverse(BPy_DataContext *self, visitproc visit, void *arg)
 {
@@ -170,12 +179,21 @@ static PyObject *bpy_rna_data_context_exit(BPy_DataContext *self, PyObject * /*a
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef BPY_rna_data_context_method_def = {
     "temp_data",
     (PyCFunction)bpy_rna_data_temp_data,
     METH_STATIC | METH_VARARGS | METH_KEYWORDS,
     bpy_rna_data_context_load_doc,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 int BPY_rna_data_context_type_ready()
 {

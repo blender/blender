@@ -1047,6 +1047,11 @@ static PyObject *M_Noise_cell_vector(PyObject * /*self*/, PyObject *args)
   return Vector_CreatePyObject(r_vec, 3, nullptr);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef M_Noise_methods[] = {
     {"seed_set", (PyCFunction)M_Noise_seed_set, METH_VARARGS, M_Noise_seed_set_doc},
     {"random", (PyCFunction)M_Noise_random, METH_NOARGS, M_Noise_random_doc},
@@ -1097,6 +1102,10 @@ static PyMethodDef M_Noise_methods[] = {
     {"cell_vector", (PyCFunction)M_Noise_cell_vector, METH_VARARGS, M_Noise_cell_vector_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyModuleDef M_Noise_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

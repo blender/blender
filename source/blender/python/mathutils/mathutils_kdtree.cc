@@ -356,6 +356,11 @@ static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *
   return py_list;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef PyKDTree_methods[] = {
     {"insert", (PyCFunction)py_kdtree_insert, METH_VARARGS | METH_KEYWORDS, py_kdtree_insert_doc},
     {"balance", (PyCFunction)py_kdtree_balance, METH_NOARGS, py_kdtree_balance_doc},
@@ -367,6 +372,10 @@ static PyMethodDef PyKDTree_methods[] = {
      py_kdtree_find_range_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(py_KDtree_doc,
              "KdTree(size) -> new kd-tree initialized to hold ``size`` items.\n"

@@ -557,6 +557,11 @@ static PyObject *bpy_ghost_backend(PyObject * /*self*/)
   return PyUnicode_FromString(WM_ghost_backend());
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_methods[] = {
     {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc},
     {"blend_paths",
@@ -593,6 +598,10 @@ static PyMethodDef bpy_methods[] = {
 
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyObject *bpy_import_test(const char *modname)
 {

@@ -5816,6 +5816,11 @@ static PyObject *pyrna_prop_collection_iter(BPy_PropertyRNA *self)
 }
 #endif /* # !USE_PYRNA_ITER */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pyrna_struct_methods[] = {
 
     /* Only for PointerRNA's with ID'props. */
@@ -5978,6 +5983,10 @@ static PyMethodDef pyrna_prop_collection_idprop_methods[] = {
     {"move", (PyCFunction)pyrna_prop_collection_idprop_move, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /**
  * only needed for sub-typing, so a new class gets a valid #BPy_StructRNA
@@ -7796,11 +7805,20 @@ static PyObject *bpy_types_module_dir(PyObject *self)
   return ret;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_types_module_methods[] = {
     {"__getattr__", (PyCFunction)bpy_types_module_getattro, METH_O, nullptr},
     {"__dir__", (PyCFunction)bpy_types_module_dir, METH_NOARGS, nullptr},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(bpy_types_module_doc, "Access to internal Blender types");
 static PyModuleDef bpy_types_module_def = {
@@ -8015,19 +8033,22 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
   PyObject *type = PyDict_GetItemString(py_kw, "type");
   StructRNA *type_srna = srna_from_self(type, "");
   if (type_srna) {
-    if (!RNA_struct_idprops_datablock_allowed(srna) &&
-        (*(PyCFunctionWithKeywords)PyCFunction_GET_FUNCTION(py_func) == BPy_PointerProperty ||
-         *(PyCFunctionWithKeywords)PyCFunction_GET_FUNCTION(py_func) == BPy_CollectionProperty) &&
-        RNA_struct_idprops_contains_datablock(type_srna))
-    {
-      PyErr_Format(PyExc_ValueError,
-                   "bpy_struct \"%.200s\" registration error: "
-                   "'%.200s' %.200s could not register because "
-                   "this type doesn't support data-block properties",
-                   RNA_struct_identifier(srna),
-                   key_str,
-                   func_name);
-      return -1;
+    if (!RNA_struct_idprops_datablock_allowed(srna)) {
+      PyCFunctionWithKeywords py_func_ref = *(
+          PyCFunctionWithKeywords)(void *)PyCFunction_GET_FUNCTION(py_func);
+      if (ELEM(py_func_ref, BPy_PointerProperty, BPy_CollectionProperty)) {
+        if (RNA_struct_idprops_contains_datablock(type_srna)) {
+
+          PyErr_Format(PyExc_ValueError,
+                       "bpy_struct \"%.200s\" registration error: "
+                       "'%.200s' %.200s could not register because "
+                       "this type doesn't support data-block properties",
+                       RNA_struct_identifier(srna),
+                       key_str,
+                       func_name);
+          return -1;
+        }
+      }
     }
   }
 
@@ -9241,6 +9262,11 @@ static PyObject *pyrna_bl_owner_id_set(PyObject * /*self*/, PyObject *value)
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef meth_bpy_owner_id_get = {
     "_bl_owner_id_get",
     (PyCFunction)pyrna_bl_owner_id_get,
@@ -9253,3 +9279,7 @@ PyMethodDef meth_bpy_owner_id_set = {
     METH_O,
     nullptr,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif

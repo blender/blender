@@ -151,6 +151,11 @@ static PyObject *bpy_app_timers_is_registered(PyObject * /*self*/, PyObject *fun
   return PyBool_FromLong(ret);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef M_AppTimers_methods[] = {
     {"register",
      (PyCFunction)bpy_app_timers_register,
@@ -163,6 +168,10 @@ static PyMethodDef M_AppTimers_methods[] = {
      bpy_app_timers_is_registered_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyModuleDef M_AppTimers_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

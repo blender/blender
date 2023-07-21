@@ -653,6 +653,12 @@ fail:
 
 bool BPY_rna_gizmo_module(PyObject *mod_par)
 {
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
   static PyMethodDef method_def_array[] = {
       /* Gizmo Target Property Define API */
       {"target_set_handler",
@@ -674,6 +680,10 @@ bool BPY_rna_gizmo_module(PyObject *mod_par)
        bpy_gizmo_target_get_range_doc},
       /* no sentinel needed. */
   };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
   for (int i = 0; i < ARRAY_SIZE(method_def_array); i++) {
     PyMethodDef *m = &method_def_array[i];

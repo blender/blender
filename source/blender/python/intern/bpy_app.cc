@@ -556,6 +556,11 @@ static PyObject *bpy_app_help_text(PyObject * /*self*/, PyObject *args, PyObject
   return result;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_app_methods[] = {
     {"is_job_running",
      (PyCFunction)bpy_app_is_job_running,
@@ -567,6 +572,10 @@ static PyMethodDef bpy_app_methods[] = {
      bpy_app_help_text_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static void py_struct_seq_getset_init()
 {

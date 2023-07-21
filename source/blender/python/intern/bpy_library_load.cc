@@ -76,12 +76,21 @@ static PyObject *bpy_lib_enter(BPy_Library *self);
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *args);
 static PyObject *bpy_lib_dir(BPy_Library *self);
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_lib_methods[] = {
     {"__enter__", (PyCFunction)bpy_lib_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)bpy_lib_exit, METH_VARARGS},
     {"__dir__", (PyCFunction)bpy_lib_dir, METH_NOARGS},
     {nullptr} /* sentinel */
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static void bpy_lib_dealloc(BPy_Library *self)
 {
@@ -571,12 +580,21 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
   return PyDict_Keys(self->dict);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef BPY_library_load_method_def = {
     "load",
     (PyCFunction)bpy_lib_load,
     METH_VARARGS | METH_KEYWORDS,
     bpy_lib_load_doc,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 int BPY_library_load_type_ready()
 {

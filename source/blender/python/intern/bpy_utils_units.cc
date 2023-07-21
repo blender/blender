@@ -324,6 +324,11 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
   }
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpyunits_methods[] = {
     {"to_value",
      (PyCFunction)bpyunits_to_value,
@@ -335,6 +340,10 @@ static PyMethodDef bpyunits_methods[] = {
      bpyunits_to_string_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(bpyunits_doc, "This module contains some data/methods regarding units handling.");
 

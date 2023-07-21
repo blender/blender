@@ -711,6 +711,11 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
   return ret_tuple;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef app_translations_methods[] = {
     /* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
     {"register",
@@ -743,6 +748,10 @@ static PyMethodDef app_translations_methods[] = {
      app_translations_locale_explode_doc},
     {nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyObject *app_translations_new(PyTypeObject *type, PyObject * /*args*/, PyObject * /*kw*/)
 {

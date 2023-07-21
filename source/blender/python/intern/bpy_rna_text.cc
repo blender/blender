@@ -93,12 +93,21 @@ static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObje
   return sel_text;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef BPY_rna_region_as_string_method_def = {
     "region_as_string",
     (PyCFunction)bpy_rna_region_as_string,
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_as_string_doc,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(bpy_rna_region_from_string_doc,
              ".. method:: region_from_string(body, range=None)\n"
@@ -156,11 +165,20 @@ static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 PyMethodDef BPY_rna_region_from_string_method_def = {
     "region_from_string",
     (PyCFunction)bpy_rna_region_from_string,
     METH_VARARGS | METH_KEYWORDS,
     bpy_rna_region_from_string_doc,
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /** \} */

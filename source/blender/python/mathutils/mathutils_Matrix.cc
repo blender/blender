@@ -3271,6 +3271,11 @@ static PyGetSetDef Matrix_getseters[] = {
 /** \name Matrix Type: Method Definitions
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef Matrix_methods[] = {
     /* Derived values. */
     {"determinant", (PyCFunction)Matrix_determinant, METH_NOARGS, Matrix_determinant_doc},
@@ -3333,6 +3338,10 @@ static PyMethodDef Matrix_methods[] = {
      C_Matrix_LocRotScale_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /** \} */
 

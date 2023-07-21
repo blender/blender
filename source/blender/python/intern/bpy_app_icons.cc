@@ -147,6 +147,11 @@ static PyObject *bpy_app_icons_release(PyObject * /*self*/, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef M_AppIcons_methods[] = {
     {"new_triangles",
      (PyCFunction)bpy_app_icons_new_triangles,
@@ -162,6 +167,10 @@ static PyMethodDef M_AppIcons_methods[] = {
      bpy_app_icons_release_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyModuleDef M_AppIcons_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

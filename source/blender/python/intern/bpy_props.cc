@@ -2530,7 +2530,7 @@ static StructRNA *bpy_prop_deferred_data_or_srna(PyObject *self,
     args = PyTuple_New(0);
 
     /* This will be #BPy_BoolProperty` or one of the functions that define a type. */
-    PyCFunctionWithKeywords method_fn = (PyCFunctionWithKeywords)method_def->ml_meth;
+    PyCFunctionWithKeywords method_fn = (PyCFunctionWithKeywords)(void *)method_def->ml_meth;
     *r_deferred_result = method_fn(self, args, kw);
     Py_DECREF(args);
     /* May be an error (depending on `r_deferred_result`). */
@@ -4666,6 +4666,11 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 /** \name Main Module `bpy.props`
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef props_methods[] = {
     {"BoolProperty",
      (PyCFunction)BPy_BoolProperty,
@@ -4714,6 +4719,10 @@ static PyMethodDef props_methods[] = {
      BPy_RemoveProperty_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static int props_visit(PyObject * /*self*/, visitproc visit, void *arg)
 {
