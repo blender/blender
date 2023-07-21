@@ -8,7 +8,6 @@ set(INC
   ../../asset_system
   ../../blenloader
   ../../makesrna
-  ../../../../intern/clog
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -51,6 +50,7 @@ set(LIB
   bf_blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

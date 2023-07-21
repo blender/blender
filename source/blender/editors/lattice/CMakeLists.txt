@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../makesrna
   ../../render
-  ../../../../intern/clog
 )
 
 set(INC_SYS
@@ -27,6 +26,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

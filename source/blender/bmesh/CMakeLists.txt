@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../../intern/clog
   ../../../intern/eigen
   ../../../extern/rangetree
 )
@@ -168,6 +167,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   extern_rangetree
   PRIVATE bf::intern::atomic

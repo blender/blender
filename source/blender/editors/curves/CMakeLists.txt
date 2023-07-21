@@ -8,7 +8,6 @@ set(INC
   ../../geometry
   ../../gpu
   ../../makesrna
-  ../../../../intern/clog
   ../../bmesh
 
   # RNA_prototypes.h
@@ -31,6 +30,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

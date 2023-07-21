@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../gpu
   ../../makesrna
-  ../../../../intern/clog
   ../../../../intern/mantaflow/extern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

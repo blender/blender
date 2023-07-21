@@ -7,7 +7,6 @@ set(INC
   ../../asset_system
   ../../blenloader
   ../../makesrna
-  ../../../../intern/clog
   ../../bmesh
 )
 
@@ -33,6 +32,7 @@ set(LIB
   bf_editor_mesh
   bf_editor_metaball
   bf_editor_physics
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

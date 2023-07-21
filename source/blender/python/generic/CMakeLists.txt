@@ -6,7 +6,6 @@ set(INC
   .
   ../../gpu
   ../../makesrna
-  ../../../../intern/clog
 )
 
 set(INC_SYS
@@ -45,6 +44,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

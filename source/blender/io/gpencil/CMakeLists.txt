@@ -10,7 +10,6 @@ set(INC
   ../../editors/include
   ../../makesdna
   ../../makesrna
-  ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv 
 )
@@ -37,6 +36,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::nanosvg
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::windowmanager

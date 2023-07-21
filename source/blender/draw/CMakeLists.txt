@@ -23,7 +23,6 @@ set(INC
   ../compositor/realtime_compositor/algorithms
   ../compositor/realtime_compositor/cached_resources
 
-  ../../../intern/clog
   ../../../intern/opensubdiv
 
 )
@@ -353,6 +352,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::windowmanager

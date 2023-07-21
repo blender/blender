@@ -9,7 +9,6 @@ set(INC
   ../../bmesh
   ../../editors/include
   ../../makesrna
-  ../../../../intern/clog
   ../../../../intern/utfconv
 )
 
@@ -89,6 +88,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
 

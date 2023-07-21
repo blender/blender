@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../clog
   ../../source/blender/imbuf
 )
 
@@ -75,6 +74,7 @@ set(LIB
   ${Epoxy_LIBRARIES}
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_OPENGL_BACKEND)

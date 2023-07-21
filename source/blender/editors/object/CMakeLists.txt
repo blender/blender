@@ -16,7 +16,6 @@ set(INC
   ../../python
   ../../render
   ../../shader_fx
-  ../../../../intern/clog
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -64,6 +63,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render
   PRIVATE bf::windowmanager
