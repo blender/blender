@@ -4894,7 +4894,7 @@ static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObje
 PyDoc_STRVAR(pyrna_struct_get_id_data_doc,
              "The :class:`bpy.types.ID` object this datablock is from or None, (not available for "
              "all data types)");
-static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
+static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self, void * /*closure*/)
 {
   /* Used for struct and pointer since both have a ptr. */
   if (self->ptr.owner_id) {
@@ -4908,13 +4908,13 @@ static PyObject *pyrna_struct_get_id_data(BPy_DummyPointerRNA *self)
 
 PyDoc_STRVAR(pyrna_struct_get_data_doc,
              "The data this property is using, *type* :class:`bpy.types.bpy_struct`");
-static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self)
+static PyObject *pyrna_struct_get_data(BPy_DummyPointerRNA *self, void * /*closure*/)
 {
   return pyrna_struct_CreatePyObject(&self->ptr);
 }
 
 PyDoc_STRVAR(pyrna_struct_get_rna_type_doc, "The property type for introspection");
-static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
+static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self, void * /*closure*/)
 {
   PointerRNA tptr;
   RNA_pointer_create(nullptr, &RNA_Property, self->prop, &tptr);
