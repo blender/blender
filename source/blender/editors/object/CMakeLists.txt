@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenfont
   ../../bmesh
   ../../functions
   ../../gpencil_modifiers_legacy
@@ -56,6 +55,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation

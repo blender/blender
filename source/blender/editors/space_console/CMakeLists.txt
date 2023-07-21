@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenfont
   ../../blenloader
   ../../gpu
   ../../makesrna
@@ -23,6 +22,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna

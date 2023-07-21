@@ -7,7 +7,6 @@ set(INC
   PUBLIC gizmo
   PRIVATE gizmo/intern
   ../asset_system
-  ../blenfont
   ../blenloader
   ../compositor
   ../editors/include
@@ -93,6 +92,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
