@@ -6,8 +6,8 @@
  * \ingroup wm
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_listBase.h"
 

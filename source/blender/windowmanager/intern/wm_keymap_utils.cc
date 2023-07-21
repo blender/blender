@@ -8,7 +8,7 @@
  * Utilities to help define keymaps.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"

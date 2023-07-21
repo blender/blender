@@ -14,8 +14,8 @@
 
 #include <Python.h>
 
-#include <float.h> /* FLT_MIN/MAX */
-#include <stddef.h>
+#include <cfloat> /* FLT_MIN/MAX */
+#include <cstddef>
 
 #include "RNA_path.h"
 #include "RNA_types.h"

@@ -8,7 +8,7 @@
  * Utilities for Implementing Operators
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

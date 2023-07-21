@@ -8,8 +8,8 @@
  * Handle OpenGL buffers for windowing, also paint cursor.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_camera_types.h"
 #include "DNA_listBase.h"

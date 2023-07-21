@@ -6,7 +6,7 @@
  * \ingroup wm
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "CLG_log.h"
 #include "MEM_guardedalloc.h"

@@ -9,7 +9,7 @@
  */
 
 #include <Python.h>
-#include <float.h> /* FLT_MAX */
+#include <cfloat> /* FLT_MAX */
 
 #include "MEM_guardedalloc.h"
 

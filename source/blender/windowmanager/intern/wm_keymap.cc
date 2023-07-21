@@ -8,7 +8,7 @@
  * Configurable key-maps - add/remove/find/compare/patch...
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"

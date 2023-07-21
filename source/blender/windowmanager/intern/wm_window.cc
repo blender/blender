@@ -8,10 +8,10 @@
  * Window management, wrap GHOST.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"

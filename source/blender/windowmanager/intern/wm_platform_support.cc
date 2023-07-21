@@ -8,7 +8,7 @@
 #include "wm_platform_support.h"
 #include "wm_window_private.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_dynstr.h"
 #include "BLI_fileops.h"

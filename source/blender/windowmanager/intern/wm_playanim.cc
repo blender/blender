@@ -12,11 +12,11 @@
  * this could be made into its own module, alongside creator.
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 
 #ifndef WIN32

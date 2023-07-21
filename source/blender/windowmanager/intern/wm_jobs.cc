@@ -8,7 +8,7 @@
  * Threaded job manager (high level job access).
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_windowmanager_types.h"
 

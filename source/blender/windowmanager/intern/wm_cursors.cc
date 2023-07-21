@@ -8,8 +8,8 @@
  * Cursor pixmap and cursor utility functions to change the cursor.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "GHOST_C-api.h"
 

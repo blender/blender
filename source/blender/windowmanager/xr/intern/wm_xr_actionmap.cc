@@ -10,8 +10,8 @@
  * XR actionmap API, similar to WM keymap API.
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"

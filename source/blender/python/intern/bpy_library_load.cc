@@ -14,7 +14,7 @@
  */
 
 #include <Python.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"

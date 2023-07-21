@@ -14,7 +14,7 @@
  */
 
 #include <Python.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

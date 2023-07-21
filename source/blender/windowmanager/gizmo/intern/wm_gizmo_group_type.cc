@@ -6,7 +6,7 @@
  * \ingroup wm
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"

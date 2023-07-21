@@ -10,7 +10,7 @@
  */
 
 #include <Python.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 

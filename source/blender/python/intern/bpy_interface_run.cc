@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <Python.h>
 

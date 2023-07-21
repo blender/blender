@@ -8,8 +8,8 @@
  * UI List Registry.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_sys_types.h"

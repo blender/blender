@@ -6,7 +6,7 @@
  * \ingroup wm
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"

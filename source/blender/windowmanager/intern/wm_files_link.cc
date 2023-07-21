@@ -8,12 +8,12 @@
  * Functions for dealing with append/link operators and helpers.
  */
 
-#include <ctype.h>
-#include <errno.h>
-#include <float.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cctype>
+#include <cerrno>
+#include <cfloat>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "CLG_log.h"
 

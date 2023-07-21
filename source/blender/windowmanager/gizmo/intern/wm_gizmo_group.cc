@@ -11,8 +11,8 @@
  * attached to modal handlers and have own keymaps.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

@@ -8,7 +8,7 @@
  * Menu Registry.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_sys_types.h"
 

@@ -12,7 +12,7 @@
  * For popups/popovers only, regions handle panel types by including them in local lists.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_sys_types.h"
 

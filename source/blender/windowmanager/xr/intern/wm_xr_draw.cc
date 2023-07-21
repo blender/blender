@@ -10,7 +10,7 @@
  * Implements Blender specific drawing functionality for use with the Ghost-XR API.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BKE_context.h"
 

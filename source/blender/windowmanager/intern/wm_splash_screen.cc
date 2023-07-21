@@ -14,7 +14,7 @@
  * - Links to web sites.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "CLG_log.h"
 
