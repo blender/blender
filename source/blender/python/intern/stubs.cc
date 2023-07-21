@@ -13,16 +13,14 @@
 /* python, will come back */
 // void BPY_script_exec(void) {}
 // void BPY_python_start(void) {}
-void BPY_pyconstraint_exec(struct bPythonConstraint * /*con*/,
-                           struct bConstraintOb * /*cob*/,
-                           struct ListBase * /*targets*/)
+void BPY_pyconstraint_exec(bPythonConstraint * /*con*/,
+                           bConstraintOb * /*cob*/,
+                           ListBase * /*targets*/)
 {
 }
-void BPY_pyconstraint_target(struct bPythonConstraint * /*con*/, struct bConstraintTarget * /*ct*/)
-{
-}
-bool BPY_is_pyconstraint(struct Text * /*text*/)
+void BPY_pyconstraint_target(bPythonConstraint * /*con*/, bConstraintTarget * /*ct*/) {}
+bool BPY_is_pyconstraint(Text * /*text*/)
 {
   return 0;
 }
-void BPY_pyconstraint_update(struct Object * /*owner*/, struct bConstraint * /*con*/) {}
+void BPY_pyconstraint_update(Object * /*owner*/, bConstraint * /*con*/) {}

@@ -1523,7 +1523,7 @@ static void WM_OT_xr_navigation_reset(wmOperatorType *ot)
 /** \name Operator Registration
  * \{ */
 
-void wm_xr_operatortypes_register(void)
+void wm_xr_operatortypes_register()
 {
   WM_operatortype_append(WM_OT_xr_session_toggle);
   WM_operatortype_append(WM_OT_xr_navigation_grab);

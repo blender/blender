@@ -98,13 +98,13 @@ bool BPy_errors_to_report_ex(ReportList *reports,
                 /* Location (when available). */
                 "Location: %s:%d",
                 err_prefix,
-                (int)err_str_len,
+                int(err_str_len),
                 err_str,
                 location_filepath,
                 location_line_number);
   }
   else {
-    BKE_reportf(reports, RPT_ERROR, "%s: %.*s", err_prefix, (int)err_str_len, err_str);
+    BKE_reportf(reports, RPT_ERROR, "%s: %.*s", err_prefix, int(err_str_len), err_str);
   }
 
   /* Ensure this is _always_ printed to the output so developers don't miss exceptions. */

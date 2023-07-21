@@ -642,8 +642,8 @@ const int (*WM_gesture_lasso_path_to_array(bContext * /*C*/,
         float loc[2];
 
         RNA_float_get_array(&itemptr, "loc", loc);
-        mcoords[i][0] = (int)loc[0];
-        mcoords[i][1] = (int)loc[1];
+        mcoords[i][0] = int(loc[0]);
+        mcoords[i][1] = int(loc[1]);
         i++;
       }
       RNA_PROP_END;
@@ -788,8 +788,8 @@ static void wm_gesture_straightline_do_angle_snap(rcti *rect)
   mul_v2_fl(line_snapped_end, line_length);
   add_v2_v2(line_snapped_end, line_start);
 
-  rect->xmax = (int)line_snapped_end[0];
-  rect->ymax = (int)line_snapped_end[1];
+  rect->xmax = int(line_snapped_end[0]);
+  rect->ymax = int(line_snapped_end[1]);
 }
 
 int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event)

@@ -22,10 +22,10 @@
 
 #include "bpy_rna_driver.h" /* own include */
 
-PyObject *pyrna_driver_get_variable_value(const struct AnimationEvalContext *anim_eval_context,
-                                          struct ChannelDriver *driver,
-                                          struct DriverVar *dvar,
-                                          struct DriverTarget *dtar)
+PyObject *pyrna_driver_get_variable_value(const AnimationEvalContext *anim_eval_context,
+                                          ChannelDriver *driver,
+                                          DriverVar *dvar,
+                                          DriverTarget *dtar)
 {
   PyObject *driver_arg = nullptr;
   PointerRNA ptr;

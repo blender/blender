@@ -66,14 +66,14 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   char filepath_abs[FILE_MAX];
   PyObject *datablocks = nullptr;
 
-  const struct PyC_StringEnumItems path_remap_items[] = {
+  const PyC_StringEnumItems path_remap_items[] = {
       {BLO_WRITE_PATH_REMAP_NONE, "NONE"},
       {BLO_WRITE_PATH_REMAP_RELATIVE, "RELATIVE"},
       {BLO_WRITE_PATH_REMAP_RELATIVE_ALL, "RELATIVE_ALL"},
       {BLO_WRITE_PATH_REMAP_ABSOLUTE, "ABSOLUTE"},
       {0, nullptr},
   };
-  struct PyC_StringEnum path_remap = {path_remap_items, BLO_WRITE_PATH_REMAP_NONE};
+  PyC_StringEnum path_remap = {path_remap_items, BLO_WRITE_PATH_REMAP_NONE};
 
   bool use_fake_user = false, use_compress = false;
 

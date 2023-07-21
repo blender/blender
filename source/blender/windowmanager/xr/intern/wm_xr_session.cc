@@ -51,7 +51,7 @@ static CLG_LogRef LOG = {"wm.xr"};
 
 /* -------------------------------------------------------------------- */
 
-static void wm_xr_session_create_cb(void)
+static void wm_xr_session_create_cb()
 {
   Main *bmain = G_MAIN;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
@@ -986,7 +986,7 @@ static bool wm_xr_session_action_test_bimanual(const wmXrSessionState *session_s
   bool bimanual = false;
 
   *r_subaction_idx_other = (subaction_idx == 0) ?
-                               (uint)min_ii(1, action->count_subaction_paths - 1) :
+                               uint(min_ii(1, action->count_subaction_paths - 1)) :
                                0;
 
   switch (action->type) {
@@ -1115,7 +1115,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
     return;
   }
 
-  const int64_t time_now = (int64_t)(PIL_check_seconds_timer() * 1000);
+  const int64_t time_now = int64_t(PIL_check_seconds_timer() * 1000);
 
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;
@@ -1457,7 +1457,7 @@ static void wm_xr_session_surface_free_data(wmSurface *surface)
   g_xr_surface = nullptr;
 }
 
-static wmSurface *wm_xr_session_surface_create(void)
+static wmSurface *wm_xr_session_surface_create()
 {
   if (g_xr_surface) {
     BLI_assert(false);
@@ -1487,7 +1487,7 @@ static wmSurface *wm_xr_session_surface_create(void)
   return surface;
 }
 
-void *wm_xr_session_gpu_binding_context_create(void)
+void *wm_xr_session_gpu_binding_context_create()
 {
   wmSurface *surface = wm_xr_session_surface_create();
 
@@ -1513,7 +1513,7 @@ void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle /*context*/)
   WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, nullptr);
 }
 
-ARegionType *WM_xr_surface_controller_region_type_get(void)
+ARegionType *WM_xr_surface_controller_region_type_get()
 {
   if (g_xr_surface) {
     wmXrSurfaceData *data = static_cast<wmXrSurfaceData *>(g_xr_surface->customdata);

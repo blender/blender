@@ -188,12 +188,12 @@ static void wm_gesture_draw_line(wmGesture *gt)
   immUniform1f("dash_width", 8.0f);
   immUniform1f("udash_factor", 0.5f);
 
-  float xmin = (float)rect->xmin;
-  float ymin = (float)rect->ymin;
+  float xmin = float(rect->xmin);
+  float ymin = float(rect->ymin);
 
   immBegin(GPU_PRIM_LINES, 2);
   immVertex2f(shdr_pos, xmin, ymin);
-  immVertex2f(shdr_pos, (float)rect->xmax, (float)rect->ymax);
+  immVertex2f(shdr_pos, float(rect->xmax), float(rect->ymax));
   immEnd();
 
   immUnbindProgram();
@@ -232,7 +232,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   immUniform1f("udash_factor", 0.5f);
 
   imm_draw_box_wire_2d(
-      shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, (float)rect->ymax);
+      shdr_pos, float(rect->xmin), float(rect->ymin), float(rect->xmax), float(rect->ymax));
 
   immUnbindProgram();
 
@@ -252,7 +252,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
-  imm_draw_circle_fill_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+  imm_draw_circle_fill_2d(shdr_pos, float(rect->xmin), float(rect->ymin), float(rect->xmax), 40);
 
   immUnbindProgram();
 
@@ -270,7 +270,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
   immUniform1f("dash_width", 4.0f);
   immUniform1f("udash_factor", 0.5f);
 
-  imm_draw_circle_wire_2d(shdr_pos, (float)rect->xmin, (float)rect->ymin, (float)rect->xmax, 40);
+  imm_draw_circle_wire_2d(shdr_pos, float(rect->xmin), float(rect->ymin), float(rect->xmax), 40);
 
   immUnbindProgram();
 }
@@ -282,7 +282,7 @@ struct LassoFillData {
 
 static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 {
-  struct LassoFillData *data = static_cast<LassoFillData *>(user_data);
+  LassoFillData *data = static_cast<LassoFillData *>(user_data);
   uchar *col = &(data->px[(y * data->width) + x]);
   memset(col, 0x10, x_end - x);
 }
@@ -313,7 +313,7 @@ static void draw_filled_lasso(wmGesture *gt)
     const int w = BLI_rcti_size_x(&rect);
     const int h = BLI_rcti_size_y(&rect);
     uchar *pixel_buf = static_cast<uchar *>(MEM_callocN(sizeof(*pixel_buf) * w * h, __func__));
-    struct LassoFillData lasso_fill_data = {pixel_buf, w};
+    LassoFillData lasso_fill_data = {pixel_buf, w};
 
     BLI_bitmap_draw_2d_poly_v2i_n(rect.xmin,
                                   rect.ymin,
@@ -378,7 +378,7 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
   immBegin((gt->type == WM_GESTURE_LASSO) ? GPU_PRIM_LINE_LOOP : GPU_PRIM_LINE_STRIP, numverts);
 
   for (i = 0; i < gt->points; i++, lasso += 2) {
-    immVertex2f(shdr_pos, (float)lasso[0], (float)lasso[1]);
+    immVertex2f(shdr_pos, float(lasso[0]), float(lasso[1]));
   }
 
   immEnd();
@@ -411,18 +411,18 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 
   immBegin(GPU_PRIM_LINES, 4);
 
-  x1 = (float)(rect->xmin - winsize_x);
-  y1 = (float)rect->ymin;
-  x2 = (float)(rect->xmin + winsize_x);
+  x1 = float(rect->xmin - winsize_x);
+  y1 = float(rect->ymin);
+  x2 = float(rect->xmin + winsize_x);
   y2 = y1;
 
   immVertex2f(shdr_pos, x1, y1);
   immVertex2f(shdr_pos, x2, y2);
 
-  x1 = (float)rect->xmin;
-  y1 = (float)(rect->ymin - winsize_y);
+  x1 = float(rect->xmin);
+  y1 = float(rect->ymin - winsize_y);
   x2 = x1;
-  y2 = (float)(rect->ymin + winsize_y);
+  y2 = float(rect->ymin + winsize_y);
 
   immVertex2f(shdr_pos, x1, y1);
   immVertex2f(shdr_pos, x2, y2);

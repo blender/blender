@@ -122,12 +122,12 @@ void WM_uilisttype_remove_ptr(Main *bmain, uiListType *ult)
   UNUSED_VARS_NDEBUG(ok);
 }
 
-void WM_uilisttype_init(void)
+void WM_uilisttype_init()
 {
   uilisttypes_hash = BLI_ghash_str_new_ex("uilisttypes_hash gh", 16);
 }
 
-void WM_uilisttype_free(void)
+void WM_uilisttype_free()
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, uilisttypes_hash) {

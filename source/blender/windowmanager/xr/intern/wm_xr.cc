@@ -145,7 +145,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
 /** \name XR Runtime Data
  * \{ */
 
-wmXrRuntimeData *wm_xr_runtime_data_create(void)
+wmXrRuntimeData *wm_xr_runtime_data_create()
 {
   wmXrRuntimeData *runtime = static_cast<wmXrRuntimeData *>(
       MEM_callocN(sizeof(*runtime), __func__));

@@ -75,7 +75,7 @@ static PyObject *bpy_app_icons_new_triangles(PyObject * /*self*/, PyObject *args
   memcpy(coords, PyBytes_AS_STRING(py_coords), coords_size);
   memcpy(colors, PyBytes_AS_STRING(py_colors), colors_size);
 
-  struct Icon_Geom *geom = static_cast<Icon_Geom *>(MEM_mallocN(sizeof(*geom), __func__));
+  Icon_Geom *geom = static_cast<Icon_Geom *>(MEM_mallocN(sizeof(*geom), __func__));
   geom->coords_len = tris_len;
   geom->coords_range[0] = coords_range[0];
   geom->coords_range[1] = coords_range[1];
@@ -113,7 +113,7 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject * /*self*/,
     return nullptr;
   }
 
-  struct Icon_Geom *geom = BKE_icon_geom_from_file(filepath);
+  Icon_Geom *geom = BKE_icon_geom_from_file(filepath);
   if (geom == nullptr) {
     PyErr_SetString(PyExc_ValueError, "Unable to load from file");
     return nullptr;
@@ -175,7 +175,7 @@ static PyModuleDef M_AppIcons_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPY_app_icons_module(void)
+PyObject *BPY_app_icons_module()
 {
   PyObject *sys_modules = PyImport_GetModuleDict();
 

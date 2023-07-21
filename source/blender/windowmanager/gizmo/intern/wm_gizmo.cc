@@ -522,7 +522,7 @@ int wm_gizmo_is_visible(wmGizmo *gz)
 }
 
 void WM_gizmo_calc_matrix_final_params(const wmGizmo *gz,
-                                       const struct WM_GizmoMatrixParams *params,
+                                       const WM_GizmoMatrixParams *params,
                                        float r_mat[4][4])
 {
   const float(*const matrix_space)[4] = params->matrix_space ? params->matrix_space :

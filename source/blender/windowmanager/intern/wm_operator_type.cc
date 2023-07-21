@@ -87,7 +87,7 @@ void WM_operatortype_iter(GHashIterator *ghi)
 /** \name Operator Type Append
  * \{ */
 
-static wmOperatorType *wm_operatortype_append__begin(void)
+static wmOperatorType *wm_operatortype_append__begin()
 {
   wmOperatorType *ot = static_cast<wmOperatorType *>(
       MEM_callocN(sizeof(wmOperatorType), "operatortype"));
@@ -173,7 +173,7 @@ bool WM_operatortype_remove(const char *idname)
   return true;
 }
 
-void wm_operatortype_init(void)
+void wm_operatortype_init()
 {
   /* reserve size is set based on blender default setup */
   global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
@@ -197,7 +197,7 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
   MEM_freeN(ot);
 }
 
-void wm_operatortype_free(void)
+void wm_operatortype_free()
 {
   BLI_ghash_free(global_ops_hash, nullptr, (GHashValFreeFP)operatortype_ghash_free_cb);
   global_ops_hash = nullptr;
@@ -234,7 +234,7 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
   ot_prop_basic_count = -1;
 }
 
-void WM_operatortype_last_properties_clear_all(void)
+void WM_operatortype_last_properties_clear_all()
 {
   GHashIterator iter;
 

@@ -75,7 +75,7 @@ void WM_msgtypeinfo_init_static(wmMsgTypeInfo *msgtype_info)
 
 /* -------------------------------------------------------------------------- */
 
-wmMsgSubscribeKey_Static *WM_msg_lookup_static(struct wmMsgBus *mbus,
+wmMsgSubscribeKey_Static *WM_msg_lookup_static(wmMsgBus *mbus,
                                                const wmMsgParams_Static *msg_key_params)
 {
   wmMsgSubscribeKey_Static key_test;
@@ -84,7 +84,7 @@ wmMsgSubscribeKey_Static *WM_msg_lookup_static(struct wmMsgBus *mbus,
       BLI_gset_lookup(mbus->messages_gset[WM_MSG_TYPE_STATIC], &key_test));
 }
 
-void WM_msg_publish_static_params(struct wmMsgBus *mbus, const wmMsgParams_Static *msg_key_params)
+void WM_msg_publish_static_params(wmMsgBus *mbus, const wmMsgParams_Static *msg_key_params)
 {
   CLOG_INFO(WM_LOG_MSGBUS_PUB, 2, "static(event=%d)", msg_key_params->event);
 
@@ -94,14 +94,14 @@ void WM_msg_publish_static_params(struct wmMsgBus *mbus, const wmMsgParams_Stati
   }
 }
 
-void WM_msg_publish_static(struct wmMsgBus *mbus, int event)
+void WM_msg_publish_static(wmMsgBus *mbus, int event)
 {
   wmMsgParams_Static params{};
   params.event = event;
   WM_msg_publish_static_params(mbus, &params);
 }
 
-void WM_msg_subscribe_static_params(struct wmMsgBus *mbus,
+void WM_msg_subscribe_static_params(wmMsgBus *mbus,
                                     const wmMsgParams_Static *msg_key_params,
                                     const wmMsgSubscribeValue *msg_val_params,
                                     const char *id_repr)
@@ -117,7 +117,7 @@ void WM_msg_subscribe_static_params(struct wmMsgBus *mbus,
   WM_msg_subscribe_with_key(mbus, &msg_key_test.head, msg_val_params);
 }
 
-void WM_msg_subscribe_static(struct wmMsgBus *mbus,
+void WM_msg_subscribe_static(wmMsgBus *mbus,
                              int event,
                              const wmMsgSubscribeValue *msg_val_params,
                              const char *id_repr)

@@ -178,7 +178,7 @@ static PyModuleDef bpy_utils_previews_module = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPY_utils_previews_module(void)
+PyObject *BPY_utils_previews_module()
 {
   PyObject *submodule;
 

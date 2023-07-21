@@ -116,7 +116,7 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
 
   Py_INCREF(function);
   BLI_timer_register(
-      (intptr_t)function, py_timer_execute, function, py_timer_free, first_interval, persistent);
+      intptr_t(function), py_timer_execute, function, py_timer_free, first_interval, persistent);
   Py_RETURN_NONE;
 }
 
@@ -129,7 +129,7 @@ PyDoc_STRVAR(bpy_app_timers_unregister_doc,
              "   :type function: function\n");
 static PyObject *bpy_app_timers_unregister(PyObject * /*self*/, PyObject *function)
 {
-  if (!BLI_timer_unregister((intptr_t)function)) {
+  if (!BLI_timer_unregister(intptr_t(function))) {
     PyErr_SetString(PyExc_ValueError, "Error: function is not registered");
     return nullptr;
   }
@@ -147,7 +147,7 @@ PyDoc_STRVAR(bpy_app_timers_is_registered_doc,
              "   :rtype: bool\n");
 static PyObject *bpy_app_timers_is_registered(PyObject * /*self*/, PyObject *function)
 {
-  const bool ret = BLI_timer_is_registered((intptr_t)function);
+  const bool ret = BLI_timer_is_registered(intptr_t(function));
   return PyBool_FromLong(ret);
 }
 
@@ -176,7 +176,7 @@ static PyModuleDef M_AppTimers_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPY_app_timers_module(void)
+PyObject *BPY_app_timers_module()
 {
   PyObject *sys_modules = PyImport_GetModuleDict();
   PyObject *mod = PyModule_Create(&M_AppTimers_module_def);

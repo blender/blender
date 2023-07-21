@@ -181,7 +181,7 @@ struct GrabState {
   int bounds[4];
 };
 
-static bool wm_software_cursor_needed(void)
+static bool wm_software_cursor_needed()
 {
   if (UNLIKELY(g_software_cursor.enabled == -1)) {
     g_software_cursor.enabled = !(WM_capabilities_flag() & WM_CAPABILITY_CURSOR_WARP);
@@ -189,7 +189,7 @@ static bool wm_software_cursor_needed(void)
   return g_software_cursor.enabled;
 }
 
-static bool wm_software_cursor_needed_for_window(const wmWindow *win, struct GrabState *grab_state)
+static bool wm_software_cursor_needed_for_window(const wmWindow *win, GrabState *grab_state)
 {
   BLI_assert(wm_software_cursor_needed());
   if (GHOST_GetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin))) {
@@ -223,7 +223,7 @@ static void wm_software_cursor_motion_update(const wmWindow *win)
   g_software_cursor.xy[1] = win->eventstate->xy[1];
 }
 
-static void wm_software_cursor_motion_clear(void)
+static void wm_software_cursor_motion_clear()
 {
   g_software_cursor.winid = -1;
   g_software_cursor.xy[0] = -1;
@@ -244,7 +244,7 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
 
   GPU_matrix_push();
 
-  const int scale = (int)U.pixelsize;
+  const int scale = int(U.pixelsize);
 
   unit_m4(gl_matrix);
 
@@ -334,7 +334,7 @@ static void wm_software_cursor_draw_crosshair(const int event_xy[2])
   immUnbindProgram();
 }
 
-static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_state)
+static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
 {
   int event_xy[2] = {UNPACK2(win->eventstate->xy)};
 
@@ -495,7 +495,7 @@ static void wm_region_test_gizmo_do_draw(bContext *C,
 }
 
 static void wm_region_test_render_do_draw(const Scene *scene,
-                                          struct Depsgraph *depsgraph,
+                                          Depsgraph *depsgraph,
                                           ScrArea *area,
                                           ARegion *region)
 {
@@ -592,7 +592,7 @@ static const char *wm_area_name(ScrArea *area)
  * \{ */
 
 struct WindowDrawCB {
-  struct WindowDrawCB *next, *prev;
+  WindowDrawCB *next, *prev;
 
   void (*draw)(const wmWindow *, void *);
   void *customdata;
@@ -1111,7 +1111,7 @@ GPU_clear_color(0, 0, 0, 0);
   }
 
   if (wm_software_cursor_needed()) {
-    struct GrabState grab_state;
+    GrabState grab_state;
     if (wm_software_cursor_needed_for_window(win, &grab_state)) {
       wm_software_cursor_draw(win, &grab_state);
       wm_software_cursor_motion_update(win);
@@ -1341,7 +1341,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
 
   /* While this shouldn't happen, return in the case it does. */
   BLI_assert((uint)pos[0] < (uint)size[0] && (uint)pos[1] < (uint)size[1]);
-  if (!((uint)pos[0] < (uint)size[0] && (uint)pos[1] < (uint)size[1])) {
+  if (!(uint(pos[0]) < uint(size[0]) && uint(pos[1]) < uint(size[1]))) {
     return false;
   }
 
@@ -1390,7 +1390,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   const wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = WM_window_get_active_scene(win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-  struct Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
+  Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
   bScreen *screen = WM_window_get_active_screen(win);
   bool do_draw = false;
 
@@ -1439,7 +1439,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   }
 
   if (wm_software_cursor_needed()) {
-    struct GrabState grab_state;
+    GrabState grab_state;
     if (wm_software_cursor_needed_for_window(win, &grab_state)) {
       if (wm_software_cursor_motion_test(win)) {
         return true;

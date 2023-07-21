@@ -171,7 +171,7 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
 {
   UNUSED_VARS(co, dist_sq);
 
-  struct PyKDTree_NearestData *data = static_cast<PyKDTree_NearestData *>(user_data);
+  PyKDTree_NearestData *data = static_cast<PyKDTree_NearestData *>(user_data);
 
   PyObject *py_args = PyTuple_New(1);
   PyTuple_SET_ITEM(py_args, 0, PyLong_FromLong(index));
@@ -183,7 +183,7 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
     const int ok = PyC_ParseBool(result, &use_node);
     Py_DECREF(result);
     if (ok) {
-      return (int)use_node;
+      return int(use_node);
     }
   }
 
@@ -230,7 +230,7 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
     BLI_kdtree_3d_find_nearest(self->obj, co, &nearest);
   }
   else {
-    struct PyKDTree_NearestData data = {0};
+    PyKDTree_NearestData data = {0};
 
     data.py_filter = py_filter;
     data.is_error = false;
@@ -441,7 +441,7 @@ static PyModuleDef kdtree_moduledef = {
     /*m_free*/ nullptr,
 };
 
-PyMODINIT_FUNC PyInit_mathutils_kdtree(void)
+PyMODINIT_FUNC PyInit_mathutils_kdtree()
 {
   PyObject *m = PyModule_Create(&kdtree_moduledef);
 

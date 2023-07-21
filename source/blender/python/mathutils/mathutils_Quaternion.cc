@@ -81,7 +81,7 @@ static PyObject *Quaternion_to_tuple_ext(QuaternionObject *self, int ndigits)
 
   if (ndigits >= 0) {
     for (i = 0; i < QUAT_SIZE; i++) {
-      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->quat[i], ndigits)));
+      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round(double(self->quat[i]), ndigits)));
     }
   }
   else {
@@ -923,7 +923,7 @@ static int Quaternion_ass_item(QuaternionObject *self, Py_ssize_t i, PyObject *o
     return -1;
   }
 
-  f = (float)PyFloat_AsDouble(ob);
+  f = float(PyFloat_AsDouble(ob));
 
   if (f == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
     PyErr_SetString(PyExc_TypeError,

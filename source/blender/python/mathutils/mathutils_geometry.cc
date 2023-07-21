@@ -1103,7 +1103,7 @@ struct PointsInPlanes_UserData {
 
 static void points_in_planes_fn(const float co[3], int i, int j, int k, void *user_data_p)
 {
-  struct PointsInPlanes_UserData *user_data = static_cast<PointsInPlanes_UserData *>(user_data_p);
+  PointsInPlanes_UserData *user_data = static_cast<PointsInPlanes_UserData *>(user_data_p);
   PyList_APPEND(user_data->py_verts, Vector_CreatePyObject(co, 3, nullptr));
   user_data->planes_used[i] = true;
   user_data->planes_used[j] = true;
@@ -1377,8 +1377,8 @@ static int boxPack_FromPyObject(PyObject *value, BoxPack **r_boxarray)
     item_1 = PyList_GET_ITEM(list_item, 2);
     item_2 = PyList_GET_ITEM(list_item, 3);
 
-    box->w = (float)PyFloat_AsDouble(item_1);
-    box->h = (float)PyFloat_AsDouble(item_2);
+    box->w = float(PyFloat_AsDouble(item_1));
+    box->h = float(PyFloat_AsDouble(item_2));
     box->index = i;
 
     /* accounts for error case too and overwrites with own error */
@@ -1656,7 +1656,7 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
     goto exit_cdt;
   }
 
-  in.verts_len = (int)vert_coords_len;
+  in.verts_len = int(vert_coords_len);
   in.vert_coords = in_coords;
   in.edges_len = edges_len;
   in.faces_len = faces_len;
@@ -1686,8 +1686,8 @@ static PyObject *M_Geometry_delaunay_2d_cdt(PyObject * /*self*/, PyObject *args)
   out_edges = PyList_New(res->edges_len);
   for (i = 0; i < res->edges_len; i++) {
     item = PyTuple_New(2);
-    PyTuple_SET_ITEM(item, 0, PyLong_FromLong((long)res->edges[i][0]));
-    PyTuple_SET_ITEM(item, 1, PyLong_FromLong((long)res->edges[i][1]));
+    PyTuple_SET_ITEM(item, 0, PyLong_FromLong(long(res->edges[i][0])));
+    PyTuple_SET_ITEM(item, 1, PyLong_FromLong(long(res->edges[i][1])));
     PyList_SET_ITEM(out_edges, i, item);
   }
   PyTuple_SET_ITEM(ret_value, 1, out_edges);
@@ -1844,7 +1844,7 @@ static PyModuleDef M_Geometry_module_def = {
 
 /*----------------------------MODULE INIT-------------------------*/
 
-PyMODINIT_FUNC PyInit_mathutils_geometry(void)
+PyMODINIT_FUNC PyInit_mathutils_geometry()
 {
   PyObject *submodule = PyModule_Create(&M_Geometry_module_def);
   return submodule;

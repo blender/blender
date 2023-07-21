@@ -198,10 +198,10 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
   }
 
   str_len = str_len * 2 + 64;
-  str = static_cast<char *>(PyMem_MALLOC(sizeof(*str) * (size_t)str_len));
-  BLI_strncpy(str, inpt, (size_t)str_len);
+  str = static_cast<char *>(PyMem_MALLOC(sizeof(*str) * size_t(str_len)));
+  BLI_strncpy(str, inpt, size_t(str_len));
 
-  BKE_unit_replace_string(str, (int)str_len, uref, scale, usys, ucat);
+  BKE_unit_replace_string(str, int(str_len), uref, scale, usys, ucat);
 
   if (!PyC_RunString_AsNumber(nullptr, str, "<bpy_units_api>", &result)) {
     if (PyErr_Occurred()) {
@@ -308,7 +308,7 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
     PyObject *result;
 
     BKE_unit_value_as_string_adaptive(
-        buf1, sizeof(buf1), value, precision, usys, ucat, (bool)split_unit, false);
+        buf1, sizeof(buf1), value, precision, usys, ucat, bool(split_unit), false);
 
     if (compatible_unit) {
       BKE_unit_name_to_alt(buf2, sizeof(buf2), buf1, usys, ucat);
@@ -350,7 +350,7 @@ static PyModuleDef bpyunits_module = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPY_utils_units(void)
+PyObject *BPY_utils_units()
 {
   PyObject *submodule, *item;
 

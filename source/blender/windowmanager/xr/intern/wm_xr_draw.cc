@@ -335,7 +335,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 2);
+    immBegin(GPU_PRIM_LINES, uint(BLI_listbase_count(&state->controllers)) * 2);
 
     LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
       const float(*mat)[4] = controller->aim_mat;
@@ -359,7 +359,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_NONE);
     GPU_blend(GPU_BLEND_NONE);
 
-    immBegin(GPU_PRIM_LINES, (uint)BLI_listbase_count(&state->controllers) * 6);
+    immBegin(GPU_PRIM_LINES, uint(BLI_listbase_count(&state->controllers)) * 6);
 
     LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
       const float(*mat)[4] = controller->aim_mat;

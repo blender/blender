@@ -33,7 +33,7 @@ static PyStructSequence_Desc app_opensubdiv_info_desc = {
     ARRAY_SIZE(app_opensubdiv_info_fields) - 1,
 };
 
-static PyObject *make_opensubdiv_info(void)
+static PyObject *make_opensubdiv_info()
 {
   PyObject *opensubdiv_info;
   int pos = 0;
@@ -73,7 +73,7 @@ static PyObject *make_opensubdiv_info(void)
   return opensubdiv_info;
 }
 
-PyObject *BPY_app_opensubdiv_struct(void)
+PyObject *BPY_app_opensubdiv_struct()
 {
   PyObject *ret;
 

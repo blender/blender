@@ -317,7 +317,7 @@ bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
  * in code that doesn't deal with Python data-types.
  * \{ */
 
-static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
+static void run_string_handle_error(BPy_RunErrInfo *err_info)
 {
   if (err_info == nullptr) {
     PyErr_Print();
@@ -363,7 +363,7 @@ static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
 bool BPY_run_string_as_number(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              struct BPy_RunErrInfo *err_info,
+                              BPy_RunErrInfo *err_info,
                               double *r_value)
 {
   PyGILState_STATE gilstate;
@@ -390,7 +390,7 @@ bool BPY_run_string_as_number(bContext *C,
 bool BPY_run_string_as_string_and_len(bContext *C,
                                       const char *imports[],
                                       const char *expr,
-                                      struct BPy_RunErrInfo *err_info,
+                                      BPy_RunErrInfo *err_info,
                                       char **r_value,
                                       size_t *r_value_len)
 {
@@ -415,11 +415,8 @@ bool BPY_run_string_as_string_and_len(bContext *C,
   return ok;
 }
 
-bool BPY_run_string_as_string(bContext *C,
-                              const char *imports[],
-                              const char *expr,
-                              struct BPy_RunErrInfo *err_info,
-                              char **r_value)
+bool BPY_run_string_as_string(
+    bContext *C, const char *imports[], const char *expr, BPy_RunErrInfo *err_info, char **r_value)
 {
   size_t value_dummy_len;
   return BPY_run_string_as_string_and_len(C, imports, expr, err_info, r_value, &value_dummy_len);
@@ -428,7 +425,7 @@ bool BPY_run_string_as_string(bContext *C,
 bool BPY_run_string_as_intptr(bContext *C,
                               const char *imports[],
                               const char *expr,
-                              struct BPy_RunErrInfo *err_info,
+                              BPy_RunErrInfo *err_info,
                               intptr_t *r_value)
 {
   PyGILState_STATE gilstate;

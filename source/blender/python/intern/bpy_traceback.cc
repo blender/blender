@@ -85,7 +85,7 @@ static int parse_syntax_error(PyObject *err,
   if (hold < 0 && PyErr_Occurred()) {
     goto finally;
   }
-  *lineno = (int)hold;
+  *lineno = int(hold);
 
   v = _PyObject_GetAttrId(err, &PyId_offset);
   if (!v) {
@@ -101,7 +101,7 @@ static int parse_syntax_error(PyObject *err,
     if (hold < 0 && PyErr_Occurred()) {
       goto finally;
     }
-    *offset = (int)hold;
+    *offset = int(hold);
   }
 
   if (Py_TYPE(err) == (PyTypeObject *)PyExc_SyntaxError) {

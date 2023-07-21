@@ -36,7 +36,7 @@
 
 struct ItemConvertArgData;
 
-typedef void (*ItemConvertFunc)(const struct ItemConvertArgData *arg, PyObject *, char *);
+typedef void (*ItemConvertFunc)(const ItemConvertArgData *arg, PyObject *, char *);
 typedef int (*ItemTypeCheckFunc)(PyObject *);
 typedef void (*RNA_SetArrayFunc)(PointerRNA *, PropertyRNA *, const char *);
 typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *);
@@ -57,7 +57,7 @@ struct ItemConvertArgData {
  */
 struct ItemConvert_FuncArg {
   ItemConvertFunc func;
-  struct ItemConvertArgData arg;
+  ItemConvertArgData arg;
 };
 
 /*
@@ -550,7 +550,7 @@ static int py_to_array(PyObject *seq,
     if (prop_is_param_dyn_alloc) {
       /* not freeing allocated mem, RNA_parameter_list_free() will do this */
       ParameterDynAlloc *param_alloc = (ParameterDynAlloc *)param_data;
-      param_alloc->array_tot = (int)totitem;
+      param_alloc->array_tot = int(totitem);
 
       /* freeing param list will free */
       param_alloc->array = MEM_callocN(item_size * totitem, "py_to_array dyn");
@@ -660,15 +660,15 @@ static int py_to_array_index(PyObject *py,
   return 0;
 }
 
-static void py_to_float(const struct ItemConvertArgData *arg, PyObject *py, char *data)
+static void py_to_float(const ItemConvertArgData *arg, PyObject *py, char *data)
 {
   const float *range = arg->float_data.range;
-  float value = (float)PyFloat_AsDouble(py);
+  float value = float(PyFloat_AsDouble(py));
   CLAMP(value, range[0], range[1]);
   *(float *)data = value;
 }
 
-static void py_to_int(const struct ItemConvertArgData *arg, PyObject *py, char *data)
+static void py_to_int(const ItemConvertArgData *arg, PyObject *py, char *data)
 {
   const int *range = arg->int_data.range;
   int value = PyC_Long_AsI32(py);
@@ -676,9 +676,9 @@ static void py_to_int(const struct ItemConvertArgData *arg, PyObject *py, char *
   *(int *)data = value;
 }
 
-static void py_to_bool(const struct ItemConvertArgData * /*arg*/, PyObject *py, char *data)
+static void py_to_bool(const ItemConvertArgData * /*arg*/, PyObject *py, char *data)
 {
-  *(bool *)data = (bool)PyObject_IsTrue(py);
+  *(bool *)data = bool(PyObject_IsTrue(py));
 }
 
 static int py_float_check(PyObject *py)

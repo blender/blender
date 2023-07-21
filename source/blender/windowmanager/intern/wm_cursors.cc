@@ -425,7 +425,7 @@ void WM_cursor_time(wmWindow *win, int nr)
   } \
   ((void)0)
 
-void wm_init_cursor_data(void)
+void wm_init_cursor_data()
 {
   /********************** NW_ARROW Cursor **************************/
   BEGIN_CURSOR_BLOCK;

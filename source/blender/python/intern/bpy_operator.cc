@@ -448,7 +448,7 @@ static PyModuleDef bpy_ops_module = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPY_operator_module(void)
+PyObject *BPY_operator_module()
 {
   PyObject *submodule;
 

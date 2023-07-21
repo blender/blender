@@ -65,7 +65,7 @@ void WM_gizmogrouptype_iter(GHashIterator *ghi)
   BLI_ghashIterator_init(ghi, global_gizmogrouptype_hash);
 }
 
-static wmGizmoGroupType *wm_gizmogrouptype_append__begin(void)
+static wmGizmoGroupType *wm_gizmogrouptype_append__begin()
 {
   wmGizmoGroupType *gzgt = static_cast<wmGizmoGroupType *>(
       MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype"));
@@ -170,14 +170,14 @@ static void wm_gizmogrouptype_ghash_free_cb(wmGizmoGroupType *gzgt)
   gizmogrouptype_free(gzgt);
 }
 
-void wm_gizmogrouptype_free(void)
+void wm_gizmogrouptype_free()
 {
   BLI_ghash_free(
       global_gizmogrouptype_hash, nullptr, (GHashValFreeFP)wm_gizmogrouptype_ghash_free_cb);
   global_gizmogrouptype_hash = nullptr;
 }
 
-void wm_gizmogrouptype_init(void)
+void wm_gizmogrouptype_init()
 {
   /* reserve size is set based on blender default setup */
   global_gizmogrouptype_hash = BLI_ghash_str_new_ex("wm_gizmogrouptype_init gh", 128);

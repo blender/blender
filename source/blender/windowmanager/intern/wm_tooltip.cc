@@ -25,7 +25,7 @@
 #include "PIL_time.h"
 
 static double g_tooltip_time_closed;
-double WM_tooltip_time_closed(void)
+double WM_tooltip_time_closed()
 {
   return g_tooltip_time_closed;
 }

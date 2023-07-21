@@ -77,7 +77,7 @@ Py_hash_t mathutils_array_hash(const float *array, size_t array_len)
   x = 0x345678UL;
   i = 0;
   while (--len >= 0) {
-    y = _Py_HashDouble(nullptr, (double)(array[i++]));
+    y = _Py_HashDouble(nullptr, double(array[i++]));
     if (y == -1) {
       return -1;
     }
@@ -395,7 +395,7 @@ int mathutils_array_parse_alloc_viseq(
     start = 0;
     for (i = 0; i < size; i++) {
       subseq = value_fast_items[i];
-      if ((subseq_len = (int)PySequence_Size(subseq)) == -1) {
+      if ((subseq_len = int(PySequence_Size(subseq))) == -1) {
         PyErr_Format(
             PyExc_ValueError, "%.200s: sequence expected to have subsequences", error_prefix);
         PyMem_Free(*start_table);
@@ -495,7 +495,7 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
  * [3] https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  * instead.
  */
-#define SIGNMASK(i) (-(int)(((uint)(i)) >> 31))
+#define SIGNMASK(i) (-int((uint(i)) >> 31))
 
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 {
@@ -792,7 +792,7 @@ static PyModuleDef M_Mathutils_module_def = {
 #  include "mathutils_noise.h"
 #endif
 
-PyMODINIT_FUNC PyInit_mathutils(void)
+PyMODINIT_FUNC PyInit_mathutils()
 {
   PyObject *mod;
   PyObject *submodule;

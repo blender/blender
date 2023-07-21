@@ -46,7 +46,7 @@ struct FlagIdentifierPair {
 
 static void event_ids_from_flag(char *str,
                                 const int str_maxncpy,
-                                const struct FlagIdentifierPair *flag_data,
+                                const FlagIdentifierPair *flag_data,
                                 const int flag_data_len,
                                 const uint flag)
 {
@@ -89,7 +89,7 @@ void WM_event_print(const wmEvent *event)
 
     char modifier_id[128];
     {
-      struct FlagIdentifierPair flag_data[] = {
+      FlagIdentifierPair flag_data[] = {
           {"SHIFT", KM_SHIFT},
           {"CTRL", KM_CTRL},
           {"ALT", KM_ALT},
@@ -101,7 +101,7 @@ void WM_event_print(const wmEvent *event)
 
     char flag_id[128];
     {
-      struct FlagIdentifierPair flag_data[] = {
+      FlagIdentifierPair flag_data[] = {
           {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
           {"IS_REPEAT", WM_EVENT_IS_REPEAT},
           {"IS_CONSECUTIVE", WM_EVENT_IS_CONSECUTIVE},
@@ -273,7 +273,7 @@ int WM_event_drag_direction(const wmEvent *event)
       event->xy[1] - event->prev_press_xy[1],
   };
 
-  int theta = round_fl_to_int(4.0f * atan2f((float)delta[1], (float)delta[0]) / (float)M_PI);
+  int theta = round_fl_to_int(4.0f * atan2f(float(delta[1]), float(delta[0])) / float(M_PI));
   int val = KM_DIRECTION_W;
 
   if (theta == 0) {

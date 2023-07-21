@@ -132,7 +132,7 @@ static PyStructSequence_Desc app_info_desc = {
     ARRAY_SIZE(app_info_fields) - 1,
 };
 
-static PyObject *make_app_info(void)
+static PyObject *make_app_info()
 {
   PyObject *app_info;
   int pos = 0;
@@ -339,7 +339,7 @@ PyDoc_STRVAR(bpy_app_preview_render_size_doc,
 static PyObject *bpy_app_preview_render_size_get(PyObject * /*self*/, void *closure)
 {
   return PyLong_FromLong(
-      (long)UI_icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure))));
+      long(UI_icon_preview_to_render_size(eIconSizes(POINTER_AS_INT(closure)))));
 }
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject * /*self*/, void * /*closure*/)
@@ -568,7 +568,7 @@ static PyMethodDef bpy_app_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-static void py_struct_seq_getset_init(void)
+static void py_struct_seq_getset_init()
 {
   /* tricky dynamic members, not to py-spec! */
   for (PyGetSetDef *getset = bpy_app_getsets; getset->name; getset++) {
@@ -578,7 +578,7 @@ static void py_struct_seq_getset_init(void)
   }
 }
 
-static void py_struct_seq_method_init(void)
+static void py_struct_seq_method_init()
 {
   for (PyMethodDef *method = bpy_app_methods; method->ml_name; method++) {
     BLI_assert_msg(method->ml_flags & METH_STATIC, "Only static methods make sense for 'bpy.app'");
@@ -590,7 +590,7 @@ static void py_struct_seq_method_init(void)
 
 /* end dynamic bpy.app */
 
-PyObject *BPY_app_struct(void)
+PyObject *BPY_app_struct()
 {
   PyObject *ret;
 

@@ -263,7 +263,7 @@ static PyMethodDef pyrna_space_methods[] = {
 /** \name Public API
  * \{ */
 
-void BPY_rna_types_extend_capi(void)
+void BPY_rna_types_extend_capi()
 {
   /* BlendData */
   ARRAY_SET_ITEMS(pyrna_blenddata_methods,

@@ -395,8 +395,7 @@ static bool bpy_lib_exit_lapp_context_items_cb(BlendfileLinkAppendContext *lapp_
                                                BlendfileLinkAppendContextItem *item,
                                                void *userdata)
 {
-  struct LibExitLappContextItemsIterData *data = static_cast<LibExitLappContextItemsIterData *>(
-      userdata);
+  LibExitLappContextItemsIterData *data = static_cast<LibExitLappContextItemsIterData *>(userdata);
 
   /* Since `bpy_lib_exit` loops over all ID types, all items in `lapp_context` end up being looped
    * over for each ID type, so when it does not match the item can simply be skipped: it either has
@@ -579,7 +578,7 @@ PyMethodDef BPY_library_load_method_def = {
     bpy_lib_load_doc,
 };
 
-int BPY_library_load_type_ready(void)
+int BPY_library_load_type_ready()
 {
   if (PyType_Ready(&bpy_lib_Type) < 0) {
     return -1;

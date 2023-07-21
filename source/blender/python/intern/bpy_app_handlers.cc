@@ -26,7 +26,7 @@
 
 #include "BPY_extern.h"
 
-void bpy_app_generic_callback(struct Main *main,
+void bpy_app_generic_callback(Main *main,
                               PointerRNA **pointers,
                               const int pointers_num,
                               void *arg);
@@ -213,7 +213,7 @@ static PyTypeObject BPyPersistent_Type = {
 
 static PyObject *py_cb_array[BKE_CB_EVT_TOT] = {nullptr};
 
-static PyObject *make_app_cb_info(void)
+static PyObject *make_app_cb_info()
 {
   PyObject *app_cb_info;
   int pos;
@@ -239,7 +239,7 @@ static PyObject *make_app_cb_info(void)
   return app_cb_info;
 }
 
-PyObject *BPY_app_handlers_struct(void)
+PyObject *BPY_app_handlers_struct()
 {
   PyObject *ret;
 
@@ -344,7 +344,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 }
 
 /* the actual callback - not necessarily called from py */
-void bpy_app_generic_callback(struct Main * /*main*/,
+void bpy_app_generic_callback(Main * /*main*/,
                               PointerRNA **pointers,
                               const int pointers_num,
                               void *arg)

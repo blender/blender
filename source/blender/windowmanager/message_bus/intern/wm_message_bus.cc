@@ -35,16 +35,16 @@ static wmMsgTypeInitFn wm_msg_init_fn[WM_MSG_TYPE_NUM] = {
     WM_msgtypeinfo_init_static,
 };
 
-void WM_msgbus_types_init(void)
+void WM_msgbus_types_init()
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wm_msg_init_fn[i](&wm_msg_types[i]);
   }
 }
 
-struct wmMsgBus *WM_msgbus_create(void)
+wmMsgBus *WM_msgbus_create()
 {
-  struct wmMsgBus *mbus = static_cast<wmMsgBus *>(MEM_callocN(sizeof(*mbus), __func__));
+  wmMsgBus *mbus = static_cast<wmMsgBus *>(MEM_callocN(sizeof(*mbus), __func__));
   const uint gset_reserve = 512;
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -54,7 +54,7 @@ struct wmMsgBus *WM_msgbus_create(void)
   return mbus;
 }
 
-void WM_msgbus_destroy(struct wmMsgBus *mbus)
+void WM_msgbus_destroy(wmMsgBus *mbus)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -63,7 +63,7 @@ void WM_msgbus_destroy(struct wmMsgBus *mbus)
   MEM_freeN(mbus);
 }
 
-void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
+void WM_msgbus_clear_by_owner(wmMsgBus *mbus, void *owner)
 {
   wmMsgSubscribeKey *msg_key, *msg_key_next;
   for (msg_key = static_cast<wmMsgSubscribeKey *>(mbus->messages.first); msg_key;
@@ -101,7 +101,7 @@ void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
   }
 }
 
-void WM_msg_dump(struct wmMsgBus *mbus, const char *info_str)
+void WM_msg_dump(wmMsgBus *mbus, const char *info_str)
 {
   printf(">>>> %s\n", info_str);
   LISTBASE_FOREACH (wmMsgSubscribeKey *, key, &mbus->messages) {
@@ -112,7 +112,7 @@ void WM_msg_dump(struct wmMsgBus *mbus, const char *info_str)
   printf("<<<< %s\n", info_str);
 }
 
-void WM_msgbus_handle(struct wmMsgBus *mbus, struct bContext *C)
+void WM_msgbus_handle(wmMsgBus *mbus, bContext *C)
 {
   if (mbus->messages_tag_count == 0) {
     // printf("msgbus: skipping\n");
@@ -140,7 +140,7 @@ void WM_msgbus_handle(struct wmMsgBus *mbus, struct bContext *C)
   // printf("msgbus: keys=%u values=%u\n", a, b);
 }
 
-wmMsgSubscribeKey *WM_msg_subscribe_with_key(struct wmMsgBus *mbus,
+wmMsgSubscribeKey *WM_msg_subscribe_with_key(wmMsgBus *mbus,
                                              const wmMsgSubscribeKey *msg_key_test,
                                              const wmMsgSubscribeValue *msg_val_params)
 {
@@ -175,7 +175,7 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(struct wmMsgBus *mbus,
   return key;
 }
 
-void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
+void WM_msg_publish_with_key(wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
 {
   CLOG_INFO(WM_LOG_MSGBUS_SUB,
             2,
@@ -196,7 +196,7 @@ void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
   }
 }
 
-void WM_msg_id_update(struct wmMsgBus *mbus, ID *id_src, ID *id_dst)
+void WM_msg_id_update(wmMsgBus *mbus, ID *id_src, ID *id_dst)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -206,7 +206,7 @@ void WM_msg_id_update(struct wmMsgBus *mbus, ID *id_src, ID *id_dst)
   }
 }
 
-void WM_msg_id_remove(struct wmMsgBus *mbus, const ID *id)
+void WM_msg_id_remove(wmMsgBus *mbus, const ID *id)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];

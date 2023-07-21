@@ -51,7 +51,7 @@ static PyStructSequence_Desc app_sdl_info_desc = {
     ARRAY_SIZE(app_sdl_info_fields) - 1,
 };
 
-static PyObject *make_sdl_info(void)
+static PyObject *make_sdl_info()
 {
   PyObject *sdl_info;
   int pos = 0;
@@ -113,7 +113,7 @@ static PyObject *make_sdl_info(void)
   return sdl_info;
 }
 
-PyObject *BPY_app_sdl_struct(void)
+PyObject *BPY_app_sdl_struct()
 {
   PyObject *ret;
 

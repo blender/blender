@@ -61,7 +61,7 @@ static int py_rna_gizmo_parse(PyObject *o, void *p)
 
 static int py_rna_gizmo_target_id_parse(PyObject *o, void *p)
 {
-  struct BPyGizmoWithTarget *gizmo_with_target = static_cast<BPyGizmoWithTarget *>(p);
+  BPyGizmoWithTarget *gizmo_with_target = static_cast<BPyGizmoWithTarget *>(p);
   /* Must be set by `py_rna_gizmo_parse`. */
   wmGizmo *gz = gizmo_with_target->gz;
   BLI_assert(gz != nullptr);
@@ -88,7 +88,7 @@ static int py_rna_gizmo_target_id_parse_and_ensure_is_valid(PyObject *o, void *p
   if (py_rna_gizmo_target_id_parse(o, p) == 0) {
     return 0;
   }
-  struct BPyGizmoWithTarget *gizmo_with_target = static_cast<BPyGizmoWithTarget *>(p);
+  BPyGizmoWithTarget *gizmo_with_target = static_cast<BPyGizmoWithTarget *>(p);
   wmGizmo *gz = gizmo_with_target->gz;
   wmGizmoProperty *gz_prop = gizmo_with_target->gz_prop;
   if (!WM_gizmo_target_property_is_valid(gz_prop)) {
@@ -105,7 +105,7 @@ static int py_rna_gizmo_target_id_parse_and_ensure_is_valid(PyObject *o, void *p
 
 static int py_rna_gizmo_target_type_id_parse(PyObject *o, void *p)
 {
-  struct BPyGizmoWithTargetType *gizmo_with_target = static_cast<BPyGizmoWithTargetType *>(p);
+  BPyGizmoWithTargetType *gizmo_with_target = static_cast<BPyGizmoWithTargetType *>(p);
   /* Must be set first. */
   wmGizmo *gz = gizmo_with_target->gz;
   BLI_assert(gz != nullptr);
@@ -152,7 +152,7 @@ static void py_rna_gizmo_handler_get_cb(const wmGizmo * /*gz*/,
 {
   const PyGILState_STATE gilstate = PyGILState_Ensure();
 
-  struct BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
+  BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
   PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_GET], nullptr);
   if (ret == nullptr) {
@@ -203,7 +203,7 @@ static void py_rna_gizmo_handler_set_cb(const wmGizmo * /*gz*/,
 {
   const PyGILState_STATE gilstate = PyGILState_Ensure();
 
-  struct BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
+  BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
 
   PyObject *args = PyTuple_New(1);
@@ -251,7 +251,7 @@ static void py_rna_gizmo_handler_range_get_cb(const wmGizmo * /*gz*/,
                                               wmGizmoProperty *gz_prop,
                                               void *value_p)
 {
-  struct BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
+  BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
 
   const PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -304,7 +304,7 @@ fail:
 
 static void py_rna_gizmo_handler_free_cb(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop)
 {
-  struct BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
+  BPyGizmoHandlerUserData *data = static_cast<BPyGizmoHandlerUserData *>(
       gz_prop->custom_func.user_data);
 
   const PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -335,7 +335,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
   const PyGILState_STATE gilstate = PyGILState_Ensure();
 
   struct {
-    struct BPyGizmoWithTargetType gz_with_target_type;
+    BPyGizmoWithTargetType gz_with_target_type;
     PyObject *py_fn_slots[BPY_GIZMO_FN_SLOT_LEN];
   } params = {
       {nullptr, nullptr},
@@ -443,7 +443,7 @@ PyDoc_STRVAR(bpy_gizmo_target_get_value_doc,
 static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
-    struct BPyGizmoWithTarget gz_with_target;
+    BPyGizmoWithTarget gz_with_target;
   } params = {
       {nullptr, nullptr},
   };
@@ -511,7 +511,7 @@ PyDoc_STRVAR(bpy_gizmo_target_set_value_doc,
 static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
-    struct BPyGizmoWithTarget gz_with_target;
+    BPyGizmoWithTarget gz_with_target;
     PyObject *value;
   } params = {
       {nullptr, nullptr},
@@ -596,7 +596,7 @@ PyDoc_STRVAR(bpy_gizmo_target_get_range_doc,
 static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
-    struct BPyGizmoWithTarget gz_with_target;
+    BPyGizmoWithTarget gz_with_target;
   } params = {
       {nullptr, nullptr},
   };

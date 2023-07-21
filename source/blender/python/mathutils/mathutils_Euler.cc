@@ -76,7 +76,7 @@ static PyObject *Euler_to_tuple_ex(EulerObject *self, int ndigits)
 
   if (ndigits >= 0) {
     for (i = 0; i < EULER_SIZE; i++) {
-      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->eul[i], ndigits)));
+      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round(double(self->eul[i]), ndigits)));
     }
   }
   else {
@@ -228,7 +228,7 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
     return nullptr;
   }
 
-  rotate_eulO(self->eul, self->order, (char)axis, angle);
+  rotate_eulO(self->eul, self->order, char(axis), angle);
 
   (void)BaseMath_WriteCallback(self);
 

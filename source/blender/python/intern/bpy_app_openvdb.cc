@@ -33,7 +33,7 @@ static PyStructSequence_Desc app_openvdb_info_desc = {
     ARRAY_SIZE(app_openvdb_info_fields) - 1,
 };
 
-static PyObject *make_openvdb_info(void)
+static PyObject *make_openvdb_info()
 {
   PyObject *openvdb_info;
   int pos = 0;
@@ -77,7 +77,7 @@ static PyObject *make_openvdb_info(void)
   return openvdb_info;
 }
 
-PyObject *BPY_app_openvdb_struct(void)
+PyObject *BPY_app_openvdb_struct()
 {
   PyObject *ret;
 

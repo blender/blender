@@ -36,7 +36,7 @@ PyObject *bpy_intern_str_self;
 PyObject *bpy_intern_str_depsgraph;
 PyObject *bpy_intern_str_unregister;
 
-void bpy_intern_string_init(void)
+void bpy_intern_string_init()
 {
   uint i = 0;
 
@@ -69,7 +69,7 @@ void bpy_intern_string_init(void)
   BLI_assert(i == ARRAY_SIZE(bpy_intern_str_arr));
 }
 
-void bpy_intern_string_exit(void)
+void bpy_intern_string_exit()
 {
   uint i = ARRAY_SIZE(bpy_intern_str_arr);
   while (i--) {

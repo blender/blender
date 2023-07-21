@@ -42,7 +42,7 @@ static PyObject *Color_to_tuple_ex(ColorObject *self, int ndigits)
 
   if (ndigits >= 0) {
     for (i = 0; i < COLOR_SIZE; i++) {
-      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->col[i], ndigits)));
+      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round(double(self->col[i]), ndigits)));
     }
   }
   else {

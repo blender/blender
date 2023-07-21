@@ -51,7 +51,7 @@ void wm_surfaces_do_depsgraph(bContext *C)
   wm_surfaces_iter(C, wm_surface_do_depsgraph_fn);
 }
 
-void wm_surface_clear_drawable(void)
+void wm_surface_clear_drawable()
 {
   if (g_drawable) {
     WM_system_gpu_context_release(g_drawable->system_gpu_context);
@@ -90,7 +90,7 @@ void wm_surface_make_drawable(wmSurface *surface)
   }
 }
 
-void wm_surface_reset_drawable(void)
+void wm_surface_reset_drawable()
 {
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
@@ -116,7 +116,7 @@ void wm_surface_remove(wmSurface *surface)
   MEM_freeN(surface);
 }
 
-void wm_surfaces_free(void)
+void wm_surfaces_free()
 {
   wm_surface_clear_drawable();
 

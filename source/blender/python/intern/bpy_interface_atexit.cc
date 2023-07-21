@@ -22,7 +22,7 @@
 static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject * /*kw*/)
 {
   /* close down enough of blender at least not to crash */
-  struct bContext *C = BPY_context_get();
+  bContext *C = BPY_context_get();
 
   WM_exit_ex(C, false, false);
 
@@ -59,7 +59,7 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
   }
 }
 
-void BPY_atexit_register(void)
+void BPY_atexit_register()
 {
   /* atexit module owns this new function reference */
   BLI_assert(func_bpy_atregister == nullptr);
@@ -68,7 +68,7 @@ void BPY_atexit_register(void)
   atexit_func_call("register", func_bpy_atregister);
 }
 
-void BPY_atexit_unregister(void)
+void BPY_atexit_unregister()
 {
   BLI_assert(func_bpy_atregister != nullptr);
 

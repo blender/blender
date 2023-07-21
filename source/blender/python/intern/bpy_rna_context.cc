@@ -45,7 +45,7 @@ struct BPyContextTempOverride {
   ContextStore ctx_init;
   ContextStore ctx_temp;
   /** Bypass Python overrides set when calling an operator from Python. */
-  struct bContext_PyState py_state;
+  bContext_PyState py_state;
   /**
    * This dictionary is used to store members that don't have special handling,
    * see: #bpy_context_temp_override_extract_known_args,
@@ -356,7 +356,7 @@ PyMethodDef BPY_rna_context_temp_override_method_def = {
     bpy_context_temp_override_doc,
 };
 
-void bpy_rna_context_types_init(void)
+void bpy_rna_context_types_init()
 {
   if (PyType_Ready(&BPyContextTempOverride_Type) < 0) {
     BLI_assert_unreachable();

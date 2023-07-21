@@ -1140,7 +1140,7 @@ const char *WM_key_event_string(const short type, const bool compact)
   }
 
   const EnumPropertyItem *it;
-  const int i = RNA_enum_from_value(rna_enum_event_type_items, (int)type);
+  const int i = RNA_enum_from_value(rna_enum_event_type_items, int(type));
 
   if (i == -1) {
     return "";
@@ -1321,7 +1321,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const char *opname,
                                                    IDProperty *properties,
                                                    const bool is_strict,
-                                                   const struct wmKeyMapItemFind_Params *params)
+                                                   const wmKeyMapItemFind_Params *params)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     /* skip disabled keymap items [#38447] */
@@ -1410,7 +1410,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   wmOperatorCallContext /*opcontext*/,
                                                   IDProperty *properties,
                                                   const bool is_strict,
-                                                  const struct wmKeyMapItemFind_Params *params,
+                                                  const wmKeyMapItemFind_Params *params,
                                                   wmKeyMap **r_keymap)
 {
   /* find keymap item in handlers */
@@ -1446,7 +1446,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
                                                wmOperatorCallContext opcontext,
                                                IDProperty *properties,
                                                const bool is_strict,
-                                               const struct wmKeyMapItemFind_Params *params,
+                                               const wmKeyMapItemFind_Params *params,
                                                wmKeyMap **r_keymap)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1559,7 +1559,7 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
                                          wmOperatorCallContext opcontext,
                                          IDProperty *properties,
                                          bool is_strict,
-                                         const struct wmKeyMapItemFind_Params *params,
+                                         const wmKeyMapItemFind_Params *params,
                                          wmKeyMap **r_keymap)
 {
   /* XXX Hack! Macro operators in menu entry have their whole props defined,
@@ -1806,7 +1806,7 @@ void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi)
   }
 }
 
-void WM_keyconfig_update_operatortype(void)
+void WM_keyconfig_update_operatortype()
 {
   wm_keymap_update_flag |= WM_KEYMAP_UPDATE_OPERATORTYPE;
 }

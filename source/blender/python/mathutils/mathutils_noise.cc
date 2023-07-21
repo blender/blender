@@ -81,12 +81,12 @@ static void init_genrand(ulong s)
     const float range = 32; /* range in both pos/neg direction */
     for (j = 0; j < ARRAY_SIZE(state_offset_vector); j++, state_offset++) {
       /* overflow is fine here */
-      state_offset_vector[j] = (float)(int)(*state_offset) * (1.0f / ((float)INT_MAX / range));
+      state_offset_vector[j] = float(int(*state_offset)) * (1.0f / (float(INT_MAX) / range));
     }
   }
 }
 
-static void next_state(void)
+static void next_state()
 {
   ulong *p = state;
   int j;
@@ -123,7 +123,7 @@ static void setRndSeed(int seed)
 }
 
 /* Float number in range [0, 1) using the mersenne twister random number generator. */
-static float frand(void)
+static float frand()
 {
   ulong y;
 
@@ -138,7 +138,7 @@ static float frand(void)
   y ^= (y << 15) & 0xefc60000UL;
   y ^= (y >> 18);
 
-  return (float)y / 4294967296.0f;
+  return float(y) / 4294967296.0f;
 }
 
 /*------------------------------------------------------------*/
@@ -218,7 +218,7 @@ static float turb(
   float amp, out, t;
   int i;
   amp = 1.0f;
-  out = (float)(2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f);
+  out = float(2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f);
   if (hard) {
     out = fabsf(out);
   }
@@ -227,7 +227,7 @@ static float turb(
     x *= freqscale;
     y *= freqscale;
     z *= freqscale;
-    t = (float)(amp * (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f));
+    t = float(amp * (2.0f * BLI_noise_generic_noise(1.0f, x, y, z, false, nb) - 1.0f));
     if (hard) {
       t = fabsf(t);
     }
@@ -1112,7 +1112,7 @@ static PyModuleDef M_Noise_module_def = {
 
 /*----------------------------MODULE INIT-------------------------*/
 
-PyMODINIT_FUNC PyInit_mathutils_noise(void)
+PyMODINIT_FUNC PyInit_mathutils_noise()
 {
   PyObject *submodule = PyModule_Create(&M_Noise_module_def);
 

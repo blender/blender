@@ -33,7 +33,7 @@ static PyStructSequence_Desc app_alembic_info_desc = {
     ARRAY_SIZE(app_alembic_info_fields) - 1,
 };
 
-static PyObject *make_alembic_info(void)
+static PyObject *make_alembic_info()
 {
   PyObject *alembic_info = PyStructSequence_New(&BlenderAppABCType);
 
@@ -75,7 +75,7 @@ static PyObject *make_alembic_info(void)
   return alembic_info;
 }
 
-PyObject *BPY_app_alembic_struct(void)
+PyObject *BPY_app_alembic_struct()
 {
   PyStructSequence_InitType(&BlenderAppABCType, &app_alembic_info_desc);
 

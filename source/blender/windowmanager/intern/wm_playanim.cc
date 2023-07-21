@@ -89,8 +89,8 @@ static AUD_Device *audio_device = nullptr;
 static CLG_LogRef LOG = {"wm.playanim"};
 
 struct PlayState;
-static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
-static bool playanim_window_font_scale_from_dpi(struct PlayState *ps);
+static void playanim_window_zoom(PlayState *ps, const float zoom_offset);
+static bool playanim_window_font_scale_from_dpi(PlayState *ps);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -113,7 +113,7 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
   bool success = false;
   uchar *mem = nullptr;
   const size_t size = BLI_file_descriptor_size(file);
-  if (UNLIKELY(size == (size_t)-1)) {
+  if (UNLIKELY(size == size_t(-1))) {
     CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
   }
   else if (r_mem && UNLIKELY(!(mem = static_cast<uchar *>(MEM_mallocN(size, __func__))))) {
@@ -272,7 +272,7 @@ static void playanim_window_get_size(GHOST_WindowHandle ghost_window, int *r_wid
   GHOST_DisposeRectangle(bounds);
 }
 
-static void playanim_gl_matrix(void)
+static void playanim_gl_matrix()
 {
   /* unified matrix, note it affects offset for drawing */
   /* NOTE: cannot use GPU_matrix_ortho_2d_set here because shader ignores. */
@@ -307,7 +307,7 @@ static void playanim_event_qual_update(GhostData *ghost_data)
 }
 
 struct PlayAnimPict {
-  struct PlayAnimPict *next, *prev;
+  PlayAnimPict *next, *prev;
   uchar *mem;
   int size;
   /** The allocated file-path to the image. */
@@ -385,7 +385,7 @@ static void frame_cache_touch(PlayAnimPict *pic)
   BLI_addhead(&g_frame_cache.pics, pic->frame_cache_node);
 }
 
-static bool frame_cache_limit_exceeded(void)
+static bool frame_cache_limit_exceeded()
 {
   return g_frame_cache.memory_limit ?
              (g_frame_cache.pics_size_in_memory > g_frame_cache.memory_limit) :
@@ -446,7 +446,7 @@ static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
   return playanim;
 }
 
-static int pupdate_time(void)
+static int pupdate_time()
 {
   static double ltime;
 
@@ -630,8 +630,8 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
    * if it does, this function displays a warning along with the file-path that failed. */
   if (ibuf) {
     /* Size within window. */
-    float span_x = (draw_zoom * ibuf->x) / (float)display_ctx->size[0];
-    float span_y = (draw_zoom * ibuf->y) / (float)display_ctx->size[1];
+    float span_x = (draw_zoom * ibuf->x) / float(display_ctx->size[0]);
+    float span_y = (draw_zoom * ibuf->y) / float(display_ctx->size[1]);
 
     /* offset within window */
     float offs_x = 0.5f * (1.0f - span_x);
@@ -730,8 +730,8 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
 {
   float indicator_factor = -1.0f;
   if (ps->indicator) {
-    indicator_factor = picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame -
-                                                 ((PlayAnimPict *)picsbase.first)->frame);
+    indicator_factor = picture->frame / double(((PlayAnimPict *)picsbase.last)->frame -
+                                               ((PlayAnimPict *)picsbase.first)->frame);
   }
 
   int fontid = -1;
@@ -759,7 +759,7 @@ static void build_pict_list_from_anim(GhostData *ghost_data,
                                       const char *filepath_first)
 {
   /* OCIO_TODO: support different input color space */
-  struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, nullptr);
+  anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, nullptr);
   if (anim == nullptr) {
     CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
     return;
@@ -901,7 +901,7 @@ static void build_pict_list(GhostData *ghost_data,
   *loading_p = false;
 }
 
-static void update_sound_fps(void)
+static void update_sound_fps()
 {
 #ifdef WITH_AUDASPACE
   if (playback_handle) {
@@ -1401,8 +1401,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       playanim_window_get_size(ghost_window, &ps->display_ctx.size[0], &ps->display_ctx.size[1]);
       GHOST_ActivateWindowDrawingContext(ghost_window);
 
-      zoomx = (float)ps->display_ctx.size[0] / ps->ibufx;
-      zoomy = (float)ps->display_ctx.size[1] / ps->ibufy;
+      zoomx = float(ps->display_ctx.size[0]) / ps->ibufx;
+      zoomy = float(ps->display_ctx.size[1]) / ps->ibufy;
 
       /* zoom always show entire image */
       ps->zoom = MIN2(zoomx, zoomy);
@@ -1502,7 +1502,7 @@ static bool playanim_window_font_scale_from_dpi(PlayState *ps)
 {
   const float scale = (GHOST_GetDPIHint(ps->ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
-  const int font_size = (int)(font_size_base * scale) + 0.5f;
+  const int font_size = int(font_size_base * scale) + 0.5f;
   if (ps->font_size != font_size) {
     BLF_size(ps->fontid, font_size);
     ps->font_size = font_size;
@@ -1612,7 +1612,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
         case 'c': {
 #ifdef USE_FRAME_CACHE_LIMIT
           const int memory_in_mb = max_ii(0, atoi(argv[2]));
-          g_frame_cache.memory_limit = (size_t)memory_in_mb * (1024 * 1024);
+          g_frame_cache.memory_limit = size_t(memory_in_mb) * (1024 * 1024);
 #endif
           argc--;
           argv++;
@@ -1640,7 +1640,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   if (IMB_isanim(filepath)) {
     /* OCIO_TODO: support different input color spaces */
-    struct anim *anim;
+    anim *anim;
     anim = IMB_open_anim(filepath, IB_rect, 0, nullptr);
     if (anim) {
       ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -1735,14 +1735,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
   {
-    struct anim *anim_movie = ((PlayAnimPict *)picsbase.first)->anim;
+    anim *anim_movie = ((PlayAnimPict *)picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
       float frs_sec_base = 1.0;
 
       IMB_anim_get_fps(anim_movie, &frs_sec, &frs_sec_base, true);
 
-      fps_movie = (double)frs_sec / (double)frs_sec_base;
+      fps_movie = double(frs_sec) / double(frs_sec_base);
       /* enforce same fps for movie as sound */
       swaptime = ps.fstep / fps_movie;
     }

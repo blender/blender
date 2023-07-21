@@ -70,7 +70,7 @@ static PyStructSequence_Desc app_builtopts_info_desc = {
     ARRAY_SIZE(app_builtopts_info_fields) - 1,
 };
 
-static PyObject *make_builtopts_info(void)
+static PyObject *make_builtopts_info()
 {
   PyObject *builtopts_info;
   int pos = 0;
@@ -337,7 +337,7 @@ static PyObject *make_builtopts_info(void)
   return builtopts_info;
 }
 
-PyObject *BPY_app_build_options_struct(void)
+PyObject *BPY_app_build_options_struct()
 {
   PyObject *ret;
 

@@ -120,12 +120,12 @@ static bool interactive_value_update(ValueInteraction *inter,
   const int mval_curr = event->mval[mval_axis];
   const int mval_init = inter->init.mval[mval_axis];
   float value_delta = (inter->init.prop_value +
-                       (((float)(mval_curr - mval_init) / inter->context_vars.region->winx) *
+                       ((float(mval_curr - mval_init) / inter->context_vars.region->winx) *
                         value_range)) *
                       value_scale;
   if (event->modifier & KM_CTRL) {
     const double snap = 0.1;
-    value_delta = (float)roundf((double)value_delta / snap) * snap;
+    value_delta = float(roundf(double(value_delta) / snap)) * snap;
   }
   if (event->modifier & KM_SHIFT) {
     value_delta *= 0.1f;
@@ -167,18 +167,18 @@ struct ObCustomData_ForEditMode {
   /** This could be split into a sub-type if we support different kinds of data. */
   Object **objects;
   uint objects_len;
-  struct XFormObjectData **objects_xform;
+  XFormObjectData **objects_xform;
 };
 
 /* Internal callback to free. */
 static void op_generic_value_exit(wmOperator *op)
 {
-  struct ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
+  ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
   if (cd) {
     interactive_value_exit(&cd->inter);
 
     for (uint ob_index = 0; ob_index < cd->objects_len; ob_index++) {
-      struct XFormObjectData *xod = cd->objects_xform[ob_index];
+      XFormObjectData *xod = cd->objects_xform[ob_index];
       if (xod != nullptr) {
         ED_object_data_xform_destroy(xod);
       }
@@ -193,7 +193,7 @@ static void op_generic_value_exit(wmOperator *op)
 
 static void op_generic_value_restore(wmOperator *op)
 {
-  struct ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
+  ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
   for (uint ob_index = 0; ob_index < cd->objects_len; ob_index++) {
     ED_object_data_xform_restore(cd->objects_xform[ob_index]);
     ED_object_data_xform_tag_update(cd->objects_xform[ob_index]);
@@ -221,7 +221,7 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
     return OPERATOR_CANCELLED;
   }
 
-  struct ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(
+  ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(
       MEM_callocN(sizeof(*cd), __func__));
   cd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   cd->wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
@@ -253,7 +253,7 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
 static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  struct ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
+  ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
 
   /* Special case, check if we release the event that activated this operator. */
   if ((event->type == cd->launch_event) && (event->val == KM_RELEASE)) {

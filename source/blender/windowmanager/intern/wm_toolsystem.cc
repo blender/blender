@@ -189,10 +189,10 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
             Scene *scene = WM_window_get_active_scene(win);
             BKE_paint_ensure_from_paintmode(scene, paint_mode);
             Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-            struct Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
+            Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
             if (brush == nullptr) {
               /* Could make into a function. */
-              brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
+              brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
               if (brush && slot_index == BKE_brush_tool_get(brush, paint)) {
                 /* pass */
               }
@@ -348,7 +348,7 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
   }
 
   {
-    struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+    wmMsgBus *mbus = CTX_wm_message_bus(C);
     WM_msg_publish_rna_prop(mbus, &workspace->id, workspace, WorkSpace, tools);
   }
 }
@@ -390,7 +390,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
       const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       if (paint && paint->brush && items) {
         const ID *brush = (ID *)paint->brush;
-        const char tool_type = BKE_brush_tool_get((struct Brush *)brush, paint);
+        const char tool_type = BKE_brush_tool_get((Brush *)brush, paint);
         const int i = RNA_enum_from_value(items, tool_type);
         /* Possible when loading files from the future. */
         if (i != -1) {

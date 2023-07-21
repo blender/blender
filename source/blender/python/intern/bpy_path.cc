@@ -34,7 +34,7 @@ static PyModuleDef _bpy_path_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit__bpy_path(void)
+PyObject *BPyInit__bpy_path()
 {
   PyObject *submodule;
 

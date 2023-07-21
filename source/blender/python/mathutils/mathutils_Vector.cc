@@ -81,9 +81,9 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
   for (col = 0; col < mat->col_num; col++) {
     double dot = 0.0;
     for (row = 0; row < mat->row_num; row++) {
-      dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[row]);
+      dot += double(MATRIX_ITEM(mat, row, col) * vec_cpy[row]);
     }
-    r_vec[z++] = (float)dot;
+    r_vec[z++] = float(dot);
   }
   return 0;
 }
@@ -111,7 +111,7 @@ static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits)
 
   if (ndigits >= 0) {
     for (i = 0; i < self->vec_num; i++) {
-      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round((double)self->vec[i], ndigits)));
+      PyTuple_SET_ITEM(ret, i, PyFloat_FromDouble(double_round(double(self->vec[i]), ndigits)));
     }
   }
   else {
@@ -288,7 +288,7 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
     return nullptr;
   }
 
-  range_vn_fl(vec, vec_num, (float)start, (float)step);
+  range_vn_fl(vec, vec_num, float(start), float(step));
 
   return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
@@ -320,7 +320,7 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
     return nullptr;
   }
 
-  step = (end - start) / (float)(vec_num - 1);
+  step = (end - start) / float(vec_num - 1);
 
   vec = static_cast<float *>(PyMem_Malloc(vec_num * sizeof(float)));
 
@@ -1110,9 +1110,9 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
   }
 
   for (x = 0; x < vec_num; x++) {
-    dot_self += (double)self->vec[x] * (double)self->vec[x];
-    dot_other += (double)tvec[x] * (double)tvec[x];
-    dot += (double)self->vec[x] * (double)tvec[x];
+    dot_self += double(self->vec[x]) * double(self->vec[x]);
+    dot_other += double(tvec[x]) * double(tvec[x]);
+    dot += double(self->vec[x]) * double(tvec[x]);
   }
 
   if (!dot_self || !dot_other) {
@@ -1273,13 +1273,13 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 
   /* get dot products */
   for (x = 0; x < vec_num; x++) {
-    dot += (double)(self->vec[x] * tvec[x]);
-    dot2 += (double)(tvec[x] * tvec[x]);
+    dot += double(self->vec[x] * tvec[x]);
+    dot2 += double(tvec[x] * tvec[x]);
   }
   /* projection */
   dot /= dot2;
   for (x = 0; x < vec_num; x++) {
-    tvec[x] *= (float)dot;
+    tvec[x] *= float(dot);
   }
   return Vector_CreatePyObject_alloc(tvec, vec_num, Py_TYPE(self));
 }
@@ -1395,7 +1395,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
   }
 
   /* We have sane state, execute slerp */
-  cosom = (float)dot_vn_vn(self_vec, other_vec, vec_num);
+  cosom = float(dot_vn_vn(self_vec, other_vec, vec_num));
 
   /* direct opposite, can't slerp */
   if (UNLIKELY(cosom < (-1.0f + FLT_EPSILON))) {
@@ -2081,9 +2081,9 @@ int column_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *vec,
   for (row = 0; row < mat->row_num; row++) {
     double dot = 0.0f;
     for (col = 0; col < mat->col_num; col++) {
-      dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
+      dot += double(MATRIX_ITEM(mat, row, col) * vec_cpy[col]);
     }
-    r_vec[z++] = (float)dot;
+    r_vec[z++] = float(dot);
   }
 
   return 0;
@@ -2694,7 +2694,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
   }
   else if ((void)PyErr_Clear(), /* run but ignore the result */
            (size_from = (size_t)mathutils_array_parse(
-                vec_assign, 2, 4, value, "Vector.**** = swizzle assignment")) == (size_t)-1)
+                vec_assign, 2, 4, value, "Vector.**** = swizzle assignment")) == size_t(-1))
   {
     return -1;
   }

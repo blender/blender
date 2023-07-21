@@ -34,7 +34,7 @@ static PyStructSequence_Desc app_usd_info_desc = {
     ARRAY_SIZE(app_usd_info_fields) - 1,
 };
 
-static PyObject *make_usd_info(void)
+static PyObject *make_usd_info()
 {
   PyObject *usd_info = PyStructSequence_New(&BlenderAppUSDType);
 
@@ -76,7 +76,7 @@ static PyObject *make_usd_info(void)
   return usd_info;
 }
 
-PyObject *BPY_app_usd_struct(void)
+PyObject *BPY_app_usd_struct()
 {
   PyStructSequence_InitType(&BlenderAppUSDType, &app_usd_info_desc);
 

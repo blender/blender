@@ -31,7 +31,7 @@ static PyStructSequence_Desc app_oiio_info_desc = {
     ARRAY_SIZE(app_oiio_info_fields) - 1,
 };
 
-static PyObject *make_oiio_info(void)
+static PyObject *make_oiio_info()
 {
   PyObject *oiio_info;
   int pos = 0;
@@ -62,7 +62,7 @@ static PyObject *make_oiio_info(void)
   return oiio_info;
 }
 
-PyObject *BPY_app_oiio_struct(void)
+PyObject *BPY_app_oiio_struct()
 {
   PyObject *ret;
 

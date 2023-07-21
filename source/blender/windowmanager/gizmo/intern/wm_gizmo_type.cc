@@ -72,7 +72,7 @@ void WM_gizmotype_iter(GHashIterator *ghi)
   BLI_ghashIterator_init(ghi, global_gizmotype_hash);
 }
 
-static wmGizmoType *wm_gizmotype_append__begin(void)
+static wmGizmoType *wm_gizmotype_append__begin()
 {
   wmGizmoType *gzt = static_cast<wmGizmoType *>(MEM_callocN(sizeof(wmGizmoType), "gizmotype"));
   gzt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
@@ -179,13 +179,13 @@ static void wm_gizmotype_ghash_free_cb(wmGizmoType *gzt)
   WM_gizmotype_free_ptr(gzt);
 }
 
-void wm_gizmotype_free(void)
+void wm_gizmotype_free()
 {
   BLI_ghash_free(global_gizmotype_hash, nullptr, (GHashValFreeFP)wm_gizmotype_ghash_free_cb);
   global_gizmotype_hash = nullptr;
 }
 
-void wm_gizmotype_init(void)
+void wm_gizmotype_init()
 {
   /* reserve size is set based on blender default setup */
   global_gizmotype_hash = BLI_ghash_str_new_ex("wm_gizmotype_init gh", 128);

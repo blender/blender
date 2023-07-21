@@ -279,8 +279,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
 
   if (srna == &RNA_WindowManager) {
     struct {
-      struct BPy_EnumProperty_Parse space_type_enum;
-      struct BPy_EnumProperty_Parse region_type_enum;
+      BPy_EnumProperty_Parse space_type_enum;
+      BPy_EnumProperty_Parse region_type_enum;
     } params{};
     params.space_type_enum.items = rna_enum_space_type_items;
     params.space_type_enum.value = SPACE_TYPE_ANY;
@@ -309,8 +309,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject * /*self*/, PyObject *args)
   }
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
     struct {
-      struct BPy_EnumProperty_Parse region_type_enum;
-      struct BPy_EnumProperty_Parse event_enum;
+      BPy_EnumProperty_Parse region_type_enum;
+      BPy_EnumProperty_Parse event_enum;
     } params{};
     params.region_type_enum.items = rna_enum_region_type_items;
     params.event_enum.items = region_draw_mode_items;
@@ -402,7 +402,7 @@ PyObject *pyrna_callback_classmethod_remove(PyObject * /*self*/, PyObject *args)
   else if (RNA_struct_is_a(srna, &RNA_Space)) {
     const char *error_prefix = "Space.draw_handler_remove";
     struct {
-      struct BPy_EnumProperty_Parse region_type_enum;
+      BPy_EnumProperty_Parse region_type_enum;
     } params{};
     params.region_type_enum.items = rna_enum_region_type_items;
 

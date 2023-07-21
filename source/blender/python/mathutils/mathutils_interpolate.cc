@@ -104,7 +104,7 @@ static PyModuleDef M_Interpolate_module_def = {
 
 /*----------------------------MODULE INIT-------------------------*/
 
-PyMODINIT_FUNC PyInit_mathutils_interpolate(void)
+PyMODINIT_FUNC PyInit_mathutils_interpolate()
 {
   PyObject *submodule = PyModule_Create(&M_Interpolate_module_def);
   return submodule;

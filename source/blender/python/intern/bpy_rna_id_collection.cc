@@ -59,7 +59,7 @@ struct IDUserMapData {
 
 static int id_code_as_index(const short idcode)
 {
-  return (int)*((ushort *)&idcode);
+  return int(*((ushort *)&idcode));
 }
 
 static bool id_check_type(const ID *id, const BLI_bitmap *types_bitmap)

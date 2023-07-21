@@ -213,14 +213,14 @@ static PyObject *bpy_flip_name(PyObject * /*self*/, PyObject *args, PyObject *kw
 // PyDoc_STRVAR(bpy_user_resource_doc[] = /* now in bpy/utils.py */
 static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
-  const struct PyC_StringEnumItems type_items[] = {
+  const PyC_StringEnumItems type_items[] = {
       {BLENDER_USER_DATAFILES, "DATAFILES"},
       {BLENDER_USER_CONFIG, "CONFIG"},
       {BLENDER_USER_SCRIPTS, "SCRIPTS"},
       {BLENDER_USER_AUTOSAVE, "AUTOSAVE"},
       {0, nullptr},
   };
-  struct PyC_StringEnum type = {type_items};
+  PyC_StringEnum type = {type_items};
 
   const char *subdir = nullptr;
 
@@ -257,13 +257,13 @@ PyDoc_STRVAR(bpy_system_resource_doc,
              "   :type path: string\n");
 static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
-  const struct PyC_StringEnumItems type_items[] = {
+  const PyC_StringEnumItems type_items[] = {
       {BLENDER_SYSTEM_DATAFILES, "DATAFILES"},
       {BLENDER_SYSTEM_SCRIPTS, "SCRIPTS"},
       {BLENDER_SYSTEM_PYTHON, "PYTHON"},
       {0, nullptr},
   };
-  struct PyC_StringEnum type = {type_items};
+  PyC_StringEnum type = {type_items};
 
   const char *subdir = nullptr;
 
@@ -303,13 +303,13 @@ PyDoc_STRVAR(
     "   :rtype: string\n");
 static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
-  const struct PyC_StringEnumItems type_items[] = {
+  const PyC_StringEnumItems type_items[] = {
       {BLENDER_RESOURCE_PATH_USER, "USER"},
       {BLENDER_RESOURCE_PATH_LOCAL, "LOCAL"},
       {BLENDER_RESOURCE_PATH_SYSTEM, "SYSTEM"},
       {0, nullptr},
   };
-  struct PyC_StringEnum type = {type_items};
+  PyC_StringEnum type = {type_items};
 
   int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
   const char *path;
@@ -611,7 +611,7 @@ static PyObject *bpy_import_test(const char *modname)
   return mod;
 }
 
-void BPy_init_modules(struct bContext *C)
+void BPy_init_modules(bContext *C)
 {
   PointerRNA ctx_ptr;
   PyObject *mod;

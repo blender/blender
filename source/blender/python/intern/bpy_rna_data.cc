@@ -177,7 +177,7 @@ PyMethodDef BPY_rna_data_context_method_def = {
     bpy_rna_data_context_load_doc,
 };
 
-int BPY_rna_data_context_type_ready(void)
+int BPY_rna_data_context_type_ready()
 {
   if (PyType_Ready(&bpy_rna_data_context_Type) < 0) {
     return -1;

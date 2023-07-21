@@ -124,7 +124,7 @@ size_t WM_operator_py_idname(char *dst, const char *src)
 {
   const char *sep = strstr(src, OP_BL_SEP_STRING);
   if (sep) {
-    const size_t sep_offset = (size_t)(sep - src);
+    const size_t sep_offset = size_t(sep - src);
 
     /* NOTE: we use ascii `tolower` instead of system `tolower`, because the
      * latter depends on the locale, and can lead to `idname` mismatch. */
@@ -143,11 +143,11 @@ size_t WM_operator_py_idname(char *dst, const char *src)
 
 size_t WM_operator_bl_idname(char *dst, const char *src)
 {
-  const size_t from_len = (size_t)strlen(src);
+  const size_t from_len = size_t(strlen(src));
 
   const char *sep = strchr(src, OP_PY_SEP_CHAR);
   if (sep && (from_len <= OP_MAX_PY_IDNAME)) {
-    const size_t sep_offset = (size_t)(sep - src);
+    const size_t sep_offset = size_t(sep - src);
     memcpy(dst, src, sep_offset);
     BLI_str_toupper_ascii(dst, sep_offset);
 
@@ -925,7 +925,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   PropertyRNA *wait_to_deselect_prop = RNA_struct_find_property(op->ptr,
                                                                 "wait_to_deselect_others");
-  const short init_event_type = (short)POINTER_AS_INT(op->customdata);
+  const short init_event_type = short(POINTER_AS_INT(op->customdata));
   int ret_value = 0;
 
   /* get settings from RNA properties for operator */
@@ -937,7 +937,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
       ret_value = op->type->exec(C, op);
       OPERATOR_RETVAL_CHECK(ret_value);
-      op->customdata = POINTER_FROM_INT((int)event->type);
+      op->customdata = POINTER_FROM_INT(int(event->type));
       if (ret_value & OPERATOR_RUNNING_MODAL) {
         WM_event_add_modal_handler(C, op);
       }
@@ -1080,7 +1080,7 @@ struct EnumSearchMenu {
 /** Generic enum search invoke popup. */
 static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
 {
-  struct EnumSearchMenu *search_menu = static_cast<EnumSearchMenu *>(arg);
+  EnumSearchMenu *search_menu = static_cast<EnumSearchMenu *>(arg);
   wmWindow *win = CTX_wm_window(C);
   wmOperator *op = search_menu->op;
   /* template_ID uses 4 * widget_unit for width,
@@ -1155,7 +1155,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
 
 int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, short prv_rows)
 {
-  static struct EnumSearchMenu search_menu;
+  static EnumSearchMenu search_menu;
 
   search_menu.op = op;
   search_menu.use_previews = true;
@@ -1169,7 +1169,7 @@ int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, 
 
 int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  static struct EnumSearchMenu search_menu;
+  static EnumSearchMenu search_menu;
   search_menu.op = op;
   UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, nullptr);
   return OPERATOR_INTERFACE;
@@ -1747,8 +1747,7 @@ struct SearchPopupInit_Data {
 
 static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdata)
 {
-  const struct SearchPopupInit_Data *init_data = static_cast<const SearchPopupInit_Data *>(
-      userdata);
+  const SearchPopupInit_Data *init_data = static_cast<const SearchPopupInit_Data *>(userdata);
   static char search[256] = "";
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
@@ -2232,7 +2231,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
         SNPRINTF(msg, "%s: %0.4f", ui_name, rc->current_value);
         break;
       case PROP_PIXEL:
-        SNPRINTF(msg, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
+        SNPRINTF(msg, "%s: %d", ui_name, int(rc->current_value)); /* XXX: round to nearest? */
         break;
       case PROP_PERCENTAGE:
         SNPRINTF(msg, "%s: %3.1f%%", ui_name, rc->current_value);
@@ -2413,7 +2412,7 @@ static void radial_control_paint_curve(uint pos, Brush *br, float radius, int li
 {
   GPU_line_width(2.0f);
   immUniformColor4f(0.8f, 0.8f, 0.8f, 0.85f);
-  float step = (radius * 2.0f) / (float)line_segments;
+  float step = (radius * 2.0f) / float(line_segments);
   BKE_curvemapping_init(br->curve);
   immBegin(GPU_PRIM_LINES, line_segments * 2);
   for (int i = 0; i < line_segments; i++) {
@@ -2491,7 +2490,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
     x = rc->initial_co[0];
     y = rc->initial_co[1];
   }
-  GPU_matrix_translate_2f((float)x, (float)y);
+  GPU_matrix_translate_2f(float(x), float(y));
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
@@ -2524,15 +2523,15 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
     /* draw original angle line */
     GPU_matrix_rotate_3f(RAD2DEGF(rc->initial_value), 0.0f, 0.0f, 1.0f);
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
-    immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
+    immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE), 0.0f);
+    immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_SIZE), 0.0f);
     immEnd();
 
     /* draw new angle line */
     GPU_matrix_rotate_3f(RAD2DEGF(rc->current_value - rc->initial_value), 0.0f, 0.0f, 1.0f);
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
-    immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
+    immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE), 0.0f);
+    immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_SIZE), 0.0f);
     immEnd();
 
     GPU_matrix_pop();
@@ -2931,9 +2930,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     applyNumInput(&rc->num_input, &numValue);
 
     if (rc->subtype == PROP_ANGLE) {
-      numValue = fmod(numValue, 2.0f * (float)M_PI);
+      numValue = fmod(numValue, 2.0f * float(M_PI));
       if (numValue < 0.0f) {
-        numValue += 2.0f * (float)M_PI;
+        numValue += 2.0f * float(M_PI);
       }
     }
 
@@ -2997,8 +2996,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           }
         }
         else {
-          delta[0] = (float)(rc->initial_mouse[0] - event->xy[0]);
-          delta[1] = (float)(rc->initial_mouse[1] - event->xy[1]);
+          delta[0] = float(rc->initial_mouse[0] - event->xy[0]);
+          delta[1] = float(rc->initial_mouse[1] - event->xy[1]);
           if (rc->zoom_prop) {
             RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
             delta[0] /= zoom[0];
@@ -3019,7 +3018,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
           case PROP_PIXEL:
             new_value = dist;
             if (snap) {
-              new_value = ((int)new_value + 5) / 10 * 10;
+              new_value = (int(new_value) + 5) / 10 * 10;
             }
             break;
           case PROP_PERCENTAGE:
@@ -3027,25 +3026,25 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
                          WM_RADIAL_CONTROL_DISPLAY_WIDTH) *
                         100.0f;
             if (snap) {
-              new_value = (int)(new_value + 2.5f) / 5 * 5;
+              new_value = int(new_value + 2.5f) / 5 * 5;
             }
             break;
           case PROP_FACTOR:
             new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
             if (snap) {
-              new_value = ((int)ceil(new_value * 10.0f) * 10.0f) / 100.0f;
+              new_value = (int(ceil(new_value * 10.0f)) * 10.0f) / 100.0f;
             }
             /* Invert new value to increase the factor moving the mouse to the right */
             new_value = 1 - new_value;
             break;
           case PROP_ANGLE:
-            new_value = atan2f(delta[1], delta[0]) + (float)M_PI + angle_precision;
-            new_value = fmod(new_value, 2.0f * (float)M_PI);
+            new_value = atan2f(delta[1], delta[0]) + float(M_PI) + angle_precision;
+            new_value = fmod(new_value, 2.0f * float(M_PI));
             if (new_value < 0.0f) {
-              new_value += 2.0f * (float)M_PI;
+              new_value += 2.0f * float(M_PI);
             }
             if (snap) {
-              new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10 * 10);
+              new_value = DEG2RADF((int(RAD2DEGF(new_value)) + 5) / 10 * 10);
             }
             break;
           default:
@@ -3092,9 +3091,9 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     applyNumInput(&rc->num_input, &numValue);
 
     if (rc->subtype == PROP_ANGLE) {
-      numValue = fmod(numValue, 2.0f * (float)M_PI);
+      numValue = fmod(numValue, 2.0f * float(M_PI));
       if (numValue < 0.0f) {
-        numValue += 2.0f * (float)M_PI;
+        numValue += 2.0f * float(M_PI);
       }
     }
 
@@ -3276,7 +3275,7 @@ static const EnumPropertyItem redraw_timer_type_items[] = {
 
 static void redraw_timer_step(bContext *C,
                               Scene *scene,
-                              struct Depsgraph *depsgraph,
+                              Depsgraph *depsgraph,
                               wmWindow *win,
                               ScrArea *area,
                               ARegion *region,
@@ -3366,14 +3365,14 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   const int type = RNA_enum_get(op->ptr, "type");
   const int iter = RNA_int_get(op->ptr, "iterations");
-  const double time_limit = (double)RNA_float_get(op->ptr, "time_limit");
+  const double time_limit = double(RNA_float_get(op->ptr, "time_limit"));
   const int cfra = scene->r.cfra;
   const char *infostr = "";
 
   /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation
    * here.
    */
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   WM_cursor_wait(true);
 
@@ -3800,7 +3799,7 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
 /** \name Operator Registration & Keymaps
  * \{ */
 
-void wm_operatortypes_register(void)
+void wm_operatortypes_register()
 {
   WM_operatortype_append(WM_OT_window_close);
   WM_operatortype_append(WM_OT_window_new);
@@ -4089,7 +4088,7 @@ static const EnumPropertyItem *rna_id_itemf(bool *r_free,
 
         /* Show collection color tag icons in menus. */
         if (id_type == ID_GR) {
-          item_tmp.icon = UI_icon_color_from_collection((struct Collection *)id);
+          item_tmp.icon = UI_icon_color_from_collection((Collection *)id);
         }
 
         RNA_enum_item_add(&item, &totitem, &item_tmp);

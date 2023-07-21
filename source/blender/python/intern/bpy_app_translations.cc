@@ -124,7 +124,7 @@ static void _ghashutil_keyfree(void *ptr)
  */
 static GHash *_translations_cache = nullptr;
 
-static void _clear_translations_cache(void)
+static void _clear_translations_cache()
 {
   if (_translations_cache) {
     BLI_ghash_free(_translations_cache, _ghashutil_keyfree, _ghashutil_valfree);
@@ -421,7 +421,7 @@ static PyStructSequence_Desc app_translations_contexts_desc = {
     ARRAY_SIZE(app_translations_contexts_fields) - 1,
 };
 
-static PyObject *app_translations_contexts_make(void)
+static PyObject *app_translations_contexts_make()
 {
   PyObject *translations_contexts;
   BLT_i18n_contexts_descriptor *ctxt;
@@ -837,7 +837,7 @@ static PyTypeObject BlenderAppTranslationsType = {
     /*tp_vectorcall*/ nullptr,
 };
 
-PyObject *BPY_app_translations_struct(void)
+PyObject *BPY_app_translations_struct()
 {
   PyObject *ret;
 
@@ -872,7 +872,7 @@ PyObject *BPY_app_translations_struct(void)
   return ret;
 }
 
-void BPY_app_translations_end(void)
+void BPY_app_translations_end()
 {
 /* In case the object remains in a module's name-space, see #44127. */
 #ifdef WITH_INTERNATIONAL

@@ -30,8 +30,8 @@
 
 BLI_INLINE uint void_hash_uint(const void *key)
 {
-  size_t y = (size_t)key >> sizeof(void *);
-  return (uint)y;
+  size_t y = size_t(key) >> sizeof(void *);
+  return uint(y);
 }
 
 static uint wm_msg_rna_gset_hash(const void *key_p)
@@ -86,7 +86,7 @@ static void wm_msg_rna_repr(FILE *stream, const wmMsgSubscribeKey *msg_key)
           BLI_listbase_count(&m->head.values));
 }
 
-static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_dst)
+static void wm_msg_rna_update_by_id(wmMsgBus *mbus, ID *id_src, ID *id_dst)
 {
   GSet *gs = mbus->messages_gset[WM_MSG_TYPE_RNA];
   GSetIterator gs_iter;
@@ -173,7 +173,7 @@ static void wm_msg_rna_update_by_id(struct wmMsgBus *mbus, ID *id_src, ID *id_ds
   }
 }
 
-static void wm_msg_rna_remove_by_id(struct wmMsgBus *mbus, const ID *id)
+static void wm_msg_rna_remove_by_id(wmMsgBus *mbus, const ID *id)
 {
   GSet *gs = mbus->messages_gset[WM_MSG_TYPE_RNA];
   GSetIterator gs_iter;
@@ -223,8 +223,7 @@ void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msgtype_info)
 /** \name RNA API
  * \{ */
 
-wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(struct wmMsgBus *mbus,
-                                         const wmMsgParams_RNA *msg_key_params)
+wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_params)
 {
   wmMsgSubscribeKey_RNA key_test;
   key_test.msg.params = *msg_key_params;
@@ -232,7 +231,7 @@ wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(struct wmMsgBus *mbus,
       BLI_gset_lookup(mbus->messages_gset[WM_MSG_TYPE_RNA], &key_test));
 }
 
-void WM_msg_publish_rna_params(struct wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_params)
+void WM_msg_publish_rna_params(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_params)
 {
   wmMsgSubscribeKey_RNA *key;
 
@@ -280,7 +279,7 @@ void WM_msg_publish_rna_params(struct wmMsgBus *mbus, const wmMsgParams_RNA *msg
   }
 }
 
-void WM_msg_publish_rna(struct wmMsgBus *mbus, PointerRNA *ptr, PropertyRNA *prop)
+void WM_msg_publish_rna(wmMsgBus *mbus, PointerRNA *ptr, PropertyRNA *prop)
 {
   wmMsgParams_RNA params{};
   params.ptr = *ptr;
@@ -288,7 +287,7 @@ void WM_msg_publish_rna(struct wmMsgBus *mbus, PointerRNA *ptr, PropertyRNA *pro
   WM_msg_publish_rna_params(mbus, &params);
 }
 
-void WM_msg_subscribe_rna_params(struct wmMsgBus *mbus,
+void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
                                  const wmMsgParams_RNA *msg_key_params,
                                  const wmMsgSubscribeValue *msg_val_params,
                                  const char *id_repr)
@@ -324,7 +323,7 @@ void WM_msg_subscribe_rna_params(struct wmMsgBus *mbus,
   }
 }
 
-void WM_msg_subscribe_rna(struct wmMsgBus *mbus,
+void WM_msg_subscribe_rna(wmMsgBus *mbus,
                           PointerRNA *ptr,
                           const PropertyRNA *prop,
                           const wmMsgSubscribeValue *msg_val_params,
@@ -344,7 +343,7 @@ void WM_msg_subscribe_rna(struct wmMsgBus *mbus,
  * \note While we could have a separate type for ID's, use RNA since there is enough overlap.
  * \{ */
 
-void WM_msg_subscribe_ID(struct wmMsgBus *mbus,
+void WM_msg_subscribe_ID(wmMsgBus *mbus,
                          ID *id,
                          const wmMsgSubscribeValue *msg_val_params,
                          const char *id_repr)
@@ -354,7 +353,7 @@ void WM_msg_subscribe_ID(struct wmMsgBus *mbus,
   WM_msg_subscribe_rna_params(mbus, &msg_key_params, msg_val_params, id_repr);
 }
 
-void WM_msg_publish_ID(struct wmMsgBus *mbus, ID *id)
+void WM_msg_publish_ID(wmMsgBus *mbus, ID *id)
 {
   wmMsgParams_RNA msg_key_params = {{nullptr}};
   RNA_id_pointer_create(id, &msg_key_params.ptr);

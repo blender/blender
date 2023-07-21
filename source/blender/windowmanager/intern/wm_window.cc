@@ -499,7 +499,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
      * and to give hint of unsaved changes for a user warning mechanism in case of OS application
      * terminate request (e.g. OS Shortcut Alt+F4, Command+Q, (...), or session end). */
     GHOST_SetWindowModifiedState(static_cast<GHOST_WindowHandle>(win->ghostwin),
-                                 (bool)!wm->file_saved);
+                                 bool(!wm->file_saved));
   }
 }
 
@@ -534,7 +534,7 @@ void WM_window_set_dpi(const wmWindow *win)
   U.dpi = auto_dpi * U.ui_scale * (72.0 / 96.0f);
 
   /* Automatically set larger pixel size for high DPI. */
-  int pixelsize = max_ii(1, (int)(U.dpi / 64));
+  int pixelsize = max_ii(1, int(U.dpi / 64));
   /* User adjustment for pixel size. */
   pixelsize = max_ii(1, pixelsize + U.ui_line_width);
 
@@ -546,7 +546,7 @@ void WM_window_set_dpi(const wmWindow *win)
 
   /* Widget unit is 20 pixels at 1X scale. This consists of 18 user-scaled units plus
    * left and right borders of line-width (pixel-size). */
-  U.widget_unit = (int)roundf(18.0f * U.scale_factor) + (2 * pixelsize);
+  U.widget_unit = int(roundf(18.0f * U.scale_factor)) + (2 * pixelsize);
 }
 
 /**
@@ -1214,7 +1214,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
   }
 }
 
-void wm_window_reset_drawable(void)
+void wm_window_reset_drawable()
 {
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
@@ -1726,7 +1726,7 @@ void wm_ghost_init(bContext *C)
   GHOST_UseWindowFocus(wm_init_state.window_focus);
 }
 
-void wm_ghost_init_background(void)
+void wm_ghost_init_background()
 {
   /* TODO: move this to `wm_init_exit.cc`. */
 
@@ -1745,7 +1745,7 @@ void wm_ghost_init_background(void)
   GHOST_SystemInitDebug(g_system, debug);
 }
 
-void wm_ghost_exit(void)
+void wm_ghost_exit()
 {
   if (g_system) {
     GHOST_DisposeSystem(g_system);
@@ -1753,7 +1753,7 @@ void wm_ghost_exit(void)
   g_system = nullptr;
 }
 
-const char *WM_ghost_backend(void)
+const char *WM_ghost_backend()
 {
 #if !(defined(WIN32) || defined(__APPLE__))
   return g_system_backend_id ? g_system_backend_id : "NONE";
@@ -1864,7 +1864,7 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   message_shown = true;
 }
 
-eWM_CapabilitiesFlag WM_capabilities_flag(void)
+eWM_CapabilitiesFlag WM_capabilities_flag()
 {
   static eWM_CapabilitiesFlag flag = eWM_CapabilitiesFlag(-1);
   if (flag != -1) {
@@ -2129,15 +2129,15 @@ void WM_clipboard_text_set(const char *buf, bool selection)
   }
 }
 
-bool WM_clipboard_image_available(void)
+bool WM_clipboard_image_available()
 {
   if (G.background) {
     return false;
   }
-  return (bool)GHOST_hasClipboardImage();
+  return bool(GHOST_hasClipboardImage());
 }
 
-ImBuf *WM_clipboard_image_get(void)
+ImBuf *WM_clipboard_image_get()
 {
   if (G.background) {
     return nullptr;
@@ -2169,7 +2169,7 @@ bool WM_clipboard_image_set(ImBuf *ibuf)
     free_byte_buffer = true;
   }
 
-  bool success = (bool)GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y);
+  bool success = bool(GHOST_putClipboardImage((uint *)ibuf->byte_buffer.data, ibuf->x, ibuf->y));
 
   if (free_byte_buffer) {
     /* Remove the byte buffer if we added it. */
@@ -2310,19 +2310,19 @@ void WM_init_state_size_set(int stax, int stay, int sizx, int sizy)
   wm_init_state.override_flag |= WIN_OVERRIDE_GEOM;
 }
 
-void WM_init_state_fullscreen_set(void)
+void WM_init_state_fullscreen_set()
 {
   wm_init_state.windowstate = GHOST_kWindowStateFullScreen;
   wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
-void WM_init_state_normal_set(void)
+void WM_init_state_normal_set()
 {
   wm_init_state.windowstate = GHOST_kWindowStateNormal;
   wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
-void WM_init_state_maximized_set(void)
+void WM_init_state_maximized_set()
 {
   wm_init_state.windowstate = GHOST_kWindowStateMaximized;
   wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
@@ -2344,7 +2344,7 @@ void WM_init_native_pixels(bool do_it)
 /** \name Cursor API
  * \{ */
 
-void WM_init_input_devices(void)
+void WM_init_input_devices()
 {
   if (UNLIKELY(!g_system)) {
     return;
@@ -2396,13 +2396,13 @@ int WM_window_pixels_x(const wmWindow *win)
 {
   float f = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
 
-  return (int)(f * (float)win->sizex);
+  return int(f * float(win->sizex));
 }
 int WM_window_pixels_y(const wmWindow *win)
 {
   float f = GHOST_GetNativePixelSize(static_cast<GHOST_WindowHandle>(win->ghostwin));
 
-  return (int)(f * (float)win->sizey);
+  return int(f * float(win->sizey));
 }
 
 void WM_window_rect_calc(const wmWindow *win, rcti *r_rect)
@@ -2672,7 +2672,7 @@ void wm_window_IME_end(wmWindow *win)
 /** \name Direct GPU Context Management
  * \{ */
 
-void *WM_system_gpu_context_create(void)
+void *WM_system_gpu_context_create()
 {
   /* On Windows there is a problem creating contexts that share resources (almost any object,
    * including legacy display lists, but also textures) with a context which is current in another

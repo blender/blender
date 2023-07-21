@@ -65,13 +65,13 @@ void WM_menutype_freelink(MenuType *mt)
   UNUSED_VARS_NDEBUG(ok);
 }
 
-void WM_menutype_init(void)
+void WM_menutype_init()
 {
   /* reserve size is set based on blender default setup */
   menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
 }
 
-void WM_menutype_free(void)
+void WM_menutype_free()
 {
   GHashIterator gh_iter;
 

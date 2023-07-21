@@ -509,6 +509,6 @@ bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, const int event_modif
   return false;
 }
 
-void WM_keymap_fix_linking(void) {}
+void WM_keymap_fix_linking() {}
 
 /** \} */

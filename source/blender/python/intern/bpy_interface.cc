@@ -217,7 +217,7 @@ void BPY_text_free_code(Text *text)
   }
 }
 
-void BPY_modules_update(void)
+void BPY_modules_update()
 {
 #if 0 /* slow, this runs all the time poll, draw etc 100's of time a sec. */
   PyObject *mod = PyImport_ImportModuleLevel("bpy", nullptr, nullptr, nullptr, 0);
@@ -229,7 +229,7 @@ void BPY_modules_update(void)
   BPY_update_rna_module();
 }
 
-bContext *BPY_context_get(void)
+bContext *BPY_context_get()
 {
   return static_cast<bContext *>(bpy_context_module->ptr.data);
 }
@@ -251,13 +251,13 @@ extern "C" PyObject *AUD_initPython(void);
 
 #ifdef WITH_CYCLES
 /* defined in cycles module */
-static PyObject *CCL_initPython(void)
+static PyObject *CCL_initPython()
 {
   return (PyObject *)CCL_python_module_init();
 }
 #endif
 
-static struct _inittab bpy_internal_modules[] = {
+static _inittab bpy_internal_modules[] = {
     {"mathutils", PyInit_mathutils},
 #if 0
     {"mathutils.geometry", PyInit_mathutils_geometry},
@@ -520,7 +520,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 #endif
 }
 
-void BPY_python_end(void)
+void BPY_python_end()
 {
   // fprintf(stderr, "Ending Python!\n");
   PyGILState_STATE gilstate;
@@ -592,7 +592,7 @@ void BPY_python_reset(bContext *C)
   BPY_modules_load_user(C);
 }
 
-void BPY_python_use_system_env(void)
+void BPY_python_use_system_env()
 {
   BLI_assert(!Py_IsInitialized());
   py_use_system_env = true;
@@ -958,10 +958,10 @@ bool BPY_string_is_keyword(const char *str)
 /* EVIL: define `text.c` functions here (declared in `BKE_text.h`). */
 int text_check_identifier_unicode(const uint ch)
 {
-  return (ch < 255 && text_check_identifier((char)ch)) || Py_UNICODE_ISALNUM(ch);
+  return (ch < 255 && text_check_identifier(char(ch))) || Py_UNICODE_ISALNUM(ch);
 }
 
 int text_check_identifier_nodigit_unicode(const uint ch)
 {
-  return (ch < 255 && text_check_identifier_nodigit((char)ch)) || Py_UNICODE_ISALPHA(ch);
+  return (ch < 255 && text_check_identifier_nodigit(char(ch))) || Py_UNICODE_ISALPHA(ch);
 }

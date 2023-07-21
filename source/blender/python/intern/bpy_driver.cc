@@ -50,7 +50,7 @@ PyObject *bpy_pydriver_Dict = nullptr;
 static PyObject *bpy_pydriver_Dict__whitelist = nullptr;
 #endif
 
-int bpy_pydriver_create_dict(void)
+int bpy_pydriver_create_dict()
 {
   PyObject *d, *mod;
 
@@ -192,7 +192,7 @@ static void bpy_pydriver_namespace_update_self(PathResolvedRNA *anim_rna)
   }
 }
 
-static void bpy_pydriver_namespace_clear_self(void)
+static void bpy_pydriver_namespace_clear_self()
 {
   if (g_pydriver_state_prev.self) {
     PyDict_DelItem(bpy_pydriver_Dict, bpy_intern_str_self);
@@ -201,7 +201,7 @@ static void bpy_pydriver_namespace_clear_self(void)
   }
 }
 
-static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
+static PyObject *bpy_pydriver_depsgraph_as_pyobject(Depsgraph *depsgraph)
 {
   PointerRNA depsgraph_ptr;
   RNA_pointer_create(nullptr, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
@@ -212,7 +212,7 @@ static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
  * Adds a variable `depsgraph` to the name-space. This can then be used to obtain evaluated
  * data-blocks, and the current view layer and scene. See #75553.
  */
-static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
+static void bpy_pydriver_namespace_update_depsgraph(Depsgraph *depsgraph)
 {
   /* This should never happen, but it's probably better to have None in Python
    * than a nullptr-wrapping Depsgraph Python struct. */
@@ -234,7 +234,7 @@ static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
   }
 }
 
-void BPY_driver_exit(void)
+void BPY_driver_exit()
 {
   if (bpy_pydriver_Dict) { /* Free the global dict used by python-drivers. */
     PyDict_Clear(bpy_pydriver_Dict);
@@ -257,7 +257,7 @@ void BPY_driver_exit(void)
   g_pydriver_state_prev.depsgraph = nullptr;
 }
 
-void BPY_driver_reset(void)
+void BPY_driver_reset()
 {
   PyGILState_STATE gilstate;
   const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
@@ -702,10 +702,10 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
       else {
         /* No need to worry about overflow here, values from RNA are within limits. */
         if (PyFloat_CheckExact(driver_arg)) {
-          dvar->curval = (float)PyFloat_AsDouble(driver_arg);
+          dvar->curval = float(PyFloat_AsDouble(driver_arg));
         }
         else if (PyLong_CheckExact(driver_arg)) {
-          dvar->curval = (float)PyLong_AsLong(driver_arg);
+          dvar->curval = float(PyLong_AsLong(driver_arg));
         }
         else if (PyBool_Check(driver_arg)) {
           dvar->curval = (driver_arg == Py_True);
@@ -720,7 +720,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
     {
       /* Try to get variable value. */
       const float tval = driver_get_variable_value(anim_eval_context, driver, dvar);
-      driver_arg = PyFloat_FromDouble((double)tval);
+      driver_arg = PyFloat_FromDouble(double(tval));
     }
 
     /* Try to add to dictionary. */
@@ -808,5 +808,5 @@ retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
     return 0.0f;
   }
 
-  return (float)result;
+  return float(result);
 }

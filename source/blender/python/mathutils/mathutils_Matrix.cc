@@ -1592,7 +1592,7 @@ static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, b
   }
 }
 
-static void matrix_invert_raise_degenerate(void)
+static void matrix_invert_raise_degenerate()
 {
   PyErr_SetString(PyExc_ValueError,
                   "Matrix.invert(ed): "
@@ -1804,7 +1804,7 @@ static PyObject *Matrix_adjugate(MatrixObject *self)
   }
   else {
     PyErr_Format(
-        PyExc_ValueError, "Matrix adjugate(d): size (%d) unsupported", (int)self->col_num);
+        PyExc_ValueError, "Matrix adjugate(d): size (%d) unsupported", int(self->col_num));
     return nullptr;
   }
 
@@ -1992,7 +1992,7 @@ static PyObject *Matrix_determinant(MatrixObject *self)
     return nullptr;
   }
 
-  return PyFloat_FromDouble((double)matrix_determinant_internal(self));
+  return PyFloat_FromDouble(double(matrix_determinant_internal(self)));
 }
 
 /** \} */
@@ -2869,9 +2869,9 @@ static PyObject *Matrix_matmul(PyObject *m1, PyObject *m2)
       for (row = 0; row < mat1->row_num; row++) {
         double dot = 0.0f;
         for (item = 0; item < mat1->col_num; item++) {
-          dot += (double)(MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col));
+          dot += double(MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col));
         }
-        mat[(col * mat1->row_num) + row] = (float)dot;
+        mat[(col * mat1->row_num) + row] = float(dot);
       }
     }
 
@@ -2942,11 +2942,11 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
       for (row = 0; row < mat1->row_num; row++) {
         double dot = 0.0f;
         for (item = 0; item < mat1->col_num; item++) {
-          dot += (double)(MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col));
+          dot += double(MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col));
         }
         /* store in new matrix as overwriting original at this point will cause
          * subsequent iterations to use incorrect values */
-        mat[(col * mat1->row_num) + row] = (float)dot;
+        mat[(col * mat1->row_num) + row] = float(dot);
       }
     }
 
