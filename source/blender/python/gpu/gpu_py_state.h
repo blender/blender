@@ -8,4 +8,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *bpygpu_state_init(void);
+
+#ifdef __cplusplus
+}
+#endif

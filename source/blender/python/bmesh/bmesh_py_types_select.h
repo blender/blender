@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BPy_BMesh;
 
 extern PyTypeObject BPy_BMEditSelSeq_Type;
@@ -35,3 +39,7 @@ PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm);
  * \note doesn't actually check selection.
  */
 int BPy_BMEditSel_Assign(struct BPy_BMesh *self, PyObject *value);
+
+#ifdef __cplusplus
+}
+#endif
