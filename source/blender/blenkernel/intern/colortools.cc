@@ -987,11 +987,11 @@ float BKE_curvemapping_evaluateF(const CurveMapping *cumap, int cur, float value
 
   /* account for clipping */
   if (cumap->flag & CUMA_DO_CLIP) {
-    if (val < cumap->curr.ymin) {
-      val = cumap->curr.ymin;
+    if (val < cumap->clipr.ymin) {
+      val = cumap->clipr.ymin;
     }
-    else if (val > cumap->curr.ymax) {
-      val = cumap->curr.ymax;
+    else if (val > cumap->clipr.ymax) {
+      val = cumap->clipr.ymax;
     }
   }
 
