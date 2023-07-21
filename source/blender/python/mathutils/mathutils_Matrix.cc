@@ -2432,7 +2432,7 @@ static PyObject *Matrix_item_col(MatrixObject *self, Py_ssize_t col)
 }
 
 /** Sequence accessor (set): `object[i] = x`. */
-static int Matrix_ass_item_row(MatrixObject *self, int row, PyObject *value)
+static int Matrix_ass_item_row(MatrixObject *self, Py_ssize_t row, PyObject *value)
 {
   int col;
   float vec[MATRIX_MAX_DIM];
