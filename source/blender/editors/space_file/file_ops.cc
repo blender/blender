@@ -49,11 +49,11 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name File Selection Utilities

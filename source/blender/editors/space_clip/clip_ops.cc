@@ -6,7 +6,7 @@
  * \ingroup spclip
  */
 
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <sys/types.h>
 

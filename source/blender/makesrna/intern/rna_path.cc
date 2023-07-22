@@ -7,8 +7,7 @@
  */
 
 #include <cstdlib>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
 
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"

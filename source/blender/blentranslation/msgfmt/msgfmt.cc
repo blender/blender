@@ -17,8 +17,8 @@
  * Usage: msgfmt input.po output.po
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_dynstr.h"
 #include "BLI_fileops.h"

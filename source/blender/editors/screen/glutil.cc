@@ -6,8 +6,8 @@
  * \ingroup edscr
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"

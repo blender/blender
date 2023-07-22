@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_function_ref.hh"
 #include "BLI_math.h"

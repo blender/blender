@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"

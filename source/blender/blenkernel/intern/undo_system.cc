@@ -8,8 +8,8 @@
  * Used by ED_undo.h, internal implementation.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "CLG_log.h"
 

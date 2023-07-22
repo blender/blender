@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 

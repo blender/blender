@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"

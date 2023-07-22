@@ -6,9 +6,9 @@
  * \ingroup spclip
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
 #include <fcntl.h>
-#include <stddef.h>
 #include <sys/types.h>
 
 #ifndef WIN32

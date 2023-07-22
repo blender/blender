@@ -6,8 +6,8 @@
  * \ingroup edscr
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"

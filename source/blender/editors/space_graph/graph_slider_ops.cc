@@ -12,8 +12,8 @@
  * to modify the operator.
  */
 
-#include <float.h>
-#include <string.h>
+#include <cfloat>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

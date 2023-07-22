@@ -8,7 +8,7 @@
  * User defined asset library API.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_asset_types.h"
 

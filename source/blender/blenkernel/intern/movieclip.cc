@@ -6,9 +6,9 @@
  * \ingroup bke
  */
 
+#include <cstdio>
+#include <cstring>
 #include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -16,7 +16,7 @@
 #  include <io.h>
 #endif
 
-#include <time.h>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 

@@ -8,7 +8,7 @@
  * This file contains implementation of 2D image stabilization.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"

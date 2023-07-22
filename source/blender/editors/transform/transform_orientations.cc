@@ -6,9 +6,9 @@
  * \ingroup edtransform
  */
 
-#include <ctype.h>
-#include <stddef.h>
-#include <string.h>
+#include <cctype>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

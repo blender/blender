@@ -8,10 +8,10 @@
  * Graph editor space & buttons.
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

@@ -6,8 +6,8 @@
  * \ingroup spgraph
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"

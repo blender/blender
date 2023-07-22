@@ -6,10 +6,10 @@
  * \ingroup spview3d
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"

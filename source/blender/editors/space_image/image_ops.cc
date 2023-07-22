@@ -6,11 +6,11 @@
  * \ingroup spimage
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else

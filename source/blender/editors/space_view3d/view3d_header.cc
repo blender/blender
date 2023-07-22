@@ -6,9 +6,9 @@
  * \ingroup spview3d
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"

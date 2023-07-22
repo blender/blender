@@ -7,7 +7,7 @@
  */
 
 #include "atomic_ops.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

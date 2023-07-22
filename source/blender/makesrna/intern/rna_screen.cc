@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stddef.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cstdlib>
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

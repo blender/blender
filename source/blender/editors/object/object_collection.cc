@@ -6,7 +6,7 @@
  * \ingroup edobj
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

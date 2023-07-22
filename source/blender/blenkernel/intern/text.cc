@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <stdlib.h> /* abort */
-#include <string.h> /* strstr */
+#include <cstdlib> /* abort */
+#include <cstring> /* strstr */
+#include <cwctype>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <wctype.h>
 
 #include "MEM_guardedalloc.h"
 

@@ -8,7 +8,7 @@
 
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
-#include <math.h>
+#include <cmath>
 
 static bNodeSocketTemplate inputs[] = {
     {SOCK_VECTOR, N_("Coordinate 1"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE},

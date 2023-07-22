@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math.h"
 #include "BLI_string_utf8_symbols.h"

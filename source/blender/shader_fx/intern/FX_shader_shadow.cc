@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"

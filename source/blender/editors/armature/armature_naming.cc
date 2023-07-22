@@ -9,7 +9,7 @@
  * This file contains functions/API's for renaming bones and/or working with them.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

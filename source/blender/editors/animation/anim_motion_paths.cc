@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"

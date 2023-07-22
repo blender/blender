@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"

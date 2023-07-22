@@ -6,7 +6,7 @@
  * \ingroup edscr
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

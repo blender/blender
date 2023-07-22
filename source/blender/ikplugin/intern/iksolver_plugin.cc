@@ -24,7 +24,7 @@
 #include "IK_solver.h"
 #include "iksolver_plugin.h"
 
-#include <string.h> /* memcpy */
+#include <cstring> /* memcpy */
 
 #define USE_NONUNIFORM_SCALE
 

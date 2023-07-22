@@ -7,8 +7,8 @@
  * Making screenshots of the entire window or sub-regions.
  */
 
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

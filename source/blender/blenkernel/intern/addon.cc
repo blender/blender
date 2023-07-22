@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cstdlib>
 
 #include "RNA_types.h"
 

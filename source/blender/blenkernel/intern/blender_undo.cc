@@ -15,12 +15,12 @@
 #  include <io.h> /* for open close read */
 #endif
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h> /* for open */
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "MEM_guardedalloc.h"
 

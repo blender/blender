@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_ID.h"
 #include "DNA_modifier_types.h"

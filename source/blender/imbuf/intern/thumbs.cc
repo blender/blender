@@ -6,8 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,11 +31,11 @@
 #include "IMB_metadata.h"
 #include "IMB_thumbs.h"
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */

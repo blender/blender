@@ -6,8 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"

@@ -9,7 +9,7 @@
  * by multiple tracking files but which should not be public.
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 

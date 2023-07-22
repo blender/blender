@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"

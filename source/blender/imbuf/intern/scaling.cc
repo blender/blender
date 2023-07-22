@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "BLI_math_color.h"
 #include "BLI_math_interp.h"

@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <stdarg.h>
-#include <stddef.h>
+#include <cstdarg>
+#include <cstddef>
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

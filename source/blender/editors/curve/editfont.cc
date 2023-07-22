@@ -6,11 +6,11 @@
  * \ingroup edcurve
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <cwchar>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
 
 #include "MEM_guardedalloc.h"
 

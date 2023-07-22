@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

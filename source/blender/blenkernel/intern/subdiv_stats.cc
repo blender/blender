@@ -8,7 +8,7 @@
 
 #include "BKE_subdiv.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "PIL_time.h"
 

@@ -30,7 +30,7 @@
  * Operators must have the OPTYPE_UNDO flag set for this to work properly.
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 

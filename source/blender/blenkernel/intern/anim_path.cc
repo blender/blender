@@ -8,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <float.h>
+#include <cfloat>
 
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"

@@ -8,10 +8,10 @@
  * Insert duplicate and bake keyframes.
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>

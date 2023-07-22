@@ -6,13 +6,13 @@
  * \ingroup edobj
  */
 
-#include <ctype.h>
-#include <float.h>
-#include <math.h>
-#include <stddef.h> /* For `offsetof`. */
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cctype>
+#include <cfloat>
+#include <cmath>
+#include <cstddef> /* For `offsetof`. */
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 

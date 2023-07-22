@@ -9,8 +9,8 @@
  * (which are optional and can be disabled as a preference).
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLT_translation.h"
 

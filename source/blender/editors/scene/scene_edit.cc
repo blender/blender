@@ -6,8 +6,8 @@
  * \ingroup edscene
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"

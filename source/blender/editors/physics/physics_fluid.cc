@@ -6,9 +6,9 @@
  * \ingroup edphys
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"

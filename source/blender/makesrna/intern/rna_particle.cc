@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_boid_types.h"
 #include "DNA_cloth_types.h"

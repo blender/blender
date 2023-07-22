@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cstdlib>
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"

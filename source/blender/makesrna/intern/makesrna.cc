@@ -6,14 +6,14 @@
  * \ingroup RNA
  */
 
-#include <errno.h>
-#include <float.h>
-#include <inttypes.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cerrno>
+#include <cfloat>
+#include <cinttypes>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

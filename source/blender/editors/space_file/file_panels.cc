@@ -37,7 +37,7 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-#include <string.h>
+#include <cstring>
 
 static bool file_panel_operator_poll(const bContext *C, PanelType * /*pt*/)
 {

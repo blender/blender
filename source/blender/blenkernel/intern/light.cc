@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

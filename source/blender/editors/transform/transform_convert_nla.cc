@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"

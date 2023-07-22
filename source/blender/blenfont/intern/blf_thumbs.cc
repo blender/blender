@@ -10,7 +10,7 @@
  * Isolate since this needs to be called by #ImBuf code (bad level call).
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <ft2build.h>
 

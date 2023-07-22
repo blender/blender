@@ -6,8 +6,8 @@
  * \ingroup edanimation
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "BLI_sys_types.h"
 

@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"

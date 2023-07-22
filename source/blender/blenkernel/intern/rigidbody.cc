@@ -7,12 +7,12 @@
  * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "CLG_log.h"
 

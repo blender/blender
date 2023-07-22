@@ -6,13 +6,13 @@
  * \ingroup RNA
  */
 
-#include <ctype.h>
-#include <float.h>
-#include <limits.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cfloat>
+#include <climits>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"

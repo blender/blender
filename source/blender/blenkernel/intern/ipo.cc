@@ -14,10 +14,10 @@
  * -- Joshua Leung, Jan 2009
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 /* since we have versioning code here */
 #define DNA_DEPRECATED_ALLOW

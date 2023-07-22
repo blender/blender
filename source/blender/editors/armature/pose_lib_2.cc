@@ -6,8 +6,8 @@
  * \ingroup edarmature
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

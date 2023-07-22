@@ -8,8 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"

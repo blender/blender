@@ -7,8 +7,8 @@
  */
 
 /* This little block needed for linking to Blender... */
-#include <setjmp.h>
-#include <stdio.h>
+#include <csetjmp>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 

@@ -8,10 +8,10 @@
  * Deform coordinates by a curve object (used by modifier).
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

@@ -8,7 +8,7 @@
 
 #include "BKE_subdiv_deform.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

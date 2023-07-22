@@ -8,7 +8,7 @@
  * API for loading default font files.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLF_api.h"
 

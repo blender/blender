@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wctype.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cwctype>
 
 #include "CLG_log.h"
 

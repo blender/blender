@@ -6,7 +6,7 @@
  * \ingroup edanimation
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 

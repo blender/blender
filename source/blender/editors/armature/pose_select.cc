@@ -6,7 +6,7 @@
  * \ingroup edarmature
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"

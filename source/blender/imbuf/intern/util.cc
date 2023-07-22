@@ -10,7 +10,7 @@
 #  include <io.h>
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

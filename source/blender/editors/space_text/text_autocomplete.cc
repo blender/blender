@@ -6,8 +6,8 @@
  * \ingroup sptext
  */
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

@@ -8,8 +8,8 @@
  * Functions for evaluating the mask beziers into points for the outline and feather.
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

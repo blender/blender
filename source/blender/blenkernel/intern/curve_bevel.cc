@@ -9,7 +9,7 @@
  * both extruding
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_alloca.h"
 #include "BLI_listbase.h"

@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_brush_types.h"
 #include "DNA_light_types.h"

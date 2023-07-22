@@ -6,10 +6,10 @@
  * \ingroup spgraph
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

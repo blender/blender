@@ -6,7 +6,7 @@
  * \ingroup edutil
  */
 
-#include <float.h>
+#include <cfloat>
 
 #include "BLI_kdtree.h"
 #include "BLI_math.h"

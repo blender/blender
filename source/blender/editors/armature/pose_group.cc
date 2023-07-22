@@ -7,7 +7,7 @@
  * Implementation of Bone Groups operators and editing API's.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

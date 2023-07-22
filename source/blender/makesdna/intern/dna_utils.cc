@@ -8,7 +8,7 @@
  * Utilities for stand-alone `makesdna.cc` and Blender to share.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

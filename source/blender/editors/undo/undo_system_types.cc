@@ -6,7 +6,7 @@
  * \ingroup edundo
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 

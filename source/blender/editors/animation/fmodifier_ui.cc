@@ -13,7 +13,7 @@
  * F-Modifiers, as used by F-Curves in the Graph Editor and NLA-Strips in the NLA Editor.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"

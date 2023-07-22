@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BKE_gpencil_update_cache_legacy.h"
 

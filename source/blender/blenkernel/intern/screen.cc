@@ -13,9 +13,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

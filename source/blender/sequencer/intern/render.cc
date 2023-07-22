@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include <time.h>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 

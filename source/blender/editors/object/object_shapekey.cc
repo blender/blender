@@ -6,8 +6,8 @@
  * \ingroup edobj
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #ifndef WIN32
 #  include <unistd.h>
