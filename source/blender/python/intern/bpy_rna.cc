@@ -3425,7 +3425,7 @@ static PySequenceMethods pyrna_prop_array_as_sequence = {
     /*sq_repeat*/ nullptr,
     /* Only set this so `PySequence_Check()` returns True. */
     /*sq_item*/ (ssizeargfunc)pyrna_prop_array_subscript_int,
-    /*sq_slice*/ nullptr,
+    /*was_sq_slice*/ nullptr, /* DEPRECATED. */
     /*sq_ass_item*/ (ssizeobjargproc)prop_subscript_ass_array_int,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ (objobjproc)pyrna_prop_array_contains,
@@ -3455,7 +3455,7 @@ static PySequenceMethods pyrna_struct_as_sequence = {
     /* Only set this so `PySequence_Check()` returns True. */
     /*sq_item*/ nullptr,
     /*was_sq_slice*/ nullptr, /* DEPRECATED. */
-    /*sq_ass_item */ nullptr,
+    /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ (objobjproc)pyrna_struct_contains,
     /*sq_inplace_concat*/ nullptr,

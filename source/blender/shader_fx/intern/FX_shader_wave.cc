@@ -65,8 +65,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Wave = {
     /*name*/ N_("WaveDistortion"),
-    /*structName*/ "WaveShaderFxData",
-    /*structSize*/ sizeof(WaveShaderFxData),
+    /*struct_name*/ "WaveShaderFxData",
+    /*struct_size*/ sizeof(WaveShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

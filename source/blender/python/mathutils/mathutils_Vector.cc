@@ -2407,8 +2407,8 @@ static PySequenceMethods Vector_SeqMethods = {
     /*sq_ass_item*/ (ssizeobjargproc)Vector_ass_item,
     /*was_sq_ass_slice*/ nullptr, /* DEPRECATED. */
     /*sq_contains*/ nullptr,
-    /*sq_inplace_concat */ nullptr,
-    /*sq_inplace_repeat */ nullptr,
+    /*sq_inplace_concat*/ nullptr,
+    /*sq_inplace_repeat*/ nullptr,
 };
 
 static PyMappingMethods Vector_AsMapping = {
@@ -2425,9 +2425,9 @@ static PyNumberMethods Vector_NumMethods = {
     /*nb_divmod*/ nullptr,
     /*nb_power*/ nullptr,
     /*nb_negative*/ (unaryfunc)Vector_neg,
-    /*tp_positive*/ (unaryfunc)Vector_copy,
-    /*tp_absolute*/ nullptr,
-    /*tp_bool*/ nullptr,
+    /*nb_positive*/ (unaryfunc)Vector_copy,
+    /*nb_absolute*/ nullptr,
+    /*nb_bool*/ nullptr,
     /*nb_invert*/ nullptr,
     /*nb_lshift*/ nullptr,
     /*nb_rshift*/ nullptr,

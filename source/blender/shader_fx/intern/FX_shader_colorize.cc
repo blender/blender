@@ -73,8 +73,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*name*/ N_("Colorize"),
-    /*structName*/ "ColorizeShaderFxData",
-    /*structSize*/ sizeof(ColorizeShaderFxData),
+    /*struct_name*/ "ColorizeShaderFxData",
+    /*struct_size*/ sizeof(ColorizeShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

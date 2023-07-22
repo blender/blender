@@ -66,8 +66,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Blur = {
     /*name*/ N_("Blur"),
-    /*structName*/ "BlurShaderFxData",
-    /*structSize*/ sizeof(BlurShaderFxData),
+    /*struct_name*/ "BlurShaderFxData",
+    /*struct_size*/ sizeof(BlurShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

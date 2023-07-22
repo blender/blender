@@ -306,8 +306,8 @@ static PySequenceMethods bpy_bmeditselseq_as_sequence = {
     /*sq_repeat*/ nullptr,
     /* Only set this so `PySequence_Check()` returns True. */
     /*sq_item*/ (ssizeargfunc)bpy_bmeditselseq_subscript_int,
-    /*sq_slice */ nullptr,
-    /*sq_ass_item */ nullptr,
+    /*was_sq_slice*/ nullptr,
+    /*sq_ass_item*/ nullptr,
     /*was_sq_ass_slice*/ nullptr,
     /*sq_contains*/ (objobjproc)bpy_bmeditselseq_contains,
     /*sq_inplace_concat*/ nullptr,
