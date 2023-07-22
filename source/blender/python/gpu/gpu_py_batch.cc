@@ -50,7 +50,7 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
 {
   const char *exc_str_missing_arg = "GPUBatch.__new__() missing required argument '%s' (pos %d)";
 
-  struct PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
+  PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
   BPyGPUVertBuf *py_vertbuf = nullptr;
   BPyGPUIndexBuf *py_indexbuf = nullptr;
 

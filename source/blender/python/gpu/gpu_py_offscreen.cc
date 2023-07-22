@@ -48,7 +48,7 @@
 /** \name GPUOffScreen Common Utilities
  * \{ */
 
-static const struct PyC_StringEnumItems pygpu_framebuffer_color_texture_formats[] = {
+static const PyC_StringEnumItems pygpu_framebuffer_color_texture_formats[] = {
     {GPU_RGBA8, "RGBA8"},
     {GPU_RGBA16, "RGBA16"},
     {GPU_RGBA16F, "RGBA16F"},
@@ -265,7 +265,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
 {
   GPUOffScreen *ofs = nullptr;
   int width, height;
-  struct PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};
+  PyC_StringEnum pygpu_textureformat = {pygpu_framebuffer_color_texture_formats, GPU_RGBA8};
   char err_out[256];
 
   static const char *_keywords[] = {"width", "height", "format", nullptr};
@@ -368,7 +368,7 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
   MatrixObject *py_mat_view, *py_mat_projection;
   PyObject *py_scene, *py_view_layer, *py_region, *py_view3d;
 
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
   Scene *scene;
   ViewLayer *view_layer;
   View3D *v3d;

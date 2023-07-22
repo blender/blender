@@ -176,7 +176,7 @@ static PyModuleDef BPy_BM_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_bmesh(void)
+PyObject *BPyInit_bmesh()
 {
   PyObject *mod;
   PyObject *submodule;

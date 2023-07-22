@@ -105,7 +105,7 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_face_doc,
 
 static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void *flag)
 {
-  const int type = (int)POINTER_AS_INT(flag);
+  const int type = int(POINTER_AS_INT(flag));
 
   BPY_BM_CHECK_OBJ(self);
 
@@ -978,7 +978,7 @@ PyObject *BPy_BMLayerItem_CreatePyObject(BMesh *bm, const char htype, int type, 
   return (PyObject *)self;
 }
 
-void BPy_BM_init_types_customdata(void)
+void BPy_BM_init_types_customdata()
 {
   BPy_BMLayerAccessVert_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);
   BPy_BMLayerAccessEdge_Type.tp_basicsize = sizeof(BPy_BMLayerAccess);

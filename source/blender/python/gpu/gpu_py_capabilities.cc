@@ -323,7 +323,7 @@ static PyModuleDef pygpu_capabilities_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_capabilities_init(void)
+PyObject *bpygpu_capabilities_init()
 {
   PyObject *submodule;
 

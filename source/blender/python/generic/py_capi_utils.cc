@@ -502,7 +502,7 @@ int PyC_ParseBool(PyObject *o, void *p)
 
 int PyC_ParseStringEnum(PyObject *o, void *p)
 {
-  struct PyC_StringEnum *e = static_cast<PyC_StringEnum *>(p);
+  PyC_StringEnum *e = static_cast<PyC_StringEnum *>(p);
   const char *value = PyUnicode_AsUTF8(o);
   if (value == nullptr) {
     PyErr_Format(PyExc_ValueError, "expected a string, got %s", Py_TYPE(o)->tp_name);
@@ -528,8 +528,7 @@ int PyC_ParseStringEnum(PyObject *o, void *p)
   return 0;
 }
 
-const char *PyC_StringEnum_FindIDFromValue(const struct PyC_StringEnumItems *items,
-                                           const int value)
+const char *PyC_StringEnum_FindIDFromValue(const PyC_StringEnumItems *items, const int value)
 {
   for (int i = 0; items[i].id; i++) {
     if (items[i].value == value) {
@@ -567,7 +566,7 @@ void PyC_ObSpit(const char *name, PyObject *var)
     const PyTypeObject *type = Py_TYPE(var);
     fprintf(stderr,
             " ref:%d, ptr:%p, type: %s\n",
-            (int)var->ob_refcnt,
+            int(var->ob_refcnt),
             (void *)var,
             type ? type->tp_name : null_str);
   }
@@ -591,7 +590,7 @@ void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var)
     BLI_snprintf(result,
                  result_maxncpy,
                  " ref=%d, ptr=%p, type=%s, value=%.200s",
-                 (int)var->ob_refcnt,
+                 int(var->ob_refcnt),
                  (void *)var,
                  type ? type->tp_name : null_str,
                  var_str ? PyUnicode_AsUTF8(var_str) : "<error>");
@@ -601,7 +600,7 @@ void PyC_ObSpitStr(char *result, size_t result_maxncpy, PyObject *var)
   }
 }
 
-void PyC_LineSpit(void)
+void PyC_LineSpit()
 {
 
   const char *filename;
@@ -619,7 +618,7 @@ void PyC_LineSpit(void)
   fprintf(stderr, "%s:%d\n", filename, lineno);
 }
 
-void PyC_StackSpit(void)
+void PyC_StackSpit()
 {
   /* NOTE: allow calling from outside python (RNA). */
   if (!PyC_IsInterpreterActive()) {
@@ -862,7 +861,7 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
 /* this version uses traceback module but somehow fails on UI errors */
 
 
-PyObject *PyC_ExceptionBuffer(void)
+PyObject *PyC_ExceptionBuffer()
 {
 PyObject *traceback_mod = nullptr;
 PyObject *format_tb_func = nullptr;
@@ -895,7 +894,7 @@ Py_XDECREF(format_tb_func);
 return ret;
 }
 #  else /* verbose, non-threadsafe version */
-PyObject *PyC_ExceptionBuffer(void)
+PyObject *PyC_ExceptionBuffer()
 {
   PyObject *stdout_backup = PySys_GetObject("stdout"); /* borrowed */
   PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
@@ -973,7 +972,7 @@ error_cleanup:
 }
 #  endif
 
-PyObject *PyC_ExceptionBuffer_Simple(void)
+PyObject *PyC_ExceptionBuffer_Simple()
 {
   if (!PyErr_Occurred()) {
     return nullptr;
@@ -1151,7 +1150,7 @@ void PyC_MainModule_Restore(PyObject *main_mod)
   Py_XDECREF(main_mod);
 }
 
-bool PyC_IsInterpreterActive(void)
+bool PyC_IsInterpreterActive()
 {
   /* instead of PyThreadState_Get, which calls Py_FatalError */
   return (PyThreadState_GetDict() != nullptr);
@@ -1551,7 +1550,7 @@ bool PyC_RunString_AsIntPtr(const char *imports[],
   else {
     intptr_t val;
 
-    val = (intptr_t)PyLong_AsVoidPtr(retval);
+    val = intptr_t(PyLong_AsVoidPtr(retval));
     if (val == 0 && PyErr_Occurred()) {
       ok = false;
     }
@@ -1642,7 +1641,7 @@ int PyC_Long_AsBool(PyObject *value)
   if (UNLIKELY(test == -1 && PyErr_Occurred())) {
     return -1;
   }
-  if (UNLIKELY((uint)test > 1)) {
+  if (UNLIKELY(uint(test) > 1)) {
     PyErr_SetString(PyExc_TypeError, "Python number not a bool (0/1)");
     return -1;
   }
@@ -1659,7 +1658,7 @@ int8_t PyC_Long_AsI8(PyObject *value)
     PyErr_SetString(PyExc_OverflowError, "Python int too large to convert to C int8");
     return -1;
   }
-  return (int8_t)test;
+  return int8_t(test);
 }
 
 int16_t PyC_Long_AsI16(PyObject *value)
@@ -1672,7 +1671,7 @@ int16_t PyC_Long_AsI16(PyObject *value)
     PyErr_SetString(PyExc_OverflowError, "Python int too large to convert to C int16");
     return -1;
   }
-  return (int16_t)test;
+  return int16_t(test);
 }
 
 /* Inlined in header:
@@ -1683,40 +1682,40 @@ int16_t PyC_Long_AsI16(PyObject *value)
 uint8_t PyC_Long_AsU8(PyObject *value)
 {
   const ulong test = PyLong_AsUnsignedLong(value);
-  if (UNLIKELY(test == (ulong)-1 && PyErr_Occurred())) {
-    return (uint8_t)-1;
+  if (UNLIKELY(test == ulong(-1) && PyErr_Occurred())) {
+    return uint8_t(-1);
   }
   if (UNLIKELY(test > UINT8_MAX)) {
     PyErr_SetString(PyExc_OverflowError, "Python int too large to convert to C uint8");
-    return (uint8_t)-1;
+    return uint8_t(-1);
   }
-  return (uint8_t)test;
+  return uint8_t(test);
 }
 
 uint16_t PyC_Long_AsU16(PyObject *value)
 {
   const ulong test = PyLong_AsUnsignedLong(value);
-  if (UNLIKELY(test == (ulong)-1 && PyErr_Occurred())) {
-    return (uint16_t)-1;
+  if (UNLIKELY(test == ulong(-1) && PyErr_Occurred())) {
+    return uint16_t(-1);
   }
   if (UNLIKELY(test > UINT16_MAX)) {
     PyErr_SetString(PyExc_OverflowError, "Python int too large to convert to C uint16");
-    return (uint16_t)-1;
+    return uint16_t(-1);
   }
-  return (uint16_t)test;
+  return uint16_t(test);
 }
 
 uint32_t PyC_Long_AsU32(PyObject *value)
 {
   const ulong test = PyLong_AsUnsignedLong(value);
-  if (UNLIKELY(test == (ulong)-1 && PyErr_Occurred())) {
-    return (uint32_t)-1;
+  if (UNLIKELY(test == ulong(-1) && PyErr_Occurred())) {
+    return uint32_t(-1);
   }
   if (UNLIKELY(test > UINT32_MAX)) {
     PyErr_SetString(PyExc_OverflowError, "Python int too large to convert to C uint32");
-    return (uint32_t)-1;
+    return uint32_t(-1);
   }
-  return (uint32_t)test;
+  return uint32_t(test);
 }
 
 /* Inlined in header:

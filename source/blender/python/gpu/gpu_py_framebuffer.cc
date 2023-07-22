@@ -457,7 +457,7 @@ static PyObject *pygpu_framebuffer_clear(BPyGPUFrameBuffer *self, PyObject *args
   }
 
   if (py_stencil && py_stencil != Py_None) {
-    if ((stencil = PyC_Long_AsU32(py_stencil)) == (uint)-1) {
+    if ((stencil = PyC_Long_AsU32(py_stencil)) == uint(-1)) {
       return nullptr;
     }
     buffers |= GPU_STENCIL_BIT;
@@ -536,7 +536,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
   PYGPU_FRAMEBUFFER_CHECK_OBJ(self);
   int x, y, w, h, channels;
   uint slot;
-  struct PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_RGBA8};
+  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_RGBA8};
   BPyGPUBuffer *py_buffer = nullptr;
 
   static const char *_keywords[] = {
@@ -613,7 +613,7 @@ static PyObject *pygpu_framebuffer_read_color(BPyGPUFrameBuffer *self,
                              w,
                              h,
                              channels,
-                             (int)slot,
+                             int(slot),
                              eGPUDataFormat(pygpu_dataformat.value_found),
                              py_buffer->buf.as_void);
 

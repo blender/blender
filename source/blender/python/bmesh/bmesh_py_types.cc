@@ -96,7 +96,7 @@ PyDoc_STRVAR(bpy_bm_elem_seam_doc, "Seam for UV unwrapping.\n\n:type: boolean");
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {
-  const char hflag = (char)POINTER_AS_INT(flag);
+  const char hflag = char(POINTER_AS_INT(flag));
 
   BPY_BM_CHECK_OBJ(self);
 
@@ -105,7 +105,7 @@ static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 
 static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 {
-  const char hflag = (char)POINTER_AS_INT(flag);
+  const char hflag = char(POINTER_AS_INT(flag));
   int param;
 
   BPY_BM_CHECK_INT(self);
@@ -467,7 +467,7 @@ static int bpy_bmface_material_index_set(BPy_BMFace *self, PyObject *value, void
     return -1;
   }
 
-  self->f->mat_nr = (short)param;
+  self->f->mat_nr = short(param);
   return 0;
 }
 
@@ -1044,7 +1044,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
   bm = self->bm;
 
-  struct Main *bmain = nullptr;
+  Main *bmain = nullptr;
   BMeshToMeshParams params{};
   params.update_shapekey_indices = true;
   if (me->id.tag & LIB_TAG_NO_MAIN) {
@@ -1089,7 +1089,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   PyObject *py_depsgraph;
   Object *ob, *ob_eval;
   Depsgraph *depsgraph;
-  struct Scene *scene_eval;
+  Scene *scene_eval;
   const Mesh *me_eval;
   BMesh *bm;
   bool use_cage = false;
@@ -1345,7 +1345,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
     }
   }
   else {
-    const char filter_flags_ch = (char)filter_flags;
+    const char filter_flags_ch = char(filter_flags);
     BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(eve, filter_flags_ch)) {
         mul_m4_v3((float(*)[4])mat_ptr, eve->co);
@@ -3608,7 +3608,7 @@ PyTypeObject BPy_BMFaceSeq_Type;
 PyTypeObject BPy_BMLoopSeq_Type;
 PyTypeObject BPy_BMIter_Type;
 
-void BPy_BM_init_types(void)
+void BPy_BM_init_types()
 {
   BPy_BMesh_Type.tp_basicsize = sizeof(BPy_BMesh);
   BPy_BMVert_Type.tp_basicsize = sizeof(BPy_BMVert);
@@ -3777,7 +3777,7 @@ static PyModuleDef BPy_BM_types_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_bmesh_types(void)
+PyObject *BPyInit_bmesh_types()
 {
   PyObject *submodule;
 

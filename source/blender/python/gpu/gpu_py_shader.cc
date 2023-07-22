@@ -58,7 +58,7 @@
   "   :Attributes: vec3 pos\n" \
   "   :Uniforms: vec2 viewportSize, float lineWidth\n"
 
-static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
+static const PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {GPU_SHADER_3D_FLAT_COLOR, "FLAT_COLOR"},
     {GPU_SHADER_3D_IMAGE, "IMAGE"},
     {GPU_SHADER_3D_IMAGE_COLOR, "IMAGE_COLOR"},
@@ -70,7 +70,7 @@ static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {0, nullptr},
 };
 
-static const struct PyC_StringEnumItems pygpu_shader_config_items[] = {
+static const PyC_StringEnumItems pygpu_shader_config_items[] = {
     {GPU_SHADER_CFG_DEFAULT, "DEFAULT"},
     {GPU_SHADER_CFG_CLIPPED, "CLIPPED"},
     {0, nullptr},
@@ -353,7 +353,7 @@ static PyObject *pygpu_shader_uniform_bool(BPyGPUShader *self, PyObject *args)
       Py_DECREF(seq_fast);
     }
   }
-  else if (((values[0] = (int)PyLong_AsLong(params.seq)) != -1) && ELEM(values[0], 0, 1)) {
+  else if (((values[0] = int(PyLong_AsLong(params.seq))) != -1) && ELEM(values[0], 0, 1)) {
     length = 1;
     ret = 0;
   }
@@ -404,11 +404,11 @@ static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
   int length;
 
   if (PyFloat_Check(params.seq)) {
-    values[0] = (float)PyFloat_AsDouble(params.seq);
+    values[0] = float(PyFloat_AsDouble(params.seq));
     length = 1;
   }
   else if (PyLong_Check(params.seq)) {
-    values[0] = (float)PyLong_AsDouble(params.seq);
+    values[0] = float(PyLong_AsDouble(params.seq));
     length = 1;
   }
   else if (MatrixObject_Check(params.seq)) {
@@ -876,8 +876,8 @@ PyDoc_STRVAR(
     "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
-  struct PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
-  struct PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
+  PyC_StringEnum pygpu_bultinshader = {pygpu_shader_builtin_items};
+  PyC_StringEnum pygpu_config = {pygpu_shader_config_items, GPU_SHADER_CFG_DEFAULT};
 
   static const char *_keywords[] = {"shader_name", "config", nullptr};
   static _PyArg_Parser _parser = {
@@ -999,7 +999,7 @@ PyObject *BPyGPUShader_CreatePyObject(GPUShader *shader, bool is_builtin)
   return (PyObject *)self;
 }
 
-PyObject *bpygpu_shader_init(void)
+PyObject *bpygpu_shader_init()
 {
   PyObject *submodule;
 

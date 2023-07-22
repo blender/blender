@@ -39,7 +39,7 @@ PyDoc_STRVAR(pygpu_select_load_id_doc,
 static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 {
   uint id;
-  if ((id = PyC_Long_AsU32(value)) == (uint)-1) {
+  if ((id = PyC_Long_AsU32(value)) == uint(-1)) {
     return nullptr;
   }
   GPU_select_load_id(id);
@@ -71,7 +71,7 @@ static PyModuleDef pygpu_select_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_select_init(void)
+PyObject *bpygpu_select_init()
 {
   PyObject *submodule;
 

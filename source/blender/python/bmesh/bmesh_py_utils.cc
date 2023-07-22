@@ -639,7 +639,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 
   /* Go ahead and join the face!
    * --------------------------- */
-  f_new = BM_faces_join(bm, face_array, (int)face_seq_len, do_remove);
+  f_new = BM_faces_join(bm, face_array, int(face_seq_len), do_remove);
 
   PyMem_FREE(face_array);
 
@@ -835,7 +835,7 @@ static PyModuleDef BPy_BM_utils_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_bmesh_utils(void)
+PyObject *BPyInit_bmesh_utils()
 {
   PyObject *submodule;
 

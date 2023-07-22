@@ -23,7 +23,7 @@
 /** \name GPU Enums
  * \{ */
 
-struct PyC_StringEnumItems bpygpu_primtype_items[] = {
+PyC_StringEnumItems bpygpu_primtype_items[] = {
     {GPU_PRIM_POINTS, "POINTS"},
     {GPU_PRIM_LINES, "LINES"},
     {GPU_PRIM_TRIS, "TRIS"},
@@ -37,7 +37,7 @@ struct PyC_StringEnumItems bpygpu_primtype_items[] = {
     {0, nullptr},
 };
 
-struct PyC_StringEnumItems bpygpu_dataformat_items[] = {
+PyC_StringEnumItems bpygpu_dataformat_items[] = {
     {GPU_DATA_FLOAT, "FLOAT"},
     {GPU_DATA_INT, "INT"},
     {GPU_DATA_UINT, "UINT"},

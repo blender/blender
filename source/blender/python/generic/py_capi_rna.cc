@@ -106,7 +106,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
           ushort as_unsigned;
         } ret_convert;
         ret_convert.as_signed = (signed short)ret;
-        index = (int)ret_convert.as_unsigned;
+        index = int(ret_convert.as_unsigned);
       }
       else if (type_size == 1) {
         union {
@@ -114,7 +114,7 @@ BLI_bitmap *pyrna_enum_bitmap_from_set(const EnumPropertyItem *items,
           uchar as_unsigned;
         } ret_convert;
         ret_convert.as_signed = (signed char)ret;
-        index = (int)ret_convert.as_unsigned;
+        index = int(ret_convert.as_unsigned);
       }
       else {
         BLI_assert_unreachable();
@@ -199,7 +199,7 @@ int pyrna_enum_value_parse_string(PyObject *o, void *p)
     PyErr_Format(PyExc_TypeError, "expected a string enum, not %.200s", Py_TYPE(o)->tp_name);
     return 0;
   }
-  struct BPy_EnumProperty_Parse *parse_data = static_cast<BPy_EnumProperty_Parse *>(p);
+  BPy_EnumProperty_Parse *parse_data = static_cast<BPy_EnumProperty_Parse *>(p);
   if (pyrna_enum_value_from_id(
           parse_data->items, identifier, &parse_data->value, "enum identifier") == -1)
   {
@@ -218,7 +218,7 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
     return 0;
   }
 
-  struct BPy_EnumProperty_Parse *parse_data = static_cast<BPy_EnumProperty_Parse *>(p);
+  BPy_EnumProperty_Parse *parse_data = static_cast<BPy_EnumProperty_Parse *>(p);
   if (pyrna_enum_bitfield_from_set(
           parse_data->items, o, &parse_data->value, "enum identifier set") == -1)
   {

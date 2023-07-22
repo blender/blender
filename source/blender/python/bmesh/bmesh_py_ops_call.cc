@@ -611,7 +611,7 @@ static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
       item = PyLong_FromLong(BMO_SLOT_AS_INT(slot));
       break;
     case BMO_OP_SLOT_FLT:
-      item = PyFloat_FromDouble((double)BMO_SLOT_AS_FLOAT(slot));
+      item = PyFloat_FromDouble(double(BMO_SLOT_AS_FLOAT(slot)));
       break;
     case BMO_OP_SLOT_MAT:
       item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, nullptr);

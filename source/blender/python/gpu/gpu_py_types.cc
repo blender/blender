@@ -32,7 +32,7 @@ static PyModuleDef pygpu_types_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_types_init(void)
+PyObject *bpygpu_types_init()
 {
   PyObject *submodule;
 

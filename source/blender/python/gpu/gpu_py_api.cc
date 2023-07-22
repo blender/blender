@@ -45,7 +45,7 @@ static PyModuleDef pygpu_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_gpu(void)
+PyObject *BPyInit_gpu()
 {
   PyObject *sys_modules = PyImport_GetModuleDict();
   PyObject *submodule;

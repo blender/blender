@@ -163,7 +163,7 @@ static PyModuleDef pygpu_platform_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_platform_init(void)
+PyObject *bpygpu_platform_init()
 {
   PyObject *submodule;
 

@@ -86,12 +86,12 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   int size[2];
 
   enum { FAST, BILINEAR };
-  const struct PyC_StringEnumItems method_items[] = {
+  const PyC_StringEnumItems method_items[] = {
       {FAST, "FAST"},
       {BILINEAR, "BILINEAR"},
       {0, nullptr},
   };
-  struct PyC_StringEnum method = {method_items, FAST};
+  PyC_StringEnum method = {method_items, FAST};
 
   static const char *_keywords[] = {"size", "method", nullptr};
   static _PyArg_Parser _parser = {
@@ -593,7 +593,7 @@ static PyModuleDef IMB_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_imbuf(void)
+PyObject *BPyInit_imbuf()
 {
   PyObject *mod;
   PyObject *submodule;
@@ -637,7 +637,7 @@ static PyModuleDef IMB_types_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_imbuf_types(void)
+PyObject *BPyInit_imbuf_types()
 {
   PyObject *submodule = PyModule_Create(&IMB_types_module_def);
 

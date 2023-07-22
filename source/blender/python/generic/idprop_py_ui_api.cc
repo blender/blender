@@ -380,7 +380,7 @@ static bool idprop_ui_data_update_float(IDProperty *idprop, PyObject *args, PyOb
     ui_data.soft_min = MIN2(ui_data.soft_min, ui_data.soft_max);
   }
   if (args_contain_key(kwargs, "step")) {
-    ui_data.step = (float)step;
+    ui_data.step = float(step);
   }
   if (args_contain_key(kwargs, "precision")) {
     ui_data.precision = precision;
@@ -597,9 +597,9 @@ static void idprop_ui_data_to_dict_float(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
   PyDict_SetItemString(dict, "soft_max", item = PyFloat_FromDouble(ui_data->soft_max));
   Py_DECREF(item);
-  PyDict_SetItemString(dict, "step", item = PyFloat_FromDouble((double)ui_data->step));
+  PyDict_SetItemString(dict, "step", item = PyFloat_FromDouble(double(ui_data->step)));
   Py_DECREF(item);
-  PyDict_SetItemString(dict, "precision", item = PyLong_FromDouble((double)ui_data->precision));
+  PyDict_SetItemString(dict, "precision", item = PyLong_FromDouble(double(ui_data->precision)));
   Py_DECREF(item);
   if (property->type == IDP_ARRAY) {
     PyObject *list = PyList_New(ui_data->default_array_len);
@@ -842,7 +842,7 @@ PyTypeObject BPy_IDPropertyUIManager_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
-void IDPropertyUIData_Init_Types(void)
+void IDPropertyUIData_Init_Types()
 {
   PyType_Ready(&BPy_IDPropertyUIManager_Type);
 }

@@ -31,7 +31,7 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject * /*type*/, PyObject *args,
   const char *error_prefix = "IndexBuf.__new__";
   bool ok = true;
 
-  struct PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
+  PyC_StringEnum prim_type = {bpygpu_primtype_items, GPU_PRIM_NONE};
   PyObject *seq;
 
   uint verts_per_prim;

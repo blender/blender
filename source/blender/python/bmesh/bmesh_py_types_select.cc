@@ -364,7 +364,7 @@ PyObject *BPy_BMEditSelIter_CreatePyObject(BMesh *bm)
   return (PyObject *)self;
 }
 
-void BPy_BM_init_types_select(void)
+void BPy_BM_init_types_select()
 {
   BPy_BMEditSelSeq_Type.tp_basicsize = sizeof(BPy_BMEditSelSeq);
   BPy_BMEditSelIter_Type.tp_basicsize = sizeof(BPy_BMEditSelIter);

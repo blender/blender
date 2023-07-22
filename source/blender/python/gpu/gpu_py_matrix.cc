@@ -33,7 +33,7 @@
 /** \name Helper Functions
  * \{ */
 
-static bool pygpu_stack_is_push_model_view_ok_or_error(void)
+static bool pygpu_stack_is_push_model_view_ok_or_error()
 {
   if (GPU_matrix_stack_level_get_model_view() >= GPU_PY_MATRIX_STACK_LEN) {
     PyErr_SetString(
@@ -44,7 +44,7 @@ static bool pygpu_stack_is_push_model_view_ok_or_error(void)
   return true;
 }
 
-static bool pygpu_stack_is_push_projection_ok_or_error(void)
+static bool pygpu_stack_is_push_projection_ok_or_error()
 {
   if (GPU_matrix_stack_level_get_projection() >= GPU_PY_MATRIX_STACK_LEN) {
     PyErr_SetString(
@@ -55,7 +55,7 @@ static bool pygpu_stack_is_push_projection_ok_or_error(void)
   return true;
 }
 
-static bool pygpu_stack_is_pop_model_view_ok_or_error(void)
+static bool pygpu_stack_is_pop_model_view_ok_or_error()
 {
   if (GPU_matrix_stack_level_get_model_view() == 0) {
     PyErr_SetString(PyExc_RuntimeError, "Minimum model-view stack depth reached");
@@ -64,7 +64,7 @@ static bool pygpu_stack_is_pop_model_view_ok_or_error(void)
   return true;
 }
 
-static bool pygpu_stack_is_pop_projection_ok_or_error(void)
+static bool pygpu_stack_is_pop_projection_ok_or_error()
 {
   if (GPU_matrix_stack_level_get_projection() == 0) {
     PyErr_SetString(PyExc_RuntimeError, "Minimum projection stack depth reached");
@@ -606,7 +606,7 @@ static PyModuleDef pygpu_matrix_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_matrix_init(void)
+PyObject *bpygpu_matrix_init()
 {
   PyObject *submodule;
 

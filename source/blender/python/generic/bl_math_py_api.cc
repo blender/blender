@@ -141,7 +141,7 @@ static PyModuleDef M_bl_math_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyMODINIT_FUNC BPyInit_bl_math(void)
+PyMODINIT_FUNC BPyInit_bl_math()
 {
   PyObject *submodule = PyModule_Create(&M_bl_math_module_def);
   return submodule;

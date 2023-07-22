@@ -73,7 +73,7 @@ static PyModuleDef BPy_BM_geometry_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_bmesh_geometry(void)
+PyObject *BPyInit_bmesh_geometry()
 {
   PyObject *submodule;
 

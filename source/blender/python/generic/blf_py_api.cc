@@ -173,7 +173,7 @@ static PyObject *py_blf_draw(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  BLF_draw(fontid, text, (uint)text_length);
+  BLF_draw(fontid, text, uint(text_length));
 
   Py_RETURN_NONE;
 }
@@ -472,7 +472,7 @@ static PyModuleDef BLF_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *BPyInit_blf(void)
+PyObject *BPyInit_blf()
 {
   PyObject *submodule;
 

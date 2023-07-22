@@ -169,7 +169,7 @@ static PyGetSetDef bpy_bmloopuv_getseters[] = {
 
 PyTypeObject BPy_BMLoopUV_Type; /* bm.loops.layers.uv.active */
 
-static void bm_init_types_bmloopuv(void)
+static void bm_init_types_bmloopuv()
 {
   BPy_BMLoopUV_Type.tp_basicsize = sizeof(BPy_BMLoopUV);
 
@@ -307,7 +307,7 @@ static PyGetSetDef bpy_bmvertskin_getseters[] = {
 
 static PyTypeObject BPy_BMVertSkin_Type; /* bm.loops.layers.skin.active */
 
-static void bm_init_types_bmvertskin(void)
+static void bm_init_types_bmvertskin()
 {
   BPy_BMVertSkin_Type.tp_basicsize = sizeof(BPy_BMVertSkin);
 
@@ -414,7 +414,7 @@ static Mathutils_Callback mathutils_bmloopcol_cb = {
     mathutils_bmloopcol_set_index,
 };
 
-static void bm_init_types_bmloopcol(void)
+static void bm_init_types_bmloopcol()
 {
   /* pass */
   mathutils_bmloopcol_cb_index = Mathutils_RegisterCallback(&mathutils_bmloopcol_cb);
@@ -727,7 +727,7 @@ static PyMethodDef bpy_bmdeformvert_methods[] = {
 
 PyTypeObject BPy_BMDeformVert_Type; /* bm.loops.layers.uv.active */
 
-static void bm_init_types_bmdvert(void)
+static void bm_init_types_bmdvert()
 {
   BPy_BMDeformVert_Type.tp_basicsize = sizeof(BPy_BMDeformVert);
 
@@ -768,7 +768,7 @@ PyObject *BPy_BMDeformVert_CreatePyObject(MDeformVert *dvert)
 
 /* --- End Mesh Deform Vert --- */
 
-void BPy_BM_init_types_meshdata(void)
+void BPy_BM_init_types_meshdata()
 {
   bm_init_types_bmloopuv();
   bm_init_types_bmloopcol();

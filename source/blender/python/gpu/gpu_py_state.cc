@@ -27,7 +27,7 @@
 /** \name Helper Functions
  * \{ */
 
-static const struct PyC_StringEnumItems pygpu_state_blend_items[] = {
+static const PyC_StringEnumItems pygpu_state_blend_items[] = {
     {GPU_BLEND_NONE, "NONE"},
     {GPU_BLEND_ALPHA, "ALPHA"},
     {GPU_BLEND_ALPHA_PREMULT, "ALPHA_PREMULT"},
@@ -45,7 +45,7 @@ static const struct PyC_StringEnumItems pygpu_state_blend_items[] = {
     {0, nullptr},
 };
 
-static const struct PyC_StringEnumItems pygpu_state_depthtest_items[] = {
+static const PyC_StringEnumItems pygpu_state_depthtest_items[] = {
     {GPU_DEPTH_NONE, "NONE"},
     {GPU_DEPTH_ALWAYS, "ALWAYS"},
     {GPU_DEPTH_LESS, "LESS"},
@@ -56,7 +56,7 @@ static const struct PyC_StringEnumItems pygpu_state_depthtest_items[] = {
     {0, nullptr},
 };
 
-static const struct PyC_StringEnumItems pygpu_state_faceculling_items[] = {
+static const PyC_StringEnumItems pygpu_state_faceculling_items[] = {
     {GPU_CULL_NONE, "NONE"},
     {GPU_CULL_FRONT, "FRONT"},
     {GPU_CULL_BACK, "BACK"},
@@ -93,7 +93,7 @@ PyDoc_STRVAR(
     "   :type mode: str\n");
 static PyObject *pygpu_state_blend_set(PyObject * /*self*/, PyObject *value)
 {
-  struct PyC_StringEnum pygpu_blend = {pygpu_state_blend_items};
+  PyC_StringEnum pygpu_blend = {pygpu_state_blend_items};
   if (!PyC_ParseStringEnum(value, &pygpu_blend)) {
     return nullptr;
   }
@@ -121,7 +121,7 @@ PyDoc_STRVAR(pygpu_state_clip_distances_set_doc,
              "   :type distances_enabled: int\n");
 static PyObject *pygpu_state_clip_distances_set(PyObject * /*self*/, PyObject *value)
 {
-  int distances_enabled = (int)PyLong_AsUnsignedLong(value);
+  int distances_enabled = int(PyLong_AsUnsignedLong(value));
   if (distances_enabled == -1) {
     return nullptr;
   }
@@ -145,7 +145,7 @@ PyDoc_STRVAR(pygpu_state_depth_test_set_doc,
              "   :type mode: str\n");
 static PyObject *pygpu_state_depth_test_set(PyObject * /*self*/, PyObject *value)
 {
-  struct PyC_StringEnum pygpu_depth_test = {pygpu_state_depthtest_items};
+  PyC_StringEnum pygpu_depth_test = {pygpu_state_depthtest_items};
   if (!PyC_ParseStringEnum(value, &pygpu_depth_test)) {
     return nullptr;
   }
@@ -304,7 +304,7 @@ PyDoc_STRVAR(pygpu_state_line_width_set_doc,
              "   :type mode: float\n");
 static PyObject *pygpu_state_line_width_set(PyObject * /*self*/, PyObject *value)
 {
-  float width = (float)PyFloat_AsDouble(value);
+  float width = float(PyFloat_AsDouble(value));
   if (PyErr_Occurred()) {
     return nullptr;
   }
@@ -320,7 +320,7 @@ PyDoc_STRVAR(pygpu_state_line_width_get_doc,
 static PyObject *pygpu_state_line_width_get(PyObject * /*self*/)
 {
   float width = GPU_line_width_get();
-  return PyFloat_FromDouble((double)width);
+  return PyFloat_FromDouble(double(width));
 }
 
 PyDoc_STRVAR(pygpu_state_point_size_set_doc,
@@ -332,7 +332,7 @@ PyDoc_STRVAR(pygpu_state_point_size_set_doc,
              "   :type mode: float\n");
 static PyObject *pygpu_state_point_size_set(PyObject * /*self*/, PyObject *value)
 {
-  float size = (float)PyFloat_AsDouble(value);
+  float size = float(PyFloat_AsDouble(value));
   if (PyErr_Occurred()) {
     return nullptr;
   }
@@ -355,7 +355,7 @@ static PyObject *pygpu_state_color_mask_set(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  GPU_color_mask((bool)r, (bool)g, (bool)b, (bool)a);
+  GPU_color_mask(bool(r), bool(g), bool(b), bool(a));
   Py_RETURN_NONE;
 }
 
@@ -368,7 +368,7 @@ PyDoc_STRVAR(pygpu_state_face_culling_set_doc,
              "   :type mode: str\n");
 static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *value)
 {
-  struct PyC_StringEnum pygpu_faceculling = {pygpu_state_faceculling_items};
+  PyC_StringEnum pygpu_faceculling = {pygpu_state_faceculling_items};
   if (!PyC_ParseStringEnum(value, &pygpu_faceculling)) {
     return nullptr;
   }
@@ -531,7 +531,7 @@ static PyModuleDef pygpu_state_module_def = {
     /*m_free*/ nullptr,
 };
 
-PyObject *bpygpu_state_init(void)
+PyObject *bpygpu_state_init()
 {
   PyObject *submodule;
 

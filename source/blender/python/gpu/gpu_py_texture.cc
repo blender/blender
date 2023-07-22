@@ -33,7 +33,7 @@
 /** \name GPUTexture Common Utilities
  * \{ */
 
-static const struct PyC_StringEnumItems pygpu_textureformat_items[] = {
+static const PyC_StringEnumItems pygpu_textureformat_items[] = {
     {GPU_RGBA8UI, "RGBA8UI"},
     {GPU_RGBA8I, "RGBA8I"},
     {GPU_RGBA8, "RGBA8"},
@@ -117,7 +117,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
   int size[3] = {1, 1, 1};
   int layers = 0;
   int is_cubemap = false;
-  struct PyC_StringEnum pygpu_textureformat = {pygpu_textureformat_items, GPU_RGBA8};
+  PyC_StringEnum pygpu_textureformat = {pygpu_textureformat_items, GPU_RGBA8};
   BPyGPUBuffer *pybuffer_obj = nullptr;
   char err_out[256] = "unknown error. See console";
 
@@ -179,7 +179,7 @@ static PyObject *pygpu_texture__tp_new(PyTypeObject * /*self*/, PyObject *args, 
     int component_len = GPU_texture_component_len(
         eGPUTextureFormat(pygpu_textureformat.value_found));
     int component_size_expected = sizeof(float);
-    size_t data_space_expected = (size_t)size[0] * size[1] * size[2] * max_ii(1, layers) *
+    size_t data_space_expected = size_t(size[0]) * size[1] * size[2] * max_ii(1, layers) *
                                  component_len * component_size_expected;
     if (is_cubemap) {
       data_space_expected *= 6 * size[0];
@@ -322,7 +322,7 @@ PyDoc_STRVAR(
 static PyObject *pygpu_texture_clear(BPyGPUTexture *self, PyObject *args, PyObject *kwds)
 {
   BPYGPU_TEXTURE_CHECK_OBJ(self);
-  struct PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items};
+  PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items};
   union {
     int i[4];
     float f[4];
@@ -696,7 +696,7 @@ int bpygpu_ParseTexture(PyObject *o, void *p)
   return 1;
 }
 
-PyObject *bpygpu_texture_init(void)
+PyObject *bpygpu_texture_init()
 {
   PyObject *submodule;
   submodule = bpygpu_create_module(&pygpu_texture_module_def);
