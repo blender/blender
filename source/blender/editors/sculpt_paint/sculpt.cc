@@ -1788,9 +1788,12 @@ static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 /** \name Sculpt Dynamic Topology
  * \{ */
 
-bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
+bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss,
+                                       const Sculpt *sd,
+                                       const Brush *brush)
 {
-  return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) && SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
+  return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) && SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool) &&
+          !(brush->dyntopo.flag & DYNTOPO_DISABLED) && (sd->flags & SCULPT_DYNTOPO_ENABLED));
 }
 
 /** \} */
@@ -6446,7 +6449,7 @@ static void sculpt_stroke_update_step(bContext *C,
 
   float dyntopo_spacing = float(ss->cached_dyntopo.spacing) / 50.0f;
 
-  bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
+  bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, sd, brush);
 
   bool has_spacing = !(brush->flag & BRUSH_ANCHORED);
   if (has_spacing && dyntopo_spacing > 0.0f) {
@@ -6682,8 +6685,11 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   const Brush *brush = BKE_paint_brush(&sd->paint);
 
   /* XXX Canceling strokes that way does not work with dynamic topology,
-   *     user will have to do real undo for now. See #46456. */
-  if (ss->cache && !SCULPT_stroke_is_dynamic_topology(ss, brush)) {
+   *     user will have to do real undo for now. See #46456.
+   *
+   * Update: this may actually work now.  Test.
+   */
+  if (ss->cache && !SCULPT_stroke_is_dynamic_topology(ss, sd, brush)) {
     paint_mesh_restore_co(sd, ob);
   }
 

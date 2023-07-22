@@ -1704,7 +1704,9 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
  * Others, like smooth, are better without.
  * Same goes for alt-key smoothing.
  */
-bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush);
+bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss,
+                                       const Sculpt *sd,
+                                       const Brush *brush);
 
 void SCULPT_dynamic_topology_triangulate(struct SculptSession *ss, struct BMesh *bm);
 
@@ -1939,7 +1941,7 @@ BLI_INLINE eAttrCorrectMode SCULPT_need_reproject(const SculptSession *ss)
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
-void SCULPT_smooth_undo_push(Object *ob, Span<PBVHNode *> nodes);
+void SCULPT_smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *brush);
 
 void SCULPT_smooth(
     Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask);

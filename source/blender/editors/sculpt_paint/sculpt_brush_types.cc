@@ -1059,7 +1059,8 @@ static void do_clay_strips_brush_task_cb_ex(void *__restrict userdata,
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness, brush->tip_scale_x, true)) {
+    if (!SCULPT_brush_test_cube(&test, vd.co, mat, brush->tip_roundness, brush->tip_scale_x, true))
+    {
       continue;
     }
 
@@ -3029,7 +3030,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
   SculptSession *ss = ob->sculpt;
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
-  SCULPT_smooth_undo_push(ob, nodes);
+  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
 
   /* Interactions increase both strength and quality. */
   const int iterations = 1;

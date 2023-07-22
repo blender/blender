@@ -882,7 +882,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  SCULPT_smooth_undo_push(ob, nodes);
+  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
@@ -1028,15 +1028,25 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   }
 }
 
-void SCULPT_smooth_undo_push(Object *ob, Span<PBVHNode *> nodes)
+void SCULPT_smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *brush)
 {
   SculptSession *ss = ob->sculpt;
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH && SCULPT_need_reproject(ss)) {
+    bool have_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, sd, brush);
+
     for (PBVHNode *node : nodes) {
       PBVHFaceIter fd;
+
       BKE_pbvh_face_iter_begin (ss->pbvh, node, fd) {
-        BM_log_face_if_modified(ss->bm, ss->bm_log, reinterpret_cast<BMFace *>(fd.face.i));
+        if (have_dyntopo) {
+          /* Always log face, uses more memory and is slower. */
+          BM_log_face_modified(ss->bm, ss->bm_log, reinterpret_cast<BMFace *>(fd.face.i));
+        }
+        else {
+          /* Logs face once per stroke. */
+          BM_log_face_if_modified(ss->bm, ss->bm_log, reinterpret_cast<BMFace *>(fd.face.i));
+        }
       }
       BKE_pbvh_face_iter_end(fd);
     }
@@ -1055,7 +1065,7 @@ void SCULPT_smooth(
   float last;
 
   SCULPT_boundary_info_ensure(ob);
-  SCULPT_smooth_undo_push(ob, nodes);
+  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
 
   /* PBVH_FACES needs ss->epmap. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES && ss->epmap.is_empty()) {
@@ -1276,7 +1286,7 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nod
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   SCULPT_boundary_info_ensure(ob);
-  SCULPT_smooth_undo_push(ob, nodes);
+  SCULPT_smooth_undo_push(sd, ob, nodes, brush);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data{};

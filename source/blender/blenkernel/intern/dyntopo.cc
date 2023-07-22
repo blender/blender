@@ -405,21 +405,6 @@ void EdgeQueueContext::insert_val34_vert(BMVert *v)
   }
 
   used_verts.append(v);
-
-  if (!ignore_loop_data) {
-    BMEdge *e = v->e;
-    do {
-      BMLoop *l = e->l;
-      if (!l) {
-        continue;
-      }
-
-      BMLoop *l2 = l;
-      do {
-        BM_log_face_if_modified(bm, pbvh->bm_log, l2->f);
-      } while ((l2 = l2->radial_next) != e->l);
-    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-  }
 }
 
 /*
