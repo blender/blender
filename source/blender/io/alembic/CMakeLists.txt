@@ -6,7 +6,6 @@ set(INC
   .
   ../common
   ../../blenloader
-  ../../bmesh
   ../../editors/include
   ../../makesrna
   ../../../../intern/utfconv
@@ -86,6 +85,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

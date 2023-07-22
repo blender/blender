@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../bmesh
   ../../functions
   ../../gpencil_modifiers_legacy
   ../../gpu
@@ -59,6 +58,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mesh

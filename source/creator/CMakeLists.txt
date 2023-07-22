@@ -7,7 +7,6 @@ set(INC
   ../blender/gpu
   ../blender/imbuf
   ../blender/io/usd
-  ../blender/bmesh
   ../blender/makesrna
   ../blender/render
 )
@@ -15,6 +14,7 @@ set(INC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

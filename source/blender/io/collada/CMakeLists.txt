@@ -26,7 +26,6 @@ set(INC
   ../../makesrna
   ../../ikplugin
   ../../../../intern/iksolver/extern
-  ../../bmesh
 )
 
 set(INC_SYS
@@ -113,6 +112,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

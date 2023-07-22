@@ -7,7 +7,6 @@ set(INC
   intern
 
   ../blenloader
-  ../bmesh
   ../editors/include
   ../editors/space_view3d
   ../functions
@@ -350,6 +349,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

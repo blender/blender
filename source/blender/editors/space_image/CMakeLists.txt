@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenloader
-  ../../bmesh
   ../../draw
   ../../gpu
   ../../imbuf
@@ -36,6 +35,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_uvedit
