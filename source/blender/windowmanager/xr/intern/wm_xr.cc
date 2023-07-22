@@ -162,7 +162,7 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
   /* We free all runtime XR data here, so if the context is still alive, destroy it. */
   if ((*runtime)->context != nullptr) {
     GHOST_XrContextHandle context = (*runtime)->context;
-    /* Prevent recursive GHOST_XrContextDestroy() call by nullptr'ing the context pointer before
+    /* Prevent recursive #GHOST_XrContextDestroy() call by nulling the context pointer before
      * the first call, see comment above. */
     (*runtime)->context = nullptr;
 

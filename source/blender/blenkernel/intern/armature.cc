@@ -1907,8 +1907,8 @@ void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
 {
   bPoseChannel work_pchan = blender::dna::shallow_copy(*pchan);
 
-  /* recalculate pose matrix with only parent transformations,
-   * bone loc/sca/rot is ignored, scene and frame are not used. */
+  /* Recalculate pose matrix with only parent transformations,
+   * bone location/scale/rotation is ignored, scene and frame are not used. */
   BKE_pose_where_is_bone(depsgraph, nullptr, ob, &work_pchan, 0.0f, false);
 
   /* Find the matrix, need to remove the bone transforms first so this is calculated

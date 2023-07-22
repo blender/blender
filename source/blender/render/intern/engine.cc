@@ -1229,7 +1229,7 @@ bool RE_engine_draw_acquire(Render *re)
   RenderEngine *engine = re->engine;
 
   if (!engine) {
-    /* \No engine-side drawing if the engine does not exist. */
+    /* No engine-side drawing if the engine does not exist. */
     return false;
   }
 

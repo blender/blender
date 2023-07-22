@@ -486,7 +486,7 @@ struct AssetLibraryIndex {
   /**
    * \brief Absolute path where the indices of `library` are stored.
    *
-   * \NOTE: includes trailing directory separator.
+   * \note includes trailing directory separator.
    */
   std::string indices_base_path;
 

@@ -251,11 +251,11 @@ static int append_avi(void *context_v,
     return 0;
   }
 
-  /* note that libavi free's the buffer... stupid interface - zr */
+  /* NOTE(@zr): that LIBAVI free's the buffer (stupid interface). */
   rectot = static_cast<uint *>(MEM_mallocN(rectx * recty * sizeof(int), "rectot"));
   rt1 = rectot;
   rt2 = (uint *)pixels + (recty - 1) * rectx;
-  /* flip y and convert to abgr */
+  /* Flip Y and convert to ABGR. */
   for (y = 0; y < recty; y++, rt1 += rectx, rt2 -= rectx) {
     memcpy(rt1, rt2, rectx * sizeof(int));
 
