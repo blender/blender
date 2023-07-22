@@ -87,11 +87,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>("Transmission Roughness")
-      .default_value(0.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR);
   b.add_input<decl::Color>("Emission").default_value({0.0f, 0.0f, 0.0f, 1.0f});
   b.add_input<decl::Float>("Emission Strength").default_value(1.0).min(0.0f).max(1000000.0f);
   b.add_input<decl::Float>("Alpha").default_value(1.0f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
@@ -213,14 +208,9 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
 
 static void node_shader_update_principled(bNodeTree *ntree, bNode *node)
 {
-  const int distribution = node->custom1;
   const int sss_method = node->custom2;
 
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Transmission Roughness")) {
-      bke::nodeSetSocketAvailability(ntree, sock, distribution == SHD_GLOSSY_GGX);
-    }
-
     if (STR_ELEM(sock->name, "Subsurface IOR", "Subsurface Anisotropy")) {
       bke::nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
     }

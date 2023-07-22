@@ -2659,7 +2659,6 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(clearcoat_roughness, "Clearcoat Roughness", 0.03f);
   SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
   SOCKET_IN_FLOAT(transmission, "Transmission", 0.0f);
-  SOCKET_IN_FLOAT(transmission_roughness, "Transmission Roughness", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
   SOCKET_IN_COLOR(emission, "Emission", zero_float3());
   SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 1.0f);
@@ -2770,8 +2769,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
                                  ShaderInput *p_clearcoat_roughness,
                                  ShaderInput *p_ior,
                                  ShaderInput *p_transmission,
-                                 ShaderInput *p_anisotropic_rotation,
-                                 ShaderInput *p_transmission_roughness)
+                                 ShaderInput *p_anisotropic_rotation)
 {
   ShaderInput *base_color_in = input("Base Color");
   ShaderInput *subsurface_color_in = input("Subsurface Color");
@@ -2796,7 +2794,6 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
   int clearcoat_roughness_offset = compiler.stack_assign(p_clearcoat_roughness);
   int ior_offset = compiler.stack_assign(p_ior);
   int transmission_offset = compiler.stack_assign(p_transmission);
-  int transmission_roughness_offset = compiler.stack_assign(p_transmission_roughness);
   int anisotropic_rotation_offset = compiler.stack_assign(p_anisotropic_rotation);
   int subsurface_radius_offset = compiler.stack_assign(p_subsurface_radius);
   int subsurface_ior_offset = compiler.stack_assign(p_subsurface_ior);
@@ -2818,13 +2815,12 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
       compiler.encode_uchar4(
           sheen_offset, sheen_tint_offset, clearcoat_offset, clearcoat_roughness_offset));
 
-  compiler.add_node(compiler.encode_uchar4(ior_offset,
-                                           transmission_offset,
-                                           anisotropic_rotation_offset,
-                                           transmission_roughness_offset),
-                    distribution,
-                    subsurface_method,
-                    SVM_STACK_INVALID);
+  compiler.add_node(
+      compiler.encode_uchar4(
+          ior_offset, transmission_offset, anisotropic_rotation_offset, SVM_STACK_INVALID),
+      distribution,
+      subsurface_method,
+      SVM_STACK_INVALID);
 
   float3 bc_default = get_float3(base_color_in->socket_type);
 
@@ -2866,8 +2862,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
           input("Clearcoat Roughness"),
           input("IOR"),
           input("Transmission"),
-          input("Anisotropic Rotation"),
-          input("Transmission Roughness"));
+          input("Anisotropic Rotation"));
 }
 
 void PrincipledBsdfNode::compile(OSLCompiler &compiler)

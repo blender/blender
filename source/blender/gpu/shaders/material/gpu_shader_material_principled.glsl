@@ -31,7 +31,6 @@ void node_bsdf_principled(vec4 base_color,
                           float clearcoat_roughness,
                           float ior,
                           float transmission,
-                          float transmission_roughness,
                           vec4 emission,
                           float emission_strength,
                           float alpha,
@@ -52,7 +51,6 @@ void node_bsdf_principled(vec4 base_color,
   float diffuse_weight = (1.0 - transmission) * (1.0 - metallic);
   float specular_weight = (1.0 - transmission);
   float clearcoat_weight = max(clearcoat, 0.0) * 0.25;
-  transmission_roughness = 1.0 - (1.0 - roughness) * (1.0 - transmission_roughness);
   specular = max(0.0, specular);
 
   N = safe_normalize(N);
@@ -145,8 +143,7 @@ void node_bsdf_principled(vec4 base_color,
 
   refraction_data.color = base_color.rgb * btdf;
   refraction_data.N = N;
-  refraction_data.roughness = do_multiscatter != 0.0 ? roughness :
-                                                       max(roughness, transmission_roughness);
+  refraction_data.roughness = roughness;
   refraction_data.ior = ior;
 
   /* Ref. #98190: Defines are optimizations for old compilers.
