@@ -848,14 +848,14 @@ void RNA_api_object(StructRNA *srna)
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object selected");
+  parm = RNA_def_boolean(func, "result", false, "", "Object selected");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "select_set", "rna_Object_select_set");
   RNA_def_function_ui_description(
       func, "Select or deselect the object. The selection state is per view layer");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  parm = RNA_def_boolean(func, "state", 0, "", "Selection state to define");
+  parm = RNA_def_boolean(func, "state", false, "", "Selection state to define");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
@@ -869,14 +869,14 @@ void RNA_api_object(StructRNA *srna)
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object hidden");
+  parm = RNA_def_boolean(func, "result", false, "", "Object hidden");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "hide_set", "rna_Object_hide_set");
   RNA_def_function_ui_description(
       func, "Hide the object for viewport editing. This hiding state is per view layer");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  parm = RNA_def_boolean(func, "state", 0, "", "Hide state to define");
+  parm = RNA_def_boolean(func, "state", false, "", "Hide state to define");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
@@ -892,7 +892,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
   parm = RNA_def_pointer(
       func, "viewport", "SpaceView3D", "", "Use this instead of the active 3D viewport");
-  parm = RNA_def_boolean(func, "result", 0, "", "Object visible");
+  parm = RNA_def_boolean(func, "result", false, "", "Object visible");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "holdout_get", "rna_Object_holdout_get");
@@ -901,7 +901,7 @@ void RNA_api_object(StructRNA *srna)
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object holdout");
+  parm = RNA_def_boolean(func, "result", false, "", "Object holdout");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "indirect_only_get", "rna_Object_indirect_only_get");
@@ -912,7 +912,7 @@ void RNA_api_object(StructRNA *srna)
   parm = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "Use this instead of the active view layer");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object indirect only");
+  parm = RNA_def_boolean(func, "result", false, "", "Object indirect only");
   RNA_def_function_return(func, parm);
 
   /* Local View */
@@ -921,7 +921,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object local view state");
+  parm = RNA_def_boolean(func, "result", false, "", "Object local view state");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "local_view_set", "rna_Object_local_view_set");
@@ -929,7 +929,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local view");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR | PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "state", 0, "", "Local view state to define");
+  parm = RNA_def_boolean(func, "state", false, "", "Local view state to define");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* Viewport */
@@ -938,7 +938,7 @@ void RNA_api_object(StructRNA *srna)
       func, "Check for local view and local collections for this viewport and object");
   parm = RNA_def_pointer(func, "viewport", "SpaceView3D", "", "Viewport in local collections");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "", "Object viewport visibility");
+  parm = RNA_def_boolean(func, "result", false, "", "Object viewport visibility");
   RNA_def_function_return(func, parm);
 
   /* Matrix space conversion */
@@ -1128,7 +1128,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Add shape key to this object");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keyblock"); /* optional */
-  RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes");
+  RNA_def_boolean(func, "from_mix", true, "", "Create new shape from existing mix of shapes");
   parm = RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
   RNA_def_function_return(func, parm);
@@ -1194,7 +1194,8 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
 
   /* return location and normal */
-  parm = RNA_def_boolean(func, "result", 0, "", "Whether the ray successfully hit the geometry");
+  parm = RNA_def_boolean(
+      func, "result", false, "", "Whether the ray successfully hit the geometry");
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_vector(func,
                               "location",
@@ -1257,7 +1258,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
 
   /* return location and normal */
-  parm = RNA_def_boolean(func, "result", 0, "", "Whether closest point on geometry was found");
+  parm = RNA_def_boolean(func, "result", false, "", "Whether closest point on geometry was found");
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_vector(func,
                               "location",
@@ -1298,7 +1299,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "", "Whether the object is modified");
+  parm = RNA_def_boolean(func, "result", false, "", "Whether the object is modified");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "is_deform_modified", "rna_Object_is_deform_modified");
@@ -1308,7 +1309,7 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "", "Whether the object is deform-modified");
+  parm = RNA_def_boolean(func, "result", false, "", "Whether the object is deform-modified");
   RNA_def_function_return(func, parm);
 
 #  ifndef NDEBUG
@@ -1341,7 +1342,7 @@ void RNA_api_object(StructRNA *srna)
   func = RNA_def_function(srna, "update_from_editmode", "rna_Object_update_from_editmode");
   RNA_def_function_ui_description(func, "Load the objects edit-mode data into the object data");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  parm = RNA_def_boolean(func, "result", 0, "", "Success");
+  parm = RNA_def_boolean(func, "result", false, "", "Success");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "cache_release", "BKE_object_free_caches");
@@ -1365,7 +1366,7 @@ void RNA_api_object(StructRNA *srna)
       func, "scale_thickness", 1.0f, 0.0f, FLT_MAX, "", "Thickness scaling factor", 0.0f, 100.0f);
   parm = RNA_def_float(
       func, "sample", 0.0f, 0.0f, FLT_MAX, "", "Sample distance, zero to disable", 0.0f, 100.0f);
-  parm = RNA_def_boolean(func, "result", 0, "", "Result");
+  parm = RNA_def_boolean(func, "result", false, "", "Result");
   RNA_def_function_return(func, parm);
 }
 

@@ -458,7 +458,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
     ED_fileselect_layout_isect_rect(sfile->layout, &region->v2d, &rect, &rect);
 
-    sel = file_selection_get(C, &rect, 0);
+    sel = file_selection_get(C, &rect, false);
     if ((sel.first != params->sel_first) || (sel.last != params->sel_last)) {
       int idx;
 
@@ -1543,7 +1543,7 @@ static bool file_operator_poll(bContext *C)
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (!sfile || !sfile->op) {
-    poll = 0;
+    poll = false;
   }
 
   return poll;

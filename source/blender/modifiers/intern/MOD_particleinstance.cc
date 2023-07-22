@@ -389,7 +389,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           positions[vindex][axis] = 0.0;
         }
 
-        psys_get_particle_on_path(&sim, p, &state, 1);
+        psys_get_particle_on_path(&sim, p, &state, true);
 
         normalize_v3(state.vel);
 
@@ -457,7 +457,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
       else {
         state.time = -1.0;
-        psys_get_particle_state(&sim, p, &state, 1);
+        psys_get_particle_state(&sim, p, &state, true);
       }
 
       mul_qt_v3(state.rot, positions[vindex]);

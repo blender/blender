@@ -1444,7 +1444,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_function_ui_description(
       func, "If this method returns a non-null output, then the panel can be drawn");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -1751,7 +1751,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_function_output(func, prop);
 
   /* "Constants"! */
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "bitflag_filter_item", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(
@@ -1783,7 +1783,7 @@ static void rna_def_header(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "layout");
@@ -1818,7 +1818,7 @@ static void rna_def_header(BlenderRNA *brna)
                            "The region where the header is going to be used in "
                            "(defaults to header region)");
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_menu(BlenderRNA *brna)
@@ -1841,7 +1841,7 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_function_ui_description(
       func, "If this method returns a non-null output, then the menu can be drawn");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
@@ -1892,7 +1892,7 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "type->owner_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 void RNA_def_ui(BlenderRNA *brna)

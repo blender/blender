@@ -46,10 +46,10 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   int tgti, *top;
 
   if (!st->text) {
-    return 0;
+    return false;
   }
   if (!texttool_text_is_active(st->text)) {
-    return 0;
+    return false;
   }
 
   first = texttool_suggest_first();
@@ -58,7 +58,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   top = texttool_suggest_top();
 
   if (!last || !first) {
-    return 0;
+    return false;
   }
 
   /* Count the visible lines to the cursor */
@@ -66,7 +66,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
     /* pass */
   }
   if (l < 0) {
-    return 0;
+    return false;
   }
 
   text_update_character_width(st);
@@ -78,7 +78,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   h = SUGG_LIST_SIZE * lheight + 0.4f * U.widget_unit;
 
   if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1]) {
-    return 0;
+    return false;
   }
 
   /* Work out which of the items is at the top of the visible list */
@@ -89,7 +89,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   /* Work out the target item index in the visible list */
   tgti = (y - mval[1] - 4) / lheight;
   if (tgti < 0 || tgti > SUGG_LIST_SIZE) {
-    return 1;
+    return true;
   }
 
   for (i = tgti; i > 0 && item->next; i--, item = item->next) {
@@ -98,7 +98,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   if (item) {
     texttool_suggest_select(item);
   }
-  return 1;
+  return true;
 }
 
 void text_pop_suggest_list()

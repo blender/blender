@@ -126,7 +126,7 @@ static void nearest_fcurve_vert_store(ListBase *matches,
       if ((nvi) && (nvi->fcu == fcu)) {
         /* replace if we are closer, or if equal and that one wasn't selected but we are... */
         if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZT_ISSEL_ANY(bezt))) {
-          replace = 1;
+          replace = true;
         }
       }
       /* add new if not replacing... */
@@ -193,7 +193,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 
     /* apply NLA mapping to all the keyframes */
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
     }
 
     if (fcu->bezt) {
@@ -252,7 +252,7 @@ static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], L
 
     /* un-apply NLA mapping from all the keyframes */
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
     }
   }
 
@@ -444,16 +444,16 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
   const int action = RNA_enum_get(op->ptr, "action");
   switch (action) {
     case SEL_TOGGLE:
-      deselect_graph_keys(&ac, 1, SELECT_ADD, true);
+      deselect_graph_keys(&ac, true, SELECT_ADD, true);
       break;
     case SEL_SELECT:
-      deselect_graph_keys(&ac, 0, SELECT_ADD, true);
+      deselect_graph_keys(&ac, false, SELECT_ADD, true);
       break;
     case SEL_DESELECT:
-      deselect_graph_keys(&ac, 0, SELECT_SUBTRACT, true);
+      deselect_graph_keys(&ac, false, SELECT_SUBTRACT, true);
       break;
     case SEL_INVERT:
-      deselect_graph_keys(&ac, 0, SELECT_INVERT, true);
+      deselect_graph_keys(&ac, false, SELECT_INVERT, true);
       break;
     default:
       BLI_assert(0);
@@ -632,7 +632,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
      */
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(
-          adt, static_cast<FCurve *>(ale->key_data), 0, incl_handles == 0);
+          adt, static_cast<FCurve *>(ale->key_data), false, incl_handles == 0);
     }
 
     scaled_rectf.xmin = rectf.xmin;
@@ -671,7 +671,7 @@ static bool box_select_graphkeys(bAnimContext *ac,
     /* Un-apply NLA mapping from all the keyframes. */
     if (adt) {
       ANIM_nla_mapping_apply_fcurve(
-          adt, static_cast<FCurve *>(ale->key_data), 1, incl_handles == 0);
+          adt, static_cast<FCurve *>(ale->key_data), true, incl_handles == 0);
     }
   }
 
@@ -862,7 +862,7 @@ static int graphkeys_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const int selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    deselect_graph_keys(&ac, 1, SELECT_SUBTRACT, true);
+    deselect_graph_keys(&ac, true, SELECT_SUBTRACT, true);
   }
 
   /* 'include_handles' from the operator specifies whether to include handles in the selection. */
@@ -925,7 +925,7 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* Properties. */
-  ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+  ot->prop = RNA_def_boolean(ot->srna, "axis_range", false, "Axis Range", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
   PropertyRNA *prop;
@@ -937,13 +937,13 @@ void GRAPH_OT_select_box(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
       ot->srna,
       "use_curve_selection",
-      1,
+      true,
       "Select Curves",
       "Allow selecting all the keyframes of a curve by selecting the calculated F-curve");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -978,7 +978,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const short selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    deselect_graph_keys(&ac, 0, SELECT_SUBTRACT, true);
+    deselect_graph_keys(&ac, false, SELECT_SUBTRACT, true);
   }
 
   {
@@ -1035,7 +1035,7 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna,
       "use_curve_selection",
-      1,
+      true,
       "Select Curves",
       "Allow selecting all the keyframes of a curve by selecting the curve itself");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1065,7 +1065,7 @@ static int graph_circle_select_exec(bContext *C, wmOperator *op)
       WM_gesture_is_modal_first(static_cast<const wmGesture *>(op->customdata)));
   const short selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    deselect_graph_keys(&ac, 0, SELECT_SUBTRACT, true);
+    deselect_graph_keys(&ac, false, SELECT_SUBTRACT, true);
   }
 
   data.mval[0] = x;
@@ -1130,7 +1130,7 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna,
       "use_curve_selection",
-      1,
+      true,
       "Select Curves",
       "Allow selecting all the keyframes of a curve by selecting the curve itself");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1199,10 +1199,10 @@ static void markers_selectkeys_between(bAnimContext *ac)
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, true);
       ANIM_fcurve_keyframes_loop(
           &ked, static_cast<FCurve *>(ale->key_data), ok_cb, select_cb, nullptr);
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, true);
     }
     else {
       ANIM_fcurve_keyframes_loop(
@@ -1558,7 +1558,7 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
     /* - deselect all other keyframes, so that just the newly selected remain
      * - channels aren't deselected, since we don't re-select any as a consequence
      */
-    deselect_graph_keys(ac, 0, SELECT_SUBTRACT, false);
+    deselect_graph_keys(ac, false, SELECT_SUBTRACT, false);
   }
 
   /* set callbacks and editing data */
@@ -1584,10 +1584,10 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, true);
       ANIM_fcurve_keyframes_loop(
           &ked, static_cast<FCurve *>(ale->key_data), ok_cb, select_cb, nullptr);
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, true);
     }
     else {
       ANIM_fcurve_keyframes_loop(
@@ -1688,7 +1688,7 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
       ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1747,7 +1747,7 @@ static int mouse_graph_keys(bAnimContext *ac,
     select_mode = SELECT_ADD;
 
     /* deselect all other keyframes (+ F-Curves too) */
-    deselect_graph_keys(ac, 0, SELECT_SUBTRACT, true);
+    deselect_graph_keys(ac, false, SELECT_SUBTRACT, true);
 
     /* Deselect other channels too, but only do this if selection of channel
      * when the visibility of keyframes doesn't depend on this. */
@@ -1923,7 +1923,7 @@ static int graphkeys_mselect_column(bAnimContext *ac,
     /* - deselect all other keyframes, so that just the newly selected remain
      * - channels aren't deselected, since we don't re-select any as a consequence
      */
-    deselect_graph_keys(ac, 0, SELECT_SUBTRACT, false);
+    deselect_graph_keys(ac, false, SELECT_SUBTRACT, false);
   }
 
   /* initialize keyframe editing data */
@@ -2046,7 +2046,7 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
   /* Key-map: Enable with `Shift`. */
   prop = RNA_def_boolean(ot->srna,
                          "extend",
-                         0,
+                         false,
                          "Extend Select",
                          "Toggle keyframe selection instead of leaving newly selected "
                          "keyframes only");
@@ -2062,7 +2062,7 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
   /* Key-map: Enable with `Alt`. */
   prop = RNA_def_boolean(ot->srna,
                          "column",
-                         0,
+                         false,
                          "Column Select",
                          "Select all keyframes that occur on the same frame as the one under "
                          "the mouse");
@@ -2070,7 +2070,7 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 
   /* Key-map: Enable with `Ctrl-Atl`. */
   prop = RNA_def_boolean(
-      ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve");
+      ot->srna, "curves", false, "Only Curves", "Select all the keyframes in the curve");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

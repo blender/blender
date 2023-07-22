@@ -43,7 +43,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    tc->is_active = 1;
+    tc->is_active = true;
     td = tc->data = MEM_cnew<TransData>(__func__);
     td->ext = tc->data_ext = MEM_cnew<TransDataExtension>(__func__);
   }

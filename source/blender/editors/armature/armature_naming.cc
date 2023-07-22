@@ -123,13 +123,14 @@ static void constraint_bone_name_fix(Object *ob,
         }
       }
 
-      BKE_constraint_targets_flush(curcon, &targets, 0);
+      BKE_constraint_targets_flush(curcon, &targets, false);
     }
 
     /* action constraints */
     if (curcon->type == CONSTRAINT_TYPE_ACTION) {
       bActionConstraint *actcon = (bActionConstraint *)curcon->data;
-      BKE_action_fix_paths_rename(&ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, 1);
+      BKE_action_fix_paths_rename(
+          &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
     }
   }
 }

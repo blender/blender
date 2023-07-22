@@ -1881,7 +1881,7 @@ static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
                      MINAFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "active", 0, "Active", "");
+  RNA_def_boolean(func, "active", false, "Active", "");
   parm = RNA_def_pointer(func, "frame", "GPencilFrame", "", "The newly created frame");
   RNA_def_function_return(func, parm);
 

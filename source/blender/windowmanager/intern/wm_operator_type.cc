@@ -162,7 +162,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
 
 bool WM_operatortype_remove(const char *idname)
 {
-  wmOperatorType *ot = WM_operatortype_find(idname, 0);
+  wmOperatorType *ot = WM_operatortype_find(idname, false);
 
   if (ot == nullptr) {
     return false;
@@ -546,13 +546,13 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
   /* do this on first use, since operatordefinitions might have been not done yet */
   WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
-  WM_operator_properties_sanitize(otmacro->ptr, 1);
+  WM_operator_properties_sanitize(otmacro->ptr, true);
 
   BLI_addtail(&ot->macro, otmacro);
 
   {
     /* operator should always be found but in the event its not. don't segfault */
-    wmOperatorType *otsub = WM_operatortype_find(idname, 0);
+    wmOperatorType *otsub = WM_operatortype_find(idname, false);
     if (otsub) {
       RNA_def_pointer_runtime(
           ot->srna, otsub->idname, otsub->srna, otsub->name, otsub->description);

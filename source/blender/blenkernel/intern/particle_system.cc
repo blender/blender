@@ -1250,7 +1250,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
       key->time = -1.0; /* use current time */
 
       const int p_ksim = (ksim.psys->totpart) ? p % ksim.psys->totpart : 0;
-      psys_get_particle_state(&ksim, p_ksim, key, 1);
+      psys_get_particle_state(&ksim, p_ksim, key, true);
 
       if (psys->flag & PSYS_KEYED_TIMING) {
         key->time = pa->time + pt->time;
@@ -3274,7 +3274,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim,
       }
 
       if (!skip) {
-        psys_cache_child_paths(sim, cfra, 0, use_render_params);
+        psys_cache_child_paths(sim, cfra, false, use_render_params);
       }
     }
   }

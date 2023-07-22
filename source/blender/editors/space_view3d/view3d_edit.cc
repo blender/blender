@@ -50,11 +50,11 @@ static bool view3d_camera_user_poll(bContext *C)
   if (ED_view3d_context_user_region(C, &v3d, &region)) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     if ((rv3d->persp == RV3D_CAMOB) && !(RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 static bool view3d_lock_poll(bContext *C)

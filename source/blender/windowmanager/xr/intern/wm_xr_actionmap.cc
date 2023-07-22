@@ -173,7 +173,7 @@ XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const cha
 static void wm_xr_actionmap_item_properties_set(XrActionMapItem *ami)
 {
   WM_operator_properties_alloc(&(ami->op_properties_ptr), &(ami->op_properties), ami->op);
-  WM_operator_properties_sanitize(ami->op_properties_ptr, 1);
+  WM_operator_properties_sanitize(ami->op_properties_ptr, true);
 }
 
 static void wm_xr_actionmap_item_properties_free(XrActionMapItem *ami)
@@ -225,7 +225,7 @@ void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami)
     wm_xr_actionmap_item_properties_set(ami);
   }
   else {
-    wmOperatorType *ot = WM_operatortype_find(ami->op, 0);
+    wmOperatorType *ot = WM_operatortype_find(ami->op, false);
     if (ot) {
       if (ot->srna != ami->op_properties_ptr->type) {
         /* Matches wm_xr_actionmap_item_properties_set() but doesn't alloc new ptr. */
@@ -233,7 +233,7 @@ void WM_xr_actionmap_item_properties_update_ot(XrActionMapItem *ami)
         if (ami->op_properties) {
           ami->op_properties_ptr->data = ami->op_properties;
         }
-        WM_operator_properties_sanitize(ami->op_properties_ptr, 1);
+        WM_operator_properties_sanitize(ami->op_properties_ptr, true);
       }
     }
     else {

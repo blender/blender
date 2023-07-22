@@ -389,7 +389,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 
   PropertyRNA *prop;
   prop = RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected objects");
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
@@ -524,9 +524,9 @@ void OBJECT_OT_hide_collection(wmOperatorType *ot)
                      0,
                      INT_MAX);
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
-  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle visibility");
+  prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle", "Toggle visibility");
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend visibility");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend visibility");
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
@@ -1865,7 +1865,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
   RNA_def_enum_funcs(ot->prop, object_mode_set_itemf);
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+  prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

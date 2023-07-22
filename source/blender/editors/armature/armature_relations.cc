@@ -88,7 +88,7 @@ static void joined_armature_fix_links_constraints(Main *bmain,
         }
       }
 
-      BKE_constraint_targets_flush(con, &targets, 0);
+      BKE_constraint_targets_flush(con, &targets, false);
     }
 
     /* action constraint? (pose constraints only) */
@@ -490,7 +490,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
               }
             }
 
-            BKE_constraint_targets_flush(con, &targets, 0);
+            BKE_constraint_targets_flush(con, &targets, false);
           }
         }
       }
@@ -523,7 +523,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
             }
           }
 
-          BKE_constraint_targets_flush(con, &targets, 0);
+          BKE_constraint_targets_flush(con, &targets, false);
         }
       }
     }

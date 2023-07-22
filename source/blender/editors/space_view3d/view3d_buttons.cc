@@ -1457,7 +1457,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     col = uiLayoutColumn(panel->layout, true);
     row = uiLayoutRow(col, true);
 
-    ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", 1);
+    ot = WM_operatortype_find("OBJECT_OT_vertex_weight_normalize_active_vertex", true);
     but = uiDefButO_ptr(
         block,
         UI_BTYPE_BUT,
@@ -1473,7 +1473,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
 
-    ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", 1);
+    ot = WM_operatortype_find("OBJECT_OT_vertex_weight_copy", true);
     but = uiDefButO_ptr(
         block,
         UI_BTYPE_BUT,

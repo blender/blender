@@ -140,7 +140,7 @@ static void sphere_do(CastModifierData *cmd,
   /* 2) cmd->radius > 0.0f: only the vertices within this radius from
    * the center of the effect should be deformed */
   if (cmd->radius > FLT_EPSILON) {
-    has_radius = 1;
+    has_radius = true;
   }
 
   /* 3) if we were given a vertex group name,
@@ -263,7 +263,7 @@ static void cuboid_do(CastModifierData *cmd,
   /* 2) cmd->radius > 0.0f: only the vertices within this radius from
    * the center of the effect should be deformed */
   if (cmd->radius > FLT_EPSILON) {
-    has_radius = 1;
+    has_radius = true;
   }
 
   /* 3) if we were given a vertex group name,

@@ -414,7 +414,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
             }
           }
 
-          BKE_constraint_targets_flush(curcon, &targets, 0);
+          BKE_constraint_targets_flush(curcon, &targets, false);
         }
       }
     }
@@ -1459,7 +1459,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
           if (arm->flag & ARM_MIRROR_EDIT) {
             flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
             if (flipbone) {
-              forked_iter = 0; /* we extrude 2 different bones */
+              forked_iter = false; /* we extrude 2 different bones */
               if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED)) {
                 /* don't want this bone to be selected... */
                 flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -1599,7 +1599,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
+  RNA_def_boolean(ot->srna, "forked", false, "Forked", "");
 }
 
 /* ********************** Bone Add *************************************/

@@ -598,7 +598,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 
   WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, nullptr, true);
 
-  return 1;
+  return true;
 }
 
 static int walkEnd(bContext *C, WalkInfo *walk)

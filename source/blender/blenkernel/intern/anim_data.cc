@@ -1329,7 +1329,7 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
                                        const char *newName)
 {
   Main *bmain = G.main; /* XXX UGLY! */
-  BKE_animdata_fix_paths_rename_all_ex(bmain, ref_id, prefix, oldName, newName, 0, 0, 1);
+  BKE_animdata_fix_paths_rename_all_ex(bmain, ref_id, prefix, oldName, newName, 0, 0, true);
 }
 
 void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,

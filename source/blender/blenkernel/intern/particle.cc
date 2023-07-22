@@ -816,25 +816,25 @@ bool psys_check_enabled(Object *ob, ParticleSystem *psys, const bool use_render_
   ParticleSystemModifierData *psmd;
 
   if (psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE || !psys->part) {
-    return 0;
+    return false;
   }
 
   psmd = psys_get_modifier(ob, psys);
 
   if (!psmd) {
-    return 0;
+    return false;
   }
 
   if (use_render_params) {
     if (!(psmd->modifier.mode & eModifierMode_Render)) {
-      return 0;
+      return false;
     }
   }
   else if (!(psmd->modifier.mode & eModifierMode_Realtime)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool psys_check_edited(ParticleSystem *psys)
@@ -1658,7 +1658,7 @@ static void do_particle_interpolation(ParticleSystem *psys,
                             keys,
                             keytime,
                             result,
-                            1);
+                            true);
 
   /* the velocity needs to be converted back from cubic interpolation */
   if (pind->keyed || pind->cache || point_vel) {
@@ -2493,13 +2493,13 @@ bool do_guides(Depsgraph *depsgraph,
                               &radius,
                               &weight) == 0)
         {
-          return 0;
+          return false;
         }
       }
       else {
         if (BKE_where_on_path(eff->ob, guidetime, guidevec, guidedir, nullptr, &radius, &weight) ==
             0) {
-          return 0;
+          return false;
         }
       }
 
@@ -2603,9 +2603,9 @@ bool do_guides(Depsgraph *depsgraph,
     normalize_v3(veffect);
     mul_v3_fl(veffect, len_v3(state->vel));
     copy_v3_v3(state->vel, veffect);
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 static void do_path_effectors(ParticleSimulationData *sim,
@@ -4772,7 +4772,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
         /* get parent states */
         while (w < 4 && cpa->pa[w] >= 0) {
           keys[w].time = state->time;
-          psys_get_particle_on_path(sim, cpa->pa[w], keys + w, 1);
+          psys_get_particle_on_path(sim, cpa->pa[w], keys + w, true);
           w++;
         }
 
@@ -4817,7 +4817,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       else {
         /* get the parent state */
         keys->time = state->time;
-        psys_get_particle_on_path(sim, cpa->parent, keys, 1);
+        psys_get_particle_on_path(sim, cpa->parent, keys, true);
 
         /* get the original coordinates (orco) for texture usage */
         pa = psys->particles + cpa->parent;
@@ -4908,13 +4908,13 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
 
         if (t >= 0.001f) {
           tstate_tmp.time = t - 0.001f;
-          psys_get_particle_on_path(sim, p, &tstate_tmp, 0);
+          psys_get_particle_on_path(sim, p, &tstate_tmp, false);
           sub_v3_v3v3(state->vel, state->co, tstate_tmp.co);
           normalize_v3(state->vel);
         }
         else {
           tstate_tmp.time = t + 0.001f;
-          psys_get_particle_on_path(sim, p, &tstate_tmp, 0);
+          psys_get_particle_on_path(sim, p, &tstate_tmp, false);
           sub_v3_v3v3(state->vel, tstate_tmp.co, state->co);
           normalize_v3(state->vel);
         }
@@ -4966,7 +4966,7 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
       state->time = (cfra - (part->sta + (part->end - part->sta) * psys_frand(psys, p + 23))) /
                     (part->lifetime * psys_frand(psys, p + 24));
 
-      psys_get_particle_on_path(sim, p, state, 1);
+      psys_get_particle_on_path(sim, p, state, true);
       return true;
     }
 
@@ -4991,7 +4991,7 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
 
   if (sim->psys->flag & PSYS_KEYED) {
     state->time = -cfra;
-    psys_get_particle_on_path(sim, p, state, 1);
+    psys_get_particle_on_path(sim, p, state, true);
     return true;
   }
 
@@ -5061,7 +5061,7 @@ bool psys_get_particle_state(ParticleSimulationData *sim,
           mul_v3_fl(keys[1].vel, dfra * timestep);
           mul_v3_fl(keys[2].vel, dfra * timestep);
 
-          psys_interpolate_particle(-1, keys, keytime, state, 1);
+          psys_interpolate_particle(-1, keys, keytime, state, true);
 
           /* convert back to real velocity */
           mul_v3_fl(state->vel, 1.0f / (dfra * timestep));

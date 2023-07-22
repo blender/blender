@@ -605,16 +605,16 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
     depth = vd->depths[screen_co[1] * vd->w + screen_co[0]];
   }
   else {
-    return 0;
+    return false;
   }
 
   float win[3];
   ED_view3d_project_v3(data->vc.region, co, win);
 
   if (win[2] - 0.00001f > depth) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static bool key_inside_circle(const PEData *data, float rad, const float co[3], float *distance)
@@ -626,7 +626,7 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
   if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
       V3D_PROJ_RET_OK)
   {
-    return 0;
+    return false;
   }
 
   dx = data->mval[0] - screen_co[0];
@@ -634,7 +634,7 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
   dist = sqrtf(dx * dx + dy * dy);
 
   if (dist > rad) {
-    return 0;
+    return false;
   }
 
   if (key_test_depth(data, co, screen_co)) {
@@ -642,10 +642,10 @@ static bool key_inside_circle(const PEData *data, float rad, const float co[3], 
       *distance = dist;
     }
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static bool key_inside_rect(PEData *data, const float co[3])
@@ -655,7 +655,7 @@ static bool key_inside_rect(PEData *data, const float co[3])
   if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) !=
       V3D_PROJ_RET_OK)
   {
-    return 0;
+    return false;
   }
 
   if (screen_co[0] > data->rect->xmin && screen_co[0] < data->rect->xmax &&
@@ -664,7 +664,7 @@ static bool key_inside_rect(PEData *data, const float co[3])
     return key_test_depth(data, co, screen_co);
   }
 
-  return 0;
+  return false;
 }
 
 static bool key_inside_test(PEData *data, const float co[3])
@@ -680,14 +680,14 @@ static bool point_is_selected(PTCacheEditPoint *point)
   KEY_K;
 
   if (point->flag & PEP_HIDE) {
-    return 0;
+    return false;
   }
 
   LOOP_SELECTED_KEYS {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
@@ -2257,7 +2257,7 @@ void PARTICLE_OT_select_linked_pick(wmOperatorType *ot)
 
   /* properties */
   RNA_def_boolean(
-      ot->srna, "deselect", 0, "Deselect", "Deselect linked keys rather than selecting them");
+      ot->srna, "deselect", false, "Deselect", "Deselect linked keys rather than selecting them");
   RNA_def_int_vector(ot->srna, "location", 2, nullptr, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
@@ -2543,7 +2543,8 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
+  RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected");
 }
 
 /** \} */
@@ -2777,7 +2778,7 @@ static void rekey_particle(PEData *data, int pa_index)
   /* interpolate new keys from old ones */
   for (k = 1, key++; k < data->totrekey - 1; k++, key++) {
     state.time = float(k) / float(data->totrekey - 1);
-    psys_get_particle_on_path(&sim, pa_index, &state, 0);
+    psys_get_particle_on_path(&sim, pa_index, &state, false);
     copy_v3_v3(key->co, state.co);
     key->time = sta + k * dval;
   }
@@ -2879,7 +2880,7 @@ static void rekey_particle_to_time(
   /* interpolate new keys from old ones (roots stay the same) */
   for (k = 1, key++; k < pa->totkey; k++, key++) {
     state.time = path_time * float(k) / float(pa->totkey - 1);
-    psys_get_particle_on_path(&sim, pa_index, &state, 0);
+    psys_get_particle_on_path(&sim, pa_index, &state, false);
     copy_v3_v3(key->co, state.co);
   }
 
@@ -3146,7 +3147,7 @@ static void subdivide_particle(PEData *data, int pa_index)
     if (ekey->flag & PEK_SELECT && (ekey + 1)->flag & PEK_SELECT) {
       nkey->time = (key->time + (key + 1)->time) * 0.5f;
       state.time = (endtime != 0.0f) ? nkey->time / endtime : 0.0f;
-      psys_get_particle_on_path(&sim, pa_index, &state, 0);
+      psys_get_particle_on_path(&sim, pa_index, &state, false);
       copy_v3_v3(nkey->co, state.co);
 
       nekey->co = nkey->co;
@@ -4652,7 +4653,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
           thkey->time = pa->time + k * framestep;
 
           key3[0].time = thkey->time / 100.0f;
-          psys_get_particle_on_path(&sim, ptn[0].index, key3, 0);
+          psys_get_particle_on_path(&sim, ptn[0].index, key3, false);
           mul_v3_fl(key3[0].co, weight[0]);
 
           /* TODO: interpolating the weight would be nicer */
@@ -4660,13 +4661,13 @@ static int brush_add(const bContext *C, PEData *data, short number)
 
           if (maxw > 1) {
             key3[1].time = key3[0].time;
-            psys_get_particle_on_path(&sim, ptn[1].index, &key3[1], 0);
+            psys_get_particle_on_path(&sim, ptn[1].index, &key3[1], false);
             mul_v3_fl(key3[1].co, weight[1]);
             add_v3_v3(key3[0].co, key3[1].co);
 
             if (maxw > 2) {
               key3[2].time = key3[0].time;
-              psys_get_particle_on_path(&sim, ptn[2].index, &key3[2], 0);
+              psys_get_particle_on_path(&sim, ptn[2].index, &key3[2], false);
               mul_v3_fl(key3[2].co, weight[2]);
               add_v3_v3(key3[0].co, key3[2].co);
             }
@@ -5596,7 +5597,7 @@ static int clear_edited_exec(bContext *C, wmOperator * /*op*/)
   ParticleSystem *psys = psys_get_current(ob);
 
   if (psys->edit) {
-    if (/*psys->edit->edited ||*/ 1) {
+    if (/*psys->edit->edited ||*/ true) {
       PE_free_ptcache_edit(psys->edit);
 
       psys->edit = nullptr;

@@ -2644,7 +2644,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "use_subsurf_data",
-      0,
+      false,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
   RNA_def_enum(ot->srna,

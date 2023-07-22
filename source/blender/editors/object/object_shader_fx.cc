@@ -120,7 +120,7 @@ static bool object_shaderfx_remove(Main *bmain,
    * get called twice on same effect, so make
    * sure it is in list. */
   if (BLI_findindex(&ob->shader_fx, fx) == -1) {
-    return 0;
+    return false;
   }
 
   DEG_relations_tag_update(bmain);
@@ -129,7 +129,7 @@ static bool object_shaderfx_remove(Main *bmain,
   BKE_shaderfx_free(fx);
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, ShaderFxData *fx)
@@ -141,13 +141,13 @@ bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, Sha
 
   if (!ok) {
     BKE_reportf(reports, RPT_ERROR, "Effect '%s' not in object '%s'", fx->name, ob->id.name);
-    return 0;
+    return false;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
 
-  return 1;
+  return true;
 }
 
 void ED_object_shaderfx_clear(Main *bmain, Object *ob)

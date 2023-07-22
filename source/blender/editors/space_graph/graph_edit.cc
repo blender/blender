@@ -1274,20 +1274,20 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.1);
   RNA_def_boolean(ot->srna,
                   "use_accumulate",
-                  0,
+                  false,
                   "Accumulate",
                   "Only the positive differences of the hull curve amplitudes are summarized to "
                   "produce the output");
   RNA_def_boolean(
       ot->srna,
       "use_additive",
-      0,
+      false,
       "Additive",
       "The amplitudes of the hull curve are summarized (or, when Accumulate is enabled, "
       "both positive and negative differences are accumulated)");
   RNA_def_boolean(ot->srna,
                   "use_square",
-                  0,
+                  false,
                   "Square",
                   "The output is a square curve (negative values always result in -1, and "
                   "positive ones in 1)");
@@ -2140,10 +2140,10 @@ static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
     memset(&current_ked, 0, sizeof(current_ked));
 
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, true);
       ANIM_fcurve_keyframes_loop(
           &current_ked, static_cast<FCurve *>(ale->key_data), nullptr, bezt_calc_average, nullptr);
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 1);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, true);
     }
     else {
       ANIM_fcurve_keyframes_loop(
@@ -2456,12 +2456,12 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 
     /* Perform snapping. */
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
       ANIM_fcurve_keyframes_loop(
           &ked, static_cast<FCurve *>(ale->key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
       BKE_fcurve_merge_duplicate_keys(
           static_cast<FCurve *>(ale->key_data), BEZT_FLAG_TEMP_TAG, use_handle);
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
     }
     else {
       ANIM_fcurve_keyframes_loop(
@@ -2773,10 +2773,10 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 
     /* Perform actual mirroring. */
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
       ANIM_fcurve_keyframes_loop(
           &ked, static_cast<FCurve *>(ale->key_data), nullptr, edit_cb, BKE_fcurve_handles_recalc);
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
     }
     else {
       ANIM_fcurve_keyframes_loop(
@@ -3047,7 +3047,7 @@ static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
     FCurve *fcu = (FCurve *)ale->data;
 
     /* TODO: When 'active' vs 'all' boolean is added, change last param! (Joshua Leung 2010) */
-    ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, 0);
+    ok = ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, false);
 
     /* Free temp data now. */
     MEM_freeN(ale);

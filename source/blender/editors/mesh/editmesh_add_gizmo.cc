@@ -216,7 +216,7 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
       copy_v3_v3(gz->matrix_basis[3], location);
     }
 
-    if (1) {
+    if (true) {
       wmGizmoMap *gzmap = gzgroup->parent_gzmap;
       WM_gizmo_modal_set_from_setup(gzmap,
                                     (bContext *)C,

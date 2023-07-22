@@ -4367,11 +4367,11 @@ static void rna_def_userdef_addon_pref(BlenderRNA *brna)
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
 
   /* registration */
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "module");
   RNA_def_property_flag(prop, PROP_REGISTER);
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE;
 }

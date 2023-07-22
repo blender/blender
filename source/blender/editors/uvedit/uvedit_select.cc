@@ -4542,7 +4542,7 @@ void UV_OT_select_overlap(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "extend",
-                  0,
+                  false,
                   "Extend",
                   "Extend selection rather than clearing the existing selection");
 }

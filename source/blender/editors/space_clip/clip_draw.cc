@@ -2003,6 +2003,6 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
     }
   }
   else {
-    ED_annotation_draw_view2d(C, 0);
+    ED_annotation_draw_view2d(C, false);
   }
 }

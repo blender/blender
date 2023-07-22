@@ -636,7 +636,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
   /* rna */
   RNA_def_boolean(ot->srna,
                   "use_offset",
-                  1,
+                  true,
                   "Offset",
                   "If the selection should be snapped as a whole or by each object center");
 }
@@ -766,7 +766,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float r_vec[3])
 
     LISTBASE_FOREACH (const MovieTrackingTrack *, track, &tracking_object->tracks) {
       if ((track->flag & TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
-        ok = 1;
+        ok = true;
         mul_v3_m4v3(pos, obmat, track->bundle_pos);
         minmax_v3v3_v3(min, max, pos);
       }

@@ -177,7 +177,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
    *
    * This is only an issue for `Unix Makefiles`, `Ninja` generator doesn't have this problem. */
 
-  if (1) {
+  if (true) {
     /* First check if `makesrna.cc` is newer than generated files.
      * For development on `makesrna.cc` you may want to disable this. */
     if (file_older(orgfile, makesrna_source_filepath)) {
@@ -3912,7 +3912,7 @@ static void rna_generate_struct_prototypes(FILE *f)
 static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, PropertyRNA *prop)
 {
   char *strnest = (char *)"", *errnest = (char *)"";
-  bool freenest = 0;
+  bool freenest = false;
 
   if (nest != nullptr) {
     int len = strlen(nest);
@@ -3928,7 +3928,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     errnest[0] = '.';
     memcpy(errnest + 1, nest, len + 1);
 
-    freenest = 1;
+    freenest = true;
   }
 
   switch (prop->type) {

@@ -2412,8 +2412,11 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   /* optional */
-  RNA_def_boolean(
-      func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+  RNA_def_boolean(func,
+                  "fast",
+                  false,
+                  "Fast",
+                  "Fast keyframe removal to avoid recalculating the curve each time");
 
   func = RNA_def_function(srna, "clear", "rna_FKeyframe_points_clear");
   RNA_def_function_ui_description(func, "Remove all keyframes from an F-Curve");

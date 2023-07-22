@@ -52,7 +52,7 @@ uiListType *WM_uilisttype_find(const char *idname, bool quiet)
 bool WM_uilisttype_add(uiListType *ult)
 {
   BLI_ghash_insert(uilisttypes_hash, ult->idname, ult);
-  return 1;
+  return true;
 }
 
 static void wm_uilisttype_unlink_from_region(const uiListType *ult, ARegion *region)

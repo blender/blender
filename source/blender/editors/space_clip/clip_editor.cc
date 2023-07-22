@@ -902,7 +902,7 @@ static void start_prefetch_threads(MovieClip *clip,
   queue.end_frame = end_frame;
   queue.render_size = render_size;
   queue.render_flag = render_flag;
-  queue.forward = 1;
+  queue.forward = true;
 
   queue.stop = stop;
   queue.do_update = do_update;

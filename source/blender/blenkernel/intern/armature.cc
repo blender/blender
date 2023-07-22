@@ -2611,7 +2611,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
       }
       /* 5. otherwise just call the normal solver */
       else if (!(pchan->flag & POSE_DONE)) {
-        BKE_pose_where_is_bone(depsgraph, scene, ob, pchan, ctime, 1);
+        BKE_pose_where_is_bone(depsgraph, scene, ob, pchan, ctime, true);
       }
     }
     /* 6. release the IK tree */

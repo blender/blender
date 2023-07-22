@@ -511,7 +511,7 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "ClothSolverResult", nullptr);
   RNA_def_struct_ui_text(srna, "Solver Result", "Result of cloth solver iteration");
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "status", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, status_items);
@@ -550,7 +550,7 @@ static void rna_def_cloth_solver_result(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Average Iterations", "Average iterations during substeps");
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_cloth_sim_settings(BlenderRNA *brna)

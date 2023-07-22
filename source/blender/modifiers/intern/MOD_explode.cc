@@ -1026,7 +1026,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_birth_coords(&sim, pa, &birth, 0, 0);
 
       state.time = ctime;
-      psys_get_particle_state(&sim, ed_v2, &state, 1);
+      psys_get_particle_state(&sim, ed_v2, &state, true);
 
       vertco = explode_positions[v];
       mul_m4_v3(ctx->object->object_to_world, vertco);

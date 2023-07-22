@@ -1584,7 +1584,7 @@ static void emit_from_particles(Object *flow_ob,
       /* `DEG_get_ctime(depsgraph)` does not give sub-frame time. */
       state.time = BKE_scene_ctime_get(scene);
 
-      if (psys_get_particle_state(&sim, p, &state, 0) == 0) {
+      if (psys_get_particle_state(&sim, p, &state, false) == 0) {
         continue;
       }
 
@@ -4570,21 +4570,21 @@ void BKE_fluid_domain_type_set(Object *object, FluidDomainSettings *settings, in
   /* Set values for border collision:
    * Liquids should have a closed domain, smoke domains should be open. */
   if (type == FLUID_DOMAIN_TYPE_GAS) {
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 1);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 1);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, true);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, true);
     object->dt = OB_WIRE;
   }
   else if (type == FLUID_DOMAIN_TYPE_LIQUID) {
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, 0);
-    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, 0);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_FRONT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BACK, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_RIGHT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_LEFT, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_TOP, false);
+    BKE_fluid_collisionextents_set(settings, FLUID_DOMAIN_BORDER_BOTTOM, false);
     object->dt = OB_SOLID;
   }
 

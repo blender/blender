@@ -2096,7 +2096,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "reset_to_base_pose", "rna_XrSessionState_reset_to_base_pose");
@@ -2112,7 +2112,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "actionmap", "XrActionMap", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "action_create", "rna_XrSessionState_action_create");
@@ -2124,7 +2124,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "actionmap_item", "XrActionMapItem", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(
@@ -2139,7 +2139,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "actionmap_binding", "XrActionMapBinding", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(
@@ -2150,7 +2150,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func, "action_set", nullptr, MAX_NAME, "Action Set", "Action set name");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(
@@ -2175,7 +2175,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
                         "Aim Action",
                         "Name of the action representing the controller aims");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "action_state_get", "rna_XrSessionState_action_state_get");
@@ -2253,7 +2253,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
                        0.0f,
                        1.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "haptic_action_stop", "rna_XrSessionState_haptic_action_stop");

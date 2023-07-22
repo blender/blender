@@ -508,7 +508,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     case EVT_CKEY:
       if (event->modifier & KM_CTRL) {
         /* Copy current `str` to the copy/paste buffer. */
-        WM_clipboard_text_set(n->str, 0);
+        WM_clipboard_text_set(n->str, false);
         updated = true;
       }
       break;

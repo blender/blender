@@ -548,7 +548,7 @@ void BKE_lattice_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
     if (is_editmode && !(md->mode & eModifierMode_Editmode)) {
       continue;
     }
-    if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+    if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
       continue;
     }
     if (mti->type != eModifierTypeType_OnlyDeform) {

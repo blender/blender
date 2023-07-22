@@ -2135,7 +2135,7 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Event", "Window Manager Event");
   RNA_def_struct_sdna(srna, "wmEvent");
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* strings */
   prop = RNA_def_property(srna, "ascii", PROP_STRING, PROP_NONE);
@@ -2301,7 +2301,7 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "OS Key", "True when the Cmd key is held");
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_timer(BlenderRNA *brna)
@@ -2313,7 +2313,7 @@ static void rna_def_timer(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Timer", "Window event timer");
   RNA_def_struct_sdna(srna, "wmTimer");
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* could wrap more, for now this is enough */
   prop = RNA_def_property(srna, "time_step", PROP_FLOAT, PROP_NONE);
@@ -2331,7 +2331,7 @@ static void rna_def_timer(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_popup_menu_wrapper(BlenderRNA *brna,
@@ -2347,14 +2347,14 @@ static void rna_def_popup_menu_wrapper(BlenderRNA *brna,
   RNA_def_struct_ui_text(srna, rna_type, "");
   RNA_def_struct_sdna(srna, c_type);
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* could wrap more, for now this is enough */
   prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "UILayout");
   RNA_def_property_pointer_funcs(prop, layout_get_fn, nullptr, nullptr, nullptr);
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_popupmenu(BlenderRNA *brna)
@@ -2613,11 +2613,11 @@ static void rna_def_keyconfig_prefs(BlenderRNA *brna)
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
   /* registration */
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "idname");
   RNA_def_property_flag(prop, PROP_REGISTER);
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_keyconfig(BlenderRNA *brna)

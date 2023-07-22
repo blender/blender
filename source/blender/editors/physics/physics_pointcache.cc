@@ -162,7 +162,7 @@ static void ptcache_job_endjob(void *customdata)
 static void ptcache_free_bake(PointCache *cache)
 {
   if (cache->edit) {
-    if (!cache->edit->edited || 1) {  // XXX okee("Lose changes done in particle mode?")) {
+    if (!cache->edit->edited || true) {  // XXX okee("Lose changes done in particle mode?")) {
       PE_free_ptcache_edit(cache->edit);
       cache->edit = nullptr;
       cache->flag &= ~PTCACHE_BAKED;
@@ -184,8 +184,8 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
   /* Depsgraph is used to sweep the frame range and evaluate scene at different times. */
   baker->depsgraph = CTX_data_depsgraph_pointer(C);
   baker->bake = RNA_boolean_get(op->ptr, "bake");
-  baker->render = 0;
-  baker->anim_init = 0;
+  baker->render = false;
+  baker->anim_init = false;
   baker->quick_step = 1;
 
   if (!all) {
@@ -306,7 +306,7 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
+  RNA_def_boolean(ot->srna, "bake", true, "Bake", "");
 }
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
@@ -364,7 +364,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
+  RNA_def_boolean(ot->srna, "bake", false, "Bake", "");
 }
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {

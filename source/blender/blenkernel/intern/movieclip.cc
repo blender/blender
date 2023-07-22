@@ -1071,7 +1071,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, MovieDistortion *distortion,
 
   if (distortion) {
     undistibuf = BKE_tracking_distortion_exec(
-        distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
+        distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, true);
   }
   else {
     undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
@@ -1084,7 +1084,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, MovieDistortion *distortion,
 
 static bool need_undistortion_postprocess(const MovieClipUser *user, int clip_flag)
 {
-  bool result = 0;
+  bool result = false;
   const bool uses_full_frame = ((clip_flag & MCLIP_USE_PROXY) == 0) ||
                                (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL);
   /* Only full undistorted render can be used as on-fly undistorting image. */
@@ -1208,7 +1208,7 @@ static ImBuf *postprocess_frame(
     bool grayscale = (postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE) != 0;
 
     if (disable_red || disable_green || disable_blue || grayscale) {
-      BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
+      BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, true);
     }
   }
 

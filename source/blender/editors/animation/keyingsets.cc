@@ -63,7 +63,7 @@ static bool keyingset_poll_active_edit(bContext *C)
   Scene *scene = CTX_data_scene(C);
 
   if (scene == nullptr) {
-    return 0;
+    return false;
   }
 
   /* there must be an active KeyingSet (and KeyingSets) */
@@ -77,10 +77,10 @@ static bool keyingset_poll_activePath_edit(bContext *C)
   KeyingSet *ks;
 
   if (scene == nullptr) {
-    return 0;
+    return false;
   }
   if (scene->active_keyingset <= 0) {
-    return 0;
+    return false;
   }
 
   ks = static_cast<KeyingSet *>(BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
@@ -369,7 +369,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Add all elements of the array to a Keying Set");
 }
 
 /* Remove from KeyingSet Button Operator ------------------------ */
@@ -889,7 +889,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 
     /* get the associated 'type info' for this KeyingSet */
     if (ksi == nullptr) {
-      return 0;
+      return false;
     }
     /* TODO: check for missing callbacks! */
 

@@ -85,7 +85,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *home = BLI_getenv("HOME");
 #  endif
   if (!home) {
-    return 0;
+    return false;
   }
   s += BLI_strncpy_rlen(s, home, FILE_MAX);
 
@@ -106,13 +106,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
       subdir = SEP_STR THUMBNAILS SEP_STR "fail" SEP_STR "blender" SEP_STR;
       break;
     default:
-      return 0; /* unknown size */
+      return false; /* unknown size */
   }
 
   s += BLI_strncpy_rlen(s, subdir, FILE_MAX - (s - dir));
   (void)s;
 
-  return 1;
+  return true;
 }
 
 #undef THUMBNAILS
@@ -249,7 +249,7 @@ static bool uri_from_filename(const char *path, char *uri)
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
 
-  return 1;
+  return true;
 }
 
 static bool thumbpathname_from_uri(const char *uri,

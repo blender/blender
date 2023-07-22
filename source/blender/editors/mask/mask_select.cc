@@ -823,7 +823,7 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "");
 }
 
 /** \} */

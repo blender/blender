@@ -1582,7 +1582,7 @@ bool IMB_scaleImBuf(ImBuf *ibuf, uint newx, uint newy)
 
   /* try to scale common cases in a fast way */
   /* disabled, quality loss is unacceptable, see report #18609  (ton) */
-  if (0 && q_scale_linear_interpolation(ibuf, newx, newy)) {
+  if (false && q_scale_linear_interpolation(ibuf, newx, newy)) {
     return true;
   }
 

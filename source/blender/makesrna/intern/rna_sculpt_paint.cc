@@ -1151,7 +1151,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Check if required texpaint data exist");
 
   /* return type */
-  RNA_def_function_return(func, RNA_def_boolean(func, "ok", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "ok", true, "", ""));
 
   /* booleans */
   prop = RNA_def_property(srna, "use_occlude", PROP_BOOLEAN, PROP_NONE);

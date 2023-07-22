@@ -116,10 +116,10 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
         MEM_freeN(filename);
 
         /* Do Import. */
-        WM_cursor_wait(1);
+        WM_cursor_wait(true);
         RNA_string_get(&itemptr, "name", params.filename);
         const bool done = gpencil_io_import(file_path, &params);
-        WM_cursor_wait(0);
+        WM_cursor_wait(false);
         if (!done) {
           BKE_reportf(op->reports, RPT_WARNING, "Unable to import '%s'", file_path);
         }

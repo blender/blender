@@ -78,14 +78,14 @@ void RNA_api_curve(StructRNA *srna)
   RNA_def_function_ui_description(func, "Transform curve by a matrix");
   parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
+  RNA_def_boolean(func, "shape_keys", false, "", "Transform Shape Keys");
 
   func = RNA_def_function(srna, "validate_material_indices", "BKE_curve_material_index_validate");
   RNA_def_function_ui_description(
       func,
       "Validate material indices of splines or letters, return True when the curve "
       "has had invalid indices corrected (to default 0)");
-  parm = RNA_def_boolean(func, "result", 0, "Result", "");
+  parm = RNA_def_boolean(func, "result", false, "Result", "");
   RNA_def_function_return(func, parm);
 
   RNA_def_function(srna, "update_gpu_tag", "rna_Curve_update_gpu_tag");

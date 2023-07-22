@@ -643,9 +643,12 @@ static void do_rough(const float loc[3],
 
   copy_v3_v3(rco, loc);
   mul_v3_fl(rco, t);
-  rough[0] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[0], rco[1], rco[2], 2, 0, 2);
-  rough[1] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[1], rco[2], rco[0], 2, 0, 2);
-  rough[2] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[2], rco[0], rco[1], 2, 0, 2);
+  rough[0] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[0], rco[1], rco[2], 2, false, 2);
+  rough[1] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[1], rco[2], rco[0], 2, false, 2);
+  rough[2] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[2], rco[0], rco[1], 2, false, 2);
 
   madd_v3_v3fl(state->co, mat[0], fac * rough[0]);
   madd_v3_v3fl(state->co, mat[1], fac * rough[1]);
@@ -687,9 +690,12 @@ static void do_rough_curve(const float loc[3],
 
   copy_v3_v3(rco, loc);
   mul_v3_fl(rco, time);
-  rough[0] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[0], rco[1], rco[2], 2, 0, 2);
-  rough[1] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[1], rco[2], rco[0], 2, 0, 2);
-  rough[2] = -1.0f + 2.0f * BLI_noise_generic_turbulence(size, rco[2], rco[0], rco[1], 2, 0, 2);
+  rough[0] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[0], rco[1], rco[2], 2, false, 2);
+  rough[1] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[1], rco[2], rco[0], 2, false, 2);
+  rough[2] = -1.0f +
+             2.0f * BLI_noise_generic_turbulence(size, rco[2], rco[0], rco[1], 2, false, 2);
 
   madd_v3_v3fl(state->co, mat[0], fac * rough[0]);
   madd_v3_v3fl(state->co, mat[1], fac * rough[1]);

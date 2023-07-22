@@ -297,7 +297,7 @@ void RNA_api_scene(StructRNA *srna)
                 0.0,
                 BVH_RAYCAST_DIST_MAX);
   /* return location and normal */
-  parm = RNA_def_boolean(func, "result", 0, "", "");
+  parm = RNA_def_boolean(func, "result", false, "", "");
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_vector(func,
                               "location",
@@ -431,7 +431,7 @@ void RNA_api_scene_render(StructRNA *srna)
               "Frame number to use, if unset the current frame will be used",
               MINAFRAME,
               MAXFRAME);
-  RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
+  RNA_def_boolean(func, "preview", false, "Preview", "Use preview range");
   RNA_def_string_file_path(func,
                            "view",
                            nullptr,

@@ -483,7 +483,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
       BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
         buf->loop_of_poly_index = i;
         buf->poly_index = a;
-        buf->separate = 0;
+        buf->separate = false;
 
         buf->next = vmap->vert[BM_elem_index_get(l->v)];
         vmap->vert[BM_elem_index_get(l->v)] = buf;
@@ -537,7 +537,7 @@ UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select)
         iterv = next;
       }
 
-      newvlist->separate = 1;
+      newvlist->separate = true;
     }
 
     vmap->vert[a] = newvlist;

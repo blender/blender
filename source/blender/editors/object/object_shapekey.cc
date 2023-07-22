@@ -105,7 +105,7 @@ static bool object_shape_key_mirror(
 
   key = BKE_key_from_object(ob);
   if (key == nullptr) {
-    return 0;
+    return false;
   }
 
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
@@ -207,7 +207,7 @@ static bool object_shape_key_mirror(
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -496,7 +496,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "use_topology",
-      0,
+      false,
       "Topology Mirror",
       "Use topology based mirroring (for when both sides of mesh have matching, unique topology)");
 }

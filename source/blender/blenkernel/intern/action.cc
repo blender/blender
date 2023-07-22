@@ -1004,7 +1004,7 @@ void BKE_pose_channels_remove(Object *ob,
               }
             }
 
-            BKE_constraint_targets_flush(con, &targets, 0);
+            BKE_constraint_targets_flush(con, &targets, false);
           }
         }
 

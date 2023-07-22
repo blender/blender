@@ -632,16 +632,16 @@ static bool fcu_test_selected(FCurve *fcu)
   uint i;
 
   if (bezt == nullptr) { /* ignore baked */
-    return 0;
+    return false;
   }
 
   for (i = 0; i < fcu->totvert; i++, bezt++) {
     if (BEZT_ISSEL_ANY(bezt)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* This function is called on recalcData to apply the transforms applied
@@ -1021,9 +1021,9 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
        */
       if ((sipo->flag & SIPO_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
         if (adt) {
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+          ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
           BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+          ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
         }
         else {
           BKE_fcurve_merge_duplicate_keys(fcu, BEZT_FLAG_TEMP_TAG, use_handle);

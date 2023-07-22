@@ -1433,7 +1433,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
   const bool is_rendering = G.is_rendering;
   const bool is_background = G.background;
-  const bool do_seq_gl = is_rendering ? 0 : (context->scene->r.seq_prev_type) != OB_RENDER;
+  const bool do_seq_gl = is_rendering ? false : (context->scene->r.seq_prev_type) != OB_RENDER;
   bool have_comp = false;
   bool use_gpencil = true;
   /* do we need to re-evaluate the frame after rendering? */

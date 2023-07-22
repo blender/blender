@@ -860,7 +860,7 @@ static bool elem_streq(const char *name, const char *oname)
 {
   int a = 0;
 
-  while (1) {
+  while (true) {
     if (name[a] != oname[a]) {
       return false;
     }

@@ -1028,7 +1028,7 @@ static void paint_2d_lift_soften(ImagePaintState *s,
       /* write into brush buffer */
       xo = out_off[0] + x;
       yo = out_off[1] + y;
-      paint_2d_ibuf_rgb_set(ibufb, xo, yo, 0, outrgb);
+      paint_2d_ibuf_rgb_set(ibufb, xo, yo, false, outrgb);
     }
   }
 }

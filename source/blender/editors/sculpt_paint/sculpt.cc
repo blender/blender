@@ -6006,7 +6006,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",
-                  0,
+                  false,
                   "Ignore Background Click",
                   "Clicks on the background do not start the stroke");
 }

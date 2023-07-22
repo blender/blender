@@ -2145,7 +2145,7 @@ bool BKE_gpencil_merge_materials(Object *ob,
   short *totcol = BKE_object_material_len_p(ob);
   if (totcol == 0) {
     *r_removed = 0;
-    return 0;
+    return false;
   }
 
   /* Review materials. */

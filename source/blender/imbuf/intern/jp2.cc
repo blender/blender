@@ -46,7 +46,7 @@ static bool check_jp2(const uchar *mem, const size_t size) /* J2K_CFMT */
   if (size < sizeof(JP2_HEAD)) {
     return false;
   }
-  return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? 0 : 1;
+  return memcmp(JP2_HEAD, mem, sizeof(JP2_HEAD)) ? false : true;
 }
 
 static bool check_j2k(const uchar *mem, const size_t size) /* J2K_CFMT */
@@ -54,7 +54,7 @@ static bool check_j2k(const uchar *mem, const size_t size) /* J2K_CFMT */
   if (size < sizeof(J2K_HEAD)) {
     return false;
   }
-  return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? 0 : 1;
+  return memcmp(J2K_HEAD, mem, sizeof(J2K_HEAD)) ? false : true;
 }
 
 static OPJ_CODEC_FORMAT format_from_header(const uchar mem[JP2_FILEHEADER_SIZE], const size_t size)
@@ -444,7 +444,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   ibuf->ftype = IMB_FTYPE_JP2;
-  if (1 /* is_jp2 */) {
+  if (true /* is_jp2 */) {
     ibuf->foptions.flag |= JP2_JP2;
   }
   else {
@@ -1188,7 +1188,7 @@ bool imb_save_jp2(ImBuf *ibuf, const char *filepath, int flags)
   opj_stream_t *stream = opj_stream_create_from_file(
       filepath, OPJ_J2K_STREAM_CHUNK_SIZE, false, nullptr);
   if (stream == nullptr) {
-    return 0;
+    return false;
   }
   const bool ok = imb_save_jp2_stream(ibuf, stream, flags);
   opj_stream_destroy(stream);

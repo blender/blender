@@ -3410,7 +3410,7 @@ static int pyrna_struct_contains(BPy_StructRNA *self, PyObject *value)
     return -1;
   }
 
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, false);
 
   if (!group) {
     return 0;
@@ -3480,7 +3480,7 @@ static PyObject *pyrna_struct_subscript(BPy_StructRNA *self, PyObject *key)
     return nullptr;
   }
 
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, false);
 
   if (group == nullptr) {
     PyErr_Format(PyExc_KeyError, "bpy_struct[key]: key \"%s\" not found", name);
@@ -3501,7 +3501,7 @@ static int pyrna_struct_ass_subscript(BPy_StructRNA *self, PyObject *key, PyObje
 {
   PYRNA_STRUCT_CHECK_INT(self);
 
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 1);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, true);
 
 #ifdef USE_PEDANTIC_WRITE
   if (rna_disallow_writes && rna_id_write_error(&self->ptr, key)) {
@@ -3557,7 +3557,7 @@ static PyObject *pyrna_struct_keys(BPy_StructRNA *self)
   }
 
   /* `group` may be nullptr. */
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, false);
   return BPy_Wrap_GetKeys_View_WithID(self->ptr.owner_id, group);
 }
 
@@ -3580,7 +3580,7 @@ static PyObject *pyrna_struct_items(BPy_StructRNA *self)
   }
 
   /* `group` may be nullptr. */
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, false);
   return BPy_Wrap_GetItems_View_WithID(self->ptr.owner_id, group);
 }
 
@@ -3604,7 +3604,7 @@ static PyObject *pyrna_struct_values(BPy_StructRNA *self)
   }
 
   /* `group` may be nullptr. */
-  IDProperty *group = RNA_struct_idprops(&self->ptr, 0);
+  IDProperty *group = RNA_struct_idprops(&self->ptr, false);
   return BPy_Wrap_GetValues_View_WithID(self->ptr.owner_id, group);
 }
 
@@ -5074,7 +5074,7 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  group = RNA_struct_idprops(&self->ptr, 0);
+  group = RNA_struct_idprops(&self->ptr, false);
   if (group) {
     idprop = IDP_GetPropertyFromGroup(group, key);
 
@@ -5117,7 +5117,7 @@ static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
     return nullptr;
   }
 
-  group = RNA_struct_idprops(&self->ptr, 0);
+  group = RNA_struct_idprops(&self->ptr, false);
   if (group) {
     idprop = IDP_GetPropertyFromGroup(group, key);
 
@@ -5374,36 +5374,36 @@ static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, con
   switch (raw_type) {
     case PROP_RAW_CHAR:
       if (attr_signed) {
-        return (f == 'b') ? 1 : 0;
+        return (f == 'b') ? true : false;
       }
       else {
-        return (f == 'B') ? 1 : 0;
+        return (f == 'B') ? true : false;
       }
     case PROP_RAW_SHORT:
       if (attr_signed) {
-        return (f == 'h') ? 1 : 0;
+        return (f == 'h') ? true : false;
       }
       else {
-        return (f == 'H') ? 1 : 0;
+        return (f == 'H') ? true : false;
       }
     case PROP_RAW_INT:
       if (attr_signed) {
-        return (f == 'i') ? 1 : 0;
+        return (f == 'i') ? true : false;
       }
       else {
-        return (f == 'I') ? 1 : 0;
+        return (f == 'I') ? true : false;
       }
     case PROP_RAW_BOOLEAN:
-      return (f == '?') ? 1 : 0;
+      return (f == '?') ? true : false;
     case PROP_RAW_FLOAT:
-      return (f == 'f') ? 1 : 0;
+      return (f == 'f') ? true : false;
     case PROP_RAW_DOUBLE:
-      return (f == 'd') ? 1 : 0;
+      return (f == 'd') ? true : false;
     case PROP_RAW_UNSET:
-      return 0;
+      return false;
   }
 
-  return 0;
+  return false;
 }
 
 static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)

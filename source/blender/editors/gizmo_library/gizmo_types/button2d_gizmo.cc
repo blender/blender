@@ -298,7 +298,7 @@ static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2
 {
   float point_local[2];
 
-  if (0) {
+  if (false) {
     /* correct, but unnecessarily slow. */
     if (gizmo_window_project_2d(
             C, gz, blender::float2{blender::int2(mval)}, 2, true, point_local) == false)

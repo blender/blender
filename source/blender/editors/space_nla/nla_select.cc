@@ -421,10 +421,10 @@ void NLA_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+  RNA_def_boolean(ot->srna, "axis_range", false, "Axis Range", "");
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   WM_operator_properties_gesture_box(ot);
@@ -591,7 +591,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
       ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -730,7 +730,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); /* SHIFTKEY */
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,

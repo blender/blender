@@ -617,6 +617,6 @@ void MESH_OT_inset(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "use_interpolate", true, "Interpolate", "Blend face data across the inset");
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

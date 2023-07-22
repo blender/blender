@@ -211,9 +211,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   }
 
   if ((filter & FILE_TYPE_IMAGE) || (filter & FILE_TYPE_MOVIE)) {
-    prop = RNA_def_boolean(ot->srna, "show_multiview", 0, "Enable Multi-View", "");
+    prop = RNA_def_boolean(ot->srna, "show_multiview", false, "Enable Multi-View", "");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-    prop = RNA_def_boolean(ot->srna, "use_multiview", 0, "Use Multi-View", "");
+    prop = RNA_def_boolean(ot->srna, "use_multiview", false, "Use Multi-View", "");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 

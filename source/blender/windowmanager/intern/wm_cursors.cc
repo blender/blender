@@ -141,11 +141,11 @@ void WM_cursor_set(wmWindow *win, int curs)
   }
 
   if (curs == WM_CURSOR_NONE) {
-    GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin), 0);
+    GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin), false);
     return;
   }
 
-  GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin), 1);
+  GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin), true);
 
   if (win->cursor == curs) {
     return; /* Cursor is already set */
@@ -328,22 +328,22 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 
     if (event->type == EVT_UPARROWKEY) {
       wm_cursor_warp_relative(win, 0, fac);
-      return 1;
+      return true;
     }
     if (event->type == EVT_DOWNARROWKEY) {
       wm_cursor_warp_relative(win, 0, -fac);
-      return 1;
+      return true;
     }
     if (event->type == EVT_LEFTARROWKEY) {
       wm_cursor_warp_relative(win, -fac, 0);
-      return 1;
+      return true;
     }
     if (event->type == EVT_RIGHTARROWKEY) {
       wm_cursor_warp_relative(win, fac, 0);
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 void WM_cursor_time(wmWindow *win, int nr)

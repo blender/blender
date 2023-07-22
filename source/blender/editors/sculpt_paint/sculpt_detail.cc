@@ -214,7 +214,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   float depth = SCULPT_raycast_init(vc, mval_fl, ray_start, ray_end, ray_normal, false);
 
   SculptDetailRaycastData srd;
-  srd.hit = 0;
+  srd.hit = false;
   srd.ray_start = ray_start;
   srd.depth = depth;
   srd.edge_length = 0.0f;

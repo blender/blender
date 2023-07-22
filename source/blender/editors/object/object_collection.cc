@@ -227,7 +227,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
       CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
         BKE_collection_object_remove(bmain, collection, base->object, false);
         DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
-        ok = 1;
+        ok = true;
       }
       CTX_DATA_END;
     }

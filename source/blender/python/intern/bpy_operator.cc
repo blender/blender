@@ -218,7 +218,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   }
   else {
     WM_operator_properties_create_ptr(&ptr, ot);
-    WM_operator_properties_sanitize(&ptr, 0);
+    WM_operator_properties_sanitize(&ptr, false);
 
     if (kw && PyDict_Size(kw)) {
       error_val = pyrna_pydict_to_props(

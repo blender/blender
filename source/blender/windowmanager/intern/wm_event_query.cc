@@ -233,14 +233,14 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
     /* option on, so can exit with km-release */
     if (event->val == KM_RELEASE) {
       if ((init_event_val == KM_CLICK_DRAG) && (event->type == init_event_type)) {
-        return 1;
+        return true;
       }
     }
     else {
       /* If the initial event wasn't a drag event then
        * ignore #USER_RELEASECONFIRM setting: see #26756. */
       if (init_event_val != KM_CLICK_DRAG) {
-        return 1;
+        return true;
       }
     }
   }
@@ -248,11 +248,11 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
     /* This is fine as long as not doing km-release, otherwise some items (i.e. markers)
      * being tweaked may end up getting dropped all over. */
     if (event->val != KM_RELEASE) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool WM_event_is_mouse_drag(const wmEvent *event)

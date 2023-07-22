@@ -243,7 +243,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (snla->flag & SNLA_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);

@@ -832,12 +832,12 @@ static void curves_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 
   BKE_curvemapping_init(&cmd->curve_mapping);
 
-  BKE_curvemapping_premultiply(&cmd->curve_mapping, 0);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, false);
   BKE_curvemapping_set_black_white(&cmd->curve_mapping, black, white);
 
   modifier_apply_threaded(ibuf, mask, curves_apply_threaded, &cmd->curve_mapping);
 
-  BKE_curvemapping_premultiply(&cmd->curve_mapping, 1);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, true);
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {

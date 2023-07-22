@@ -203,7 +203,7 @@ static void action_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
 
   marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) |
                 DRAW_MARKERS_MARGIN;
@@ -241,7 +241,7 @@ static void action_main_region_draw_overlay(const bContext *C, ARegion *region)
   /* caches */
   if (saction->mode == SACTCONT_TIMELINE) {
     GPU_matrix_push_projection();
-    UI_view2d_view_orthoSpecial(region, v2d, 1);
+    UI_view2d_view_orthoSpecial(region, v2d, true);
     timeline_draw_cache(saction, obact, scene);
     GPU_matrix_pop_projection();
   }

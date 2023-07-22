@@ -1916,7 +1916,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
+  prop = RNA_def_boolean(ot->srna, "ring", true, "Select Ring", "Select ring");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

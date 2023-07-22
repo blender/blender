@@ -403,11 +403,11 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* easing extra */
     switch (bezt->ipo) {
       case BEZT_IPO_BACK:
-        col = uiLayoutColumn(layout, 1);
+        col = uiLayoutColumn(layout, true);
         uiItemR(col, &bezt_ptr, "back", 0, nullptr, 0);
         break;
       case BEZT_IPO_ELASTIC:
-        col = uiLayoutColumn(layout, 1);
+        col = uiLayoutColumn(layout, true);
         uiItemR(col, &bezt_ptr, "amplitude", 0, nullptr, 0);
         uiItemR(col, &bezt_ptr, "period", 0, nullptr, 0);
         break;

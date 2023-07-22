@@ -1008,7 +1008,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                       types[structtype],
                       namelen + 1,
                       cp);
-              dna_error = 1;
+              dna_error = true;
             }
 
             /* 4-8 aligned/ */
@@ -1018,7 +1018,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                         "Align pointer error in struct (size_native 4): %s %s\n",
                         types[structtype],
                         cp);
-                dna_error = 1;
+                dna_error = true;
               }
             }
             else {
@@ -1027,7 +1027,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                         "Align pointer error in struct (size_native 8): %s %s\n",
                         types[structtype],
                         cp);
-                dna_error = 1;
+                dna_error = true;
               }
             }
 
@@ -1036,7 +1036,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                       "Align pointer error in struct (size_64 8): %s %s\n",
                       types[structtype],
                       cp);
-              dna_error = 1;
+              dna_error = true;
             }
 
             size_native += sizeof(void *) * mul;
@@ -1052,7 +1052,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                     "Parse error in struct, invalid member name: %s %s\n",
                     types[structtype],
                     cp);
-            dna_error = 1;
+            dna_error = true;
           }
           else if (types_size_native[type]) {
             /* has the name an extra length? (array) */
@@ -1067,7 +1067,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                       types[structtype],
                       namelen + 1,
                       cp);
-              dna_error = 1;
+              dna_error = true;
             }
 
             /* struct alignment */
@@ -1082,16 +1082,16 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                         size_native,
                         sizeof(void *),
                         size_native % 8);
-                dna_error = 1;
+                dna_error = true;
               }
             }
 
             /* Check 2-4-8 aligned. */
             if (!check_field_alignment(firststruct, structtype, type, size_32, cp, "32 bit")) {
-              dna_error = 1;
+              dna_error = true;
             }
             if (!check_field_alignment(firststruct, structtype, type, size_64, cp, "64 bit")) {
-              dna_error = 1;
+              dna_error = true;
             }
 
             size_native += mul * types_size_native[type];
@@ -1142,7 +1142,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                       types[structtype],
                       max_align_32 - (size_32 % max_align_32));
             }
-            dna_error = 1;
+            dna_error = true;
           }
 
           if (size_64 % max_align_64) {
@@ -1150,7 +1150,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                     "Sizeerror in 64 bit struct: %s (add %d bytes)\n",
                     types[structtype],
                     max_align_64 - (size_64 % max_align_64));
-            dna_error = 1;
+            dna_error = true;
           }
 
           if (size_native % 4 && !ELEM(size_native, 1, 2)) {
@@ -1158,7 +1158,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
                     "Sizeerror 4 in struct: %s (add %d bytes)\n",
                     types[structtype],
                     size_native % 4);
-            dna_error = 1;
+            dna_error = true;
           }
 
           /* Write size verification to file. */
@@ -1204,7 +1204,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
       }
     }
 
-    dna_error = 1;
+    dna_error = true;
   }
 
   return dna_error;

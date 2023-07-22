@@ -217,7 +217,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
 
   tot_unique_prev = -1;
   tot_unique_edges_prev = -1;
-  while (1) {
+  while (true) {
     /* use the number of edges per vert to give verts unique topology IDs */
 
     tot_unique_edges = 0;

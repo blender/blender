@@ -847,7 +847,7 @@ void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
     /* if current strip occurs after the new strip, add it before */
     if (ns->start >= strip->start) {
       BLI_insertlinkbefore(strips, ns, strip);
-      not_added = 0;
+      not_added = false;
       break;
     }
   }

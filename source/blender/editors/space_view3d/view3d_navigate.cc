@@ -303,7 +303,7 @@ void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3D_OpPro
   if (flag & V3D_OP_PROP_USE_ALL_REGIONS) {
     PropertyRNA *prop;
     prop = RNA_def_boolean(
-        ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
+        ot->srna, "use_all_regions", false, "All Regions", "View selected for all regions");
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
   if (flag & V3D_OP_PROP_USE_MOUSE_INIT) {
@@ -1253,7 +1253,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 
   /* properties */
   view3d_operator_properties_common(ot, V3D_OP_PROP_USE_ALL_REGIONS);
-  RNA_def_boolean(ot->srna, "center", 0, "Center", "");
+  RNA_def_boolean(ot->srna, "center", false, "Center", "");
 }
 
 /** \} */
@@ -1380,7 +1380,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     BKE_paint_stroke_get_average(scene, ob_eval, min);
     copy_v3_v3(max, min);
     ok = true;
-    ok_dist = 0; /* don't zoom */
+    ok_dist = false; /* don't zoom */
   }
   else {
     LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
@@ -1391,7 +1391,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
           continue;
         }
         view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
-        ok = 1;
+        ok = true;
       }
     }
   }
@@ -1691,10 +1691,10 @@ void VIEW3D_OT_view_axis(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
 
   prop = RNA_def_boolean(
-      ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
+      ot->srna, "align_active", false, "Align Active", "Align to the active object's axis");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
-      ot->srna, "relative", 0, "Relative", "Rotate relative to the current orientation");
+      ot->srna, "relative", false, "Relative", "Rotate relative to the current orientation");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

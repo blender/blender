@@ -371,13 +371,13 @@ static bool objects_selectable_poll(bContext *C)
   Object *obact = CTX_data_active_object(C);
 
   if (CTX_data_edit_object(C)) {
-    return 0;
+    return false;
   }
   if (obact && obact->mode) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -778,7 +778,7 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
       }
 
       if (recursive) {
-        changed |= select_grouped_children(C, base->object, 1);
+        changed |= select_grouped_children(C, base->object, true);
       }
     }
   }
@@ -797,7 +797,7 @@ static bool select_grouped_parent(bContext *C)
 
   if (!basact || !(basact->object->parent)) {
     /* We know BKE_view_layer_active_object_get is valid. */
-    return 0;
+    return false;
   }
 
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -834,7 +834,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
   }
 
   if (!collection_count) {
-    return 0;
+    return false;
   }
   if (collection_count == 1) {
     collection = ob_collections[0];
@@ -1299,8 +1299,11 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(
-      ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  false,
+                  "Extend",
+                  "Extend selection instead of deselecting everything first");
 }
 
 /** \} */

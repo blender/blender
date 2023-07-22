@@ -1183,6 +1183,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
                "Vertex Mesh Method",
                "The method to use to create meshes at intersections");
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

@@ -311,7 +311,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   /* Modifier Icon. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
-  if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
+  if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
     uiLayoutSetRedAlert(sub, true);
   }
   uiItemStringO(sub,
@@ -331,7 +331,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   /* Display mode switching buttons. */
   if (ob->type == OB_MESH) {
     int last_cage_index;
-    int cage_index = BKE_modifiers_get_cage_index(scene, ob, &last_cage_index, 0);
+    int cage_index = BKE_modifiers_get_cage_index(scene, ob, &last_cage_index, false);
     if (BKE_modifier_supports_cage(scene, md) && (index <= last_cage_index)) {
       sub = uiLayoutRow(row, true);
       if (index < cage_index || !BKE_modifier_couldbe_cage(scene, md)) {

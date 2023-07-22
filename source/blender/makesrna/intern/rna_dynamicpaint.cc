@@ -633,7 +633,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   parm = RNA_def_int(func, "index", 0, 0, 1, "Index", "", 0, 1);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return type */
-  parm = RNA_def_boolean(func, "exists", 0, "", "");
+  parm = RNA_def_boolean(func, "exists", false, "", "");
   RNA_def_function_return(func, parm);
 
   prop = RNA_def_property(srna, "depth_clamp", PROP_FLOAT, PROP_NONE);

@@ -843,7 +843,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
   /* properties */
   RNA_def_enum(
       ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to");
-  RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear style rather than setting it");
+  RNA_def_boolean(ot->srna, "clear", false, "Clear", "Clear style rather than setting it");
 }
 
 /** \} */
@@ -1126,7 +1126,7 @@ void FONT_OT_text_paste(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna,
                          "selection",
-                         0,
+                         false,
                          "Selection",
                          "Paste text selected elsewhere rather than copied (X11/Wayland only)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1805,7 +1805,7 @@ void FONT_OT_text_insert(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "accent",
-      0,
+      false,
       "Accent Mode",
       "Next typed character will strike through previous, for special character input");
 }

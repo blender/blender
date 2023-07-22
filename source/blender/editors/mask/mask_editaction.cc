@@ -89,7 +89,7 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 {
   /* error checking */
   if (mask_layer == nullptr) {
-    return 0;
+    return false;
   }
 
   /* stop at the first one found */

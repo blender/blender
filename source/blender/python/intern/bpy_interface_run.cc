@@ -102,7 +102,7 @@ static bool python_script_exec(
   BLI_assert(filepath || text);
 
   if (filepath == nullptr && text == nullptr) {
-    return 0;
+    return false;
   }
 
   bpy_context_set(C, &gilstate);

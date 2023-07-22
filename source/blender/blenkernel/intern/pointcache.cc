@@ -229,7 +229,7 @@ static void ptcache_softbody_interpolate(int index,
   mul_v3_fl(keys[1].vel, dfra);
   mul_v3_fl(keys[2].vel, dfra);
 
-  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, true);
 
   mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -450,7 +450,7 @@ static void ptcache_particle_interpolate(int index,
   mul_v3_fl(keys[1].vel, dfra * timestep);
   mul_v3_fl(keys[2].vel, dfra * timestep);
 
-  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, 1);
+  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, &pa->state, true);
   interp_qt_qtqt(pa->state.rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
 
   mul_v3_fl(pa->state.vel, 1.0f / (dfra * timestep));
@@ -599,7 +599,7 @@ static void ptcache_cloth_interpolate(int index,
   mul_v3_fl(keys[1].vel, dfra);
   mul_v3_fl(keys[2].vel, dfra);
 
-  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+  psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, true);
 
   mul_v3_fl(keys->vel, 1.0f / dfra);
 
@@ -2838,7 +2838,7 @@ void BKE_ptcache_id_time(
 
       ptcache_path(pid, path);
 
-      len = ptcache_filepath(pid, filepath, int(cfra), 0, 0); /* no path */
+      len = ptcache_filepath(pid, filepath, int(cfra), false, false); /* no path */
 
       dir = opendir(path);
       if (dir == nullptr) {
@@ -3137,9 +3137,9 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene, ViewLayer *view_laye
   baker.bmain = bmain;
   baker.scene = scene;
   baker.view_layer = view_layer;
-  baker.bake = 0;
-  baker.render = 0;
-  baker.anim_init = 0;
+  baker.bake = false;
+  baker.render = false;
+  baker.anim_init = false;
   baker.quick_step = scene->physics_settings.quick_cache_step;
 
   BKE_ptcache_bake(&baker);

@@ -678,7 +678,7 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+  RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
 }
 
 static int face_select_all_exec(bContext *C, wmOperator *op)
@@ -985,7 +985,7 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected objects");
 }
 
 static int vert_select_hide_exec(bContext *C, wmOperator *op)
@@ -1008,8 +1008,11 @@ void PAINT_OT_vert_select_hide(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected vertices");
+  RNA_def_boolean(ot->srna,
+                  "unselected",
+                  false,
+                  "Unselected",
+                  "Hide unselected rather than selected vertices");
 }
 
 static int face_vert_reveal_exec(bContext *C, wmOperator *op)

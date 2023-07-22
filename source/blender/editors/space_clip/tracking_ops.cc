@@ -63,7 +63,7 @@ static bool add_marker(const bContext *C, float x, float y)
 
   track = BKE_tracking_track_add(tracking, &tracking_object->tracks, x, y, framenr, width, height);
 
-  BKE_tracking_track_select(&tracking_object->tracks, track, TRACK_AREA_ALL, 0);
+  BKE_tracking_track_select(&tracking_object->tracks, track, TRACK_AREA_ALL, false);
   BKE_tracking_plane_tracks_deselect_all(&tracking_object->plane_tracks);
 
   tracking_object->active_track = track;
@@ -891,7 +891,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
                "Clear action to execute");
   RNA_def_boolean(ot->srna,
                   "clear_active",
-                  0,
+                  false,
                   "Clear Active",
                   "Clear active track only instead of all selected tracks");
 }
@@ -1030,7 +1030,7 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
+  RNA_def_boolean(ot->srna, "unselected", false, "Unselected", "Hide unselected tracks");
 }
 
 /** \} */
@@ -1313,7 +1313,7 @@ static int average_tracks_exec(bContext *C, wmOperator *op)
   /* Update selection, making the result track active and selected. */
   /* TODO(sergey): Should become some sort of utility function available for all operators. */
 
-  BKE_tracking_track_select(&tracking_object->tracks, result_track, TRACK_AREA_ALL, 0);
+  BKE_tracking_track_select(&tracking_object->tracks, result_track, TRACK_AREA_ALL, false);
   BKE_tracking_plane_tracks_deselect_all(&tracking_object->plane_tracks);
 
   tracking_object->active_track = result_track;
@@ -1365,7 +1365,7 @@ void CLIP_OT_average_tracks(wmOperatorType *ot)
   /* Properties. */
   PropertyRNA *prop;
 
-  prop = RNA_def_boolean(ot->srna, "keep_original", 1, "Keep Original", "Keep original tracks");
+  prop = RNA_def_boolean(ot->srna, "keep_original", true, "Keep Original", "Keep original tracks");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
@@ -1591,7 +1591,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
       if (frames) {
         if (len < frames) {
           segok = 0;
-          ok = 0;
+          ok = false;
 
           if (!del) {
             break;
@@ -1634,7 +1634,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
   }
 
   if (del && count == 0) {
-    ok = 0;
+    ok = false;
   }
 
   if (del) {
@@ -1900,7 +1900,7 @@ static bool paste_tracks_poll(bContext *C)
     return BKE_tracking_clipboard_has_tracks();
   }
 
-  return 0;
+  return false;
 }
 
 static int paste_tracks_exec(bContext *C, wmOperator * /*op*/)

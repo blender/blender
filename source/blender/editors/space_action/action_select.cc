@@ -619,14 +619,14 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* rna */
-  ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+  ot->prop = RNA_def_boolean(ot->srna, "axis_range", false, "Axis Range", "");
 
   /* properties */
   WM_operator_properties_gesture_box(ot);
   WM_operator_properties_select_operation_simple(ot);
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1017,9 +1017,9 @@ static void markers_selectkeys_between(bAnimContext *ac)
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
         FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
         if (adt) {
-          ANIM_nla_mapping_apply_fcurve(adt, fcurve, 0, 1);
+          ANIM_nla_mapping_apply_fcurve(adt, fcurve, false, true);
           ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
-          ANIM_nla_mapping_apply_fcurve(adt, fcurve, 1, 1);
+          ANIM_nla_mapping_apply_fcurve(adt, fcurve, true, true);
         }
         else {
           ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
@@ -1057,7 +1057,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
         for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
-          ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, 1);
+          ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
         }
       }
       else {
@@ -1066,7 +1066,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 
         for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
           if (ale->datatype == ALE_GPFRAME) {
-            ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, 1);
+            ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
           }
           else {
             ANIM_fcurve_keyframes_loop(
@@ -1452,9 +1452,9 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
         FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
         if (adt) {
-          ANIM_nla_mapping_apply_fcurve(adt, fcurve, 0, 1);
+          ANIM_nla_mapping_apply_fcurve(adt, fcurve, false, true);
           ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
-          ANIM_nla_mapping_apply_fcurve(adt, fcurve, 1, 1);
+          ANIM_nla_mapping_apply_fcurve(adt, fcurve, true, true);
         }
         else {
           ANIM_fcurve_keyframes_loop(&ked, fcurve, ok_cb, select_cb, nullptr);
@@ -1582,7 +1582,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
       ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1951,7 +1951,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna,
       "extend",
-      0,
+      false,
       "Extend Select",
       "Toggle keyframe selection instead of leaving newly selected keyframes only");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1967,7 +1967,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna,
       "column",
-      0,
+      false,
       "Column Select",
       "Select all keyframes that occur on the same frame as the one under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1975,7 +1975,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
   /* Key-map: Enable with `Ctrl-Alt`. */
   prop = RNA_def_boolean(ot->srna,
                          "channel",
-                         0,
+                         false,
                          "Only Channel",
                          "Select all the keyframes in the channel under the mouse");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

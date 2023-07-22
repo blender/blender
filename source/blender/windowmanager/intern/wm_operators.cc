@@ -467,7 +467,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
         TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_track", RNA_NlaTrack, ptr);
         TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_nla_strip", RNA_NlaStrip, ptr);
       }
-    } while (0);
+    } while (false);
   }
 
   /* Specific ID type checks. */
@@ -1246,9 +1246,9 @@ bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData
 bool WM_operator_winactive(bContext *C)
 {
   if (CTX_wm_window(C) == nullptr) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
@@ -2009,16 +2009,16 @@ static bool wm_operator_winactive_normal(bContext *C)
   bScreen *screen;
 
   if (win == nullptr) {
-    return 0;
+    return false;
   }
   if (!((screen = WM_window_get_active_screen(win)) && (screen->state == SCREENNORMAL))) {
-    return 0;
+    return false;
   }
   if (G.background) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* included for script-access */

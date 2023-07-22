@@ -4756,7 +4756,7 @@ static bool project_image_refresh_tagged(ProjPaintState *ps)
         if (BLI_rcti_is_valid(&pr->dirty_region)) {
           set_imapaintpartial(pr);
           imapaint_image_update(nullptr, projIma->ima, projIma->ibuf, &projIma->iuser, true);
-          redraw = 1;
+          redraw = true;
         }
 
         partial_redraw_single_init(pr);
@@ -4922,7 +4922,7 @@ static void do_projectpaint_smear(ProjPaintState *ps,
 {
   uchar rgba_ub[4];
 
-  if (project_paint_PickColor(ps, co, nullptr, rgba_ub, 1) == 0) {
+  if (project_paint_PickColor(ps, co, nullptr, rgba_ub, true) == 0) {
     return;
   }
 
@@ -4940,7 +4940,7 @@ static void do_projectpaint_smear_f(ProjPaintState *ps,
 {
   float rgba[4];
 
-  if (project_paint_PickColor(ps, co, rgba, nullptr, 1) == 0) {
+  if (project_paint_PickColor(ps, co, rgba, nullptr, true) == 0) {
     return;
   }
 
@@ -5241,7 +5241,7 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
   const float brush_radius_sq = brush_radius * brush_radius;
 
   const bool lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ?
-                              0 :
+                              false :
                               (brush->flag & BRUSH_LOCK_ALPHA) != 0;
 
   LinkNode *smearPixels = nullptr;
@@ -5735,7 +5735,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 
     if (touch) {
       ps->projImages[i].touch = true;
-      touch_any = 1;
+      touch_any = true;
     }
   }
 
@@ -5926,7 +5926,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
     ps->do_mask_normal = !(settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT);
   }
   else {
-    ps->do_backfacecull = ps->do_occlude = ps->do_mask_normal = 0;
+    ps->do_backfacecull = ps->do_occlude = ps->do_mask_normal = false;
   }
 
   if (ps->tool == PAINT_TOOL_CLONE) {

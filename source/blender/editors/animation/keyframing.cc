@@ -2184,7 +2184,7 @@ void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
    * - by default, the menu should only be shown when there is no active Keying Set (2.5 behavior),
    *   although in some cases it might be useful to always shown (pre 2.5 behavior)
    */
-  prop = RNA_def_boolean(ot->srna, "always_prompt", 0, "Always Show Menu", "");
+  prop = RNA_def_boolean(ot->srna, "always_prompt", false, "Always Show Menu", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -2697,7 +2697,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Insert a keyframe for all element of the array");
 }
 
 /* Delete Key Button Operator ------------------------ */
@@ -2808,7 +2808,7 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyframes from all elements of the array");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Delete keyframes from all elements of the array");
 }
 
 /* Clear Key Button Operator ------------------------ */
@@ -2876,7 +2876,7 @@ void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Clear keyframes from all elements of the array");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Clear keyframes from all elements of the array");
 }
 
 /* ******************************************* */

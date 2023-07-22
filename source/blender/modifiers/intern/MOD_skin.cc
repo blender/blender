@@ -195,20 +195,20 @@ static bool is_quad_symmetric(BMVert *quad[4], const SkinModifierData *smd)
         copy_v3_v3(a, quad[2]->co);
         a[axis] = -a[axis];
         if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
-          return 1;
+          return true;
         }
       }
       else if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
         copy_v3_v3(a, quad[2]->co);
         a[axis] = -a[axis];
         if (len_squared_v3v3(a, quad[1]->co) < threshold_squared) {
-          return 1;
+          return true;
         }
       }
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* Returns true if the quad crosses the plane of symmetry, false otherwise */

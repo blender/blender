@@ -590,7 +590,7 @@ void WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
 void WM_toolsystem_refresh_screen_window(wmWindow *win)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
-  bool space_type_has_tools[SPACE_TYPE_NUM] = {0};
+  bool space_type_has_tools[SPACE_TYPE_NUM] = {false};
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     space_type_has_tools[tref->space_type] = true;
   }

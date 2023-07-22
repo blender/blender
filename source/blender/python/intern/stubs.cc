@@ -21,6 +21,6 @@ void BPY_pyconstraint_exec(bPythonConstraint * /*con*/,
 void BPY_pyconstraint_target(bPythonConstraint * /*con*/, bConstraintTarget * /*ct*/) {}
 bool BPY_is_pyconstraint(Text * /*text*/)
 {
-  return 0;
+  return false;
 }
 void BPY_pyconstraint_update(Object * /*owner*/, bConstraint * /*con*/) {}

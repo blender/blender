@@ -399,7 +399,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
 
     prop = nullptr;
     if (use_id_prop) { /* look up property name in current struct */
-      IDProperty *group = RNA_struct_idprops(&curptr, 0);
+      IDProperty *group = RNA_struct_idprops(&curptr, false);
       if (group && quoted) {
         prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token);
       }

@@ -129,7 +129,7 @@ static bool gesture_box_apply_rect(wmOperator *op)
   rcti *rect = static_cast<rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax || rect->ymin == rect->ymax) {
-    return 0;
+    return false;
   }
 
   /* operator arguments and storage. */
@@ -138,7 +138,7 @@ static bool gesture_box_apply_rect(wmOperator *op)
   RNA_int_set(op->ptr, "xmax", max_ii(rect->xmin, rect->xmax));
   RNA_int_set(op->ptr, "ymax", max_ii(rect->ymin, rect->ymax));
 
-  return 1;
+  return true;
 }
 
 static bool gesture_box_apply(bContext *C, wmOperator *op)
@@ -148,7 +148,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
   int retval;
 
   if (!gesture_box_apply_rect(op)) {
-    return 0;
+    return false;
   }
 
   if (gesture->wait_for_input) {
@@ -158,7 +158,7 @@ static bool gesture_box_apply(bContext *C, wmOperator *op)
   retval = op->type->exec(C, op);
   OPERATOR_RETVAL_CHECK(retval);
 
-  return (retval & OPERATOR_FINISHED) ? 1 : 0;
+  return (retval & OPERATOR_FINISHED) ? true : false;
 }
 
 int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -716,7 +716,7 @@ static bool gesture_straightline_apply(bContext *C, wmOperator *op)
   rcti *rect = static_cast<rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax && rect->ymin == rect->ymax) {
-    return 0;
+    return false;
   }
 
   /* operator arguments and storage. */
@@ -731,7 +731,7 @@ static bool gesture_straightline_apply(bContext *C, wmOperator *op)
     OPERATOR_RETVAL_CHECK(retval);
   }
 
-  return 1;
+  return true;
 }
 
 int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event)

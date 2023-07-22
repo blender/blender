@@ -486,10 +486,10 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*useRen
 
   /* disable if modifier is off for X, Y and Z or if factor is 0 */
   if (flag == 0) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

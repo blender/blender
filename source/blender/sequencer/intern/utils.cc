@@ -430,7 +430,7 @@ Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool rec
       return iseq;
     }
     if (recursive && (iseq->seqbase.first) &&
-        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, 1)))
+        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, true)))
     {
       return rseq;
     }
@@ -536,7 +536,7 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
                                 seq->name + 2,
                                 0,
                                 0,
-                                0);
+                                false);
 
   if (seq->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {

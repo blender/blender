@@ -2870,8 +2870,11 @@ static void rna_def_movie(BlenderRNA *brna)
   func = RNA_def_function(srna, "reload_if_needed", "rna_MovieSequence_reload_if_needed");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
   /* return type */
-  parm = RNA_def_boolean(
-      func, "can_produce_frames", 0, "True if the strip can produce frames, False otherwise", "");
+  parm = RNA_def_boolean(func,
+                         "can_produce_frames",
+                         false,
+                         "True if the strip can produce frames, False otherwise",
+                         "");
   RNA_def_function_return(func, parm);
 
   /* metadata */

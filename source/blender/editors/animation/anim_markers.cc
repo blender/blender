@@ -709,7 +709,7 @@ static bool ed_markers_poll_markers_exist(bContext *C)
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   if (ts->lock_markers || !ED_operator_markers_region_active(C)) {
-    return 0;
+    return false;
   }
 
   /* list of markers must exist, as well as some markers in it! */
@@ -1133,7 +1133,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
   /* rna storage */
   RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
@@ -1407,10 +1407,10 @@ static void MARKER_OT_select(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   WM_operator_properties_generic_select(ot);
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #ifdef DURIAN_CAMERA_SWITCH
-  prop = RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+  prop = RNA_def_boolean(ot->srna, "camera", false, "Camera", "Select the camera");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 #endif
 }
@@ -1511,7 +1511,7 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
   WM_operator_properties_select_operation_simple(ot);
 
   PropertyRNA *prop = RNA_def_boolean(
-      ot->srna, "tweak", 0, "Tweak", "Operator has been activated using a click-drag event");
+      ot->srna, "tweak", false, "Tweak", "Operator has been activated using a click-drag event");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

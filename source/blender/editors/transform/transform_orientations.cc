@@ -235,7 +235,7 @@ static TransformOrientation *createMeshSpace(bContext *C,
 
 static bool test_rotmode_euler(short rotmode)
 {
-  return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? 0 : 1;
+  return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? false : true;
 }
 
 /* could move into BLI_math however this is only useful for display/editing purposes */
@@ -279,7 +279,7 @@ bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
     axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
   }
   else { /* quat */
-    return 0;
+    return false;
   }
 
   /* apply bone transformation */
@@ -316,7 +316,7 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
     axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
   }
   else { /* quat */
-    return 0;
+    return false;
   }
 
   if (ob->parent) {
@@ -325,7 +325,7 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
     normalize_m3(parent_mat);
     mul_m3_m3m3(gmat, parent_mat, gmat);
   }
-  return 1;
+  return true;
 }
 
 bool transform_orientations_create_from_axis(float mat[3][3],

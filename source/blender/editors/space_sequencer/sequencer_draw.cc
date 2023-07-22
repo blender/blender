@@ -1632,7 +1632,7 @@ static void sequencer_draw_gpencil_overlay(const bContext *C)
   UI_view2d_view_restore(C);
 
   /* Draw grease-pencil (screen aligned). */
-  ED_annotation_draw_view2d(C, 0);
+  ED_annotation_draw_view2d(C, false);
 }
 
 /**
@@ -2729,7 +2729,7 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
 
-  UI_view2d_view_orthoSpecial(region, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (sseq->flag & SEQ_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);

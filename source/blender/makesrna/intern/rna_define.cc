@@ -54,7 +54,7 @@ BlenderDefRNA DefRNA = {
     /*structs*/ {nullptr, nullptr},
     /*allocs*/ {nullptr, nullptr},
     /*laststruct*/ nullptr,
-    /*error*/ 0,
+    /*error*/ false,
     /*silent*/ false,
     /*preprocess*/ false,
     /*verify*/ true,
@@ -413,7 +413,7 @@ static int rna_member_cmp(const char *name, const char *oname)
     oname++;
   }
 
-  while (1) {
+  while (true) {
     if (name[a] == '[' && oname[a] == 0) {
       return 1;
     }

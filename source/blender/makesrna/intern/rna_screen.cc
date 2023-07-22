@@ -457,7 +457,7 @@ static void rna_def_view2d_api(StructRNA *srna)
   parm = RNA_def_float(
       func, "y", 0.0f, -FLT_MAX, FLT_MAX, "y", "2D View y coordinate", -10000.0f, 10000.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "clip", 1, "Clip", "Clip coordinates to the visible region");
+  RNA_def_boolean(func, "clip", true, "Clip", "Clip coordinates to the visible region");
   parm = RNA_def_int_array(func,
                            "result",
                            2,
