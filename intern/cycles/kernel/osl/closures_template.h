@@ -136,12 +136,6 @@ OSL_CLOSURE_STRUCT_BEGIN(PrincipledSheen, principled_sheen)
   OSL_CLOSURE_STRUCT_MEMBER(PrincipledSheen, VECTOR, packed_float3, N, NULL)
 OSL_CLOSURE_STRUCT_END(PrincipledSheen, principled_sheen)
 
-OSL_CLOSURE_STRUCT_BEGIN(PrincipledClearcoat, principled_clearcoat)
-  OSL_CLOSURE_STRUCT_MEMBER(PrincipledClearcoat, VECTOR, packed_float3, N, NULL)
-  OSL_CLOSURE_STRUCT_MEMBER(PrincipledClearcoat, FLOAT, float, clearcoat, NULL)
-  OSL_CLOSURE_STRUCT_MEMBER(PrincipledClearcoat, FLOAT, float, clearcoat_roughness, NULL)
-OSL_CLOSURE_STRUCT_END(PrincipledClearcoat, principled_clearcoat)
-
 OSL_CLOSURE_STRUCT_BEGIN(GenericEmissive, emission)
 OSL_CLOSURE_STRUCT_END(GenericEmissive, emission)
 

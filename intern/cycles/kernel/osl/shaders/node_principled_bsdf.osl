@@ -98,7 +98,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   }
 
   if (Clearcoat > 1e-5) {
-    BSDF += principled_clearcoat(
-        ClearcoatNormal, Clearcoat, ClearcoatRoughness * ClearcoatRoughness);
+    float clearcoat_r2 = ClearcoatRoughness * ClearcoatRoughness;
+    BSDF += 0.25 * Clearcoat * microfacet("clearcoat", ClearcoatNormal, clearcoat_r2, 1.5, 0);
   }
 }
