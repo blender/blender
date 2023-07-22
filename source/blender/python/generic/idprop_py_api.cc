@@ -1737,7 +1737,7 @@ static PyObject *BPy_IDArray_repr(BPy_IDArray *self)
 
 PyDoc_STRVAR(BPy_IDArray_get_typecode_doc,
              "The type of the data in the array {'f': float, 'd': double, 'i': int, 'b': bool}.");
-static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self)
+static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self, void * /*closure*/)
 {
   switch (self->prop->subtype) {
     case IDP_FLOAT:

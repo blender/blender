@@ -722,7 +722,7 @@ static PyMethodDef pygpu_shader__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_shader_name_doc,
              "The name of the shader object for debugging purposes (read-only).\n\n:type: str");
-static PyObject *pygpu_shader_name(BPyGPUShader *self)
+static PyObject *pygpu_shader_name(BPyGPUShader *self, void * /*closure*/)
 {
   return PyUnicode_FromString(GPU_shader_get_name(self->shader));
 }
