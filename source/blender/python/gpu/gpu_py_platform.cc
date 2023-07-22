@@ -117,6 +117,11 @@ static PyObject *pygpu_platform_backend_type_get(PyObject * /*self*/)
 /** \name Module
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_platform__tp_methods[] = {
     {"vendor_get",
      (PyCFunction)pygpu_platform_vendor_get,
@@ -140,6 +145,10 @@ static PyMethodDef pygpu_platform__tp_methods[] = {
      pygpu_platform_backend_type_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_platform__tp_doc, "This module provides access to GPU Platform definitions.");
 static PyModuleDef pygpu_platform_module_def = {

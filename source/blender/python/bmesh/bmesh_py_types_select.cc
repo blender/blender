@@ -141,6 +141,11 @@ static PyObject *bpy_bmeditselseq_discard(BPy_BMEditSelSeq *self, BPy_BMElem *va
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_bmeditselseq_methods[] = {
     {"validate",
      (PyCFunction)bpy_bmeditselseq_validate,
@@ -153,6 +158,10 @@ static PyMethodDef bpy_bmeditselseq_methods[] = {
     {"discard", (PyCFunction)bpy_bmeditselseq_discard, METH_O, bpy_bmeditselseq_discard_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /* Sequences
  * ========= */

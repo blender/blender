@@ -167,11 +167,20 @@ static PyObject *pygpu_framebuffer_stack_context_exit(PyFrameBufferStackContext 
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_framebuffer_stack_context__tp_methods[] = {
     {"__enter__", (PyCFunction)pygpu_framebuffer_stack_context_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)pygpu_framebuffer_stack_context_exit, METH_VARARGS},
     {nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyTypeObject FramebufferStackContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -705,6 +714,11 @@ static PyGetSetDef pygpu_framebuffer__tp_getseters[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_framebuffer__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_framebuffer_bind, METH_NOARGS, pygpu_framebuffer_bind_doc},
     {"clear",
@@ -732,6 +746,10 @@ static PyMethodDef pygpu_framebuffer__tp_methods[] = {
 #endif
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_framebuffer__tp_doc,
              ".. class:: GPUFrameBuffer(depth_slot=None, color_slots=None)\n"

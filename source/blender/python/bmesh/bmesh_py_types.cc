@@ -2803,6 +2803,11 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_bmesh_methods[] = {
     /* utility */
     {"copy", (PyCFunction)bpy_bmesh_copy, METH_NOARGS, bpy_bmesh_copy_doc},
@@ -3056,6 +3061,10 @@ static PyMethodDef bpy_bmloopseq_methods[] = {
     /* no: sort() function since we can't iterate over loops */
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /* Sequences
  * ========= */

@@ -486,6 +486,11 @@ static PyGetSetDef pygpu_texture__tp_getseters[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_texture__tp_methods[] = {
     {"clear",
      (PyCFunction)pygpu_texture_clear,
@@ -497,6 +502,10 @@ static PyMethodDef pygpu_texture__tp_methods[] = {
 #endif
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(
     pygpu_texture__tp_doc,

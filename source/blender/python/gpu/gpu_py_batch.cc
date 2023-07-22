@@ -336,6 +336,11 @@ static PyObject *pygpu_batch_program_use_end(BPyGPUBatch *self)
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_batch__tp_methods[] = {
     {"vertbuf_add", (PyCFunction)pygpu_batch_vertbuf_add, METH_O, pygpu_batch_vertbuf_add_doc},
     {"program_set", (PyCFunction)pygpu_batch_program_set, METH_O, pygpu_batch_program_set_doc},
@@ -352,6 +357,10 @@ static PyMethodDef pygpu_batch__tp_methods[] = {
     {"_program_use_end", (PyCFunction)pygpu_batch_program_use_end, METH_NOARGS, ""},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 #ifdef USE_GPU_PY_REFERENCES
 

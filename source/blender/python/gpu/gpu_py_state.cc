@@ -430,6 +430,11 @@ static PyObject *pygpu_state_framebuffer_active_get(PyObject * /*self*/)
 /** \name Module
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_state__tp_methods[] = {
     /* Manage Stack */
     {"blend_set", (PyCFunction)pygpu_state_blend_set, METH_O, pygpu_state_blend_set_doc},
@@ -508,6 +513,10 @@ static PyMethodDef pygpu_state__tp_methods[] = {
      pygpu_state_framebuffer_active_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_state__tp_doc, "This module provides access to the gpu state.");
 static PyModuleDef pygpu_state_module_def = {

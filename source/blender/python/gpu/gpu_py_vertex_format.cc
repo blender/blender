@@ -121,6 +121,11 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
   return PyLong_FromLong(attr_id);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_vertformat__tp_methods[] = {
     {"attr_add",
      (PyCFunction)pygpu_vertformat_attr_add,
@@ -128,6 +133,10 @@ static PyMethodDef pygpu_vertformat__tp_methods[] = {
      pygpu_vertformat_attr_add_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static void pygpu_vertformat__tp_dealloc(BPyGPUVertFormat *self)
 {

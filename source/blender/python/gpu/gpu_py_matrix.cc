@@ -154,11 +154,20 @@ enum {
 static PyObject *pygpu_matrix_stack_context_enter(BPyGPU_MatrixStackContext *self);
 static PyObject *pygpu_matrix_stack_context_exit(BPyGPU_MatrixStackContext *self, PyObject *args);
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_matrix_stack_context__tp_methods[] = {
     {"__enter__", (PyCFunction)pygpu_matrix_stack_context_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)pygpu_matrix_stack_context_exit, METH_VARARGS},
     {nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyTypeObject PyGPUMatrixStackContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -506,6 +515,11 @@ static PyObject *pygpu_matrix_get_normal_matrix(PyObject * /*self*/)
 /** \name Module
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_matrix__tp_methods[] = {
     /* Manage Stack */
     {"push", (PyCFunction)pygpu_matrix_push, METH_NOARGS, pygpu_matrix_push_doc},
@@ -574,6 +588,10 @@ static PyMethodDef pygpu_matrix__tp_methods[] = {
 
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_matrix__tp_doc, "This module provides access to the matrix stack.");
 static PyModuleDef pygpu_matrix_module_def = {

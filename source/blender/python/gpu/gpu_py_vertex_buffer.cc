@@ -311,6 +311,11 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_vertbuf__tp_methods[] = {
     {"attr_fill",
      (PyCFunction)pygpu_vertbuf_attr_fill,
@@ -318,6 +323,10 @@ static PyMethodDef pygpu_vertbuf__tp_methods[] = {
      pygpu_vertbuf_attr_fill_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
 {

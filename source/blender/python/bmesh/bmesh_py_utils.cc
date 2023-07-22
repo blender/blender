@@ -763,6 +763,11 @@ static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *val
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef BPy_BM_utils_methods[] = {
     {"vert_collapse_edge",
      (PyCFunction)bpy_bm_utils_vert_collapse_edge,
@@ -812,6 +817,10 @@ static PyMethodDef BPy_BM_utils_methods[] = {
      bpy_bm_utils_loop_separate_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(BPy_BM_utils_doc, "This module provides access to blenders bmesh data structures.");
 static PyModuleDef BPy_BM_utils_module_def = {

@@ -614,10 +614,19 @@ static PyObject *Buffer_dimensions(Buffer *self, void * /*arg*/)
   return list;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef Buffer_methods[] = {
     {"to_list", (PyCFunction)Buffer_to_list_recursive, METH_NOARGS, "return the buffer as a list"},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyGetSetDef Buffer_getseters[] = {
     {"dimensions", (getter)Buffer_dimensions, nullptr, nullptr, nullptr},

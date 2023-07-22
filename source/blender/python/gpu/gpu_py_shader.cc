@@ -658,6 +658,11 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject * /*ar
   return ret;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_shader__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_shader_bind, METH_NOARGS, pygpu_shader_bind_doc},
     {"uniform_from_name",
@@ -710,6 +715,10 @@ static PyMethodDef pygpu_shader__tp_methods[] = {
      pygpu_shader_attrs_info_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_shader_name_doc,
              "The name of the shader object for debugging purposes (read-only).\n\n:type: str");
@@ -928,6 +937,11 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader * /*self*/, BPyGPUSh
   return BPyGPUShader_CreatePyObject(shader, false);
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
@@ -940,6 +954,10 @@ static PyMethodDef pygpu_shader_module__tp_methods[] = {
      pygpu_shader_create_from_info_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              "This module provides access to GPUShader internal functions.\n"

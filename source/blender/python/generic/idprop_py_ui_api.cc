@@ -749,6 +749,11 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
 /** \name UI Data Manager Definition
  * \{ */
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
     {"update",
      (PyCFunction)BPy_IDPropertyUIManager_update,
@@ -768,6 +773,10 @@ static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
      BPy_IDPropertyUIManager_update_from_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyObject *BPy_IDPropertyUIManager_repr(BPy_IDPropertyUIManager *self)
 {

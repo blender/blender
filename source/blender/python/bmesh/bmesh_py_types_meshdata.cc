@@ -706,6 +706,11 @@ static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_bmdeformvert_methods[] = {
     {"keys", (PyCFunction)bpy_bmdeformvert_keys, METH_NOARGS, bpy_bmdeformvert_keys_doc},
     {"values", (PyCFunction)bpy_bmdeformvert_values, METH_NOARGS, bpy_bmdeformvert_values_doc},
@@ -715,6 +720,10 @@ static PyMethodDef bpy_bmdeformvert_methods[] = {
     {"clear", (PyCFunction)bpy_bmdeformvert_clear, METH_NOARGS, bpy_bmdeformvert_clear_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyTypeObject BPy_BMDeformVert_Type; /* bm.loops.layers.uv.active */
 

@@ -670,6 +670,11 @@ static PyMethodDef bpy_bmlayeritem_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef bpy_bmelemseq_methods[] = {
     {"verify",
      (PyCFunction)bpy_bmlayercollection_verify,
@@ -693,6 +698,10 @@ static PyMethodDef bpy_bmelemseq_methods[] = {
     {"get", (PyCFunction)bpy_bmlayercollection_get, METH_VARARGS, bpy_bmlayercollection_get_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 /* Sequences
  * ========= */

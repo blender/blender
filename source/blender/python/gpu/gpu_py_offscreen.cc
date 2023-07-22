@@ -138,11 +138,20 @@ static PyObject *pygpu_offscreen_stack_context_exit(OffScreenStackContext *self,
   Py_RETURN_NONE;
 }
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_offscreen_stack_context__tp_methods[] = {
     {"__enter__", (PyCFunction)pygpu_offscreen_stack_context_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)pygpu_offscreen_stack_context_exit, METH_VARARGS},
     {nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 static PyTypeObject PyGPUOffscreenStackContext_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -521,6 +530,11 @@ static PyGetSetDef pygpu_offscreen__tp_getseters[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static PyMethodDef pygpu_offscreen__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_offscreen_bind, METH_NOARGS, pygpu_offscreen_bind_doc},
     {"unbind",
@@ -536,6 +550,10 @@ static PyMethodDef pygpu_offscreen__tp_methods[] = {
 #endif
     {nullptr, nullptr, 0, nullptr},
 };
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#  pragma GCC diagnostic pop
+#endif
 
 PyDoc_STRVAR(pygpu_offscreen__tp_doc,
              ".. class:: GPUOffScreen(width, height, *, format='RGBA8')\n"
