@@ -446,12 +446,15 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
 
   const blender::StringRef active_ref(active_set_name);
 
-  /* Because primvars don't have a notion of "active" for data like
+  /* Optionally, rename the active UV set to "st".
+   *
+   * Because primvars don't have a notion of "active" for data like
    * UVs, but a specific UV set may be considered "active" by target
-   * applications, the [ ---- ] is to name the active set "st". */
-  const std::string name = active_set_name && (active_ref == attribute_id.name()) ?
-                               "st" :
-                               attribute_id.name();
+   * applications, the convention is to name the active set "st". */
+  bool rename_to_st = this->usd_export_context_.export_params.convert_uv_to_st &&
+                      active_set_name && (active_ref == attribute_id.name());
+
+  const std::string name = rename_to_st ? "st" : attribute_id.name();
 
   pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
 
