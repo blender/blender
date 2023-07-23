@@ -507,7 +507,7 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
         mtl->alpha_threshold = opacity_threshold;
       }
       else {
-        mtl->blend_method = MA_BM_BLEND;
+        mtl->blend_method = MA_BM_HASHED;
       }
     }
   }
