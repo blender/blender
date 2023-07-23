@@ -124,6 +124,26 @@ const char *BKE_blender_version_string(void)
   return blender_version_string;
 }
 
+void BKE_blender_version_blendfile_string_from_values(char *str_buff,
+                                                      const size_t str_buff_len,
+                                                      const short file_version,
+                                                      const short file_subversion)
+{
+  const short file_version_major = file_version / 100;
+  const short file_version_minor = file_version % 100;
+  if (file_subversion >= 0) {
+    BLI_snprintf(str_buff,
+                 str_buff_len,
+                 "%d.%d (sub %d)",
+                 file_version_major,
+                 file_version_minor,
+                 file_subversion);
+  }
+  else {
+    BLI_snprintf(str_buff, str_buff_len, "%d.%d", file_version_major, file_version_minor);
+  }
+}
+
 bool BKE_blender_version_is_alpha(void)
 {
   bool is_alpha = STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha");
