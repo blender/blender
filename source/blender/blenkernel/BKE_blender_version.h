@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,6 +42,19 @@ const char *BKE_blender_version_string(void);
 
 /* Returns true when version cycle is alpha, otherwise (beta, rc) returns false. */
 bool BKE_blender_version_is_alpha(void);
+
+/** Fill in given string buffer with user-readable formated file version and subversion (if
+ * provided).
+ *
+ * \param str_buff a char buffer where the formated string is written, minimal recommended size is
+ * 8, or 16 if subversion is provided.
+ *
+ * \param file_subversion the file subversion, if given value < 0, it is ignored, and only the
+ * `file_version` is used. */
+void BKE_blender_version_blendfile_string_from_values(char *str_buff,
+                                                      const size_t str_buff_len,
+                                                      const short file_version,
+                                                      const short file_subversion);
 
 #ifdef __cplusplus
 }
