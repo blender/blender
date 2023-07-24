@@ -163,7 +163,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
     case VIEW_CANCEL: {
-      viewops_data_state_restore(vod);
+      vod->state_restore();
       ret = OPERATOR_CANCELLED;
       break;
     }

@@ -73,7 +73,7 @@ int viewmove_modal_impl(bContext *C,
       break;
     }
     case VIEW_CANCEL: {
-      viewops_data_state_restore(vod);
+      vod->state_restore();
       ret = OPERATOR_CANCELLED;
       break;
     }

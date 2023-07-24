@@ -192,6 +192,19 @@ struct ViewOpsData {
   /** Used for navigation on non view3d operators. */
   wmKeyMap *keymap;
   bool is_modal_event;
+
+  void init_context(bContext *C);
+  void state_backup();
+  void state_restore();
+  void init_navigation(bContext *C,
+                       const wmEvent *event,
+                       const eV3D_OpMode nav_type,
+                       const bool use_cursor_init);
+  void end_navigation(bContext *C);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("ViewOpsData")
+#endif
 };
 
 /* view3d_navigate.cc */
@@ -236,8 +249,6 @@ ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
                                  const eV3D_OpMode nav_type,
                                  const bool use_cursor_init);
-void viewops_data_state_restore(ViewOpsData *vod);
-
 void VIEW3D_OT_view_all(wmOperatorType *ot);
 void VIEW3D_OT_view_selected(wmOperatorType *ot);
 void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
