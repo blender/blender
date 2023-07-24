@@ -2455,6 +2455,7 @@ void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateInputStatus(uiLayout *layout, struct bContext *C);
+void uiTemplateStatusInfo(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
 bool uiTemplateEventFromKeymapItem(struct uiLayout *layout,

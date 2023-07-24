@@ -599,10 +599,10 @@ static void get_stats_string(char *info,
       info + *ofs, len - *ofs, TIP_(" | Objects:%s/%s"), stats_fmt->totobjsel, stats_fmt->totobj);
 }
 
-static const char *info_statusbar_string(Main *bmain,
-                                         Scene *scene,
-                                         ViewLayer *view_layer,
-                                         char statusbar_flag)
+const char *ED_info_statusbar_string_ex(Main *bmain,
+                                        Scene *scene,
+                                        ViewLayer *view_layer,
+                                        const char statusbar_flag)
 {
   char formatted_mem[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
   size_t ofs = 0;
@@ -682,7 +682,7 @@ static const char *info_statusbar_string(Main *bmain,
 
 const char *ED_info_statusbar_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
 {
-  return info_statusbar_string(bmain, scene, view_layer, U.statusbar_flag);
+  return ED_info_statusbar_string_ex(bmain, scene, view_layer, U.statusbar_flag);
 }
 
 const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
@@ -692,7 +692,7 @@ const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view
                                                               STATUSBAR_SHOW_VERSION |
                                                               STATUSBAR_SHOW_SCENE_DURATION;
 
-  return info_statusbar_string(bmain, scene, view_layer, statistics_status_bar_flag);
+  return ED_info_statusbar_string_ex(bmain, scene, view_layer, statistics_status_bar_flag);
 }
 
 static void stats_row(int col1,
