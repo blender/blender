@@ -2025,14 +2025,14 @@ static void gpencil_primitive_common_props(wmOperatorType *ot, int subdiv, int t
                      0,
                      MAX_EDGES,
                      "Subdivisions",
-                     "Number of subdivision by edges",
+                     "Number of subdivisions per segment",
                      0,
                      MAX_EDGES);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* Internal prop. */
   prop = RNA_def_int(
-      ot->srna, "edges", 1, 1, MAX_EDGES, "Edges", "Number of points by edge", 1, MAX_EDGES);
+      ot->srna, "edges", 1, 1, MAX_EDGES, "Edges", "Number of points per segment", 1, MAX_EDGES);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 
   RNA_def_enum(ot->srna, "type", gpencil_primitive_type, type, "Type", "Type of shape");

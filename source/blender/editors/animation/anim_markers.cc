@@ -1803,7 +1803,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Make Links to Scene";
+  ot->name = "Copy Markers to Scene";
   ot->description = "Copy selected markers to another scene";
   ot->idname = "MARKER_OT_make_links_scene";
 

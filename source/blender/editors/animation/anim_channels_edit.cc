@@ -3219,7 +3219,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator * /*op*/, const wm
 static void ANIM_OT_channels_rename(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Rename Channels";
+  ot->name = "Rename Channel";
   ot->idname = "ANIM_OT_channels_rename";
   ot->description = "Rename animation channel under mouse";
 

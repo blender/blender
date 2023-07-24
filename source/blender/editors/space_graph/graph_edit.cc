@@ -1249,7 +1249,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.0,
                 2.0,
                 "Attack Time",
-                "Value for the hull curve calculation that tells how fast the hull curve can rise "
+                "Value for the envelope calculation that tells how fast the envelope can rise "
                 "(the lower the value the steeper it can rise)",
                 0.01,
                 0.1);
@@ -1259,7 +1259,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.0,
                 5.0,
                 "Release Time",
-                "Value for the hull curve calculation that tells how fast the hull curve can fall "
+                "Value for the envelope calculation that tells how fast the envelope can fall "
                 "(the lower the value the steeper it can fall)",
                 0.01,
                 0.2);
@@ -1269,22 +1269,21 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                 0.0,
                 1.0,
                 "Threshold",
-                "Minimum amplitude value needed to influence the hull curve",
+                "Minimum amplitude value needed to influence the envelope",
                 0.01,
                 0.1);
   RNA_def_boolean(ot->srna,
                   "use_accumulate",
                   false,
                   "Accumulate",
-                  "Only the positive differences of the hull curve amplitudes are summarized to "
+                  "Only the positive differences of the envelope amplitudes are summarized to "
                   "produce the output");
-  RNA_def_boolean(
-      ot->srna,
-      "use_additive",
-      false,
-      "Additive",
-      "The amplitudes of the hull curve are summarized (or, when Accumulate is enabled, "
-      "both positive and negative differences are accumulated)");
+  RNA_def_boolean(ot->srna,
+                  "use_additive",
+                  false,
+                  "Additive",
+                  "The amplitudes of the envelope are summarized (or, when Accumulate is enabled, "
+                  "both positive and negative differences are accumulated)");
   RNA_def_boolean(ot->srna,
                   "use_square",
                   false,

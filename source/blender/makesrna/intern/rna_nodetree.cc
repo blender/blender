@@ -7896,8 +7896,12 @@ static void def_cmp_tonemap(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem type_items[] = {
-      {1, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
-      {0, "RH_SIMPLE", 0, "Rh Simple", ""},
+      {1,
+       "RD_PHOTORECEPTOR",
+       0,
+       "R/D Photoreceptor",
+       "More advanced algorithm based on eye physiology, by Reinhard and Devlin"},
+      {0, "RH_SIMPLE", 0, "Rh Simple", "Simpler photographic algorithm by Reinhard"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -8784,7 +8788,7 @@ static void def_cmp_keying(StructRNA *srna)
   prop = RNA_def_property(srna, "dilate_distance", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "dilate_distance");
   RNA_def_property_range(prop, -100, 100);
-  RNA_def_property_ui_text(prop, "Dilate/Erode", "Matte dilate/erode side");
+  RNA_def_property_ui_text(prop, "Dilate/Erode", "Distance to grow/shrink the matte");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);

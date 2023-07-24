@@ -436,7 +436,7 @@ void NLA_OT_select_box(wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static const EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
-    {NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+    {NLAEDIT_LRSEL_TEST, "CHECK", 0, "Based on Mouse Position", ""},
     {NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
     {0, nullptr, 0, nullptr, nullptr},

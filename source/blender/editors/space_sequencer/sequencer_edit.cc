@@ -1592,7 +1592,7 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
       "ignore_selection",
       false,
       "Ignore Selection",
-      "Make cut event if strip is not selected preserving selection state after cut");
+      "Make cut even if strip is not selected preserving selection state after cut");
 
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }

@@ -1026,7 +1026,7 @@ static void TRANSFORM_OT_shear(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shear";
-  ot->description = "Shear selected items along the horizontal screen axis";
+  ot->description = "Shear selected items along the given axis";
   ot->idname = OP_SHEAR;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 

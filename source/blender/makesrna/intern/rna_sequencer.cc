@@ -3053,18 +3053,20 @@ static void rna_def_wipe(StructRNA *srna)
   RNA_def_property_float_sdna(prop, nullptr, "edgeWidth");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
-      prop, "Blur Width", "Width of the blur edge, in percentage relative to the image size");
+      prop,
+      "Blur Width",
+      "Width of the blur for the transition, in percentage relative to the image size");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_range(prop, DEG2RADF(-90.0f), DEG2RADF(90.0f));
-  RNA_def_property_ui_text(prop, "Angle", "Edge angle");
+  RNA_def_property_ui_text(prop, "Angle", "Angle of the transition");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "forward");
   RNA_def_property_enum_items(prop, wipe_direction_items);
-  RNA_def_property_ui_text(prop, "Direction", "Wipe direction");
+  RNA_def_property_ui_text(prop, "Direction", "Whether to fade in or out");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 

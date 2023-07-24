@@ -1761,8 +1761,8 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
               0,
               INT_MAX,
               "Tracked Frames",
-              "Effect on tracks which are tracked less than "
-              "specified amount of frames",
+              "Affect tracks which are tracked less than the "
+              "specified number of frames",
               0,
               INT_MAX);
   RNA_def_float(ot->srna,
@@ -1771,7 +1771,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Reprojection Error",
-                "Effect on tracks which have got larger reprojection error",
+                "Affect tracks which have a larger reprojection error",
                 0.0f,
                 100.0f);
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
