@@ -2500,40 +2500,43 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (eBone->layer & arm->layer) {
-      if ((eBone->flag & BONE_HIDDEN_A) == 0) {
-        const int select_id = is_select ? index : uint(-1);
-        const short constflag = 0;
+    if ((eBone->layer & arm->layer) == 0) {
+      continue;
+    }
+    if (eBone->flag & BONE_HIDDEN_A) {
+      continue;
+    }
 
-        /* catch exception for bone with hidden parent */
-        int boneflag = eBone->flag;
-        if ((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent)) {
-          boneflag &= ~BONE_CONNECTED;
-        }
+    const int select_id = is_select ? index : uint(-1);
+    const short constflag = 0;
 
-        /* set temporary flag for drawing bone as active, but only if selected */
-        if (eBone == arm->act_edbone) {
-          boneflag |= BONE_DRAW_ACTIVE;
-        }
+    /* catch exception for bone with hidden parent */
+    int boneflag = eBone->flag;
+    if ((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent)) {
+      boneflag &= ~BONE_CONNECTED;
+    }
 
-        boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
+    /* set temporary flag for drawing bone as active, but only if selected */
+    if (eBone == arm->act_edbone) {
+      boneflag |= BONE_DRAW_ACTIVE;
+    }
 
-        if (!is_select) {
-          draw_bone_relations(ctx, draw_strat, eBone, nullptr, arm, boneflag, constflag);
-        }
+    boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
 
-        draw_strat.update_display_matrix(eBone, nullptr);
-        draw_strat.draw_bone(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
+    if (!is_select) {
+      draw_bone_relations(ctx, draw_strat, eBone, nullptr, arm, boneflag, constflag);
+    }
 
-        if (!is_select) {
-          if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-            draw_bone_name(ctx, eBone, nullptr, arm, boneflag);
-          }
+    draw_strat.update_display_matrix(eBone, nullptr);
+    draw_strat.draw_bone(ctx, eBone, nullptr, arm, boneflag, constflag, select_id);
 
-          if (arm->flag & ARM_DRAWAXES) {
-            draw_axes(ctx, eBone, nullptr, arm);
-          }
-        }
+    if (!is_select) {
+      if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+        draw_bone_name(ctx, eBone, nullptr, arm, boneflag);
+      }
+
+      if (arm->flag & ARM_DRAWAXES) {
+        draw_axes(ctx, eBone, nullptr, arm);
       }
     }
   }
@@ -2622,63 +2625,65 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   {
     Bone *bone = pchan->bone;
     const bool bone_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
+    if (!bone_visible) {
+      continue;
+    }
+    if ((bone->layer & arm->layer) == 0) {
+      continue;
+    }
 
-    if (bone_visible) {
-      if (bone->layer & arm->layer) {
-        const bool draw_dofs = !is_pose_select && ctx->show_relations &&
-                               (arm->flag & ARM_POSEMODE) && (bone->flag & BONE_SELECTED) &&
-                               ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
-                               (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT));
-        const int select_id = is_pose_select ? index : uint(-1);
-        const short constflag = pchan->constflag;
+    const bool draw_dofs = !is_pose_select && ctx->show_relations && (arm->flag & ARM_POSEMODE) &&
+                           (bone->flag & BONE_SELECTED) &&
+                           ((ob->base_flag & BASE_FROM_DUPLI) == 0) &&
+                           (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT));
+    const int select_id = is_pose_select ? index : uint(-1);
+    const short constflag = pchan->constflag;
 
-        pchan_draw_data_init(pchan);
+    pchan_draw_data_init(pchan);
 
-        if (!ctx->const_color) {
-          set_pchan_colorset(ctx, ob, pchan);
-        }
+    if (!ctx->const_color) {
+      set_pchan_colorset(ctx, ob, pchan);
+    }
 
-        int boneflag = bone->flag;
-        if (bone->parent && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
-          /* Avoid drawing connection line to hidden parent. */
-          boneflag &= ~BONE_CONNECTED;
-        }
-        if (bone == arm->act_bone) {
-          /* Draw bone as active, but only if selected. */
-          boneflag |= BONE_DRAW_ACTIVE;
-        }
-        if (!draw_locked_weights) {
-          boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
-        }
+    int boneflag = bone->flag;
+    if (bone->parent && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+      /* Avoid drawing connection line to hidden parent. */
+      boneflag &= ~BONE_CONNECTED;
+    }
+    if (bone == arm->act_bone) {
+      /* Draw bone as active, but only if selected. */
+      boneflag |= BONE_DRAW_ACTIVE;
+    }
+    if (!draw_locked_weights) {
+      boneflag &= ~BONE_DRAW_LOCKED_WEIGHT;
+    }
 
-        const bool use_custom_shape = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
-        const ArmatureBoneDrawStrategy &draw_strat = use_custom_shape ? draw_strat_custom :
-                                                                        draw_strat_normal;
+    const bool use_custom_shape = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
+    const ArmatureBoneDrawStrategy &draw_strat = use_custom_shape ? draw_strat_custom :
+                                                                    draw_strat_normal;
 
-        if (!is_pose_select) {
-          draw_bone_relations(ctx, draw_strat, nullptr, pchan, arm, boneflag, constflag);
-        }
+    if (!is_pose_select) {
+      draw_bone_relations(ctx, draw_strat, nullptr, pchan, arm, boneflag, constflag);
+    }
 
-        draw_strat.update_display_matrix(nullptr, pchan);
-        if (!is_pose_select || draw_strat.culling_test(view, ob, pchan)) {
-          draw_strat.draw_bone(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
-        }
+    draw_strat.update_display_matrix(nullptr, pchan);
+    if (!is_pose_select || draw_strat.culling_test(view, ob, pchan)) {
+      draw_strat.draw_bone(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
+    }
 
-        /* Below this point nothing is used for selection queries. */
-        if (is_pose_select) {
-          continue;
-        }
+    /* Below this point nothing is used for selection queries. */
+    if (is_pose_select) {
+      continue;
+    }
 
-        if (draw_dofs) {
-          draw_bone_degrees_of_freedom(ctx, pchan);
-        }
-        if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-          draw_bone_name(ctx, nullptr, pchan, arm, boneflag);
-        }
-        if (arm->flag & ARM_DRAWAXES) {
-          draw_axes(ctx, nullptr, pchan, arm);
-        }
-      }
+    if (draw_dofs) {
+      draw_bone_degrees_of_freedom(ctx, pchan);
+    }
+    if (show_text && (arm->flag & ARM_DRAWNAMES)) {
+      draw_bone_name(ctx, nullptr, pchan, arm, boneflag);
+    }
+    if (arm->flag & ARM_DRAWAXES) {
+      draw_axes(ctx, nullptr, pchan, arm);
     }
   }
 
