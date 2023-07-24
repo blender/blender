@@ -116,13 +116,11 @@ struct EraseOperationExecutor {
    * Note that for the two output arrays the last element may contain intersections if the
    * corresponding curve is cyclic.
    */
-  int intersections_with_curves(const blender::bke::CurvesGeometry &src,
-                                const Array<float2> &screen_space_positions,
-                                Array<int> &r_nb_intersections,
-                                Array<float2> &r_intersections_factors) const
+  int intersections_with_curves(const bke::CurvesGeometry &src,
+                                const Span<float2> screen_space_positions,
+                                MutableSpan<int> r_nb_intersections,
+                                MutableSpan<float2> r_intersections_factors) const
   {
-    using namespace blender::bke;
-
     const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
     const VArray<bool> src_cyclic = src.cyclic();
 
@@ -194,9 +192,9 @@ struct EraseOperationExecutor {
    * Note that for the two output arrays the last element may contain intersections if the
    * corresponding curve is cyclic.
    */
-  int compute_points_inside(const Array<float2> &screen_space_positions,
+  int compute_points_inside(const Span<float2> screen_space_positions,
                             const IndexRange points_range,
-                            Array<bool> &r_point_inside) const
+                            MutableSpan<bool> r_point_inside) const
   {
     /* Check if points are inside the eraser. */
     threading::parallel_for(points_range, 1024, [&](const IndexRange src_points) {
@@ -214,13 +212,11 @@ struct EraseOperationExecutor {
     return total_points_inside;
   }
 
-  bool hard_eraser(const blender::bke::CurvesGeometry &src,
-                   const Array<float2> &screen_space_positions,
-                   blender::bke::CurvesGeometry &dst,
+  bool hard_eraser(const bke::CurvesGeometry &src,
+                   const Span<float2> screen_space_positions,
+                   bke::CurvesGeometry &dst,
                    const bool keep_caps) const
   {
-    using namespace blender::bke;
-
     const VArray<bool> src_cyclic = src.cyclic();
     const int src_points_num = src.points_num();
     const int src_curves_num = src.curves_num();
@@ -367,7 +363,7 @@ struct EraseOperationExecutor {
     /* Attributes. */
     const bke::AttributeAccessor src_attributes = src.attributes();
     bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
-    const AnonymousAttributePropagationInfo propagation_info{};
+    const bke::AnonymousAttributePropagationInfo propagation_info{};
 
     /* Copy curves attributes. */
     for (bke::AttributeTransferData &attribute : bke::retrieve_attributes_for_transfer(
@@ -382,9 +378,9 @@ struct EraseOperationExecutor {
     /* Display intersections with flat caps. */
     const OffsetIndices<int> dst_points_by_curve = dst.points_by_curve();
     if (!keep_caps) {
-      SpanAttributeWriter<int8_t> dst_start_caps =
+      bke::SpanAttributeWriter<int8_t> dst_start_caps =
           dst_attributes.lookup_or_add_for_write_span<int8_t>("start_cap", ATTR_DOMAIN_CURVE);
-      SpanAttributeWriter<int8_t> dst_end_caps =
+      bke::SpanAttributeWriter<int8_t> dst_end_caps =
           dst_attributes.lookup_or_add_for_write_span<int8_t>("end_cap", ATTR_DOMAIN_CURVE);
 
       threading::parallel_for(dst.curves_range(), 4096, [&](const IndexRange dst_curves) {
@@ -451,9 +447,9 @@ struct EraseOperationExecutor {
     return true;
   }
 
-  bool stroke_eraser(const blender::bke::CurvesGeometry &src,
-                     const Array<float2> &screen_space_positions,
-                     blender::bke::CurvesGeometry &dst) const
+  bool stroke_eraser(const bke::CurvesGeometry &src,
+                     const Span<float2> screen_space_positions,
+                     bke::CurvesGeometry &dst) const
   {
     const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
     const VArray<bool> src_cyclic = src.cyclic();
