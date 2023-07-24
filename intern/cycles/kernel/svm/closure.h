@@ -542,7 +542,7 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       break;
     }
     case CLOSURE_BSDF_SHEEN_ID: {
-      Spectrum weight = sd->svm_closure_weight * mix_weight;
+      Spectrum weight = closure_weight * mix_weight;
       ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
           sd, sizeof(SheenBsdf), weight);
 
