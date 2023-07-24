@@ -128,7 +128,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  *
  * \{ */
 
-enum UnsafeCharacterSet {
+enum eUnsafeCharacterSet {
   UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
   UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
@@ -161,38 +161,35 @@ static const char hex[17] = "0123456789abcdef";
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
                               char *escaped_string,
-                              int escaped_string_size,
-                              UnsafeCharacterSet mask)
+                              const int escaped_string_size,
+                              const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & use_mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+
+  BLI_assert(escaped_string_size > 0);
+  /* Remove space for \0. */
+  int escaped_string_len = escaped_string_size - 1;
 
   const char *p;
   char *q;
   int c;
-  UnsafeCharacterSet use_mask;
-  use_mask = mask;
 
-  BLI_assert(escaped_string_size > 0);
-
-  /* space for \0 */
-  escaped_string_size -= 1;
-
-  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
+  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_len; p++) {
     c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
-      if (escaped_string_size < 3) {
+      if (escaped_string_len < 3) {
         break;
       }
 
       *q++ = '%'; /* means hex coming */
       *q++ = hex[c >> 4];
       *q++ = hex[c & 15];
-      escaped_string_size -= 3;
+      escaped_string_len -= 3;
     }
     else {
       *q++ = *p;
-      escaped_string_size -= 1;
+      escaped_string_len -= 1;
     }
   }
 
