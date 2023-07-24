@@ -43,13 +43,13 @@ static bool modifierTypesInit = false;
 /** \name Modifier Multi-Threading Utilities
  * \{ */
 
-typedef void (*modifier_apply_threaded_cb)(int width,
-                                           int height,
-                                           uchar *rect,
-                                           float *rect_float,
-                                           uchar *mask_rect,
-                                           const float *mask_rect_float,
-                                           void *data_v);
+using modifier_apply_threaded_cb = void (*)(int width,
+                                            int height,
+                                            uchar *rect,
+                                            float *rect_float,
+                                            uchar *mask_rect,
+                                            const float *mask_rect_float,
+                                            void *data_v);
 
 struct ModifierInitData {
   ImBuf *ibuf;

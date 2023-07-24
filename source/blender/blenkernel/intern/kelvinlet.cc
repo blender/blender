@@ -113,8 +113,8 @@ void BKE_kelvinlet_grab_triscale(float radius_elem_disp[3],
   mul_v3_v3fl(radius_elem_disp, brush_delta, fade);
 }
 
-typedef void (*kelvinlet_fn)(
-    float[3], const float *, const float *, const float *, const KelvinletParams *);
+using kelvinlet_fn =
+    void (*)(float[3], const float *, const float *, const float *, const KelvinletParams *);
 
 static void sculpt_kelvinet_integrate(kelvinlet_fn kelvinlet,
                                       float r_disp[3],

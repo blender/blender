@@ -2399,7 +2399,10 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 #define COLLISION_MIN_DISTANCE 0.0001f
 #define COLLISION_ZERO 0.00001f
 #define COLLISION_INIT_STEP 0.00008f
-typedef float (*NRDistanceFunc)(float *p, float radius, ParticleCollisionElement *pce, float *nor);
+using NRDistanceFunc = float (*)(float *p,
+                                 float radius,
+                                 ParticleCollisionElement *pce,
+                                 float *nor);
 static float nr_signed_distance_to_plane(float *p,
                                          float radius,
                                          ParticleCollisionElement *pce,

@@ -66,7 +66,7 @@ struct my_error_mgr {
   jmp_buf setjmp_buffer; /* for return to caller */
 };
 
-typedef my_error_mgr *my_error_ptr;
+using my_error_ptr = my_error_mgr *;
 
 static void jpeg_error(j_common_ptr cinfo)
 {
@@ -101,7 +101,7 @@ struct my_source_mgr {
   JOCTET terminal[2];
 };
 
-typedef my_source_mgr *my_src_ptr;
+using my_src_ptr = my_source_mgr *;
 
 static void init_source(j_decompress_ptr cinfo)
 {

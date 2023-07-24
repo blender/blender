@@ -696,24 +696,24 @@ static bool point_is_selected(PTCacheEditPoint *point)
 /** \name Iterators
  * \{ */
 
-typedef void (*ForPointFunc)(PEData *data, int point_index);
-typedef void (*ForHitPointFunc)(PEData *data, int point_index, float mouse_distance);
+using ForPointFunc = void (*)(PEData *data, int point_index);
+using ForHitPointFunc = void (*)(PEData *data, int point_index, float mouse_distance);
 
-typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index, bool is_inside);
+using ForKeyFunc = void (*)(PEData *data, int point_index, int key_index, bool is_inside);
 
-typedef void (*ForKeyMatFunc)(PEData *data,
-                              const float mat[4][4],
-                              const float imat[4][4],
-                              int point_index,
-                              int key_index,
-                              PTCacheEditKey *key);
-typedef void (*ForHitKeyMatFunc)(PEData *data,
-                                 float mat[4][4],
-                                 float imat[4][4],
-                                 int point_index,
-                                 int key_index,
-                                 PTCacheEditKey *key,
-                                 float mouse_distance);
+using ForKeyMatFunc = void (*)(PEData *data,
+                               const float mat[4][4],
+                               const float imat[4][4],
+                               int point_index,
+                               int key_index,
+                               PTCacheEditKey *key);
+using ForHitKeyMatFunc = void (*)(PEData *data,
+                                  float mat[4][4],
+                                  float imat[4][4],
+                                  int point_index,
+                                  int key_index,
+                                  PTCacheEditKey *key,
+                                  float mouse_distance);
 
 enum eParticleSelectFlag {
   PSEL_NEAREST = (1 << 0),

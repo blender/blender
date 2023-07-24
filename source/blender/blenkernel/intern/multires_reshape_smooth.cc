@@ -1087,10 +1087,10 @@ static void reshape_subdiv_create(MultiresReshapeSmoothContext *reshape_smooth_c
 }
 
 /* Callback to provide coarse position for subdivision surface topology at a reshape level. */
-typedef void(ReshapeSubdivCoarsePositionCb)(
-    const MultiresReshapeSmoothContext *reshape_smooth_context,
-    const Vertex *vertex,
-    float r_P[3]);
+using ReshapeSubdivCoarsePositionCb =
+    void(const MultiresReshapeSmoothContext *reshape_smooth_context,
+         const Vertex *vertex,
+         float r_P[3]);
 
 /* Refine subdivision surface topology at a reshape level for new coarse vertices positions. */
 static void reshape_subdiv_refine(const MultiresReshapeSmoothContext *reshape_smooth_context,

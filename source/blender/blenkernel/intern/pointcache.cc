@@ -1117,7 +1117,7 @@ PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
  *
  * If the function returns false, then foreach() loop aborts.
  */
-typedef bool (*ForeachPtcacheCb)(PTCacheID *pid, void *userdata);
+using ForeachPtcacheCb = bool (*)(PTCacheID *pid, void *userdata);
 
 static bool foreach_object_particle_ptcache(Object *object,
                                             ForeachPtcacheCb callback,

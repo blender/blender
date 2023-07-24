@@ -781,10 +781,10 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
   return ret;
 }
 
-typedef bool (*boid_rule_cb)(BoidRule *rule,
-                             BoidBrainData *data,
-                             BoidValues *val,
-                             ParticleData *pa);
+using boid_rule_cb = bool (*)(BoidRule *rule,
+                              BoidBrainData *data,
+                              BoidValues *val,
+                              ParticleData *pa);
 
 static boid_rule_cb boid_rules[] = {
     rule_none,

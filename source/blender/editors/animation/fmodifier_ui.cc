@@ -44,7 +44,7 @@
 
 #include "DEG_depsgraph.h"
 
-typedef void (*PanelDrawFn)(const bContext *, Panel *);
+using PanelDrawFn = void (*)(const bContext *, Panel *);
 static void fmodifier_panel_header(const bContext *C, Panel *panel);
 
 /* -------------------------------------------------------------------- */
