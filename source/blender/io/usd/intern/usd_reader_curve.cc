@@ -148,12 +148,19 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
       bp->f1 = SELECT;
       bp->weight = weight;
 
-      float radius = curve_->offset;
-      if (idx < usdWidths.size()) {
-        radius = usdWidths[idx];
-      }
+      if (!usdWidths.empty()) {
+        float radius = curve_->offset;
+        if (idx < usdWidths.size()) {
+          radius = usdWidths[idx];
+        }
+        else {
+          /* When the number of width values is less than the number of points,
+           * continue using the last available value. */
+          radius = usdWidths[usdWidths.size()-1];
+        }
 
-      bp->radius = radius;
+        bp->radius = radius;
+      }
     }
 
     BKE_nurb_knot_calc_u(nu);
