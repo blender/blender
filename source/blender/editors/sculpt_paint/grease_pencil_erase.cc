@@ -450,6 +450,54 @@ struct EraseOperationExecutor {
 
     return true;
   }
+
+  bool stroke_eraser(const blender::bke::CurvesGeometry &src,
+                     const Array<float2> &screen_space_positions,
+                     blender::bke::CurvesGeometry &dst) const
+  {
+    const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
+    const VArray<bool> src_cyclic = src.cyclic();
+
+    IndexMaskMemory memory;
+    IndexMask strokes_to_remove = IndexMask::from_predicate(
+        src.curves_range(), GrainSize(256), memory, [&](const int64_t src_curve) {
+          const IndexRange src_curve_points = src_points_by_curve[src_curve];
+
+          /* If any segment of the stroke is closer to the eraser than its radius, then remove the
+           * stroke. */
+          for (const int src_point : src_curve_points.drop_back(1)) {
+            const float dist_to_eraser = dist_to_line_segment_v2(
+                this->mouse_position,
+                screen_space_positions[src_point],
+                screen_space_positions[src_point + 1]);
+            if (dist_to_eraser < this->eraser_radius) {
+              return true;
+            }
+          }
+
+          if (src_cyclic[src_curve]) {
+            const float dist_to_eraser = dist_to_line_segment_v2(
+                this->mouse_position,
+                screen_space_positions[src_curve_points.first()],
+                screen_space_positions[src_curve_points.last()]);
+            if (dist_to_eraser < this->eraser_radius) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+    if (strokes_to_remove.size() == 0) {
+      return false;
+    }
+
+    dst = std::move(src);
+    dst.remove_curves(strokes_to_remove);
+
+    return true;
+  }
+
   void execute(EraseOperation &self, const bContext &C, const InputSample &extension_sample)
   {
     using namespace blender::bke::greasepencil;
@@ -491,8 +539,8 @@ struct EraseOperationExecutor {
       bool erased = false;
       switch (self.eraser_mode) {
         case GP_BRUSH_ERASER_STROKE:
-          // To be implemented
-          return;
+          erased = stroke_eraser(src, screen_space_positions, dst);
+          break;
         case GP_BRUSH_ERASER_HARD:
           erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps);
           break;
