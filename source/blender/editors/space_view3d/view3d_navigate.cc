@@ -45,6 +45,9 @@
 
 #include "view3d_navigate.hh" /* own include */
 
+/* Prototypes. */
+static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname);
+
 static eViewOpsFlag viewops_flag_from_prefs()
 {
   const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
@@ -372,6 +375,57 @@ void ViewOpsData::end_navigation(bContext *C)
 /* -------------------------------------------------------------------- */
 /** \name Generic Operator Callback Utils
  * \{ */
+
+/* Used for navigation utility in operators. */
+struct ViewOpsData_Utility : ViewOpsData {
+  /* To track only the navigation #wmKeyMapItem items and allow changes to them, an internal
+   * #wmKeyMap is created with their copy. */
+  ListBase keymap_items;
+
+  /* Used by #ED_view3d_navigation_do. */
+  bool is_modal_event;
+
+  ViewOpsData_Utility(bContext *C, const bool use_alt_navigation = false)
+      : ViewOpsData(), keymap_items(), is_modal_event(false)
+  {
+    this->init_context(C);
+
+    wmKeyMap *keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+    wmKeyMap keymap_tmp = {};
+
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
+        continue;
+      }
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+      if (view3d_navigation_type_from_idname(kmi->idname) == nullptr) {
+        continue;
+      }
+
+      wmKeyMapItem *kmi_copy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
+      if (use_alt_navigation) {
+        kmi_copy->alt = true;
+      }
+    }
+
+    /* Weak, but only the keymap items from the #wmKeyMap struct are needed here. */
+    this->keymap_items = keymap_tmp.items;
+  }
+
+  ~ViewOpsData_Utility()
+  {
+    /* Weak, but rebuild the struct #wmKeyMap to clear the keymap items. */
+    wmKeyMap keymap_tmp = {};
+    keymap_tmp.items = this->keymap_items;
+    WM_keymap_clear(&keymap_tmp);
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("ViewOpsData_Utility")
+#endif
+};
 
 static bool view3d_navigation_poll_impl(bContext *C, const char viewlock)
 {
@@ -953,17 +1007,13 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 
 /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
  * with an array of `wmKeyMapItem`s used for navigation. */
-ViewOpsData *ED_view3d_navigation_init(bContext *C)
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation)
 {
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;
   }
 
-  ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
-  vod->init_context(C);
-
-  vod->keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
-  return vod;
+  return new ViewOpsData_Utility(C, use_alt_navigation);
 }
 
 /* Checks and initializes the navigation modal operation. */
@@ -997,33 +1047,25 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
 
   int op_return = OPERATOR_CANCELLED;
 
-  if (vod->is_modal_event) {
+  ViewOpsData_Utility *vod_intern = static_cast<ViewOpsData_Utility *>(vod);
+  if (vod_intern->is_modal_event) {
     const eV3D_OpEvent event_code = view3d_navigate_event(vod, event);
     op_return = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
     if (op_return != OPERATOR_RUNNING_MODAL) {
       vod->end_navigation(C);
-      vod->is_modal_event = false;
+      vod_intern->is_modal_event = false;
     }
   }
   else {
-    const ViewOpsType *nav_type;
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod->keymap->items) {
-      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
-        continue;
-      }
-      if (kmi->flag & KMI_INACTIVE) {
-        continue;
-      }
-      if ((nav_type = view3d_navigation_type_from_idname(kmi->idname)) == nullptr) {
-        continue;
-      }
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod_intern->keymap_items) {
       if (!WM_event_match(event, kmi)) {
         continue;
       }
 
+      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi->idname);
       op_return = view3d_navigation_invoke(C, vod, event, kmi, nav_type);
       if (op_return == OPERATOR_RUNNING_MODAL) {
-        vod->is_modal_event = true;
+        vod_intern->is_modal_event = true;
       }
       else {
         vod->end_navigation(C);
@@ -1054,7 +1096,9 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
 
 void ED_view3d_navigation_free(bContext *C, ViewOpsData *vod)
 {
-  viewops_data_free(C, vod);
+  ViewOpsData_Utility *vod_intern = static_cast<ViewOpsData_Utility *>(vod);
+  vod_intern->end_navigation(C);
+  delete vod_intern;
 }
 
 /** \} */

@@ -178,10 +178,6 @@ struct ViewOpsData {
    */
   bool use_dyn_ofs_ortho_correction;
 
-  /** Used for navigation on non view3d operators. */
-  wmKeyMap *keymap;
-  bool is_modal_event;
-
   void init_context(bContext *C);
   void state_backup();
   void state_restore();

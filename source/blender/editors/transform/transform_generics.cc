@@ -659,10 +659,17 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (op && (t->flag & T_MODAL) &&
-      (prop = RNA_struct_find_property(op->ptr, "allow_navigation")) &&
-      RNA_property_boolean_get(op->ptr, prop))
+      ELEM(t->mode,
+           TFM_TRANSLATION,
+           TFM_RESIZE,
+           TFM_ROTATION,
+           TFM_SHRINKFATTEN,
+           TFM_EDGE_SLIDE,
+           TFM_VERT_SLIDE))
   {
-    t->vod = ED_view3d_navigation_init(C);
+    const bool use_alt_navigation = (prop = RNA_struct_find_property(op->ptr, "alt_navigation")) &&
+                                    RNA_property_boolean_get(op->ptr, prop);
+    t->vod = ED_view3d_navigation_init(C, use_alt_navigation);
   }
 
   setTransformViewMatrices(t);

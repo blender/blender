@@ -220,7 +220,7 @@ bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
  *
  * \note modal map events can also be used in `ED_view3d_navigation_do`.
  */
-struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C);
+struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C, const bool use_alt_navigation);
 bool ED_view3d_navigation_do(struct bContext *C,
                              struct ViewOpsData *vod,
                              const struct wmEvent *event);
