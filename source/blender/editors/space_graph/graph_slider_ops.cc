@@ -1230,11 +1230,11 @@ void GRAPH_OT_gaussian_smooth(wmOperatorType *ot)
 /** \name Butterworth Smooth Operator
  * \{ */
 
-typedef struct tBtwOperatorData {
+struct tBtwOperatorData {
   ButterworthCoefficients *coefficients;
   ListBase segment_links; /* tFCurveSegmentLink */
   ListBase anim_data;     /* bAnimListElem */
-} tBtwOperatorData;
+};
 
 static int btw_calculate_sample_count(BezTriple *right_bezt,
                                       BezTriple *left_bezt,

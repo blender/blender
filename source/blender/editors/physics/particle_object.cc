@@ -991,10 +991,10 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
 
 /************************ particle system copy operator *********************/
 
-typedef enum eCopyParticlesSpace {
+enum eCopyParticlesSpace {
   PAR_COPY_SPACE_OBJECT = 0,
   PAR_COPY_SPACE_WORLD = 1,
-} eCopyParticlesSpace;
+};
 
 static void copy_particle_edit(Depsgraph *depsgraph,
                                Scene *scene,

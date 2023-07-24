@@ -93,13 +93,13 @@ typedef struct {
 } buffer_struct;
 #endif
 
-typedef struct {
+struct my_source_mgr {
   jpeg_source_mgr pub; /* public fields */
 
   const uchar *buffer;
   int size;
   JOCTET terminal[2];
-} my_source_mgr;
+};
 
 typedef my_source_mgr *my_src_ptr;
 

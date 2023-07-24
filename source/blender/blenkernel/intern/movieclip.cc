@@ -488,10 +488,10 @@ static void get_proxy_filepath(const MovieClip *clip,
 
 #ifdef WITH_OPENEXR
 
-typedef struct MultilayerConvertContext {
+struct MultilayerConvertContext {
   float *combined_pass;
   int num_combined_channels;
-} MultilayerConvertContext;
+};
 
 static void *movieclip_convert_multilayer_add_view(void * /*ctx_v*/, const char * /*view_name*/)
 {
@@ -680,7 +680,7 @@ static void movieclip_calc_length(MovieClip *clip)
 
 /*********************** image buffer cache *************************/
 
-typedef struct MovieClipCache {
+struct MovieClipCache {
   /* regular movie cache */
   MovieCache *moviecache;
 
@@ -721,17 +721,17 @@ typedef struct MovieClipCache {
   int sequence_offset;
 
   bool is_still_sequence;
-} MovieClipCache;
+};
 
-typedef struct MovieClipImBufCacheKey {
+struct MovieClipImBufCacheKey {
   int framenr;
   int proxy;
   short render_flag;
-} MovieClipImBufCacheKey;
+};
 
-typedef struct MovieClipCachePriorityData {
+struct MovieClipCachePriorityData {
   int framenr;
-} MovieClipCachePriorityData;
+};
 
 static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
 {

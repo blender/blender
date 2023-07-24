@@ -269,10 +269,10 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
   return dm;
 }
 
-typedef enum ClearFlag {
+enum ClearFlag {
   CLEAR_TANGENT_NORMAL = 1,
   CLEAR_DISPLACEMENT = 2,
-} ClearFlag;
+};
 
 static void clear_single_image(Image *image, ClearFlag flag)
 {

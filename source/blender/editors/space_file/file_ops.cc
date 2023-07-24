@@ -90,11 +90,11 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   return sel;
 }
 
-typedef enum FileSelect {
+enum FileSelect {
   FILE_SELECT_NOTHING = 0,
   FILE_SELECT_DIR = 1,
   FILE_SELECT_FILE = 2,
-} FileSelect;
+};
 
 static void clamp_to_filelist(int numfiles, FileSelection *sel)
 {

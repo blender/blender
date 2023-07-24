@@ -45,7 +45,7 @@
 /** \name Image Pixel Sample Struct (Operator Custom Data)
  * \{ */
 
-typedef struct ImageSampleInfo {
+struct ImageSampleInfo {
   ARegionType *art;
   void *draw_handle;
   int x, y;
@@ -68,7 +68,7 @@ typedef struct ImageSampleInfo {
   bool draw;
   bool color_manage;
   int use_default_view;
-} ImageSampleInfo;
+};
 
 /** \} */
 

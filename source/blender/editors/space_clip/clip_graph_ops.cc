@@ -54,9 +54,9 @@ static bool clip_graph_knots_poll(bContext *C)
   return false;
 }
 
-typedef struct {
+struct SelectUserData {
   int action;
-} SelectUserData;
+};
 
 static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 {
@@ -77,7 +77,7 @@ static void toggle_selection_cb(void *userdata, MovieTrackingMarker *marker)
 
 /******************** mouse select operator ********************/
 
-typedef struct {
+struct MouseSelectUserData {
   SpaceClip *sc;
   eClipCurveValueSource value_source;
   bool has_prev; /* if there's valid coordinate of previous point of curve segment */
@@ -89,7 +89,7 @@ typedef struct {
 
   MovieTrackingTrack *track;   /* nearest found track */
   MovieTrackingMarker *marker; /* nearest found marker */
-} MouseSelectUserData;
+};
 
 static void find_nearest_tracking_segment_cb(void *userdata,
                                              MovieTrackingTrack *track,
@@ -586,9 +586,9 @@ void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 
 /******************** view all operator ********************/
 
-typedef struct {
+struct ViewAllUserData {
   float min, max;
-} ViewAllUserData;
+};
 
 static void view_all_cb(void *userdata,
                         MovieTrackingTrack * /*track*/,

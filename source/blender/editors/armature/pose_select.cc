@@ -854,11 +854,11 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 /* -------------------------------------- */
 
 /* modes for select same */
-typedef enum ePose_SelectSame_Mode {
+enum ePose_SelectSame_Mode {
   POSE_SEL_SAME_LAYER = 0,
   POSE_SEL_SAME_GROUP = 1,
   POSE_SEL_SAME_KEYINGSET = 2,
-} ePose_SelectSame_Mode;
+};
 
 static bool pose_select_same_group(bContext *C, bool extend)
 {

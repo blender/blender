@@ -78,7 +78,7 @@ enum {
 };
 
 /* relative view axis locking - xlock, zlock */
-typedef enum eFlyPanState {
+enum eFlyPanState {
   /* disabled */
   FLY_AXISLOCK_STATE_OFF = 0,
 
@@ -89,7 +89,7 @@ typedef enum eFlyPanState {
   /* mouse moved and checking needed,
    * if no view altering is done its changed back to #FLY_AXISLOCK_STATE_IDLE */
   FLY_AXISLOCK_STATE_ACTIVE = 2,
-} eFlyPanState;
+};
 
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {

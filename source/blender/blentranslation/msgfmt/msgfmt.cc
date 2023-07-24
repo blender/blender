@@ -163,9 +163,9 @@ BLI_INLINE size_t msg_to_bytes(char *msg, char *bytes, uint32_t size)
   return i;
 }
 
-typedef struct Offset {
+struct Offset {
   uint32_t key_offset, key_len, val_offset, val_len;
-} Offset;
+};
 
 /* Return the generated binary output. */
 static char *generate(GHash *messages, size_t *r_output_size)

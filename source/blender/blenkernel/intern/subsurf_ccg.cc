@@ -75,14 +75,14 @@ static void arena_release(CCGAllocatorHDL a)
   BLI_memarena_free(reinterpret_cast<MemArena *>(a));
 }
 
-typedef enum {
+enum CCGFlags {
   CCG_USE_AGING = 1,
   CCG_USE_ARENA = 2,
   CCG_CALC_NORMALS = 4,
   /* add an extra four bytes for a mask layer */
   CCG_ALLOC_MASK = 8,
   CCG_SIMPLE_SUBDIV = 16,
-} CCGFlags;
+};
 ENUM_OPERATORS(CCGFlags, CCG_SIMPLE_SUBDIV);
 
 static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int numLayers, CCGFlags flags)

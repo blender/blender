@@ -44,7 +44,7 @@ static CLG_LogRef LOG = {"ed.undo.curve"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct {
+struct UndoCurve {
   ListBase nubase;
   int actvert;
   GHash *undoIndex;
@@ -58,7 +58,7 @@ typedef struct {
   } obedit;
 
   size_t undo_size;
-} UndoCurve;
+};
 
 static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short *r_shapenr)
 {

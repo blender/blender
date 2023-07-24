@@ -63,12 +63,12 @@
  * \{ */
 
 /* Mode defines for insert keyframes tool. */
-typedef enum eGraphKeys_InsertKey_Types {
+enum eGraphKeys_InsertKey_Types {
   GRAPHKEYS_INSERTKEY_ALL = (1 << 0),
   GRAPHKEYS_INSERTKEY_SEL = (1 << 1),
   GRAPHKEYS_INSERTKEY_CURSOR = (1 << 2),
   GRAPHKEYS_INSERTKEY_ACTIVE = (1 << 3),
-} eGraphKeys_InsertKey_Types;
+};
 
 /* RNA mode types for insert keyframes tool. */
 static const EnumPropertyItem prop_graphkeys_insertkey_types[] = {

@@ -974,12 +974,12 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
 
 /* constants for channel rearranging */
 /* WARNING: don't change existing ones without modifying rearrange func accordingly */
-typedef enum eRearrangeAnimChan_Mode {
+enum eRearrangeAnimChan_Mode {
   REARRANGE_ANIMCHAN_TOP = -2,
   REARRANGE_ANIMCHAN_UP = -1,
   REARRANGE_ANIMCHAN_DOWN = 1,
   REARRANGE_ANIMCHAN_BOTTOM = 2,
-} eRearrangeAnimChan_Mode;
+};
 
 /* defines for rearranging channels */
 static const EnumPropertyItem prop_animchannel_rearrange_types[] = {
@@ -1001,12 +1001,12 @@ struct tReorderChannelIsland {
 };
 
 /* flags for channel reordering islands */
-typedef enum eReorderIslandFlag {
+enum eReorderIslandFlag {
   REORDER_ISLAND_SELECTED = (1 << 0),    /* island is selected */
   REORDER_ISLAND_UNTOUCHABLE = (1 << 1), /* island should be ignored */
   REORDER_ISLAND_MOVED = (1 << 2),       /* island has already been moved */
   REORDER_ISLAND_HIDDEN = (1 << 3),      /* island is not visible */
-} eReorderIslandFlag;
+};
 
 /* Rearrange Methods --------------------------------------------- */
 

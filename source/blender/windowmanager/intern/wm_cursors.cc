@@ -31,13 +31,13 @@
 #include "wm_window.h"
 
 /* Blender custom cursor. */
-typedef struct BCursor {
+struct BCursor {
   char *bitmap;
   char *mask;
   char hotx;
   char hoty;
   bool can_invert_color;
-} BCursor;
+};
 
 static BCursor *BlenderCursor[WM_CURSOR_NUM] = {0};
 

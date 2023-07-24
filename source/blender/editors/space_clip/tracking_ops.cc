@@ -332,16 +332,16 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 /** \name Slide Marker Operator
  * \{ */
 
-typedef enum eSlideAction {
+enum eSlideAction {
   SLIDE_ACTION_NONE,
 
   SLIDE_ACTION_POS,
   SLIDE_ACTION_SIZE,
   SLIDE_ACTION_OFFSET,
   SLIDE_ACTION_TILT_SIZE,
-} eSlideAction;
+};
 
-typedef struct {
+struct SlideMarkerData {
   short area;
   eSlideAction action;
   MovieTrackingTrack *track;
@@ -357,7 +357,7 @@ typedef struct {
   float old_search_min[2], old_search_max[2], old_pos[2];
   float old_corners[4][2];
   float (*old_markers)[2];
-} SlideMarkerData;
+};
 
 static void slide_marker_tilt_slider_relative(const float pattern_corners[4][2], float r_slider[2])
 {

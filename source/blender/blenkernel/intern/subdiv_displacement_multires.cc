@@ -54,12 +54,12 @@ struct MultiresDisplacementData {
 
 /* Denotes which grid to use to average value of the displacement read from the
  * grid which corresponds to the PTEX face. */
-typedef enum eAverageWith {
+enum eAverageWith {
   AVERAGE_WITH_NONE,
   AVERAGE_WITH_ALL,
   AVERAGE_WITH_PREV,
   AVERAGE_WITH_NEXT,
-} eAverageWith;
+};
 
 static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
                                            const int ptex_face_index,

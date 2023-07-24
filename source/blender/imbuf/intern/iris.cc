@@ -23,7 +23,7 @@
 
 #define IMAGIC 0732
 
-typedef struct {
+struct IMAGE {
   ushort imagic; /* Stuff saved on disk. */
   ushort type;
   ushort dim;
@@ -36,7 +36,7 @@ typedef struct {
   char name[80];
   uint colormap;
   uchar _pad2[404];
-} IMAGE;
+};
 
 #define HEADER_SIZE 512
 

@@ -220,7 +220,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 #define B_MARKER_SEARCH_DIM 7
 #define B_MARKER_FLAG 8
 
-typedef struct {
+struct MarkerUpdateCb {
   /** compact mode */
   int compact;
 
@@ -242,7 +242,7 @@ typedef struct {
   float marker_search_pos[2], marker_search[2];
   /** marker's flags */
   int marker_flag;
-} MarkerUpdateCb;
+};
 
 static void to_pixel_space(float r[2], const float a[2], int width, int height)
 {

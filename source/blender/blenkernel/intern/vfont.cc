@@ -711,7 +711,7 @@ struct TempLineInfo {
  * - Never increase scale to fit, only ever scale on overflow.
  * \{ */
 
-typedef struct VFontToCurveIter {
+struct VFontToCurveIter {
   int iteraction;
   float scale_to_fit;
   struct {
@@ -730,7 +730,7 @@ typedef struct VFontToCurveIter {
    */
   bool word_wrap;
   int status;
-} VFontToCurveIter;
+};
 
 /** \} */
 
@@ -742,12 +742,12 @@ typedef struct VFontToCurveIter {
  * text cursor (caret) position or selection range.
  * \{ */
 /* Used when translating a mouse cursor location to a position within the string. */
-typedef struct VFontCursor_Params {
+struct VFontCursor_Params {
   /* Mouse cursor location in Object coordinate space as input. */
   float cursor_location[2];
   /* Character position within EditFont::textbuf as output. */
   int r_string_offset;
-} VFontCursor_Params;
+};
 
 enum {
   VFONT_TO_CURVE_INIT = 0,
@@ -789,7 +789,7 @@ static float vfont_descent(const VFontData *vfd)
  * Track additional information when using the cursor to select with multiple text boxes.
  * This gives a more predictable result when the user moves the cursor outside the text-box.
  */
-typedef struct TextBoxBounds_ForCursor {
+struct TextBoxBounds_ForCursor {
   /**
    * Describes the minimum rectangle that contains all characters in a text-box,
    * values are compatible with #TextBox.
@@ -799,7 +799,7 @@ typedef struct TextBoxBounds_ForCursor {
    * The last character in this text box or -1 when unfilled.
    */
   int char_index_last;
-} TextBoxBounds_ForCursor;
+};
 
 static bool vfont_to_curve(Object *ob,
                            Curve *cu,

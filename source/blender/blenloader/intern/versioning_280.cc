@@ -1847,11 +1847,11 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
 /* This structure is only used to pass data to
  * update_mapping_node_fcurve_rna_path_callback.
  */
-typedef struct {
+struct MappingNodeFCurveCallbackData {
   char *nodePath;
   bNode *minimumNode;
   bNode *maximumNode;
-} MappingNodeFCurveCallbackData;
+};
 
 /* This callback function is used by update_mapping_node_inputs_and_properties.
  * It is executed on every fcurve in the nodetree id updating its RNA paths. The

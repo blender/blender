@@ -100,25 +100,25 @@ enum {
   WALK_BIT_DOWN = 1 << 5,
 };
 
-typedef enum eWalkTeleportState {
+enum eWalkTeleportState {
   WALK_TELEPORT_STATE_OFF = 0,
   WALK_TELEPORT_STATE_ON,
-} eWalkTeleportState;
+};
 
-typedef enum eWalkMethod {
+enum eWalkMethod {
   WALK_MODE_FREE = 0,
   WALK_MODE_GRAVITY,
-} eWalkMethod;
+};
 
-typedef enum eWalkGravityState {
+enum eWalkGravityState {
   WALK_GRAVITY_STATE_OFF = 0,
   WALK_GRAVITY_STATE_JUMP,
   WALK_GRAVITY_STATE_START,
   WALK_GRAVITY_STATE_ON,
-} eWalkGravityState;
+};
 
 /* Relative view axis z axis locking. */
-typedef enum eWalkLockState {
+enum eWalkLockState {
   /* Disabled. */
   WALK_AXISLOCK_STATE_OFF = 0,
 
@@ -127,7 +127,7 @@ typedef enum eWalkLockState {
 
   /* Done moving, it cannot be activated again. */
   WALK_AXISLOCK_STATE_DONE = 3,
-} eWalkLockState;
+};
 
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
