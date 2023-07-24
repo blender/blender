@@ -61,6 +61,25 @@
 #endif
 
 /* -------------------------------------------------------------------- */
+
+/** \name Blend/Library Paths
+ * \{ */
+
+bool BKE_blendfile_is_readable(const char *path, ReportList *reports)
+{
+  BlendFileReadReport readfile_reports;
+  readfile_reports.reports = reports;
+  BlendHandle *bh = BLO_blendhandle_from_file(path, &readfile_reports);
+  if (bh != NULL) {
+    BLO_blendhandle_close(bh);
+    return true;
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name High Level `.blend` file read/write.
  * \{ */
 

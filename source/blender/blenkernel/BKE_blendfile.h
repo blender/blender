@@ -20,6 +20,13 @@ struct UserDef;
 struct bContext;
 
 /**
+ * Check whether a given path is actually a Blender-readable, valid .blend file.
+ *
+ * \note Currently does attempt to open and read (part of) the given file.
+ */
+bool BKE_blendfile_is_readable(const char *path, struct ReportList *reports);
+
+/**
  * Shared setup function that makes the data from `bfd` into the current blend file,
  * replacing the contents of #G.main.
  * This uses the bfd #BKE_blendfile_read and similarly named functions.
