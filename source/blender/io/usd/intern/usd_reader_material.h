@@ -65,9 +65,10 @@ struct NodePlacementContext {
  * - #UsdPreviewSurface -> Principled BSDF
  * - #UsdUVTexture -> Texture Image + Normal Map
  * - #UsdPrimvarReader_float2 -> UV Map
+ * - #UsdTransform2d -> Mapping
  *
- * Limitations: arbitrary primvar readers or UsdTransform2d not yet
- * supported. For #UsdUVTexture, only the file, st and #sourceColorSpace
+ * Limitations: arbitrary primvar readers not yet supported.
+ * For #UsdUVTexture, only the file, st and #sourceColorSpace
  * inputs are handled.
  *
  * TODO(makowalski):  Investigate adding support for converting additional
@@ -118,6 +119,14 @@ class USDMaterialReader {
                               bNodeTree *ntree,
                               int column,
                               NodePlacementContext *r_ctx) const;
+
+  void convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
+                                const pxr::TfToken &usd_source_name,
+                                bNode *dest_node,
+                                const char *dest_socket_name,
+                                bNodeTree *ntree,
+                                int column,
+                                NodePlacementContext *r_ctx) const;
 
   /**
    * Load the texture image node's texture from the path given by the USD shader's

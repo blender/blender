@@ -263,9 +263,6 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
     std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-    if (usd_export_context_.export_params.convert_uv_to_st && !active_uv.empty()) {
-      active_uv = "st";
-    }
     create_usd_preview_surface_material(
         this->usd_export_context_, material, usd_material, active_uv);
   }

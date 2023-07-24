@@ -16,6 +16,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
+#include "BKE_texture.h"
 
 #include "BLI_fileops.h"
 #include "BLI_math_vector.h"
@@ -49,6 +50,7 @@ static const pxr::TfToken emissiveColor("emissiveColor", pxr::TfToken::Immortal)
 static const pxr::TfToken file("file", pxr::TfToken::Immortal);
 static const pxr::TfToken g("g", pxr::TfToken::Immortal);
 static const pxr::TfToken ior("ior", pxr::TfToken::Immortal);
+static const pxr::TfToken in("in", pxr::TfToken::Immortal);
 static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
 static const pxr::TfToken normal("normal", pxr::TfToken::Immortal);
 static const pxr::TfToken occlusion("occlusion", pxr::TfToken::Immortal);
@@ -75,11 +77,17 @@ static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 
+/* Transform 2d names. */
+static const pxr::TfToken rotation("rotation", pxr::TfToken::Immortal);
+static const pxr::TfToken scale("scale", pxr::TfToken::Immortal);
+static const pxr::TfToken translation("translation", pxr::TfToken::Immortal);
+
 /* USD shader names. */
 static const pxr::TfToken UsdPreviewSurface("UsdPreviewSurface", pxr::TfToken::Immortal);
 static const pxr::TfToken UsdPrimvarReader_float2("UsdPrimvarReader_float2",
                                                   pxr::TfToken::Immortal);
 static const pxr::TfToken UsdUVTexture("UsdUVTexture", pxr::TfToken::Immortal);
+static const pxr::TfToken UsdTransform2d("UsdTransform2d", pxr::TfToken::Immortal);
 }  // namespace usdtokens
 
 /* Temporary folder for saving imported textures prior to packing.
@@ -372,6 +380,40 @@ static void set_viewport_material_props(Material *mtl, const pxr::UsdShadeShader
       mtl->roughness = val.Get<float>();
     }
   }
+}
+
+static pxr::UsdShadeInput get_input(const pxr::UsdShadeShader &usd_shader, const pxr::TfToken &input_name)
+{
+  pxr::UsdShadeInput input = usd_shader.GetInput(input_name);
+
+  /* Check if the shader's input is connected to another source,
+   * and use that instead if so. */
+  if (input) {
+    for (const pxr::UsdShadeConnectionSourceInfo &source_info : input.GetConnectedSources()) {
+      pxr::UsdShadeShader shader = pxr::UsdShadeShader(source_info.source.GetPrim());
+      pxr::UsdShadeInput secondary_input = shader.GetInput(source_info.sourceName);
+      if (secondary_input) {
+        input = secondary_input;
+        break;
+      }
+    }
+  }
+
+  return input;
+}
+
+static bNodeSocket *get_input_socket(bNode *node, const char *identifier)
+{
+  bNodeSocket *sock = nodeFindSocket(node, SOCK_IN, identifier);
+  if (!sock) {
+    WM_reportf(RPT_ERROR,
+               "%s: Programmer error: Couldn't get input socket %s for node %s",
+               __func__,
+               identifier,
+               node->idname);
+  }
+
+  return sock;
 }
 
 namespace blender::io::usd {
@@ -673,7 +715,7 @@ void USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
     return;
   }
 
-  /* For now, only convert UsdUVTexture and UsdPrimvarReader_float2 inputs. */
+  /* For now, only convert UsdUVTexture, UsdTransform2d and UsdPrimvarReader_float2 inputs. */
   if (shader_id == usdtokens::UsdUVTexture) {
 
     if (STREQ(dest_socket_name, "Normal")) {
@@ -702,6 +744,10 @@ void USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
   }
   else if (shader_id == usdtokens::UsdPrimvarReader_float2) {
     convert_usd_primvar_reader_float2(
+        source_shader, source_name, dest_node, dest_socket_name, ntree, column + 1, r_ctx);
+  }
+  else if (shader_id == usdtokens::UsdTransform2d) {
+    convert_usd_transform_2d(
         source_shader, source_name, dest_node, dest_socket_name, ntree, column + 1, r_ctx);
   }
 }
@@ -751,6 +797,85 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
   /* Connect the texture image node "Vector" input. */
   if (pxr::UsdShadeInput st_input = usd_shader.GetInput(usdtokens::st)) {
     set_node_input(st_input, tex_image, "Vector", ntree, column, r_ctx);
+  }
+}
+
+void USDMaterialReader::convert_usd_transform_2d(const pxr::UsdShadeShader &usd_shader,
+                                                 const pxr::TfToken &usd_source_name,
+                                                 bNode *dest_node,
+                                                 const char *dest_socket_name,
+                                                 bNodeTree *ntree,
+                                                 int column,
+                                                 NodePlacementContext *r_ctx) const
+{
+  if (!usd_shader || !dest_node || !ntree || !dest_socket_name || !bmain_ || !r_ctx) {
+    return;
+  }
+
+  bNode *mapping = get_cached_node(r_ctx->node_cache, usd_shader);
+
+  if (mapping == nullptr) {
+    float locx = 0.0f;
+    float locy = 0.0f;
+    compute_node_loc(column, &locx, &locy, r_ctx);
+
+    /* Create the MAPPING node. */
+    mapping = add_node(nullptr, ntree, SH_NODE_MAPPING, locx, locy);
+
+    if (!mapping) {
+      WM_reportf(RPT_WARNING,
+                 "%s: Couldn't create SH_NODE_MAPPING for node input  %s",
+                 __func__,
+                 dest_socket_name);
+      return;
+    }
+
+    /* Cache newly created node. */
+    cache_node(r_ctx->node_cache, usd_shader, mapping);
+
+    mapping->custom1 = TEXMAP_TYPE_POINT;
+
+    if (bNodeSocket *scale_socket = get_input_socket(mapping, "Scale")) {
+      if (pxr::UsdShadeInput scale_input = get_input(usd_shader, usdtokens::scale)) {
+        pxr::VtValue val;
+        if (scale_input.Get(&val) && val.CanCast<pxr::GfVec2f>()) {
+          pxr::GfVec2f scale_val = val.Cast<pxr::GfVec2f>().UncheckedGet<pxr::GfVec2f>();
+          float scale[3] = {scale_val[0], scale_val[1], 1.0f};
+          copy_v3_v3(((bNodeSocketValueVector *)scale_socket->default_value)->value, scale);
+        }
+      }
+    }
+
+    if (bNodeSocket *loc_socket = get_input_socket(mapping, "Location")) {
+      if (pxr::UsdShadeInput trans_input = get_input(usd_shader, usdtokens::translation)) {
+        pxr::VtValue val;
+        if (trans_input.Get(&val) && val.CanCast<pxr::GfVec2f>()) {
+          pxr::GfVec2f trans_val = val.Cast<pxr::GfVec2f>().UncheckedGet<pxr::GfVec2f>();
+          float loc[3] = {trans_val[0], trans_val[1], 0.0f};
+          copy_v3_v3(((bNodeSocketValueVector *)loc_socket->default_value)->value, loc);
+        }
+      }
+    }
+
+    if (bNodeSocket *rot_socket = get_input_socket(mapping, "Rotation")) {
+      if (pxr::UsdShadeInput rot_input = get_input(usd_shader, usdtokens::rotation)) {
+        pxr::VtValue val;
+        if (rot_input.Get(&val) && val.CanCast<float>()) {
+          float rot_val = val.Cast<float>().UncheckedGet<float>() * M_PI / 180.0f;
+          float rot[3] = {0.0f, 0.0f, rot_val};
+          copy_v3_v3(((bNodeSocketValueVector *)rot_socket->default_value)->value, rot);
+        }
+      }
+    }
+
+  }
+
+  /* Connect to destination node input. */
+  link_nodes(ntree, mapping, "Vector", dest_node, dest_socket_name);
+
+  /* Connect the mapping node "Vector" input. */
+  if (pxr::UsdShadeInput in_input = usd_shader.GetInput(usdtokens::in)) {
+    set_node_input(in_input, mapping, "Vector", ntree, column, r_ctx);
   }
 }
 
