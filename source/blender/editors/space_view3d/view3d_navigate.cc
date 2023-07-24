@@ -52,7 +52,7 @@ static eViewOpsFlag viewops_flag_from_prefs()
   const bool use_zoom_to_mouse = (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0;
   const bool use_auto_persp = (U.uiflag & USER_AUTOPERSP) != 0;
 
-  enum eViewOpsFlag flag = VIEWOPS_FLAG_NONE;
+  enum eViewOpsFlag flag = VIEWOPS_FLAG_INIT_ZFAC;
   if (use_select) {
     flag |= VIEWOPS_FLAG_ORBIT_SELECT;
   }

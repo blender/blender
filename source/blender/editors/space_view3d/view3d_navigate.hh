@@ -78,7 +78,7 @@ enum eViewOpsFlag {
 
   VIEWOPS_FLAG_INIT_ZFAC = (1 << 5),
 };
-ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_ZOOM_TO_MOUSE);
+ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_INIT_ZFAC);
 
 struct ViewOpsType {
   eViewOpsFlag flag;
