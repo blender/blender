@@ -1873,6 +1873,10 @@ enum {
   SHD_GLOSSY_MULTI_GGX = 4,
 };
 
+/* sheen distributions */
+#define SHD_SHEEN_ASHIKHMIN 0
+#define SHD_SHEEN_MICROFIBER 1
+
 /* vector transform */
 enum {
   SHD_VECT_TRANSFORM_TYPE_VECTOR = 0,

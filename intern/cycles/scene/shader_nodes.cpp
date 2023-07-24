@@ -2559,35 +2559,42 @@ void ToonBsdfNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_toon_bsdf");
 }
 
-/* Velvet BSDF Closure */
+/* Sheen BSDF Closure */
 
-NODE_DEFINE(VelvetBsdfNode)
+NODE_DEFINE(SheenBsdfNode)
 {
-  NodeType *type = NodeType::add("velvet_bsdf", create, NodeType::SHADER);
+  NodeType *type = NodeType::add("sheen_bsdf", create, NodeType::SHADER);
 
   SOCKET_IN_COLOR(color, "Color", make_float3(0.8f, 0.8f, 0.8f));
   SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
-  SOCKET_IN_FLOAT(sigma, "Sigma", 1.0f);
+  SOCKET_IN_FLOAT(roughness, "Roughness", 1.0f);
+
+  static NodeEnum distribution_enum;
+  distribution_enum.insert("ashikhmin", CLOSURE_BSDF_ASHIKHMIN_VELVET_ID);
+  distribution_enum.insert("microfiber", CLOSURE_BSDF_SHEEN_ID);
+  SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_SHEEN_ID);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 
   return type;
 }
 
-VelvetBsdfNode::VelvetBsdfNode() : BsdfNode(get_node_type())
+SheenBsdfNode::SheenBsdfNode() : BsdfNode(get_node_type())
 {
-  closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
+  closure = CLOSURE_BSDF_SHEEN_ID;
 }
 
-void VelvetBsdfNode::compile(SVMCompiler &compiler)
+void SheenBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler, input("Sigma"), NULL);
+  closure = distribution;
+  BsdfNode::compile(compiler, input("Roughness"), NULL);
 }
 
-void VelvetBsdfNode::compile(OSLCompiler &compiler)
+void SheenBsdfNode::compile(OSLCompiler &compiler)
 {
-  compiler.add(this, "node_velvet_bsdf");
+  compiler.parameter(this, "distribution");
+  compiler.add(this, "node_sheen_bsdf");
 }
 
 /* Diffuse BSDF Closure */

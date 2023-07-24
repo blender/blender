@@ -584,11 +584,17 @@ class TransparentBsdfNode : public BsdfNode {
   }
 };
 
-class VelvetBsdfNode : public BsdfNode {
+class SheenBsdfNode : public BsdfNode {
  public:
-  SHADER_NODE_CLASS(VelvetBsdfNode)
+  SHADER_NODE_CLASS(SheenBsdfNode)
 
-  NODE_SOCKET_API(float, sigma)
+  NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(ClosureType, distribution)
+
+  ClosureType get_closure_type()
+  {
+    return distribution;
+  }
 };
 
 class GlossyBsdfNode : public BsdfNode {

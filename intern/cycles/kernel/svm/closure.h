@@ -540,6 +540,19 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       }
       break;
     }
+    case CLOSURE_BSDF_SHEEN_ID: {
+      Spectrum weight = sd->svm_closure_weight * mix_weight;
+      ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
+          sd, sizeof(SheenBsdf), weight);
+
+      if (bsdf) {
+        bsdf->N = N;
+        bsdf->roughness = param1;
+
+        sd->flag |= bsdf_sheen_setup(kg, sd, bsdf);
+      }
+      break;
+    }
     case CLOSURE_BSDF_GLOSSY_TOON_ID:
 #ifdef __CAUSTICS_TRICKS__
       if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))

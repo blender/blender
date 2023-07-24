@@ -1,5 +1,5 @@
 
-void node_bsdf_velvet(vec4 color, float roughness, vec3 N, float weight, out Closure result)
+void node_bsdf_sheen(vec4 color, float roughness, vec3 N, float weight, out Closure result)
 {
   N = safe_normalize(N);
 

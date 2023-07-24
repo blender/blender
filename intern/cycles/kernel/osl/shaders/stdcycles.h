@@ -23,6 +23,7 @@ closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
 closure color diffuse_toon(normal N, float size, float smooth) BUILTIN;
 closure color glossy_toon(normal N, float size, float smooth) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
+closure color sheen(normal N, float roughness) BUILTIN;
 closure color ambient_occlusion() BUILTIN;
 closure color principled_diffuse(normal N, float roughness) BUILTIN;
 closure color principled_sheen(normal N) BUILTIN;

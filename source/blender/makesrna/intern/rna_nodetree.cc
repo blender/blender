@@ -4512,6 +4512,16 @@ static const EnumPropertyItem node_refraction_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem node_sheen_items[] = {
+    {SHD_SHEEN_ASHIKHMIN, "ASHIKHMIN", 0, "Ashikhmin", "Classic Ashikhmin velvet (legacy model)"},
+    {SHD_SHEEN_MICROFIBER,
+     "MICROFIBER",
+     0,
+     "Microfiber",
+     "Microflake-based model of multiple scattering between normal-oriented fibers"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem node_toon_items[] = {
     {SHD_TOON_DIFFUSE, "DIFFUSE", 0, "Diffuse", "Use diffuse BSDF"},
     {SHD_TOON_GLOSSY, "GLOSSY", 0, "Glossy", "Use glossy BSDF"},
@@ -5982,6 +5992,17 @@ static void def_glass(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
   RNA_def_property_enum_items(prop, node_glass_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_sheen(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_items(prop, node_sheen_items);
+  RNA_def_property_ui_text(prop, "Distribution", "Sheen shading model");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
