@@ -2057,6 +2057,11 @@ BlendHandle *filelist_lib(struct FileList *filelist)
   return filelist->libfiledata;
 }
 
+int filelist_files_num_entries(FileList *filelist)
+{
+  return filelist->filelist.entries_num;
+}
+
 static char *fileentry_uiname(const char *root,
                               const char *relpath,
                               const eFileSel_File_Types typeflag,
