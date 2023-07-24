@@ -30,10 +30,12 @@ extern "C" {
 #define BLENDER_FILE_SUBVERSION 11
 
 /* Minimum Blender version that supports reading file written with the current
- * version. Older Blender versions will test this and show a warning if the file
- * was written with too new a version. */
-#define BLENDER_FILE_MIN_VERSION 305
-#define BLENDER_FILE_MIN_SUBVERSION 9
+ * version. Older Blender versions will test this and cancel loading the file, showing a warning to
+ * the user.
+ *
+ * See https://wiki.blender.org/wiki/Process/Compatibility_Handling for details. */
+#define BLENDER_FILE_MIN_VERSION 303
+#define BLENDER_FILE_MIN_SUBVERSION 06
 
 /** User readable version string. */
 const char *BKE_blender_version_string(void);
