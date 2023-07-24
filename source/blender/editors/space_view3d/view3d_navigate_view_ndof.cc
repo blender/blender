@@ -746,10 +746,6 @@ void VIEW3D_OT_ndof_all(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-#endif /* WITH_INPUT_NDOF */
-
-/** \} */
-
 const ViewOpsType ViewOpsType_ndof_orbit = {
     /*flag*/ VIEWOPS_FLAG_ORBIT_SELECT,
     /*idname*/ "VIEW3D_OT_ndof_orbit",
@@ -781,3 +777,7 @@ const ViewOpsType ViewOpsType_ndof_all = {
     /*init_fn*/ ndof_all_invoke_impl,
     /*apply_fn*/ nullptr,
 };
+
+#endif /* WITH_INPUT_NDOF */
+
+/** \} */
