@@ -880,7 +880,6 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
     blender::geometry::uv_parametrizer_flush(ms->handle);
   }
 
-  blender::geometry::uv_parametrizer_stretch_end(ms->handle);
   delete (ms->handle);
 
   for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
