@@ -62,6 +62,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_asset.h"
+#include "BKE_blender_version.h"
 #include "BKE_collection.h"
 #include "BKE_global.h" /* for G */
 #include "BKE_idprop.h"
@@ -517,6 +518,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
     libmain->curlib = lib;
     libmain->versionfile = lib->versionfile;
     libmain->subversionfile = lib->subversionfile;
+    libmain->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+        libmain, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
     BLI_addtail(mainlist, libmain);
     lib->temp_index = i;
     lib_main_array[i] = libmain;
@@ -536,6 +539,21 @@ void blo_split_main(ListBase *mainlist, Main *main)
   MEM_freeN(lib_main_array);
 }
 
+/* Hot-fix file minversion for a specific range of versions.
+ *
+ * This is needed for newer LTS releases of 3.6 to be able to properly open files from early
+ * development versions of 4.0. */
+static void file_global_minversion_hotfix(FileGlobal *fg)
+{
+  if ((fg->minversion > BLENDER_FILE_VERSION) ||
+      (fg->minversion == BLENDER_FILE_VERSION && fg->minsubversion > BLENDER_FILE_SUBVERSION)) {
+    if (fg->minversion < 306 || (fg->minversion == 306 && fg->minsubversion <= 11)) {
+      fg->minversion = BLENDER_FILE_VERSION;
+      fg->minsubversion = BLENDER_FILE_SUBVERSION;
+    }
+  }
+}
+
 static void read_file_version(FileData *fd, Main *main)
 {
   BHead *bhead;
@@ -544,6 +562,8 @@ static void read_file_version(FileData *fd, Main *main)
     if (bhead->code == GLOB) {
       FileGlobal *fg = read_struct(fd, bhead, "Global");
       if (fg) {
+        file_global_minversion_hotfix(fg);
+
         main->subversionfile = fg->subversion;
         main->minversionfile = fg->minversion;
         main->minsubversionfile = fg->minsubversion;
@@ -1178,6 +1198,54 @@ static FileData *filedata_new(BlendFileReadReport *reports)
   return fd;
 }
 
+/** Check if minversion of the file is older than current Blender, return false if it is not.
+ * Should only be called after #read_file_dna was successfuly executed. */
+static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
+{
+  BLI_assert(fd->filesdna != NULL);
+  for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
+    if (bhead->code != GLOB) {
+      continue;
+    }
+
+    FileGlobal *fg = read_struct(fd, bhead, "Global");
+    file_global_minversion_hotfix(fg);
+
+    if ((fg->minversion > BLENDER_FILE_VERSION) ||
+        (fg->minversion == BLENDER_FILE_VERSION && fg->minsubversion > BLENDER_FILE_SUBVERSION)) {
+      char writer_ver_str[16];
+      char min_reader_ver_str[16];
+      if (fd->fileversion == fg->minversion) {
+        BKE_blender_version_blendfile_string_from_values(
+            writer_ver_str, sizeof(writer_ver_str), (short)(fd->fileversion), fg->subversion);
+        BKE_blender_version_blendfile_string_from_values(
+            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, fg->minsubversion);
+      }
+      else {
+        BKE_blender_version_blendfile_string_from_values(
+            writer_ver_str, sizeof(writer_ver_str), (short)(fd->fileversion), -1);
+        BKE_blender_version_blendfile_string_from_values(
+            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, -1);
+      }
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  TIP_("The file was saved by a newer version, open it with Blender %s or later"),
+                  min_reader_ver_str);
+      CLOG_WARN(&LOG,
+                "%s: File saved by a newer version of Blender (%s), Blender %s or later is "
+                "needed to open it.",
+                fd->relabase,
+                writer_ver_str,
+                min_reader_ver_str);
+      MEM_freeN(fg);
+      return true;
+    }
+    MEM_freeN(fg);
+    return false;
+  }
+  return false;
+}
+
 static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 {
   decode_blender_header(fd);
@@ -1187,6 +1255,10 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     if (read_file_dna(fd, &error_message) == false) {
       BKE_reportf(
           reports, RPT_ERROR, "Failed to read blend file '%s': %s", fd->relabase, error_message);
+      blo_filedata_free(fd);
+      fd = NULL;
+    }
+    if (is_minversion_older_than_blender(fd, reports)) {
       blo_filedata_free(fd);
       fd = NULL;
     }
@@ -3510,10 +3582,15 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   FileGlobal *fg = read_struct(fd, bhead, "Global");
 
-  /* copy to bfd handle */
+  /* NOTE: `bfd->main->versionfile` is supposed to have already been set from `fd->fileversion`
+   * beforehand by calling code. */
   bfd->main->subversionfile = fg->subversion;
+  bfd->main->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+      bfd->main, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
+
   bfd->main->minversionfile = fg->minversion;
   bfd->main->minsubversionfile = fg->minsubversion;
+
   bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
   BLI_strncpy(bfd->main->build_hash, fg->build_hash, sizeof(bfd->main->build_hash));
 
