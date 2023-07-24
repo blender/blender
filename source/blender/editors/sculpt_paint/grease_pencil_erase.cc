@@ -455,7 +455,7 @@ struct EraseOperationExecutor {
     const VArray<bool> src_cyclic = src.cyclic();
 
     IndexMaskMemory memory;
-    IndexMask strokes_to_remove = IndexMask::from_predicate(
+    const IndexMask strokes_to_keep = IndexMask::from_predicate(
         src.curves_range(), GrainSize(256), memory, [&](const int64_t src_curve) {
           const IndexRange src_curve_points = src_points_by_curve[src_curve];
 
@@ -467,7 +467,7 @@ struct EraseOperationExecutor {
                 screen_space_positions[src_point],
                 screen_space_positions[src_point + 1]);
             if (dist_to_eraser < this->eraser_radius) {
-              return true;
+              return false;
             }
           }
 
@@ -477,20 +477,18 @@ struct EraseOperationExecutor {
                 screen_space_positions[src_curve_points.first()],
                 screen_space_positions[src_curve_points.last()]);
             if (dist_to_eraser < this->eraser_radius) {
-              return true;
+              return false;
             }
           }
 
-          return false;
+          return true;
         });
 
-    if (strokes_to_remove.size() == 0) {
+    if (strokes_to_keep.size() == src.curves_num()) {
       return false;
     }
 
-    dst = std::move(src);
-    dst.remove_curves(strokes_to_remove);
-
+    dst = bke::curves_copy_curve_selection(src, strokes_to_keep, {});
     return true;
   }
 
