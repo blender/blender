@@ -30,8 +30,8 @@ typedef struct UvVertMap {
 
 typedef struct UvMapVert {
   struct UvMapVert *next;
-  unsigned int poly_index;
-  unsigned short loop_of_poly_index;
+  unsigned int face_index;
+  unsigned short loop_of_face_index;
   bool separate;
 } UvMapVert;
 
@@ -44,7 +44,7 @@ typedef struct UvElement {
   /* Face the element belongs to */
   struct BMLoop *l;
   /* index in loop. */
-  unsigned short loop_of_poly_index;
+  unsigned short loop_of_face_index;
   /* Whether this element is the first of coincident elements */
   bool separate;
   /* general use flag */
@@ -104,7 +104,7 @@ typedef struct MeshElemMap {
 
 /* mapping */
 
-UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> polys,
+UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
                                        const bool *hide_poly,
                                        const bool *select_poly,
                                        const int *corner_verts,
@@ -134,7 +134,7 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       const int *corner_verts,
                                       int totloop);
 /**
- * This function creates a map so the source-data (vert/edge/loop/poly)
+ * This function creates a map so the source-data (vert/edge/loop/face)
  * can loop over the destination data (using the destination arrays origindex).
  *
  * This has the advantage that it can operate on any data-types.
@@ -143,20 +143,20 @@ void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
  * \param totfinal: The size of \a final_origindex
  * \param final_origindex: The size of the final array.
  *
- * \note `totsource` could be `totpoly`,
+ * \note `totsource` could be `faces_num`,
  *       `totfinal` could be `tottessface` and `final_origindex` its ORIGINDEX custom-data.
- *       This would allow a poly to loop over its tessfaces.
+ *       This would allow a face to loop over its tessfaces.
  */
 void BKE_mesh_origindex_map_create(
     MeshElemMap **r_map, int **r_mem, int totsource, const int *final_origindex, int totfinal);
 /**
  * A version of #BKE_mesh_origindex_map_create that takes a looptri array.
- * Making a poly -> looptri map.
+ * Making a face -> looptri map.
  */
 void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
                                            int **r_mem,
-                                           blender::OffsetIndices<int> polys,
-                                           const int *looptri_polys,
+                                           blender::OffsetIndices<int> faces,
+                                           const int *looptri_faces,
                                            int looptri_num);
 
 /* islands */
@@ -206,7 +206,7 @@ typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
                                      const blender::int2 *edges,
                                      int totedge,
                                      const bool *uv_seams,
-                                     blender::OffsetIndices<int> polys,
+                                     blender::OffsetIndices<int> faces,
                                      const int *corner_verts,
                                      const int *corner_edges,
                                      int totloop,
@@ -219,12 +219,12 @@ typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
  * Calculate 'generic' UV islands, i.e. based only on actual geometry data (edge seams),
  * not some UV layers coordinates.
  */
-bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
+bool BKE_mesh_calc_islands_loop_face_edgeseam(const float (*vert_positions)[3],
                                               int totvert,
                                               const blender::int2 *edges,
                                               int totedge,
                                               const bool *uv_seams,
-                                              blender::OffsetIndices<int> polys,
+                                              blender::OffsetIndices<int> faces,
                                               const int *corner_verts,
                                               const int *corner_edges,
                                               int totloop,
@@ -243,12 +243,12 @@ bool BKE_mesh_calc_islands_loop_poly_edgeseam(const float (*vert_positions)[3],
  * Not sure it would be worth the more complex code, though,
  * those loops are supposed to be really quick to do.
  */
-bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
+bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
                                            int totvert,
                                            blender::int2 *edges,
                                            int totedge,
                                            const bool *uv_seams,
-                                           blender::OffsetIndices<int> polys,
+                                           blender::OffsetIndices<int> faces,
                                            const int *corner_verts,
                                            const int *corner_edges,
                                            int totloop,
@@ -266,8 +266,8 @@ bool BKE_mesh_calc_islands_loop_poly_uvmap(float (*vert_positions)[3],
  * Note it's callers's responsibility to MEM_freeN returned array.
  */
 int *BKE_mesh_calc_smoothgroups(int totedge,
-                                const int *poly_offsets,
-                                int totpoly,
+                                const int *face_offsets,
+                                int faces_num,
                                 const int *corner_edges,
                                 int totloop,
                                 const bool *sharp_edges,
@@ -293,14 +293,14 @@ int *BKE_mesh_calc_smoothgroups(int totedge,
 
 namespace blender::bke::mesh {
 
-Array<int> build_loop_to_poly_map(OffsetIndices<int> polys);
+Array<int> build_loop_to_face_map(OffsetIndices<int> faces);
 
 GroupedSpan<int> build_vert_to_edge_map(Span<int2> edges,
                                         int verts_num,
                                         Array<int> &r_offsets,
                                         Array<int> &r_indices);
 
-GroupedSpan<int> build_vert_to_poly_map(OffsetIndices<int> polys,
+GroupedSpan<int> build_vert_to_face_map(OffsetIndices<int> faces,
                                         Span<int> corner_verts,
                                         int verts_num,
                                         Array<int> &r_offsets,
@@ -316,7 +316,7 @@ GroupedSpan<int> build_edge_to_loop_map(Span<int> corner_edges,
                                         Array<int> &r_offsets,
                                         Array<int> &r_indices);
 
-GroupedSpan<int> build_edge_to_poly_map(OffsetIndices<int> polys,
+GroupedSpan<int> build_edge_to_face_map(OffsetIndices<int> faces,
                                         Span<int> corner_edges,
                                         int edges_num,
                                         Array<int> &r_offsets,

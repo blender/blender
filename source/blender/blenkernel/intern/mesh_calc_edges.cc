@@ -42,7 +42,7 @@ static void reserve_hash_maps(const Mesh *mesh,
                               const bool keep_existing_edges,
                               MutableSpan<EdgeMap> edge_maps)
 {
-  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
+  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->faces_num * 2);
   threading::parallel_for_each(
       edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
 }
@@ -65,18 +65,18 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
   });
 }
 
-static void add_polygon_edges_to_hash_maps(Mesh *mesh,
-                                           MutableSpan<EdgeMap> edge_maps,
-                                           uint32_t parallel_mask)
+static void add_face_edges_to_hash_maps(Mesh *mesh,
+                                        MutableSpan<EdgeMap> edge_maps,
+                                        uint32_t parallel_mask)
 {
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
-    for (const int i : polys.index_range()) {
-      const Span<int> poly_verts = corner_verts.slice(polys[i]);
-      int vert_prev = poly_verts.last();
-      for (const int vert : poly_verts) {
+    for (const int i : faces.index_range()) {
+      const Span<int> face_verts = corner_verts.slice(faces[i]);
+      int vert_prev = face_verts.last();
+      for (const int vert : face_verts) {
         /* Can only be the same when the mesh data is invalid. */
         if (vert_prev != vert) {
           OrderedEdge ordered_edge{vert_prev, vert};
@@ -125,17 +125,17 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
   });
 }
 
-static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
+static void update_edge_indices_in_face_loops(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
                                               const Span<EdgeMap> edge_maps,
                                               const uint32_t parallel_mask,
                                               MutableSpan<int> corner_edges)
 {
-  threading::parallel_for(polys.index_range(), 100, [&](IndexRange range) {
-    for (const int poly_index : range) {
-      const IndexRange poly = polys[poly_index];
-      int prev_corner = poly.last();
-      for (const int next_corner : poly) {
+  threading::parallel_for(faces.index_range(), 100, [&](IndexRange range) {
+    for (const int face_index : range) {
+      const IndexRange face = faces[face_index];
+      int prev_corner = face.last();
+      for (const int next_corner : face) {
         const int vert = corner_verts[next_corner];
         const int vert_prev = corner_verts[prev_corner];
 
@@ -162,7 +162,7 @@ static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
 static int get_parallel_maps_count(const Mesh *mesh)
 {
   /* Don't use parallelization when the mesh is small. */
-  if (mesh->totpoly < 1000) {
+  if (mesh->faces_num < 1000) {
     return 1;
   }
   /* Use at most 8 separate hash tables. Using more threads has diminishing returns. These threads
@@ -196,7 +196,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   if (keep_existing_edges) {
     calc_edges::add_existing_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
   }
-  calc_edges::add_polygon_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
+  calc_edges::add_face_edges_to_hash_maps(mesh, edge_maps, parallel_mask);
 
   /* Compute total number of edges. */
   int new_totedge = 0;
@@ -210,7 +210,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   MutableSpan<int2> new_edges{
       static_cast<int2 *>(MEM_calloc_arrayN(new_totedge, sizeof(int2), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
-  calc_edges::update_edge_indices_in_poly_loops(mesh->polys(),
+  calc_edges::update_edge_indices_in_face_loops(mesh->faces(),
                                                 mesh->corner_verts(),
                                                 edge_maps,
                                                 parallel_mask,

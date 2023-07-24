@@ -632,7 +632,7 @@ static bool data_transfer_poll_property(const bContext * /*C*/,
     }
   }
   else if (STREQ(prop_id, "poly_mapping")) {
-    if (!DT_DATATYPE_IS_POLY(data_type)) {
+    if (!DT_DATATYPE_IS_FACE(data_type)) {
       return false;
     }
   }

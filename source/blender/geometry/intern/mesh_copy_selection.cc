@@ -24,12 +24,12 @@ static void create_reverse_map(const IndexMask &mask, MutableSpan<int> r_map)
       GrainSize(4096), [&](const int src_i, const int dst_i) { r_map[src_i] = dst_i; });
 }
 
-static void remap_verts(const OffsetIndices<int> src_polys,
-                        const OffsetIndices<int> dst_polys,
+static void remap_verts(const OffsetIndices<int> src_faces,
+                        const OffsetIndices<int> dst_faces,
                         const int src_verts_num,
                         const IndexMask &vert_mask,
                         const IndexMask &edge_mask,
-                        const IndexMask &poly_mask,
+                        const IndexMask &face_mask,
                         const Span<int2> src_edges,
                         const Span<int> src_corner_verts,
                         MutableSpan<int2> dst_edges,
@@ -40,11 +40,11 @@ static void remap_verts(const OffsetIndices<int> src_polys,
   threading::parallel_invoke(
       vert_mask.size() > 1024,
       [&]() {
-        poly_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-          const IndexRange src_poly = src_polys[src_i];
-          const IndexRange dst_poly = dst_polys[dst_i];
-          for (const int i : src_poly.index_range()) {
-            dst_corner_verts[dst_poly[i]] = map[src_corner_verts[src_poly[i]]];
+        face_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+          const IndexRange src_face = src_faces[src_i];
+          const IndexRange dst_face = dst_faces[dst_i];
+          for (const int i : src_face.index_range()) {
+            dst_corner_verts[dst_face[i]] = map[src_corner_verts[src_face[i]]];
           }
         });
       },
@@ -56,21 +56,21 @@ static void remap_verts(const OffsetIndices<int> src_polys,
       });
 }
 
-static void remap_edges(const OffsetIndices<int> src_polys,
-                        const OffsetIndices<int> dst_polys,
+static void remap_edges(const OffsetIndices<int> src_faces,
+                        const OffsetIndices<int> dst_faces,
                         const int src_edges_num,
                         const IndexMask &edge_mask,
-                        const IndexMask &poly_mask,
+                        const IndexMask &face_mask,
                         const Span<int> src_corner_edges,
                         MutableSpan<int> dst_corner_edges)
 {
   Array<int> map(src_edges_num);
   create_reverse_map(edge_mask, map);
-  poly_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-    const IndexRange src_poly = src_polys[src_i];
-    const IndexRange dst_poly = dst_polys[dst_i];
-    for (const int i : src_poly.index_range()) {
-      dst_corner_edges[dst_poly[i]] = map[src_corner_edges[src_poly[i]]];
+  face_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+    const IndexRange src_face = src_faces[src_i];
+    const IndexRange dst_face = dst_faces[dst_i];
+    for (const int i : src_face.index_range()) {
+      dst_corner_edges[dst_face[i]] = map[src_corner_edges[src_face[i]]];
     }
   });
 }
@@ -89,37 +89,37 @@ static IndexMask vert_selection_from_edge(const Span<int2> edges,
   return IndexMask::from_bools(array, memory);
 }
 
-static IndexMask mapped_corner_selection_from_poly(const OffsetIndices<int> polys,
-                                                   const IndexMask &poly_mask,
+static IndexMask mapped_corner_selection_from_face(const OffsetIndices<int> faces,
+                                                   const IndexMask &face_mask,
                                                    const Span<int> corner_verts_or_edges,
                                                    const int verts_or_edges_num,
                                                    IndexMaskMemory &memory)
 {
   Array<bool> array(verts_or_edges_num, false);
-  poly_mask.foreach_index(GrainSize(512), [&](const int64_t i) {
-    array.as_mutable_span().fill_indices(corner_verts_or_edges.slice(polys[i]), true);
+  face_mask.foreach_index(GrainSize(512), [&](const int64_t i) {
+    array.as_mutable_span().fill_indices(corner_verts_or_edges.slice(faces[i]), true);
   });
   return IndexMask::from_bools(array, memory);
 }
 
 /** A vertex is selected if it is used by a selected face. */
-static IndexMask vert_selection_from_poly(const OffsetIndices<int> polys,
-                                          const IndexMask &poly_mask,
+static IndexMask vert_selection_from_face(const OffsetIndices<int> faces,
+                                          const IndexMask &face_mask,
                                           const Span<int> corner_verts,
                                           const int verts_num,
                                           IndexMaskMemory &memory)
 {
-  return mapped_corner_selection_from_poly(polys, poly_mask, corner_verts, verts_num, memory);
+  return mapped_corner_selection_from_face(faces, face_mask, corner_verts, verts_num, memory);
 }
 
 /** An edge is selected if it is used by a selected face. */
-static IndexMask edge_selection_from_poly(const OffsetIndices<int> polys,
-                                          const IndexMask &poly_mask,
+static IndexMask edge_selection_from_face(const OffsetIndices<int> faces,
+                                          const IndexMask &face_mask,
                                           const Span<int> corner_edges,
                                           const int edges_num,
                                           IndexMaskMemory &memory)
 {
-  return mapped_corner_selection_from_poly(polys, poly_mask, corner_edges, edges_num, memory);
+  return mapped_corner_selection_from_face(faces, face_mask, corner_edges, edges_num, memory);
 }
 
 /** An edge is selected if both of its vertices are selected. */
@@ -134,14 +134,14 @@ static IndexMask edge_selection_from_vert(const Span<int2> edges,
       });
 }
 
-static IndexMask poly_selection_from_mapped_corner(const OffsetIndices<int> polys,
+static IndexMask face_selection_from_mapped_corner(const OffsetIndices<int> faces,
                                                    const Span<int> corner_verts_or_edges,
                                                    const Span<bool> vert_or_edge_selection,
                                                    IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(
-      polys.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
-        const Span<int> indices = corner_verts_or_edges.slice(polys[i]);
+      faces.index_range(), GrainSize(1024), memory, [&](const int64_t i) {
+        const Span<int> indices = corner_verts_or_edges.slice(faces[i]);
         return std::all_of(indices.begin(), indices.end(), [&](const int i) {
           return vert_or_edge_selection[i];
         });
@@ -149,31 +149,31 @@ static IndexMask poly_selection_from_mapped_corner(const OffsetIndices<int> poly
 }
 
 /** A face is selected if all of its vertices are selected. */
-static IndexMask poly_selection_from_vert(const OffsetIndices<int> polys,
+static IndexMask face_selection_from_vert(const OffsetIndices<int> faces,
                                           const Span<int> corner_verts,
                                           const Span<bool> vert_selection,
                                           IndexMaskMemory &memory)
 {
-  return poly_selection_from_mapped_corner(polys, corner_verts, vert_selection, memory);
+  return face_selection_from_mapped_corner(faces, corner_verts, vert_selection, memory);
 }
 
 /** A face is selected if all of its edges are selected. */
-static IndexMask poly_selection_from_edge(const OffsetIndices<int> polys,
+static IndexMask face_selection_from_edge(const OffsetIndices<int> faces,
                                           const Span<int> corner_edges,
                                           const Span<bool> edge_mask,
                                           IndexMaskMemory &memory)
 {
-  return poly_selection_from_mapped_corner(polys, corner_edges, edge_mask, memory);
+  return face_selection_from_mapped_corner(faces, corner_edges, edge_mask, memory);
 }
 
 /** Create a mesh with no built-in attributes. */
 static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
                                        const int verts_num,
                                        const int edges_num,
-                                       const int polys_num,
+                                       const int faces_num,
                                        const int corners_num)
 {
-  Mesh *mesh = BKE_mesh_new_nomain(0, 0, polys_num, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
   mesh->totvert = verts_num;
   mesh->totedge = edges_num;
   mesh->totloop = corners_num;
@@ -242,7 +242,7 @@ std::optional<Mesh *> mesh_copy_selection(
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<int2> src_edges = src_mesh.edges();
-  const OffsetIndices src_polys = src_mesh.polys();
+  const OffsetIndices src_faces = src_mesh.faces();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
   const bke::AttributeAccessor src_attributes = src_mesh.attributes();
@@ -262,7 +262,7 @@ std::optional<Mesh *> mesh_copy_selection(
   threading::EnumerableThreadSpecific<IndexMaskMemory> memory;
   IndexMask vert_mask;
   IndexMask edge_mask;
-  IndexMask poly_mask;
+  IndexMask face_mask;
   switch (selection_domain) {
     case ATTR_DOMAIN_POINT: {
       const VArraySpan<bool> span(selection);
@@ -271,8 +271,8 @@ std::optional<Mesh *> mesh_copy_selection(
           [&]() { vert_mask = IndexMask::from_bools(span, memory.local()); },
           [&]() { edge_mask = edge_selection_from_vert(src_edges, span, memory.local()); },
           [&]() {
-            poly_mask = poly_selection_from_vert(
-                src_polys, src_corner_verts, span, memory.local());
+            face_mask = face_selection_from_vert(
+                src_faces, src_corner_verts, span, memory.local());
           });
       break;
     }
@@ -286,23 +286,23 @@ std::optional<Mesh *> mesh_copy_selection(
                 src_edges, edge_mask, src_mesh.totvert, memory.local());
           },
           [&]() {
-            poly_mask = poly_selection_from_edge(
-                src_polys, src_corner_edges, span, memory.local());
+            face_mask = face_selection_from_edge(
+                src_faces, src_corner_edges, span, memory.local());
           });
       break;
     }
     case ATTR_DOMAIN_FACE: {
       const VArraySpan<bool> span(selection);
-      poly_mask = IndexMask::from_bools(span, memory.local());
+      face_mask = IndexMask::from_bools(span, memory.local());
       threading::parallel_invoke(
-          poly_mask.size() > 1024,
+          face_mask.size() > 1024,
           [&]() {
-            vert_mask = vert_selection_from_poly(
-                src_polys, poly_mask, src_corner_verts, src_mesh.totvert, memory.local());
+            vert_mask = vert_selection_from_face(
+                src_faces, face_mask, src_corner_verts, src_mesh.totvert, memory.local());
           },
           [&]() {
-            edge_mask = edge_selection_from_poly(
-                src_polys, poly_mask, src_corner_edges, src_mesh.totedge, memory.local());
+            edge_mask = edge_selection_from_face(
+                src_faces, face_mask, src_corner_edges, src_mesh.totedge, memory.local());
           });
       break;
     }
@@ -316,20 +316,20 @@ std::optional<Mesh *> mesh_copy_selection(
   }
   const bool same_verts = vert_mask.size() == src_mesh.totvert;
   const bool same_edges = edge_mask.size() == src_mesh.totedge;
-  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
-  if (same_verts && same_edges && same_polys) {
+  const bool same_faces = face_mask.size() == src_mesh.faces_num;
+  if (same_verts && same_edges && same_faces) {
     return std::nullopt;
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, vert_mask.size(), edge_mask.size(), poly_mask.size(), 0);
+      src_mesh, vert_mask.size(), edge_mask.size(), face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   dst_attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, bke::AttributeInitConstruct());
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
 
-  const OffsetIndices<int> dst_polys = offset_indices::gather_selected_offsets(
-      src_polys, poly_mask, dst_mesh->poly_offsets_for_write());
-  dst_mesh->totloop = dst_polys.total_size();
+  const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
+      src_faces, face_mask, dst_mesh->face_offsets_for_write());
+  dst_mesh->totloop = dst_faces.total_size();
   dst_attributes.add<int>(".corner_vert", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
   dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
   MutableSpan<int> dst_corner_verts = dst_mesh->corner_verts_for_write();
@@ -338,23 +338,23 @@ std::optional<Mesh *> mesh_copy_selection(
   threading::parallel_invoke(
       vert_mask.size() > 1024,
       [&]() {
-        remap_verts(src_polys,
-                    dst_polys,
+        remap_verts(src_faces,
+                    dst_faces,
                     src_mesh.totvert,
                     vert_mask,
                     edge_mask,
-                    poly_mask,
+                    face_mask,
                     src_edges,
                     src_corner_verts,
                     dst_edges,
                     dst_corner_verts);
       },
       [&]() {
-        remap_edges(src_polys,
-                    dst_polys,
+        remap_edges(src_faces,
+                    dst_faces,
                     src_edges.size(),
                     edge_mask,
-                    poly_mask,
+                    face_mask,
                     src_corner_edges,
                     dst_corner_edges);
       },
@@ -367,14 +367,14 @@ std::optional<Mesh *> mesh_copy_selection(
                                edge_mask,
                                dst_attributes);
         bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, poly_mask, dst_attributes);
+            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
         bke::gather_attributes_group_to_group(src_attributes,
                                               ATTR_DOMAIN_CORNER,
                                               propagation_info,
                                               {".corner_edge", ".corner_vert"},
-                                              src_polys,
-                                              dst_polys,
-                                              poly_mask,
+                                              src_faces,
+                                              dst_faces,
+                                              face_mask,
                                               dst_attributes);
       });
 
@@ -396,7 +396,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<int2> src_edges = src_mesh.edges();
-  const OffsetIndices src_polys = src_mesh.polys();
+  const OffsetIndices src_faces = src_mesh.faces();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
   const bke::AttributeAccessor src_attributes = src_mesh.attributes();
@@ -412,7 +412,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
 
   threading::EnumerableThreadSpecific<IndexMaskMemory> memory;
   IndexMask edge_mask;
-  IndexMask poly_mask;
+  IndexMask face_mask;
   switch (selection_domain) {
     case ATTR_DOMAIN_POINT: {
       const VArraySpan<bool> span(selection);
@@ -420,8 +420,8 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
           src_edges.size() > 1024,
           [&]() { edge_mask = edge_selection_from_vert(src_edges, span, memory.local()); },
           [&]() {
-            poly_mask = poly_selection_from_vert(
-                src_polys, src_corner_verts, span, memory.local());
+            face_mask = face_selection_from_vert(
+                src_faces, src_corner_verts, span, memory.local());
           });
       break;
     }
@@ -431,16 +431,16 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
           src_edges.size() > 1024,
           [&]() { edge_mask = IndexMask::from_bools(span, memory.local()); },
           [&]() {
-            poly_mask = poly_selection_from_edge(
-                src_polys, src_corner_edges, span, memory.local());
+            face_mask = face_selection_from_edge(
+                src_faces, src_corner_edges, span, memory.local());
           });
       break;
     }
     case ATTR_DOMAIN_FACE: {
       const VArraySpan<bool> span(selection);
-      poly_mask = IndexMask::from_bools(span, memory.local());
-      edge_mask = edge_selection_from_poly(
-          src_polys, poly_mask, src_corner_edges, src_edges.size(), memory.local());
+      face_mask = IndexMask::from_bools(span, memory.local());
+      edge_mask = edge_selection_from_face(
+          src_faces, face_mask, src_corner_edges, src_edges.size(), memory.local());
       break;
     }
     default:
@@ -449,28 +449,28 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
   }
 
   const bool same_edges = edge_mask.size() == src_mesh.totedge;
-  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
-  if (same_edges && same_polys) {
+  const bool same_faces = face_mask.size() == src_mesh.faces_num;
+  if (same_edges && same_faces) {
     return std::nullopt;
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.totvert, edge_mask.size(), poly_mask.size(), 0);
+      src_mesh, src_mesh.totvert, edge_mask.size(), face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
-  const OffsetIndices<int> dst_polys = offset_indices::gather_selected_offsets(
-      src_polys, poly_mask, dst_mesh->poly_offsets_for_write());
-  dst_mesh->totloop = dst_polys.total_size();
+  const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
+      src_faces, face_mask, dst_mesh->face_offsets_for_write());
+  dst_mesh->totloop = dst_faces.total_size();
   dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
   MutableSpan<int> dst_corner_edges = dst_mesh->corner_edges_for_write();
 
   threading::parallel_invoke(
       [&]() {
-        remap_edges(src_polys,
-                    dst_polys,
+        remap_edges(src_faces,
+                    dst_faces,
                     src_edges.size(),
                     edge_mask,
-                    poly_mask,
+                    face_mask,
                     src_corner_edges,
                     dst_corner_edges);
       },
@@ -480,14 +480,14 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
         bke::gather_attributes(
             src_attributes, ATTR_DOMAIN_EDGE, propagation_info, {}, edge_mask, dst_attributes);
         bke::gather_attributes(
-            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, poly_mask, dst_attributes);
+            src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
         bke::gather_attributes_group_to_group(src_attributes,
                                               ATTR_DOMAIN_CORNER,
                                               propagation_info,
                                               {".corner_edge"},
-                                              src_polys,
-                                              dst_polys,
-                                              poly_mask,
+                                              src_faces,
+                                              dst_faces,
+                                              face_mask,
                                               dst_attributes);
       });
 
@@ -503,7 +503,7 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
     const eAttrDomain selection_domain,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
-  const OffsetIndices src_polys = src_mesh.polys();
+  const OffsetIndices src_faces = src_mesh.faces();
   const bke::AttributeAccessor src_attributes = src_mesh.attributes();
 
   const bke::MeshFieldContext context(src_mesh, selection_domain);
@@ -516,50 +516,50 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
   }
 
   IndexMaskMemory memory;
-  IndexMask poly_mask;
+  IndexMask face_mask;
   switch (selection_domain) {
     case ATTR_DOMAIN_POINT:
-      poly_mask = poly_selection_from_vert(
-          src_polys, src_mesh.corner_verts(), VArraySpan(selection), memory);
+      face_mask = face_selection_from_vert(
+          src_faces, src_mesh.corner_verts(), VArraySpan(selection), memory);
       break;
     case ATTR_DOMAIN_EDGE:
-      poly_mask = poly_selection_from_edge(
-          src_polys, src_mesh.corner_edges(), VArraySpan(selection), memory);
+      face_mask = face_selection_from_edge(
+          src_faces, src_mesh.corner_edges(), VArraySpan(selection), memory);
       break;
     case ATTR_DOMAIN_FACE:
-      poly_mask = IndexMask::from_bools(selection, memory);
+      face_mask = IndexMask::from_bools(selection, memory);
       break;
     default:
       BLI_assert_unreachable();
       break;
   }
 
-  const bool same_polys = poly_mask.size() == src_mesh.totpoly;
-  if (same_polys) {
+  const bool same_faces = face_mask.size() == src_mesh.faces_num;
+  if (same_faces) {
     return std::nullopt;
   }
 
   Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.totvert, src_mesh.totedge, poly_mask.size(), 0);
+      src_mesh, src_mesh.totvert, src_mesh.totedge, face_mask.size(), 0);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
-  const OffsetIndices<int> dst_polys = offset_indices::gather_selected_offsets(
-      src_polys, poly_mask, dst_mesh->poly_offsets_for_write());
-  dst_mesh->totloop = dst_polys.total_size();
+  const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
+      src_faces, face_mask, dst_mesh->face_offsets_for_write());
+  dst_mesh->totloop = dst_faces.total_size();
   dst_attributes.add<int>(".corner_vert", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
   dst_attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, bke::AttributeInitConstruct());
 
   bke::copy_attributes(src_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, dst_attributes);
   bke::copy_attributes(src_attributes, ATTR_DOMAIN_EDGE, propagation_info, {}, dst_attributes);
   bke::gather_attributes(
-      src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, poly_mask, dst_attributes);
+      src_attributes, ATTR_DOMAIN_FACE, propagation_info, {}, face_mask, dst_attributes);
   bke::gather_attributes_group_to_group(src_attributes,
                                         ATTR_DOMAIN_CORNER,
                                         propagation_info,
                                         {},
-                                        src_polys,
-                                        dst_polys,
-                                        poly_mask,
+                                        src_faces,
+                                        dst_faces,
+                                        face_mask,
                                         dst_attributes);
 
   /* Positions are not changed by the operation, so the bounds are the same. */

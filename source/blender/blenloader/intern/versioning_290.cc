@@ -819,8 +819,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   if (MAIN_VERSION_FILE_ATLEAST(bmain, 290, 2) && MAIN_VERSION_FILE_OLDER(bmain, 291, 1)) {
     /* In this range, the extrude manifold could generate meshes with degenerated face. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&me->pdata, CD_MPOLY));
-      for (const int i : blender::IndexRange(me->totpoly)) {
+      const MPoly *polys = static_cast<const MPoly *>(
+          CustomData_get_layer(&me->pdata, CD_MPOLY));
+      for (const int i : blender::IndexRange(me->faces_num)) {
         if (polys[i].totloop == 2) {
           bool changed;
           BKE_mesh_legacy_convert_loops_to_corners(me);
@@ -831,13 +832,14 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               me->totvert,
               me->edges_for_write().data(),
               me->totedge,
-              (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
-              me->totface,
+              (MFace *)CustomData_get_layer_for_write(
+                  &me->fdata_legacy, CD_MFACE, me->totface_legacy),
+              me->totface_legacy,
               me->corner_verts_for_write().data(),
               me->corner_edges_for_write().data(),
               me->totloop,
-              me->poly_offsets_for_write().data(),
-              me->totpoly,
+              me->face_offsets_for_write().data(),
+              me->faces_num,
               BKE_mesh_deform_verts_for_write(me),
               false,
               true,
@@ -1207,8 +1209,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       /* We can be sure that mesh->fdata is empty for files written by 2.90. */
       mesh->ldata.totlayer = mesh->ldata.maxlayer = MEM_allocN_len(mesh->ldata.layers) /
                                                     sizeof(CustomDataLayer);
-      mesh->pdata.totlayer = mesh->pdata.maxlayer = MEM_allocN_len(mesh->pdata.layers) /
-                                                    sizeof(CustomDataLayer);
+      mesh->pdata.totlayer = mesh->pdata.maxlayer = MEM_allocN_len(
+                                                                mesh->pdata.layers) /
+                                                            sizeof(CustomDataLayer);
     }
   }
 

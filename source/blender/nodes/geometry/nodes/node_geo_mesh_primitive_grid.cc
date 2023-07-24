@@ -57,14 +57,14 @@ Mesh *create_grid_mesh(const int verts_x,
                                    edges_x * edges_y * 4);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
-  threading::parallel_for(poly_offsets.index_range(), 4096, [poly_offsets](IndexRange range) {
+  threading::parallel_for(face_offsets.index_range(), 4096, [face_offsets](IndexRange range) {
     for (const int i : range) {
-      poly_offsets[i] = i * 4;
+      face_offsets[i] = i * 4;
     }
   });
 
@@ -127,8 +127,8 @@ Mesh *create_grid_mesh(const int verts_x,
       const int y_offset = x * edges_y;
       threading::parallel_for(IndexRange(edges_y), 512, [&](IndexRange y_range) {
         for (const int y : y_range) {
-          const int poly_index = y_offset + y;
-          const int loop_index = poly_index * 4;
+          const int face_index = y_offset + y;
+          const int loop_index = face_index * 4;
           const int vert_index = x * verts_y + y;
 
           corner_verts[loop_index] = vert_index;
@@ -147,7 +147,7 @@ Mesh *create_grid_mesh(const int verts_x,
     }
   });
 
-  if (uv_map_id && mesh->totpoly != 0) {
+  if (uv_map_id && mesh->faces_num != 0) {
     calculate_uvs(mesh, positions, corner_verts, size_x, size_y, uv_map_id);
   }
 

@@ -128,7 +128,7 @@ typedef struct SubdivDisplacement {
   /* Return displacement which is to be added to the original coordinate.
    *
    * NOTE: This function is supposed to return "continuous" displacement for
-   * each pf PTex faces created for special (non-quad) polygon. This means,
+   * each pf PTex faces created for special (non-quad) face. This means,
    * if displacement is stored on per-corner manner (like MDisps for multires)
    * this is up the displacement implementation to average boundaries of the
    * displacement grids if needed.

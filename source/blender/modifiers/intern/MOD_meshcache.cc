@@ -172,7 +172,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     else if (UNLIKELY(me->totvert != verts_num)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
-    else if (UNLIKELY(me->totpoly == 0)) {
+    else if (UNLIKELY(me->faces_num == 0)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
@@ -180,8 +180,8 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
 
       BKE_mesh_calc_relative_deform(
-          BKE_mesh_poly_offsets(me),
-          me->totpoly,
+          BKE_mesh_face_offsets(me),
+          me->faces_num,
           me->corner_verts().data(),
           me->totvert,
           reinterpret_cast<const float(*)[3]>(

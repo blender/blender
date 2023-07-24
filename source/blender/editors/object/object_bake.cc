@@ -164,7 +164,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
     }
     else {
       const int *material_indices = BKE_mesh_material_indices(me);
-      a = me->totpoly;
+      a = me->faces_num;
       while (ok && a--) {
         Image *ima = bake_object_image_get(ob, material_indices ? material_indices[a] : 0);
 

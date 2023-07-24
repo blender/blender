@@ -95,14 +95,14 @@ static void rna_Mesh_calc_looptri(Mesh *mesh)
 static void rna_Mesh_calc_smooth_groups(
     Mesh *mesh, bool use_bitflags, int *r_poly_group_len, int **r_poly_group, int *r_group_total)
 {
-  *r_poly_group_len = mesh->totpoly;
+  *r_poly_group_len = mesh->faces_num;
   const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
       &mesh->edata, CD_PROP_BOOL, "sharp_edge");
   const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
       &mesh->pdata, CD_PROP_BOOL, "sharp_face");
   *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
-                                             BKE_mesh_poly_offsets(mesh),
-                                             mesh->totpoly,
+                                             BKE_mesh_face_offsets(mesh),
+                                             mesh->faces_num,
                                              mesh->corner_edges().data(),
                                              mesh->totloop,
                                              sharp_edges,
@@ -162,11 +162,11 @@ static void rna_Mesh_transform(Mesh *mesh, float mat[16], bool shape_keys)
 
 static void rna_Mesh_flip_normals(Mesh *mesh)
 {
-  BKE_mesh_polys_flip(BKE_mesh_poly_offsets(mesh),
+  BKE_mesh_faces_flip(BKE_mesh_face_offsets(mesh),
                       mesh->corner_verts_for_write().data(),
                       mesh->corner_edges_for_write().data(),
                       &mesh->ldata,
-                      mesh->totpoly);
+                      mesh->faces_num);
   BKE_mesh_tessface_clear(mesh);
   BKE_mesh_runtime_clear_geometry(mesh);
 
@@ -178,7 +178,7 @@ static void rna_Mesh_update(Mesh *mesh,
                             const bool calc_edges,
                             const bool calc_edges_loose)
 {
-  if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0)) {
+  if (calc_edges || ((mesh->faces_num || mesh->totface_legacy) && mesh->totedge == 0)) {
     BKE_mesh_calc_edges(mesh, calc_edges, true);
   }
 
@@ -190,7 +190,7 @@ static void rna_Mesh_update(Mesh *mesh,
   BKE_mesh_tessface_clear(mesh);
 
   mesh->runtime->vert_normals_dirty = true;
-  mesh->runtime->poly_normals_dirty = true;
+  mesh->runtime->face_normals_dirty = true;
 
   DEG_id_tag_update(&mesh->id, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);

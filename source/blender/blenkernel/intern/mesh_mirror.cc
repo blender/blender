@@ -188,22 +188,23 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   const int src_verts_num = mesh->totvert;
   const int src_edges_num = mesh->totedge;
-  const blender::OffsetIndices src_polys = mesh->polys();
+  const blender::OffsetIndices src_faces = mesh->faces();
   const int src_loops_num = mesh->totloop;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      mesh, src_verts_num * 2, src_edges_num * 2, src_polys.size() * 2, src_loops_num * 2);
+      mesh, src_verts_num * 2, src_edges_num * 2, src_faces.size() * 2, src_loops_num * 2);
 
   /* Copy custom-data to original geometry. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, src_verts_num);
   CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, src_edges_num);
-  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, src_polys.size());
+  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, src_faces.size());
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, src_loops_num);
 
   /* Copy custom data to mirrored geometry. Loops are copied later. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, src_verts_num, src_verts_num);
   CustomData_copy_data(&mesh->edata, &result->edata, 0, src_edges_num, src_edges_num);
-  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, src_polys.size(), src_polys.size());
+  CustomData_copy_data(
+      &mesh->pdata, &result->pdata, 0, src_faces.size(), src_faces.size());
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
@@ -288,7 +289,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
@@ -297,32 +298,32 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     result_edges[i] += src_verts_num;
   }
 
-  result_poly_offsets.take_front(src_polys.size()).copy_from(mesh->poly_offsets().drop_back(1));
-  for (const int i : src_polys.index_range()) {
-    result_poly_offsets[src_polys.size() + i] = src_polys[i].start() + src_loops_num;
+  result_face_offsets.take_front(src_faces.size()).copy_from(mesh->face_offsets().drop_back(1));
+  for (const int i : src_faces.index_range()) {
+    result_face_offsets[src_faces.size() + i] = src_faces[i].start() + src_loops_num;
   }
-  const blender::OffsetIndices result_polys = result->polys();
+  const blender::OffsetIndices result_faces = result->faces();
 
   /* reverse loop order (normals) */
-  for (const int i : src_polys.index_range()) {
-    const blender::IndexRange src_poly = src_polys[i];
-    const int mirror_i = src_polys.size() + i;
-    const blender::IndexRange mirror_poly = result_polys[mirror_i];
+  for (const int i : src_faces.index_range()) {
+    const blender::IndexRange src_face = src_faces[i];
+    const int mirror_i = src_faces.size() + i;
+    const blender::IndexRange mirror_face = result_faces[mirror_i];
 
     /* reverse the loop, but we keep the first vertex in the face the same,
      * to ensure that quads are split the same way as on the other side */
-    CustomData_copy_data(&mesh->ldata, &result->ldata, src_poly.start(), mirror_poly.start(), 1);
+    CustomData_copy_data(&mesh->ldata, &result->ldata, src_face.start(), mirror_face.start(), 1);
 
-    for (int j = 1; j < mirror_poly.size(); j++) {
-      CustomData_copy_data(&mesh->ldata, &result->ldata, src_poly[j], mirror_poly.last(j - 1), 1);
+    for (int j = 1; j < mirror_face.size(); j++) {
+      CustomData_copy_data(&mesh->ldata, &result->ldata, src_face[j], mirror_face.last(j - 1), 1);
     }
 
-    blender::MutableSpan<int> mirror_poly_edges = result_corner_edges.slice(mirror_poly);
-    const int e = mirror_poly_edges.first();
-    for (int j = 0; j < mirror_poly.size() - 1; j++) {
-      mirror_poly_edges[j] = mirror_poly_edges[j + 1];
+    blender::MutableSpan<int> mirror_face_edges = result_corner_edges.slice(mirror_face);
+    const int e = mirror_face_edges.first();
+    for (int j = 0; j < mirror_face.size() - 1; j++) {
+      mirror_face_edges[j] = mirror_face_edges[j + 1];
     }
-    mirror_poly_edges.last() = e;
+    mirror_face_edges.last() = e;
   }
 
   /* adjust mirrored loop vertex and edge indices */
@@ -385,7 +386,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
   /* handle custom split normals */
   if (ob->type == OB_MESH && (((Mesh *)ob->data)->flag & ME_AUTOSMOOTH) &&
-      CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->totpoly > 0)
+      CustomData_has_layer(&result->ldata, CD_CUSTOMLOOPNORMAL) && result->faces_num > 0)
   {
     blender::Array<blender::float3> loop_normals(result_corner_verts.size());
     CustomData *ldata = &result->ldata;
@@ -407,12 +408,12 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
         CustomData_get_layer_named(&result->pdata, CD_PROP_BOOL, "sharp_face"));
     blender::bke::mesh::normals_calc_loop(result->vert_positions(),
                                           result_edges,
-                                          result_polys,
+                                          result_faces,
                                           result_corner_verts,
                                           result_corner_edges,
                                           {},
                                           result->vert_normals(),
-                                          result->poly_normals(),
+                                          result->face_normals(),
                                           sharp_edges,
                                           sharp_faces,
                                           true,
@@ -421,15 +422,15 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                           &lnors_spacearr,
                                           loop_normals);
 
-    /* mirroring has to account for loops being reversed in polys in second half */
-    for (const int i : src_polys.index_range()) {
-      const blender::IndexRange src_poly = src_polys[i];
-      const int mirror_i = src_polys.size() + i;
+    /* mirroring has to account for loops being reversed in faces in second half */
+    for (const int i : src_faces.index_range()) {
+      const blender::IndexRange src_face = src_faces[i];
+      const int mirror_i = src_faces.size() + i;
 
-      for (const int j : src_poly) {
-        int mirrorj = result_polys[mirror_i].start();
-        if (j > src_poly.start()) {
-          mirrorj += result_polys[mirror_i].size() - (j - src_poly.start());
+      for (const int j : src_face) {
+        int mirrorj = result_faces[mirror_i].start();
+        if (j > src_face.start()) {
+          mirrorj += result_faces[mirror_i].size() - (j - src_face.start());
         }
 
         copy_v3_v3(loop_normals[mirrorj], loop_normals[j]);

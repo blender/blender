@@ -1334,7 +1334,7 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
     p_polygon_kernel_clip(oldpoints, nnewpoints, newpoints, &nnewpoints, p1, p2);
 
     if (nnewpoints == 0) {
-      /* degenerate case, use center of original polygon */
+      /* degenerate case, use center of original face */
       memcpy(oldpoints, points, sizeof(float[2]) * npoints);
       nnewpoints = npoints;
       break;
@@ -1495,7 +1495,7 @@ static void p_vert_harmonic_insert(PVert *v)
   PEdge *e;
 
   if (!p_vert_map_harmonic_weights(v)) {
-    /* do polygon kernel center insertion: this is quite slow, but should
+    /* do face kernel center insertion: this is quite slow, but should
      * only be needed for 0.01 % of verts or so, when insert with harmonic
      * weights fails */
 

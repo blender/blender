@@ -193,9 +193,9 @@ struct PBVHBatches {
       case PBVH_FACES: {
         for (int i = 0; i < args->totprim; i++) {
           const int looptri_i = args->prim_indices[i];
-          const int poly_i = args->looptri_polys[looptri_i];
+          const int face_i = args->looptri_faces[looptri_i];
 
-          if (args->hide_poly && args->hide_poly[poly_i]) {
+          if (args->hide_poly && args->hide_poly[face_i]) {
             continue;
           }
 
@@ -335,17 +335,17 @@ struct PBVHBatches {
     const bool *sharp_faces = static_cast<const bool *>(
         CustomData_get_layer_named(args->pdata, CD_PROP_BOOL, "sharp_face"));
     short no[3];
-    int last_poly = -1;
+    int last_face = -1;
     bool flat = false;
 
     foreach_faces([&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const int looptri_i) {
-      const int poly_i = args->looptri_polys[looptri_i];
-      if (poly_i != last_poly) {
-        last_poly = poly_i;
-        flat = sharp_faces && sharp_faces[poly_i];
+      const int face_i = args->looptri_faces[looptri_i];
+      if (face_i != last_face) {
+        last_face = face_i;
+        flat = sharp_faces && sharp_faces[face_i];
         if (flat) {
-          const float3 fno = blender::bke::mesh::poly_normal_calc(
-              args->vert_positions, args->corner_verts.slice(args->polys[poly_i]));
+          const float3 fno = blender::bke::mesh::face_normal_calc(
+              args->vert_positions, args->corner_verts.slice(args->faces[face_i]));
           normal_float_to_short_v3(no, fno);
         }
       }
@@ -552,9 +552,9 @@ struct PBVHBatches {
 
           for (int i : IndexRange(args->totprim)) {
             const int looptri_i = args->prim_indices[i];
-            const int poly_i = args->looptri_polys[looptri_i];
+            const int face_i = args->looptri_faces[looptri_i];
 
-            if (args->hide_poly && args->hide_poly[poly_i]) {
+            if (args->hide_poly && args->hide_poly[face_i]) {
               continue;
             }
 
@@ -612,16 +612,16 @@ struct PBVHBatches {
             CustomData_get_layer_named(args->pdata, CD_PROP_INT32, ".sculpt_face_set"));
 
         if (face_sets) {
-          int last_poly = -1;
+          int last_face = -1;
           uchar fset_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int /*vertex_i*/, const int looptri_i) {
-                const int poly_i = args->looptri_polys[looptri_i];
-                if (last_poly != poly_i) {
-                  last_poly = poly_i;
+                const int face_i = args->looptri_faces[looptri_i];
+                if (last_face != face_i) {
+                  last_face = face_i;
 
-                  const int fset = face_sets[poly_i];
+                  const int fset = face_sets[face_i];
 
                   if (fset != args->face_sets_color_default) {
                     BKE_paint_face_set_overlay_color_get(
@@ -975,8 +975,8 @@ struct PBVHBatches {
 
     if (mat_index && args->totprim) {
       const int looptri_i = args->prim_indices[0];
-      const int poly_i = args->looptri_polys[looptri_i];
-      material_index = mat_index[poly_i];
+      const int face_i = args->looptri_faces[looptri_i];
+      material_index = mat_index[face_i];
     }
 
     const blender::Span<blender::int2> edges = args->me->edges();
@@ -985,8 +985,8 @@ struct PBVHBatches {
     int edge_count = 0;
     for (int i = 0; i < args->totprim; i++) {
       const int looptri_i = args->prim_indices[i];
-      const int poly_i = args->looptri_polys[looptri_i];
-      if (args->hide_poly && args->hide_poly[poly_i]) {
+      const int face_i = args->looptri_faces[looptri_i];
+      if (args->hide_poly && args->hide_poly[face_i]) {
         continue;
       }
 
@@ -1012,8 +1012,8 @@ struct PBVHBatches {
     int vertex_i = 0;
     for (int i = 0; i < args->totprim; i++) {
       const int looptri_i = args->prim_indices[i];
-      const int poly_i = args->looptri_polys[looptri_i];
-      if (args->hide_poly && args->hide_poly[poly_i]) {
+      const int face_i = args->looptri_faces[looptri_i];
+      if (args->hide_poly && args->hide_poly[face_i]) {
         continue;
       }
 
@@ -1069,8 +1069,8 @@ struct PBVHBatches {
         CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
 
     if (mat_index && args->totprim) {
-      int poly_i = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg, args->grid_indices[0]);
-      material_index = mat_index[poly_i];
+      int face_i = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg, args->grid_indices[0]);
+      material_index = mat_index[face_i];
     }
 
     needs_tri_index = true;

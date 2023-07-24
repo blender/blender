@@ -607,7 +607,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{nullptr}};
 
-  /* Holds a map to edit-faces for every subdivision-surface polygon.
+  /* Holds a map to edit-faces for every subdivision-surface face.
    * These will be used to get hidden/ selected flags etc. */
   BMFace **faceMap;
   /* Similar to the above, we need a way to map edges to their original ones. */
@@ -634,7 +634,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const blender::Span<blender::float3> subsurf_positions = subdiv_mesh->vert_positions();
   const blender::Span<blender::int2> subsurf_edges = subdiv_mesh->edges();
-  const blender::OffsetIndices subsurf_polys = subdiv_mesh->polys();
+  const blender::OffsetIndices subsurf_facess = subdiv_mesh->faces();
   const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
@@ -645,13 +645,13 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX));
 
   faceMap = static_cast<BMFace **>(
-      MEM_mallocN(subdiv_mesh->totpoly * sizeof(BMFace *), "unwrap_edit_face_map"));
+      MEM_mallocN(subdiv_mesh->faces_num * sizeof(BMFace *), "unwrap_edit_face_map"));
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
   BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_FACE);
 
   /* map subsurfed faces to original editFaces */
-  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
+  for (int i = 0; i < subdiv_mesh->faces_num; i++) {
     faceMap[i] = BM_face_at_index(em->bm, origPolyIndices[i]);
   }
 
@@ -667,7 +667,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver. */
-  for (const int i : subsurf_polys.index_range()) {
+  for (const int i : subsurf_facess.index_range()) {
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -687,7 +687,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const blender::Span<int> poly_corner_verts = subsurf_corner_verts.slice(subsurf_polys[i]);
+    const blender::Span<int> poly_corner_verts = subsurf_corner_verts.slice(subsurf_facess[i]);
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(poly_corner_verts.size() == 4);
@@ -1270,7 +1270,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
       /* Storage. */
       blender::Array<blender::float2> uvs(f->len);
 
-      /* Obtain UVs of polygon. */
+      /* Obtain UVs of face. */
       BMLoop *l;
       BMIter iter;
       int j;

@@ -39,12 +39,12 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   Object *NewMesh() const;
 
   struct StrokeGroup {
-    explicit StrokeGroup() : totvert(0), totedge(0), totpoly(0), totloop(0) {}
+    explicit StrokeGroup() : totvert(0), totedge(0), faces_num(0), totloop(0) {}
     vector<StrokeRep *> strokes;
     blender::Map<Material *, int> materials;
     int totvert;
     int totedge;
-    int totpoly;
+    int faces_num;
     int totloop;
   };
   vector<StrokeGroup *> strokeGroups, texturedStrokeGroups;

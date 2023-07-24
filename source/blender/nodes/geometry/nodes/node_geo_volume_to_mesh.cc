@@ -112,25 +112,25 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
   }
 
   int vert_offset = 0;
-  int poly_offset = 0;
+  int face_offset = 0;
   int loop_offset = 0;
   Array<int> vert_offsets(mesh_data.size());
-  Array<int> poly_offsets(mesh_data.size());
+  Array<int> face_offsets(mesh_data.size());
   Array<int> loop_offsets(mesh_data.size());
   for (const int i : grids.index_range()) {
     const bke::OpenVDBMeshData &data = mesh_data[i];
     vert_offsets[i] = vert_offset;
-    poly_offsets[i] = poly_offset;
+    face_offsets[i] = face_offset;
     loop_offsets[i] = loop_offset;
     vert_offset += data.verts.size();
-    poly_offset += (data.tris.size() + data.quads.size());
+    face_offset += (data.tris.size() + data.quads.size());
     loop_offset += (3 * data.tris.size() + 4 * data.quads.size());
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(vert_offset, 0, poly_offset, loop_offset);
+  Mesh *mesh = BKE_mesh_new_nomain(vert_offset, 0, face_offset, loop_offset);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<int> dst_poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> dst_face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   for (const int i : grids.index_range()) {
@@ -139,10 +139,10 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
                                      data.tris,
                                      data.quads,
                                      vert_offsets[i],
-                                     poly_offsets[i],
+                                     face_offsets[i],
                                      loop_offsets[i],
                                      positions,
-                                     dst_poly_offsets,
+                                     dst_face_offsets,
                                      corner_verts);
   }
 

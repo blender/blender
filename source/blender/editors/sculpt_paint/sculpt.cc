@@ -485,8 +485,8 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int poly : ss->pmap[vertex.i]) {
-        if (!ss->hide_poly[poly]) {
+      for (const int face : ss->pmap[vertex.i]) {
+        if (!ss->hide_poly[face]) {
           return true;
         }
       }
@@ -507,8 +507,8 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int poly : ss->pmap[vertex.i]) {
-        if (ss->hide_poly[poly]) {
+      for (const int face : ss->pmap[vertex.i]) {
+        if (ss->hide_poly[face]) {
           return false;
         }
       }
@@ -556,12 +556,12 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BLI_assert(ss->face_sets != nullptr);
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->hide_poly && ss->hide_poly[poly_index]) {
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->hide_poly && ss->hide_poly[face_index]) {
           /* Skip hidden faces connected to the vertex. */
           continue;
         }
-        ss->face_sets[poly_index] = face_set;
+        ss->face_sets[face_index] = face_set;
       }
       break;
     }
@@ -590,9 +590,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
         return SCULPT_FACE_SET_NONE;
       }
       int face_set = 0;
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->face_sets[poly_index] > face_set) {
-          face_set = ss->face_sets[poly_index];
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[face_index] > face_set) {
+          face_set = ss->face_sets[face_index];
         }
       }
       return face_set;
@@ -619,8 +619,8 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->face_sets[poly_index] == face_set) {
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[face_index] == face_set) {
           return true;
         }
       }
@@ -652,14 +652,14 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_FACES: {
       /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
        * vertices and edges consistent. */
-      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_mesh_flush_hidden_from_faces(mesh);
       BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
       break;
     }
     case PBVH_GRIDS: {
       /* In addition to making the hide status of the base mesh consistent, we also have to
        * propagate the status to the Multires grids. */
-      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_mesh_flush_hidden_from_faces(mesh);
       BKE_sculpt_sync_face_visibility_to_grids(mesh, ss->subdiv_ccg);
       break;
     }
@@ -699,12 +699,12 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
     return true;
   }
   int face_set = -1;
-  for (const int poly_index : ss->pmap[index]) {
+  for (const int face_index : ss->pmap[index]) {
     if (face_set == -1) {
-      face_set = ss->face_sets[poly_index];
+      face_set = ss->face_sets[face_index];
     }
     else {
-      if (ss->face_sets[poly_index] != face_set) {
+      if (ss->face_sets[face_index] != face_set) {
         return false;
       }
     }
@@ -721,8 +721,8 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   const Span<int> vert_map = ss->pmap[v1];
   int p1 = -1, p2 = -1;
   for (int i = 0; i < vert_map.size(); i++) {
-    const int poly_i = vert_map[i];
-    for (const int corner : ss->polys[poly_i]) {
+    const int face_i = vert_map[i];
+    for (const int corner : ss->faces[face_i]) {
       if (ss->corner_verts[corner] == v2) {
         if (p1 == -1) {
           p1 = vert_map[i];
@@ -764,7 +764,7 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->corner_verts, ss->faces, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_unique_face_set_in_base_mesh(ss, v1);
@@ -877,14 +877,14 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   iter->neighbors = iter->neighbors_fixed;
   iter->neighbor_indices = iter->neighbor_indices_fixed;
 
-  for (const int poly_i : ss->pmap[vertex.i]) {
-    if (ss->hide_poly && ss->hide_poly[poly_i]) {
+  for (const int face_i : ss->pmap[vertex.i]) {
+    if (ss->hide_poly && ss->hide_poly[face_i]) {
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const blender::IndexRange poly = ss->polys[poly_i];
-    const blender::int2 f_adj_v = blender::bke::mesh::poly_find_adjecent_verts(
-        poly, ss->corner_verts, vertex.i);
+    const blender::IndexRange face = ss->faces[face_i];
+    const blender::int2 f_adj_v = blender::bke::mesh::face_find_adjecent_verts(
+        face, ss->corner_verts, vertex.i);
     for (int j = 0; j < 2; j++) {
       if (f_adj_v[j] != vertex.i) {
         sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
@@ -997,7 +997,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       coord.y = vertex_index / key->grid_size;
       int v1, v2;
       const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-          ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
+          ss->subdiv_ccg, &coord, ss->corner_verts, ss->faces, &v1, &v2);
       switch (adjacency) {
         case SUBDIV_CCG_ADJACENT_VERTEX:
           return sculpt_check_boundary_vertex_in_base_mesh(ss, v1);

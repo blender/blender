@@ -59,7 +59,7 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
       else if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
         r_data_masks->lmask |= 1LL << cddata_type;
       }
-      else if (DT_DATATYPE_IS_POLY(dtdata_type)) {
+      else if (DT_DATATYPE_IS_FACE(dtdata_type)) {
         r_data_masks->pmask |= 1LL << cddata_type;
       }
     }
@@ -174,7 +174,7 @@ int BKE_object_data_transfer_get_dttypes_item_types(const int dtdata_types)
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
       ret |= ME_LOOP;
     }
-    if (DT_DATATYPE_IS_POLY(dtdata_type)) {
+    if (DT_DATATYPE_IS_FACE(dtdata_type)) {
       ret |= ME_POLY;
     }
   }
@@ -390,12 +390,12 @@ static void data_transfer_dtdata_type_preprocess(const Mesh *me_src,
           CustomData_get_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face"));
       blender::bke::mesh::normals_calc_loop(me_dst->vert_positions(),
                                             me_dst->edges(),
-                                            me_dst->polys(),
+                                            me_dst->faces(),
                                             me_dst->corner_verts(),
                                             me_dst->corner_edges(),
                                             {},
                                             me_dst->vert_normals(),
-                                            me_dst->poly_normals(),
+                                            me_dst->face_normals(),
                                             sharp_edges,
                                             sharp_faces,
                                             use_split_nors_dst,
@@ -437,11 +437,11 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
     /* Note loop_nors_dst contains our custom normals as transferred from source... */
     blender::bke::mesh::normals_loop_custom_set(me_dst->vert_positions(),
                                                 me_dst->edges(),
-                                                me_dst->polys(),
+                                                me_dst->faces(),
                                                 me_dst->corner_verts(),
                                                 me_dst->corner_edges(),
                                                 me_dst->vert_normals(),
-                                                me_dst->poly_normals(),
+                                                me_dst->face_normals(),
                                                 sharp_faces,
                                                 sharp_edges.span,
                                                 {loop_nors_dst, me_dst->totloop},
@@ -456,7 +456,7 @@ static MeshRemapIslandsCalc data_transfer_get_loop_islands_generator(const int c
 {
   switch (cddata_type) {
     case CD_FAKE_UV:
-      return BKE_mesh_calc_islands_loop_poly_edgeseam;
+      return BKE_mesh_calc_islands_loop_face_edgeseam;
     default:
       break;
   }
@@ -1148,7 +1148,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     if (r_map && cddata_type == CD_FAKE_SHARP) {
       if (!CustomData_has_layer_named(&me_dst->pdata, CD_PROP_BOOL, "sharp_face")) {
         CustomData_add_layer_named(
-            &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->totpoly, "sharp_face");
+            &me_dst->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->faces_num, "sharp_face");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -1291,8 +1291,8 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
             me_dst, me_src, ATTR_DOMAIN_MASK_CORNER, cddata_type);
       }
     }
-    if (DT_DATATYPE_IS_POLY(dtdata_type)) {
-      const int num_elem_dst = me_dst->totpoly;
+    if (DT_DATATYPE_IS_FACE(dtdata_type)) {
+      const int num_elem_dst = me_dst->faces_num;
 
       data_transfer_layersmapping_generate(nullptr,
                                            ob_src,
@@ -1323,7 +1323,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                  const int map_vert_mode,
                                  const int map_edge_mode,
                                  const int map_loop_mode,
-                                 const int map_poly_mode,
+                                 const int map_face_mode,
                                  SpaceTransform *space_transform,
                                  const bool auto_transform,
                                  const float max_distance,
@@ -1451,7 +1451,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                      "None of the 'Edge' mappings can be used in this case");
           continue;
         }
-        if ((map_vert_mode & MREMAP_USE_POLY) && (me_src->totpoly == 0)) {
+        if ((map_vert_mode & MREMAP_USE_POLY) && (me_src->faces_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh doesn't have any faces, "
@@ -1533,7 +1533,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
-        if ((map_edge_mode & MREMAP_USE_POLY) && (me_src->totpoly == 0)) {
+        if ((map_edge_mode & MREMAP_USE_POLY) && (me_src->faces_num == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh doesn't have any faces, "
@@ -1610,7 +1610,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
       const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<blender::int2> edges_dst = me_dst->edges();
-      const blender::OffsetIndices polys_dst = me_dst->polys();
+      const blender::OffsetIndices faces_dst = me_dst->faces();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
       const blender::Span<int> corner_edges_dst = me_dst->corner_edges();
       CustomData *ldata_dst = &me_dst->ldata;
@@ -1656,7 +1656,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
             corner_verts_dst.data(),
             corner_edges_dst.data(),
             corner_verts_dst.size(),
-            polys_dst,
+            faces_dst,
             ldata_dst,
             (me_dst->flag & ME_AUTOSMOOTH) != 0,
             me_dst->smoothresh,
@@ -1710,30 +1710,30 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
         BLI_freelistN(&lay_map);
       }
     }
-    if (DT_DATATYPE_IS_POLY(dtdata_type)) {
+    if (DT_DATATYPE_IS_FACE(dtdata_type)) {
       const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
       const int num_verts_dst = me_dst->totvert;
-      const blender::OffsetIndices polys_dst = me_dst->polys();
+      const blender::OffsetIndices faces_dst = me_dst->faces();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
 
       if (!geom_map_init[PDATA]) {
-        const int num_polys_src = me_src->totpoly;
+        const int num_faces_src = me_src->faces_num;
 
-        if ((map_poly_mode == MREMAP_MODE_TOPOLOGY) && (polys_dst.size() != num_polys_src)) {
+        if ((map_face_mode == MREMAP_MODE_TOPOLOGY) && (faces_dst.size() != num_faces_src)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source and destination meshes do not have the same amount of faces, "
                      "'Topology' mapping cannot be used in this case");
           continue;
         }
-        if ((map_poly_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
+        if ((map_face_mode & MREMAP_USE_EDGE) && (me_src->totedge == 0)) {
           BKE_report(reports,
                      RPT_ERROR,
                      "Source mesh doesn't have any edges, "
                      "None of the 'Edge' mappings can be used in this case");
           continue;
         }
-        if (ELEM(0, polys_dst.size(), num_polys_src)) {
+        if (ELEM(0, faces_dst.size(), num_faces_src)) {
           BKE_report(
               reports,
               RPT_ERROR,
@@ -1741,8 +1741,8 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_polys_from_mesh(
-            map_poly_mode,
+        BKE_mesh_remap_calc_faces_from_mesh(
+            map_face_mode,
             space_transform,
             max_distance,
             ray_radius,
@@ -1750,7 +1750,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
             reinterpret_cast<const float(*)[3]>(positions_dst.data()),
             num_verts_dst,
             corner_verts_dst.data(),
-            polys_dst,
+            faces_dst,
             me_src,
             &geom_map[PDATA]);
         geom_map_init[PDATA] = true;
@@ -1758,13 +1758,13 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
 
       if (mdef && vg_idx != -1 && !weights[PDATA]) {
         weights[PDATA] = static_cast<float *>(
-            MEM_mallocN(sizeof(*weights[PDATA]) * polys_dst.size(), __func__));
-        BKE_defvert_extract_vgroup_to_polyweights(mdef,
+            MEM_mallocN(sizeof(*weights[PDATA]) * faces_dst.size(), __func__));
+        BKE_defvert_extract_vgroup_to_faceweights(mdef,
                                                   vg_idx,
                                                   num_verts_dst,
                                                   corner_verts_dst.data(),
                                                   corner_verts_dst.size(),
-                                                  polys_dst,
+                                                  faces_dst,
                                                   invert_vgroup,
                                                   weights[PDATA]);
       }
@@ -1779,7 +1779,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                mix_mode,
                                                mix_factor,
                                                weights[PDATA],
-                                               polys_dst.size(),
+                                               faces_dst.size(),
                                                use_create,
                                                use_delete,
                                                fromlayers,
@@ -1825,7 +1825,7 @@ bool BKE_object_data_transfer_mesh(Depsgraph *depsgraph,
                                    const int map_vert_mode,
                                    const int map_edge_mode,
                                    const int map_loop_mode,
-                                   const int map_poly_mode,
+                                   const int map_face_mode,
                                    SpaceTransform *space_transform,
                                    const bool auto_transform,
                                    const float max_distance,
@@ -1848,7 +1848,7 @@ bool BKE_object_data_transfer_mesh(Depsgraph *depsgraph,
                                      map_vert_mode,
                                      map_edge_mode,
                                      map_loop_mode,
-                                     map_poly_mode,
+                                     map_face_mode,
                                      space_transform,
                                      auto_transform,
                                      max_distance,

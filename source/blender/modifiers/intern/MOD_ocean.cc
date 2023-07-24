@@ -153,7 +153,7 @@ static bool dependsOnNormals(ModifierData *md)
 
 struct GenerateOceanGeometryData {
   blender::MutableSpan<blender::float3> vert_positions;
-  blender::MutableSpan<int> poly_offsets;
+  blender::MutableSpan<int> face_offsets;
   blender::MutableSpan<int> corner_verts;
   float (*mloopuvs)[2];
 
@@ -180,7 +180,7 @@ static void generate_ocean_geometry_verts(void *__restrict userdata,
   }
 }
 
-static void generate_ocean_geometry_polys(void *__restrict userdata,
+static void generate_ocean_geometry_faces(void *__restrict userdata,
                                           const int y,
                                           const TaskParallelTLS *__restrict /*tls*/)
 {
@@ -196,7 +196,7 @@ static void generate_ocean_geometry_polys(void *__restrict userdata,
     gogd->corner_verts[fi * 4 + 2] = vi + 1 + gogd->res_x + 1;
     gogd->corner_verts[fi * 4 + 3] = vi + gogd->res_x + 1;
 
-    gogd->poly_offsets[fi] = fi * 4;
+    gogd->face_offsets[fi] = fi * 4;
   }
 }
 
@@ -236,7 +236,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   GenerateOceanGeometryData gogd;
 
   int verts_num;
-  int polys_num;
+  int faces_num;
 
   const bool use_threading = resolution > 4;
 
@@ -246,7 +246,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   gogd.res_y = gogd.ry * omd->repeat_y;
 
   verts_num = (gogd.res_x + 1) * (gogd.res_y + 1);
-  polys_num = gogd.res_x * gogd.res_y;
+  faces_num = gogd.res_x * gogd.res_y;
 
   gogd.sx = omd->size * omd->spatial_size;
   gogd.sy = omd->size * omd->spatial_size;
@@ -256,11 +256,11 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   gogd.sx /= gogd.rx;
   gogd.sy /= gogd.ry;
 
-  result = BKE_mesh_new_nomain(verts_num, 0, polys_num, polys_num * 4);
+  result = BKE_mesh_new_nomain(verts_num, 0, faces_num, faces_num * 4);
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
   gogd.vert_positions = result->vert_positions_for_write();
-  gogd.poly_offsets = result->poly_offsets_for_write();
+  gogd.face_offsets = result->face_offsets_for_write();
   gogd.corner_verts = result->corner_verts_for_write();
 
   TaskParallelSettings settings;
@@ -271,14 +271,14 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   BLI_task_parallel_range(0, gogd.res_y + 1, &gogd, generate_ocean_geometry_verts, &settings);
 
   /* create faces */
-  BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_polys, &settings);
+  BLI_task_parallel_range(0, gogd.res_y, &gogd, generate_ocean_geometry_faces, &settings);
 
   BKE_mesh_calc_edges(result, false, false);
 
   /* add uvs */
   if (CustomData_number_of_layers(&result->ldata, CD_PROP_FLOAT2) < MAX_MTFACE) {
     gogd.mloopuvs = static_cast<float(*)[2]>(CustomData_add_layer_named(
-        &result->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, polys_num * 4, "UVMap"));
+        &result->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, faces_num * 4, "UVMap"));
 
     if (gogd.mloopuvs) { /* unlikely to fail */
       gogd.ix = 1.0 / gogd.rx;
@@ -353,7 +353,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
   blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
-  const blender::OffsetIndices polys = result->polys();
+  const blender::OffsetIndices faces = result->faces();
 
   /* Add vertex-colors before displacement: allows lookup based on position. */
 
@@ -376,17 +376,17 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
     if (mloopcols) { /* unlikely to fail */
 
-      for (const int i : polys.index_range()) {
-        const blender::IndexRange poly = polys[i];
-        const int *corner_vert = &corner_verts[poly.start()];
-        MLoopCol *mlcol = &mloopcols[poly.start()];
+      for (const int i : faces.index_range()) {
+        const blender::IndexRange face = faces[i];
+        const int *corner_vert = &corner_verts[face.start()];
+        MLoopCol *mlcol = &mloopcols[face.start()];
 
         MLoopCol *mlcolspray = nullptr;
         if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-          mlcolspray = &mloopcols_spray[poly.start()];
+          mlcolspray = &mloopcols_spray[face.start()];
         }
 
-        for (j = poly.size(); j--; corner_vert++, mlcol++) {
+        for (j = face.size(); j--; corner_vert++, mlcol++) {
           const float *vco = positions[*corner_vert];
           const float u = OCEAN_CO(size_co_inv, vco[0]);
           const float v = OCEAN_CO(size_co_inv, vco[1]);

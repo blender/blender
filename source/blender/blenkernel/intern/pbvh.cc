@@ -194,7 +194,7 @@ static int partition_indices_faces(int *prim_indices,
                                    int axis,
                                    float mid,
                                    BBC *prim_bbc,
-                                   const int *looptri_polys)
+                                   const int *looptri_faces)
 {
   for (int i = lo; i < hi; i++) {
     prim_scratch[i - lo] = prim_indices[i];
@@ -204,10 +204,10 @@ static int partition_indices_faces(int *prim_indices,
   int i1 = lo, i2 = 0;
 
   while (i1 < hi) {
-    const int poly_i = looptri_polys[prim_scratch[i2]];
+    const int face_i = looptri_faces[prim_scratch[i2]];
     bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
 
-    while (i1 < hi && looptri_polys[prim_scratch[i2]] == poly_i) {
+    while (i1 < hi && looptri_faces[prim_scratch[i2]] == face_i) {
       prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
       i1++;
       i2++;
@@ -234,10 +234,10 @@ static int partition_indices_grids(int *prim_indices,
   int i1 = lo, i2 = 0;
 
   while (i1 < hi) {
-    int poly_i = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]);
+    int face_i = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]);
     bool side = prim_bbc[prim_scratch[i2]].bcentroid[axis] >= mid;
 
-    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]) == poly_i) {
+    while (i1 < hi && BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, prim_scratch[i2]) == face_i) {
       prim_indices[side ? hi2-- : lo2++] = prim_scratch[i2];
       i1++;
       i2++;
@@ -251,20 +251,20 @@ static int partition_indices_grids(int *prim_indices,
 static int partition_indices_material(
     PBVH *pbvh, const int *material_indices, const bool *sharp_faces, int lo, int hi)
 {
-  const int *looptri_polys = pbvh->looptri_polys;
+  const int *looptri_faces = pbvh->looptri_faces;
   const DMFlagMat *flagmats = pbvh->grid_flag_mats;
   const int *indices = pbvh->prim_indices;
   int i = lo, j = hi;
 
   for (;;) {
-    if (pbvh->looptri_polys) {
-      const int first = looptri_polys[pbvh->prim_indices[lo]];
-      for (; face_materials_match(material_indices, sharp_faces, first, looptri_polys[indices[i]]);
+    if (pbvh->looptri_faces) {
+      const int first = looptri_faces[pbvh->prim_indices[lo]];
+      for (; face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[i]]);
            i++) {
         /* pass */
       }
       for (;
-           !face_materials_match(material_indices, sharp_faces, first, looptri_polys[indices[j]]);
+           !face_materials_match(material_indices, sharp_faces, first, looptri_faces[indices[j]]);
            j--) {
         /* pass */
       }
@@ -351,7 +351,7 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
     }
 
     if (has_visible == false) {
-      if (!paint_is_face_hidden(pbvh->looptri_polys, pbvh->hide_poly, node->prim_indices[i])) {
+      if (!paint_is_face_hidden(pbvh->looptri_faces, pbvh->hide_poly, node->prim_indices[i])) {
         has_visible = true;
       }
     }
@@ -477,10 +477,10 @@ static bool leaf_needs_material_split(
   }
 
   if (pbvh->looptri) {
-    const int first = pbvh->looptri_polys[pbvh->prim_indices[offset]];
+    const int first = pbvh->looptri_faces[pbvh->prim_indices[offset]];
     for (int i = offset + count - 1; i > offset; i--) {
       int prim = pbvh->prim_indices[i];
-      if (!face_materials_match(material_indices, sharp_faces, first, pbvh->looptri_polys[prim])) {
+      if (!face_materials_match(material_indices, sharp_faces, first, pbvh->looptri_faces[prim])) {
         return true;
       }
     }
@@ -518,21 +518,21 @@ static void test_face_boundaries(PBVH *pbvh)
     switch (BKE_pbvh_type(pbvh)) {
       case PBVH_FACES: {
         for (int j = 0; j < node->totprim; j++) {
-          int poly_i = pbvh->looptri_polys[node->prim_indices[j]];
+          int face_i = pbvh->looptri_faces[node->prim_indices[j]];
 
-          if (node_map[poly_i] >= 0 && node_map[poly_i] != i) {
-            int old_i = node_map[poly_i];
+          if (node_map[face_i] >= 0 && node_map[face_i] != i) {
+            int old_i = node_map[face_i];
             int prim_i = node->prim_indices - pbvh->prim_indices + j;
 
-            printf("PBVH split error; poly: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
-                   poly_i,
+            printf("PBVH split error; face: %d, prim_i: %d, node1: %d, node2: %d, totprim: %d\n",
+                   face_i,
                    prim_i,
                    old_i,
                    i,
                    node->totprim);
           }
 
-          node_map[poly_i] = i;
+          node_map[face_i] = i;
         }
         break;
       }
@@ -617,7 +617,7 @@ static void build_sub(PBVH *pbvh,
                                     axis,
                                     (cb->bmax[axis] + cb->bmin[axis]) * 0.5f,
                                     prim_bbc,
-                                    pbvh->looptri_polys);
+                                    pbvh->looptri_faces);
     }
     else {
       end = partition_indices_grids(pbvh->prim_indices,
@@ -712,7 +712,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
     args->corner_verts = {pbvh->corner_verts, pbvh->mesh->totloop};
     args->corner_edges = pbvh->mesh->corner_edges();
   }
-  args->polys = pbvh->polys;
+  args->faces = pbvh->faces;
   args->mlooptri = pbvh->looptri;
 
   if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
@@ -723,13 +723,13 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 
   switch (pbvh->header.type) {
     case PBVH_FACES:
-      args->mesh_faces_num = pbvh->mesh->totpoly;
+      args->mesh_faces_num = pbvh->mesh->faces_num;
       args->vdata = pbvh->vdata;
       args->ldata = pbvh->ldata;
       args->pdata = pbvh->pdata;
       args->totprim = node->totprim;
       args->me = pbvh->mesh;
-      args->polys = pbvh->polys;
+      args->faces = pbvh->faces;
       args->vert_normals = pbvh->vert_normals;
 
       args->active_color = pbvh->mesh->active_color_attribute;
@@ -737,7 +737,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 
       args->prim_indices = node->prim_indices;
       args->face_sets = pbvh->face_sets;
-      args->looptri_polys = pbvh->looptri_polys;
+      args->looptri_faces = pbvh->looptri_faces;
       break;
     case PBVH_GRIDS:
       args->vdata = pbvh->vdata;
@@ -749,7 +749,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->grid_indices = node->prim_indices;
       args->subdiv_ccg = pbvh->subdiv_ccg;
       args->face_sets = pbvh->face_sets;
-      args->polys = pbvh->polys;
+      args->faces = pbvh->faces;
 
       args->active_color = pbvh->mesh->active_color_attribute;
       args->render_color = pbvh->mesh->default_color_attribute;
@@ -761,7 +761,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->vert_normals = pbvh->vert_normals;
 
       args->face_sets = pbvh->face_sets;
-      args->looptri_polys = pbvh->looptri_polys;
+      args->looptri_faces = pbvh->looptri_faces;
       break;
     case PBVH_BMESH:
       args->bm = pbvh->header.bm;
@@ -795,16 +795,16 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
     }
 
     for (int j = 0; j < node->totprim; j++) {
-      int poly_i;
+      int face_i;
 
       if (pbvh->header.type == PBVH_FACES) {
-        poly_i = pbvh->looptri_polys[node->prim_indices[j]];
+        face_i = pbvh->looptri_faces[node->prim_indices[j]];
       }
       else {
-        poly_i = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
+        face_i = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
       }
 
-      totface = max_ii(totface, poly_i + 1);
+      totface = max_ii(totface, face_i + 1);
     }
   }
 
@@ -822,23 +822,23 @@ static void pbvh_validate_node_prims(PBVH *pbvh)
     }
 
     for (int j = 0; j < node->totprim; j++) {
-      int poly_i;
+      int face_i;
 
       if (pbvh->header.type == PBVH_FACES) {
-        poly_i = pbvh->looptri_polys[node->prim_indices[j]];
+        face_i = pbvh->looptri_faces[node->prim_indices[j]];
       }
       else {
-        poly_i = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
+        face_i = BKE_subdiv_ccg_grid_to_face_index(pbvh->subdiv_ccg, node->prim_indices[j]);
       }
 
-      if (facemap[poly_i] != -1 && facemap[poly_i] != i) {
+      if (facemap[face_i] != -1 && facemap[face_i] != i) {
         printf("%s: error: face spanned multiple nodes (old: %d new: %d)\n",
                __func__,
-               facemap[poly_i],
+               facemap[face_i],
                i);
       }
 
-      facemap[poly_i] = i;
+      facemap[face_i] = i;
     }
   }
   MEM_SAFE_FREE(facemap);
@@ -849,9 +849,9 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
 
-  pbvh->polys = mesh->polys();
+  pbvh->faces = mesh->faces();
   pbvh->corner_verts = mesh->corner_verts().data();
-  pbvh->looptri_polys = mesh->looptri_polys().data();
+  pbvh->looptri_faces = mesh->looptri_faces().data();
 
   if (!pbvh->deformed) {
     /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
@@ -860,16 +860,16 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   }
 
   pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
+      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
   pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
       &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
 
   /* Make sure cached normals start out calculated. */
   mesh->vert_normals();
-  mesh->poly_normals();
+  mesh->face_normals();
 
   pbvh->vert_normals = mesh->runtime->vert_normals;
-  pbvh->poly_normals = mesh->runtime->poly_normals;
+  pbvh->face_normals = mesh->runtime->face_normals;
 
   pbvh->vdata = &mesh->vdata;
   pbvh->ldata = &mesh->ldata;
@@ -882,15 +882,15 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   BB cb;
 
   const int totvert = mesh->totvert;
-  const int looptri_num = poly_to_tri_count(mesh->totpoly, mesh->totloop);
+  const int looptri_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-  const blender::OffsetIndices<int> polys = mesh->polys();
+  const blender::OffsetIndices<int> faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   MLoopTri *looptri = static_cast<MLoopTri *>(
       MEM_malloc_arrayN(looptri_num, sizeof(*looptri), __func__));
 
-  blender::bke::mesh::looptris_calc(vert_positions, polys, corner_verts, {looptri, looptri_num});
+  blender::bke::mesh::looptris_calc(vert_positions, faces, corner_verts, {looptri, looptri_num});
 
   pbvh->mesh = mesh;
   pbvh->header.type = PBVH_FACES;
@@ -912,7 +912,7 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   pbvh->leaf_limit = LEAF_LIMIT;
 #endif
 
-  pbvh->faces_num = mesh->totpoly;
+  pbvh->faces_num = mesh->faces_num;
 
   pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
   pbvh->face_sets_color_default = mesh->face_sets_color_default;
@@ -982,13 +982,13 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->gridkey = *key;
   pbvh->grid_hidden = grid_hidden;
   pbvh->subdiv_ccg = subdiv_ccg;
-  pbvh->faces_num = me->totpoly;
+  pbvh->faces_num = me->faces_num;
 
   /* Find maximum number of grids per face. */
   int max_grids = 1;
-  const blender::OffsetIndices polys = me->polys();
-  for (const int i : polys.index_range()) {
-    max_grids = max_ii(max_grids, polys[i].size());
+  const blender::OffsetIndices faces = me->faces();
+  for (const int i : faces.index_range()) {
+    max_grids = max_ii(max_grids, faces[i].size());
   }
 
   /* Ensure leaf limit is at least 4 so there's room
@@ -1002,7 +1002,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->ldata = &me->ldata;
   pbvh->pdata = &me->pdata;
 
-  pbvh->polys = polys;
+  pbvh->faces = faces;
   pbvh->corner_verts = me->corner_verts().data();
 
   /* We also need the base mesh for PBVH draw. */
@@ -1379,41 +1379,41 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   using namespace blender;
   using namespace blender::bke;
   const Span<float3> positions = pbvh->vert_positions;
-  const OffsetIndices polys = pbvh->polys;
+  const OffsetIndices faces = pbvh->faces;
   const Span<int> corner_verts(pbvh->corner_verts, pbvh->mesh->totloop);
 
   MutableSpan<bool> update_tags(pbvh->vert_bitmap, pbvh->totvert);
 
-  VectorSet<int> polys_to_update;
+  VectorSet<int> faces_to_update;
   for (const PBVHNode *node : nodes) {
     for (const int vert : Span(node->vert_indices, node->uniq_verts)) {
       if (update_tags[vert]) {
-        polys_to_update.add_multiple(pbvh->pmap[vert]);
+        faces_to_update.add_multiple(pbvh->pmap[vert]);
       }
     }
   }
 
-  if (polys_to_update.is_empty()) {
+  if (faces_to_update.is_empty()) {
     return;
   }
 
   MutableSpan<float3> vert_normals = pbvh->vert_normals;
-  MutableSpan<float3> poly_normals = pbvh->poly_normals;
+  MutableSpan<float3> face_normals = pbvh->face_normals;
 
   VectorSet<int> verts_to_update;
   threading::parallel_invoke(
       [&]() {
-        threading::parallel_for(polys_to_update.index_range(), 512, [&](const IndexRange range) {
-          for (const int i : polys_to_update.as_span().slice(range)) {
-            poly_normals[i] = mesh::poly_normal_calc(positions, corner_verts.slice(polys[i]));
+        threading::parallel_for(faces_to_update.index_range(), 512, [&](const IndexRange range) {
+          for (const int i : faces_to_update.as_span().slice(range)) {
+            face_normals[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
           }
         });
       },
       [&]() {
         /* Update all normals connected to affected faces, even if not explicitly tagged. */
-        verts_to_update.reserve(polys_to_update.size());
-        for (const int poly : polys_to_update) {
-          verts_to_update.add_multiple(corner_verts.slice(polys[poly]));
+        verts_to_update.reserve(faces_to_update.size());
+        for (const int face : faces_to_update) {
+          verts_to_update.add_multiple(corner_verts.slice(faces[face]));
         }
 
         for (const int vert : verts_to_update) {
@@ -1427,8 +1427,8 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : verts_to_update.as_span().slice(range)) {
       float3 normal(0.0f);
-      for (const int poly : pbvh->pmap[vert]) {
-        normal += poly_normals[poly];
+      for (const int face : pbvh->pmap[vert]) {
+        normal += face_normals[face];
       }
       vert_normals[vert] = math::normalize(normal);
     }
@@ -2456,7 +2456,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(pbvh->looptri_polys, pbvh->hide_poly, looptri_i)) {
+    if (paint_is_face_hidden(pbvh->looptri_faces, pbvh->hide_poly, looptri_i)) {
       continue;
     }
 
@@ -2492,7 +2492,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
               len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
             copy_v3_v3(nearest_vertex_co, co[j]);
             r_active_vertex->i = corner_verts[lt->tri[j]];
-            *r_active_face_index = pbvh->looptri_polys[looptri_i];
+            *r_active_face_index = pbvh->looptri_faces[looptri_i];
           }
         }
       }
@@ -2804,7 +2804,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const int *face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(pbvh->looptri_polys, pbvh->hide_poly, looptri_i)) {
+    if (paint_is_face_hidden(pbvh->looptri_faces, pbvh->hide_poly, looptri_i)) {
       continue;
     }
 
@@ -3430,7 +3430,7 @@ void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh)
     pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
         &pbvh->mesh->vdata, CD_PROP_BOOL, ".hide_vert", pbvh->mesh->totvert));
     pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-        &pbvh->mesh->pdata, CD_PROP_BOOL, ".hide_poly", pbvh->mesh->totpoly));
+        &pbvh->mesh->pdata, CD_PROP_BOOL, ".hide_poly", pbvh->mesh->faces_num));
   }
 }
 
@@ -3546,7 +3546,7 @@ BLI_INLINE int face_iter_prim_to_face(PBVHFaceIter *fd, int prim_index)
     return BKE_subdiv_ccg_grid_to_face_index(fd->subdiv_ccg_, prim_index);
   }
 
-  return fd->looptri_polys_[prim_index];
+  return fd->looptri_faces_[prim_index];
 }
 
 static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
@@ -3588,15 +3588,15 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
     }
     case PBVH_GRIDS:
     case PBVH_FACES: {
-      int poly_i = 0;
+      int face_i = 0;
 
       if (do_step) {
         fd->prim_index_++;
 
         while (fd->prim_index_ < fd->node_->totprim) {
-          poly_i = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+          face_i = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
 
-          if (poly_i != fd->last_poly_index_) {
+          if (face_i != fd->last_face_index_) {
             break;
           }
 
@@ -3604,29 +3604,29 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
         }
       }
       else if (fd->prim_index_ < fd->node_->totprim) {
-        poly_i = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
+        face_i = face_iter_prim_to_face(fd, fd->node_->prim_indices[fd->prim_index_]);
       }
 
       if (fd->prim_index_ >= fd->node_->totprim) {
         return;
       }
 
-      fd->last_poly_index_ = poly_i;
-      const int poly_start = fd->poly_offsets_[poly_i];
-      const int poly_size = fd->poly_offsets_[poly_i + 1] - poly_start;
+      fd->last_face_index_ = face_i;
+      const int poly_start = fd->face_offsets_[face_i];
+      const int poly_size = fd->face_offsets_[face_i + 1] - poly_start;
 
-      fd->face.i = fd->index = poly_i;
+      fd->face.i = fd->index = face_i;
 
       if (fd->face_sets_) {
-        fd->face_set = fd->face_sets_ + poly_i;
+        fd->face_set = fd->face_sets_ + face_i;
       }
       if (fd->hide_poly_) {
-        fd->hide = fd->hide_poly_ + poly_i;
+        fd->hide = fd->hide_poly_ + face_i;
       }
 
       pbvh_face_iter_verts_reserve(fd, poly_size);
 
-      const int *poly_verts = &fd->corner_verts_[poly_start];
+      const int *face_verts = &fd->corner_verts_[poly_start];
       const int grid_area = fd->subdiv_key_.grid_area;
 
       for (int i = 0; i < poly_size; i++) {
@@ -3635,7 +3635,7 @@ static void pbvh_face_iter_step(PBVHFaceIter *fd, bool do_step)
           fd->verts[i].i = (poly_start + i) * grid_area + grid_area - 1;
         }
         else {
-          fd->verts[i].i = poly_verts[i];
+          fd->verts[i].i = face_verts[i];
         }
       }
       break;
@@ -3663,12 +3663,12 @@ void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd)
       fd->subdiv_key_ = pbvh->gridkey;
       ATTR_FALLTHROUGH;
     case PBVH_FACES:
-      fd->poly_offsets_ = pbvh->polys.data();
+      fd->face_offsets_ = pbvh->faces.data();
       fd->corner_verts_ = pbvh->corner_verts;
-      fd->looptri_polys_ = pbvh->looptri_polys;
+      fd->looptri_faces_ = pbvh->looptri_faces;
       fd->hide_poly_ = pbvh->hide_poly;
       fd->face_sets_ = pbvh->face_sets;
-      fd->last_poly_index_ = -1;
+      fd->last_face_index_ = -1;
 
       break;
     case PBVH_BMESH:
@@ -3745,19 +3745,19 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       break;
     }
     case PBVH_GRIDS: {
-      const blender::OffsetIndices polys = mesh->polys();
+      const blender::OffsetIndices faces = mesh->faces();
       CCGKey key = pbvh->gridkey;
 
       bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-          &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
+          &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
 
       bool delete_hide_poly = true;
-      for (const int poly_i : polys.index_range()) {
-        const blender::IndexRange poly = polys[poly_i];
+      for (const int face_i : faces.index_range()) {
+        const blender::IndexRange face = faces[face_i];
         bool hidden = false;
 
-        for (int loop_index = 0; !hidden && loop_index < poly.size(); loop_index++) {
-          int grid_index = poly[loop_index];
+        for (int loop_index = 0; !hidden && loop_index < face.size(); loop_index++) {
+          int grid_index = face[loop_index];
 
           if (pbvh->grid_hidden[grid_index] &&
               BLI_BITMAP_TEST(pbvh->grid_hidden[grid_index], key.grid_area - 1))
@@ -3770,25 +3770,25 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
         if (hidden && !hide_poly) {
           hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-              &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->totpoly));
+              &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
 
           if (!hide_poly) {
             hide_poly = static_cast<bool *>(CustomData_add_layer_named(
-                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, mesh->totpoly, ".hide_poly"));
+                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, mesh->faces_num, ".hide_poly"));
           }
         }
 
         if (hide_poly) {
           delete_hide_poly = delete_hide_poly && !hidden;
-          hide_poly[poly_i] = hidden;
+          hide_poly[face_i] = hidden;
         }
       }
 
       if (delete_hide_poly) {
-        CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+        CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->faces_num);
       }
 
-      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_mesh_flush_hidden_from_faces(mesh);
       BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
       break;
     }

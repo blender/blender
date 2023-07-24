@@ -70,15 +70,15 @@ static void context_zero(MultiresReshapeContext *reshape_context)
 static void context_init_lookup(MultiresReshapeContext *reshape_context)
 {
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const blender::OffsetIndices polys = reshape_context->base_polys;
-  const int num_faces = base_mesh->totpoly;
+  const blender::OffsetIndices faces = reshape_context->base_faces;
+  const int num_faces = base_mesh->faces_num;
 
   reshape_context->face_start_grid_index = static_cast<int *>(
       MEM_malloc_arrayN(num_faces, sizeof(int), "face_start_grid_index"));
   int num_grids = 0;
   int num_ptex_faces = 0;
   for (int face_index = 0; face_index < num_faces; ++face_index) {
-    const int num_corners = polys[face_index].size();
+    const int num_corners = faces[face_index].size();
     reshape_context->face_start_grid_index[face_index] = num_grids;
     num_grids += num_corners;
     num_ptex_faces += (num_corners == 4) ? 1 : num_corners;
@@ -89,7 +89,7 @@ static void context_init_lookup(MultiresReshapeContext *reshape_context)
   reshape_context->ptex_start_grid_index = static_cast<int *>(
       MEM_malloc_arrayN(num_ptex_faces, sizeof(int), "ptex_start_grid_index"));
   for (int face_index = 0, grid_index = 0, ptex_index = 0; face_index < num_faces; ++face_index) {
-    const int num_corners = polys[face_index].size();
+    const int num_corners = faces[face_index].size();
     const int num_face_ptex_faces = (num_corners == 4) ? 1 : num_corners;
     for (int i = 0; i < num_face_ptex_faces; ++i) {
       reshape_context->ptex_start_grid_index[ptex_index + i] = grid_index + i;
@@ -160,7 +160,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
-  reshape_context->base_polys = base_mesh->polys();
+  reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
@@ -199,7 +199,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
-  reshape_context->base_polys = base_mesh->polys();
+  reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
@@ -233,7 +233,7 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
-  reshape_context->base_polys = base_mesh->polys();
+  reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
@@ -282,7 +282,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
   reshape_context->base_mesh = base_mesh;
   reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
-  reshape_context->base_polys = base_mesh->polys();
+  reshape_context->base_faces = base_mesh->faces();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
   reshape_context->base_corner_edges = base_mesh->corner_edges();
 
@@ -377,7 +377,7 @@ int multires_reshape_grid_to_corner(const MultiresReshapeContext *reshape_contex
 
 bool multires_reshape_is_quad_face(const MultiresReshapeContext *reshape_context, int face_index)
 {
-  return reshape_context->base_polys[face_index].size() == 4;
+  return reshape_context->base_faces[face_index].size() == 4;
 }
 
 int multires_reshape_grid_to_ptex_index(const MultiresReshapeContext *reshape_context,
@@ -673,11 +673,11 @@ static void foreach_grid_face_coordinate_task(void *__restrict userdata_v,
 
   const MultiresReshapeContext *reshape_context = data->reshape_context;
 
-  const blender::OffsetIndices polys = reshape_context->base_polys;
+  const blender::OffsetIndices faces = reshape_context->base_faces;
   const int grid_size = data->grid_size;
   const float grid_size_1_inv = 1.0f / (float(grid_size) - 1.0f);
 
-  const int num_corners = polys[face_index].size();
+  const int num_corners = faces[face_index].size();
   int grid_index = reshape_context->face_start_grid_index[face_index];
   for (int corner = 0; corner < num_corners; ++corner, ++grid_index) {
     for (int y = 0; y < grid_size; ++y) {
@@ -714,7 +714,7 @@ static void foreach_grid_coordinate(const MultiresReshapeContext *reshape_contex
   parallel_range_settings.min_iter_per_thread = 1;
 
   const Mesh *base_mesh = reshape_context->base_mesh;
-  const int num_faces = base_mesh->totpoly;
+  const int num_faces = base_mesh->faces_num;
   BLI_task_parallel_range(
       0, num_faces, &data, foreach_grid_face_coordinate_task, &parallel_range_settings);
 }

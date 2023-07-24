@@ -96,7 +96,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
     }
   }
 
-  if (mesh.totvert == 0 || mesh.totpoly == 0) {
+  if (mesh.totvert == 0 || mesh.faces_num == 0) {
     return nullptr;
   }
 

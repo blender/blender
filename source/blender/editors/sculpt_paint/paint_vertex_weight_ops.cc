@@ -321,7 +321,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
 
       ED_view3d_viewcontext_init(C, &vc, depsgraph);
       me = BKE_mesh_from_object(vc.obact);
-      const blender::OffsetIndices polys = me->polys();
+      const blender::OffsetIndices faces = me->faces();
       const blender::Span<int> corner_verts = me->corner_verts();
       const MDeformVert *dverts = BKE_mesh_deform_verts(me);
 
@@ -348,11 +348,11 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
         }
         else {
           if (ED_mesh_pick_face(C, vc.obact, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-            const blender::IndexRange poly = polys[index];
-            int fidx = poly.size() - 1;
+            const blender::IndexRange face = faces[index];
+            int fidx = face.size() - 1;
 
             do {
-              const MDeformVert *dvert = &dverts[corner_verts[poly[fidx]]];
+              const MDeformVert *dvert = &dverts[corner_verts[face[fidx]]];
               found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
             } while (fidx--);
           }
@@ -450,11 +450,11 @@ static bool weight_paint_set(Object *ob, float paintweight)
   /* mutually exclusive, could be made into a */
   const short paint_selmode = ME_EDIT_PAINT_SEL_MODE(me);
 
-  const blender::OffsetIndices polys = me->polys();
+  const blender::OffsetIndices faces = me->faces();
   const blender::Span<int> corner_verts = me->corner_verts();
   MDeformVert *dvert = BKE_mesh_deform_verts_for_write(me);
 
-  if (me->totpoly == 0 || dvert == nullptr) {
+  if (me->faces_num == 0 || dvert == nullptr) {
     return false;
   }
 
@@ -473,16 +473,16 @@ static bool weight_paint_set(Object *ob, float paintweight)
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
       &me->pdata, CD_PROP_BOOL, ".select_poly");
 
-  for (const int i : polys.index_range()) {
-    const blender::IndexRange poly = polys[i];
-    uint fidx = poly.size() - 1;
+  for (const int i : faces.index_range()) {
+    const blender::IndexRange face = faces[i];
+    uint fidx = face.size() - 1;
 
     if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[i])) {
       continue;
     }
 
     do {
-      const int vidx = corner_verts[poly[fidx]];
+      const int vidx = corner_verts[face[fidx]];
 
       if (!dvert[vidx].flag) {
         if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {
@@ -810,7 +810,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
       /* On initialization only, convert face -> vert sel. */
       if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-        BKE_mesh_flush_select_from_polys(me);
+        BKE_mesh_flush_select_from_faces(me);
       }
     }
 

@@ -1136,7 +1136,7 @@ static void calc_frame_center(float center[3], const Frame *frame)
   mul_v3_fl(center, 0.25f);
 }
 
-/* Does crappy fan triangulation of poly, may not be so accurate for
+/* Does crappy fan triangulation of face, may not be so accurate for
  * concave faces */
 static int isect_ray_poly(const float ray_start[3],
                           const float ray_dir[3],
@@ -1295,7 +1295,7 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
   return f;
 }
 
-/* Use edge-length heuristic to choose from eight possible polygon bridges */
+/* Use edge-length heuristic to choose from eight possible face bridges */
 static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4], int best_order[4])
 {
   int orders[8][4];
@@ -1897,8 +1897,8 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 static void skin_set_orig_indices(Mesh *mesh)
 {
   int *orig = static_cast<int *>(
-      CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh->totpoly));
-  copy_vn_i(orig, mesh->totpoly, ORIGINDEX_NONE);
+      CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num));
+  copy_vn_i(orig, mesh->faces_num, ORIGINDEX_NONE);
 }
 
 /*

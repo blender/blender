@@ -3842,7 +3842,7 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Select Faces by Sides";
-  ot->description = "Select vertices or faces by the number of polygon sides";
+  ot->description = "Select vertices or faces by the number of face sides";
   ot->idname = "MESH_OT_select_face_by_sides";
 
   /* api callbacks */

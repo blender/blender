@@ -130,7 +130,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (mesh->totpoly == 0) {
+  if (mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1042,7 +1042,7 @@ static bool quadriflow_check(bContext *C, wmOperator *op)
     int num_faces;
     float ratio = RNA_float_get(op->ptr, "target_ratio");
 
-    num_faces = mesh->totpoly * ratio;
+    num_faces = mesh->faces_num * ratio;
 
     RNA_int_set(op->ptr, "target_faces", num_faces);
   }

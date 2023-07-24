@@ -86,14 +86,14 @@ static void vcol_to_fcol(Mesh *me)
   uint *mcol, *mcoln, *mcolmain;
   int a;
 
-  if (me->totface == 0 || me->mcol == NULL) {
+  if (me->totface_legacy == 0 || me->mcol == NULL) {
     return;
   }
 
-  mcoln = mcolmain = MEM_malloc_arrayN(me->totface, sizeof(int[4]), "mcoln");
+  mcoln = mcolmain = MEM_malloc_arrayN(me->totface_legacy, sizeof(int[4]), "mcoln");
   mcol = (uint *)me->mcol;
   mface = me->mface;
-  for (a = me->totface; a > 0; a--, mface++) {
+  for (a = me->totface_legacy; a > 0; a--, mface++) {
     mcoln[0] = mcol[mface->v1];
     mcoln[1] = mcol[mface->v2];
     mcoln[2] = mcol[mface->v3];
@@ -284,22 +284,25 @@ static void customdata_version_242(Mesh *me)
     CustomData_add_layer_with_data(&me->edata, CD_MEDGE, me->medge, me->totedge, NULL);
   }
 
-  if (!me->fdata.totlayer) {
-    CustomData_add_layer_with_data(&me->fdata, CD_MFACE, me->mface, me->totface, NULL);
+  if (!me->fdata_legacy.totlayer) {
+    CustomData_add_layer_with_data(
+        &me->fdata_legacy, CD_MFACE, me->mface, me->totface_legacy, NULL);
 
     if (me->tface) {
       if (me->mcol) {
         MEM_freeN(me->mcol);
       }
 
-      me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, CD_SET_DEFAULT, me->totface);
-      me->mtface = CustomData_add_layer(&me->fdata, CD_MTFACE, CD_SET_DEFAULT, me->totface);
+      me->mcol = CustomData_add_layer(
+          &me->fdata_legacy, CD_MCOL, CD_SET_DEFAULT, me->totface_legacy);
+      me->mtface = CustomData_add_layer(
+          &me->fdata_legacy, CD_MTFACE, CD_SET_DEFAULT, me->totface_legacy);
 
       mtf = me->mtface;
       mcol = me->mcol;
       tf = me->tface;
 
-      for (a = 0; a < me->totface; a++, mtf++, tf++, mcol += 4) {
+      for (a = 0; a < me->totface_legacy; a++, mtf++, tf++, mcol += 4) {
         memcpy(mcol, tf->col, sizeof(tf->col));
         memcpy(mtf->uv, tf->uv, sizeof(tf->uv));
       }
@@ -308,7 +311,8 @@ static void customdata_version_242(Mesh *me)
       me->tface = NULL;
     }
     else if (me->mcol) {
-      CustomData_add_layer_with_data(&me->fdata, CD_MCOL, me->mcol, me->totface, NULL);
+      CustomData_add_layer_with_data(
+          &me->fdata_legacy, CD_MCOL, me->mcol, me->totface_legacy, NULL);
     }
   }
 
@@ -317,8 +321,8 @@ static void customdata_version_242(Mesh *me)
     me->tface = NULL;
   }
 
-  for (a = 0, mtfacen = 0, mcoln = 0; a < me->fdata.totlayer; a++) {
-    layer = &me->fdata.layers[a];
+  for (a = 0, mtfacen = 0, mcoln = 0; a < me->fdata_legacy.totlayer; a++) {
+    layer = &me->fdata_legacy.layers[a];
 
     if (layer->type == CD_MTFACE) {
       if (layer->name[0] == 0) {
@@ -351,8 +355,8 @@ static void customdata_version_243(Mesh *me)
   CustomDataLayer *layer;
   int a;
 
-  for (a = 0; a < me->fdata.totlayer; a++) {
-    layer = &me->fdata.layers[a];
+  for (a = 0; a < me->fdata_legacy.totlayer; a++) {
+    layer = &me->fdata_legacy.layers[a];
     layer->active_rnd = layer->active;
   }
 }
@@ -649,7 +653,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (me) {
       if (me->tface) {
-        nr = me->totface;
+        nr = me->totface_legacy;
         tface = me->tface;
         while (nr--) {
           int j;
@@ -736,7 +740,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (me) {
       if (me->tface) {
         TFace *tface = me->tface;
-        for (a = 0; a < me->totface; a++, tface++) {
+        for (a = 0; a < me->totface_legacy; a++, tface++) {
           for (b = 0; b < 4; b++) {
             tface->uv[b][0] /= 32767.0f;
             tface->uv[b][1] /= 32767.0f;
@@ -817,7 +821,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if (me->mcol) {
         int i;
 
-        for (i = 0; i < me->totface * 4; i++) {
+        for (i = 0; i < me->totface_legacy * 4; i++) {
           MCol *mcol = &me->mcol[i];
           mcol->a = 255;
         }
@@ -825,7 +829,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if (me->tface) {
         int i, j;
 
-        for (i = 0; i < me->totface; i++) {
+        for (i = 0; i < me->totface_legacy; i++) {
           TFace *tf = &((TFace *)me->tface)[i];
 
           for (j = 0; j < 4; j++) {

@@ -247,10 +247,10 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
         if (polys_num == 0) {
           return;
         }
-        const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
+        const int *face_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
         for (int i = 0; i < polys_num; i++) {
-          const int poly_start = poly_offsets[i];
-          const int poly_size = poly_offsets[i + 1] - poly_start;
+          const int poly_start = face_offsets[i];
+          const int poly_size = face_offsets[i + 1] - poly_start;
           for (int j = 0; j < poly_size; j++) {
             *data = get_value_at_index(poly_start + j);
             data++;
@@ -320,10 +320,10 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
       }
       else {
         const int tris_num = b_mesh.loop_triangles.length();
-        const int *looptri_polys = static_cast<const int *>(
+        const int *looptri_faces = static_cast<const int *>(
             b_mesh.loop_triangle_polygons[0].ptr.data);
         for (int i = 0; i < tris_num; i++) {
-          data[i] = get_value_at_index(looptri_polys[i]);
+          data[i] = get_value_at_index(looptri_faces[i]);
         }
       }
       break;
@@ -624,7 +624,7 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
   if (polys_num == 0) {
     return;
   }
-  const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
+  const int *face_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
 
   if (!b_mesh.uv_layers.empty()) {
     BL::Mesh::uv_layers_iterator l;
@@ -660,8 +660,8 @@ static void attr_create_subd_uv_map(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, 
         float2 *fdata = uv_attr->data_float2();
 
         for (int i = 0; i < polys_num; i++) {
-          const int poly_start = poly_offsets[i];
-          const int poly_size = poly_offsets[i + 1] - poly_start;
+          const int poly_start = face_offsets[i];
+          const int poly_size = face_offsets[i + 1] - poly_start;
           for (int j = 0; j < poly_size; j++) {
             *(fdata++) = get_float2(l->data[poly_start + j].uv());
           }
@@ -937,9 +937,9 @@ static void attr_create_random_per_island(Scene *scene,
   else {
     const int polys_num = b_mesh.polygons.length();
     if (polys_num != 0) {
-      const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
+      const int *face_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
       for (int i = 0; i < polys_num; i++) {
-        const int vert = corner_verts[poly_offsets[i]];
+        const int vert = corner_verts[face_offsets[i]];
         data[i] = hash_uint_to_float(vertices_sets.find(vert));
       }
     }
@@ -1068,10 +1068,10 @@ static void create_mesh(Scene *scene,
     numtris = numfaces;
   }
   else {
-    const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
+    const int *face_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
     for (int i = 0; i < polys_num; i++) {
-      const int poly_start = poly_offsets[i];
-      const int poly_size = poly_offsets[i + 1] - poly_start;
+      const int poly_start = face_offsets[i];
+      const int poly_size = face_offsets[i + 1] - poly_start;
       numngons += (poly_size == 4) ? 0 : 1;
     }
   }
@@ -1138,10 +1138,10 @@ static void create_mesh(Scene *scene,
     }
 
     if (material_indices) {
-      const int *looptri_polys = static_cast<const int *>(
+      const int *looptri_faces = static_cast<const int *>(
           b_mesh.loop_triangle_polygons[0].ptr.data);
       for (int i = 0; i < numtris; i++) {
-        shader[i] = clamp_material_index(material_indices[looptri_polys[i]]);
+        shader[i] = clamp_material_index(material_indices[looptri_faces[i]]);
       }
     }
     else {
@@ -1149,10 +1149,10 @@ static void create_mesh(Scene *scene,
     }
 
     if (sharp_faces && !(use_loop_normals && corner_normals)) {
-      const int *looptri_polys = static_cast<const int *>(
+      const int *looptri_faces = static_cast<const int *>(
           b_mesh.loop_triangle_polygons[0].ptr.data);
       for (int i = 0; i < numtris; i++) {
-        smooth[i] = !sharp_faces[looptri_polys[i]];
+        smooth[i] = !sharp_faces[looptri_faces[i]];
       }
     }
     else {
@@ -1203,11 +1203,11 @@ static void create_mesh(Scene *scene,
 
     std::copy(corner_verts, corner_verts + numcorners, subd_face_corners);
 
-    const int *poly_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
+    const int *face_offsets = static_cast<const int *>(b_mesh.polygons[0].ptr.data);
     int ptex_offset = 0;
     for (int i = 0; i < numfaces; i++) {
-      const int poly_start = poly_offsets[i];
-      const int poly_size = poly_offsets[i + 1] - poly_start;
+      const int poly_start = face_offsets[i];
+      const int poly_size = face_offsets[i + 1] - poly_start;
 
       subd_start_corner[i] = poly_start;
       subd_num_corners[i] = poly_size;

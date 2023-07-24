@@ -71,17 +71,17 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   const int vert_src_num = mesh->totvert;
   const blender::Span<blender::int2> edges_src = mesh->edges();
-  const blender::OffsetIndices polys_src = mesh->polys();
+  const blender::OffsetIndices faces_src = mesh->faces();
   const blender::Span<int> corner_verts_src = mesh->corner_verts();
   const blender::Span<int> corner_edges_src = mesh->corner_edges();
 
   int *vertMap = static_cast<int *>(MEM_malloc_arrayN(vert_src_num, sizeof(int), __func__));
   int *edgeMap = static_cast<int *>(MEM_malloc_arrayN(edges_src.size(), sizeof(int), __func__));
-  int *faceMap = static_cast<int *>(MEM_malloc_arrayN(polys_src.size(), sizeof(int), __func__));
+  int *faceMap = static_cast<int *>(MEM_malloc_arrayN(faces_src.size(), sizeof(int), __func__));
 
   range_vn_i(vertMap, vert_src_num, 0);
   range_vn_i(edgeMap, edges_src.size(), 0);
-  range_vn_i(faceMap, polys_src.size(), 0);
+  range_vn_i(faceMap, faces_src.size(), 0);
 
   Scene *scene = DEG_get_input_scene(ctx->depsgraph);
   frac = (BKE_scene_ctime_get(scene) - bmd->start) / bmd->length;
@@ -90,7 +90,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     frac = 1.0f - frac;
   }
 
-  faces_dst_num = polys_src.size() * frac;
+  faces_dst_num = faces_src.size() * frac;
   edges_dst_num = edges_src.size() * frac;
 
   /* if there's at least one face, build based on faces */
@@ -98,7 +98,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     uintptr_t hash_num, hash_num_alt;
 
     if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
-      BLI_array_randomize(faceMap, sizeof(*faceMap), polys_src.size(), bmd->seed);
+      BLI_array_randomize(faceMap, sizeof(*faceMap), faces_src.size(), bmd->seed);
     }
 
     /* get the set of all vert indices that will be in the final mesh,
@@ -106,9 +106,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
      */
     hash_num = 0;
     for (i = 0; i < faces_dst_num; i++) {
-      const blender::IndexRange poly = polys_src[faceMap[i]];
-      for (j = 0; j < poly.size(); j++) {
-        const int vert_i = corner_verts_src[poly[j]];
+      const blender::IndexRange face = faces_src[faceMap[i]];
+      for (j = 0; j < face.size(); j++) {
+        const int vert_i = corner_verts_src[face[j]];
         void **val_p;
         if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(vert_i), &val_p)) {
           *val_p = (void *)hash_num;
@@ -116,7 +116,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         }
       }
 
-      loops_dst_num += poly.size();
+      loops_dst_num += face.size();
     }
     BLI_assert(hash_num == BLI_ghash_len(vertHash));
 
@@ -193,7 +193,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   result = BKE_mesh_new_nomain_from_template(
       mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash), faces_dst_num, loops_dst_num);
   blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
@@ -223,16 +223,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* copy the faces across, remapping indices */
   k = 0;
   for (i = 0; i < faces_dst_num; i++) {
-    const blender::IndexRange src_poly = polys_src[faceMap[i]];
-    result_poly_offsets[i] = k;
+    const blender::IndexRange src_face = faces_src[faceMap[i]];
+    result_face_offsets[i] = k;
 
     CustomData_copy_data(&mesh->pdata, &result->pdata, faceMap[i], i, 1);
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, src_poly.start(), k, src_poly.size());
+    CustomData_copy_data(&mesh->ldata, &result->ldata, src_face.start(), k, src_face.size());
 
-    for (j = 0; j < src_poly.size(); j++, k++) {
-      const int vert_src = corner_verts_src[src_poly[j]];
-      const int edge_src = corner_edges_src[src_poly[j]];
+    for (j = 0; j < src_face.size(); j++, k++) {
+      const int vert_src = corner_verts_src[src_face[j]];
+      const int edge_src = corner_edges_src[src_face[j]];
       result_corner_verts[k] = POINTER_AS_INT(
           BLI_ghash_lookup(vertHash, POINTER_FROM_INT(vert_src)));
       result_corner_edges[k] = POINTER_AS_INT(

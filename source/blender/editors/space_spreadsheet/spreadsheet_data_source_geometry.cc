@@ -138,18 +138,19 @@ static std::unique_ptr<ColumnValues> build_mesh_debug_columns(const Mesh &mesh,
         const int *data = static_cast<const int *>(
             CustomData_get_layer(&mesh.pdata, CD_ORIGINDEX));
         if (data) {
-          return std::make_unique<ColumnValues>(name, VArray<int>::ForSpan({data, mesh.totpoly}));
+          return std::make_unique<ColumnValues>(name,
+                                                VArray<int>::ForSpan({data, mesh.faces_num}));
         }
       }
       if (name == "Corner Start") {
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForSpan(mesh.poly_offsets().drop_back(1)));
+            name, VArray<int>::ForSpan(mesh.face_offsets().drop_back(1)));
       }
       if (name == "Corner Size") {
-        const OffsetIndices polys = mesh.polys();
+        const OffsetIndices faces = mesh.faces();
         return std::make_unique<ColumnValues>(
-            name, VArray<int>::ForFunc(polys.size(), [polys](int64_t index) {
-              return polys[index].size();
+            name, VArray<int>::ForFunc(faces.size(), [faces](int64_t index) {
+              return faces[index].size();
             }));
       }
       return {};

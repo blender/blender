@@ -115,7 +115,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
-  data->poly_offsets = mesh->poly_offsets().data();
+  data->face_offsets = mesh->face_offsets().data();
   data->corner_edges = mesh->corner_edges().data();
   data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
   data->sharp_faces = static_cast<const bool *>(
@@ -127,7 +127,7 @@ bool BKE_shrinkwrap_init_tree(
     return data->bvh != nullptr;
   }
 
-  if (mesh->totpoly <= 0) {
+  if (mesh->faces_num <= 0) {
     return false;
   }
 
@@ -138,7 +138,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-    data->poly_normals = reinterpret_cast<const float(*)[3]>(mesh->poly_normals().data());
+    data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
       data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
     }
@@ -1189,10 +1189,10 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
   const float(*vert_normals)[3] = tree->vert_normals;
-  const int poly_i = tree->mesh->looptri_polys()[looptri_idx];
+  const int face_i = tree->mesh->looptri_faces()[looptri_idx];
 
   /* Interpolate smooth normals if enabled. */
-  if (!(tree->sharp_faces && tree->sharp_faces[poly_i])) {
+  if (!(tree->sharp_faces && tree->sharp_faces[face_i])) {
     const int vert_indices[3] = {treeData->corner_verts[tri->tri[0]],
                                  treeData->corner_verts[tri->tri[1]],
                                  treeData->corner_verts[tri->tri[2]]};
@@ -1234,9 +1234,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
       normalize_v3(r_no);
     }
   }
-  /* Use the polygon normal if flat. */
-  else if (tree->poly_normals != nullptr) {
-    copy_v3_v3(r_no, tree->poly_normals[poly_i]);
+  /* Use the face normal if flat. */
+  else if (tree->face_normals != nullptr) {
+    copy_v3_v3(r_no, tree->face_normals[face_i]);
   }
   /* Finally fallback to the looptri normal. */
   else {

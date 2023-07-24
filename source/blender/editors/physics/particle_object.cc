@@ -759,8 +759,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     mul_m4_v3(to_mat, positions[i]);
   }
 
-  if (mesh->totface != 0) {
-    mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata, CD_MFACE));
+  if (mesh->totface_legacy != 0) {
+    mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {

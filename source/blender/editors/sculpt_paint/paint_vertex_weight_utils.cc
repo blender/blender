@@ -56,7 +56,7 @@ bool ED_wpaint_ensure_data(bContext *C,
     return false;
   }
 
-  if (me == nullptr || me->totpoly == 0) {
+  if (me == nullptr || me->faces_num == 0) {
     return false;
   }
 

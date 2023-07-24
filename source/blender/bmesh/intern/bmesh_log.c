@@ -1009,7 +1009,7 @@ void bm_log_print(const BMLog *log, const char *description)
 void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
 {
   if (bm) {
-    printf("BM { totvert=%d totedge=%d totloop=%d totpoly=%d\n",
+    printf("BM { totvert=%d totedge=%d totloop=%d faces_num=%d\n",
            bm->totvert,
            bm->totedge,
            bm->totloop,
@@ -1020,7 +1020,7 @@ void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
     }
   }
   else {
-    printf("BM { totvert=unknown totedge=unknown totloop=unknown totpoly=unknown\n");
+    printf("BM { totvert=unknown totedge=unknown totloop=unknown faces_num=unknown\n");
   }
 
   printf("v | added: %d, removed: %d, modified: %d\n",

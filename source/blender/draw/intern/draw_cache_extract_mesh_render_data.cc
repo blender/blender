@@ -153,7 +153,7 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
 /* ---------------------------------------------------------------------- */
 /** \name Polygons sorted per material
  *
- * Contains polygon indices sorted based on their material.
+ * Contains face indices sorted based on their material.
  * \{ */
 
 static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
@@ -182,7 +182,7 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
     const int mat = mr->material_indices ?
                         clamp_i(mr->material_indices[iter], 0, mr->mat_len - 1) :
                         0;
-    mat_tri_len[mat] += mr->polys[iter].size() - 2;
+    mat_tri_len[mat] += mr->faces[iter].size() - 2;
   }
 }
 
@@ -223,16 +223,16 @@ static blender::Array<int> mesh_render_data_mat_tri_len_build(MeshRenderData *mr
   }
   else {
     mesh_render_data_mat_tri_len_build_threaded(
-        mr, mr->poly_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
+        mr, mr->face_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
   }
   return mat_tri_len;
 }
 
-static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_faces_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
 {
   using namespace blender;
-  cache->poly_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
-  const Span<int> mat_tri_len = cache->poly_sorted.mat_tri_len;
+  cache->face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
+  const Span<int> mat_tri_len = cache->face_sorted.mat_tri_len;
 
   /* Apply offset. */
   int visible_tri_len = 0;
@@ -243,10 +243,10 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
       visible_tri_len += mat_tri_len[i];
     }
   }
-  cache->poly_sorted.visible_tri_len = visible_tri_len;
+  cache->face_sorted.visible_tri_len = visible_tri_len;
 
-  cache->poly_sorted.tri_first_index.reinitialize(mr->poly_len);
-  MutableSpan<int> tri_first_index = cache->poly_sorted.tri_first_index;
+  cache->face_sorted.tri_first_index.reinitialize(mr->face_len);
+  MutableSpan<int> tri_first_index = cache->face_sorted.tri_first_index;
 
   /* Sort per material. */
   int mat_last = mr->mat_len - 1;
@@ -266,11 +266,11 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
     }
   }
   else {
-    for (int i = 0; i < mr->poly_len; i++) {
+    for (int i = 0; i < mr->face_len; i++) {
       if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
         const int mat = mr->material_indices ? clamp_i(mr->material_indices[i], 0, mat_last) : 0;
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += mr->polys[i].size() - 2;
+        mat_tri_offs[mat] += mr->faces[i].size() - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -279,21 +279,21 @@ static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCa
   }
 }
 
-static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_faces_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
 {
-  if (!cache->poly_sorted.tri_first_index.is_empty()) {
+  if (!cache->face_sorted.tri_first_index.is_empty()) {
     return;
   }
-  mesh_render_data_polys_sorted_build(mr, cache);
+  mesh_render_data_faces_sorted_build(mr, cache);
 }
 
-void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
+void mesh_render_data_update_faces_sorted(MeshRenderData *mr,
                                           MeshBufferCache *cache,
                                           const eMRDataType data_flag)
 {
   if (data_flag & MR_DATA_POLYS_SORTED) {
-    mesh_render_data_polys_sorted_ensure(mr, cache);
-    mr->poly_sorted = &cache->poly_sorted;
+    mesh_render_data_faces_sorted_ensure(mr, cache);
+    mr->face_sorted = &cache->face_sorted;
   }
 }
 
@@ -311,7 +311,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       mr->looptris = mr->me->looptris();
-      mr->looptri_polys = mr->me->looptri_polys();
+      mr->looptri_faces = mr->me->looptri_faces();
     }
   }
   else {
@@ -333,7 +333,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
     /* Mesh */
     mr->vert_normals = mr->me->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr->poly_normals = mr->me->poly_normals();
+      mr->face_normals = mr->me->face_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals.reinitialize(mr->corner_verts.size());
@@ -343,12 +343,12 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
           CustomData_get_layer_named(&mr->me->edata, CD_PROP_BOOL, "sharp_edge"));
       blender::bke::mesh::normals_calc_loop(mr->vert_positions,
                                             mr->edges,
-                                            mr->polys,
+                                            mr->faces,
                                             mr->corner_verts,
                                             mr->corner_edges,
                                             {},
                                             mr->vert_normals,
-                                            mr->poly_normals,
+                                            mr->face_normals,
                                             sharp_edges,
                                             mr->sharp_faces,
                                             is_auto_smooth,
@@ -367,12 +367,12 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
 
       const float(*vert_coords)[3] = nullptr;
       const float(*vert_normals)[3] = nullptr;
-      const float(*poly_normals)[3] = nullptr;
+      const float(*face_normals)[3] = nullptr;
 
       if (mr->edit_data && !mr->edit_data->vertexCos.is_empty()) {
         vert_coords = reinterpret_cast<const float(*)[3]>(mr->bm_vert_coords.data());
         vert_normals = reinterpret_cast<const float(*)[3]>(mr->bm_vert_normals.data());
-        poly_normals = reinterpret_cast<const float(*)[3]>(mr->bm_poly_normals.data());
+        face_normals = reinterpret_cast<const float(*)[3]>(mr->bm_face_normals.data());
       }
 
       mr->loop_normals.reinitialize(mr->loop_len);
@@ -380,7 +380,7 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       BM_loops_calc_normal_vcos(mr->bm,
                                 vert_coords,
                                 vert_normals,
-                                poly_normals,
+                                face_normals,
                                 is_auto_smooth,
                                 split_angle,
                                 reinterpret_cast<float(*)[3]>(mr->loop_normals.data()),
@@ -434,13 +434,13 @@ MeshRenderData *mesh_render_data_create(Object *object,
       blender::bke::EditMeshData *emd = mr->edit_data;
       if (!emd->vertexCos.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(mr->edit_bmesh, emd);
-        BKE_editmesh_cache_ensure_poly_normals(mr->edit_bmesh, emd);
+        BKE_editmesh_cache_ensure_face_normals(mr->edit_bmesh, emd);
       }
 
       mr->bm_vert_coords = mr->edit_data->vertexCos;
       mr->bm_vert_normals = mr->edit_data->vertexNos;
-      mr->bm_poly_normals = mr->edit_data->polyNos;
-      mr->bm_poly_centers = mr->edit_data->polyCos;
+      mr->bm_face_normals = mr->edit_data->faceNos;
+      mr->bm_face_centers = mr->edit_data->faceCos;
     }
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
@@ -518,12 +518,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->vert_len = mr->me->totvert;
     mr->edge_len = mr->me->totedge;
     mr->loop_len = mr->me->totloop;
-    mr->poly_len = mr->me->totpoly;
-    mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
+    mr->face_len = mr->me->faces_num;
+    mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
 
     mr->vert_positions = mr->me->vert_positions();
     mr->edges = mr->me->edges();
-    mr->polys = mr->me->polys();
+    mr->faces = mr->me->faces();
     mr->corner_verts = mr->me->corner_verts();
     mr->corner_edges = mr->me->corner_edges();
 
@@ -558,8 +558,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->vert_len = bm->totvert;
     mr->edge_len = bm->totedge;
     mr->loop_len = bm->totloop;
-    mr->poly_len = bm->totface;
-    mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
+    mr->face_len = bm->totface;
+    mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
   }
 
   retrieve_active_attribute_names(*mr, *object, *mr->me);

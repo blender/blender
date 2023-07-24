@@ -1448,7 +1448,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
 
   BLI_kdtree_3d_free(edit->emitter_field);
 
-  totface = mesh->totface;
+  totface = mesh->totface_legacy;
   // int totvert = dm->getNumVerts(dm); /* UNUSED */
 
   edit->emitter_cosnos = static_cast<float *>(
@@ -1461,7 +1461,7 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
 
   const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
   const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
-  const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
     const MFace *mface = &mfaces[i];
 
@@ -3575,9 +3575,9 @@ static void PE_mirror_x(Depsgraph *depsgraph, Scene *scene, Object *ob, int tagg
 
   if (newtotpart != psys->totpart) {
     const MFace *mtessface = use_dm_final_indices ?
-                                 (const MFace *)CustomData_get_layer(&psmd_eval->mesh_final->fdata,
-                                                                     CD_MFACE) :
-                                 (const MFace *)CustomData_get_layer(&me->fdata, CD_MFACE);
+                                 (const MFace *)CustomData_get_layer(
+                                     &psmd_eval->mesh_final->fdata_legacy, CD_MFACE) :
+                                 (const MFace *)CustomData_get_layer(&me->fdata_legacy, CD_MFACE);
 
     /* allocate new arrays and copy existing */
     new_pars = static_cast<ParticleData *>(
@@ -4215,8 +4215,8 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
     copy_v3_v3(p_max, pa_minmax + 3);
   }
 
-  totface = mesh->totface;
-  mface = (const MFace *)CustomData_get_layer(&mesh->fdata, CD_MFACE);
+  totface = mesh->totface_legacy;
+  mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
 
   /* lets intersect the faces */

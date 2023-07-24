@@ -78,10 +78,10 @@ Mesh *STLMeshHelper::to_mesh()
 
   mesh->vert_positions_for_write().copy_from(verts_);
 
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
-  threading::parallel_for(poly_offsets.index_range(), 4096, [&](const IndexRange range) {
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
+  threading::parallel_for(face_offsets.index_range(), 4096, [&](const IndexRange range) {
     for (const int i : range) {
-      poly_offsets[i] = i * 3;
+      face_offsets[i] = i * 3;
     }
   });
 

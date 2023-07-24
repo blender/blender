@@ -4028,7 +4028,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
       int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
       if (face_sets) {
-        for (int i = 0; i < mesh->totpoly; i++) {
+        for (int i = 0; i < mesh->faces_num; i++) {
           face_sets[i] = abs(face_sets[i]);
         }
       }

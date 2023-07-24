@@ -80,7 +80,7 @@ Vector<Vector<int>> fixup_invalid_polygon(Span<float3> vertex_coords,
          * we won't quite know what to do with it (how to create normal/UV
          * for it, for example). Such vertices are often due to
          * self-intersecting polygons. Just skip them from the output
-         * polygon. */
+         * face. */
       }
       else {
         /* Vertex corresponds to one or more of the input vertices, use it. */

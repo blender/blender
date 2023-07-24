@@ -44,7 +44,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
   if (export_mesh_) {
     mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
-    mesh_polys_ = export_mesh_->polys();
+    mesh_faces_ = export_mesh_->faces();
     mesh_corner_verts_ = export_mesh_->corner_verts();
     sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
@@ -78,7 +78,7 @@ void OBJMesh::set_mesh(Mesh *mesh)
   export_mesh_ = owned_export_mesh_;
   mesh_positions_ = mesh->vert_positions();
   mesh_edges_ = mesh->edges();
-  mesh_polys_ = mesh->polys();
+  mesh_faces_ = mesh->faces();
   mesh_corner_verts_ = mesh->corner_verts();
   sharp_faces_ = *export_mesh_->attributes().lookup_or_default<bool>(
       "sharp_face", ATTR_DOMAIN_FACE, false);
@@ -104,7 +104,7 @@ void OBJMesh::clear()
 
 void OBJMesh::triangulate_mesh_eval()
 {
-  if (export_mesh_->totpoly <= 0) {
+  if (export_mesh_->faces_num <= 0) {
     return;
   }
   const BMeshCreateParams bm_create_params = {false};
@@ -114,7 +114,7 @@ void OBJMesh::triangulate_mesh_eval()
   bm_convert_params.add_key_index = false;
   bm_convert_params.use_shapekey = false;
 
-  /* Lower threshold where triangulation of a polygon starts, i.e. a quadrilateral will be
+  /* Lower threshold where triangulation of a face starts, i.e. a quadrilateral will be
    * triangulated here. */
   const int triangulate_min_verts = 4;
 
@@ -157,9 +157,9 @@ int OBJMesh::tot_vertices() const
   return export_mesh_->totvert;
 }
 
-int OBJMesh::tot_polygons() const
+int OBJMesh::tot_faces() const
 {
-  return export_mesh_->totpoly;
+  return export_mesh_->faces_num;
 }
 
 int OBJMesh::tot_uv_vertices() const
@@ -182,12 +182,12 @@ int OBJMesh::tot_normal_indices() const
   return tot_normal_indices_;
 }
 
-int OBJMesh::ith_smooth_group(const int poly_index) const
+int OBJMesh::ith_smooth_group(const int face_index) const
 {
   /* Calculate smooth groups first: #OBJMesh::calc_smooth_groups. */
   BLI_assert(tot_smooth_groups_ != -NEGATIVE_INIT);
   BLI_assert(poly_smooth_groups_);
-  return poly_smooth_groups_[poly_index];
+  return poly_smooth_groups_[face_index];
 }
 
 void OBJMesh::ensure_mesh_normals() const
@@ -203,8 +203,8 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&export_mesh_->pdata, CD_PROP_BOOL, "sharp_face"));
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
-                                                   mesh_polys_.data(),
-                                                   mesh_polys_.size(),
+                                                   mesh_faces_.data(),
+                                                   mesh_faces_.size(),
                                                    export_mesh_->corner_edges().data(),
                                                    export_mesh_->totloop,
                                                    sharp_edges,
@@ -252,9 +252,9 @@ const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
   return r_mat;
 }
 
-bool OBJMesh::is_ith_poly_smooth(const int poly_index) const
+bool OBJMesh::is_ith_poly_smooth(const int face_index) const
 {
-  return !sharp_faces_[poly_index];
+  return !sharp_faces_[face_index];
 }
 
 const char *OBJMesh::get_object_name() const
@@ -284,9 +284,9 @@ float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scal
   return r_coords;
 }
 
-Span<int> OBJMesh::calc_poly_vertex_indices(const int poly_index) const
+Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
 {
-  return mesh_corner_verts_.slice(mesh_polys_[poly_index]);
+  return mesh_corner_verts_.slice(mesh_faces_[face_index]);
 }
 
 void OBJMesh::store_uv_coords_and_indices()
@@ -324,19 +324,19 @@ void OBJMesh::store_uv_coords_and_indices()
   }
 }
 
-Span<int> OBJMesh::calc_poly_uv_indices(const int poly_index) const
+Span<int> OBJMesh::calc_poly_uv_indices(const int face_index) const
 {
   if (uv_coords_.is_empty()) {
     return {};
   }
-  BLI_assert(poly_index < export_mesh_->totpoly);
-  return loop_to_uv_index_.as_span().slice(mesh_polys_[poly_index]);
+  BLI_assert(face_index < export_mesh_->faces_num);
+  return loop_to_uv_index_.as_span().slice(mesh_faces_[face_index]);
 }
 
-float3 OBJMesh::calc_poly_normal(const int poly_index) const
+float3 OBJMesh::calc_poly_normal(const int face_index) const
 {
-  float3 r_poly_normal = bke::mesh::poly_normal_calc(
-      mesh_positions_, mesh_corner_verts_.slice(mesh_polys_[poly_index]));
+  float3 r_poly_normal = bke::mesh::face_normal_calc(
+      mesh_positions_, mesh_corner_verts_.slice(mesh_faces_[face_index]));
   mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
   normalize_v3(r_poly_normal);
   return r_poly_normal;
@@ -369,16 +369,16 @@ void OBJMesh::store_normal_coords_and_indices()
   int cur_normal_index = 0;
   Map<float3, int> normal_to_index;
   /* We don't know how many unique normals there will be, but this is a guess. */
-  normal_to_index.reserve(export_mesh_->totpoly);
+  normal_to_index.reserve(export_mesh_->faces_num);
   loop_to_normal_index_.resize(export_mesh_->totloop);
   loop_to_normal_index_.fill(-1);
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&export_mesh_->ldata, CD_NORMAL));
-  for (int poly_index = 0; poly_index < export_mesh_->totpoly; ++poly_index) {
-    const IndexRange poly = mesh_polys_[poly_index];
-    bool need_per_loop_normals = lnors != nullptr || !(sharp_faces_[poly_index]);
+  for (int face_index = 0; face_index < export_mesh_->faces_num; ++face_index) {
+    const IndexRange face = mesh_faces_[face_index];
+    bool need_per_loop_normals = lnors != nullptr || !(sharp_faces_[face_index]);
     if (need_per_loop_normals) {
-      for (const int corner : poly) {
+      for (const int corner : face) {
         float3 loop_normal;
         BLI_assert(corner < export_mesh_->totloop);
         copy_v3_v3(loop_normal, lnors[corner]);
@@ -395,7 +395,7 @@ void OBJMesh::store_normal_coords_and_indices()
       }
     }
     else {
-      float3 poly_normal = calc_poly_normal(poly_index);
+      float3 poly_normal = calc_poly_normal(face_index);
       float3 rounded_poly_normal = round_float3_to_n_digits(poly_normal, round_digits);
       int poly_norm_index = normal_to_index.lookup_default(rounded_poly_normal, -1);
       if (poly_norm_index == -1) {
@@ -403,7 +403,7 @@ void OBJMesh::store_normal_coords_and_indices()
         normal_to_index.add(rounded_poly_normal, poly_norm_index);
         normal_coords_.append(rounded_poly_normal);
       }
-      for (const int corner : poly) {
+      for (const int corner : face) {
         BLI_assert(corner < export_mesh_->totloop);
         loop_to_normal_index_[corner] = poly_norm_index;
       }
@@ -412,15 +412,15 @@ void OBJMesh::store_normal_coords_and_indices()
   tot_normal_indices_ = cur_normal_index;
 }
 
-Vector<int> OBJMesh::calc_poly_normal_indices(const int poly_index) const
+Vector<int> OBJMesh::calc_poly_normal_indices(const int face_index) const
 {
   if (loop_to_normal_index_.is_empty()) {
     return {};
   }
-  const IndexRange poly = mesh_polys_[poly_index];
-  Vector<int> r_poly_normal_indices(poly.size());
-  for (const int i : IndexRange(poly.size())) {
-    r_poly_normal_indices[i] = loop_to_normal_index_[poly[i]];
+  const IndexRange face = mesh_faces_[face_index];
+  Vector<int> r_poly_normal_indices(face.size());
+  for (const int i : IndexRange(face.size())) {
+    r_poly_normal_indices[i] = loop_to_normal_index_[face[i]];
   }
   return r_poly_normal_indices;
 }
@@ -433,10 +433,10 @@ int OBJMesh::tot_deform_groups() const
   return BKE_object_defgroup_count(&export_object_eval_);
 }
 
-int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
+int16_t OBJMesh::get_poly_deform_group_index(const int face_index,
                                              MutableSpan<float> group_weights) const
 {
-  BLI_assert(poly_index < export_mesh_->totpoly);
+  BLI_assert(face_index < export_mesh_->faces_num);
   BLI_assert(group_weights.size() == BKE_object_defgroup_count(&export_object_eval_));
   const Span<MDeformVert> dverts = export_mesh_->deform_verts();
   if (dverts.is_empty()) {
@@ -445,7 +445,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
 
   group_weights.fill(0);
   bool found_any_group = false;
-  for (const int vert : mesh_corner_verts_.slice(mesh_polys_[poly_index])) {
+  for (const int vert : mesh_corner_verts_.slice(mesh_faces_[face_index])) {
     const MDeformVert &dv = dverts[vert];
     for (int weight_i = 0; weight_i < dv.totweight; ++weight_i) {
       const auto group = dv.dw[weight_i].def_nr;

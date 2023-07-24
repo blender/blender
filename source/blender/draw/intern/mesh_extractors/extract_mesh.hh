@@ -40,7 +40,7 @@ enum eMRExtractType {
 struct MeshRenderData {
   eMRExtractType extract_type;
 
-  int poly_len, edge_len, vert_len, loop_len;
+  int face_len, edge_len, vert_len, loop_len;
   int edge_loose_len;
   int vert_loose_len;
   int loop_loose_len;
@@ -65,8 +65,8 @@ struct MeshRenderData {
   /* Use for #ME_WRAPPER_TYPE_BMESH. */
   blender::Span<blender::float3> bm_vert_coords;
   blender::Span<blender::float3> bm_vert_normals;
-  blender::Span<blender::float3> bm_poly_normals;
-  blender::Span<blender::float3> bm_poly_centers;
+  blender::Span<blender::float3> bm_face_normals;
+  blender::Span<blender::float3> bm_face_centers;
 
   const int *v_origindex, *e_origindex, *p_origindex;
   int edge_crease_ofs;
@@ -78,19 +78,19 @@ struct MeshRenderData {
   Mesh *me;
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   BMVert *eve_act;
   BMEdge *eed_act;
   BMFace *efa_act;
   BMFace *efa_act_uv;
-  /* The triangulation of #Mesh polygons, owned by the mesh. */
+  /* The triangulation of #Mesh faces, owned by the mesh. */
   blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_polys;
+  blender::Span<int> looptri_faces;
   const int *material_indices;
   blender::Span<blender::float3> vert_normals;
-  blender::Span<blender::float3> poly_normals;
+  blender::Span<blender::float3> face_normals;
   const bool *hide_vert;
   const bool *hide_edge;
   const bool *hide_poly;
@@ -102,7 +102,7 @@ struct MeshRenderData {
 
   blender::Span<int> loose_verts;
   blender::Span<int> loose_edges;
-  const SortedPolyData *poly_sorted;
+  const SortedFaceData *face_sorted;
 
   const char *active_color_name;
   const char *default_color_name;
@@ -223,8 +223,8 @@ BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *e
 
 BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *efa)
 {
-  if (!mr->bm_poly_normals.is_empty()) {
-    return mr->bm_poly_normals[BM_elem_index_get(efa)];
+  if (!mr->bm_face_normals.is_empty()) {
+    return mr->bm_face_normals[BM_elem_index_get(efa)];
   }
   return efa->no;
 }
@@ -242,11 +242,11 @@ using ExtractTriMeshFn = void(const MeshRenderData *mr,
                               const MLoopTri *mlt,
                               int elt_index,
                               void *data);
-using ExtractPolyBMeshFn = void(const MeshRenderData *mr,
+using ExtractFaceBMeshFn = void(const MeshRenderData *mr,
                                 const BMFace *f,
                                 int f_index,
                                 void *data);
-using ExtractPolyMeshFn = void(const MeshRenderData *mr, int poly_index, void *data);
+using ExtractFaceMeshFn = void(const MeshRenderData *mr, int face_index, void *data);
 using ExtractLEdgeBMeshFn = void(const MeshRenderData *mr,
                                  const BMEdge *eed,
                                  int loose_edge_i,
@@ -301,8 +301,8 @@ struct MeshExtract {
   /** Executed on one (or more if use_threading) worker thread(s). */
   ExtractTriBMeshFn *iter_looptri_bm;
   ExtractTriMeshFn *iter_looptri_mesh;
-  ExtractPolyBMeshFn *iter_poly_bm;
-  ExtractPolyMeshFn *iter_poly_mesh;
+  ExtractFaceBMeshFn *iter_face_bm;
+  ExtractFaceMeshFn *iter_face_mesh;
   ExtractLEdgeBMeshFn *iter_loose_edge_bm;
   ExtractLEdgeMeshFn *iter_loose_edge_mesh;
   ExtractLVertBMeshFn *iter_loose_vert_bm;
@@ -351,7 +351,7 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
                                         MeshBufferCache *cache,
                                         eMRIterType iter_type,
                                         eMRDataType data_flag);
-void mesh_render_data_update_polys_sorted(MeshRenderData *mr,
+void mesh_render_data_update_faces_sorted(MeshRenderData *mr,
                                           MeshBufferCache *cache,
                                           eMRDataType data_flag);
 /**
@@ -426,7 +426,7 @@ extern const MeshExtract extract_fdots_nor_hq;
 extern const MeshExtract extract_fdots_uv;
 extern const MeshExtract extract_fdots_edituv_data;
 extern const MeshExtract extract_skin_roots;
-extern const MeshExtract extract_poly_idx;
+extern const MeshExtract extract_face_idx;
 extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;

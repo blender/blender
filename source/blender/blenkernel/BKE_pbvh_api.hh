@@ -617,15 +617,15 @@ struct PBVHFaceIter {
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const int *poly_offsets_;
-  const int *looptri_polys_;
+  const int *face_offsets_;
+  const int *looptri_faces_;
   const int *corner_verts_;
   int prim_index_;
   const SubdivCCG *subdiv_ccg_;
   const BMesh *bm;
   CCGKey subdiv_key_;
 
-  int last_poly_index_;
+  int last_face_index_;
 };
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);

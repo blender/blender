@@ -165,7 +165,7 @@ static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 
 /* ***** Normals accessors for shape-keys. ***** */
 /* NOTE: with this we may recompute several times the same data, should we want to access verts,
- *       then polys, then loops normals... However,
+ *       then faces, then loops normals... However,
  *       such case looks rather unlikely - and not worth adding some kind of caching in key-blocks.
  */
 
@@ -228,7 +228,7 @@ static int rna_KeyBlock_normals_poly_len(const PointerRNA *ptr,
 {
   const Mesh *me = rna_KeyBlock_normals_get_mesh(ptr, nullptr);
 
-  length[0] = me ? me->totpoly : 0;
+  length[0] = me ? me->faces_num : 0;
   length[1] = 3;
 
   return (length[0] * length[1]);
@@ -241,9 +241,9 @@ static void rna_KeyBlock_normals_poly_calc(ID *id,
 {
   Mesh *me = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_len = (me ? me->totpoly : 0) * 3;
+  *normals_len = (me ? me->faces_num : 0) * 3;
 
-  if (ELEM(nullptr, me, data) || (me->totpoly == 0)) {
+  if (ELEM(nullptr, me, data) || (me->faces_num == 0)) {
     *normals = nullptr;
     return;
   }

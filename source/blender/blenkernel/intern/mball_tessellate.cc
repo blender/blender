@@ -1464,15 +1464,15 @@ Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   Mesh *mesh = BKE_mesh_new_nomain(int(process.co.size()), 0, int(process.curindex), corners_num);
   mesh->vert_positions_for_write().copy_from(process.co);
-  blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   int loop_offset = 0;
-  for (int i = 0; i < mesh->totpoly; i++) {
+  for (int i = 0; i < mesh->faces_num; i++) {
     const int *indices = process.indices[i];
 
     const int count = indices[2] != indices[3] ? 4 : 3;
-    poly_offsets[i] = loop_offset;
+    face_offsets[i] = loop_offset;
 
     corner_verts[loop_offset] = indices[0];
     corner_verts[loop_offset + 1] = indices[1];

@@ -120,7 +120,7 @@ eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
 /* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_paint.h
  * \{ */
-bool paint_is_face_hidden(const int * /*looptri_polys*/,
+bool paint_is_face_hidden(const int * /*looptri_faces*/,
                           const bool * /*hide_poly*/,
                           int /*tri_index*/)
 {

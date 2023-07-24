@@ -326,7 +326,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (target.get_mesh_for_read()->totpoly == 0) {
+  if (target.get_mesh_for_read()->faces_num == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The target mesh must have faces"));
     params.set_default_remaining_outputs();
     return;

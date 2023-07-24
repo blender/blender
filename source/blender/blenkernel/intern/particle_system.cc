@@ -343,7 +343,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
       }
     }
     else { /* FROM_FACE/FROM_VOLUME */
-      totdmelem = mesh_final->totface;
+      totdmelem = mesh_final->totface_legacy;
 
       if (use_modifier_stack) {
         totelem = totdmelem;
@@ -351,9 +351,9 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
         origindex_poly = nullptr;
       }
       else {
-        totelem = mesh_original->totface;
+        totelem = mesh_original->totface_legacy;
         origindex = static_cast<const int *>(
-            CustomData_get_layer(&mesh_final->fdata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh_final->fdata_legacy, CD_ORIGINDEX));
 
         /* for face lookups we need the poly origindex too */
         origindex_poly = static_cast<const int *>(

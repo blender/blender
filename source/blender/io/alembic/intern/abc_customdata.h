@@ -32,8 +32,8 @@ struct CDStreamConfig {
   int *corner_verts;
   int totloop;
 
-  int *poly_offsets;
-  int totpoly;
+  int *face_offsets;
+  int faces_num;
 
   float3 *positions;
   int totvert;
@@ -70,8 +70,8 @@ struct CDStreamConfig {
   CDStreamConfig()
       : corner_verts(NULL),
         totloop(0),
-        poly_offsets(NULL),
-        totpoly(0),
+        face_offsets(NULL),
+        faces_num(0),
         totvert(0),
         pack_uvs(false),
         mesh(NULL),

@@ -9,7 +9,7 @@
  * output of a modified mesh.
  *
  * This API handles the case when the modifier stack outputs a mesh which does not have
- * #Mesh data (#Mesh::polys(), corner verts, corner edges, edges, etc).
+ * #Mesh data (#Mesh::faces(), corner verts, corner edges, edges, etc).
  * Currently this is used so the resulting mesh can have #BMEditMesh data,
  * postponing the converting until it's needed or avoiding conversion entirely
  * which can be an expensive operation.
@@ -76,12 +76,12 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
 #ifdef DEBUG
   me->totvert = INT_MAX;
   me->totedge = INT_MAX;
-  me->totpoly = INT_MAX;
+  me->faces_num = INT_MAX;
   me->totloop = INT_MAX;
 #else
   me->totvert = 0;
   me->totedge = 0;
-  me->totpoly = 0;
+  me->faces_num = 0;
   me->totloop = 0;
 #endif
 
@@ -105,7 +105,7 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
       case ME_WRAPPER_TYPE_BMESH: {
         me->totvert = 0;
         me->totedge = 0;
-        me->totpoly = 0;
+        me->faces_num = 0;
         me->totloop = 0;
 
         BLI_assert(me->edit_mesh != nullptr);
@@ -185,18 +185,18 @@ const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3]
   return nullptr;
 }
 
-const float (*BKE_mesh_wrapper_poly_normals(Mesh *mesh))[3]
+const float (*BKE_mesh_wrapper_face_normals(Mesh *mesh))[3]
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      BKE_editmesh_cache_ensure_poly_normals(mesh->edit_mesh, mesh->runtime->edit_data);
-      if (mesh->runtime->edit_data->polyNos.is_empty()) {
+      BKE_editmesh_cache_ensure_face_normals(mesh->edit_mesh, mesh->runtime->edit_data);
+      if (mesh->runtime->edit_data->faceNos.is_empty()) {
         return nullptr;
       }
-      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->polyNos.data());
+      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->faceNos.data());
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<const float(*)[3]>(mesh->poly_normals().data());
+      return reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
   }
   return nullptr;
 }
@@ -207,8 +207,8 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
     case ME_WRAPPER_TYPE_BMESH:
       if (mesh->runtime->edit_data) {
         mesh->runtime->edit_data->vertexNos = {};
-        mesh->runtime->edit_data->polyCos = {};
-        mesh->runtime->edit_data->polyNos = {};
+        mesh->runtime->edit_data->faceCos = {};
+        mesh->runtime->edit_data->faceNos = {};
       }
       break;
     case ME_WRAPPER_TYPE_MDATA:
@@ -338,14 +338,14 @@ int BKE_mesh_wrapper_loop_len(const Mesh *me)
   return -1;
 }
 
-int BKE_mesh_wrapper_poly_len(const Mesh *me)
+int BKE_mesh_wrapper_face_len(const Mesh *me)
 {
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return me->edit_mesh->bm->totface;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return me->totpoly;
+      return me->faces_num;
   }
   BLI_assert_unreachable();
   return -1;

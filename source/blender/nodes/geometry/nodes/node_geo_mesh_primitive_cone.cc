@@ -369,15 +369,15 @@ static void calculate_cone_edges(const ConeConfig &config, MutableSpan<int2> edg
 static void calculate_cone_faces(const ConeConfig &config,
                                  MutableSpan<int> corner_verts,
                                  MutableSpan<int> corner_edges,
-                                 MutableSpan<int> poly_sizes)
+                                 MutableSpan<int> face_sizes)
 {
-  int rings_poly_start = 0;
+  int rings_face_start = 0;
   int rings_loop_start = 0;
   if (config.top_has_center_vert) {
-    rings_poly_start = config.circle_segments;
+    rings_face_start = config.circle_segments;
     rings_loop_start = config.circle_segments * 3;
 
-    poly_sizes.take_front(config.circle_segments).fill(3);
+    face_sizes.take_front(config.circle_segments).fill(3);
 
     /* Top cone tip or center triangle fan in the fill. */
     const int top_center_vert = 0;
@@ -398,11 +398,11 @@ static void calculate_cone_faces(const ConeConfig &config,
     }
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
-    rings_poly_start = 1;
+    rings_face_start = 1;
     rings_loop_start = config.circle_segments;
 
     /* Center n-gon in the fill. */
-    poly_sizes.first() = config.circle_segments;
+    face_sizes.first() = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
       corner_verts[i] = i;
       corner_edges[i] = i;
@@ -410,8 +410,8 @@ static void calculate_cone_faces(const ConeConfig &config,
   }
 
   /* Quads connect one edge ring to the next one. */
-  const int ring_polys_num = config.tot_quad_rings * config.circle_segments;
-  poly_sizes.slice(rings_poly_start, ring_polys_num).fill(4);
+  const int ring_faces_num = config.tot_quad_rings * config.circle_segments;
+  face_sizes.slice(rings_face_start, ring_faces_num).fill(4);
   for (const int i : IndexRange(config.tot_quad_rings)) {
     const int this_ring_loop_start = rings_loop_start + i * config.circle_segments * 4;
     const int this_ring_vert_start = config.first_ring_verts_start + (i * config.circle_segments);
@@ -439,11 +439,11 @@ static void calculate_cone_faces(const ConeConfig &config,
     }
   }
 
-  const int bottom_poly_start = rings_poly_start + ring_polys_num;
-  const int bottom_loop_start = rings_loop_start + ring_polys_num * 4;
+  const int bottom_face_start = rings_face_start + ring_faces_num;
+  const int bottom_loop_start = rings_loop_start + ring_faces_num * 4;
 
   if (config.bottom_has_center_vert) {
-    poly_sizes.slice(bottom_poly_start, config.circle_segments).fill(3);
+    face_sizes.slice(bottom_face_start, config.circle_segments).fill(3);
 
     /* Bottom cone tip or center triangle fan in the fill. */
     for (const int i : IndexRange(config.circle_segments)) {
@@ -463,7 +463,7 @@ static void calculate_cone_faces(const ConeConfig &config,
   }
   else if (config.fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
     /* Center n-gon in the fill. */
-    poly_sizes[bottom_poly_start] = config.circle_segments;
+    face_sizes[bottom_face_start] = config.circle_segments;
     for (const int i : IndexRange(config.circle_segments)) {
       /* Go backwards to reverse surface normal. */
       corner_verts[bottom_loop_start + i] = config.last_vert - i;
@@ -711,15 +711,15 @@ Mesh *create_cylinder_or_cone_mesh(const float radius_top,
 
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
 
   calculate_cone_verts(config, positions);
   calculate_cone_edges(config, edges);
-  calculate_cone_faces(config, corner_verts, corner_edges, poly_offsets.drop_back(1));
-  offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  calculate_cone_faces(config, corner_verts, corner_edges, face_offsets.drop_back(1));
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
   if (attribute_outputs.uv_map_id) {
     calculate_cone_uvs(config, mesh, attribute_outputs.uv_map_id.get());
   }

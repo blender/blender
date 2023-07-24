@@ -29,7 +29,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*loop_normals)[3],
                                           const float (*loopuv)[2],
                                           int numLoops,
-                                          blender::OffsetIndices<int> polys,
+                                          blender::OffsetIndices<int> faces,
                                           struct ReportList *reports);
 
 #endif
@@ -59,10 +59,10 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
  */
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   blender::OffsetIndices<int> polys,
+                                   blender::OffsetIndices<int> faces,
                                    const int *corner_verts,
                                    const struct MLoopTri *looptri,
-                                   const int *looptri_polys,
+                                   const int *looptri_faces,
                                    uint looptri_len,
                                    const bool *sharp_faces,
 
@@ -71,7 +71,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
                                    const float (*vert_normals)[3],
-                                   const float (*poly_normals)[3],
+                                   const float (*face_normals)[3],
                                    const float (*loop_normals)[3],
                                    const float (*vert_orco)[3],
                                    /* result */

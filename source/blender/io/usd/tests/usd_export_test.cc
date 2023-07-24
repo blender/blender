@@ -193,7 +193,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     mesh_prim.GetNormalsAttr().Get(&normals, 0.0);
 
     EXPECT_EQ(mesh->totvert, positions.size());
-    EXPECT_EQ(mesh->totpoly, face_counts.size());
+    EXPECT_EQ(mesh->faces_num, face_counts.size());
     EXPECT_EQ(mesh->totloop, face_indices.size());
     EXPECT_EQ(mesh->totloop, normals.size());
   }

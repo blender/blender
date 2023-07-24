@@ -112,10 +112,10 @@ void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
  * but oriented to be used in #do_versions from `readfile.c`
  * the difference is how active/render/clone/stencil indices are handled here.
  *
- * normally they're being set from `pdata` which totally makes sense for meshes which are already
- * converted to #BMesh structures, but when loading older files indices shall be updated in other
- * way around, so newly added `pdata` and `ldata` would have this indices set
- * based on `fdata`  layer.
+ * normally they're being set from `pdata` which totally makes sense for meshes which are
+ * already converted to #BMesh structures, but when loading older files indices shall be updated in
+ * other way around, so newly added `pdata` and `ldata` would have this indices set based on
+ * `pdata`  layer.
  *
  * this is normally only needed when reading older files,
  * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.

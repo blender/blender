@@ -49,7 +49,7 @@ typedef enum eMeshBatchDirtyMode {
 
 /** #MeshRuntime.wrapper_type */
 typedef enum eMeshWrapperType {
-  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.corner_verts(), #Mesh.mpoly). */
+  /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.corner_verts(), #Mesh.faces()). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,
@@ -101,8 +101,8 @@ struct MeshRuntime {
   /** Needed to ensure some thread-safety during render data pre-processing. */
   std::mutex render_mutex;
 
-  /** Implicit sharing user count for #Mesh::poly_offset_indices. */
-  const ImplicitSharingInfoHandle *poly_offsets_sharing_info;
+  /** Implicit sharing user count for #Mesh::face_offset_indices. */
+  const ImplicitSharingInfoHandle *face_offsets_sharing_info;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions
@@ -121,7 +121,7 @@ struct MeshRuntime {
 
   /** Cache for derived triangulation of the mesh, accessed with #Mesh::looptris(). */
   SharedCache<Array<MLoopTri>> looptris_cache;
-  SharedCache<Array<int>> looptri_polys_cache;
+  SharedCache<Array<int>> looptri_faces_cache;
 
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;
@@ -162,14 +162,14 @@ struct MeshRuntime {
   SubsurfRuntimeData *subsurf_runtime_data = nullptr;
 
   /**
-   * Caches for lazily computed vertex and polygon normals. These are stored here rather than in
+   * Caches for lazily computed vertex and face normals. These are stored here rather than in
    * #CustomData because they can be calculated on a `const` mesh, and adding custom data layers on
    * a `const` mesh is not thread-safe.
    */
   bool vert_normals_dirty = true;
-  bool poly_normals_dirty = true;
+  bool face_normals_dirty = true;
   mutable Vector<float3> vert_normals;
-  mutable Vector<float3> poly_normals;
+  mutable Vector<float3> face_normals;
 
   /** Cache of data about edges not used by faces. See #Mesh::loose_edges(). */
   SharedCache<LooseEdgeCache> loose_edges_cache;
@@ -180,8 +180,8 @@ struct MeshRuntime {
 
   /**
    * A bit vector the size of the number of vertices, set to true for the center vertices of
-   * subdivided polygons. The values are set by the subdivision surface modifier and used by
-   * drawing code instead of polygon center face dots. Otherwise this will be empty.
+   * subdivided faces. The values are set by the subdivision surface modifier and used by
+   * drawing code instead of face center face dots. Otherwise this will be empty.
    */
   BitVector<> subsurf_face_dot_tags;
 

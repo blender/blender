@@ -71,10 +71,10 @@ void BKE_subdiv_ccg_material_flags_init_from_mesh(
  */
 
 typedef struct SubdivToCCGSettings {
-  /* Resolution at which regular ptex (created for quad polygon) are being
+  /* Resolution at which regular ptex (created for quad face) are being
    * evaluated. This defines how many vertices final mesh will have: every
    * regular ptex has resolution^2 vertices. Special (irregular, or ptex
-   * created for a corner of non-quad polygon) will have resolution of
+   * created for a corner of non-quad face) will have resolution of
    * `resolution - 1`. */
   int resolution;
   /* Denotes which extra layers to be added to CCG elements. */
@@ -127,7 +127,7 @@ typedef struct SubdivCCG {
    * resolution. It is NOT the topology refinement level. */
   int level;
   /* Resolution of grid. All grids have matching resolution, and resolution
-   * is same as ptex created for non-quad polygons. */
+   * is same as ptex created for non-quad faces. */
   int grid_size;
   /* Size of a single element of a grid (including coordinate and all the other layers).
    * Measured in bytes. */
@@ -211,7 +211,7 @@ typedef struct SubdivCCG {
 /* Create CCG representation of subdivision surface.
  *
  * NOTE: CCG stores dense vertices in a grid-like storage. There is no edges or
- * polygons information's for the high-poly surface.
+ * faces information's for the high-poly surface.
  *
  * NOTE: Subdiv is expected to be refined and ready for evaluation.
  * NOTE: CCG becomes an owner of subdiv.
@@ -317,7 +317,7 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
     const SubdivCCG *subdiv_ccg,
     const SubdivCCGCoord *coord,
     blender::Span<int> corner_verts,
-    blender::OffsetIndices<int> polys,
+    blender::OffsetIndices<int> faces,
     int *r_v1,
     int *r_v2);
 

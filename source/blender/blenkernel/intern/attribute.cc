@@ -78,7 +78,7 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
         info[ATTR_DOMAIN_CORNER].customdata = &mesh->ldata;
         info[ATTR_DOMAIN_CORNER].length = mesh->totloop;
         info[ATTR_DOMAIN_FACE].customdata = &mesh->pdata;
-        info[ATTR_DOMAIN_FACE].length = mesh->totpoly;
+        info[ATTR_DOMAIN_FACE].length = mesh->faces_num;
       }
       break;
     }

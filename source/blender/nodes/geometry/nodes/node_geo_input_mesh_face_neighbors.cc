@@ -22,21 +22,21 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_edges = mesh.corner_edges();
 
   Array<int> edge_count(mesh.totedge, 0);
   array_utils::count_indices(corner_edges, edge_count);
 
-  Array<int> poly_count(polys.size(), 0);
-  for (const int poly_index : polys.index_range()) {
-    for (const int edge : corner_edges.slice(polys[poly_index])) {
-      poly_count[poly_index] += edge_count[edge] - 1;
+  Array<int> face_count(faces.size(), 0);
+  for (const int face_index : faces.index_range()) {
+    for (const int edge : corner_edges.slice(faces[face_index])) {
+      face_count[face_index] += edge_count[edge] - 1;
     }
   }
 
   return mesh.attributes().adapt_domain<int>(
-      VArray<int>::ForContainer(std::move(poly_count)), ATTR_DOMAIN_FACE, domain);
+      VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_FACE, domain);
 }
 
 class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
@@ -73,10 +73,10 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
 
 static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   return mesh.attributes().adapt_domain<int>(
-      VArray<int>::ForFunc(polys.size(),
-                           [polys](const int i) -> float { return polys[i].size(); }),
+      VArray<int>::ForFunc(faces.size(),
+                           [faces](const int i) -> float { return faces[i].size(); }),
       ATTR_DOMAIN_FACE,
       domain);
 }

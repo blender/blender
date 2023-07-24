@@ -81,7 +81,7 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 struct DualConOutput {
   Mesh *mesh;
   blender::float3 *vert_positions;
-  int *poly_offsets;
+  int *face_offsets;
   int *corner_verts;
   int curvert, curface;
 };
@@ -97,7 +97,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, totquad, 4 * totquad);
   output->vert_positions = output->mesh->vert_positions_for_write().data();
-  output->poly_offsets = output->mesh->poly_offsets_for_write().data();
+  output->face_offsets = output->mesh->face_offsets_for_write().data();
   output->corner_verts = output->mesh->corner_verts_for_write().data();
 
   return output;
@@ -119,10 +119,10 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
   Mesh *mesh = output->mesh;
   int i;
 
-  BLI_assert(output->curface < mesh->totpoly);
+  BLI_assert(output->curface < mesh->faces_num);
   UNUSED_VARS_NDEBUG(mesh);
 
-  output->poly_offsets[output->curface] = output->curface * 4;
+  output->face_offsets[output->curface] = output->curface * 4;
   for (i = 0; i < 4; i++) {
     output->corner_verts[output->curface * 4 + i] = vert_indices[i];
   }

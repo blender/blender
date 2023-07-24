@@ -81,7 +81,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
   /* count */
   int totvert = 0;
   int totedge = 0;
-  int totpoly = 0;
+  int faces_num = 0;
   int totloop = 0;
   LISTBASE_FOREACH (const DispList *, dl, dispbase) {
     if (dl->type == DL_SEGM) {
@@ -100,7 +100,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         totvert += dl->parts * dl->nr;
         tot = (((dl->flag & DL_CYCL_U) ? 1 : 0) + (dl->nr - 1)) *
               (((dl->flag & DL_CYCL_V) ? 1 : 0) + (dl->parts - 1));
-        totpoly += tot;
+        faces_num += tot;
         totloop += tot * 4;
       }
     }
@@ -108,7 +108,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       int tot;
       totvert += dl->nr;
       tot = dl->parts;
-      totpoly += tot;
+      faces_num += tot;
       totloop += tot * 3;
     }
   }
@@ -117,10 +117,10 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
     return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, totpoly, totloop);
+  Mesh *mesh = BKE_mesh_new_nomain(totvert, totedge, faces_num, totloop);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<blender::int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -201,7 +201,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         corner_verts[dst_loop + 0] = startvert + index[0];
         corner_verts[dst_loop + 1] = startvert + index[2];
         corner_verts[dst_loop + 2] = startvert + index[1];
-        poly_offsets[dst_poly] = dst_loop;
+        face_offsets[dst_poly] = dst_loop;
         material_indices.span[dst_poly] = dl->col;
 
         for (int i = 0; i < 3; i++) {
@@ -256,7 +256,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           corner_verts[dst_loop + 1] = p3;
           corner_verts[dst_loop + 2] = p4;
           corner_verts[dst_loop + 3] = p2;
-          poly_offsets[dst_poly] = dst_loop;
+          face_offsets[dst_poly] = dst_loop;
           material_indices.span[dst_poly] = dl->col;
 
           int orco_sizeu = dl->nr - 1;
@@ -302,7 +302,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
     }
   }
 
-  if (totpoly) {
+  if (faces_num) {
     BKE_mesh_calc_edges(mesh, true, false);
   }
 
@@ -379,7 +379,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 {
   const Span<float3> positions = me->vert_positions();
   const Span<blender::int2> mesh_edges = me->edges();
-  const blender::OffsetIndices polys = me->polys();
+  const blender::OffsetIndices polys = me->faces();
   const Span<int> corner_edges = me->corner_edges();
 
   /* only to detect edge polylines */
@@ -412,16 +412,16 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
 
       ListBase polyline = {nullptr, nullptr}; /* store a list of VertLink's */
       bool closed = false;
-      int totpoly = 0;
+      int faces_num = 0;
       blender::int2 &edge_current = *(blender::int2 *)((EdgeLink *)edges.last)->edge;
       uint startVert = edge_current[0];
       uint endVert = edge_current[1];
       bool ok = true;
 
       appendPolyLineVert(&polyline, startVert);
-      totpoly++;
+      faces_num++;
       appendPolyLineVert(&polyline, endVert);
-      totpoly++;
+      faces_num++;
       BLI_freelinkN(&edges, edges.last);
 
       while (ok) { /* while connected edges are found... */
@@ -435,28 +435,28 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
           if (edge[0] == endVert) {
             endVert = edge[1];
             appendPolyLineVert(&polyline, endVert);
-            totpoly++;
+            faces_num++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
           else if (edge[1] == endVert) {
             endVert = edge[0];
             appendPolyLineVert(&polyline, endVert);
-            totpoly++;
+            faces_num++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
           else if (edge[0] == startVert) {
             startVert = edge[1];
             prependPolyLineVert(&polyline, startVert);
-            totpoly++;
+            faces_num++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
           else if (edge[1] == startVert) {
             startVert = edge[0];
             prependPolyLineVert(&polyline, startVert);
-            totpoly++;
+            faces_num++;
             BLI_freelinkN(&edges, edl);
             ok = true;
           }
@@ -468,7 +468,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
       /* Now we have a polyline, make into a curve */
       if (startVert == endVert) {
         BLI_freelinkN(&polyline, polyline.last);
-        totpoly--;
+        faces_num--;
         closed = true;
       }
 
@@ -481,18 +481,18 @@ void BKE_mesh_to_curve_nurblist(const Mesh *me, ListBase *nurblist, const int ed
         /* create new 'nurb' within the curve */
         nu = MEM_new<Nurb>("MeshNurb", blender::dna::shallow_zero_initialize());
 
-        nu->pntsu = totpoly;
+        nu->pntsu = faces_num;
         nu->pntsv = 1;
         nu->orderu = 4;
         nu->flagu = CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC : 0); /* endpoint */
         nu->resolu = 12;
 
-        nu->bp = (BPoint *)MEM_calloc_arrayN(totpoly, sizeof(BPoint), "bpoints");
+        nu->bp = (BPoint *)MEM_calloc_arrayN(faces_num, sizeof(BPoint), "bpoints");
 
         /* add points */
         vl = (VertLink *)polyline.first;
         int i;
-        for (i = 0, bp = nu->bp; i < totpoly; i++, bp++, vl = (VertLink *)vl->next) {
+        for (i = 0, bp = nu->bp; i < faces_num; i++, bp++, vl = (VertLink *)vl->next) {
           copy_v3_v3(bp->vec, positions[vl->index]);
           bp->f1 = SELECT;
           bp->radius = bp->weight = 1.0;
@@ -1027,18 +1027,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
   const bool verts_num_changed = mesh_dst->totvert != mesh_src->totvert;
   mesh_dst->totvert = mesh_src->totvert;
   mesh_dst->totedge = mesh_src->totedge;
-  mesh_dst->totpoly = mesh_src->totpoly;
+  mesh_dst->faces_num = mesh_src->faces_num;
   mesh_dst->totloop = mesh_src->totloop;
 
   /* Using #CD_MASK_MESH ensures that only data that should exist in Main meshes is moved. */
   const CustomData_MeshMasks mask = CD_MASK_MESH;
   CustomData_copy(&mesh_src->vdata, &mesh_dst->vdata, mask.vmask, mesh_src->totvert);
   CustomData_copy(&mesh_src->edata, &mesh_dst->edata, mask.emask, mesh_src->totedge);
-  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_src->totpoly);
+  CustomData_copy(&mesh_src->pdata, &mesh_dst->pdata, mask.pmask, mesh_src->faces_num);
   CustomData_copy(&mesh_src->ldata, &mesh_dst->ldata, mask.lmask, mesh_src->totloop);
-  std::swap(mesh_dst->poly_offset_indices, mesh_src->poly_offset_indices);
-  std::swap(mesh_dst->runtime->poly_offsets_sharing_info,
-            mesh_src->runtime->poly_offsets_sharing_info);
+  std::swap(mesh_dst->face_offset_indices, mesh_src->face_offset_indices);
+  std::swap(mesh_dst->runtime->face_offsets_sharing_info,
+            mesh_src->runtime->face_offsets_sharing_info);
 
   /* Make sure attribute names are moved. */
   std::swap(mesh_dst->active_color_attribute, mesh_src->active_color_attribute);

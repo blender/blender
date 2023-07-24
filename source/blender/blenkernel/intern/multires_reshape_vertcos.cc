@@ -55,7 +55,7 @@ static void multires_reshape_vertcos_foreach_vertex(const SubdivForeachContext *
   const int face_index = multires_reshape_grid_to_face_index(reshape_context,
                                                              grid_coord.grid_index);
 
-  const int num_corners = reshape_context->base_polys[face_index].size();
+  const int num_corners = reshape_context->base_faces[face_index].size();
   const int start_grid_index = reshape_context->face_start_grid_index[face_index];
   const int corner = grid_coord.grid_index - start_grid_index;
 
@@ -99,8 +99,8 @@ static bool multires_reshape_vertcos_foreach_topology_info(
     const int num_vertices,
     const int /*num_edges*/,
     const int /*num_loops*/,
-    const int /*num_polygons*/,
-    const int * /*subdiv_polygon_offset*/)
+    const int /*num_faces*/,
+    const int * /*subdiv_face_offset*/)
 {
   MultiresReshapeAssignVertcosContext *reshape_vertcos_context =
       static_cast<MultiresReshapeAssignVertcosContext *>(foreach_context->user_data);

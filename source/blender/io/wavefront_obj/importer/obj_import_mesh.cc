@@ -55,14 +55,14 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
   create_vertices(mesh);
-  create_polys_loops(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
+  create_faces_loops(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
   create_colors(mesh);
   create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
 
-  if (import_params.validate_meshes || mesh_geometry_.has_invalid_polys_) {
+  if (import_params.validate_meshes || mesh_geometry_.has_invalid_faces_) {
     bool verbose_validate = false;
 #ifdef DEBUG
     verbose_validate = true;
@@ -177,7 +177,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
   }
 }
 
-void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
+void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
 {
   MutableSpan<MDeformVert> dverts;
   const int64_t total_verts = mesh_geometry_.get_vertex_count();
@@ -185,7 +185,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
     dverts = mesh->deform_verts_for_write();
   }
 
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
@@ -193,24 +193,24 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_face", ATTR_DOMAIN_FACE);
 
-  const int64_t tot_face_elems{mesh->totpoly};
+  const int64_t tot_face_elems{mesh->faces_num};
   int tot_loop_idx = 0;
 
-  for (int poly_idx = 0; poly_idx < tot_face_elems; ++poly_idx) {
-    const PolyElem &curr_face = mesh_geometry_.face_elements_[poly_idx];
+  for (int face_idx = 0; face_idx < tot_face_elems; ++face_idx) {
+    const PolyElem &curr_face = mesh_geometry_.face_elements_[face_idx];
     if (curr_face.corner_count_ < 3) {
       /* Don't add single vertex face, or edges. */
       std::cerr << "Face with less than 3 vertices found, skipping." << std::endl;
       continue;
     }
 
-    poly_offsets[poly_idx] = tot_loop_idx;
-    sharp_faces.span[poly_idx] = !curr_face.shaded_smooth;
-    material_indices.span[poly_idx] = curr_face.material_index;
+    face_offsets[face_idx] = tot_loop_idx;
+    sharp_faces.span[face_idx] = !curr_face.shaded_smooth;
+    material_indices.span[face_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
-    if (material_indices.span[poly_idx] < 0) {
-      material_indices.span[poly_idx] = 0;
+    if (material_indices.span[face_idx] < 0) {
+      material_indices.span[face_idx] = 0;
     }
 
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {

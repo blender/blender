@@ -103,7 +103,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
   /* Copy faces. */
   Array<int> loops;
   int j = 0;
-  MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = result->face_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> mesh_corner_edges = result->corner_edges_for_write();
   int dst_corner = 0;
@@ -117,7 +117,7 @@ static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
     loops.reinitialize(len);
     plConvexHullGetFaceLoops(hull, i, loops.data());
 
-    poly_offsets[i] = j;
+    face_offsets[i] = j;
     for (const int k : IndexRange(len)) {
       mesh_corner_verts[dst_corner] = corner_verts[loops[k]];
       mesh_corner_edges[dst_corner] = corner_edges[loops[k]];

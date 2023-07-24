@@ -2231,53 +2231,53 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     Mesh *mesh,
                                     float (*r_vert_normals)[3],
-                                    float (*r_poly_normals)[3],
+                                    float (*r_face_normals)[3],
                                     float (*r_loop_normals)[3])
 {
-  if (r_vert_normals == nullptr && r_poly_normals == nullptr && r_loop_normals == nullptr) {
+  if (r_vert_normals == nullptr && r_face_normals == nullptr && r_loop_normals == nullptr) {
     return;
   }
 
   blender::Array<blender::float3> positions(mesh->vert_positions());
   BKE_keyblock_convert_to_mesh(kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   const bool loop_normals_needed = r_loop_normals != nullptr;
   const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
-  const bool poly_normals_needed = r_poly_normals != nullptr || vert_normals_needed ||
+  const bool face_normals_needed = r_face_normals != nullptr || vert_normals_needed ||
                                    loop_normals_needed;
 
   float(*vert_normals)[3] = r_vert_normals;
-  float(*poly_normals)[3] = r_poly_normals;
+  float(*face_normals)[3] = r_face_normals;
   bool free_vert_normals = false;
-  bool free_poly_normals = false;
+  bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {
     vert_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(mesh->totvert, sizeof(float[3]), __func__));
     free_vert_normals = true;
   }
-  if (poly_normals_needed && r_poly_normals == nullptr) {
-    poly_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__));
-    free_poly_normals = true;
+  if (face_normals_needed && r_face_normals == nullptr) {
+    face_normals = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(mesh->faces_num, sizeof(float[3]), __func__));
+    free_face_normals = true;
   }
 
-  if (poly_normals_needed) {
-    blender::bke::mesh::normals_calc_polys(
+  if (face_normals_needed) {
+    blender::bke::mesh::normals_calc_faces(
         positions,
-        polys,
+        faces,
         corner_verts,
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()});
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()});
   }
   if (vert_normals_needed) {
-    blender::bke::mesh::normals_calc_poly_vert(
+    blender::bke::mesh::normals_calc_face_vert(
         positions,
-        polys,
+        faces,
         corner_verts,
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
   if (loop_normals_needed) {
@@ -2290,12 +2290,12 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
     blender::bke::mesh::normals_calc_loop(
         positions,
         edges,
-        polys,
+        faces,
         corner_verts,
         corner_edges,
         {},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert},
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,
         (mesh->flag & ME_AUTOSMOOTH) != 0,
@@ -2308,8 +2308,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   if (free_vert_normals) {
     MEM_freeN(vert_normals);
   }
-  if (free_poly_normals) {
-    MEM_freeN(poly_normals);
+  if (free_face_normals) {
+    MEM_freeN(face_normals);
   }
 }
 

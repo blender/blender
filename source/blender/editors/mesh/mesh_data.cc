@@ -99,7 +99,7 @@ static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_t
       }
       else {
         data = &me->pdata;
-        tot = me->totpoly;
+        tot = me->faces_num;
       }
       break;
     default:
@@ -169,15 +169,15 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
   mesh_uv_reset_array(fuv.data(), f->len);
 }
 
-static void mesh_uv_reset_mface(const blender::IndexRange poly, float2 *mloopuv)
+static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *mloopuv)
 {
-  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(poly.size());
+  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(face.size());
 
-  for (int i = 0; i < poly.size(); i++) {
-    fuv[i] = mloopuv[poly[i]];
+  for (int i = 0; i < face.size(); i++) {
+    fuv[i] = mloopuv[face[i]];
   }
 
-  mesh_uv_reset_array(fuv.data(), poly.size());
+  mesh_uv_reset_array(fuv.data(), face.size());
 }
 
 void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
@@ -208,7 +208,7 @@ void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
     float2 *mloopuv = static_cast<float2 *>(
         CustomData_get_layer_n_for_write(&me->ldata, CD_PROP_FLOAT2, layernum, me->totloop));
 
-    const blender::OffsetIndices polys = me->polys();
+    const blender::OffsetIndices polys = me->faces();
     for (const int i : polys.index_range()) {
       mesh_uv_reset_mface(polys[i], mloopuv);
     }
@@ -344,7 +344,7 @@ static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRe
       CustomData_get_layer_named_for_write(&mesh.ldata, CD_PROP_BOOL, name.c_str(), mesh.totloop));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh.ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.totpoly, name.c_str()));
+        &mesh.ldata, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
   }
   return data;
 }
@@ -740,10 +740,10 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
           "sharp_edge", ATTR_DOMAIN_EDGE);
       const bool *sharp_faces = static_cast<const bool *>(
           CustomData_get_layer_named(&me->pdata, CD_PROP_BOOL, "sharp_face"));
-      bke::mesh::edges_sharp_from_angle_set(me->polys(),
+      bke::mesh::edges_sharp_from_angle_set(me->faces(),
                                             me->corner_verts(),
                                             me->corner_edges(),
-                                            me->poly_normals(),
+                                            me->face_normals(),
                                             sharp_faces,
                                             me->smoothresh,
                                             sharp_edges.span);
@@ -896,43 +896,44 @@ static void mesh_add_loops(Mesh *mesh, int len)
 
   mesh->totloop = totloop;
 
-  /* Keep the last poly offset up to date with the corner total (they must be the same). We have
+  /* Keep the last face offset up to date with the corner total (they must be the same). We have
    * to be careful here though, since the mesh may not be in a valid state at this point. */
-  if (mesh->poly_offset_indices) {
-    mesh->poly_offsets_for_write().last() = mesh->totloop;
+  if (mesh->face_offset_indices) {
+    mesh->face_offsets_for_write().last() = mesh->totloop;
   }
 }
 
-static void mesh_add_polys(Mesh *mesh, int len)
+static void mesh_add_faces(Mesh *mesh, int len)
 {
   using namespace blender;
   CustomData pdata;
-  int totpoly;
+  int faces_num;
 
   if (len == 0) {
     return;
   }
 
-  totpoly = mesh->totpoly + len; /* new face count */
+  faces_num = mesh->faces_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, totpoly);
-  CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
+  CustomData_copy_layout(
+      &mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
+  CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->faces_num);
 
-  implicit_sharing::resize_trivial_array(&mesh->poly_offset_indices,
-                                         &mesh->runtime->poly_offsets_sharing_info,
-                                         mesh->totpoly == 0 ? 0 : (mesh->totpoly + 1),
-                                         totpoly + 1);
+  implicit_sharing::resize_trivial_array(&mesh->face_offset_indices,
+                                         &mesh->runtime->face_offsets_sharing_info,
+                                         mesh->faces_num == 0 ? 0 : (mesh->faces_num + 1),
+                                         faces_num + 1);
   /* Set common values for convenience. */
-  mesh->poly_offset_indices[0] = 0;
-  mesh->poly_offset_indices[totpoly] = mesh->totloop;
+  mesh->face_offset_indices[0] = 0;
+  mesh->face_offset_indices[faces_num] = mesh->totloop;
 
-  CustomData_free(&mesh->pdata, mesh->totpoly);
+  CustomData_free(&mesh->pdata, mesh->faces_num);
   mesh->pdata = pdata;
 
   BKE_mesh_runtime_clear_cache(mesh);
 
-  mesh->totpoly = totpoly;
+  mesh->faces_num = faces_num;
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
@@ -972,13 +973,13 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
   mesh_add_loops(mesh, count);
 }
 
-void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
-    BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
+    BKE_report(reports, RPT_ERROR, "Cannot add faces in edit mode");
     return;
   }
-  mesh_add_polys(mesh, count);
+  mesh_add_faces(mesh, count);
 }
 
 /** \} */
@@ -1017,14 +1018,14 @@ static void mesh_remove_loops(Mesh *mesh, int len)
   mesh->totloop = totloop;
 }
 
-static void mesh_remove_polys(Mesh *mesh, int len)
+static void mesh_remove_faces(Mesh *mesh, int len)
 {
   if (len == 0) {
     return;
   }
-  const int totpoly = mesh->totpoly - len;
-  CustomData_free_elem(&mesh->pdata, totpoly, len);
-  mesh->totpoly = totpoly;
+  const int faces_num = mesh->faces_num - len;
+  CustomData_free_elem(&mesh->pdata, faces_num, len);
+  mesh->faces_num = faces_num;
 }
 
 void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
@@ -1069,18 +1070,18 @@ void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
   mesh_remove_loops(mesh, count);
 }
 
-void ED_mesh_polys_remove(Mesh *mesh, ReportList *reports, int count)
+void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 {
   if (mesh->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove polys in edit mode");
     return;
   }
-  if (count > mesh->totpoly) {
+  if (count > mesh->faces_num) {
     BKE_report(reports, RPT_ERROR, "Cannot remove more polys than the mesh contains");
     return;
   }
 
-  mesh_remove_polys(mesh, count);
+  mesh_remove_faces(mesh, count);
 }
 
 void ED_mesh_geometry_clear(Mesh *mesh)
@@ -1088,7 +1089,7 @@ void ED_mesh_geometry_clear(Mesh *mesh)
   mesh_remove_verts(mesh, mesh->totvert);
   mesh_remove_edges(mesh, mesh->totedge);
   mesh_remove_loops(mesh, mesh->totloop);
-  mesh_remove_polys(mesh, mesh->totpoly);
+  mesh_remove_faces(mesh, mesh->faces_num);
 }
 
 /** \} */
@@ -1144,7 +1145,7 @@ Mesh *ED_mesh_context(bContext *C)
 void ED_mesh_split_faces(Mesh *mesh)
 {
   using namespace blender;
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices polys = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
   const float split_angle = (mesh->flag & ME_AUTOSMOOTH) != 0 ? mesh->smoothresh : float(M_PI);
@@ -1160,15 +1161,15 @@ void ED_mesh_split_faces(Mesh *mesh)
   bke::mesh::edges_sharp_from_angle_set(polys,
                                         corner_verts,
                                         corner_edges,
-                                        mesh->poly_normals(),
+                                        mesh->face_normals(),
                                         sharp_faces,
                                         split_angle,
                                         sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
-    for (const int poly_i : range) {
-      if (sharp_faces && sharp_faces[poly_i]) {
-        for (const int edge : corner_edges.slice(polys[poly_i])) {
+    for (const int face_i : range) {
+      if (sharp_faces && sharp_faces[face_i]) {
+        for (const int edge : corner_edges.slice(polys[face_i])) {
           sharp_edges[edge] = true;
         }
       }

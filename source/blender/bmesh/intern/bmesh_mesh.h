@@ -187,7 +187,8 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 
 #define _VA_BMALLOC_TEMPLATE_FROM_ME_1(me) \
   { \
-    (CHECK_TYPE_INLINE(me, Mesh *), (me)->totvert), (me)->totedge, (me)->totloop, (me)->totpoly, \
+    (CHECK_TYPE_INLINE(me, Mesh *), (me)->totvert), (me)->totedge, (me)->totloop, \
+        (me)->faces_num, \
   }
 #define _VA_BMALLOC_TEMPLATE_FROM_ME_2(me_a, me_b) \
   { \
@@ -195,7 +196,7 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
      CHECK_TYPE_INLINE(me_b, Mesh *), \
      (me_a)->totvert + (me_b)->totvert), \
         (me_a)->totedge + (me_b)->totedge, (me_a)->totloop + (me_b)->totloop, \
-        (me_a)->totpoly + (me_b)->totpoly, \
+        (me_a)->faces_num + (me_b)->faces_num, \
   }
 #define BMALLOC_TEMPLATE_FROM_ME(...) \
   VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_ME_, __VA_ARGS__)

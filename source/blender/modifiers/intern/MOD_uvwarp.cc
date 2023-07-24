@@ -82,7 +82,7 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 }
 
 struct UVWarpData {
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
   float (*mloopuv)[2];
 
@@ -98,10 +98,10 @@ static void uv_warp_compute(void *__restrict userdata,
                             const TaskParallelTLS *__restrict /*tls*/)
 {
   const UVWarpData *data = static_cast<const UVWarpData *>(userdata);
-  const blender::IndexRange poly = data->polys[i];
-  const blender::Span<int> poly_verts = data->corner_verts.slice(poly);
+  const blender::IndexRange face = data->faces[i];
+  const blender::Span<int> face_verts = data->corner_verts.slice(face);
 
-  float(*mluv)[2] = &data->mloopuv[poly.start()];
+  float(*mluv)[2] = &data->mloopuv[face.start()];
 
   const MDeformVert *dvert = data->dvert;
   const int defgrp_index = data->defgrp_index;
@@ -111,8 +111,8 @@ static void uv_warp_compute(void *__restrict userdata,
   int l;
 
   if (dvert) {
-    for (l = 0; l < poly.size(); l++, mluv++) {
-      const int vert_i = poly_verts[l];
+    for (l = 0; l < face.size(); l++, mluv++) {
+      const int vert_i = face_verts[l];
       float uv[2];
       const float weight = data->invert_vgroup ?
                                1.0f - BKE_defvert_find_weight(&dvert[vert_i], defgrp_index) :
@@ -123,7 +123,7 @@ static void uv_warp_compute(void *__restrict userdata,
     }
   }
   else {
-    for (l = 0; l < poly.size(); l++, mluv++) {
+    for (l = 0; l < face.size(); l++, mluv++) {
       uv_warp_from_mat4_pair(*mluv, *mluv, warp_mat);
     }
   }
@@ -194,7 +194,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   float(*mloopuv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
@@ -202,7 +202,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MOD_get_vgroup(ctx->object, mesh, umd->vgroup_name, &dvert, &defgrp_index);
 
   UVWarpData data{};
-  data.polys = polys;
+  data.faces = faces;
   data.corner_verts = corner_verts;
   data.mloopuv = mloopuv;
   data.dvert = dvert;
@@ -212,8 +212,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
-  settings.use_threading = (polys.size() > 1000);
-  BLI_task_parallel_range(0, polys.size(), &data, uv_warp_compute, &settings);
+  settings.use_threading = (faces.size() > 1000);
+  BLI_task_parallel_range(0, faces.size(), &data, uv_warp_compute, &settings);
 
   mesh->runtime->is_original_bmesh = false;
 

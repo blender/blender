@@ -54,7 +54,7 @@ BLI_INLINE void vert_set_mesh(GPUIndexBufBuilder *elb,
   }
 }
 
-static void extract_points_iter_poly_bm(const MeshRenderData * /*mr*/,
+static void extract_points_iter_face_bm(const MeshRenderData * /*mr*/,
                                         const BMFace *f,
                                         const int /*f_index*/,
                                         void *_userdata)
@@ -69,12 +69,12 @@ static void extract_points_iter_poly_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_points_iter_poly_mesh(const MeshRenderData *mr,
-                                          const int poly_index,
+static void extract_points_iter_face_mesh(const MeshRenderData *mr,
+                                          const int face_index,
                                           void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  for (const int ml_index : mr->polys[poly_index]) {
+  for (const int ml_index : mr->faces[face_index]) {
     vert_set_mesh(elb, mr, mr->corner_verts[ml_index], ml_index);
   }
 }
@@ -292,8 +292,8 @@ constexpr MeshExtract create_extractor_points()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_points_init;
-  extractor.iter_poly_bm = extract_points_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_points_iter_poly_mesh;
+  extractor.iter_face_bm = extract_points_iter_face_bm;
+  extractor.iter_face_mesh = extract_points_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_points_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_points_iter_loose_edge_mesh;
   extractor.iter_loose_vert_bm = extract_points_iter_loose_vert_bm;

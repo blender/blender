@@ -107,7 +107,7 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 
   /* Make sure the data for existing faces are initialized. */
-  if (me->totpoly != ss->bm->totface) {
+  if (me->faces_num != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
   }
 
@@ -151,23 +151,23 @@ static void SCULPT_dynamic_topology_disable_ex(
     SculptUndoNodeGeometry *geometry = &unode->geometry_bmesh_enter;
     me->totvert = geometry->totvert;
     me->totloop = geometry->totloop;
-    me->totpoly = geometry->totpoly;
+    me->faces_num = geometry->faces_num;
     me->totedge = geometry->totedge;
-    me->totface = 0;
+    me->totface_legacy = 0;
     CustomData_copy(&geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, geometry->totvert);
     CustomData_copy(&geometry->edata, &me->edata, CD_MASK_MESH.emask, geometry->totedge);
     CustomData_copy(&geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, geometry->totloop);
-    CustomData_copy(&geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, geometry->totpoly);
-    blender::implicit_sharing::copy_shared_pointer(geometry->poly_offset_indices,
-                                                   geometry->poly_offsets_sharing_info,
-                                                   &me->poly_offset_indices,
-                                                   &me->runtime->poly_offsets_sharing_info);
+    CustomData_copy(&geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, geometry->faces_num);
+    blender::implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
+                                                   geometry->face_offsets_sharing_info,
+                                                   &me->face_offset_indices,
+                                                   &me->runtime->face_offsets_sharing_info);
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Reset Face Sets as they are no longer valid. */
-    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
+    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->faces_num);
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
@@ -346,7 +346,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   if (!dyntopo_supports_customdata_layers({me->edata.layers, me->edata.totlayer}, me->totedge)) {
     flag |= DYNTOPO_WARN_EDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->pdata.layers, me->pdata.totlayer}, me->totpoly)) {
+  if (!dyntopo_supports_customdata_layers({me->pdata.layers, me->pdata.totlayer}, me->faces_num)) {
     flag |= DYNTOPO_WARN_LDATA;
   }
   if (!dyntopo_supports_customdata_layers({me->ldata.layers, me->ldata.totlayer}, me->totloop)) {

@@ -251,7 +251,7 @@ static void laplacian_system_construct_end(LaplacianSystem *sys)
       MEM_callocN(sizeof(float) * verts_num, "LaplacianSystemVarea"));
 
   sys->edgehash = BLI_edgehash_new_ex(__func__,
-                                      BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(sys->faces_num));
+                                      BLI_EDGEHASH_SIZE_GUESS_FROM_FACES(sys->faces_num));
   for (a = 0, face = sys->faces; a < sys->faces_num; a++, face++) {
     laplacian_increase_edge_count(sys->edgehash, (*face)[0], (*face)[1]);
     laplacian_increase_edge_count(sys->edgehash, (*face)[1], (*face)[2]);
@@ -651,7 +651,7 @@ void heat_bone_weighting(Object *ob,
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   const blender::Span<blender::float3> vert_positions = me->vert_positions();
-  const blender::OffsetIndices polys = me->polys();
+  const blender::OffsetIndices faces = me->faces();
   const blender::Span<int> corner_verts = me->corner_verts();
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
@@ -659,7 +659,7 @@ void heat_bone_weighting(Object *ob,
   *error_str = nullptr;
 
   /* bone heat needs triangulated faces */
-  tris_num = poly_to_tri_count(me->totpoly, me->totloop);
+  tris_num = poly_to_tri_count(me->faces_num, me->totloop);
 
   /* count triangles and create mask */
   if (ob->mode & OB_MODE_WEIGHT_PAINT && (use_face_sel || use_vert_sel)) {
@@ -670,8 +670,8 @@ void heat_bone_weighting(Object *ob,
       const bool *select_vert = (const bool *)CustomData_get_layer_named(
           &me->vdata, CD_PROP_BOOL, ".select_vert");
       if (select_vert) {
-        for (const int i : polys.index_range()) {
-          for (const int vert : corner_verts.slice(polys[i])) {
+        for (const int i : faces.index_range()) {
+          for (const int vert : corner_verts.slice(faces[i])) {
             mask[vert] = select_vert[vert];
           }
         }
@@ -681,9 +681,9 @@ void heat_bone_weighting(Object *ob,
       const bool *select_poly = (const bool *)CustomData_get_layer_named(
           &me->pdata, CD_PROP_BOOL, ".select_poly");
       if (select_poly) {
-        for (const int i : polys.index_range()) {
+        for (const int i : faces.index_range()) {
           if (select_poly[i]) {
-            for (const int vert : corner_verts.slice(polys[i])) {
+            for (const int vert : corner_verts.slice(faces[i])) {
               mask[vert] = 1;
             }
           }
@@ -695,12 +695,12 @@ void heat_bone_weighting(Object *ob,
   /* create laplacian */
   sys = laplacian_system_construct_begin(me->totvert, tris_num, 1);
 
-  sys->heat.tris_num = poly_to_tri_count(me->totpoly, me->totloop);
+  sys->heat.tris_num = poly_to_tri_count(me->faces_num, me->totloop);
   mlooptri = static_cast<MLoopTri *>(
       MEM_mallocN(sizeof(*sys->heat.mlooptri) * sys->heat.tris_num, __func__));
 
   blender::bke::mesh::looptris_calc(
-      vert_positions, polys, corner_verts, {mlooptri, sys->heat.tris_num});
+      vert_positions, faces, corner_verts, {mlooptri, sys->heat.tris_num});
 
   sys->heat.mlooptri = mlooptri;
   sys->heat.corner_verts = corner_verts;
@@ -874,7 +874,7 @@ struct MDefBoundIsect {
   /* non-facing intersections are considered interior */
   bool facing;
   /* ray-cast index aligned with polygons (ray-hit-triangle isn't needed) */
-  int poly_index;
+  int face_index;
   /* distance from 'co' to the ray-cast start (clamped to avoid zero division) */
   float len;
   /* weights aligned with the polygons's loop indices */
@@ -920,11 +920,11 @@ struct MeshDeformBind {
 
   /* avoid DM function calls during intersections */
   struct {
-    blender::OffsetIndices<int> polys;
+    blender::OffsetIndices<int> faces;
     blender::Span<int> corner_verts;
     blender::Span<MLoopTri> looptris;
-    blender::Span<int> looptri_polys;
-    blender::Span<blender::float3> poly_normals;
+    blender::Span<int> looptri_faces;
+    blender::Span<blender::float3> face_normals;
   } cagemesh_cache;
 };
 
@@ -953,8 +953,8 @@ static void harmonic_ray_callback(void *userdata,
   MeshRayCallbackData *data = static_cast<MeshRayCallbackData *>(userdata);
   MeshDeformBind *mdb = data->mdb;
   const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
-  const blender::Span<int> looptri_polys = mdb->cagemesh_cache.looptri_polys;
-  const blender::Span<blender::float3> poly_normals = mdb->cagemesh_cache.poly_normals;
+  const blender::Span<int> looptri_faces = mdb->cagemesh_cache.looptri_faces;
+  const blender::Span<blender::float3> face_normals = mdb->cagemesh_cache.face_normals;
   MeshDeformIsect *isec = data->isec;
   float no[3], co[3], dist;
   float *face[3];
@@ -972,8 +972,8 @@ static void harmonic_ray_callback(void *userdata,
     return;
   }
 
-  if (!poly_normals.is_empty()) {
-    copy_v3_v3(no, poly_normals[looptri_polys[index]]);
+  if (!face_normals.is_empty()) {
+    copy_v3_v3(no, face_normals[looptri_faces[index]]);
   }
   else {
     normal_tri_v3(no, UNPACK3(face));
@@ -1029,35 +1029,35 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
                               BVH_RAYCAST_WATERTIGHT) != -1)
   {
     const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
-    const int poly_i = mdb->cagemesh_cache.looptri_polys[hit.index];
-    const blender::IndexRange poly = mdb->cagemesh_cache.polys[poly_i];
+    const int face_i = mdb->cagemesh_cache.looptri_faces[hit.index];
+    const blender::IndexRange face = mdb->cagemesh_cache.faces[face_i];
     const float(*cagecos)[3] = mdb->cagecos;
     const float len = isect_mdef.lambda;
     MDefBoundIsect *isect;
 
-    blender::Array<blender::float3, 64> mp_cagecos(poly.size());
+    blender::Array<blender::float3, 64> mp_cagecos(face.size());
 
     /* create MDefBoundIsect, and extra for 'poly_weights[]' */
     isect = static_cast<MDefBoundIsect *>(
-        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * poly.size())));
+        BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * face.size())));
 
     /* compute intersection coordinate */
     madd_v3_v3v3fl(isect->co, co1, isect_mdef.vec, len);
 
     isect->facing = isect_mdef.isect;
 
-    isect->poly_index = poly_i;
+    isect->face_index = face_i;
 
     isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
 
     /* compute mean value coordinates for interpolation */
-    for (int i = 0; i < poly.size(); i++) {
-      copy_v3_v3(mp_cagecos[i], cagecos[corner_verts[poly[i]]]);
+    for (int i = 0; i < face.size(); i++) {
+      copy_v3_v3(mp_cagecos[i], cagecos[corner_verts[face[i]]]);
     }
 
     interp_weights_poly_v3(isect->poly_weights,
                            reinterpret_cast<float(*)[3]>(mp_cagecos.data()),
-                           poly.size(),
+                           face.size(),
                            isect->co);
 
     return isect;
@@ -1222,11 +1222,11 @@ static float meshdeform_boundary_phi(const MeshDeformBind *mdb,
                                      const MDefBoundIsect *isect,
                                      int cagevert)
 {
-  const blender::IndexRange poly = mdb->cagemesh_cache.polys[isect->poly_index];
+  const blender::IndexRange face = mdb->cagemesh_cache.faces[isect->face_index];
   const blender::Span<int> corner_verts = mdb->cagemesh_cache.corner_verts;
 
-  for (int i = 0; i < poly.size(); i++) {
-    if (corner_verts[poly[i]] == cagevert) {
+  for (int i = 0; i < face.size(); i++) {
+    if (corner_verts[face[i]] == cagevert) {
       return isect->poly_weights[i];
     }
   }
@@ -1622,11 +1622,11 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   /* initialize data from 'cagedm' for reuse */
   {
     Mesh *me = mdb->cagemesh;
-    mdb->cagemesh_cache.polys = me->polys();
+    mdb->cagemesh_cache.faces = me->faces();
     mdb->cagemesh_cache.corner_verts = me->corner_verts();
     mdb->cagemesh_cache.looptris = me->looptris();
-    mdb->cagemesh_cache.looptri_polys = me->looptri_polys();
-    mdb->cagemesh_cache.poly_normals = me->poly_normals();
+    mdb->cagemesh_cache.looptri_faces = me->looptri_faces();
+    mdb->cagemesh_cache.face_normals = me->face_normals();
   }
 
   /* make bounding box equal size in all directions, add padding, and compute

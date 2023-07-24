@@ -275,11 +275,11 @@ static void mesh_merge_transform(Mesh *result,
                                  uint cap_verts_index,
                                  uint cap_edges_index,
                                  int cap_loops_index,
-                                 int cap_polys_index,
+                                 int cap_faces_index,
                                  int cap_nverts,
                                  int cap_nedges,
                                  int cap_nloops,
-                                 int cap_npolys,
+                                 int cap_nfaces,
                                  int *remap,
                                  int remap_len,
                                  const bool recalc_normals_later)
@@ -288,17 +288,17 @@ static void mesh_merge_transform(Mesh *result,
   int *index_orig;
   int i;
   int2 *edge;
-  const blender::Span<int> cap_poly_offsets = cap_mesh->poly_offsets();
+  const blender::Span<int> cap_face_offsets = cap_mesh->face_offsets();
   blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
   blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
   CustomData_copy_data(&cap_mesh->vdata, &result->vdata, 0, cap_verts_index, cap_nverts);
   CustomData_copy_data(&cap_mesh->edata, &result->edata, 0, cap_edges_index, cap_nedges);
   CustomData_copy_data(&cap_mesh->ldata, &result->ldata, 0, cap_loops_index, cap_nloops);
-  CustomData_copy_data(&cap_mesh->pdata, &result->pdata, 0, cap_polys_index, cap_npolys);
+  CustomData_copy_data(&cap_mesh->pdata, &result->pdata, 0, cap_faces_index, cap_nfaces);
 
   for (i = 0; i < cap_nverts; i++) {
     mul_m4_v3(cap_offset, result_positions[cap_verts_index + i]);
@@ -325,9 +325,9 @@ static void mesh_merge_transform(Mesh *result,
     (*edge) += cap_verts_index;
   }
 
-  /* Adjust cap poly loop-start indices. */
-  for (i = 0; i < cap_npolys; i++) {
-    result_poly_offsets[cap_polys_index + i] = cap_poly_offsets[i] + cap_loops_index;
+  /* Adjust cap face loop-start indices. */
+  for (i = 0; i < cap_nfaces; i++) {
+    result_face_offsets[cap_faces_index + i] = cap_face_offsets[i] + cap_loops_index;
   }
 
   /* adjust cap loop vertex and edge indices */
@@ -344,7 +344,7 @@ static void mesh_merge_transform(Mesh *result,
     bke::SpanAttributeWriter<int> result_material_indices =
         result_attributes.lookup_or_add_for_write_span<int>("material_index", ATTR_DOMAIN_FACE);
     cap_material_indices.materialize(
-        result_material_indices.span.slice(cap_polys_index, cap_npolys));
+        result_material_indices.span.slice(cap_faces_index, cap_nfaces));
     result_material_indices.finish();
   }
 
@@ -362,9 +362,9 @@ static void mesh_merge_transform(Mesh *result,
   }
 
   index_orig = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->totpoly));
+      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->faces_num));
   if (index_orig) {
-    copy_vn_i(index_orig + cap_polys_index, cap_npolys, ORIGINDEX_NONE);
+    copy_vn_i(index_orig + cap_faces_index, cap_nfaces, ORIGINDEX_NONE);
   }
 
   index_orig = static_cast<int *>(
@@ -399,10 +399,10 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   const bool use_recalc_normals = BKE_mesh_vert_normals_are_dirty(mesh) || use_merge;
   const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob != nullptr);
 
-  int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
-  int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_npolys = 0, end_cap_nloops = 0;
-  int result_nverts = 0, result_nedges = 0, result_npolys = 0, result_nloops = 0;
-  int chunk_nverts, chunk_nedges, chunk_nloops, chunk_npolys;
+  int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_nfaces = 0, start_cap_nloops = 0;
+  int end_cap_nverts = 0, end_cap_nedges = 0, end_cap_nfaces = 0, end_cap_nloops = 0;
+  int result_nverts = 0, result_nedges = 0, result_nfaces = 0, result_nloops = 0;
+  int chunk_nverts, chunk_nedges, chunk_nloops, chunk_nfaces;
   int first_chunk_start, first_chunk_nverts, last_chunk_start, last_chunk_nverts;
 
   Mesh *result, *start_cap_mesh = nullptr, *end_cap_mesh = nullptr;
@@ -415,7 +415,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   chunk_nverts = mesh->totvert;
   chunk_nedges = mesh->totedge;
   chunk_nloops = mesh->totloop;
-  chunk_npolys = mesh->totpoly;
+  chunk_nfaces = mesh->faces_num;
 
   count = amd->count;
 
@@ -431,7 +431,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       start_cap_nverts = start_cap_mesh->totvert;
       start_cap_nedges = start_cap_mesh->totedge;
       start_cap_nloops = start_cap_mesh->totloop;
-      start_cap_npolys = start_cap_mesh->totpoly;
+      start_cap_nfaces = start_cap_mesh->faces_num;
     }
   }
   Object *end_cap_ob = amd->end_cap;
@@ -446,7 +446,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       end_cap_nverts = end_cap_mesh->totvert;
       end_cap_nedges = end_cap_mesh->totedge;
       end_cap_nloops = end_cap_mesh->totloop;
-      end_cap_npolys = end_cap_mesh->totpoly;
+      end_cap_nfaces = end_cap_mesh->faces_num;
     }
   }
 
@@ -548,18 +548,18 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     count = 1;
   }
 
-  /* The number of verts, edges, loops, polys, before eventually merging doubles */
+  /* The number of verts, edges, loops, faces, before eventually merging doubles */
   result_nverts = chunk_nverts * count + start_cap_nverts + end_cap_nverts;
   result_nedges = chunk_nedges * count + start_cap_nedges + end_cap_nedges;
   result_nloops = chunk_nloops * count + start_cap_nloops + end_cap_nloops;
-  result_npolys = chunk_npolys * count + start_cap_npolys + end_cap_npolys;
+  result_nfaces = chunk_nfaces * count + start_cap_nfaces + end_cap_nfaces;
 
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
-      mesh, result_nverts, result_nedges, result_npolys, result_nloops);
+      mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
   blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
   blender::MutableSpan<int2> result_edges = result->edges_for_write();
-  blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> result_face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> result_corner_edges = result->corner_edges_for_write();
 
@@ -573,9 +573,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, chunk_nverts);
   CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, chunk_nedges);
   CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
-  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
+  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_nfaces);
 
-  result_poly_offsets.take_front(mesh->totpoly).copy_from(mesh->poly_offsets().drop_back(1));
+  result_face_offsets.take_front(mesh->faces_num).copy_from(mesh->face_offsets().drop_back(1));
 
   /* Remember first chunk, in case of cap merge */
   first_chunk_start = 0;
@@ -595,7 +595,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     CustomData_copy_data(&mesh->vdata, &result->vdata, 0, c * chunk_nverts, chunk_nverts);
     CustomData_copy_data(&mesh->edata, &result->edata, 0, c * chunk_nedges, chunk_nedges);
     CustomData_copy_data(&mesh->ldata, &result->ldata, 0, c * chunk_nloops, chunk_nloops);
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, c * chunk_npolys, chunk_npolys);
+    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, c * chunk_nfaces, chunk_nfaces);
 
     const int vert_offset = c * chunk_nverts;
 
@@ -621,8 +621,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
       (*edge) += c * chunk_nverts;
     }
 
-    for (i = 0; i < chunk_npolys; i++) {
-      result_poly_offsets[c * chunk_npolys + i] = result_poly_offsets[i] + c * chunk_nloops;
+    for (i = 0; i < chunk_nfaces; i++) {
+      result_face_offsets[c * chunk_nfaces + i] = result_face_offsets[i] + c * chunk_nloops;
     }
 
     /* adjust loop vertex and edge indices */
@@ -751,11 +751,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                          result_nverts - start_cap_nverts - end_cap_nverts,
                          result_nedges - start_cap_nedges - end_cap_nedges,
                          result_nloops - start_cap_nloops - end_cap_nloops,
-                         result_npolys - start_cap_npolys - end_cap_npolys,
+                         result_nfaces - start_cap_nfaces - end_cap_nfaces,
                          start_cap_nverts,
                          start_cap_nedges,
                          start_cap_nloops,
-                         start_cap_npolys,
+                         start_cap_nfaces,
                          vgroup_start_cap_remap,
                          vgroup_start_cap_remap_len,
                          use_recalc_normals);
@@ -781,11 +781,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                          result_nverts - end_cap_nverts,
                          result_nedges - end_cap_nedges,
                          result_nloops - end_cap_nloops,
-                         result_npolys - end_cap_npolys,
+                         result_nfaces - end_cap_nfaces,
                          end_cap_nverts,
                          end_cap_nedges,
                          end_cap_nloops,
-                         end_cap_npolys,
+                         end_cap_nfaces,
                          vgroup_end_cap_remap,
                          vgroup_end_cap_remap_len,
                          use_recalc_normals);

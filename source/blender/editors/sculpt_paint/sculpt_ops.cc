@@ -294,7 +294,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
      * initialized, which is used is some operators that modify the mesh topology to perform
-     * certain actions in the new polys. After these operations are finished, all polys should have
+     * certain actions in the new faces. After these operations are finished, all faces should have
      * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
      * visibility correctly. */
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
@@ -370,7 +370,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
     const char *message_unsupported = nullptr;
-    if (me->totloop != me->totpoly * 3) {
+    if (me->totloop != me->faces_num * 3) {
       message_unsupported = TIP_("non-triangle face");
     }
     else if (mmd != nullptr) {
@@ -1324,7 +1324,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     /* As an optimization, free the hide attribute when making all geometry visible. This allows
      * reduced memory usage without manually clearing it later, and allows sculpt operations to
      * avoid checking element's hide status. */
-    CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+    CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->faces_num);
     ss->hide_poly = nullptr;
   }
   else {

@@ -96,15 +96,15 @@ struct WeldMesh {
   /* From the actual index of the element in the mesh, it indicates what is the index of the Weld
    * element above. */
   Array<int> loop_map;
-  Array<int> poly_map;
+  Array<int> face_map;
 
   int vert_kill_len;
   int edge_kill_len;
   int loop_kill_len;
-  int poly_kill_len; /* Including the new polygons. */
+  int face_kill_len; /* Including the new polygons. */
 
-  /* Size of the affected polygon with more sides. */
-  int max_poly_len;
+  /* Size of the affected face with more sides. */
+  int max_face_len;
 };
 
 struct WeldLoopOfPolyIter {
@@ -156,14 +156,14 @@ static void weld_assert_edge_kill_len(Span<int> edge_dest_map, const int expecte
 static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
                                                const Span<int> corner_verts,
                                                const Span<int> corner_edges,
-                                               const OffsetIndices<int> polys,
-                                               const int expected_poly_kill_len,
+                                               const OffsetIndices<int> faces,
+                                               const int expected_faces_kill_len,
                                                const int expected_loop_kill_len)
 {
   int poly_kills = 0;
   int loop_kills = corner_verts.size();
-  for (const int i : polys.index_range()) {
-    int poly_ctx = weld_mesh->poly_map[i];
+  for (const int i : faces.index_range()) {
+    int poly_ctx = weld_mesh->face_map[i];
     if (poly_ctx != OUT_OF_CONTEXT) {
       const WeldPoly *wp = &weld_mesh->wpoly[poly_ctx];
       WeldLoopOfPolyIter iter;
@@ -207,7 +207,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
       }
     }
     else {
-      loop_kills -= polys[i].size();
+      loop_kills -= faces[i].size();
     }
   }
 
@@ -240,7 +240,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
     }
   }
 
-  BLI_assert(poly_kills == expected_poly_kill_len);
+  BLI_assert(poly_kills == expected_faces_kill_len);
   BLI_assert(loop_kills == expected_loop_kill_len);
 }
 
@@ -610,9 +610,9 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
 /**
  * Alloc Weld Polygons and Weld Loops.
  *
- * \return r_weld_mesh: Loop and poly members will be allocated here.
+ * \return r_weld_mesh: Loop and face members will be allocated here.
  */
-static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> polys,
+static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> faces,
                                      const Span<int> corner_verts,
                                      const Span<int> corner_edges,
                                      Span<int> vert_dest_map,
@@ -621,7 +621,7 @@ static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> polys,
 {
   /* Loop/Poly Context. */
   Array<int> loop_map(corner_verts.size());
-  Array<int> poly_map(polys.size());
+  Array<int> face_map(faces.size());
   int wloop_len = 0;
   int wpoly_len = 0;
   int max_ctx_poly_len = 4;
@@ -630,16 +630,16 @@ static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> polys,
   wloop.reserve(corner_verts.size());
 
   Vector<WeldPoly> wpoly;
-  wpoly.reserve(polys.size());
+  wpoly.reserve(faces.size());
 
   int maybe_new_poly = 0;
 
-  for (const int i : polys.index_range()) {
-    const int loopstart = polys[i].start();
-    const int totloop = polys[i].size();
+  for (const int i : faces.index_range()) {
+    const int loopstart = faces[i].start();
+    const int totloop = faces[i].size();
 
     int prev_wloop_len = wloop_len;
-    for (const int i_loop : polys[i]) {
+    for (const int i_loop : faces[i]) {
       int v = corner_verts[i_loop];
       int e = corner_edges[i_loop];
       int v_dest = vert_dest_map[v];
@@ -672,18 +672,18 @@ static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> polys,
       wp.loop_len = totloop;
       wpoly.append(wp);
 
-      poly_map[i] = wpoly_len++;
+      face_map[i] = wpoly_len++;
       if (totloop > 5 && loops_len > 1) {
         /* We could be smarter here and actually count how many new polygons will be created.
          * But counting this can be inefficient as it depends on the number of non-consecutive
-         * self polygon merges. For now just estimate a maximum value. */
+         * self face merges. For now just estimate a maximum value. */
         int max_new = std::min((totloop / 3), loops_len) - 1;
         maybe_new_poly += max_new;
         CLAMP_MIN(max_ctx_poly_len, totloop);
       }
     }
     else {
-      poly_map[i] = OUT_OF_CONTEXT;
+      face_map[i] = OUT_OF_CONTEXT;
     }
   }
 
@@ -693,8 +693,8 @@ static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> polys,
   r_weld_mesh->wpoly = std::move(wpoly);
   r_weld_mesh->wpoly_new_len = 0;
   r_weld_mesh->loop_map = std::move(loop_map);
-  r_weld_mesh->poly_map = std::move(poly_map);
-  r_weld_mesh->max_poly_len = max_ctx_poly_len;
+  r_weld_mesh->face_map = std::move(face_map);
+  r_weld_mesh->max_face_len = max_ctx_poly_len;
 }
 
 static void weld_poly_split_recursive(Span<int> vert_dest_map,
@@ -850,20 +850,20 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
  * \param r_vlinks: An uninitialized buffer used to compute groups of WeldPolys attached to each
  *                  weld target vertex. It doesn't need to be passed as a parameter but this is
  *                  done to reduce allocations.
- * \return r_weld_mesh: Loop and poly members will be configured here.
+ * \return r_weld_mesh: Loop and face members will be configured here.
  */
 static void weld_poly_loop_ctx_setup_collapsed_and_split(
 #ifdef USE_WELD_DEBUG
     const Span<int> corner_verts,
     const Span<int> corner_edges,
-    const OffsetIndices<int> polys,
+    const OffsetIndices<int> faces,
 #endif
     Span<int> vert_dest_map,
     const int remain_edge_ctx_len,
     WeldMesh *r_weld_mesh)
 {
   if (remain_edge_ctx_len == 0) {
-    r_weld_mesh->poly_kill_len = r_weld_mesh->wpoly.size();
+    r_weld_mesh->face_kill_len = r_weld_mesh->wpoly.size();
     r_weld_mesh->loop_kill_len = r_weld_mesh->wloop.size();
 
     for (WeldPoly &wp : r_weld_mesh->wpoly) {
@@ -876,7 +876,7 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
   WeldPoly *wpoly = r_weld_mesh->wpoly.data();
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
 
-  int poly_kill_len = 0;
+  int face_kill_len = 0;
   int loop_kill_len = 0;
 
   /* Setup Poly/Loop. */
@@ -897,7 +897,7 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
         wl->flag = ELEM_COLLAPSED;
         if (poly_loop_len == 3) {
           wp.flag = ELEM_COLLAPSED;
-          poly_kill_len++;
+          face_kill_len++;
           loop_kill_len += 3;
           poly_loop_len = 0;
           break;
@@ -927,20 +927,20 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
                                 ctx_verts_len,
                                 &wp,
                                 r_weld_mesh,
-                                &poly_kill_len,
+                                &face_kill_len,
                                 &loop_kill_len);
     }
   }
 
-  r_weld_mesh->poly_kill_len = poly_kill_len;
+  r_weld_mesh->face_kill_len = face_kill_len;
   r_weld_mesh->loop_kill_len = loop_kill_len;
 
 #ifdef USE_WELD_DEBUG
   weld_assert_poly_and_loop_kill_len(r_weld_mesh,
                                      corner_verts,
                                      corner_edges,
-                                     polys,
-                                     r_weld_mesh->poly_kill_len,
+                                     faces,
+                                     r_weld_mesh->face_kill_len,
                                      r_weld_mesh->loop_kill_len);
 #endif
 }
@@ -987,37 +987,37 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
   };
 
   /* Add +1 to allow calculation of the length of the last group. */
-  Array<int> linked_polys_offset(corner_index_max + 1, 0);
+  Array<int> linked_faces_offset(corner_index_max + 1, 0);
 
   for (const int elem_index : corners) {
-    linked_polys_offset[elem_index]++;
+    linked_faces_offset[elem_index]++;
   }
 
-  int link_polys_buffer_len = 0;
+  int link_faces_buffer_len = 0;
   for (const int elem_index : IndexRange(corner_index_max)) {
-    link_polys_buffer_len += linked_polys_offset[elem_index];
-    linked_polys_offset[elem_index] = link_polys_buffer_len;
+    link_faces_buffer_len += linked_faces_offset[elem_index];
+    linked_faces_offset[elem_index] = link_faces_buffer_len;
   }
-  linked_polys_offset[corner_index_max] = link_polys_buffer_len;
+  linked_faces_offset[corner_index_max] = link_faces_buffer_len;
 
-  if (link_polys_buffer_len == 0) {
+  if (link_faces_buffer_len == 0) {
     return 0;
   }
 
-  Array<int> linked_polys_buffer(link_polys_buffer_len);
+  Array<int> linked_faces_buffer(link_faces_buffer_len);
 
   /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int poly_index = poly_num; poly_index--;) {
-    if (poly_corners_offsets[poly_index].size() == 0) {
+  for (int face_index = poly_num; face_index--;) {
+    if (poly_corners_offsets[face_index].size() == 0) {
       continue;
     }
 
-    for (int corner_index = poly_corners_offsets[poly_index].last();
-         corner_index >= poly_corners_offsets[poly_index].first();
+    for (int corner_index = poly_corners_offsets[face_index].last();
+         corner_index >= poly_corners_offsets[face_index].first();
          corner_index--)
     {
       const int elem_index = corners[corner_index];
-      linked_polys_buffer[--linked_polys_offset[elem_index]] = poly_index;
+      linked_faces_buffer[--linked_faces_offset[elem_index]] = face_index;
     }
   }
 
@@ -1031,56 +1031,56 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 
   int doubles_buffer_num = 0;
   int doubles_num = 0;
-  for (const int poly_index : IndexRange(poly_num)) {
-    if (is_double[poly_index]) {
+  for (const int face_index : IndexRange(poly_num)) {
+    if (is_double[face_index]) {
       continue;
     }
 
-    int corner_num = poly_corners_offsets[poly_index].size();
+    int corner_num = poly_corners_offsets[face_index].size();
     if (corner_num == 0) {
       continue;
     }
 
     /* Set or overwrite the first slot of the possible group. */
-    doubles_buffer[doubles_buffer_num] = poly_index;
+    doubles_buffer[doubles_buffer_num] = face_index;
 
-    int corner_first = poly_corners_offsets[poly_index].first();
+    int corner_first = poly_corners_offsets[face_index].first();
     int elem_index = corners[corner_first];
-    int link_offs = linked_polys_offset[elem_index];
-    int polys_a_num = linked_polys_offset[elem_index + 1] - link_offs;
-    if (polys_a_num == 1) {
-      BLI_assert(linked_polys_buffer[linked_polys_offset[elem_index]] == poly_index);
+    int link_offs = linked_faces_offset[elem_index];
+    int faces_a_num = linked_faces_offset[elem_index + 1] - link_offs;
+    if (faces_a_num == 1) {
+      BLI_assert(linked_faces_buffer[linked_faces_offset[elem_index]] == face_index);
       continue;
     }
 
-    const int *polys_a = &linked_polys_buffer[link_offs];
+    const int *faces_a = &linked_faces_buffer[link_offs];
     int poly_to_test;
 
     /* Skip polygons with lower index as these have already been checked. */
     do {
-      poly_to_test = *polys_a;
-      polys_a++;
-      polys_a_num--;
-    } while (poly_to_test != poly_index);
+      poly_to_test = *faces_a;
+      faces_a++;
+      faces_a_num--;
+    } while (poly_to_test != face_index);
 
     int *isect_result = doubles_buffer.data() + doubles_buffer_num + 1;
 
-    /* `polys_a` are the polygons connected to the first corner. So skip the first corner. */
+    /* `faces_a` are the polygons connected to the first corner. So skip the first corner. */
     for (int corner_index : IndexRange(corner_first + 1, corner_num - 1)) {
       elem_index = corners[corner_index];
-      link_offs = linked_polys_offset[elem_index];
-      int polys_b_num = linked_polys_offset[elem_index + 1] - link_offs;
-      const int *polys_b = &linked_polys_buffer[link_offs];
+      link_offs = linked_faces_offset[elem_index];
+      int faces_b_num = linked_faces_offset[elem_index + 1] - link_offs;
+      const int *faces_b = &linked_faces_buffer[link_offs];
 
       /* Skip polygons with lower index as these have already been checked. */
       do {
-        poly_to_test = *polys_b;
-        polys_b++;
-        polys_b_num--;
-      } while (poly_to_test != poly_index);
+        poly_to_test = *faces_b;
+        faces_b++;
+        faces_b_num--;
+      } while (poly_to_test != face_index);
 
-      doubles_num = intersect(Span<int>{polys_a, polys_a_num},
-                              Span<int>{polys_b, polys_b_num},
+      doubles_num = intersect(Span<int>{faces_a, faces_a_num},
+                              Span<int>{faces_b, faces_b_num},
                               is_double,
                               isect_result);
 
@@ -1089,20 +1089,20 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
       }
 
       /* Intersect the last result. */
-      polys_a = isect_result;
-      polys_a_num = doubles_num;
+      faces_a = isect_result;
+      faces_a_num = doubles_num;
     }
 
     if (doubles_num) {
       for (const int poly_double : Span<int>{isect_result, doubles_num}) {
-        BLI_assert(poly_double > poly_index);
+        BLI_assert(poly_double > face_index);
         is_double[poly_double].set();
       }
       doubles_buffer_num += doubles_num;
       doubles_offsets.append(++doubles_buffer_num);
 
       if ((doubles_buffer_num + 1) == poly_num) {
-        /* The last slot is the remaining unduplicated polygon.
+        /* The last slot is the remaining unduplicated face.
          * Avoid checking intersection as there are no more slots left. */
         break;
       }
@@ -1117,27 +1117,27 @@ static int poly_find_doubles(const OffsetIndices<int> poly_corners_offsets,
 static void weld_poly_find_doubles(const Span<int> corner_verts,
                                    const Span<int> corner_edges,
 #ifdef USE_WELD_DEBUG
-                                   const OffsetIndices<int> polys,
+                                   const OffsetIndices<int> faces,
 #endif
                                    const int medge_len,
                                    WeldMesh *r_weld_mesh)
 {
-  if (r_weld_mesh->poly_kill_len == r_weld_mesh->wpoly.size()) {
+  if (r_weld_mesh->face_kill_len == r_weld_mesh->wpoly.size()) {
     return;
   }
 
   WeldPoly *wpoly = r_weld_mesh->wpoly.data();
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
   Span<int> loop_map = r_weld_mesh->loop_map;
-  int poly_index = 0;
+  int face_index = 0;
 
-  const int poly_len = r_weld_mesh->wpoly.size();
-  Array<int> poly_offs(poly_len + 1);
+  const int face_len = r_weld_mesh->wpoly.size();
+  Array<int> poly_offs(face_len + 1);
   Vector<int> new_corner_edges;
   new_corner_edges.reserve(corner_verts.size() - r_weld_mesh->loop_kill_len);
 
   for (const WeldPoly &wp : r_weld_mesh->wpoly) {
-    poly_offs[poly_index++] = new_corner_edges.size();
+    poly_offs[face_index++] = new_corner_edges.size();
 
     WeldLoopOfPolyIter iter;
     if (!weld_iter_loop_of_poly_begin(
@@ -1154,12 +1154,12 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
     }
   }
 
-  poly_offs[poly_len] = new_corner_edges.size();
+  poly_offs[face_len] = new_corner_edges.size();
 
   Vector<int> doubles_offsets;
   Array<int> doubles_buffer;
   const int doubles_num = poly_find_doubles(OffsetIndices<int>(poly_offs),
-                                            poly_len,
+                                            face_len,
                                             new_corner_edges,
                                             medge_len,
                                             doubles_offsets,
@@ -1182,7 +1182,7 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
       }
     }
 
-    r_weld_mesh->poly_kill_len += doubles_num;
+    r_weld_mesh->face_kill_len += doubles_num;
     r_weld_mesh->loop_kill_len += loop_kill_num;
   }
 
@@ -1190,8 +1190,8 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
   weld_assert_poly_and_loop_kill_len(r_weld_mesh,
                                      corner_verts,
                                      corner_edges,
-                                     polys,
-                                     r_weld_mesh->poly_kill_len,
+                                     faces,
+                                     r_weld_mesh->face_kill_len,
                                      r_weld_mesh->loop_kill_len);
 #endif
 }
@@ -1209,7 +1209,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
                                      WeldMesh *r_weld_mesh)
 {
   const Span<int2> edges = mesh.edges();
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
@@ -1231,13 +1231,13 @@ static void weld_mesh_context_create(const Mesh &mesh,
 #endif
 
   weld_poly_loop_ctx_alloc(
-      polys, corner_verts, corner_edges, vert_dest_map, r_weld_mesh->edge_dest_map, r_weld_mesh);
+      faces, corner_verts, corner_edges, vert_dest_map, r_weld_mesh->edge_dest_map, r_weld_mesh);
 
   weld_poly_loop_ctx_setup_collapsed_and_split(
 #ifdef USE_WELD_DEBUG
       corner_verts,
       corner_edges,
-      polys,
+      faces,
 #endif
       vert_dest_map,
       wedge.size() - edge_double_kill_len,
@@ -1246,7 +1246,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
   weld_poly_find_doubles(corner_verts,
                          corner_edges,
 #ifdef USE_WELD_DEBUG
-                         polys,
+                         faces,
 #endif
                          edges.size(),
                          r_weld_mesh);
@@ -1531,7 +1531,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   SCOPED_TIMER(__func__);
 #endif
 
-  const OffsetIndices src_polys = mesh.polys();
+  const OffsetIndices src_faces = mesh.faces();
   const Span<int> src_corner_verts = mesh.corner_verts();
   const Span<int> src_corner_edges = mesh.corner_edges();
   const int totvert = mesh.totvert;
@@ -1543,12 +1543,12 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int result_nverts = totvert - weld_mesh.vert_kill_len;
   const int result_nedges = totedge - weld_mesh.edge_kill_len;
   const int result_nloops = src_corner_verts.size() - weld_mesh.loop_kill_len;
-  const int result_npolys = src_polys.size() - weld_mesh.poly_kill_len + weld_mesh.wpoly_new_len;
+  const int result_nfaces = src_faces.size() - weld_mesh.face_kill_len + weld_mesh.wpoly_new_len;
 
   Mesh *result = BKE_mesh_new_nomain_from_template(
-      &mesh, result_nverts, result_nedges, result_npolys, result_nloops);
+      &mesh, result_nverts, result_nedges, result_nfaces, result_nloops);
   MutableSpan<int2> dst_edges = result->edges_for_write();
-  MutableSpan<int> dst_poly_offsets = result->poly_offsets_for_write();
+  MutableSpan<int> dst_face_offsets = result->face_offsets_for_write();
   MutableSpan<int> dst_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = result->corner_edges_for_write();
 
@@ -1584,18 +1584,18 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     BLI_assert(IN_RANGE_INCL(edge[1], 0, result_nverts - 1));
   }
 
-  /* Polys/Loops. */
+  /* Faces/Loops. */
 
   int r_i = 0;
   int loop_cur = 0;
-  Array<int, 64> group_buffer(weld_mesh.max_poly_len);
-  for (const int i : src_polys.index_range()) {
+  Array<int, 64> group_buffer(weld_mesh.max_face_len);
+  for (const int i : src_faces.index_range()) {
     const int loop_start = loop_cur;
-    const int poly_ctx = weld_mesh.poly_map[i];
+    const int poly_ctx = weld_mesh.face_map[i];
     if (poly_ctx == OUT_OF_CONTEXT) {
-      int mp_loop_len = src_polys[i].size();
+      int mp_loop_len = src_faces[i].size();
       CustomData_copy_data(
-          &mesh.ldata, &result->ldata, src_polys[i].start(), loop_cur, src_polys[i].size());
+          &mesh.ldata, &result->ldata, src_faces[i].start(), loop_cur, src_faces[i].size());
       for (; mp_loop_len--; loop_cur++) {
         dst_corner_verts[loop_cur] = vert_final_map[dst_corner_verts[loop_cur]];
         dst_corner_edges[loop_cur] = edge_final_map[dst_corner_edges[loop_cur]];
@@ -1628,7 +1628,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     }
 
     CustomData_copy_data(&mesh.pdata, &result->pdata, i, r_i, 1);
-    dst_poly_offsets[r_i] = loop_start;
+    dst_face_offsets[r_i] = loop_start;
     r_i++;
   }
 
@@ -1658,11 +1658,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       loop_cur++;
     }
 
-    dst_poly_offsets[r_i] = loop_start;
+    dst_face_offsets[r_i] = loop_start;
     r_i++;
   }
 
-  BLI_assert(int(r_i) == result_npolys);
+  BLI_assert(int(r_i) == result_nfaces);
   BLI_assert(loop_cur == result_nloops);
 
   return result;

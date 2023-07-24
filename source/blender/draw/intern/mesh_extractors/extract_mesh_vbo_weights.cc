@@ -112,7 +112,7 @@ static void extract_weights_init(const MeshRenderData *mr,
   }
 }
 
-static void extract_weights_iter_poly_bm(const MeshRenderData * /*mr*/,
+static void extract_weights_iter_face_bm(const MeshRenderData * /*mr*/,
                                          const BMFace *f,
                                          const int /*f_index*/,
                                          void *_data)
@@ -133,12 +133,12 @@ static void extract_weights_iter_poly_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
-                                           const int poly_index,
+static void extract_weights_iter_face_mesh(const MeshRenderData *mr,
+                                           const int face_index,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  for (const int ml_index : mr->polys[poly_index]) {
+  for (const int ml_index : mr->faces[face_index]) {
     const int vert = mr->corner_verts[ml_index];
     if (data->dvert != nullptr) {
       const MDeformVert *dvert = &data->dvert[vert];
@@ -170,9 +170,9 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
   extract_weights_init(mr, cache, coarse_weights, _data);
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
-    const OffsetIndices coarse_polys = coarse_mesh->polys();
-    for (const int i : coarse_polys.index_range()) {
-      extract_weights_iter_poly_mesh(mr, i, _data);
+    const OffsetIndices coarse_faces = coarse_mesh->faces();
+    for (const int i : coarse_faces.index_range()) {
+      extract_weights_iter_face_mesh(mr, i, _data);
     }
   }
   else {
@@ -180,7 +180,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
     BMFace *efa;
     int face_index = 0;
     BM_ITER_MESH_INDEX (efa, &f_iter, mr->bm, BM_FACES_OF_MESH, face_index) {
-      extract_weights_iter_poly_bm(mr, efa, face_index, _data);
+      extract_weights_iter_face_bm(mr, efa, face_index, _data);
     }
   }
 
@@ -194,8 +194,8 @@ constexpr MeshExtract create_extractor_weights()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_weights_init;
   extractor.init_subdiv = extract_weights_init_subdiv;
-  extractor.iter_poly_bm = extract_weights_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_weights_iter_poly_mesh;
+  extractor.iter_face_bm = extract_weights_iter_face_bm;
+  extractor.iter_face_mesh = extract_weights_iter_face_mesh;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_Weight_Data);
   extractor.use_threading = true;

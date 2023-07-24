@@ -111,7 +111,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
                                       const MutableSpan<float> r_distances_sq,
                                       const MutableSpan<float3> r_positions)
 {
-  BLI_assert(mesh.totpoly > 0);
+  BLI_assert(mesh.faces_num > 0);
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
   get_closest_in_bvhtree(
@@ -221,7 +221,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->totpoly == 0) {
+  if (mesh->faces_num == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The source mesh must have faces"));
     params.set_default_remaining_outputs();
     return;

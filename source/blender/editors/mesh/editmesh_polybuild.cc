@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edmesh
  *
- * Tools to implement polygon building tool,
+ * Tools to implement face building tool,
  * an experimental tool for quickly constructing/manipulating faces.
  */
 

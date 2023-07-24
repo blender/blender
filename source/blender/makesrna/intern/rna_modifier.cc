@@ -445,7 +445,7 @@ const EnumPropertyItem rna_enum_dt_method_vertex_items[] = {
      0,
      "Nearest Edge Interpolated",
      "Copy from interpolated values of vertices from closest point on closest edge"},
-    {MREMAP_MODE_VERT_POLY_NEAREST,
+    {MREMAP_MODE_VERT_FACE_NEAREST,
      "POLY_NEAREST",
      0,
      "Nearest Face Vertex",
@@ -508,17 +508,17 @@ const EnumPropertyItem rna_enum_dt_method_loop_items[] = {
      "NEAREST_POLY",
      0,
      "Nearest Corner of Nearest Face",
-     "Copy from nearest corner of nearest polygon"},
+     "Copy from nearest corner of nearest face"},
     {MREMAP_MODE_LOOP_POLYINTERP_NEAREST,
      "POLYINTERP_NEAREST",
      0,
      "Nearest Face Interpolated",
-     "Copy from interpolated corners of the nearest source polygon"},
+     "Copy from interpolated corners of the nearest source face"},
     {MREMAP_MODE_LOOP_POLYINTERP_LNORPROJ,
      "POLYINTERP_LNORPROJ",
      0,
      "Projected Face Interpolated",
-     "Copy from interpolated corners of the source polygon hit by corner normal projection"},
+     "Copy from interpolated corners of the source face hit by corner normal projection"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -528,12 +528,12 @@ const EnumPropertyItem rna_enum_dt_method_poly_items[] = {
      "NEAREST",
      0,
      "Nearest Face",
-     "Copy from nearest polygon (using center points)"},
+     "Copy from nearest face (using center points)"},
     {MREMAP_MODE_POLY_NOR,
      "NORMAL",
      0,
      "Best Normal-Matching",
-     "Copy from source polygon which normal is the closest to destination one"},
+     "Copy from source face which normal is the closest to destination one"},
     {MREMAP_MODE_POLY_POLYINTERP_PNORPROJ,
      "POLYINTERP_PNORPROJ",
      0,
@@ -6545,7 +6545,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
                       DT_layer_poly_items,
                       0,
                       "Poly Data Types",
-                      "Which poly data layers to transfer");
+                      "Which face data layers to transfer");
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
   RNA_def_property_enum_sdna(prop, nullptr, "data_types");
   RNA_def_property_enum_funcs(

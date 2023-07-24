@@ -34,7 +34,7 @@ int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
  * \note Prefer #Mesh::looptris() in C++ code.
  */
 const struct MLoopTri *BKE_mesh_runtime_looptri_ensure(const struct Mesh *mesh);
-const int *BKE_mesh_runtime_looptri_polys_ensure(const struct Mesh *mesh);
+const int *BKE_mesh_runtime_looptri_faces_ensure(const struct Mesh *mesh);
 
 bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
 void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
