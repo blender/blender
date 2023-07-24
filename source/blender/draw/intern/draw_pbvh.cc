@@ -154,7 +154,7 @@ struct PBVHBatch {
   }
 };
 
-static CustomData *get_cdata(eAttrDomain domain, PBVH_GPU_Args *args)
+static const CustomData *get_cdata(eAttrDomain domain, const PBVH_GPU_Args *args)
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
@@ -443,7 +443,7 @@ struct PBVHBatches {
         break;
 
       case CD_PBVH_FSET_TYPE: {
-        int *face_sets = args->face_sets;
+        const int *face_sets = args->face_sets;
 
         if (!face_sets) {
           uchar white[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
@@ -902,7 +902,7 @@ struct PBVHBatches {
     }
 
     if (need_aliases) {
-      CustomData *cdata = get_cdata(domain, args);
+      const CustomData *cdata = get_cdata(domain, args);
       int layer_i = cdata ? CustomData_get_named_layer_index(
                                 cdata, eCustomDataType(type), name.c_str()) :
                             -1;
