@@ -1075,7 +1075,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
               if (sizeof(void *) == 8 && (size_native % 8)) {
                 fprintf(stderr,
                         "Align struct error: %s::%s (starts at %d on the native platform; "
-                        "%d %% %lu = %d bytes)\n",
+                        "%d %% %zu = %d bytes)\n",
                         types[structtype],
                         cp,
                         size_native,
