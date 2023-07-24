@@ -1961,6 +1961,11 @@ BlendHandle *filelist_lib(FileList *filelist)
   return filelist->libfiledata;
 }
 
+int filelist_files_num_entries(FileList *filelist)
+{
+  return filelist->filelist.entries_num;
+}
+
 static const char *fileentry_uiname(const char *root, FileListInternEntry *entry, char *buff)
 {
   if (entry->asset) {
