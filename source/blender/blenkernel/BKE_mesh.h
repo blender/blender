@@ -731,8 +731,7 @@ void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
  */
 BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
 {
-  return (const int *)CustomData_get_layer_named(
-      &mesh->pdata, CD_PROP_INT32, "material_index");
+  return (const int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
 }
 
 /**

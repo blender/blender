@@ -916,8 +916,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
   faces_num = mesh->faces_num + len; /* new face count */
 
   /* update customdata */
-  CustomData_copy_layout(
-      &mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
+  CustomData_copy_layout(&mesh->pdata, &pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
   CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->faces_num);
 
   implicit_sharing::resize_trivial_array(&mesh->face_offset_indices,

@@ -203,8 +203,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* Copy custom data to mirrored geometry. Loops are copied later. */
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, src_verts_num, src_verts_num);
   CustomData_copy_data(&mesh->edata, &result->edata, 0, src_edges_num, src_edges_num);
-  CustomData_copy_data(
-      &mesh->pdata, &result->pdata, 0, src_faces.size(), src_faces.size());
+  CustomData_copy_data(&mesh->pdata, &result->pdata, 0, src_faces.size(), src_faces.size());
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */

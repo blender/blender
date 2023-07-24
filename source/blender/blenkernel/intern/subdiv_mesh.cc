@@ -111,8 +111,8 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
       CustomData_get_layer_for_write(&subdiv_mesh->edata, CD_ORIGINDEX, subdiv_mesh->totedge));
   ctx->loop_origindex = static_cast<int *>(
       CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_ORIGINDEX, subdiv_mesh->totloop));
-  ctx->face_origindex = static_cast<int *>(CustomData_get_layer_for_write(
-      &subdiv_mesh->pdata, CD_ORIGINDEX, subdiv_mesh->faces_num));
+  ctx->face_origindex = static_cast<int *>(
+      CustomData_get_layer_for_write(&subdiv_mesh->pdata, CD_ORIGINDEX, subdiv_mesh->faces_num));
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
@@ -923,11 +923,8 @@ static void subdiv_mesh_face(const SubdivForeachContext *foreach_context,
 {
   BLI_assert(coarse_face_index != ORIGINDEX_NONE);
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  CustomData_copy_data(&ctx->coarse_mesh->pdata,
-                       &ctx->subdiv_mesh->pdata,
-                       coarse_face_index,
-                       subdiv_face_index,
-                       1);
+  CustomData_copy_data(
+      &ctx->coarse_mesh->pdata, &ctx->subdiv_mesh->pdata, coarse_face_index, subdiv_face_index, 1);
   ctx->subdiv_face_offsets[subdiv_face_index] = start_loop_index;
 }
 

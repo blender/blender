@@ -41,8 +41,7 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   GPUVertFormat *format = get_sculpt_data_format();
 
   CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
-  CustomData *cd_pdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata :
-                                                                  &mr->me->pdata;
+  CustomData *cd_pdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->pdata;
 
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
   const int *cd_face_set = (const int *)CustomData_get_layer_named(

@@ -164,7 +164,8 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
                                                  &mesh_dst->face_offset_indices,
                                                  &mesh_dst->runtime->face_offsets_sharing_info);
   if (do_tessface) {
-    CustomData_copy(&mesh_src->fdata_legacy, &mesh_dst->fdata_legacy, mask.fmask, mesh_dst->totface_legacy);
+    CustomData_copy(
+        &mesh_src->fdata_legacy, &mesh_dst->fdata_legacy, mask.fmask, mesh_dst->totface_legacy);
   }
   else {
     mesh_tessface_clear_intern(mesh_dst, false);

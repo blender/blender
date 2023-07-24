@@ -250,14 +250,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
       }
     }
 
-    CustomData_merge_layout(
-        &me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
+    CustomData_merge_layout(&me->pdata, pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, faces_num);
     CustomData_copy_data_named(&me->pdata, pdata, 0, *polyofs, me->faces_num);
 
     /* Apply matmap. In case we don't have material indices yet, create them if more than one
      * material is the result of joining. */
-    int *material_indices = static_cast<int *>(CustomData_get_layer_named_for_write(
-        pdata, CD_PROP_INT32, "material_index", faces_num));
+    int *material_indices = static_cast<int *>(
+        CustomData_get_layer_named_for_write(pdata, CD_PROP_INT32, "material_index", faces_num));
     if (!material_indices && totcol > 1) {
       material_indices = (int *)CustomData_add_layer_named(
           pdata, CD_PROP_INT32, CD_SET_DEFAULT, faces_num, "material_index");
@@ -1247,8 +1246,7 @@ bool ED_mesh_pick_face_vert(
     const blender::OffsetIndices faces = me_eval->faces();
     const Span<int> corner_verts = me_eval->corner_verts();
 
-    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata,
-                                                                    CD_ORIGINDEX);
+    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {

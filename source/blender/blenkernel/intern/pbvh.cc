@@ -702,8 +702,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->mesh_grids_num = pbvh->totgrid;
   args->node = node;
 
-  BKE_pbvh_node_num_verts(pbvh, node, nullptr, &args->node_verts_num);
-
   args->grid_hidden = pbvh->grid_hidden;
   args->face_sets_color_default = pbvh->face_sets_color_default;
   args->face_sets_color_seed = pbvh->face_sets_color_seed;
@@ -723,7 +721,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 
   switch (pbvh->header.type) {
     case PBVH_FACES:
-      args->mesh_faces_num = pbvh->mesh->faces_num;
       args->vdata = pbvh->vdata;
       args->ldata = pbvh->ldata;
       args->pdata = pbvh->pdata;

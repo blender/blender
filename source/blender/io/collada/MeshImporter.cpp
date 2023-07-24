@@ -614,8 +614,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
   MaterialIdPrimitiveArrayMap mat_prim_map;
 
   int *material_indices = BKE_mesh_material_indices_for_write(me);
-  bool *sharp_faces = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &me->pdata, CD_PROP_BOOL, "sharp_face", me->faces_num));
+  bool *sharp_faces = static_cast<bool *>(
+      CustomData_get_layer_named_for_write(&me->pdata, CD_PROP_BOOL, "sharp_face", me->faces_num));
   if (!sharp_faces) {
     sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
         &me->pdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->faces_num, "sharp_face"));

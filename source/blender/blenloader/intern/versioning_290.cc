@@ -819,8 +819,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   if (MAIN_VERSION_FILE_ATLEAST(bmain, 290, 2) && MAIN_VERSION_FILE_OLDER(bmain, 291, 1)) {
     /* In this range, the extrude manifold could generate meshes with degenerated face. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      const MPoly *polys = static_cast<const MPoly *>(
-          CustomData_get_layer(&me->pdata, CD_MPOLY));
+      const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&me->pdata, CD_MPOLY));
       for (const int i : blender::IndexRange(me->faces_num)) {
         if (polys[i].totloop == 2) {
           bool changed;
@@ -1209,9 +1208,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       /* We can be sure that mesh->fdata is empty for files written by 2.90. */
       mesh->ldata.totlayer = mesh->ldata.maxlayer = MEM_allocN_len(mesh->ldata.layers) /
                                                     sizeof(CustomDataLayer);
-      mesh->pdata.totlayer = mesh->pdata.maxlayer = MEM_allocN_len(
-                                                                mesh->pdata.layers) /
-                                                            sizeof(CustomDataLayer);
+      mesh->pdata.totlayer = mesh->pdata.maxlayer = MEM_allocN_len(mesh->pdata.layers) /
+                                                    sizeof(CustomDataLayer);
     }
   }
 
