@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -4134,6 +4134,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Hế số cho Đơn Giản Hóa đang dùng giải thuật ứng phó"
 
 
+msgid "Active Layer"
+msgstr "Lớp Hoạt Động"
+
+
 msgid "Default Eraser"
 msgstr "Cục Gôm Mặc Định"
 
@@ -4356,10 +4360,6 @@ msgstr "Các Lớp Đệm Chứa"
 
 msgid "Collection of cache layers"
 msgstr "Sưu tập lớp đệm chứa"
-
-
-msgid "Active Layer"
-msgstr "Lớp Hoạt Động"
 
 
 msgid "Active layer of the CacheFile"
@@ -23033,6 +23033,10 @@ msgstr "Giới hạn bắt đầu, vật thể gần hơn sẽ không xuất hi�
 
 msgid "Control how fast the probe influence decreases"
 msgstr "Điều khiển tốc độ giảm sự ảnh hưởng của ánh sáng kế"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "Suy nội sự rọi mịn hơn nhưng nó có tràn ánh sáng"
 
 
 msgid "Resolution X"
@@ -43963,6 +43967,14 @@ msgid "Glossy refraction with sharp or microfacet distribution, typically used f
 msgstr "Khúc xạ bóng loáng có phân phối bén hay mặt vi mô, thường dùng cho vật liệu truyền ánh sáng"
 
 
+msgid ""
+"Reflection for materials such as cloth.\n"
+"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
+msgstr ""
+"Phản xạ cho vật liệu như dải.\n"
+"Thường cho pha trộn với những bộ tô sắc khác (như Bộ Tô Sắc Tán Xạ) và không sử dụng độc lập"
+
+
 msgid "Toon BSDF"
 msgstr "BSDF Hoạt Hình"
 
@@ -43997,18 +44009,6 @@ msgstr "BSDF Trong Suốt"
 
 msgid "Transparency without refraction, passing straight through the surface as if there were no geometry"
 msgstr "Trong suất nhưng không có phản xạ, xuyên thẳng qua bề mặt như không có hình dạng"
-
-
-msgid "Velvet BSDF"
-msgstr "BSDF Nhung"
-
-
-msgid ""
-"Reflection for materials such as cloth.\n"
-"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
-msgstr ""
-"Phản xạ cho vật liệu như dải.\n"
-"Thường cho pha trộn với những bộ tô sắc khác (như Bộ Tô Sắc Tán Xạ) và không sử dụng độc lập"
 
 
 msgid "Bump"
@@ -67267,15 +67267,6 @@ msgstr "Làm qúa mức dạng đứng hiện tại so với dạng đứng bứ
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "Đẩy Dạng Đứng Từ Dạng Đứng Nghỉ Ngơi"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "Đẩy dạng đứng hiện tại xa hơn từ dạng đứng nghỉ ngơi"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "Lật Quaternion"
 
@@ -67291,15 +67282,6 @@ msgstr "Giãn Dạng Đứng Đến Bức Ảnh Phụ"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "Làm dạng đứng hiện tại giống hơn với dạng đứng của bức ảnh mẫu phụ của nó"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "Giãn Dạng Đứng Đến Dạng Đứng Nghỉ Ngơi"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "Làm dạng đứng hiện tại giống hơn với dạng đứng nghỉ ngơi"
 
 
 msgctxt "Operator"
@@ -87407,10 +87389,6 @@ msgid "Irradiance Smoothing"
 msgstr "Mịn Hóa Sự Rọi"
 
 
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "Suy nội sự rọi mịn hơn nhưng nó có tràn ánh sáng"
-
-
 msgid "Show Cubemap Cache"
 msgstr "Hiển Thị Đệm Chứa Bản Đồ Lập Phương"
 
@@ -101689,10 +101667,6 @@ msgid "Apply All Shape Keys"
 msgstr "Áp Dụng Hết Mẫu Dạng"
 
 
-msgid "Name collisions: , "
-msgstr "Va chạm tên: , "
-
-
 msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Sắp Xếp Bằng Tên"
@@ -115009,10 +114983,6 @@ msgid "Gizmos hidden in this view"
 msgstr "Đồ đạc được ẩn trong màn này"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "Không thể trượt khi dịch màn chiếu bị khóa"
-
-
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "Không thể chuyển hướng một máy quay phim từ một thư viện ngoài hoặc đồ vượt quyền không thể biên tập"
 
@@ -115023,6 +114993,10 @@ msgstr "Không thể bay khi dịch màn chiếu bị khóa"
 
 msgid "Cannot fly an object with constraints"
 msgstr "Không thể lái vật thể bay bằng ràng buộc"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "Không thể trượt khi dịch màn chiếu bị khóa"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -116293,6 +116267,10 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Không tìm được đoạn NLA '%s' trong rãnh '%s'"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Đăng ký lớp ổ cắm giao điểm: '%s' quá dài, bề dài tối đa là %d"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Ổ cắm có cùng hướng ngõ vào/ngõ ra"
 
@@ -116331,10 +116309,6 @@ msgstr "Không tìm được giao điểm '%s' trong cây giao điểm"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Không tìm được ổ cắm '%s' trong giao điểm"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Đăng ký lớp ổ cắm giao điểm: '%s' quá dài, bề dài tối đa là %d"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
@@ -118607,10 +118581,6 @@ msgstr "Lớp Trong Suốt"
 
 msgid "Clearcoat Roughness"
 msgstr "Độ Nhám Lớp Trong Suốt"
-
-
-msgid "Transmission Roughness"
-msgstr "Độ Nhám Truyền"
 
 
 msgid "Emission Strength"

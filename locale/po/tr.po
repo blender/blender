@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -4380,6 +4380,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Uyarlanabilir algoritma kullanarak Basitleştirme Çarpanı"
 
 
+msgid "Active Layer"
+msgstr "Etkin Katman"
+
+
 msgid "Strokes Collision"
 msgstr "Vuruşlar Çarpışması"
 
@@ -4618,10 +4622,6 @@ msgstr "Önbellek Katmanları"
 
 msgid "Collection of cache layers"
 msgstr "Önbellek katmanları koleksiyonu"
-
-
-msgid "Active Layer"
-msgstr "Etkin Katman"
 
 
 msgid "Active layer of the CacheFile"

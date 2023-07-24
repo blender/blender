@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -4403,6 +4403,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Factor de simplificación mediante un algoritmo adaptativo"
 
 
+msgid "Active Layer"
+msgstr "Capa activa"
+
+
 msgid "Strokes Collision"
 msgstr "Colisión de trazos"
 
@@ -4641,10 +4645,6 @@ msgstr "Capas del caché"
 
 msgid "Collection of cache layers"
 msgstr "Colección de capas del caché"
-
-
-msgid "Active Layer"
-msgstr "Capa activa"
 
 
 msgid "Active layer of the CacheFile"
@@ -24453,6 +24453,10 @@ msgstr "Muestras de captura"
 
 msgid "Number of ray directions to evaluate when baking"
 msgstr "Cantidad de direcciones de rayos a ser evaluadas al capturar"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "Permite obtener una interpolación más suave de la irradiación, pero introduce sangrado de luz"
 
 
 msgid "Resolution X"
@@ -46565,6 +46569,14 @@ msgid "Glossy refraction with sharp or microfacet distribution, typically used f
 msgstr "Reflexión pulida con distribuciones definida o micro facetada, usada para materiales que transmiten luz"
 
 
+msgid ""
+"Reflection for materials such as cloth.\n"
+"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
+msgstr ""
+"Reflexión para materiales tales como ropa.\n"
+"Típicamente mezclado con otros sombreadores (como el de difusión) ya que no es particularmente útil por sí mismo"
+
+
 msgid "Toon BSDF"
 msgstr "BSDF Dibujo animado"
 
@@ -46599,18 +46611,6 @@ msgstr "BSDF Transparente"
 
 msgid "Transparency without refraction, passing straight through the surface as if there were no geometry"
 msgstr "Transparencia sin refracción, que pasa directamente a través de la superficie como si no existiera una geometría"
-
-
-msgid "Velvet BSDF"
-msgstr "BSDF Terciopelo"
-
-
-msgid ""
-"Reflection for materials such as cloth.\n"
-"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
-msgstr ""
-"Reflexión para materiales tales como ropa.\n"
-"Típicamente mezclado con otros sombreadores (como el de difusión) ya que no es particularmente útil por sí mismo"
 
 
 msgid "Bump"
@@ -71761,15 +71761,6 @@ msgstr "Exagera la pose actual con respecto a la pose intermedia"
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "Empujar pose desde reposo"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "Empuja la pose actual alejándola de la pose de reposo"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "Invertir cuaternos"
 
@@ -71785,15 +71776,6 @@ msgstr "Distender pose hacia intermedio"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "Hace que la pose actual sea más similar a la pose intermedia"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "Distender pose hacia reposo"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "Hace que la pose actual sea más similar a la pose de reposo"
 
 
 msgctxt "Operator"
@@ -76845,14 +76827,6 @@ msgid "Edge Slide"
 msgstr "Deslizar bordes"
 
 
-msgid "Allow Navigation"
-msgstr "Permitir navegación"
-
-
-msgid "Allow navigation while transforming"
-msgstr "Permite navegar durante una transformación"
-
-
 msgid "Correct UVs"
 msgstr "Corregir UV"
 
@@ -79184,10 +79158,6 @@ msgstr "Permite soltar un entorno en la escena"
 msgctxt "Operator"
 msgid "Extrude Individual and Move"
 msgstr "Extruir individual y mover"
-
-
-msgid "Allow navigation"
-msgstr "Permitir la navegación"
 
 
 msgctxt "Operator"
@@ -84715,10 +84685,6 @@ msgid "Cycles Render Devices"
 msgstr "Dispositivos para procesamiento con Cycles"
 
 
-msgid "GPU Backend"
-msgstr "Método de GPU"
-
-
 msgid "Memory & Limits"
 msgstr "Memoria y límites"
 
@@ -88262,6 +88228,10 @@ msgstr "Límite de textura GL"
 
 msgid "Limit the texture size to save graphics memory"
 msgstr "Limita el tamaño de las texturas para ahorrar memoria gráfica"
+
+
+msgid "GPU Backend"
+msgstr "Método de GPU"
 
 
 msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
@@ -93740,10 +93710,6 @@ msgstr "Tamaño de las esferas usadas para tomar muestras de irradiación para d
 
 msgid "Irradiance Smoothing"
 msgstr "Suavizado de irradiación"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "Permite obtener una interpolación más suave de la irradiación, pero introduce sangrado de luz"
 
 
 msgid "Show Cubemap Cache"
@@ -105230,14 +105196,6 @@ msgid "Causes select-all ('A' key) to de-select in the case a selection exists"
 msgstr "Permite usar Seleccionar todos (tecla 'A') para deseleccionar, en caso de que ya existiera una selección previa"
 
 
-msgid "Navigate during Transform"
-msgstr "Navegar durante transformaciones"
-
-
-msgid "Enable view navigation while using transform operators. Proportional Influence, Automatic Constraints and Auto IK Chain Length shortcuts will require holding Alt key"
-msgstr "Habilita la navegación en la vista mientras se usan operadores de transformación. Se necesitará presionar Alt para acceder a los atajos de Influencia proporcional, Restricciones automáticas y Longitud automática de cadena de CI"
-
-
 msgid "Tweak Select: Mouse Select & Move"
 msgstr "Retocar: ratón para Seleccionar y mover"
 
@@ -109669,10 +109627,6 @@ msgid "Apply All Shape Keys"
 msgstr "Aplicar todas las Formas claves"
 
 
-msgid "Name collisions: , "
-msgstr "Colisiones de nombres: , "
-
-
 msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Ordenar por nombre"
@@ -113785,10 +113739,6 @@ msgstr "Guardar como iluminación de estudio"
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Cargar preferencias de fábrica"
-
-
-msgid "Requires a restart of Blender to take effect"
-msgstr "Requiere reinicializar Blender para entrar en efecto"
 
 
 msgid "Microsoft Store installation"
@@ -124531,10 +124481,6 @@ msgid "Gizmos hidden in this view"
 msgstr "Manipuladores ocultos en esta vista"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "No es posible avanzar cuando el desplazamiento de la vista se encuentra bloqueado"
-
-
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "No es posible navegar una cámara de una biblioteca externa o de una redefinición no editable"
 
@@ -124545,6 +124491,10 @@ msgstr "No es posible volar cuando el desplazamiento de la vista se encuentra bl
 
 msgid "Cannot fly an object with constraints"
 msgstr "No es posible volar desde un objeto con restricciones"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "No es posible avanzar cuando el desplazamiento de la vista se encuentra bloqueado"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -126381,6 +126331,14 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Clip de ANL '%s' no encontrado en la pista '%s'"
 
 
+msgid "Panel is not in the node tree interface"
+msgstr "El panel no se encuentra en la interfaz del árbol de nodos"
+
+
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Registrando clase de conector de nodo: '%s' es demasiado largo, la longitud máxima es %d"
+
+
 msgid "CustomGroup"
 msgstr "Grupo_personalizado"
 
@@ -126446,10 +126404,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "No es posible mover los conectores de un nodo interno"
 
 
-msgid "Panel is not in the node tree interface"
-msgstr "El panel no se encuentra en la interfaz del árbol de nodos"
-
-
 msgid "Unable to create panel"
 msgstr "No es posible crear el panel"
 
@@ -126484,10 +126438,6 @@ msgstr "No es posible localizar el nodo '%s' en el árbol de nodos"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "No es posible localizar el conector '%s' en el nodo"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Registrando clase de conector de nodo: '%s' es demasiado largo, la longitud máxima es %d"
 
 
 msgid "Failed to pair simulation input node %s with output node %s"
@@ -129576,10 +129526,6 @@ msgstr "Barniz"
 
 msgid "Clearcoat Roughness"
 msgstr "Rugosidad del barniz"
-
-
-msgid "Transmission Roughness"
-msgstr "Rugosidad de transmisión"
 
 
 msgid "Emission Strength"

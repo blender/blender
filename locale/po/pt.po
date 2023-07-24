@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -2833,6 +2833,10 @@ msgid "Saturation"
 msgstr "Saturação"
 
 
+msgid "Active Layer"
+msgstr "Camada ativa"
+
+
 msgid "Affect Position"
 msgstr "Afetar a posição"
 
@@ -2883,10 +2887,6 @@ msgstr "Usar a força conforme a pressão"
 
 msgid "Use tablet pressure for color strength"
 msgstr "Usa a pressão da mesa de desenho para a aplicação de força nas cores."
-
-
-msgid "Active Layer"
-msgstr "Camada ativa"
 
 
 msgid "Object Path"
@@ -27239,10 +27239,6 @@ msgstr "BSDF - Transluzente"
 
 msgid "Transparent BSDF"
 msgstr "BSDF - Transparente"
-
-
-msgid "Velvet BSDF"
-msgstr "BSDF - Veludo "
 
 
 msgid "Bump"
@@ -65019,16 +65015,16 @@ msgid "Object as Camera"
 msgstr "Objeto como câmara"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "Não é possível usar o carrinho quando o deslocamento de visão está bloqueado."
-
-
 msgid "Cannot fly when the view offset is locked"
 msgstr "Não é possível voar quando o deslocamento de visão está bloqueado."
 
 
 msgid "Cannot fly an object with constraints"
 msgstr "Não é possível fazer voo de um objeto com restrições."
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "Não é possível usar o carrinho quando o deslocamento de visão está bloqueado."
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -65765,6 +65761,10 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Faixa de animação não linear '%s' não encontrada na trilha '%s'"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Registrando classe de conector de nó: '%s' é muito longo, comprimento máximo é %d."
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Mesma direção de entrada ou saída de conectores."
 
@@ -65795,10 +65795,6 @@ msgstr "Não é ṕossível localizar o nó '%s' na árvore de nós."
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Não é possível localizar conector '%s' no nó."
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Registrando classe de conector de nó: '%s' é muito longo, comprimento máximo é %d."
 
 
 msgid "VertexGroup.add(): cannot be called while object is in edit mode"
@@ -66120,10 +66116,6 @@ msgstr "Tinta protetiva"
 
 msgid "Clearcoat Roughness"
 msgstr "Rugosidade da tinta protetiva"
-
-
-msgid "Transmission Roughness"
-msgstr "Rugosidade para a transmissão"
 
 
 msgid "Clearcoat Normal"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -2826,6 +2826,10 @@ msgid "Show Lasso"
 msgstr "Mostra Lazo"
 
 
+msgid "Active Layer"
+msgstr "Livello Attivo"
+
+
 msgid "Affect Position"
 msgstr "Influenza Posizione"
 
@@ -2880,10 +2884,6 @@ msgstr "Usa Forza Pressione"
 
 msgid "Use tablet pressure for color strength"
 msgstr "Usa la sensibilità di pressione della tavoletta per l'intensità del colore"
-
-
-msgid "Active Layer"
-msgstr "Livello Attivo"
 
 
 msgid "Object Path"
@@ -23771,10 +23771,6 @@ msgstr "Translucido BSDF"
 
 msgid "Transparent BSDF"
 msgstr "Trasparente BSDF"
-
-
-msgid "Velvet BSDF"
-msgstr "Velluto BSDF"
 
 
 msgid "Bump"
@@ -58580,16 +58576,16 @@ msgid "Unable to create new strip"
 msgstr "Impossibile creare un nuovo spezzone"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Registrazione classe connettore nodo: '%s' troppo lungo, la lunghezza massima è %d"
+
+
 msgid "Unable to create socket"
 msgstr "Impossibile creare il connettore"
 
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Impossibile trovare il connettore '%s' nel nodo"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Registrazione classe connettore nodo: '%s' troppo lungo, la lunghezza massima è %d"
 
 
 msgid "Vertex not in group"
@@ -59063,10 +59059,6 @@ msgstr "Rivestimento Trasparente"
 
 msgid "Clearcoat Roughness"
 msgstr "Rugosità Riv. Trasparente"
-
-
-msgid "Transmission Roughness"
-msgstr "Rugosità Trasmissione"
 
 
 msgid "Clearcoat Normal"
