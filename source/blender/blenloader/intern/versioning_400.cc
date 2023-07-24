@@ -404,12 +404,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
   {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_SHADER) {
-      }
-    }
-    FOREACH_NODETREE_END;
-
     /* Keep this block, even when empty. */
 
     if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "grid_bake_samples")) {
