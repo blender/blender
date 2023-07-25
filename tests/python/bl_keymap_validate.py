@@ -40,7 +40,6 @@ from typing import (
 
 KeyConfigData = List[Tuple[str, Tuple[Any], Dict[str, Any]]]
 
-import os
 import contextlib
 
 import bpy  # type: ignore

@@ -10,7 +10,6 @@ import glob
 import pathlib
 import shutil
 import sys
-import time
 from typing import List
 
 

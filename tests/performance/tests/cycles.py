@@ -3,12 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import api
-import os
 
 
 def _run(args):
     import bpy
-    import time
 
     device_type = args['device_type']
     device_index = args['device_index']
