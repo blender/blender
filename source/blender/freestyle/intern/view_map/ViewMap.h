@@ -141,7 +141,7 @@ class ViewMap {
     return _VEdges.size();
   }
 
-  ViewShape *viewShape(unsigned id);
+  ViewShape *viewShape(uint id);
 
   id_to_index_map &shapeIdToIndexMap()
   {
@@ -933,7 +933,7 @@ class ViewEdge : public Interface1D {
   FEdge *_FEdgeA;              // first edge of the embedded fedges chain
   FEdge *_FEdgeB;              // last edge of the embedded fedges chain
   Id _Id;
-  unsigned _ChainingTimeStamp;
+  uint _ChainingTimeStamp;
   // The silhouette view edge separates two 2D spaces. The one on the left is necessarily the Shape
   // _Shape (the one to which this edge belongs to) and _aShape is the one on its right NOT HANDLED
   // BY THE COPY CONSTRUCTOR
@@ -1107,7 +1107,7 @@ class ViewEdge : public Interface1D {
   }
 
   /** Returns the time stamp of this ViewEdge. */
-  inline unsigned getChainingTimeStamp()
+  inline uint getChainingTimeStamp()
   {
     return _ChainingTimeStamp;
   }
@@ -1196,7 +1196,7 @@ class ViewEdge : public Interface1D {
   }
 
   /** Sets the time stamp value. */
-  inline void setChainingTimeStamp(unsigned ts)
+  inline void setChainingTimeStamp(uint ts)
   {
     _ChainingTimeStamp = ts;
   }

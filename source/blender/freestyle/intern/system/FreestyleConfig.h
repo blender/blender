@@ -11,6 +11,12 @@
 
 #include <string>
 
+/* Part of `BLI_sys_types.h`, declare here as BLI is not in the include path. */
+typedef unsigned int uint;
+typedef unsigned short ushort;
+typedef unsigned long ulong;
+typedef unsigned char uchar;
+
 using namespace std;
 
 namespace Freestyle {

@@ -207,7 +207,7 @@ class FEdgeXDetector {
   real _minKr;
   real _maxK1;
   real _maxKr;
-  unsigned _nPoints;
+  uint _nPoints;
   real _meanEdgeSize;
   bool _orthographicProjection;
 

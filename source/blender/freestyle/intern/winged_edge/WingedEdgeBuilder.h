@@ -101,7 +101,7 @@ class WingedEdgeBuilder : public SceneVisitor {
 
  protected:
   virtual bool buildWShape(WShape &shape, IndexedFaceSet &ifs);
-  virtual void buildWVertices(WShape &shape, const float *vertices, unsigned vsize);
+  virtual void buildWVertices(WShape &shape, const float *vertices, uint vsize);
 
   RenderMonitor *_pRenderMonitor;
 
@@ -111,43 +111,40 @@ class WingedEdgeBuilder : public SceneVisitor {
                           vector<FrsMaterial> &iMaterials,
                           const float *texCoords,
                           const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                          const unsigned *vindices,
-                          const unsigned *nindices,
-                          const unsigned *mindices,
-                          const unsigned *tindices,
-                          const unsigned nvertices);
+                          const uint *vindices,
+                          const uint *nindices,
+                          const uint *mindices,
+                          const uint *tindices,
+                          const uint nvertices);
 
   void buildTriangleFan(const float *vertices,
                         const float *normals,
                         vector<FrsMaterial> &iMaterials,
                         const float *texCoords,
                         const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                        const unsigned *vindices,
-                        const unsigned *nindices,
-                        const unsigned *mindices,
-                        const unsigned *tindices,
-                        const unsigned nvertices);
+                        const uint *vindices,
+                        const uint *nindices,
+                        const uint *mindices,
+                        const uint *tindices,
+                        const uint nvertices);
 
   void buildTriangles(const float *vertices,
                       const float *normals,
                       vector<FrsMaterial> &iMaterials,
                       const float *texCoords,
                       const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
-                      const unsigned *vindices,
-                      const unsigned *nindices,
-                      const unsigned *mindices,
-                      const unsigned *tindices,
-                      const unsigned nvertices);
+                      const uint *vindices,
+                      const uint *nindices,
+                      const uint *mindices,
+                      const uint *tindices,
+                      const uint nvertices);
 
   void transformVertices(const float *vertices,
-                         unsigned vsize,
+                         uint vsize,
                          const Matrix44r &transform,
                          float *res);
 
-  void transformNormals(const float *normals,
-                        unsigned nsize,
-                        const Matrix44r &transform,
-                        float *res);
+  void transformNormals(const float *normals, uint nsize, const Matrix44r &transform, float *res);
 
   WShape *_current_wshape;
   FrsMaterial *_current_frs_material;

@@ -219,32 +219,32 @@ class Operators {
   //
   ////////////////////////////////////////////////
 
-  static ViewEdge *getViewEdgeFromIndex(unsigned i)
+  static ViewEdge *getViewEdgeFromIndex(uint i)
   {
     return dynamic_cast<ViewEdge *>(_current_view_edges_set[i]);
   }
 
-  static Chain *getChainFromIndex(unsigned i)
+  static Chain *getChainFromIndex(uint i)
   {
     return dynamic_cast<Chain *>(_current_chains_set[i]);
   }
 
-  static Stroke *getStrokeFromIndex(unsigned i)
+  static Stroke *getStrokeFromIndex(uint i)
   {
     return _current_strokes_set[i];
   }
 
-  static unsigned getViewEdgesSize()
+  static uint getViewEdgesSize()
   {
     return _current_view_edges_set.size();
   }
 
-  static unsigned getChainsSize()
+  static uint getChainsSize()
   {
     return _current_chains_set.size();
   }
 
-  static unsigned getStrokesSize()
+  static uint getStrokesSize()
   {
     return _current_strokes_set.size();
   }

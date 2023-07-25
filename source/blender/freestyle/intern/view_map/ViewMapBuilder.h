@@ -96,7 +96,7 @@ class ViewMapBuilder {
 
   /* Build Grid for ray casting */
   /** Build non-culled Grid in camera space for ray casting */
-  void BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, unsigned int sceneNumFaces);
+  void BuildGrid(WingedEdge &we, const BBox<Vec3r> &bbox, uint sceneNumFaces);
 
   /** Compute Shapes from a WingedEdge containing a list of WShapes */
   void computeInitialViewEdges(WingedEdge &);
@@ -150,7 +150,7 @@ class ViewMapBuilder {
                         visibility_algo iAlgo,
                         real epsilon,
                         const BBox<Vec3r> &bbox,
-                        unsigned int sceneNumFaces);
+                        uint sceneNumFaces);
 
   void CullViewEdges(ViewMap *ioViewMap,
                      real viewProscenium[4],
@@ -176,7 +176,7 @@ class ViewMapBuilder {
   void ComputeEdgesVisibility(ViewMap *ioViewMap,
                               WingedEdge &we,
                               const BBox<Vec3r> &bbox,
-                              unsigned int sceneNumFaces,
+                              uint sceneNumFaces,
                               visibility_algo iAlgo = ray_casting,
                               real epsilon = 1.0e-6);
 
@@ -250,15 +250,14 @@ class ViewMapBuilder {
                                   real epsilon,
                                   set<ViewShape *> &oOccluders,
                                   Polygon3r **oaPolygon,
-                                  unsigned timestamp);
+                                  uint timestamp);
   // FIXME
-  void FindOccludee(
-      FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp);
+  void FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, uint timestamp);
   void FindOccludee(FEdge *fe,
                     Grid *iGrid,
                     real epsilon,
                     Polygon3r **oaPolygon,
-                    unsigned timestamp,
+                    uint timestamp,
                     Vec3r &u,
                     Vec3r &A,
                     Vec3r &origin,

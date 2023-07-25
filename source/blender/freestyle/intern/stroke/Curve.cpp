@@ -336,7 +336,7 @@ float CurvePoint::shape_importance() const
   return __A->shape_importance();
 }
 
-const unsigned CurvePoint::qi() const
+const uint CurvePoint::qi() const
 {
   if (__A == 0) {
     return __B->qi();

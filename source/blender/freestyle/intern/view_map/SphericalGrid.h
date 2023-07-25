@@ -158,12 +158,12 @@ class SphericalGrid {
   bool enableQI() const;
 
  private:
-  void getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y);
+  void getCellCoordinates(const Vec3r &point, uint &x, uint &y);
 
   typedef PointerSequence<vector<Cell *>, Cell *> cellContainer;
   // typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
   typedef PointerSequence<vector<OccluderData *>, OccluderData *> occluderContainer;
-  unsigned _cellsX, _cellsY;
+  uint _cellsX, _cellsY;
   float _cellSize;
   float _cellOrigin[2];
   cellContainer _cells;
@@ -219,7 +219,7 @@ inline bool SphericalGrid::Iterator::testOccluder(bool wantOccludee)
 #if SPHERICAL_GRID_LOGGING
   if (G.debug & G_DEBUG_FREESTYLE) {
     std::cout << "\tTesting occluder " << (*_current)->poly.getVertices()[0];
-    for (unsigned int i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
+    for (uint i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
       std::cout << ", " << (*_current)->poly.getVertices()[i];
     }
     std::cout << " from shape " << (*_current)->face->GetVertex(0)->shape()->GetId() << std::endl;
@@ -375,7 +375,7 @@ inline SphericalGrid::OccluderData::OccluderData(OccluderSource &source, Polygon
   // Get the point on the camera-space polygon that is furthest from the viewpoint
   // deepest is the distance from the viewpoint to that point
   deepest = cameraSpacePolygon.getVertices()[2].norm();
-  for (unsigned int i = 0; i < 2; ++i) {
+  for (uint i = 0; i < 2; ++i) {
     real t = cameraSpacePolygon.getVertices()[i].norm();
     if (t > deepest) {
       deepest = t;
@@ -405,12 +405,12 @@ inline bool SphericalGrid::insertOccluder(OccluderSource &source, OccluderData *
   Vec3r bbMin, bbMax;
   poly.getBBox(bbMin, bbMax);
   // Check overlapping cells
-  unsigned startX, startY, endX, endY;
+  uint startX, startY, endX, endY;
   getCellCoordinates(bbMin, startX, startY);
   getCellCoordinates(bbMax, endX, endY);
 
-  for (unsigned int i = startX; i <= endX; ++i) {
-    for (unsigned int j = startY; j <= endY; ++j) {
+  for (uint i = startX; i <= endX; ++i) {
+    for (uint j = startY; j <= endY; ++j) {
       if (_cells[i * _cellsY + j] != NULL) {
         _cells[i * _cellsY + j]->checkAndInsert(source, poly, occluder);
       }

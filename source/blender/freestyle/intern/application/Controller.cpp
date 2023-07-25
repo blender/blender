@@ -631,7 +631,7 @@ void Controller::ComputeSteerableViewMap()
 
   // Build 4 nodes containing the edges in the 4 directions
   NodeGroup *ng[Canvas::NB_STEERABLE_VIEWMAP];
-  unsigned i;
+  uint i;
   real c =
       32.0f /
       255.0f;  // see SteerableViewMap::readSteerableViewMapPixel() for information about this 32.
@@ -690,8 +690,8 @@ void Controller::ComputeSteerableViewMap()
     qimg = pm.toImage();
     // FIXME !! again!
     img[i] = new GrayImage(_pView->width(), _pView->height());
-    for (unsigned int y = 0; y < img[i]->height(); ++y) {
-      for (unsigned int x = 0; x < img[i]->width(); ++x) {
+    for (uint y = 0; y < img[i]->height(); ++y) {
+      for (uint x = 0; x < img[i]->width(); ++x) {
         // img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))) / 255.0f);
         img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))));
         // float c = qGray(qimg.pixel(x, y));
@@ -704,8 +704,8 @@ void Controller::ComputeSteerableViewMap()
     // check
 #  if 0
     qimg = QImage(_pView->width(), _pView->height(), 32);
-    for (unsigned int y = 0; y < img[i]->height(); ++y) {
-      for (unsigned int x = 0; x < img[i]->width(); ++x) {
+    for (uint y = 0; y < img[i]->height(); ++y) {
+      for (uint x = 0; x < img[i]->width(); ++x) {
         float v = img[i]->pixel(x, y);
         qimg.setPixel(x, y, qRgb(v, v, v));
       }

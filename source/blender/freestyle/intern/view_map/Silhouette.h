@@ -242,7 +242,7 @@ class SVertex : public Interface0D {
   }
 
   /** Returns the number of different normals for this vertex. */
-  inline unsigned normalsSize() const
+  inline uint normalsSize() const
   {
     return _Normals.size();
   }
@@ -606,7 +606,7 @@ class FEdge : public Interface1D {
   }
 
   /** Returns the first SVertex if i=0, the second SVertex if i=1. */
-  inline SVertex *operator[](const unsigned short int &i) const
+  inline SVertex *operator[](const ushort &i) const
   {
     return (i % 2 == 0) ? _VertexA : _VertexB;
   }
@@ -1133,8 +1133,8 @@ class FEdgeSharp : public FEdge {
  protected:
   Vec3r _aNormal;  // When following the edge, normal of the right face
   Vec3r _bNormal;  // When following the edge, normal of the left face
-  unsigned _aFrsMaterialIndex;
-  unsigned _bFrsMaterialIndex;
+  uint _aFrsMaterialIndex;
+  uint _bFrsMaterialIndex;
   bool _aFaceMark;
   bool _bFaceMark;
 
@@ -1198,7 +1198,7 @@ class FEdgeSharp : public FEdge {
    *  right of the FEdge. If this FEdge is a border,
    *  it has no Face on its right and therefore, no material.
    */
-  inline unsigned aFrsMaterialIndex() const
+  inline uint aFrsMaterialIndex() const
   {
     return _aFrsMaterialIndex;
   }
@@ -1209,7 +1209,7 @@ class FEdgeSharp : public FEdge {
   const FrsMaterial &aFrsMaterial() const;
 
   /** Returns the index of the material of the face lying on the left of the FEdge. */
-  inline unsigned bFrsMaterialIndex() const
+  inline uint bFrsMaterialIndex() const
   {
     return _bFrsMaterialIndex;
   }
@@ -1244,13 +1244,13 @@ class FEdgeSharp : public FEdge {
   }
 
   /** Sets the index of the material lying on the right of the FEdge. */
-  inline void setaFrsMaterialIndex(unsigned i)
+  inline void setaFrsMaterialIndex(uint i)
   {
     _aFrsMaterialIndex = i;
   }
 
   /** Sets the index of the material lying on the left of the FEdge. */
-  inline void setbFrsMaterialIndex(unsigned i)
+  inline void setbFrsMaterialIndex(uint i)
   {
     _bFrsMaterialIndex = i;
   }
@@ -1278,7 +1278,7 @@ class FEdgeSharp : public FEdge {
 class FEdgeSmooth : public FEdge {
  protected:
   Vec3r _Normal;
-  unsigned _FrsMaterialIndex;
+  uint _FrsMaterialIndex;
 #if 0
   bool _hasVisibilityPoint;
   Vec3r _VisibilityPointA;  // The edge on which the visibility will be computed represented
@@ -1351,7 +1351,7 @@ class FEdgeSmooth : public FEdge {
   }
 
   /** Returns the index of the material of the face it is running across. */
-  inline unsigned frs_materialIndex() const
+  inline uint frs_materialIndex() const
   {
     return _FrsMaterialIndex;
   }
@@ -1377,7 +1377,7 @@ class FEdgeSmooth : public FEdge {
   }
 
   /** Sets the index of the material of the face it is running across. */
-  inline void setFrsMaterialIndex(unsigned i)
+  inline void setFrsMaterialIndex(uint i)
   {
     _FrsMaterialIndex = i;
   }
@@ -1863,7 +1863,7 @@ class SShape {
   }
 
   /** Returns the ith material of the shape. */
-  inline const FrsMaterial &frs_material(unsigned i) const
+  inline const FrsMaterial &frs_material(uint i) const
   {
     return _FrsMaterials[i];
   }

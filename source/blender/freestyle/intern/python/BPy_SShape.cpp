@@ -138,7 +138,7 @@ static PyObject *SShape_compute_bbox(BPy_SShape *self)
   Py_RETURN_NONE;
 }
 
-// const Material &     material (unsigned i) const
+// const Material &     material (uint i) const
 // const vector< Material > &   materials () const
 // void     SetMaterials (const vector< Material > &iMaterials)
 
