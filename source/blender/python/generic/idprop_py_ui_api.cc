@@ -439,9 +439,10 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
 {
   const char *rna_subtype = nullptr;
   const char *description = nullptr;
-  const char *kwlist[] = {"subtype", "description", nullptr};
+  const char *id_type = nullptr;
+  const char *kwlist[] = {"subtype", "description", "id_type", nullptr};
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, "|$zz:update", (char **)kwlist, &rna_subtype, &description))
+          args, kwargs, "|$zzz:update", (char **)kwlist, &rna_subtype, &description, &id_type))
   {
     return false;
   }
@@ -454,6 +455,15 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
     IDP_ui_data_free_unique_contents(&ui_data.base, IDP_ui_data_type(idprop), &ui_data_orig->base);
     return false;
   }
+
+  int id_type_tmp;
+  if (pyrna_enum_value_from_id(
+          rna_enum_id_type_items, id_type, &id_type_tmp, "IDPropertyUIManager.update") == -1)
+  {
+    return false;
+  }
+
+  ui_data.id_type = short(id_type_tmp);
 
   /* Write back to the property's UI data. */
   IDP_ui_data_free_unique_contents(&ui_data_orig->base, IDP_ui_data_type(idprop), &ui_data.base);
@@ -471,6 +481,7 @@ PyDoc_STRVAR(BPy_IDPropertyUIManager_update_doc,
              "precision=None, "
              "step=None, "
              "default=None, "
+             "id_type=None, "
              "description=None)\n"
              "\n"
              "   Update the RNA information of the IDProperty used for interaction and\n"
@@ -619,6 +630,17 @@ static void idprop_ui_data_to_dict_string(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
 }
 
+static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
+{
+  IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)property->ui_data;
+
+  const char *id_type = nullptr;
+  RNA_enum_identifier(rna_enum_id_type_items, ui_data->id_type, &id_type);
+  PyObject *item = PyUnicode_FromString(id_type);
+  PyDict_SetItemString(dict, "id_type", item);
+  Py_DECREF(item);
+}
+
 PyDoc_STRVAR(BPy_IDPropertyUIManager_as_dict_doc,
              ".. method:: as_dict()\n"
              "\n"
@@ -655,6 +677,7 @@ static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self
       idprop_ui_data_to_dict_string(property, dict);
       break;
     case IDP_UI_DATA_TYPE_ID:
+      idprop_ui_data_to_dict_id(property, dict);
       break;
     case IDP_UI_DATA_TYPE_INT:
       idprop_ui_data_to_dict_int(property, dict);
