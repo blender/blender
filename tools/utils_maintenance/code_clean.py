@@ -523,8 +523,21 @@ class edit_generators:
         def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
             edits = []
 
+            # Keep `typedef` unsigned as some files have local types, e.g.
+            #    `typedef unsigned int uint;`
+            # Should not be changed to:
+            #    `typedef uint uint;`
+            # ... even if it happens to compile - because it may cause problems on other platforms
+            # that don't have `uint` defined.
+            span_skip = set()
+            for match in re.finditer(r"\btypedef\s+(unsigned)\b", data):
+                span_skip.add(match.span(1))
+
             # `unsigned char` -> `uchar`.
             for match in re.finditer(r"(unsigned)\s+([a-z]+)", data):
+                if match.span(1) in span_skip:
+                    continue
+
                 edits.append(Edit(
                     span=match.span(),
                     content='u%s' % match.group(2),
@@ -533,7 +546,10 @@ class edit_generators:
 
             # There may be some remaining uses of `unsigned` without any integer type afterwards.
             # `unsigned` -> `uint`.
-            for match in re.finditer(r"\bunsigned\b", data):
+            for match in re.finditer(r"\b(unsigned)\b", data):
+                if match.span(1) in span_skip:
+                    continue
+
                 edits.append(Edit(
                     span=match.span(),
                     content='uint',
