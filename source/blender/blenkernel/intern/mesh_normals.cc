@@ -826,7 +826,7 @@ void edges_sharp_from_angle_set(const OffsetIndices<int> faces,
 static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
                                                const OffsetIndices<int> faces,
                                                const Span<int> loop_to_face,
-                                               const int *e2lfan_curr,
+                                               const int2 e2lfan_curr,
                                                const int vert_pivot,
                                                int *r_mlfan_curr_index,
                                                int *r_mlfan_vert_index)
@@ -1090,7 +1090,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
                                                          const OffsetIndices<int> faces,
                                                          const Span<int2> edge_to_loops,
                                                          const Span<int> loop_to_face,
-                                                         const int *e2l_prev,
+                                                         const int2 e2l_prev,
                                                          MutableBitSpan skip_loops,
                                                          const int ml_curr_index,
                                                          const int ml_prev_index)
@@ -1098,7 +1098,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(const Span<int> corner_
   /* The vertex we are "fanning" around. */
   const int vert_pivot = corner_verts[ml_curr_index];
 
-  const int *e2lfan_curr = e2l_prev;
+  int2 e2lfan_curr = e2l_prev;
   if (IS_EDGE_SHARP(e2lfan_curr)) {
     /* Sharp loop, so not a cyclic smooth fan. */
     return false;
