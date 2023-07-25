@@ -4519,7 +4519,7 @@ static const EnumPropertyItem node_sheen_items[] = {
      0,
      "Microfiber",
      "Microflake-based model of multiple scattering between normal-oriented fibers"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static const EnumPropertyItem node_toon_items[] = {
@@ -6000,7 +6000,7 @@ static void def_sheen(StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "custom1");
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
   RNA_def_property_enum_items(prop, node_sheen_items);
   RNA_def_property_ui_text(prop, "Distribution", "Sheen shading model");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");

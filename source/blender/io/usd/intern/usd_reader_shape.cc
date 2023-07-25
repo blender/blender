@@ -125,7 +125,7 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
   return false;
 }
 
-Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
+Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
                                 const USDMeshReadParams params,
                                 const char ** /*err_str*/)
 {

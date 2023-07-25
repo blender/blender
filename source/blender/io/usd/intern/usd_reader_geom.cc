@@ -32,7 +32,7 @@ void USDGeomReader::add_cache_modifier()
   id_us_plus(&mcmd->cache_file->id);
   mcmd->read_flag = import_params_.mesh_read_flag;
 
-  BLI_strncpy(mcmd->object_path, prim_.GetPath().GetString().c_str(), FILE_MAX);
+  STRNCPY(mcmd->object_path, prim_.GetPath().GetString().c_str());
 }
 
 void USDGeomReader::add_subdiv_modifier()

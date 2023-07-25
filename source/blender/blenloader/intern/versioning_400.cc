@@ -287,7 +287,7 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
       STRNCPY(node->idname, "ShaderNodeBsdfSheen");
 
       bNodeSocket *sigmaInput = nodeFindSocket(node, SOCK_IN, "Sigma");
-      if (sigmaInput != NULL) {
+      if (sigmaInput != nullptr) {
         node->custom1 = SHD_SHEEN_ASHIKHMIN;
         STRNCPY(sigmaInput->identifier, "Roughness");
         STRNCPY(sigmaInput->name, "Roughness");

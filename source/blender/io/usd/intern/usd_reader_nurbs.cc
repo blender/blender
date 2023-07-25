@@ -168,7 +168,7 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
   }
 }
 
-Mesh *USDNurbsReader::read_mesh(struct Mesh * /* existing_mesh */,
+Mesh *USDNurbsReader::read_mesh(Mesh * /* existing_mesh */,
                                 const USDMeshReadParams params,
                                 const char ** /* err_str */)
 {
