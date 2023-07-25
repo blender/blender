@@ -1388,8 +1388,10 @@ static void bm_to_mesh_faces(const BMesh &bm,
 
 static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loops, Mesh &mesh)
 {
-  CustomData_add_layer_named(&mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
-  CustomData_add_layer_named(&mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
+  CustomData_add_layer_named(
+      &mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
+  CustomData_add_layer_named(
+      &mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.ldata, mesh.loop_data);
   MutableSpan<int> dst_corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = mesh.corner_edges_for_write();

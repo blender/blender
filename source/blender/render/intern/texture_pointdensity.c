@@ -287,7 +287,8 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   }
   CustomData_validate_layer_name(
       &mesh->loop_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
-  const MLoopCol *mcol = CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, layername);
+  const MLoopCol *mcol = CustomData_get_layer_named(
+      &mesh->loop_data, CD_PROP_BYTE_COLOR, layername);
   if (!mcol) {
     return;
   }

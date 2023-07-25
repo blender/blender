@@ -1642,7 +1642,8 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     }
 
     /* get uv map */
-    CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, surface->init_layername, uvname);
+    CustomData_validate_layer_name(
+        &mesh->loop_data, CD_PROP_FLOAT2, surface->init_layername, uvname);
     const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
         CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uvname));
 
@@ -1690,8 +1691,8 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     /* For vertex surface, just copy colors from #MLoopCol. */
     if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
       const blender::Span<int> corner_verts = mesh->corner_verts();
-      const MLoopCol *col = static_cast<const MLoopCol *>(
-          CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, surface->init_layername));
+      const MLoopCol *col = static_cast<const MLoopCol *>(CustomData_get_layer_named(
+          &mesh->loop_data, CD_PROP_BYTE_COLOR, surface->init_layername));
       if (!col) {
         return;
       }
@@ -1702,8 +1703,8 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       const blender::Span<MLoopTri> looptris = mesh->looptris();
-      const MLoopCol *col = static_cast<const MLoopCol *>(
-          CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, surface->init_layername));
+      const MLoopCol *col = static_cast<const MLoopCol *>(CustomData_get_layer_named(
+          &mesh->loop_data, CD_PROP_BYTE_COLOR, surface->init_layername));
       if (!col) {
         return;
       }
@@ -2008,8 +2009,8 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           /* vertex group paint */
           else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
             int defgrp_index = BKE_object_defgroup_name_index(ob, surface->output_name);
-            MDeformVert *dvert = static_cast<MDeformVert *>(
-                CustomData_get_layer_for_write(&result->vert_data, CD_MDEFORMVERT, result->totvert));
+            MDeformVert *dvert = static_cast<MDeformVert *>(CustomData_get_layer_for_write(
+                &result->vert_data, CD_MDEFORMVERT, result->totvert));
             float *weight = (float *)sData->type_data;
 
             /* apply weights into a vertex group, if doesn't exists add a new layer */
@@ -2850,7 +2851,8 @@ int dynamicPaint_createUVSurface(Scene *scene,
 
   /* get uv map */
   if (CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2)) {
-    CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, surface->uvlayer_name, uvname);
+    CustomData_validate_layer_name(
+        &mesh->loop_data, CD_PROP_FLOAT2, surface->uvlayer_name, uvname);
     mloopuv = static_cast<const float(*)[2]>(
         CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uvname));
   }

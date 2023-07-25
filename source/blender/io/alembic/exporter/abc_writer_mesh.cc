@@ -310,8 +310,10 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
       subdiv_sample.setUVs(uv_sample);
     }
 
-    write_custom_data(
-        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->loop_data, CD_PROP_FLOAT2);
+    write_custom_data(abc_subdiv_schema_.getArbGeomParams(),
+                      m_custom_data_config,
+                      &mesh->loop_data,
+                      CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->orcos) {

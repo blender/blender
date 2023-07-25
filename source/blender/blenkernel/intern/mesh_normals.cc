@@ -1658,8 +1658,8 @@ static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const
     memset(clnors, 0, sizeof(*clnors) * mesh->totloop);
   }
   else {
-    clnors = static_cast<short2 *>(
-        CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
+    clnors = static_cast<short2 *>(CustomData_add_layer(
+        &mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(

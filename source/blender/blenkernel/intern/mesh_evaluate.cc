@@ -509,10 +509,10 @@ void BKE_mesh_face_flip_ex(const int face_offset,
 {
   int loopstart = face_offset;
   int loopend = loopstart + face_size - 1;
-  const bool corner_verts_in_data = (CustomData_get_layer_named(
-                                         loop_data, CD_PROP_INT32, ".corner_vert") == corner_verts);
-  const bool corner_edges_in_data = (CustomData_get_layer_named(
-                                         loop_data, CD_PROP_INT32, ".corner_edge") == corner_edges);
+  const bool corner_verts_in_data =
+      (CustomData_get_layer_named(loop_data, CD_PROP_INT32, ".corner_vert") == corner_verts);
+  const bool corner_edges_in_data =
+      (CustomData_get_layer_named(loop_data, CD_PROP_INT32, ".corner_edge") == corner_edges);
 
   if (mdisp) {
     for (int i = loopstart; i <= loopend; i++) {

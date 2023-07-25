@@ -428,7 +428,8 @@ static void add_orco_mesh(
       BKE_mesh_orco_verts_transform((Mesh *)ob->data, orco, totvert, 0);
     }
 
-    layerorco = (float(*)[3])CustomData_get_layer_for_write(&mesh->vert_data, layer, mesh->totvert);
+    layerorco = (float(*)[3])CustomData_get_layer_for_write(
+        &mesh->vert_data, layer, mesh->totvert);
     if (!layerorco) {
       layerorco = (float(*)[3])CustomData_add_layer(
           &mesh->vert_data, eCustomDataType(layer), CD_SET_DEFAULT, mesh->totvert);

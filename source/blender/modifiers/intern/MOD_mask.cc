@@ -403,8 +403,13 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
           dvert, defgrp_index, threshold, e_src[0], e_src[1]);
 
       float weights[2] = {1.0f - fac, fac};
-      CustomData_interp(
-          &src_mesh.vert_data, &dst_mesh.vert_data, (int *)&e_src[0], weights, nullptr, 2, vert_index);
+      CustomData_interp(&src_mesh.vert_data,
+                        &dst_mesh.vert_data,
+                        (int *)&e_src[0],
+                        weights,
+                        nullptr,
+                        2,
+                        vert_index);
       vert_index++;
     }
   }
@@ -552,7 +557,8 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
         dst_corner_verts[i_ml_dst] = dst_edges[dst_corner_edges[i_ml_dst]][0];
         i_ml_dst++;
 
-        CustomData_copy_data(&src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
+        CustomData_copy_data(
+            &src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
         dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
         dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;
@@ -583,7 +589,8 @@ static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
       else if (v_loop_in_mask && v_loop_in_mask_last) {
         BLI_assert(i_ml_dst != dst_face_offsets[i_dst]);
         /* Extend active face. */
-        CustomData_copy_data(&src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
+        CustomData_copy_data(
+            &src_mesh.loop_data, &dst_mesh.loop_data, i_ml_src + index, i_ml_dst, 1);
         dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
         dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;

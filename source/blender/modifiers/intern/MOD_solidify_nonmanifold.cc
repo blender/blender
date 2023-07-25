@@ -2042,7 +2042,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
       if (gs) {
         for (EdgeGroup *g = gs; g->valid; g++) {
           if (g->new_vert != MOD_SOLIDIFY_EMPTY_TAG) {
-            CustomData_copy_data(&mesh->vert_data, &result->vert_data, int(i), int(g->new_vert), 1);
+            CustomData_copy_data(
+                &mesh->vert_data, &result->vert_data, int(i), int(g->new_vert), 1);
             copy_v3_v3(vert_positions[g->new_vert], g->co);
           }
         }
@@ -2393,8 +2394,11 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
         const uint orig_face_index = (*new_edges)->faces[0]->index;
         const blender::IndexRange face = (*new_edges)->faces[0]->face;
-        CustomData_copy_data(
-            &mesh->face_data, &result->face_data, int((*new_edges)->faces[0]->index), int(face_index), 1);
+        CustomData_copy_data(&mesh->face_data,
+                             &result->face_data,
+                             int((*new_edges)->faces[0]->index),
+                             int(face_index),
+                             1);
         face_offsets[face_index] = int(loop_index);
         dst_material_index[face_index] =
             (src_material_index ? src_material_index[orig_face_index] : 0) + mat_ofs_rim;
@@ -2585,7 +2589,8 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           }
         }
         if (k > 2 && valid_edges > 2) {
-          CustomData_copy_data(&mesh->face_data, &result->face_data, int(i / 2), int(face_index), 1);
+          CustomData_copy_data(
+              &mesh->face_data, &result->face_data, int(i / 2), int(face_index), 1);
           face_offsets[face_index] = int(loop_index);
           dst_material_index[face_index] = (src_material_index ? src_material_index[fr->index] :
                                                                  0) +

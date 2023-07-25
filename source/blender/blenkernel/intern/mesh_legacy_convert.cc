@@ -882,7 +882,8 @@ static void mesh_loops_to_tessdata(CustomData *fdata_legacy,
 
   if (hasPCol) {
     MCol(*mcol)[4] = (MCol(*)[4])CustomData_get_layer(fdata_legacy, CD_PREVIEW_MCOL);
-    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer(loop_data, CD_PREVIEW_MLOOPCOL);
+    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer(loop_data,
+                                                                      CD_PREVIEW_MLOOPCOL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {

@@ -1102,10 +1102,14 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       k2 = face_offsets[pidx] + (edge_order[eidx]);
 
-      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 0), 1);
-      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 1), 1);
-      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 2), 1);
-      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 3), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 0), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 1), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 2), 1);
+      CustomData_copy_data(
+          &mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
         new_corner_verts[j] = edge[0];

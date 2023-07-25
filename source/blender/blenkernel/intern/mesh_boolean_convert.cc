@@ -668,8 +668,11 @@ static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMesh
           &me->loop_data, &target->loop_data, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
     }
     if (me->faces_num) {
-      CustomData_merge_layout(
-          &me->face_data, &target->face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, target->faces_num);
+      CustomData_merge_layout(&me->face_data,
+                              &target->face_data,
+                              CD_MASK_MESH.pmask,
+                              CD_SET_DEFAULT,
+                              target->faces_num);
     }
   }
 }

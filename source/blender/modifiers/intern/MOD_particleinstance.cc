@@ -490,7 +490,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         int dst_corner_i = dst_face_start;
         int j = in_face.size();
 
-        CustomData_copy_data(&mesh->loop_data, &result->loop_data, in_face.start(), dst_face_start, j);
+        CustomData_copy_data(
+            &mesh->loop_data, &result->loop_data, in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);

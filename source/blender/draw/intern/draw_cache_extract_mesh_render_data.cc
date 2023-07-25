@@ -337,8 +337,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
       mr->loop_normals.reinitialize(mr->corner_verts.size());
-      blender::short2 *clnors = static_cast<blender::short2 *>(
-          CustomData_get_layer_for_write(&mr->me->loop_data, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
+      blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
+          &mr->me->loop_data, CD_CUSTOMLOOPNORMAL, mr->me->totloop));
       const bool *sharp_edges = static_cast<const bool *>(
           CustomData_get_layer_named(&mr->me->edge_data, CD_PROP_BOOL, "sharp_edge"));
       blender::bke::mesh::normals_calc_loop(mr->vert_positions,
@@ -527,9 +527,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->corner_verts = mr->me->corner_verts();
     mr->corner_edges = mr->me->corner_edges();
 
-    mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vert_data, CD_ORIGINDEX));
-    mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edge_data, CD_ORIGINDEX));
-    mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->face_data, CD_ORIGINDEX));
+    mr->v_origindex = static_cast<const int *>(
+        CustomData_get_layer(&mr->me->vert_data, CD_ORIGINDEX));
+    mr->e_origindex = static_cast<const int *>(
+        CustomData_get_layer(&mr->me->edge_data, CD_ORIGINDEX));
+    mr->p_origindex = static_cast<const int *>(
+        CustomData_get_layer(&mr->me->face_data, CD_ORIGINDEX));
 
     mr->material_indices = static_cast<const int *>(
         CustomData_get_layer_named(&mr->me->face_data, CD_PROP_INT32, "material_index"));

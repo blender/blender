@@ -261,9 +261,9 @@ struct DensityAddOperationExecutor {
     if (!CustomData_has_layer(&surface_orig_->loop_data, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_orig_);
     }
-    const Span<float3> corner_normals_su = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig_->loop_data, CD_NORMAL)),
-        surface_orig_->totloop};
+    const Span<float3> corner_normals_su = {reinterpret_cast<const float3 *>(CustomData_get_layer(
+                                                &surface_orig_->loop_data, CD_NORMAL)),
+                                            surface_orig_->totloop};
 
     const Span<MLoopTri> surface_looptris_orig = surface_orig_->looptris();
     const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};

@@ -185,7 +185,8 @@ static BLI_bitmap *multires_mdisps_downsample_hidden(const BLI_bitmap *old_hidde
 static void multires_output_hidden_to_ccgdm(CCGDerivedMesh *ccgdm, Mesh *me, int level)
 {
   const blender::OffsetIndices faces = me->faces();
-  const MDisps *mdisps = static_cast<const MDisps *>(CustomData_get_layer(&me->loop_data, CD_MDISPS));
+  const MDisps *mdisps = static_cast<const MDisps *>(
+      CustomData_get_layer(&me->loop_data, CD_MDISPS));
   BLI_bitmap **grid_hidden = ccgdm->gridHidden;
   int *gridOffset;
   int j;
@@ -488,7 +489,8 @@ static int get_levels_from_disps(Object *ob)
   const blender::OffsetIndices faces = me->faces();
   int totlvl = 0;
 
-  const MDisps *mdisp = static_cast<const MDisps *>(CustomData_get_layer(&me->loop_data, CD_MDISPS));
+  const MDisps *mdisp = static_cast<const MDisps *>(
+      CustomData_get_layer(&me->loop_data, CD_MDISPS));
 
   for (const int i : faces.index_range()) {
     for (const int corner : faces[i]) {

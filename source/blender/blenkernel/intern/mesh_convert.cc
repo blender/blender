@@ -553,7 +553,8 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
   CustomData_free(&pointcloud->pdata, pointcloud->totpoint);
   pointcloud->totpoint = mesh_eval->totvert;
-  CustomData_merge(&mesh_eval->vert_data, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->totvert);
+  CustomData_merge(
+      &mesh_eval->vert_data, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->totvert);
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 

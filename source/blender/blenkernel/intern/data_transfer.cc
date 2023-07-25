@@ -978,8 +978,11 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
     if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
       if (!CustomData_get_layer_named(&me_dst->vert_data, CD_PROP_FLOAT, "bevel_weight_vert")) {
-        CustomData_add_layer_named(
-            &me_dst->vert_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totvert, "bevel_weight_vert");
+        CustomData_add_layer_named(&me_dst->vert_data,
+                                   CD_PROP_FLOAT,
+                                   CD_SET_DEFAULT,
+                                   me_dst->totvert,
+                                   "bevel_weight_vert");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -1058,8 +1061,11 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     }
     if (r_map && cddata_type == CD_FAKE_BWEIGHT) {
       if (!CustomData_get_layer_named(&me_dst->edge_data, CD_PROP_FLOAT, "bevel_weight_edge")) {
-        CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, me_dst->totedge, "bevel_weight_edge");
+        CustomData_add_layer_named(&me_dst->edge_data,
+                                   CD_PROP_FLOAT,
+                                   CD_SET_DEFAULT,
+                                   me_dst->totedge,
+                                   "bevel_weight_edge");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -1375,7 +1381,8 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
   }
 
   if (vgroup_name) {
-    mdef = static_cast<const MDeformVert *>(CustomData_get_layer(&me_dst->vert_data, CD_MDEFORMVERT));
+    mdef = static_cast<const MDeformVert *>(
+        CustomData_get_layer(&me_dst->vert_data, CD_MDEFORMVERT));
     if (mdef) {
       vg_idx = BKE_id_defgroup_name_index(&me_dst->id, vgroup_name);
     }

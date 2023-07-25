@@ -145,7 +145,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         float2 uv_first = mloopuv ? *mloopuv : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
         if (exp.color_first.x >= 0) {
-          const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vert_data, CD_PROP_COLOR);
+          const float4 *colors = (const float4 *)CustomData_get_layer(&mesh->vert_data,
+                                                                      CD_PROP_COLOR);
           EXPECT_TRUE(colors != nullptr);
           EXPECT_V4_NEAR(colors[0], exp.color_first, 0.0001f);
         }

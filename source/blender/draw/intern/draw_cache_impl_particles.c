@@ -837,7 +837,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
 
   if (psmd != NULL && psmd->mesh_final != NULL) {
     if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2)) {
-      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
+      cache->num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data,
+                                                         CD_PROP_FLOAT2);
       active_uv = CustomData_get_active_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
       render_uv = CustomData_get_render_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
     }
@@ -934,7 +935,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertbuf_attr_get_raw_data(cache->proc_col_buf[i], col_id, &col_step[i]);
 
     char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-    const char *name = CustomData_get_layer_name(&psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR, i);
+    const char *name = CustomData_get_layer_name(
+        &psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR, i);
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
@@ -1185,7 +1187,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       active_uv = CustomData_get_active_layer(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2);
     }
     if (CustomData_has_layer(&psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR)) {
-      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data, CD_PROP_BYTE_COLOR);
+      num_col_layers = CustomData_number_of_layers(&psmd->mesh_final->loop_data,
+                                                   CD_PROP_BYTE_COLOR);
       if (psmd->mesh_final->active_color_attribute != NULL) {
         active_col = CustomData_get_named_layer(&psmd->mesh_final->loop_data,
                                                 CD_PROP_BYTE_COLOR,
@@ -1208,7 +1211,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     for (int i = 0; i < num_uv_layers; i++) {
 
       char uuid[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-      const char *name = CustomData_get_layer_name(&psmd->mesh_final->loop_data, CD_PROP_FLOAT2, i);
+      const char *name = CustomData_get_layer_name(
+          &psmd->mesh_final->loop_data, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
       SNPRINTF(uuid, "a%s", attr_safe_name);

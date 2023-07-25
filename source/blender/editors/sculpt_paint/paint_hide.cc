@@ -81,8 +81,8 @@ static void partialvis_update_mesh(Object *ob,
   const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
   paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
-  bool *hide_vert = static_cast<bool *>(
-      CustomData_get_layer_named_for_write(&me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
+  bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
         &me->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));

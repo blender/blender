@@ -229,7 +229,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   uint *vert_loop_map = nullptr; /* orig vert to orig loop */
 
   /* UV Coords */
-  const uint mloopuv_layers_tot = uint(CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2));
+  const uint mloopuv_layers_tot = uint(
+      CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2));
   blender::Array<blender::float2 *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
@@ -779,7 +780,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     /* copy a slice */
-    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, int(varray_stride), int(totvert));
+    CustomData_copy_data(
+        &mesh->vert_data, &result->vert_data, 0, int(varray_stride), int(totvert));
 
     /* set location */
     for (j = 0; j < totvert; j++) {

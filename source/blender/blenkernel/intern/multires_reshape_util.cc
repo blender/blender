@@ -109,8 +109,8 @@ static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
   Mesh *base_mesh = reshape_context->base_mesh;
   reshape_context->mdisps = static_cast<MDisps *>(
       CustomData_get_layer_for_write(&base_mesh->loop_data, CD_MDISPS, base_mesh->totloop));
-  reshape_context->grid_paint_masks = static_cast<GridPaintMask *>(
-      CustomData_get_layer_for_write(&base_mesh->loop_data, CD_GRID_PAINT_MASK, base_mesh->totloop));
+  reshape_context->grid_paint_masks = static_cast<GridPaintMask *>(CustomData_get_layer_for_write(
+      &base_mesh->loop_data, CD_GRID_PAINT_MASK, base_mesh->totloop));
 }
 
 static void context_init_commoon(MultiresReshapeContext *reshape_context)

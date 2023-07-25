@@ -323,8 +323,8 @@ static void imapaint_pick_uv(const Mesh *me_eval,
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
-              (mloopuv = static_cast<const float(*)[2]>(
-                   CustomData_get_layer_named(&me_eval->loop_data, CD_PROP_FLOAT2, slot->uvname)))))
+              (mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer_named(
+                   &me_eval->loop_data, CD_PROP_FLOAT2, slot->uvname)))))
         {
           mloopuv = static_cast<const float(*)[2]>(
               CustomData_get_layer(&me_eval->loop_data, CD_PROP_FLOAT2));

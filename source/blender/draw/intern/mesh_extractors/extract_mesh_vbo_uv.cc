@@ -81,7 +81,8 @@ static void extract_uv_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
 
-  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->loop_data;
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata :
+                                                                  &mr->me->loop_data;
   int v_len = mr->loop_len;
   uint32_t uv_layers = cache->cd_used.uv;
   if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr->extract_type, uv_layers)) {
@@ -134,7 +135,8 @@ static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
   uint v_len = subdiv_cache->num_subdiv_loops;
   uint uv_layers;
   if (!mesh_extract_uv_format_init(
-          &format, cache, &coarse_mesh->loop_data, MR_EXTRACT_MESH, uv_layers)) {
+          &format, cache, &coarse_mesh->loop_data, MR_EXTRACT_MESH, uv_layers))
+  {
     /* TODO(kevindietrich): handle this more gracefully. */
     v_len = 1;
   }

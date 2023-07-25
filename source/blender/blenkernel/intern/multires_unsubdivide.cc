@@ -885,12 +885,14 @@ static const char vname[] = "v_remap_index";
 
 static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
 {
-  const int l_layer_index = CustomData_get_named_layer_index(&mesh->loop_data, CD_PROP_INT32, lname);
+  const int l_layer_index = CustomData_get_named_layer_index(
+      &mesh->loop_data, CD_PROP_INT32, lname);
   if (l_layer_index != -1) {
     CustomData_free_layer(&mesh->loop_data, CD_PROP_INT32, mesh->totloop, l_layer_index);
   }
 
-  const int v_layer_index = CustomData_get_named_layer_index(&mesh->vert_data, CD_PROP_INT32, vname);
+  const int v_layer_index = CustomData_get_named_layer_index(
+      &mesh->vert_data, CD_PROP_INT32, vname);
   if (v_layer_index != -1) {
     CustomData_free_layer(&mesh->vert_data, CD_PROP_INT32, mesh->totvert, v_layer_index);
   }

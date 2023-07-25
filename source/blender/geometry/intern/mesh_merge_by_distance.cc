@@ -1594,8 +1594,11 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     const int poly_ctx = weld_mesh.face_map[i];
     if (poly_ctx == OUT_OF_CONTEXT) {
       int mp_loop_len = src_faces[i].size();
-      CustomData_copy_data(
-          &mesh.loop_data, &result->loop_data, src_faces[i].start(), loop_cur, src_faces[i].size());
+      CustomData_copy_data(&mesh.loop_data,
+                           &result->loop_data,
+                           src_faces[i].start(),
+                           loop_cur,
+                           src_faces[i].size());
       for (; mp_loop_len--; loop_cur++) {
         dst_corner_verts[loop_cur] = vert_final_map[dst_corner_verts[loop_cur]];
         dst_corner_edges[loop_cur] = edge_final_map[dst_corner_edges[loop_cur]];
@@ -1652,7 +1655,8 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
       continue;
     }
     while (weld_iter_loop_of_poly_next(iter)) {
-      customdata_weld(&mesh.loop_data, &result->loop_data, group_buffer.data(), iter.group_len, loop_cur);
+      customdata_weld(
+          &mesh.loop_data, &result->loop_data, group_buffer.data(), iter.group_len, loop_cur);
       dst_corner_verts[loop_cur] = vert_final_map[iter.v];
       dst_corner_edges[loop_cur] = edge_final_map[iter.e];
       loop_cur++;

@@ -140,7 +140,8 @@ bool BKE_shrinkwrap_init_tree(
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
     data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-      data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
+      data->clnors = static_cast<const float(*)[3]>(
+          CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
     }
   }
 

@@ -181,9 +181,9 @@ struct SlideOperationExecutor {
     if (!CustomData_has_layer(&surface_orig_->loop_data, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_orig_);
     }
-    corner_normals_orig_su_ = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig_->loop_data, CD_NORMAL)),
-        surface_orig_->totloop};
+    corner_normals_orig_su_ = {reinterpret_cast<const float3 *>(
+                                   CustomData_get_layer(&surface_orig_->loop_data, CD_NORMAL)),
+                               surface_orig_->totloop};
 
     surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
