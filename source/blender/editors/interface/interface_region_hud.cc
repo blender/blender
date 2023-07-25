@@ -325,12 +325,12 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   /* Let 'ED_area_update_region_sizes' do the work of placing the region.
    * Otherwise we could set the 'region->winrct' & 'region->winx/winy' here. */
   if (init) {
-    area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+    ED_area_tag_region_size_update(area, region);
   }
   else {
     if (region->flag & RGN_FLAG_HIDDEN) {
       /* Also forces recalculating HUD size in hud_region_layout(). */
-      area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+      ED_area_tag_region_size_update(area, region);
     }
     region->flag &= ~RGN_FLAG_HIDDEN;
   }

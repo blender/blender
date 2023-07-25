@@ -213,6 +213,11 @@ void ED_area_tag_redraw_no_rebuild(ScrArea *area);
 void ED_area_tag_redraw_regiontype(ScrArea *area, int type);
 void ED_area_tag_refresh(ScrArea *area);
 /**
+ * For regions that change the region size in their #ARegionType.layout() callback: Mark the area
+ * as having a changed region size, requiring refitting of regions within the area.
+ */
+void ED_area_tag_region_size_update(ScrArea *area, ARegion *changed_region);
+/**
  * Only exported for WM.
  */
 void ED_area_do_refresh(struct bContext *C, ScrArea *area);
