@@ -86,7 +86,7 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # "jumptablerdata" improves performance when there is contention in large switch statements such as in svm.h
   # This flag is supported starting with MSVC 17.7 preview 3:
   # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
-  if(MSVC_VERSION GREATER_EQUAL 1937)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)
     string(APPEND CYCLES_KERNEL_FLAGS " /jumptablerdata")
   endif()
 
