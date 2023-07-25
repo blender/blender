@@ -54,6 +54,8 @@
 #include "transform_gizmo.hh"
 #include "transform_snap.hh"
 
+using namespace blender;
+
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;
 
@@ -509,12 +511,10 @@ static int gizmo_3d_foreach_selected(const bContext *C,
                                      const short orient_index,
                                      const bool use_curve_handles,
                                      const bool use_only_center,
-                                     blender::FunctionRef<void(const blender::float3 &)> user_fn,
+                                     FunctionRef<void(const float3 &)> user_fn,
                                      const float (**r_mat)[4],
                                      short *r_drawflags)
 {
-  using namespace blender;
-
   const auto run_coord_with_matrix =
       [&](const float co[3], const bool use_matrix, const float matrix[4][4]) {
         float co_world[3];
@@ -983,9 +983,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
   }
 
-  const auto gizmo_3d_tbounds_calc_fn = [&](const blender::float3 &co) {
-    calc_tw_center(tbounds, co);
-  };
+  const auto gizmo_3d_tbounds_calc_fn = [&](const float3 &co) { calc_tw_center(tbounds, co); };
 
   totsel = gizmo_3d_foreach_selected(C,
                                      orient_index,
@@ -1086,9 +1084,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
       }
 
       float co_sum[3] = {0.0f, 0.0f, 0.0f};
-      const auto gizmo_3d_calc_center_fn = [&](const blender::float3 &co) {
-        add_v3_v3(co_sum, co);
-      };
+      const auto gizmo_3d_calc_center_fn = [&](const float3 &co) { add_v3_v3(co_sum, co); };
       const float(*r_mat)[4] = nullptr;
       int totsel;
       totsel = gizmo_3d_foreach_selected(C,
@@ -2420,7 +2416,7 @@ void transform_gizmo_3d_model_from_constraint_and_mode_set(TransInfo *t)
       wmEvent event = {nullptr};
 
       /* Set the initial mouse value. Used for rotation gizmos. */
-      copy_v2_v2_int(event.mval, t->mouse.imval);
+      copy_v2_v2_int(event.mval, int2(t->mouse.imval));
 
       /* We need to update the position of the gizmo before invoking otherwise
        * #wmGizmo::scale_final could be calculated wrong. */
