@@ -1005,7 +1005,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     if (from == PART_FROM_VERT) {
       const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
       const float(*orcodata)[3] = static_cast<const float(*)[3]>(
-          CustomData_get_layer(&mesh->vdata, CD_ORCO));
+          CustomData_get_layer(&mesh->vert_data, CD_ORCO));
       int totvert = mesh->totvert;
 
       tree = BLI_kdtree_3d_new(totvert);
@@ -1057,7 +1057,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     float totarea = 0.0f, co1[3], co2[3], co3[3], co4[3];
     const float(*orcodata)[3];
 
-    orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vdata, CD_ORCO));
+    orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vert_data, CD_ORCO));
 
     MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
         &mesh->fdata_legacy, CD_MFACE, mesh->totface_legacy);
@@ -1243,7 +1243,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     if (from == PART_FROM_VERT) {
       if (mesh->totvert) {
-        orig_index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+        orig_index = static_cast<const int *>(
+            CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
       }
     }
     else {

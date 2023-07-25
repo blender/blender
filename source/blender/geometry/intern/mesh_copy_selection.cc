@@ -177,10 +177,10 @@ static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
   mesh->totvert = verts_num;
   mesh->totedge = edges_num;
   mesh->totloop = corners_num;
-  CustomData_free_layer_named(&mesh->vdata, "position", 0);
-  CustomData_free_layer_named(&mesh->edata, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->ldata, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->ldata, ".corner_edge", 0);
+  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
+  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
+  CustomData_free_layer_named(&mesh->loop_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->loop_data, ".corner_edge", 0);
   BKE_mesh_copy_parameters_for_eval(mesh, &params_mesh);
   return mesh;
 }

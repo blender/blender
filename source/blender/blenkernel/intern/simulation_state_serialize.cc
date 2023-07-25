@@ -468,10 +468,10 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
   }
 
   Mesh *mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
-  CustomData_free_layer_named(&mesh->vdata, "position", 0);
-  CustomData_free_layer_named(&mesh->edata, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->ldata, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->ldata, ".corner_edge", 0);
+  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
+  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
+  CustomData_free_layer_named(&mesh->loop_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->loop_data, ".corner_edge", 0);
   mesh->totvert = io_mesh->lookup_int("num_vertices").value_or(0);
   mesh->totedge = io_mesh->lookup_int("num_edges").value_or(0);
   mesh->faces_num = io_mesh->lookup_int("num_polygons").value_or(0);

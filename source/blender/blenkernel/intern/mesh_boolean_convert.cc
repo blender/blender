@@ -374,8 +374,8 @@ static void copy_vert_attributes(Mesh *dest_mesh,
                                  int index_in_orig_me)
 {
   /* For all layers in the orig mesh, copy the layer information. */
-  CustomData *target_cd = &dest_mesh->vdata;
-  const CustomData *source_cd = &orig_me->vdata;
+  CustomData *target_cd = &dest_mesh->vert_data;
+  const CustomData *source_cd = &orig_me->vert_data;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
     const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     if (StringRef(source_cd->layers->name) == "position") {
@@ -400,8 +400,8 @@ static void copy_face_attributes(Mesh *dest_mesh,
                                  Span<short> material_remap,
                                  MutableSpan<int> dst_material_indices)
 {
-  CustomData *target_cd = &dest_mesh->pdata;
-  const CustomData *source_cd = &orig_me->pdata;
+  CustomData *target_cd = &dest_mesh->face_data;
+  const CustomData *source_cd = &orig_me->face_data;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
     const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     const char *name = source_cd->layers[source_layer_i].name;
@@ -432,8 +432,8 @@ static void copy_edge_attributes(Mesh *dest_mesh,
                                  int medge_index,
                                  int index_in_orig_me)
 {
-  CustomData *target_cd = &dest_mesh->edata;
-  const CustomData *source_cd = &orig_me->edata;
+  CustomData *target_cd = &dest_mesh->edge_data;
+  const CustomData *source_cd = &orig_me->edge_data;
   for (int source_layer_i = 0; source_layer_i < source_cd->totlayer; ++source_layer_i) {
     const eCustomDataType ty = eCustomDataType(source_cd->layers[source_layer_i].type);
     if (ty == CD_PROP_INT32_2D) {
@@ -588,13 +588,13 @@ static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
     src_blocks_ofs = Array<const void *>(orig_face.size());
     get_poly2d_cos(orig_me, orig_face, cos_2d, mim.to_target_transform[orig_me_index], axis_mat);
   }
-  CustomData *target_cd = &dest_mesh->ldata;
+  CustomData *target_cd = &dest_mesh->loop_data;
   const Span<float3> dst_positions = dest_mesh->vert_positions();
   const Span<int> dst_corner_verts = dest_mesh->corner_verts();
   for (int i = 0; i < face.size(); ++i) {
     int loop_index = face[i];
     int orig_loop_index = norig > 0 ? orig_loops[i] : -1;
-    const CustomData *source_cd = &orig_me->ldata;
+    const CustomData *source_cd = &orig_me->loop_data;
     if (orig_loop_index == -1) {
       /* Will need interpolation weights for this loop's vertex's coordinates.
        * The coordinate needs to be projected into 2d,  just like the interpolating face's
@@ -661,15 +661,15 @@ static void merge_vertex_loop_face_customdata_layers(Mesh *target, MeshesToIMesh
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totvert) {
       CustomData_merge_layout(
-          &me->vdata, &target->vdata, CD_MASK_MESH.vmask, CD_SET_DEFAULT, target->totvert);
+          &me->vert_data, &target->vert_data, CD_MASK_MESH.vmask, CD_SET_DEFAULT, target->totvert);
     }
     if (me->totloop) {
       CustomData_merge_layout(
-          &me->ldata, &target->ldata, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
+          &me->loop_data, &target->loop_data, CD_MASK_MESH.lmask, CD_SET_DEFAULT, target->totloop);
     }
     if (me->faces_num) {
       CustomData_merge_layout(
-          &me->pdata, &target->pdata, CD_MASK_MESH.pmask, CD_SET_DEFAULT, target->faces_num);
+          &me->face_data, &target->face_data, CD_MASK_MESH.pmask, CD_SET_DEFAULT, target->faces_num);
     }
   }
 }
@@ -680,7 +680,7 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
     const Mesh *me = mim.meshes[mesh_index];
     if (me->totedge) {
       CustomData_merge_layout(
-          &me->edata, &target->edata, CD_MASK_MESH.emask, CD_SET_DEFAULT, target->totedge);
+          &me->edge_data, &target->edge_data, CD_MASK_MESH.emask, CD_SET_DEFAULT, target->totedge);
     }
   }
 }

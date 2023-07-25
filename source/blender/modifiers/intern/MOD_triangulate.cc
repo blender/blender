@@ -55,7 +55,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   if (keep_clnors) {
     BKE_mesh_calc_normals_split(mesh);
     /* We need that one to 'survive' to/from BMesh conversions. */
-    CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
     cd_mask_extra.lmask |= CD_MASK_NORMAL;
   }
 
@@ -75,14 +75,14 @@ static Mesh *triangulate_mesh(Mesh *mesh,
 
   if (keep_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
+        CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
 
     BKE_mesh_set_custom_normals(result, lnors);
 
     /* Do some cleanup, we do not want those temp data to stay around. */
-    CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 
   return result;

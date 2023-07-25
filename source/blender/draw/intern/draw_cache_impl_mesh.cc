@@ -1410,7 +1410,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
     if (cache->cd_needed.orco != 0) {
       /* Orco is always extracted from final mesh. */
       Mesh *me_final = (me->edit_mesh) ? BKE_object_get_editmesh_eval_final(ob) : me;
-      if (CustomData_get_layer(&me_final->vdata, CD_ORCO) == nullptr) {
+      if (CustomData_get_layer(&me_final->vert_data, CD_ORCO) == nullptr) {
         /* Skip orco calculation */
         cache->cd_needed.orco = 0;
       }

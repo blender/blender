@@ -1653,19 +1653,19 @@ void normals_loop_custom_set_from_verts(const Span<float3> vert_positions,
 static void mesh_set_custom_normals(Mesh *mesh, float (*r_custom_nors)[3], const bool use_vertices)
 {
   short2 *clnors = static_cast<short2 *>(
-      CustomData_get_layer_for_write(&mesh->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
   if (clnors != nullptr) {
     memset(clnors, 0, sizeof(*clnors) * mesh->totloop);
   }
   else {
     clnors = static_cast<short2 *>(
-        CustomData_add_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
+        CustomData_add_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, mesh->totloop));
   }
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
   SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", ATTR_DOMAIN_EDGE);
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
 
   mesh_normals_loop_custom_set(
       mesh->vert_positions(),

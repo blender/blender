@@ -102,7 +102,7 @@ void paintface_flush_flags(bContext *C,
     }
 
     /* Mesh faces => Final derived faces */
-    if ((index_array = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
+    if ((index_array = (const int *)CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX))) {
       if (flush_hidden) {
         const VArray<bool> hide_poly_orig = *attributes_orig.lookup_or_default<bool>(
             ".hide_poly", ATTR_DOMAIN_FACE, false);
@@ -718,7 +718,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   float vec[3], bmat[3][3];
 
   const Mesh *me = BKE_mesh_from_object(ob);
-  if (!me || !CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
+  if (!me || !CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2)) {
     return ok;
   }
 
@@ -837,7 +837,7 @@ void paintvert_flush_flags(Object *ob)
   const bke::AttributeAccessor attributes_orig = me->attributes();
   bke::MutableAttributeAccessor attributes_eval = me_eval->attributes_for_write();
 
-  const int *orig_indices = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+  const int *orig_indices = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX);
 
   const VArray<bool> hide_vert_orig = *attributes_orig.lookup_or_default<bool>(
       ".hide_vert", ATTR_DOMAIN_POINT, false);

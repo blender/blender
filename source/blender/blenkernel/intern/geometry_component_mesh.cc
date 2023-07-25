@@ -1083,17 +1083,17 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
     return mesh->NAME; \
   }
 
-  static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(ldata),
-                                               MAKE_CONST_CUSTOM_DATA_GETTER(ldata),
+  static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(loop_data),
+                                               MAKE_CONST_CUSTOM_DATA_GETTER(loop_data),
                                                MAKE_GET_ELEMENT_NUM_GETTER(totloop)};
-  static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vdata),
-                                              MAKE_CONST_CUSTOM_DATA_GETTER(vdata),
+  static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vert_data),
+                                              MAKE_CONST_CUSTOM_DATA_GETTER(vert_data),
                                               MAKE_GET_ELEMENT_NUM_GETTER(totvert)};
-  static CustomDataAccessInfo edge_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(edata),
-                                             MAKE_CONST_CUSTOM_DATA_GETTER(edata),
+  static CustomDataAccessInfo edge_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(edge_data),
+                                             MAKE_CONST_CUSTOM_DATA_GETTER(edge_data),
                                              MAKE_GET_ELEMENT_NUM_GETTER(totedge)};
-  static CustomDataAccessInfo face_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(pdata),
-                                             MAKE_CONST_CUSTOM_DATA_GETTER(pdata),
+  static CustomDataAccessInfo face_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(face_data),
+                                             MAKE_CONST_CUSTOM_DATA_GETTER(face_data),
                                              MAKE_GET_ELEMENT_NUM_GETTER(faces_num)};
 
 #undef MAKE_CONST_CUSTOM_DATA_GETTER

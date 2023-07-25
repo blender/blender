@@ -1640,9 +1640,9 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
   }
 
   if (useSubsurfUv) {
-    CustomData *ldata = &ccgdm->dm.loopData;
+    CustomData *loop_data = &ccgdm->dm.loopData;
     CustomData *dmldata = &dm->loopData;
-    int numlayer = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
+    int numlayer = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
     int dmnumlayer = CustomData_number_of_layers(dmldata, CD_PROP_FLOAT2);
 
     for (i = 0; i < numlayer && i < dmnumlayer; i++) {

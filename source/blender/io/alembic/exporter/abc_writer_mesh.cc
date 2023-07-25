@@ -230,7 +230,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   UVSample uvs_and_indices;
 
   if (args_.export_params->uvs) {
-    const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, &mesh->ldata);
+    const char *name = get_uv_sample(uvs_and_indices, m_custom_data_config, &mesh->loop_data);
 
     if (!uvs_and_indices.indices.empty() && !uvs_and_indices.uvs.empty()) {
       OV2fGeomParam::Sample uv_sample;
@@ -244,7 +244,7 @@ void ABCGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 
     write_custom_data(abc_poly_mesh_schema_.getArbGeomParams(),
                       m_custom_data_config,
-                      &mesh->ldata,
+                      &mesh->loop_data,
                       CD_PROP_FLOAT2);
   }
 
@@ -298,7 +298,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
 
   UVSample sample;
   if (args_.export_params->uvs) {
-    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->ldata);
+    const char *name = get_uv_sample(sample, m_custom_data_config, &mesh->loop_data);
 
     if (!sample.indices.empty() && !sample.uvs.empty()) {
       OV2fGeomParam::Sample uv_sample;
@@ -311,7 +311,7 @@ void ABCGenericMeshWriter::write_subd(HierarchyContext &context, Mesh *mesh)
     }
 
     write_custom_data(
-        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->ldata, CD_PROP_FLOAT2);
+        abc_subdiv_schema_.getArbGeomParams(), m_custom_data_config, &mesh->loop_data, CD_PROP_FLOAT2);
   }
 
   if (args_.export_params->orcos) {
@@ -364,7 +364,7 @@ void ABCGenericMeshWriter::write_arb_geo_params(Mesh *me)
   else {
     arb_geom_params = abc_poly_mesh_.getSchema().getArbGeomParams();
   }
-  write_custom_data(arb_geom_params, m_custom_data_config, &me->ldata, CD_PROP_BYTE_COLOR);
+  write_custom_data(arb_geom_params, m_custom_data_config, &me->loop_data, CD_PROP_BYTE_COLOR);
 }
 
 bool ABCGenericMeshWriter::get_velocities(Mesh *mesh, std::vector<Imath::V3f> &vels)
@@ -541,7 +541,7 @@ static void get_loop_normals(Mesh *mesh,
 
   /* If all polygons are smooth shaded, and there are no custom normals, we don't need to export
    * normals at all. This is also done by other software, see #71246. */
-  if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL) &&
+  if (!has_flat_shaded_poly && !CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL) &&
       (mesh->flag & ME_AUTOSMOOTH) == 0)
   {
     return;
@@ -549,7 +549,7 @@ static void get_loop_normals(Mesh *mesh,
 
   BKE_mesh_calc_normals_split(mesh);
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
-      CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+      CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
   BLI_assert_msg(lnors != nullptr, "BKE_mesh_calc_normals_split() should have computed CD_NORMAL");
 
   normals.resize(mesh->totloop);

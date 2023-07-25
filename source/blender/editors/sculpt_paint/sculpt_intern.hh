@@ -151,10 +151,10 @@ struct SculptUndoNodeGeometry {
    * geometry pushes happened in the undo stack. */
   bool is_initialized;
 
-  CustomData vdata;
-  CustomData edata;
-  CustomData ldata;
-  CustomData pdata;
+  CustomData vert_data;
+  CustomData edge_data;
+  CustomData loop_data;
+  CustomData face_data;
   int *face_offset_indices;
   const blender::ImplicitSharingInfo *face_offsets_sharing_info;
   int totvert;

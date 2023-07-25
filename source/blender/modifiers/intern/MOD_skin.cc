@@ -903,7 +903,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   float radrat;
 
   const MVertSkin *orignode = static_cast<const MVertSkin *>(
-      CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN));
+      CustomData_get_layer(&orig->vert_data, CD_MVERT_SKIN));
   const blender::Span<blender::float3> orig_vert_positions = orig->vert_positions();
   const blender::Span<blender::int2> orig_edges = orig->edges();
   const MDeformVert *origdvert = BKE_mesh_deform_verts(orig);
@@ -929,14 +929,14 @@ static Mesh *subdivide_base(const Mesh *orig)
   blender::MutableSpan<blender::float3> out_vert_positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
   MVertSkin *outnode = static_cast<MVertSkin *>(
-      CustomData_get_layer_for_write(&result->vdata, CD_MVERT_SKIN, result->totvert));
+      CustomData_get_layer_for_write(&result->vert_data, CD_MVERT_SKIN, result->totvert));
   MDeformVert *outdvert = nullptr;
   if (origdvert) {
     outdvert = BKE_mesh_deform_verts_for_write(result);
   }
 
   /* Copy original vertex data */
-  CustomData_copy_data(&orig->vdata, &result->vdata, 0, 0, orig_vert_num);
+  CustomData_copy_data(&orig->vert_data, &result->vert_data, 0, 0, orig_vert_num);
 
   /* Subdivide edges */
   int result_edge_i = 0;
@@ -1897,7 +1897,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 static void skin_set_orig_indices(Mesh *mesh)
 {
   int *orig = static_cast<int *>(
-      CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num));
+      CustomData_add_layer(&mesh->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh->faces_num));
   copy_vn_i(orig, mesh->faces_num, ORIGINDEX_NONE);
 }
 
@@ -1917,7 +1917,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   bool has_valid_root = false;
 
   const MVertSkin *nodes = static_cast<const MVertSkin *>(
-      CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN));
+      CustomData_get_layer(&origmesh->vert_data, CD_MVERT_SKIN));
 
   const blender::Span<blender::float3> vert_positions = origmesh->vert_positions();
   const blender::Span<blender::int2> edges = origmesh->edges();
@@ -1959,7 +1959,7 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_err
   Mesh *result;
 
   /* Skin node layer is required */
-  if (!CustomData_get_layer(&mesh->vdata, CD_MVERT_SKIN)) {
+  if (!CustomData_get_layer(&mesh->vert_data, CD_MVERT_SKIN)) {
     return mesh;
   }
 

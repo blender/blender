@@ -495,11 +495,11 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     BKE_mesh_calc_normals_split(me_eval);
     BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
-    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->ldata, CD_TANGENT));
+    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->loop_data, CD_TANGENT));
     BLI_assert(tspace);
 
     loop_normals = static_cast<const float(*)[3]>(
-        CustomData_get_layer(&me_eval->ldata, CD_NORMAL));
+        CustomData_get_layer(&me_eval->loop_data, CD_NORMAL));
   }
 
   const blender::Span<blender::float3> vert_normals = me->vert_normals();
@@ -725,12 +725,12 @@ void RE_bake_pixels_populate(Mesh *me,
 {
   const float(*mloopuv)[2];
   if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-    mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer(&me->ldata, CD_PROP_FLOAT2));
+    mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer(&me->loop_data, CD_PROP_FLOAT2));
   }
   else {
-    int uv_id = CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, uv_layer);
+    int uv_id = CustomData_get_named_layer(&me->loop_data, CD_PROP_FLOAT2, uv_layer);
     mloopuv = static_cast<const float(*)[2]>(
-        CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, uv_id));
+        CustomData_get_layer_n(&me->loop_data, CD_PROP_FLOAT2, uv_id));
   }
 
   if (mloopuv == nullptr) {

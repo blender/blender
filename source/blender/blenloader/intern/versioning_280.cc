@@ -3195,11 +3195,11 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (DNA_struct_find(fd->filesdna, "MTexPoly")) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         /* If we have UVs, so this file will have MTexPoly layers too! */
-        if (CustomData_has_layer(&me->ldata, CD_MLOOPUV) ||
-            CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2))
+        if (CustomData_has_layer(&me->loop_data, CD_MLOOPUV) ||
+            CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2))
         {
-          CustomData_update_typemap(&me->pdata);
-          CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->faces_num);
+          CustomData_update_typemap(&me->face_data);
+          CustomData_free_layers(&me->face_data, CD_MTEXPOLY, me->faces_num);
         }
       }
     }
@@ -6366,7 +6366,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       if (me->faces_num > 0) {
         const int *face_sets = static_cast<const int *>(
-            CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS));
+            CustomData_get_layer(&me->face_data, CD_SCULPT_FACE_SETS));
         if (face_sets) {
           me->face_sets_color_default = abs(face_sets[0]);
         }

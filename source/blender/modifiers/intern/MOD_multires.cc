@@ -163,7 +163,7 @@ static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
                                        const ModifierEvalContext *ctx,
                                        Mesh *mesh)
 {
-  const bool has_mask = CustomData_has_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+  const bool has_mask = CustomData_has_layer(&mesh->loop_data, CD_GRID_PAINT_MASK);
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
   const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -218,7 +218,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   const bool use_clnors = mmd->flags & eMultiresModifierFlag_UseCustomNormals &&
                           mesh->flag & ME_AUTOSMOOTH &&
-                          CustomData_has_layer(&mesh->ldata, CD_CUSTOMLOOPNORMAL);
+                          CustomData_has_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL);
   /* NOTE: Orco needs final coordinates on CPU side, which are expected to be
    * accessible via mesh vertices. For this reason we do not evaluate multires to
    * grids when orco is requested. */
@@ -256,18 +256,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* If custom normals are present and the option is turned on calculate the split
        * normals and clear flag so the normals get interpolated to the result mesh. */
       BKE_mesh_calc_normals_split(mesh);
-      CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
     }
 
     result = multires_as_mesh(mmd, ctx, mesh, subdiv);
 
     if (use_clnors) {
       float(*lnors)[3] = static_cast<float(*)[3]>(
-          CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
+          CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
       BLI_assert(lnors != nullptr);
       BKE_mesh_set_custom_normals(result, lnors);
-      CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-      CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+      CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
     }
     // BKE_subdiv_stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {

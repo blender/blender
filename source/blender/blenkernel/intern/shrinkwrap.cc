@@ -119,7 +119,7 @@ bool BKE_shrinkwrap_init_tree(
   data->corner_edges = mesh->corner_edges().data();
   data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
   data->sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_face"));
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -140,7 +140,7 @@ bool BKE_shrinkwrap_init_tree(
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
     data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-      data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+      data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
     }
   }
 

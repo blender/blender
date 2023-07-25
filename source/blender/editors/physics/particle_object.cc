@@ -765,7 +765,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   }
   else if (mesh->totedge != 0) {
     edges = static_cast<const vec2i *>(
-        CustomData_get_layer_named(&mesh->edata, CD_PROP_INT32_2D, ".edge_verts"));
+        CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }
   else {

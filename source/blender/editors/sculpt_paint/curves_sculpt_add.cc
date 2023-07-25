@@ -208,11 +208,11 @@ struct AddOperationExecutor {
     const Span<MLoopTri> surface_looptris_orig = surface_orig.looptris();
 
     /* Find normals. */
-    if (!CustomData_has_layer(&surface_orig.ldata, CD_NORMAL)) {
+    if (!CustomData_has_layer(&surface_orig.loop_data, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(&surface_orig);
     }
     const Span<float3> corner_normals_su = {
-        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig.ldata, CD_NORMAL)),
+        reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_orig.loop_data, CD_NORMAL)),
         surface_orig.totloop};
 
     const geometry::ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris_orig};

@@ -154,10 +154,10 @@ static void SCULPT_dynamic_topology_disable_ex(
     me->faces_num = geometry->faces_num;
     me->totedge = geometry->totedge;
     me->totface_legacy = 0;
-    CustomData_copy(&geometry->vdata, &me->vdata, CD_MASK_MESH.vmask, geometry->totvert);
-    CustomData_copy(&geometry->edata, &me->edata, CD_MASK_MESH.emask, geometry->totedge);
-    CustomData_copy(&geometry->ldata, &me->ldata, CD_MASK_MESH.lmask, geometry->totloop);
-    CustomData_copy(&geometry->pdata, &me->pdata, CD_MASK_MESH.pmask, geometry->faces_num);
+    CustomData_copy(&geometry->vert_data, &me->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
+    CustomData_copy(&geometry->edge_data, &me->edge_data, CD_MASK_MESH.emask, geometry->totedge);
+    CustomData_copy(&geometry->loop_data, &me->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+    CustomData_copy(&geometry->face_data, &me->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
     blender::implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
                                                    geometry->face_offsets_sharing_info,
                                                    &me->face_offset_indices,
@@ -167,12 +167,12 @@ static void SCULPT_dynamic_topology_disable_ex(
     BKE_sculptsession_bm_to_me(ob, true);
 
     /* Reset Face Sets as they are no longer valid. */
-    CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->faces_num);
+    CustomData_free_layer_named(&me->face_data, ".sculpt_face_set", me->faces_num);
     me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
+        &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);
     if (hide_vert != nullptr) {
       memset(hide_vert, 0, sizeof(bool) * me->totvert);
     }
@@ -340,16 +340,24 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   BLI_assert(ss->bm == nullptr);
   UNUSED_VARS_NDEBUG(ss);
 
-  if (!dyntopo_supports_customdata_layers({me->vdata.layers, me->vdata.totlayer}, me->totvert)) {
+  if (!dyntopo_supports_customdata_layers({me->vert_data.layers, me->vert_data.totlayer},
+                                          me->totvert))
+  {
     flag |= DYNTOPO_WARN_VDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->edata.layers, me->edata.totlayer}, me->totedge)) {
+  if (!dyntopo_supports_customdata_layers({me->edge_data.layers, me->edge_data.totlayer},
+                                          me->totedge))
+  {
     flag |= DYNTOPO_WARN_EDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->pdata.layers, me->pdata.totlayer}, me->faces_num)) {
+  if (!dyntopo_supports_customdata_layers({me->face_data.layers, me->face_data.totlayer},
+                                          me->faces_num))
+  {
     flag |= DYNTOPO_WARN_LDATA;
   }
-  if (!dyntopo_supports_customdata_layers({me->ldata.layers, me->ldata.totlayer}, me->totloop)) {
+  if (!dyntopo_supports_customdata_layers({me->loop_data.layers, me->loop_data.totlayer},
+                                          me->totloop))
+  {
     flag |= DYNTOPO_WARN_LDATA;
   }
 

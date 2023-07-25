@@ -1020,13 +1020,13 @@ static bool mesh_validate_customdata(CustomData *data,
   return is_valid;
 }
 
-bool BKE_mesh_validate_all_customdata(CustomData *vdata,
+bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
                                       const uint totvert,
-                                      CustomData *edata,
+                                      CustomData *edge_data,
                                       const uint totedge,
-                                      CustomData *ldata,
+                                      CustomData *loop_data,
                                       const uint totloop,
-                                      CustomData *pdata,
+                                      CustomData *face_data,
                                       const uint faces_num,
                                       const bool check_meshmask,
                                       const bool do_verbose,
@@ -1041,15 +1041,15 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   }
 
   is_valid &= mesh_validate_customdata(
-      vdata, mask.vmask, totvert, do_verbose, do_fixes, &is_change_v);
+      vert_data, mask.vmask, totvert, do_verbose, do_fixes, &is_change_v);
   is_valid &= mesh_validate_customdata(
-      edata, mask.emask, totedge, do_verbose, do_fixes, &is_change_e);
+      edge_data, mask.emask, totedge, do_verbose, do_fixes, &is_change_e);
   is_valid &= mesh_validate_customdata(
-      ldata, mask.lmask, totloop, do_verbose, do_fixes, &is_change_l);
+      loop_data, mask.lmask, totloop, do_verbose, do_fixes, &is_change_l);
   is_valid &= mesh_validate_customdata(
-      pdata, mask.pmask, faces_num, do_verbose, do_fixes, &is_change_p);
+      face_data, mask.pmask, faces_num, do_verbose, do_fixes, &is_change_p);
 
-  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_PROP_FLOAT2);
+  const int tot_uvloop = CustomData_number_of_layers(loop_data, CD_PROP_FLOAT2);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1059,12 +1059,12 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   }
 
   /* check indices of clone/stencil */
-  if (do_fixes && CustomData_get_clone_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
-    CustomData_set_layer_clone(ldata, CD_PROP_FLOAT2, 0);
+  if (do_fixes && CustomData_get_clone_layer(loop_data, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_clone(loop_data, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
-  if (do_fixes && CustomData_get_stencil_layer(ldata, CD_PROP_FLOAT2) >= tot_uvloop) {
-    CustomData_set_layer_stencil(ldata, CD_PROP_FLOAT2, 0);
+  if (do_fixes && CustomData_get_stencil_layer(loop_data, CD_PROP_FLOAT2) >= tot_uvloop) {
+    CustomData_set_layer_stencil(loop_data, CD_PROP_FLOAT2, 0);
     is_change_l = true;
   }
 
@@ -1081,13 +1081,13 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
     CLOG_INFO(&LOG, 0, "MESH: %s", me->id.name + 2);
   }
 
-  BKE_mesh_validate_all_customdata(&me->vdata,
+  BKE_mesh_validate_all_customdata(&me->vert_data,
                                    me->totvert,
-                                   &me->edata,
+                                   &me->edge_data,
                                    me->totedge,
-                                   &me->ldata,
+                                   &me->loop_data,
                                    me->totloop,
-                                   &me->pdata,
+                                   &me->face_data,
                                    me->faces_num,
                                    cddata_check_mask,
                                    do_verbose,
@@ -1134,13 +1134,13 @@ bool BKE_mesh_is_valid(Mesh *me)
   bool changed = true;
 
   is_valid &= BKE_mesh_validate_all_customdata(
-      &me->vdata,
+      &me->vert_data,
       me->totvert,
-      &me->edata,
+      &me->edge_data,
       me->totedge,
-      &me->ldata,
+      &me->loop_data,
       me->totloop,
-      &me->pdata,
+      &me->face_data,
       me->faces_num,
       false, /* setting mask here isn't useful, gives false positives */
       do_verbose,
@@ -1238,13 +1238,13 @@ void strip_loose_facesloops(Mesh *me, blender::BitSpan faces_to_remove)
     if (size >= 3 && !invalid) {
       if (a != b) {
         face_offsets[b] = face_offsets[a];
-        CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
+        CustomData_copy_data(&me->face_data, &me->face_data, a, b, 1);
       }
       b++;
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->pdata, b, a - b);
+    CustomData_free_elem(&me->face_data, b, a - b);
     me->faces_num = b;
   }
 
@@ -1253,7 +1253,7 @@ void strip_loose_facesloops(Mesh *me, blender::BitSpan faces_to_remove)
   for (a = b = 0; a < me->totloop; a++, corner++) {
     if (corner_edges[corner] != INVALID_LOOP_EDGE_MARKER) {
       if (a != b) {
-        CustomData_copy_data(&me->ldata, &me->ldata, a, b, 1);
+        CustomData_copy_data(&me->loop_data, &me->loop_data, a, b, 1);
       }
       new_idx[a] = b;
       b++;
@@ -1265,7 +1265,7 @@ void strip_loose_facesloops(Mesh *me, blender::BitSpan faces_to_remove)
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->ldata, b, a - b);
+    CustomData_free_elem(&me->loop_data, b, a - b);
     me->totloop = b;
   }
 
@@ -1292,7 +1292,7 @@ void mesh_strip_edges(Mesh *me)
     if ((*e)[0] != (*e)[1]) {
       if (a != b) {
         memcpy(&edges[b], e, sizeof(edges[b]));
-        CustomData_copy_data(&me->edata, &me->edata, a, b, 1);
+        CustomData_copy_data(&me->edge_data, &me->edge_data, a, b, 1);
       }
       new_idx[a] = b;
       b++;
@@ -1302,7 +1302,7 @@ void mesh_strip_edges(Mesh *me)
     }
   }
   if (a != b) {
-    CustomData_free_elem(&me->edata, b, a - b);
+    CustomData_free_elem(&me->edge_data, b, a - b);
     me->totedge = b;
   }
 
@@ -1366,8 +1366,8 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
   BLI_edgesetIterator_free(ehi);
 
   /* free old CustomData and assign new one */
-  CustomData_free(&mesh->edata, mesh->totedge);
-  mesh->edata = edgeData;
+  CustomData_free(&mesh->edge_data, mesh->totedge);
+  mesh->edge_data = edgeData;
   mesh->totedge = numEdges;
 
   BLI_edgeset_free(eh);

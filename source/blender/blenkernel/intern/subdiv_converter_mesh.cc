@@ -198,7 +198,7 @@ static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
-  return CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2);
+  return CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2);
 }
 
 static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int layer_index)
@@ -206,7 +206,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const Mesh *mesh = storage->mesh;
   const float(*mloopuv)[2] = static_cast<const float(*)[2]>(
-      CustomData_get_layer_n(&mesh->ldata, CD_PROP_FLOAT2, layer_index));
+      CustomData_get_layer_n(&mesh->loop_data, CD_PROP_FLOAT2, layer_index));
   const int num_vert = mesh->totvert;
   const float limit[2] = {STD_UV_CONNECT_LIMIT, STD_UV_CONNECT_LIMIT};
   /* Initialize memory required for the operations. */

@@ -301,7 +301,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    CustomData *ldata = &mesh->ldata;
+    CustomData *ldata = &mesh->loop_data;
 
     if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
       if (!CustomData_has_layer(ldata, CD_NORMAL)) {

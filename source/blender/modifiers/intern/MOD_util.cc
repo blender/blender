@@ -94,14 +94,14 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
-    if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
+    if (CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2)) {
       const OffsetIndices faces = mesh->faces();
       const Span<int> corner_verts = mesh->corner_verts();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-      CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
+      CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
       const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
-          CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uvname));
+          CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uvname));
 
       /* verts are given the UV from the first face that uses them */
       for (const int i : faces.index_range()) {

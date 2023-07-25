@@ -32,13 +32,13 @@ static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, eAttrDom
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
+      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vert_data;
     case ATTR_DOMAIN_CORNER:
-      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
+      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->loop_data;
     case ATTR_DOMAIN_FACE:
-      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->pdata;
+      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->face_data;
     case ATTR_DOMAIN_EDGE:
-      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->edata : &mr->me->edata;
+      return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->edata : &mr->me->edge_data;
     default:
       return nullptr;
   }

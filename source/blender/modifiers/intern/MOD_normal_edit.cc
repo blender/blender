@@ -328,12 +328,12 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   if (do_facenors_fix &&
       faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, faces, mesh->face_normals()))
+          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
   {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   blender::bke::mesh::normals_loop_custom_set(vert_positions,
                                               edges,
                                               faces,
@@ -436,12 +436,12 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
 
   if (do_facenors_fix &&
       faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, faces, mesh->face_normals()))
+          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
   {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   blender::bke::mesh::normals_loop_custom_set(positions,
                                               edges,
                                               faces,
@@ -529,7 +529,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   blender::Array<blender::float3> loop_normals;
 
-  CustomData *ldata = &result->ldata;
+  CustomData *ldata = &result->loop_data;
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
@@ -542,7 +542,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
     const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&result->pdata, CD_PROP_BOOL, "sharp_face"));
+        CustomData_get_layer_named(&result->face_data, CD_PROP_BOOL, "sharp_face"));
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           faces,

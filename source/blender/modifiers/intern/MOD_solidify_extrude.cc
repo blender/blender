@@ -334,21 +334,21 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   if (do_shell) {
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(verts_num));
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, int(verts_num), int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, int(verts_num), int(verts_num));
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, int(edges_num));
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, int(edges_num), int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, int(edges_num), int(edges_num));
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, int(loops_num));
+    CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, int(loops_num));
     /* DO NOT copy here the 'copied' part of loop data, we want to reverse loops
      * (so that winding of copied face get reversed, so that normals get reversed
      * and point in expected direction...).
      * If we also copy data here, then this data get overwritten
      * (and allocated memory becomes a memory leak). */
 
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, int(faces_num));
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, int(faces_num), int(faces_num));
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, int(faces_num), int(faces_num));
     face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
     for (const int i : orig_faces.index_range()) {
       face_offsets[faces_num + i] = orig_faces[i].start() + mesh->totloop;
@@ -356,20 +356,20 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
   else {
     int i, j;
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(verts_num));
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(verts_num));
     for (i = 0, j = int(verts_num); i < verts_num; i++) {
       if (old_vert_arr[i] != INVALID_UNUSED) {
-        CustomData_copy_data(&mesh->vdata, &result->vdata, i, j, 1);
+        CustomData_copy_data(&mesh->vert_data, &result->vert_data, i, j, 1);
         j++;
       }
     }
 
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, int(edges_num));
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, 0, int(edges_num));
 
     for (i = 0, j = int(edges_num); i < edges_num; i++) {
       if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
         blender::int2 *ed_src, *ed_dst;
-        CustomData_copy_data(&mesh->edata, &result->edata, i, j, 1);
+        CustomData_copy_data(&mesh->edge_data, &result->edge_data, i, j, 1);
 
         ed_src = &edges[i];
         ed_dst = &edges[j];
@@ -380,15 +380,15 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     }
 
     /* will be created later */
-    CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, int(loops_num));
-    CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, int(faces_num));
+    CustomData_copy_data(&mesh->loop_data, &result->loop_data, 0, 0, int(loops_num));
+    CustomData_copy_data(&mesh->face_data, &result->face_data, 0, 0, int(faces_num));
     face_offsets.take_front(faces_num).copy_from(mesh->face_offsets().drop_back(1));
   }
 
   float *result_edge_bweight = nullptr;
   if (do_bevel_convex) {
     result_edge_bweight = static_cast<float *>(CustomData_add_layer_named(
-        &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
+        &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "bevel_weight_edge"));
   }
 
   /* Initializes: (`i_end`, `do_shell_align`, `vert_index`). */
@@ -438,8 +438,8 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
        * ensures the diagonals in the new face match the original. */
       j = 0;
       for (int j_prev = loop_end; j < face.size(); j_prev = j++) {
-        CustomData_copy_data(&mesh->ldata,
-                             &result->ldata,
+        CustomData_copy_data(&mesh->loop_data,
+                             &result->loop_data,
                              face.start() + j,
                              face.start() + (loop_end - j_prev) + mesh->totloop,
                              1);
@@ -1045,12 +1045,12 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     float *result_edge_crease = nullptr;
     if (crease_rim || crease_outer || crease_inner) {
       result_edge_crease = (float *)CustomData_add_layer_named(
-          &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
+          &result->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
     }
 
     /* add faces & edges */
     origindex_edge = static_cast<int *>(
-        CustomData_get_layer_for_write(&result->edata, CD_ORIGINDEX, result->totedge));
+        CustomData_get_layer_for_write(&result->edge_data, CD_ORIGINDEX, result->totedge));
     orig_ed = (origindex_edge) ? &origindex_edge[(edges_num * stride) + newEdges] : nullptr;
     /* Start after copied edges. */
     int new_edge_index = int(edges_num * stride + newEdges);
@@ -1092,7 +1092,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       /* copy most of the face settings */
       CustomData_copy_data(
-          &mesh->pdata, &result->pdata, int(pidx), int((faces_num * stride) + i), 1);
+          &mesh->face_data, &result->face_data, int(pidx), int((faces_num * stride) + i), 1);
 
       const int old_face_size = orig_faces[pidx].size();
       face_offsets[new_face_index] = int(j + (loops_num * stride));
@@ -1102,10 +1102,10 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
       k2 = face_offsets[pidx] + (edge_order[eidx]);
 
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 0), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k1, int((loops_num * stride) + j + 1), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k1, int((loops_num * stride) + j + 2), 1);
-      CustomData_copy_data(&mesh->ldata, &result->ldata, k2, int((loops_num * stride) + j + 3), 1);
+      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 0), 1);
+      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 1), 1);
+      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k1, int((loops_num * stride) + j + 2), 1);
+      CustomData_copy_data(&mesh->loop_data, &result->loop_data, k2, int((loops_num * stride) + j + 3), 1);
 
       if (flip == false) {
         new_corner_verts[j] = edge[0];

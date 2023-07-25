@@ -223,13 +223,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
 
-  CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->vdata,
+  CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->vert_data,
                                                                               mask.vmask);
-  CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->edata,
+  CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->edge_data,
                                                                               mask.emask);
-  CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->pdata,
+  CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->face_data,
                                                                               mask.pmask);
-  CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->ldata,
+  CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(&me->loop_data,
                                                                               mask.lmask);
 
   blender::Vector<std::string> temporary_layers_to_delete;
@@ -331,7 +331,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
      * At the moment it's simplest to assume all original meshes use the key-block and meshes
      * that are evaluated (through the modifier stack for example) use custom-data layers.
      */
-    BLI_assert(!CustomData_has_layer(&me->vdata, CD_SHAPEKEY));
+    BLI_assert(!CustomData_has_layer(&me->vert_data, CD_SHAPEKEY));
   }
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
@@ -411,25 +411,25 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
                                            -1;
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".select_vert");
+      &me->vert_data, CD_PROP_BOOL, ".select_vert");
   const bool *select_edge = (const bool *)CustomData_get_layer_named(
-      &me->edata, CD_PROP_BOOL, ".select_edge");
+      &me->edge_data, CD_PROP_BOOL, ".select_edge");
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_BOOL, ".select_poly");
+      &me->face_data, CD_PROP_BOOL, ".select_poly");
   const bool *hide_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".hide_vert");
+      &me->vert_data, CD_PROP_BOOL, ".hide_vert");
   const bool *hide_edge = (const bool *)CustomData_get_layer_named(
-      &me->edata, CD_PROP_BOOL, ".hide_edge");
+      &me->edge_data, CD_PROP_BOOL, ".hide_edge");
   const bool *hide_poly = (const bool *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_BOOL, ".hide_poly");
+      &me->face_data, CD_PROP_BOOL, ".hide_poly");
   const int *material_indices = (const int *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_INT32, "material_index");
+      &me->face_data, CD_PROP_INT32, "material_index");
   const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_BOOL, "sharp_face");
+      &me->face_data, CD_PROP_BOOL, "sharp_face");
   const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
-      &me->edata, CD_PROP_BOOL, "sharp_edge");
+      &me->edge_data, CD_PROP_BOOL, "sharp_edge");
   const bool *uv_seams = (const bool *)CustomData_get_layer_named(
-      &me->edata, CD_PROP_BOOL, ".uv_seam");
+      &me->edge_data, CD_PROP_BOOL, ".uv_seam");
 
   const Span<float3> positions = me->vert_positions();
   Array<BMVert *> vtable(me->totvert);
@@ -1260,8 +1260,9 @@ static void bm_to_mesh_verts(const BMesh &bm,
                              MutableSpan<bool> select_vert,
                              MutableSpan<bool> hide_vert)
 {
-  CustomData_add_layer_named(&mesh.vdata, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.vdata, mesh.vdata);
+  CustomData_add_layer_named(
+      &mesh.vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.totvert, "position");
+  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.vdata, mesh.vert_data);
   MutableSpan<float3> dst_vert_positions = mesh.vert_positions_for_write();
 
   std::atomic<bool> any_loose_vert = false;
@@ -1302,8 +1303,8 @@ static void bm_to_mesh_edges(const BMesh &bm,
                              MutableSpan<bool> uv_seams)
 {
   CustomData_add_layer_named(
-      &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edata);
+      &mesh.edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
+  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edge_data);
   MutableSpan<int2> dst_edges = mesh.edges_for_write();
 
   std::atomic<bool> any_loose_edge = false;
@@ -1354,7 +1355,7 @@ static void bm_to_mesh_faces(const BMesh &bm,
                              MutableSpan<int> material_indices)
 {
   BKE_mesh_face_offsets_ensure_alloc(&mesh);
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.pdata, mesh.pdata);
+  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.pdata, mesh.face_data);
   MutableSpan<int> dst_face_offsets = mesh.face_offsets_for_write();
   threading::parallel_for(bm_faces.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {
@@ -1387,9 +1388,9 @@ static void bm_to_mesh_faces(const BMesh &bm,
 
 static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loops, Mesh &mesh)
 {
-  CustomData_add_layer_named(&mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
-  CustomData_add_layer_named(&mesh.ldata, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
-  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.ldata, mesh.ldata);
+  CustomData_add_layer_named(&mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
+  CustomData_add_layer_named(&mesh.loop_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
+  const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.ldata, mesh.loop_data);
   MutableSpan<int> dst_corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = mesh.corner_edges_for_write();
   threading::parallel_for(dst_corner_verts.index_range(), 1024, [&](const IndexRange range) {
@@ -1464,10 +1465,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const BMeshToMeshParams 
   {
     CustomData_MeshMasks mask = CD_MASK_MESH;
     CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy_layout(&bm->vdata, &me->vdata, mask.vmask, CD_CONSTRUCT, me->totvert);
-    CustomData_copy_layout(&bm->edata, &me->edata, mask.emask, CD_CONSTRUCT, me->totedge);
-    CustomData_copy_layout(&bm->ldata, &me->ldata, mask.lmask, CD_CONSTRUCT, me->totloop);
-    CustomData_copy_layout(&bm->pdata, &me->pdata, mask.pmask, CD_CONSTRUCT, me->faces_num);
+    CustomData_copy_layout(&bm->vdata, &me->vert_data, mask.vmask, CD_CONSTRUCT, me->totvert);
+    CustomData_copy_layout(&bm->edata, &me->edge_data, mask.emask, CD_CONSTRUCT, me->totedge);
+    CustomData_copy_layout(&bm->ldata, &me->loop_data, mask.lmask, CD_CONSTRUCT, me->totloop);
+    CustomData_copy_layout(&bm->pdata, &me->face_data, mask.pmask, CD_CONSTRUCT, me->faces_num);
   }
 
   /* Add optional mesh attributes before parallel iteration. */
@@ -1687,10 +1688,10 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     CustomData_MeshMasks_update(&mask, cd_mask_extra);
   }
   mask.vmask &= ~CD_MASK_SHAPEKEY;
-  CustomData_merge_layout(&bm->vdata, &me->vdata, mask.vmask, CD_CONSTRUCT, me->totvert);
-  CustomData_merge_layout(&bm->edata, &me->edata, mask.emask, CD_CONSTRUCT, me->totedge);
-  CustomData_merge_layout(&bm->ldata, &me->ldata, mask.lmask, CD_CONSTRUCT, me->totloop);
-  CustomData_merge_layout(&bm->pdata, &me->pdata, mask.pmask, CD_CONSTRUCT, me->faces_num);
+  CustomData_merge_layout(&bm->vdata, &me->vert_data, mask.vmask, CD_CONSTRUCT, me->totvert);
+  CustomData_merge_layout(&bm->edata, &me->edge_data, mask.emask, CD_CONSTRUCT, me->totedge);
+  CustomData_merge_layout(&bm->ldata, &me->loop_data, mask.lmask, CD_CONSTRUCT, me->totloop);
+  CustomData_merge_layout(&bm->pdata, &me->face_data, mask.pmask, CD_CONSTRUCT, me->faces_num);
 
   /* Add optional mesh attributes before parallel iteration. */
   assert_bmesh_has_no_mesh_only_attributes(*bm);

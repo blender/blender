@@ -183,7 +183,7 @@ static const CustomData *get_loop_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->ldata;
   }
-  return &mesh->ldata;
+  return &mesh->loop_data;
 }
 
 static const CustomData *get_vert_custom_data(const Mesh *mesh)
@@ -193,7 +193,7 @@ static const CustomData *get_vert_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != nullptr);
     return &mesh->edit_mesh->bm->vdata;
   }
-  return &mesh->vdata;
+  return &mesh->vert_data;
 }
 
 ObjectState::ObjectState(const SceneState &scene_state, Object *ob)

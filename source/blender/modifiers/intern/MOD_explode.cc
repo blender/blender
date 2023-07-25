@@ -750,7 +750,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   /* copy new faces & verts (is it really this painful with custom data??) */
   for (i = 0; i < totvert; i++) {
-    CustomData_copy_data(&mesh->vdata, &split_m->vdata, i, i, 1);
+    CustomData_copy_data(&mesh->vert_data, &split_m->vert_data, i, i, 1);
   }
 
   /* override original facepa (original pointer is saved in caller function) */
@@ -770,7 +770,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
     esplit = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 
-    CustomData_copy_data(&split_m->vdata, &split_m->vdata, ed_v2, esplit, 1);
+    CustomData_copy_data(&split_m->vert_data, &split_m->vert_data, ed_v2, esplit, 1);
 
     dupve = split_m_positions[esplit];
     copy_v3_v3(dupve, split_m_positions[ed_v2]);
@@ -1017,7 +1017,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 
-    CustomData_copy_data(&mesh->vdata, &explode->vdata, ed_v1, v, 1);
+    CustomData_copy_data(&mesh->vert_data, &explode->vert_data, ed_v1, v, 1);
 
     copy_v3_v3(explode_positions[v], positions[ed_v1]);
 

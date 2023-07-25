@@ -1601,7 +1601,7 @@ static void vgroup_smooth_subset(Object *ob,
 #define IS_BM_VERT_WRITE(v) (use_select ? (BM_elem_flag_test(v, BM_ELEM_SELECT) != 0) : true)
 
   const bool *hide_vert = me ? (const bool *)CustomData_get_layer_named(
-                                   &me->vdata, CD_PROP_BOOL, ".hide_vert") :
+                                   &me->vert_data, CD_PROP_BOOL, ".hide_vert") :
                                nullptr;
 
 #define IS_ME_VERT_READ(v) (use_hide ? !(hide_vert && hide_vert[v]) : true)

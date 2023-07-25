@@ -65,7 +65,7 @@ void BKE_mesh_foreach_mapped_vert(
   }
   else {
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
     blender::Span<blender::float3> vert_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       vert_normals = mesh->vert_normals();
@@ -121,7 +121,7 @@ void BKE_mesh_foreach_mapped_edge(
   else {
     const blender::Span<blender::float3> positions = mesh->vert_positions();
     const blender::Span<blender::int2> edges = mesh->edges();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edge_data, CD_ORIGINDEX));
 
     if (index) {
       for (const int i : edges.index_range()) {
@@ -166,7 +166,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
           mesh->totloop};
     }
 
@@ -193,7 +193,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
           mesh->totloop};
     }
 
@@ -201,9 +201,9 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const int *v_index = static_cast<const int *>(
-        CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+        CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
     const int *f_index = static_cast<const int *>(
-        CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+        CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
 
     if (v_index || f_index) {
       for (const int face_i : faces.index_range()) {
@@ -272,7 +272,7 @@ void BKE_mesh_foreach_mapped_face_center(
     const blender::Span<float3> positions = mesh->vert_positions();
     const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
 
     if (index) {
       for (const int i : faces.index_range()) {
@@ -320,7 +320,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   if (flag & MESH_FOREACH_USE_NORMAL) {
     vert_normals = mesh->vert_normals();
   }
-  const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+  const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
   const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
 
   if (index) {

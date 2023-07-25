@@ -269,8 +269,8 @@ void DM_set_only_copy(DerivedMesh *dm, const CustomData_MeshMasks *mask)
 
 static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 {
-  CustomData_set_only_copy(&mesh->vdata, mask->vmask);
-  CustomData_set_only_copy(&mesh->edata, mask->emask);
+  CustomData_set_only_copy(&mesh->vert_data, mask->vmask);
+  CustomData_set_only_copy(&mesh->edge_data, mask->emask);
   CustomData_set_only_copy(&mesh->fdata_legacy, mask->fmask);
   /* this wasn't in 2.63 and is disabled for 2.64 because it gives problems with
    * weight paint mode when there are modifiers applied, needs further investigation,
@@ -428,10 +428,10 @@ static void add_orco_mesh(
       BKE_mesh_orco_verts_transform((Mesh *)ob->data, orco, totvert, 0);
     }
 
-    layerorco = (float(*)[3])CustomData_get_layer_for_write(&mesh->vdata, layer, mesh->totvert);
+    layerorco = (float(*)[3])CustomData_get_layer_for_write(&mesh->vert_data, layer, mesh->totvert);
     if (!layerorco) {
       layerorco = (float(*)[3])CustomData_add_layer(
-          &mesh->vdata, eCustomDataType(layer), CD_SET_DEFAULT, mesh->totvert);
+          &mesh->vert_data, eCustomDataType(layer), CD_SET_DEFAULT, mesh->totvert);
     }
 
     memcpy(layerorco, orco, sizeof(float[3]) * totvert);
@@ -451,7 +451,7 @@ static bool mesh_has_modifier_final_normals(const Mesh *mesh_input,
   const bool calc_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
                                   (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
-  return (!calc_loop_normals || CustomData_has_layer(&mesh_final->ldata, CD_NORMAL));
+  return (!calc_loop_normals || CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL));
 }
 
 static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
@@ -489,8 +489,8 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
     /* Some modifiers, like data-transfer, may generate those data as temp layer,
      * we do not want to keep them, as they are used by display code when available
      * (i.e. even if auto-smooth is disabled). */
-    if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
-      CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
+    if (CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL)) {
+      CustomData_free_layers(&mesh_final->loop_data, CD_NORMAL, mesh_final->totloop);
     }
   }
 }
@@ -825,24 +825,24 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
             ((nextmask.vmask | nextmask.emask | nextmask.pmask) & CD_MASK_ORIGINDEX)) {
           /* calc */
           CustomData_add_layer(
-              &mesh_final->vdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totvert);
+              &mesh_final->vert_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totvert);
           CustomData_add_layer(
-              &mesh_final->edata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totedge);
+              &mesh_final->edge_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totedge);
           CustomData_add_layer(
-              &mesh_final->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->faces_num);
+              &mesh_final->face_data, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->faces_num);
 
           /* Not worth parallelizing this,
            * gives less than 0.1% overall speedup in best of best cases... */
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->vdata, CD_ORIGINDEX, mesh_final->totvert),
+                         &mesh_final->vert_data, CD_ORIGINDEX, mesh_final->totvert),
                      mesh_final->totvert,
                      0);
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->edata, CD_ORIGINDEX, mesh_final->totedge),
+                         &mesh_final->edge_data, CD_ORIGINDEX, mesh_final->totedge),
                      mesh_final->totedge,
                      0);
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->pdata, CD_ORIGINDEX, mesh_final->faces_num),
+                         &mesh_final->face_data, CD_ORIGINDEX, mesh_final->faces_num),
                      mesh_final->faces_num,
                      0);
         }
@@ -867,9 +867,9 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
       /* add an origspace layer if needed */
       if ((md_datamask->mask.lmask) & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->ldata, CD_ORIGSPACE_MLOOP)) {
+        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
           CustomData_add_layer(
-              &mesh_final->ldata, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
+              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1001,7 +1001,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
   /* Remove temporary data layer only needed for modifier evaluation.
    * Save some memory, and ensure GPU subdivision does not need to deal with this. */
-  CustomData_free_layers(&mesh_final->vdata, CD_CLOTH_ORCO, mesh_final->totvert);
+  CustomData_free_layers(&mesh_final->vert_data, CD_CLOTH_ORCO, mesh_final->totvert);
 
   /* Compute normals. */
   if (is_own_mesh) {
@@ -1108,8 +1108,8 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
 
     /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
      * as they are used by display code when available (i.e. even if auto-smooth is disabled). */
-    if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
-      CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
+    if (CustomData_has_layer(&mesh_final->loop_data, CD_NORMAL)) {
+      CustomData_free_layers(&mesh_final->loop_data, CD_NORMAL, mesh_final->totloop);
     }
   }
 }
@@ -1301,9 +1301,9 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       mesh_set_only_copy(mesh_final, &mask);
 
       if (mask.lmask & CD_MASK_ORIGSPACE_MLOOP) {
-        if (!CustomData_has_layer(&mesh_final->ldata, CD_ORIGSPACE_MLOOP)) {
+        if (!CustomData_has_layer(&mesh_final->loop_data, CD_ORIGSPACE_MLOOP)) {
           CustomData_add_layer(
-              &mesh_final->ldata, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
+              &mesh_final->loop_data, CD_ORIGSPACE_MLOOP, CD_SET_DEFAULT, mesh_final->totloop);
           mesh_init_origspace(mesh_final);
         }
       }
@@ -1726,7 +1726,7 @@ static void mesh_init_origspace(Mesh *mesh)
   const float default_osf[4][2] = {{0, 0}, {1, 0}, {1, 1}, {0, 1}};
 
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
-      &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
+      &mesh->loop_data, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const Span<float3> positions = mesh->vert_positions();
   const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();

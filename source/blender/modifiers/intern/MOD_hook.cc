@@ -362,7 +362,7 @@ static void deformVerts_do(HookModifierData *hmd,
     const int *origindex_ar;
     /* if mesh is present and has original index data, use it */
     if (mesh && (origindex_ar = static_cast<const int *>(
-                     CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))))
+                     CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX))))
     {
       int verts_orig_num = verts_num;
       if (ob->type == OB_MESH) {

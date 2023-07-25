@@ -529,14 +529,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   const float split_angle = mesh->smoothresh;
   blender::short2 *clnors = static_cast<blender::short2 *>(
-      CustomData_get_layer_for_write(&result->ldata, CD_CUSTOMLOOPNORMAL, mesh->totloop));
+      CustomData_get_layer_for_write(&result->loop_data, CD_CUSTOMLOOPNORMAL, mesh->totloop));
 
   /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != nullptr;
   if (!clnors) {
     clnors = static_cast<blender::short2 *>(CustomData_add_layer(
-        &result->ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
+        &result->loop_data, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
   const MDeformVert *dvert;
@@ -567,9 +567,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   wn_data.faces = faces;
   wn_data.face_normals = mesh->face_normals();
   wn_data.sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   wn_data.face_strength = static_cast<const int *>(CustomData_get_layer_named(
-      &result->pdata, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
+      &result->face_data, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
 
   wn_data.dvert = dvert;
   wn_data.defgrp_index = defgrp_index;

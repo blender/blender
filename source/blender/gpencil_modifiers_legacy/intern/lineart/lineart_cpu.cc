@@ -1523,10 +1523,10 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     FreestyleFace *ff1, *ff2;
     int index = e_feat_data->freestyle_face_index;
     if (index > -1) {
-      ff1 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_faces[i / 3]];
+      ff1 = &((FreestyleFace *)me->face_data.layers[index].data)[looptri_faces[i / 3]];
     }
     if (edge_nabr[i].e > -1) {
-      ff2 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_faces[edge_nabr[i].e / 3]];
+      ff2 = &((FreestyleFace *)me->face_data.layers[index].data)[looptri_faces[edge_nabr[i].e / 3]];
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1691,7 +1691,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     if (ld->conf.use_edge_marks && e_feat_data->use_freestyle_edge) {
       FreestyleEdge *fe;
       int index = e_feat_data->freestyle_edge_index;
-      fe = &((FreestyleEdge *)me->edata.layers[index].data)[real_edges[i % 3]];
+      fe = &((FreestyleEdge *)me->edge_data.layers[index].data)[real_edges[i % 3]];
       if (fe->flag & FREESTYLE_EDGE_MARK) {
         edge_flag_result |= LRT_EDGE_FLAG_EDGE_MARK;
       }
@@ -1959,17 +1959,17 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   const blender::Span<MLoopTri> looptris = me->looptris();
 
   const int *material_indices = (const int *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_INT32, "material_index");
+      &me->face_data, CD_PROP_INT32, "material_index");
 
   /* Check if we should look for custom data tags like Freestyle edges or faces. */
   bool can_find_freestyle_edge = false;
-  int layer_index = CustomData_get_active_layer_index(&me->edata, CD_FREESTYLE_EDGE);
+  int layer_index = CustomData_get_active_layer_index(&me->edge_data, CD_FREESTYLE_EDGE);
   if (layer_index != -1) {
     can_find_freestyle_edge = true;
   }
 
   bool can_find_freestyle_face = false;
-  layer_index = CustomData_get_active_layer_index(&me->pdata, CD_FREESTYLE_FACE);
+  layer_index = CustomData_get_active_layer_index(&me->face_data, CD_FREESTYLE_FACE);
   if (layer_index != -1) {
     can_find_freestyle_face = true;
   }
@@ -2118,11 +2118,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.use_freestyle_face = can_find_freestyle_face;
   edge_feat_data.use_freestyle_edge = can_find_freestyle_edge;
   if (edge_feat_data.use_freestyle_face) {
-    edge_feat_data.freestyle_face_index = CustomData_get_layer_index(&me->pdata,
+    edge_feat_data.freestyle_face_index = CustomData_get_layer_index(&me->face_data,
                                                                      CD_FREESTYLE_FACE);
   }
   if (edge_feat_data.use_freestyle_edge) {
-    edge_feat_data.freestyle_edge_index = CustomData_get_layer_index(&me->edata,
+    edge_feat_data.freestyle_edge_index = CustomData_get_layer_index(&me->edge_data,
                                                                      CD_FREESTYLE_EDGE);
   }
 

@@ -662,7 +662,7 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     return false;
   }
 
-  const StringRef active_uv_name = CustomData_get_active_layer_name(&mesh->ldata, CD_PROP_FLOAT2);
+  const StringRef active_uv_name = CustomData_get_active_layer_name(&mesh->loop_data, CD_PROP_FLOAT2);
   if (active_uv_name.is_empty()) {
     return false;
   }

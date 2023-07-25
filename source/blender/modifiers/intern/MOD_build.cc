@@ -201,7 +201,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   GHASH_ITER (gh_iter, vertHash) {
     int oldIndex = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
     int newIndex = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
-    CustomData_copy_data(&mesh->vdata, &result->vdata, oldIndex, newIndex, 1);
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, oldIndex, newIndex, 1);
   }
 
   /* copy the edges across, remapping indices */
@@ -216,7 +216,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     source[0] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[0])));
     source[1] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[1])));
 
-    CustomData_copy_data(&mesh->edata, &result->edata, oldIndex, i, 1);
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, oldIndex, i, 1);
     *dest = source;
   }
 
@@ -226,9 +226,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     const blender::IndexRange src_face = faces_src[faceMap[i]];
     result_face_offsets[i] = k;
 
-    CustomData_copy_data(&mesh->pdata, &result->pdata, faceMap[i], i, 1);
+    CustomData_copy_data(&mesh->face_data, &result->face_data, faceMap[i], i, 1);
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, src_face.start(), k, src_face.size());
+    CustomData_copy_data(&mesh->loop_data, &result->loop_data, src_face.start(), k, src_face.size());
 
     for (j = 0; j < src_face.size(); j++, k++) {
       const int vert_src = corner_verts_src[src_face[j]];

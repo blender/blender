@@ -885,14 +885,14 @@ static const char vname[] = "v_remap_index";
 
 static void multires_unsubdivide_free_original_datalayers(Mesh *mesh)
 {
-  const int l_layer_index = CustomData_get_named_layer_index(&mesh->ldata, CD_PROP_INT32, lname);
+  const int l_layer_index = CustomData_get_named_layer_index(&mesh->loop_data, CD_PROP_INT32, lname);
   if (l_layer_index != -1) {
-    CustomData_free_layer(&mesh->ldata, CD_PROP_INT32, mesh->totloop, l_layer_index);
+    CustomData_free_layer(&mesh->loop_data, CD_PROP_INT32, mesh->totloop, l_layer_index);
   }
 
-  const int v_layer_index = CustomData_get_named_layer_index(&mesh->vdata, CD_PROP_INT32, vname);
+  const int v_layer_index = CustomData_get_named_layer_index(&mesh->vert_data, CD_PROP_INT32, vname);
   if (v_layer_index != -1) {
-    CustomData_free_layer(&mesh->vdata, CD_PROP_INT32, mesh->totvert, v_layer_index);
+    CustomData_free_layer(&mesh->vert_data, CD_PROP_INT32, mesh->totvert, v_layer_index);
   }
 }
 
@@ -905,10 +905,10 @@ static void multires_unsubdivide_add_original_index_datalayers(Mesh *mesh)
   multires_unsubdivide_free_original_datalayers(mesh);
 
   int *l_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, lname));
+      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, lname));
 
   int *v_index = static_cast<int *>(CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totvert, vname));
+      &mesh->vert_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totvert, vname));
 
   /* Initialize these data-layer with the indices in the current mesh. */
   for (int i = 0; i < mesh->totloop; i++) {
@@ -942,7 +942,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
 
   /* Get the mapping data-layer. */
   context->base_to_orig_vmap = static_cast<const int *>(
-      CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname));
+      CustomData_get_layer_named(&base_mesh->vert_data, CD_PROP_INT32, vname));
 
   /* Tag the base mesh vertices in the original mesh. */
   for (int i = 0; i < base_mesh->totvert; i++) {
@@ -1002,7 +1002,7 @@ static void multires_unsubdivide_extract_grids(MultiresUnsubdivideContext *conte
       MEM_calloc_arrayN(base_mesh->totvert, sizeof(int), "base vmap"));
 
   context->base_to_orig_vmap = static_cast<const int *>(
-      CustomData_get_layer_named(&base_mesh->vdata, CD_PROP_INT32, vname));
+      CustomData_get_layer_named(&base_mesh->vert_data, CD_PROP_INT32, vname));
   for (int i = 0; i < base_mesh->totvert; i++) {
     base_to_orig_vmap[i] = context->base_to_orig_vmap[i];
   }
@@ -1172,11 +1172,11 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
                                                             Mesh *base_mesh)
 {
   /* Free the current MDISPS and create a new ones. */
-  if (CustomData_has_layer(&base_mesh->ldata, CD_MDISPS)) {
-    CustomData_free_layers(&base_mesh->ldata, CD_MDISPS, base_mesh->totloop);
+  if (CustomData_has_layer(&base_mesh->loop_data, CD_MDISPS)) {
+    CustomData_free_layers(&base_mesh->loop_data, CD_MDISPS, base_mesh->totloop);
   }
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_add_layer(&base_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, base_mesh->totloop));
+      CustomData_add_layer(&base_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, base_mesh->totloop));
 
   const int totdisp = pow_i(BKE_ccg_gridsize(context->num_total_levels), 2);
   const int totloop = base_mesh->totloop;

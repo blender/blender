@@ -339,7 +339,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
       else {
         totelem = me->totvert;
         origindex = static_cast<const int *>(
-            CustomData_get_layer(&mesh_final->vdata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh_final->vert_data, CD_ORIGINDEX));
       }
     }
     else { /* FROM_FACE/FROM_VOLUME */
@@ -357,7 +357,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
 
         /* for face lookups we need the poly origindex too */
         origindex_poly = static_cast<const int *>(
-            CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX));
+            CustomData_get_layer(&mesh_final->face_data, CD_ORIGINDEX));
         if (origindex_poly == nullptr) {
           origindex = nullptr;
         }
@@ -3349,7 +3349,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   }
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
   vec2i *edge = static_cast<vec2i *>(CustomData_get_layer_named_for_write(
-      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge));
+      &mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge));
   dvert = BKE_mesh_deform_verts_for_write(mesh);
 
   if (psys->clmd->hairdata == nullptr) {

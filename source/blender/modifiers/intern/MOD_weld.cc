@@ -59,7 +59,7 @@ static Span<MDeformVert> get_vertex_group(const Mesh &mesh, const int defgrp_ind
     return {};
   }
   const MDeformVert *vertex_group = static_cast<const MDeformVert *>(
-      CustomData_get_layer(&mesh.vdata, CD_MDEFORMVERT));
+      CustomData_get_layer(&mesh.vert_data, CD_MDEFORMVERT));
   if (!vertex_group) {
     return {};
   }

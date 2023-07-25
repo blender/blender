@@ -741,10 +741,10 @@ static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Ob
   BLI_assert(!geometry->is_initialized);
   geometry->is_initialized = true;
 
-  CustomData_copy(&mesh->vdata, &geometry->vdata, CD_MASK_MESH.vmask, mesh->totvert);
-  CustomData_copy(&mesh->edata, &geometry->edata, CD_MASK_MESH.emask, mesh->totedge);
-  CustomData_copy(&mesh->ldata, &geometry->ldata, CD_MASK_MESH.lmask, mesh->totloop);
-  CustomData_copy(&mesh->pdata, &geometry->pdata, CD_MASK_MESH.pmask, mesh->faces_num);
+  CustomData_copy(&mesh->vert_data, &geometry->vert_data, CD_MASK_MESH.vmask, mesh->totvert);
+  CustomData_copy(&mesh->edge_data, &geometry->edge_data, CD_MASK_MESH.emask, mesh->totedge);
+  CustomData_copy(&mesh->loop_data, &geometry->loop_data, CD_MASK_MESH.lmask, mesh->totloop);
+  CustomData_copy(&mesh->face_data, &geometry->face_data, CD_MASK_MESH.pmask, mesh->faces_num);
   blender::implicit_sharing::copy_shared_pointer(mesh->face_offset_indices,
                                                  mesh->runtime->face_offsets_sharing_info,
                                                  &geometry->face_offset_indices,
@@ -770,10 +770,10 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
   mesh->faces_num = geometry->faces_num;
   mesh->totface_legacy = 0;
 
-  CustomData_copy(&geometry->vdata, &mesh->vdata, CD_MASK_MESH.vmask, geometry->totvert);
-  CustomData_copy(&geometry->edata, &mesh->edata, CD_MASK_MESH.emask, geometry->totedge);
-  CustomData_copy(&geometry->ldata, &mesh->ldata, CD_MASK_MESH.lmask, geometry->totloop);
-  CustomData_copy(&geometry->pdata, &mesh->pdata, CD_MASK_MESH.pmask, geometry->faces_num);
+  CustomData_copy(&geometry->vert_data, &mesh->vert_data, CD_MASK_MESH.vmask, geometry->totvert);
+  CustomData_copy(&geometry->edge_data, &mesh->edge_data, CD_MASK_MESH.emask, geometry->totedge);
+  CustomData_copy(&geometry->loop_data, &mesh->loop_data, CD_MASK_MESH.lmask, geometry->totloop);
+  CustomData_copy(&geometry->face_data, &mesh->face_data, CD_MASK_MESH.pmask, geometry->faces_num);
   blender::implicit_sharing::copy_shared_pointer(geometry->face_offset_indices,
                                                  geometry->face_offsets_sharing_info,
                                                  &mesh->face_offset_indices,
@@ -783,16 +783,16 @@ static void sculpt_undo_geometry_restore_data(SculptUndoNodeGeometry *geometry, 
 static void sculpt_undo_geometry_free_data(SculptUndoNodeGeometry *geometry)
 {
   if (geometry->totvert) {
-    CustomData_free(&geometry->vdata, geometry->totvert);
+    CustomData_free(&geometry->vert_data, geometry->totvert);
   }
   if (geometry->totedge) {
-    CustomData_free(&geometry->edata, geometry->totedge);
+    CustomData_free(&geometry->edge_data, geometry->totedge);
   }
   if (geometry->totloop) {
-    CustomData_free(&geometry->ldata, geometry->totloop);
+    CustomData_free(&geometry->loop_data, geometry->totloop);
   }
   if (geometry->faces_num) {
-    CustomData_free(&geometry->pdata, geometry->faces_num);
+    CustomData_free(&geometry->face_data, geometry->faces_num);
   }
   blender::implicit_sharing::free_shared_data(&geometry->face_offset_indices,
                                               &geometry->face_offsets_sharing_info);

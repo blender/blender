@@ -144,7 +144,7 @@ static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *m
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   data->faces = mesh->faces();
   data->grid_paint_mask = static_cast<const GridPaintMask *>(
-      CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK));
+      CustomData_get_layer(&mesh->loop_data, CD_GRID_PAINT_MASK));
   mask_data_init_mapping(mask_evaluator, mesh);
 }
 
@@ -156,7 +156,7 @@ static void mask_init_functions(SubdivCCGMaskEvaluator *mask_evaluator)
 
 bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
-  if (!CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK)) {
+  if (!CustomData_get_layer(&mesh->loop_data, CD_GRID_PAINT_MASK)) {
     return false;
   }
   /* Allocate all required memory. */

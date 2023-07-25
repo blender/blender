@@ -283,7 +283,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   const blender::Span<blender::float3> positions = me_eval->vert_positions();
   const blender::Span<int> corner_verts = me_eval->corner_verts();
   const int *index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
 
   /* get the needed opengl matrices */
   GPU_viewport_size_get_i(view);
@@ -297,7 +297,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   uv[0] = uv[1] = 0.0;
 
   const int *material_indices = (const int *)CustomData_get_layer_named(
-      &me_eval->pdata, CD_PROP_INT32, "material_index");
+      &me_eval->face_data, CD_PROP_INT32, "material_index");
 
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
@@ -324,15 +324,15 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 
         if (!(slot && slot->uvname &&
               (mloopuv = static_cast<const float(*)[2]>(
-                   CustomData_get_layer_named(&me_eval->ldata, CD_PROP_FLOAT2, slot->uvname)))))
+                   CustomData_get_layer_named(&me_eval->loop_data, CD_PROP_FLOAT2, slot->uvname)))))
         {
           mloopuv = static_cast<const float(*)[2]>(
-              CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2));
+              CustomData_get_layer(&me_eval->loop_data, CD_PROP_FLOAT2));
         }
       }
       else {
         mloopuv = static_cast<const float(*)[2]>(
-            CustomData_get_layer(&me_eval->ldata, CD_PROP_FLOAT2));
+            CustomData_get_layer(&me_eval->loop_data, CD_PROP_FLOAT2));
       }
 
       tri_uv[0] = mloopuv[lt->tri[0]];
@@ -414,14 +414,14 @@ void paint_sample_color(
       Mesh *me = (Mesh *)ob->data;
       const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
-          &me_eval->pdata, CD_PROP_INT32, "material_index");
+          &me_eval->face_data, CD_PROP_INT32, "material_index");
 
       ViewContext vc;
       const int mval[2] = {x, y};
       uint faceindex;
       uint faces_num = me->faces_num;
 
-      if (CustomData_has_layer(&me_eval->ldata, CD_PROP_FLOAT2)) {
+      if (CustomData_has_layer(&me_eval->loop_data, CD_PROP_FLOAT2)) {
         ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         view3d_operator_needs_opengl(C);

@@ -125,7 +125,7 @@ BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->ldata;
+      return &me->loop_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
       return &me->edit_mesh->bm->ldata;
@@ -133,7 +133,7 @@ BLI_INLINE const CustomData *mesh_cd_ldata_get_from_mesh(const Mesh *me)
   }
 
   BLI_assert(0);
-  return &me->ldata;
+  return &me->loop_data;
 }
 
 BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
@@ -141,7 +141,7 @@ BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->pdata;
+      return &me->face_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
       return &me->edit_mesh->bm->pdata;
@@ -149,7 +149,7 @@ BLI_INLINE const CustomData *mesh_cd_pdata_get_from_mesh(const Mesh *me)
   }
 
   BLI_assert(0);
-  return &me->pdata;
+  return &me->face_data;
 }
 
 BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
@@ -157,7 +157,7 @@ BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->edata;
+      return &me->edge_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
       return &me->edit_mesh->bm->edata;
@@ -165,7 +165,7 @@ BLI_INLINE const CustomData *mesh_cd_edata_get_from_mesh(const Mesh *me)
   }
 
   BLI_assert(0);
-  return &me->edata;
+  return &me->edge_data;
 }
 
 BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
@@ -173,7 +173,7 @@ BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_SUBD:
     case ME_WRAPPER_TYPE_MDATA:
-      return &me->vdata;
+      return &me->vert_data;
       break;
     case ME_WRAPPER_TYPE_BMESH:
       return &me->edit_mesh->bm->vdata;
@@ -181,7 +181,7 @@ BLI_INLINE const CustomData *mesh_cd_vdata_get_from_mesh(const Mesh *me)
   }
 
   BLI_assert(0);
-  return &me->vdata;
+  return &me->vert_data;
 }
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)

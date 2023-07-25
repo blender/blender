@@ -183,9 +183,9 @@ void multiresModifier_subdivide_to_level(Object *object,
 
   /* There was no multires at all, all displacement is at 0. Can simply make sure all mdisps grids
    * are allocated at a proper level and return. */
-  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->ldata, CD_MDISPS);
+  const bool has_mdisps = CustomData_has_layer(&coarse_mesh->loop_data, CD_MDISPS);
   if (!has_mdisps) {
-    CustomData_add_layer(&coarse_mesh->ldata, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
+    CustomData_add_layer(&coarse_mesh->loop_data, CD_MDISPS, CD_SET_DEFAULT, coarse_mesh->totloop);
   }
 
   /* NOTE: Subdivision happens from the top level of the existing multires modifier. If it is set

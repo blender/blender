@@ -385,18 +385,18 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
     BKE_mesh_calc_normals_split(me);
-    CustomData_clear_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_clear_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 
   Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, me);
 
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_NORMAL, subdiv_mesh->totloop));
+        CustomData_get_layer_for_write(&subdiv_mesh->loop_data, CD_NORMAL, subdiv_mesh->totloop));
     BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(subdiv_mesh, lnors);
-    CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&me->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&subdiv_mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   else if (runtime_data->calc_loop_normals) {
     BKE_mesh_calc_normals_split(subdiv_mesh);

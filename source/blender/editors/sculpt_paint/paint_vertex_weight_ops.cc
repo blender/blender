@@ -465,9 +465,9 @@ static bool weight_paint_set(Object *ob, float paintweight)
   wpaint_prev_create(&wpp, dvert, me->totvert);
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".select_vert");
+      &me->vert_data, CD_PROP_BOOL, ".select_vert");
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_BOOL, ".select_poly");
+      &me->face_data, CD_PROP_BOOL, ".select_poly");
 
   for (const int i : faces.index_range()) {
     if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[i])) {
@@ -824,7 +824,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.me = me;
   data.dvert = dverts;
   data.select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".select_vert");
+      &me->vert_data, CD_PROP_BOOL, ".select_vert");
   data.hide_vert = *attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
   data.sco_start = sco_start;
   data.sco_end = sco_end;

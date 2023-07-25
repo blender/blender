@@ -70,13 +70,13 @@ typedef struct Mesh {
    */
   struct Material **mat;
 
-  /** The number of vertices in the mesh, and the size of #vdata. */
+  /** The number of vertices in the mesh, and the size of #vert_data. */
   int totvert;
-  /** The number of edges in the mesh, and the size of #edata. */
+  /** The number of edges in the mesh, and the size of #edge_data. */
   int totedge;
-  /** The number of polygons/faces in the mesh, and the size of #pdata. */
+  /** The number of polygons/faces in the mesh, and the size of #face_data. */
   int faces_num;
-  /** The number of face corners in the mesh, and the size of #ldata. */
+  /** The number of face corners in the mesh, and the size of #loop_data. */
   int totloop;
 
   /**
@@ -87,11 +87,14 @@ typedef struct Mesh {
    */
   int *face_offset_indices;
 
-  CustomData vdata, edata, pdata, ldata;
+  CustomData vert_data;
+  CustomData edge_data;
+  CustomData face_data;
+  CustomData loop_data;
 
   /**
    * List of vertex group (#bDeformGroup) names and flags only. Actual weights are stored in dvert.
-   * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vdata.
+   * \note This pointer is for convenient access to the #CD_MDEFORMVERT layer in #vert_data.
    */
   ListBase vertex_group_names;
   /** The active index in the #vertex_group_names list. */

@@ -1717,8 +1717,8 @@ static void copy_ccg_data(Mesh *mesh_destination,
                           const eCustomDataType layer_type)
 {
   BLI_assert(mesh_destination->totloop == mesh_source->totloop);
-  CustomData *data_destination = &mesh_destination->ldata;
-  CustomData *data_source = &mesh_source->ldata;
+  CustomData *data_destination = &mesh_destination->loop_data;
+  CustomData *data_source = &mesh_source->loop_data;
   const int num_elements = mesh_source->totloop;
   if (!CustomData_has_layer(data_source, layer_type)) {
     return;
@@ -3342,8 +3342,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
           count++;
         }
       }
-      else if (CustomData_has_layer(&me_eval->vdata, CD_ORIGINDEX)) {
-        const int *index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+      else if (CustomData_has_layer(&me_eval->vert_data, CD_ORIGINDEX)) {
+        const int *index = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX);
         /* Get the average of all verts with (original index == nr). */
         for (int i = 0; i < numVerts; i++) {
           if (index[i] == nr) {
@@ -5395,7 +5395,7 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
                                                      BKE_object_get_evaluated_mesh(ob);
       const int *index;
 
-      if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
+      if (me_eval && (index = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX))) {
         const Span<float3> positions = me->vert_positions();
 
         /* Tree over-allocates in case where some verts have #ORIGINDEX_NONE. */

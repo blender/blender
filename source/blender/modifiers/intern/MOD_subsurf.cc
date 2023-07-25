@@ -263,7 +263,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
     BKE_mesh_calc_normals_split(mesh);
-    CustomData_clear_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_clear_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   /* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
    * maybe when it is a last modifier in the stack? */
@@ -276,11 +276,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (use_clnors) {
     float(*lnors)[3] = static_cast<float(*)[3]>(
-        CustomData_get_layer_for_write(&result->ldata, CD_NORMAL, result->totloop));
+        CustomData_get_layer_for_write(&result->loop_data, CD_NORMAL, result->totloop));
     BLI_assert(lnors != nullptr);
     BKE_mesh_set_custom_normals(result, lnors);
-    CustomData_set_layer_flag(&mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
-    CustomData_set_layer_flag(&result->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&mesh->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
+    CustomData_set_layer_flag(&result->loop_data, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
   // BKE_subdiv_stats_print(&subdiv->stats);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {

@@ -75,7 +75,7 @@ static void compute_area_ratio(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
+    const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->loop_data, CD_PROP_FLOAT2);
     for (int face_index = 0; face_index < mr->face_len; face_index++) {
       const IndexRange face = mr->faces[face_index];
       const float area = bke::mesh::face_area_calc(mr->vert_positions,

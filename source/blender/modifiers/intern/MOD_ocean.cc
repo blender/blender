@@ -276,9 +276,9 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   BKE_mesh_calc_edges(result, false, false);
 
   /* add uvs */
-  if (CustomData_number_of_layers(&result->ldata, CD_PROP_FLOAT2) < MAX_MTFACE) {
+  if (CustomData_number_of_layers(&result->loop_data, CD_PROP_FLOAT2) < MAX_MTFACE) {
     gogd.mloopuvs = static_cast<float(*)[2]>(CustomData_add_layer_named(
-        &result->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, faces_num * 4, "UVMap"));
+        &result->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, faces_num * 4, "UVMap"));
 
     if (gogd.mloopuvs) { /* unlikely to fail */
       gogd.ix = 1.0 / gogd.rx;
@@ -359,7 +359,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
   if (omd->flag & MOD_OCEAN_GENERATE_FOAM) {
     const blender::Span<int> corner_verts = result->corner_verts();
-    MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
+    MLoopCol *mloopcols = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->loop_data,
                                                                              CD_PROP_BYTE_COLOR,
                                                                              CD_SET_DEFAULT,
                                                                              corner_verts.size(),
@@ -367,7 +367,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
 
     MLoopCol *mloopcols_spray = nullptr;
     if (omd->flag & MOD_OCEAN_GENERATE_SPRAY) {
-      mloopcols_spray = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->ldata,
+      mloopcols_spray = static_cast<MLoopCol *>(CustomData_add_layer_named(&result->loop_data,
                                                                            CD_PROP_BYTE_COLOR,
                                                                            CD_SET_DEFAULT,
                                                                            corner_verts.size(),

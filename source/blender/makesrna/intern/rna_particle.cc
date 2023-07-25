@@ -384,7 +384,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
   int num = particle->num_dmcache;
   int from = modifier->psys->part->from;
 
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_FLOAT2)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->loop_data, CD_PROP_FLOAT2)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     return;
   }
@@ -646,7 +646,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
     zero_v2(r_uv);
     return;
   }
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_FLOAT2)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->loop_data, CD_PROP_FLOAT2)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     zero_v2(r_uv);
     return;
@@ -682,7 +682,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
                                                int vcol_no,
                                                float r_mcol[3])
 {
-  if (!CustomData_has_layer(&modifier->mesh_final->ldata, CD_PROP_BYTE_COLOR)) {
+  if (!CustomData_has_layer(&modifier->mesh_final->loop_data, CD_PROP_BYTE_COLOR)) {
     BKE_report(reports, RPT_ERROR, "Mesh has no VCol data");
     zero_v3(r_mcol);
     return;

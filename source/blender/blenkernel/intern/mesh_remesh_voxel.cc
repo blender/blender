@@ -282,18 +282,18 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
   const Span<float3> target_positions = target->vert_positions();
-  const float *source_mask = (const float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
+  const float *source_mask = (const float *)CustomData_get_layer(&source->vert_data, CD_PAINT_MASK);
   if (source_mask == nullptr) {
     return;
   }
 
   float *target_mask;
-  if (CustomData_has_layer(&target->vdata, CD_PAINT_MASK)) {
-    target_mask = (float *)CustomData_get_layer(&target->vdata, CD_PAINT_MASK);
+  if (CustomData_has_layer(&target->vert_data, CD_PAINT_MASK)) {
+    target_mask = (float *)CustomData_get_layer(&target->vert_data, CD_PAINT_MASK);
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
+        &target->vert_data, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
   }
 
   blender::threading::parallel_for(IndexRange(target->totvert), 4096, [&](const IndexRange range) {

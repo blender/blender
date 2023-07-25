@@ -217,8 +217,8 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
                                                 mesh->corner_edges_for_write());
 
   /* Free old CustomData and assign new one. */
-  CustomData_free(&mesh->edata, mesh->totedge);
-  CustomData_reset(&mesh->edata);
+  CustomData_free(&mesh->edge_data, mesh->totedge);
+  CustomData_reset(&mesh->edge_data);
   mesh->totedge = new_totedge;
   attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, AttributeInitMoveArray(new_edges.data()));
 

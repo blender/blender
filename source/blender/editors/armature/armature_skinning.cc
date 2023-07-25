@@ -207,7 +207,7 @@ static void envelope_bone_weighting(Object *ob,
   }
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vdata, CD_PROP_BOOL, ".select_vert");
+      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
 
   /* for each vertex in the mesh */
   for (int i = 0; i < mesh->totvert; i++) {

@@ -555,7 +555,7 @@ static int mesh_looptri_to_face_index(Mesh *me_eval, const int tri_index)
   const int *looptri_faces = BKE_mesh_runtime_looptri_faces_ensure(me_eval);
   const int face_i = looptri_faces[tri_index];
   const int *index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
   return index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
 }
 

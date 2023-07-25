@@ -4077,7 +4077,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
     return false;
   }
 
-  if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
+  if (!CustomData_has_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;
     return false;
   }
@@ -4101,13 +4101,13 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   ps->faces_eval = ps->me_eval->faces();
   ps->corner_verts_eval = ps->me_eval->corner_verts();
   ps->select_poly_eval = (const bool *)CustomData_get_layer_named(
-      &ps->me_eval->pdata, CD_PROP_BOOL, ".select_poly");
+      &ps->me_eval->face_data, CD_PROP_BOOL, ".select_poly");
   ps->hide_poly_eval = (const bool *)CustomData_get_layer_named(
-      &ps->me_eval->pdata, CD_PROP_BOOL, ".hide_poly");
+      &ps->me_eval->face_data, CD_PROP_BOOL, ".hide_poly");
   ps->material_indices = (const int *)CustomData_get_layer_named(
-      &ps->me_eval->pdata, CD_PROP_INT32, "material_index");
+      &ps->me_eval->face_data, CD_PROP_INT32, "material_index");
   ps->sharp_faces_eval = static_cast<const bool *>(
-      CustomData_get_layer_named(&ps->me_eval->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&ps->me_eval->face_data, CD_PROP_BOOL, "sharp_face"));
 
   ps->totvert_eval = ps->me_eval->totvert;
   ps->faces_num_eval = ps->me_eval->faces_num;
@@ -4134,7 +4134,7 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {
-    const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->ldata,
+    const int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->loop_data,
                                                      CD_PROP_FLOAT2);
 
     ps->poly_to_loop_uv_clone = static_cast<const float(**)[2]>(
@@ -4142,13 +4142,13 @@ static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone 
 
     if (layer_num != -1) {
       mloopuv_clone_base = static_cast<const float(*)[2]>(
-          CustomData_get_layer_n(&ps->me_eval->ldata, CD_PROP_FLOAT2, layer_num));
+          CustomData_get_layer_n(&ps->me_eval->loop_data, CD_PROP_FLOAT2, layer_num));
     }
 
     if (mloopuv_clone_base == nullptr) {
       /* get active instead */
       mloopuv_clone_base = static_cast<const float(*)[2]>(
-          CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
+          CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
     }
   }
 
@@ -4178,10 +4178,10 @@ static bool project_paint_clone_face_skip(ProjPaintState *ps,
       if (lc->slot_clone != lc->slot_last_clone) {
         if (!lc->slot_clone->uvname ||
             !(lc->mloopuv_clone_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
-                  &ps->me_eval->ldata, CD_PROP_FLOAT2, lc->slot_clone->uvname))))
+                  &ps->me_eval->loop_data, CD_PROP_FLOAT2, lc->slot_clone->uvname))))
         {
           lc->mloopuv_clone_base = static_cast<const float(*)[2]>(
-              CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
+              CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
         }
         lc->slot_last_clone = lc->slot_clone;
       }
@@ -4204,13 +4204,13 @@ static void proj_paint_face_lookup_init(const ProjPaintState *ps, ProjPaintFaceL
   memset(face_lookup, 0, sizeof(*face_lookup));
   Mesh *orig_mesh = (Mesh *)ps->ob->data;
   face_lookup->index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&ps->me_eval->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&ps->me_eval->face_data, CD_ORIGINDEX));
   if (ps->do_face_sel) {
     face_lookup->select_poly_orig = static_cast<const bool *>(
-        CustomData_get_layer_named(&orig_mesh->pdata, CD_PROP_BOOL, ".select_poly"));
+        CustomData_get_layer_named(&orig_mesh->face_data, CD_PROP_BOOL, ".select_poly"));
   }
   face_lookup->hide_poly_orig = static_cast<const bool *>(
-      CustomData_get_layer_named(&orig_mesh->pdata, CD_PROP_BOOL, ".hide_poly"));
+      CustomData_get_layer_named(&orig_mesh->face_data, CD_PROP_BOOL, ".hide_poly"));
 }
 
 /* Return true if face should be considered paintable, false otherwise */
@@ -4364,17 +4364,17 @@ static void project_paint_prepare_all_faces(ProjPaintState *ps,
       /* all faces should have a valid slot, reassert here */
       if (slot == nullptr) {
         mloopuv_base = static_cast<const float(*)[2]>(
-            CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
+            CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
         tpage = ps->canvas_ima;
       }
       else {
         if (slot != slot_last) {
           if (!slot->uvname ||
               !(mloopuv_base = static_cast<const float(*)[2]>(CustomData_get_layer_named(
-                    &ps->me_eval->ldata, CD_PROP_FLOAT2, slot->uvname))))
+                    &ps->me_eval->loop_data, CD_PROP_FLOAT2, slot->uvname))))
           {
             mloopuv_base = static_cast<const float(*)[2]>(
-                CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
+                CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
           }
           slot_last = slot;
         }
@@ -4546,16 +4546,16 @@ static void project_paint_begin(const bContext *C,
 
   if (ps->do_layer_stencil || ps->do_stencil_brush) {
     // int layer_num = CustomData_get_stencil_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2);
-    int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->ldata, CD_PROP_FLOAT2);
+    int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->loop_data, CD_PROP_FLOAT2);
     if (layer_num != -1) {
       ps->mloopuv_stencil_eval = static_cast<const float(*)[2]>(
-          CustomData_get_layer_n(&ps->me_eval->ldata, CD_PROP_FLOAT2, layer_num));
+          CustomData_get_layer_n(&ps->me_eval->loop_data, CD_PROP_FLOAT2, layer_num));
     }
 
     if (ps->mloopuv_stencil_eval == nullptr) {
       /* get active instead */
       ps->mloopuv_stencil_eval = static_cast<const float(*)[2]>(
-          CustomData_get_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2));
+          CustomData_get_layer(&ps->me_eval->loop_data, CD_PROP_FLOAT2));
     }
 
     if (ps->do_stencil_brush) {
@@ -6466,7 +6466,7 @@ bool ED_paint_proj_mesh_data_check(
   }
 
   me = BKE_mesh_from_object(ob);
-  layernum = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+  layernum = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
 
   if (layernum == 0) {
     hasuvs = false;

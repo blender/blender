@@ -509,13 +509,13 @@ void BM_mesh_copy_init_customdata_from_mesh_array(BMesh *bm_dst,
   for (int i = 0; i < me_src_array_len; i++) {
     const Mesh *me_src = me_src_array[i];
     CustomData mesh_vdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->vdata, CD_MASK_BMESH.vmask);
+        &me_src->vert_data, CD_MASK_BMESH.vmask);
     CustomData mesh_edata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->edata, CD_MASK_BMESH.emask);
+        &me_src->edge_data, CD_MASK_BMESH.emask);
     CustomData mesh_pdata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->pdata, CD_MASK_BMESH.lmask);
+        &me_src->face_data, CD_MASK_BMESH.lmask);
     CustomData mesh_ldata = CustomData_shallow_copy_remove_non_bmesh_attributes(
-        &me_src->ldata, CD_MASK_BMESH.pmask);
+        &me_src->loop_data, CD_MASK_BMESH.pmask);
 
     if (i == 0) {
       CustomData_copy_layout(&mesh_vdata, &bm_dst->vdata, CD_MASK_BMESH.vmask, CD_SET_DEFAULT, 0);
