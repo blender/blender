@@ -856,10 +856,24 @@ class edit_generators:
         def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
             edits = []
 
+            # Keep:
+            # - `strucrt Foo;` (forward declaration).
+            # - `struct Foo {` (declaration).
+            # - `struct {` (declaration).
+            # In these cases removing will cause a build error (which is technically "safe")
+            # it just causes a lot of unnecessary code edits which always fail and slow down operation.
+            span_skip = set()
+            for match in re.finditer(r"\b(struct)\s+([a-zA-Z0-9_]+)?\s*({|;)", data):
+                span_skip.add(match.span(1))
+
             # Remove `struct`
-            for match in re.finditer(r"\bstruct\b", data):
+            for match in re.finditer(r"\b(struct)\s+[a-zA-Z0-9_]+", data):
+                span = match.span(1)
+                if span in span_skip:
+                    continue
+
                 edits.append(Edit(
-                    span=match.span(),
+                    span=span,
                     content=' ',
                     content_fail=' __ALWAYS_FAIL__ ',
                 ))
