@@ -30,6 +30,8 @@ void LightProbeModule::sync_grid(const Object *ob, ObjectHandle &handle)
   IrradianceGrid &grid = grid_map_.lookup_or_add_default(handle.object_key);
   grid.used = true;
   if (handle.recalc != 0 || grid.initialized == false) {
+    const ::LightProbe *lightprobe = static_cast<const ::LightProbe *>(ob->data);
+
     grid.initialized = true;
     grid.updated = true;
     grid.object_to_world = float4x4(ob->object_to_world);
@@ -37,6 +39,9 @@ void LightProbeModule::sync_grid(const Object *ob, ObjectHandle &handle)
         math::normalize(math::transpose(float3x3(grid.object_to_world))));
 
     grid.cache = ob->lightprobe_cache;
+    grid.normal_bias = lightprobe->grid_normal_bias;
+    grid.view_bias = lightprobe->grid_view_bias;
+    grid.facing_bias = lightprobe->grid_facing_bias;
     /* Force reupload. */
     inst_.irradiance_cache.bricks_free(grid.bricks);
   }

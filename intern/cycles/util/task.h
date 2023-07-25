@@ -63,11 +63,12 @@ class TaskPool {
   int num_tasks_pushed;
 };
 
-/* Task Scheduler
+/**
+ * Task Scheduler
  *
  * Central scheduler that holds running threads ready to execute tasks. A single
- * queue holds the task from all pools. */
-
+ * queue holds the task from all pools.
+ */
 class TaskScheduler {
  public:
   static void init(int num_threads = 0);

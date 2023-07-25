@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -3666,6 +3666,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Фактор Спрощення використовує адаптивний алгоритм"
 
 
+msgid "Active Layer"
+msgstr "Активний шар"
+
+
 msgid "Default Eraser"
 msgstr "Стандартний Стирач"
 
@@ -3844,10 +3848,6 @@ msgstr "Значення кольору в атрибуті геометрії"
 
 msgid "RGBA color in scene linear color space"
 msgstr "RGBA колір у лінеарному просторі кольорів сцени"
-
-
-msgid "Active Layer"
-msgstr "Активний шар"
 
 
 msgid "Object Path"
@@ -20795,6 +20795,10 @@ msgstr "Старт відсікання проби, поза яким об'єк�
 
 msgid "Control how fast the probe influence decreases"
 msgstr "Керування тим, як швидко буде зменшуватися вплив цієї проби"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "Згладженіша інтерполяція опроміненості, але уводить просочення світла"
 
 
 msgid "Resolution X"
@@ -38651,10 +38655,6 @@ msgstr "Півпрозорість BSDF"
 
 msgid "Transparent BSDF"
 msgstr "Прозорість BSDF"
-
-
-msgid "Velvet BSDF"
-msgstr "Оксамит BSDF"
 
 
 msgid "Bump"
@@ -59421,15 +59421,6 @@ msgstr "Перебільшити поточну позу відносно поз
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "Штовхнути Позу від Пози Спокою"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "Штовхнути поточну позу подалі від пози спокою"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "Розвернути кватерніони"
 
@@ -59445,15 +59436,6 @@ msgstr "Розслабити позу до розбивки"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "Зробити поточну позу більш подібною на позу її розбивки"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "Розслабити Позу до Пози Спокою"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "Зробити поточну позу більш подібною на позу спокою"
 
 
 msgctxt "Operator"
@@ -77036,10 +77018,6 @@ msgstr "Розмір сфер вибірок опроміненості для �
 
 msgid "Irradiance Smoothing"
 msgstr "Згладжування опроміненості"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "Згладженіша інтерполяція опроміненості, але уводить просочення світла"
 
 
 msgid "Show Cubemap Cache"
@@ -99664,16 +99642,16 @@ msgid "Gizmos hidden in this view"
 msgstr "На цьому вигляді гізмо приховано"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "Операторський візок не діє, коли зсув вигляду заблоковано"
-
-
 msgid "Cannot fly when the view offset is locked"
 msgstr "Політ неможливий, коли зсув вигляду заблоковано"
 
 
 msgid "Cannot fly an object with constraints"
 msgstr "Об'єкт з примусами не може літати"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "Операторський візок не діє, коли зсув вигляду заблоковано"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -100630,6 +100608,10 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "Смужки НЛА '%s' не знайдено на доріжці '%s'"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Реєстрація класу роз'єму вузла: назва '%s' задовга, найбільша довжина - %d"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Однаковий напрям вводу/виводу роз'ємів"
 
@@ -100660,10 +100642,6 @@ msgstr "Не вдалося відшукати гніздо '%s' у дереві
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "Не вдалося розмістити роз'єм '%s' у вузлі"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Реєстрація класу роз'єму вузла: назва '%s' задовга, найбільша довжина - %d"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
@@ -101363,10 +101341,6 @@ msgstr "Полакованість"
 
 msgid "Clearcoat Roughness"
 msgstr "Шорсткість Полакованості"
-
-
-msgid "Transmission Roughness"
-msgstr "Шорсткість Пропускання"
 
 
 msgid "Emission Strength"

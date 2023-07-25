@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -43,13 +43,13 @@ static bool modifierTypesInit = false;
 /** \name Modifier Multi-Threading Utilities
  * \{ */
 
-typedef void (*modifier_apply_threaded_cb)(int width,
-                                           int height,
-                                           uchar *rect,
-                                           float *rect_float,
-                                           uchar *mask_rect,
-                                           const float *mask_rect_float,
-                                           void *data_v);
+using modifier_apply_threaded_cb = void (*)(int width,
+                                            int height,
+                                            uchar *rect,
+                                            float *rect_float,
+                                            uchar *mask_rect,
+                                            const float *mask_rect_float,
+                                            void *data_v);
 
 struct ModifierInitData {
   ImBuf *ibuf;
@@ -832,12 +832,12 @@ static void curves_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask)
 
   BKE_curvemapping_init(&cmd->curve_mapping);
 
-  BKE_curvemapping_premultiply(&cmd->curve_mapping, 0);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, false);
   BKE_curvemapping_set_black_white(&cmd->curve_mapping, black, white);
 
   modifier_apply_threaded(ibuf, mask, curves_apply_threaded, &cmd->curve_mapping);
 
-  BKE_curvemapping_premultiply(&cmd->curve_mapping, 1);
+  BKE_curvemapping_premultiply(&cmd->curve_mapping, true);
 }
 
 static SequenceModifierTypeInfo seqModifier_Curves = {

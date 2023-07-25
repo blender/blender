@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
@@ -154,7 +154,7 @@ static PointerRNA rna_Test_test_get(PointerRNA *ptr)
 #else
 
 /* local convenience types */
-typedef void(CollectionDefFunc)(BlenderRNA *brna, PropertyRNA *cprop);
+using CollectionDefFunc = void(BlenderRNA *brna, PropertyRNA *cprop);
 
 struct MainCollectionDef {
   const char *identifier;

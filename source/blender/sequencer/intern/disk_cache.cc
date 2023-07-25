@@ -6,9 +6,9 @@
  * \ingroup sequencer
  */
 
+#include <cstddef>
+#include <ctime>
 #include <memory.h>
-#include <stddef.h>
-#include <time.h>
 
 #include "MEM_guardedalloc.h"
 

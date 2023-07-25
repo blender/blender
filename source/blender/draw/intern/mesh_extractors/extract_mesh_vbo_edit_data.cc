@@ -126,7 +126,7 @@ static void extract_edit_data_init(const MeshRenderData *mr,
   *(EditLoopData **)tls_data = vbo_data;
 }
 
-static void extract_edit_data_iter_poly_bm(const MeshRenderData *mr,
+static void extract_edit_data_iter_face_bm(const MeshRenderData *mr,
                                            const BMFace *f,
                                            const int /*f_index*/,
                                            void *_data)
@@ -146,16 +146,16 @@ static void extract_edit_data_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edit_data_iter_poly_mesh(const MeshRenderData *mr,
-                                             const int poly_index,
+static void extract_edit_data_iter_face_mesh(const MeshRenderData *mr,
+                                             const int face_index,
                                              void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
 
-  for (const int ml_index : mr->polys[poly_index]) {
+  for (const int ml_index : mr->faces[face_index]) {
     EditLoopData *data = vbo_data + ml_index;
     memset(data, 0x0, sizeof(*data));
-    BMFace *efa = bm_original_face_get(mr, poly_index);
+    BMFace *efa = bm_original_face_get(mr, face_index);
     BMVert *eve = bm_original_vert_get(mr, mr->corner_verts[ml_index]);
     BMEdge *eed = bm_original_edge_get(mr, mr->corner_edges[ml_index]);
     if (efa) {
@@ -342,8 +342,8 @@ constexpr MeshExtract create_extractor_edit_data()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edit_data_init;
-  extractor.iter_poly_bm = extract_edit_data_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_edit_data_iter_poly_mesh;
+  extractor.iter_face_bm = extract_edit_data_iter_face_bm;
+  extractor.iter_face_mesh = extract_edit_data_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_edit_data_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_edit_data_iter_loose_edge_mesh;
   extractor.iter_loose_vert_bm = extract_edit_data_iter_loose_vert_bm;

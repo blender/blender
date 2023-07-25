@@ -696,7 +696,7 @@ class WFace {
   vector<Vec2f> _VerticesTexCoords;
 
   int _Id;
-  unsigned _FrsMaterialIndex;
+  uint _FrsMaterialIndex;
   bool _Mark;  // Freestyle face mark (if true, feature edges on this face are ignored)
 
  public:
@@ -733,7 +733,7 @@ class WFace {
     return _Id;
   }
 
-  inline unsigned frs_materialIndex() const
+  inline uint frs_materialIndex() const
   {
     return _FrsMaterialIndex;
   }
@@ -746,7 +746,7 @@ class WFace {
   const FrsMaterial &frs_material();
 
   /** The vertex of index i corresponds to the a vertex of the edge of index i */
-  inline WVertex *GetVertex(unsigned int index)
+  inline WVertex *GetVertex(uint index)
   {
 #if 0
     if (index >= _OEdgeList.size()) {
@@ -928,7 +928,7 @@ class WFace {
     _Id = id;
   }
 
-  inline void setFrsMaterialIndex(unsigned iMaterialIndex)
+  inline void setFrsMaterialIndex(uint iMaterialIndex)
   {
     _FrsMaterialIndex = iMaterialIndex;
   }
@@ -993,7 +993,7 @@ class WShape {
   int _Id;
   string _Name;
   string _LibraryPath;
-  static unsigned _SceneCurrentId;
+  static uint _SceneCurrentId;
 #if 0
   Vec3f _min;
   Vec3f _max;
@@ -1060,7 +1060,7 @@ class WShape {
     return _FaceList;
   }
 
-  inline unsigned GetId()
+  inline uint GetId()
   {
     return _Id;
   }
@@ -1073,7 +1073,7 @@ class WShape {
   }
 #endif
 
-  inline const FrsMaterial &frs_material(unsigned i) const
+  inline const FrsMaterial &frs_material(uint i) const
   {
     return _FrsMaterials[i];
   }
@@ -1101,7 +1101,7 @@ class WShape {
   }
 
   /** modifiers */
-  static inline void setCurrentId(const unsigned id)
+  static inline void setCurrentId(const uint id)
   {
     _SceneCurrentId = id;
   }
@@ -1134,7 +1134,7 @@ class WShape {
   }
 #endif
 
-  inline void setFrsMaterial(const FrsMaterial &frs_material, unsigned i)
+  inline void setFrsMaterial(const FrsMaterial &frs_material, uint i)
   {
     _FrsMaterials[i] = frs_material;
   }
@@ -1171,7 +1171,7 @@ class WShape {
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
                           vector<bool> &iFaceEdgeMarksList,
-                          unsigned iMaterialIndex);
+                          uint iMaterialIndex);
 
   /** adds a new face to the shape. The difference with the previous method is that this one is
    * designed to build a WingedEdge structure for which there are per vertex normals, opposed to
@@ -1188,7 +1188,7 @@ class WShape {
                           vector<Vec3f> &iNormalsList,
                           vector<Vec2f> &iTexCoordsList,
                           vector<bool> &iFaceEdgeMarksList,
-                          unsigned iMaterialIndex);
+                          uint iMaterialIndex);
 
   inline void AddEdge(WEdge *iEdge)
   {
@@ -1241,7 +1241,7 @@ class WShape {
     for (vector<WVertex *>::iterator wv = _VertexList.begin(), wvend = _VertexList.end();
          wv != wvend;
          wv++) {
-      for (unsigned int i = 0; i < 3; i++) {
+      for (uint i = 0; i < 3; i++) {
         v = (*wv)->GetVertex();
         if (v[i] < _min[i]) {
           _min[i] = v[i];
@@ -1279,7 +1279,7 @@ class WShape {
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
                           vector<bool> &iFaceEdgeMarksList,
-                          unsigned iMaterialIndex,
+                          uint iMaterialIndex,
                           WFace *face);
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -1327,14 +1327,14 @@ class WingedEdge {
     return _wshapes;
   }
 
-  unsigned getNumFaces()
+  uint getNumFaces()
   {
     return _numFaces;
   }
 
  private:
   vector<WShape *> _wshapes;
-  unsigned _numFaces;
+  uint _numFaces;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:WingedEdge")

@@ -126,6 +126,7 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bsdf_microfacet.h
   closure/bsdf_oren_nayar.h
   closure/bsdf_phong_ramp.h
+  closure/bsdf_sheen.h
   closure/bsdf_toon.h
   closure/bsdf_transparent.h
   closure/bsdf_util.h

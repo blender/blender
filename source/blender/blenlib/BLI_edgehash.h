@@ -180,7 +180,7 @@ BLI_INLINE void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
 }
 
 #define BLI_EDGEHASH_SIZE_GUESS_FROM_LOOPS(totloop) ((totloop) / 2)
-#define BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly) ((totpoly)*2)
+#define BLI_EDGEHASH_SIZE_GUESS_FROM_FACES(faces_num) ((faces_num)*2)
 
 /* *** EdgeSet *** */
 

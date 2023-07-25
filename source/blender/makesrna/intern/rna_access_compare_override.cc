@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <string.h>
+#include <cstring>
 
 #include <CLG_log.h>
 

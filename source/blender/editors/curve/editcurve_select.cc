@@ -744,7 +744,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "deselect",
-                  0,
+                  false,
                   "Deselect",
                   "Deselect linked control points rather than selecting them");
 }
@@ -833,7 +833,7 @@ static int select_next_exec(bContext *C, wmOperator * /*op*/)
     Object *obedit = objects[ob_index];
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    select_adjacent_cp(editnurb, 1, 0, SELECT);
+    select_adjacent_cp(editnurb, 1, false, SELECT);
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -875,7 +875,7 @@ static int select_previous_exec(bContext *C, wmOperator * /*op*/)
     Object *obedit = objects[ob_index];
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    select_adjacent_cp(editnurb, -1, 0, SELECT);
+    select_adjacent_cp(editnurb, -1, false, SELECT);
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
@@ -975,8 +975,8 @@ static void curve_select_more(Object *obedit)
     }
   }
   else {
-    select_adjacent_cp(editnurb, 1, 0, SELECT);
-    select_adjacent_cp(editnurb, -1, 0, SELECT);
+    select_adjacent_cp(editnurb, 1, false, SELECT);
+    select_adjacent_cp(editnurb, -1, false, SELECT);
   }
 }
 

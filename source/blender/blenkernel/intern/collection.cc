@@ -11,7 +11,7 @@
 
 #include "CLG_log.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_blenlib.h"
 #include "BLI_iterator.h"

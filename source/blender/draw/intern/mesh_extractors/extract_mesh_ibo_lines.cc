@@ -62,7 +62,7 @@ static void extract_lines_init(const MeshRenderData *mr,
   }
 }
 
-static void extract_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
+static void extract_lines_iter_face_bm(const MeshRenderData * /*mr*/,
                                        const BMFace *f,
                                        const int /*f_index*/,
                                        void *tls_data)
@@ -85,19 +85,19 @@ static void extract_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
-                                         const int poly_index,
+static void extract_lines_iter_face_mesh(const MeshRenderData *mr,
+                                         const int face_index,
                                          void *tls_data)
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
 
-  const IndexRange poly = mr->polys[poly_index];
+  const IndexRange face = mr->faces[face_index];
 
-  /* Using poly & loop iterator would complicate accessing the adjacent loop. */
+  /* Using face & loop iterator would complicate accessing the adjacent loop. */
   if (data->test_visibility) {
-    const int ml_index_last = poly.last();
-    int ml_index = ml_index_last, ml_index_next = poly.start();
+    const int ml_index_last = face.last();
+    int ml_index = ml_index_last, ml_index_next = face.start();
     do {
       const int edge = mr->corner_edges[ml_index];
       if (is_edge_visible(data, edge)) {
@@ -109,8 +109,8 @@ static void extract_lines_iter_poly_mesh(const MeshRenderData *mr,
     } while ((ml_index = ml_index_next++) != ml_index_last);
   }
   else {
-    const int ml_index_last = poly.last();
-    int ml_index = ml_index_last, ml_index_next = poly.start();
+    const int ml_index_last = face.last();
+    int ml_index = ml_index_last, ml_index_next = face.start();
     do {
       const int edge = mr->corner_edges[ml_index];
       GPU_indexbuf_set_line_verts(elb, edge, ml_index, ml_index_next);
@@ -279,8 +279,8 @@ constexpr MeshExtract create_extractor_lines()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_init;
-  extractor.iter_poly_bm = extract_lines_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
+  extractor.iter_face_bm = extract_lines_iter_face_bm;
+  extractor.iter_face_mesh = extract_lines_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_lines_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_lines_iter_loose_edge_mesh;
   extractor.init_subdiv = extract_lines_init_subdiv;
@@ -341,8 +341,8 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_lines_init;
-  extractor.iter_poly_bm = extract_lines_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_lines_iter_poly_mesh;
+  extractor.iter_face_bm = extract_lines_iter_face_bm;
+  extractor.iter_face_mesh = extract_lines_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_lines_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_lines_iter_loose_edge_mesh;
   extractor.task_reduce = extract_lines_task_reduce;

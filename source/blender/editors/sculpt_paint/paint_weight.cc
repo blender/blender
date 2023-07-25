@@ -1127,14 +1127,14 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
     if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
       continue;
     }
-    /* Get the average poly weight */
+    /* Get the average face weight */
     int total_hit_loops = 0;
     float weight_final = 0.0f;
-    for (const int p_index : gmap->vert_to_poly[v_index]) {
-      const blender::IndexRange poly = ss->polys[p_index];
+    for (const int p_index : gmap->vert_to_face[v_index]) {
+      const blender::IndexRange face = ss->faces[p_index];
 
-      total_hit_loops += poly.size();
-      for (const int vert : ss->corner_verts.slice(poly)) {
+      total_hit_loops += face.size();
+      for (const int vert : ss->corner_verts.slice(face)) {
         weight_final += data->wpd->precomputed_weight[vert];
       }
     }
@@ -1250,8 +1250,8 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
     /* Get the color of the loop in the opposite direction of the brush movement
      * (this callback is specifically for smear.) */
     float weight_final = 0.0;
-    for (const int p_index : gmap->vert_to_poly[v_index]) {
-      for (const int v_other_index : ss->corner_verts.slice(ss->polys[p_index])) {
+    for (const int p_index : gmap->vert_to_face[v_index]) {
+      for (const int v_other_index : ss->corner_verts.slice(ss->faces[p_index])) {
         if (v_other_index == v_index) {
           continue;
         }
@@ -1537,7 +1537,7 @@ bool weight_paint_mode_poll(bContext *C)
 {
   const Object *ob = CTX_data_active_object(C);
 
-  return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((const Mesh *)ob->data)->totpoly;
+  return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((const Mesh *)ob->data)->faces_num;
 }
 
 static bool weight_paint_poll_ex(bContext *C, bool check_tool)

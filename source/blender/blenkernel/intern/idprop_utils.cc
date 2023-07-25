@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"

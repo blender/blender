@@ -1300,8 +1300,31 @@ void DepsgraphNodeBuilder::build_driver_variables(ID *id, FCurve *fcurve)
 
       build_id(target_id);
       build_driver_id_property(target_prop, dtar->rna_path);
+
+      /* For rna_path based variables: */
+      if ((dtar->flag & DTAR_FLAG_STRUCT_REF) == 0) {
+        /* Handle all other cameras used by the scene timeline if applicable. */
+        if (const char *camera_path = get_rna_path_relative_to_scene_camera(
+                scene_, target_prop, dtar->rna_path))
+        {
+          build_driver_scene_camera_variable(scene_, camera_path);
+        }
+      }
     }
     DRIVER_TARGETS_LOOPER_END;
+  }
+}
+
+void DepsgraphNodeBuilder::build_driver_scene_camera_variable(Scene *scene,
+                                                              const char *camera_path)
+{
+  /* This skips scene->camera, which was already handled by the caller. */
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    if (!ELEM(marker->camera, nullptr, scene->camera)) {
+      PointerRNA camera_ptr;
+      RNA_id_pointer_create(&marker->camera->id, &camera_ptr);
+      build_driver_id_property(camera_ptr, camera_path);
+    }
   }
 }
 

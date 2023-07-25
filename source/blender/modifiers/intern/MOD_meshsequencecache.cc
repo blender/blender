@@ -208,16 +208,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (me != nullptr) {
     const Span<float3> mesh_positions = mesh->vert_positions();
     const Span<blender::int2> mesh_edges = mesh->edges();
-    const blender::OffsetIndices mesh_polys = mesh->polys();
+    const blender::OffsetIndices mesh_faces = mesh->faces();
     const Span<float3> me_positions = me->vert_positions();
     const Span<blender::int2> me_edges = me->edges();
-    const blender::OffsetIndices me_polys = me->polys();
+    const blender::OffsetIndices me_faces = me->faces();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
      * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
     if ((me_positions.data() == mesh_positions.data()) || (me_edges.data() == mesh_edges.data()) ||
-        (me_polys.data() == mesh_polys.data()))
+        (me_faces.data() == mesh_faces.data()))
     {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see #51701. */
       mesh = reinterpret_cast<Mesh *>(

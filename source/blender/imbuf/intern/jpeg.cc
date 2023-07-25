@@ -7,8 +7,8 @@
  */
 
 /* This little block needed for linking to Blender... */
-#include <setjmp.h>
-#include <stdio.h>
+#include <csetjmp>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -66,7 +66,7 @@ struct my_error_mgr {
   jmp_buf setjmp_buffer; /* for return to caller */
 };
 
-typedef my_error_mgr *my_error_ptr;
+using my_error_ptr = my_error_mgr *;
 
 static void jpeg_error(j_common_ptr cinfo)
 {
@@ -93,15 +93,15 @@ typedef struct {
 } buffer_struct;
 #endif
 
-typedef struct {
+struct my_source_mgr {
   jpeg_source_mgr pub; /* public fields */
 
   const uchar *buffer;
   int size;
   JOCTET terminal[2];
-} my_source_mgr;
+};
 
-typedef my_source_mgr *my_src_ptr;
+using my_src_ptr = my_source_mgr *;
 
 static void init_source(j_decompress_ptr cinfo)
 {
@@ -717,7 +717,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
   my_error_mgr jerr;
 
   if ((outfile = BLI_fopen(filepath, "wb")) == nullptr) {
-    return 0;
+    return false;
   }
 
   cinfo->err = jpeg_std_error(&jerr.pub);
@@ -731,7 +731,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
     jpeg_destroy_compress(cinfo);
     fclose(outfile);
     remove(filepath);
-    return 0;
+    return false;
   }
 
   init_jpeg(outfile, cinfo, ibuf);
@@ -741,7 +741,7 @@ static bool save_stdjpeg(const char *filepath, ImBuf *ibuf)
   fclose(outfile);
   jpeg_destroy_compress(cinfo);
 
-  return 1;
+  return true;
 }
 
 bool imb_savejpeg(ImBuf *ibuf, const char *filepath, int flags)

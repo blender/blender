@@ -6,8 +6,8 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -218,7 +218,7 @@ static bool rule_avoid_collision(BoidRule *rule,
   float co1[3], vel1[3], co2[3], vel2[3];
   float len, t, inp, t_min = 2.0f;
   int n, neighbors = 0, nearest = 0;
-  bool ret = 0;
+  bool ret = false;
 
   /* Check deflector objects first. */
   if (acbr->options & BRULE_ACOLL_WITH_DEFLECTORS && bbd->sim->colliders) {
@@ -325,7 +325,7 @@ static bool rule_avoid_collision(BoidRule *rule,
               mul_v3_fl(vec, (2.0f - t) / 2.0f);
               sub_v3_v3v3(bbd->wanted_co, vel1, vec);
               bbd->wanted_speed = len_v3(bbd->wanted_co);
-              ret = 1;
+              ret = true;
             }
           }
         }
@@ -381,7 +381,7 @@ static bool rule_avoid_collision(BoidRule *rule,
                 mul_v3_fl(vec, (2.0f - t) / 2.0f);
                 sub_v3_v3v3(bbd->wanted_co, vel1, vec);
                 bbd->wanted_speed = len_v3(bbd->wanted_co);
-                ret = 1;
+                ret = true;
               }
             }
           }
@@ -417,7 +417,7 @@ static bool rule_separate(BoidRule * /*rule*/,
     add_v3_v3(bbd->wanted_co, vec);
     bbd->wanted_speed = val->max_speed;
     len = ptn[1].dist;
-    ret = 1;
+    ret = true;
   }
   MEM_SAFE_FREE(ptn);
 
@@ -781,10 +781,10 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
   return ret;
 }
 
-typedef bool (*boid_rule_cb)(BoidRule *rule,
-                             BoidBrainData *data,
-                             BoidValues *val,
-                             ParticleData *pa);
+using boid_rule_cb = bool (*)(BoidRule *rule,
+                              BoidBrainData *data,
+                              BoidValues *val,
+                              ParticleData *pa);
 
 static boid_rule_cb boid_rules[] = {
     rule_none,

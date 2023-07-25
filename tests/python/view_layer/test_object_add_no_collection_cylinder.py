@@ -7,8 +7,6 @@
 # ############################################################
 
 import unittest
-import os
-import sys
 
 from view_layer_common import *
 
@@ -23,7 +21,6 @@ class UnitTesting(ViewLayerTesting):
         See if new objects are added to the correct collection
         bpy.ops.mesh.primitive_cylinder_add()
         """
-        import os
         self.do_object_add_no_collection('CYLINDER')
 
 

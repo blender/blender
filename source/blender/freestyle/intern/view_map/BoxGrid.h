@@ -156,12 +156,12 @@ class BoxGrid {
   Transform transform;
 
  private:
-  void getCellCoordinates(const Vec3r &point, unsigned &x, unsigned &y);
+  void getCellCoordinates(const Vec3r &point, uint &x, uint &y);
 
   typedef PointerSequence<vector<Cell *>, Cell *> cellContainer;
   // typedef PointerSequence<deque<OccluderData*>, OccluderData*> occluderContainer;
   typedef PointerSequence<vector<OccluderData *>, OccluderData *> occluderContainer;
-  unsigned _cellsX, _cellsY;
+  uint _cellsX, _cellsY;
   float _cellSize;
   float _cellOrigin[2];
   cellContainer _cells;
@@ -217,7 +217,7 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
 #if BOX_GRID_LOGGING
   if (G.debug & G_DEBUG_FREESTYLE) {
     std::cout << "\tTesting occluder " << (*_current)->poly.getVertices()[0];
-    for (unsigned int i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
+    for (uint i = 1; i < (*_current)->poly.getVertices().size(); ++i) {
       std::cout << ", " << (*_current)->poly.getVertices()[i];
     }
     std::cout << " from shape " << (*_current)->face->GetVertex(0)->shape()->GetId() << std::endl;
@@ -392,12 +392,12 @@ inline bool BoxGrid::insertOccluder(OccluderSource &source, OccluderData *&occlu
   Vec3r bbMin, bbMax;
   poly.getBBox(bbMin, bbMax);
   // Check overlapping cells
-  unsigned startX, startY, endX, endY;
+  uint startX, startY, endX, endY;
   getCellCoordinates(bbMin, startX, startY);
   getCellCoordinates(bbMax, endX, endY);
 
-  for (unsigned int i = startX; i <= endX; ++i) {
-    for (unsigned int j = startY; j <= endY; ++j) {
+  for (uint i = startX; i <= endX; ++i) {
+    for (uint j = startY; j <= endY; ++j) {
       if (_cells[i * _cellsY + j] != NULL) {
         _cells[i * _cellsY + j]->checkAndInsert(source, poly, occluder);
       }

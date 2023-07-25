@@ -1317,7 +1317,7 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
   float(*quats)[4] = nullptr;
   float(*defmats)[3][3] = nullptr;
   const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
-  if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, nullptr, 1) != -1) {
+  if (BKE_modifiers_get_cage_index(t->scene, tc->obedit, nullptr, true) != -1) {
     float(*defcos)[3] = nullptr;
     int totleft = -1;
     if (BKE_modifiers_is_correctable_deformed(t->scene, tc->obedit)) {

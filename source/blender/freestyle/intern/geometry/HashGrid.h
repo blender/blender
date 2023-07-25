@@ -31,9 +31,9 @@ struct GridHasher {
 #define _MOD 2147483647UL
   inline size_t operator()(const Vec3u &p) const
   {
-    size_t res = ((unsigned long)(p[0] * _MUL)) % _MOD;
-    res = ((res + (unsigned long)(p[1]) * _MUL)) % _MOD;
-    return ((res + (unsigned long)(p[2]) * _MUL)) % _MOD;
+    size_t res = (ulong(p[0] * _MUL)) % _MOD;
+    res = ((res + ulong(p[1]) * _MUL)) % _MOD;
+    return ((res + ulong(p[2]) * _MUL)) % _MOD;
   }
 #undef _MUL
 #undef _MOD
@@ -64,7 +64,7 @@ class HashGrid : public Grid {
    *    nb
    *      The number of cells of the grid
    */
-  virtual void configure(const Vec3r &orig, const Vec3r &size, unsigned nb);
+  virtual void configure(const Vec3r &orig, const Vec3r &size, uint nb);
 
   /** returns the cell whose coordinates are passed as argument */
   virtual Cell *getCell(const Vec3u &p)

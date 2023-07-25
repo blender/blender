@@ -7,14 +7,11 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../blentranslation
-  ../../depsgraph
   ../../functions
   ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../compositor/realtime_compositor
   ../../compositor/realtime_compositor/algorithms
   ../../compositor/realtime_compositor/cached_resources
@@ -128,9 +125,12 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_IMAGE_OPENEXR)

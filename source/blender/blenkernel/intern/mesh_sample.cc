@@ -127,7 +127,7 @@ void sample_corner_attribute(const Span<MLoopTri> looptris,
 }
 
 template<typename T>
-void sample_face_attribute(const Span<int> looptri_polys,
+void sample_face_attribute(const Span<int> looptri_faces,
                            const Span<int> looptri_indices,
                            const VArray<T> &src,
                            const IndexMask &mask,
@@ -135,12 +135,12 @@ void sample_face_attribute(const Span<int> looptri_polys,
 {
   mask.foreach_index([&](const int i) {
     const int looptri_index = looptri_indices[i];
-    const int poly_index = looptri_polys[looptri_index];
-    dst[i] = src[poly_index];
+    const int face_index = looptri_faces[looptri_index];
+    dst[i] = src[face_index];
   });
 }
 
-void sample_face_attribute(const Span<int> looptri_polys,
+void sample_face_attribute(const Span<int> looptri_faces,
                            const Span<int> looptri_indices,
                            const GVArray &src,
                            const IndexMask &mask,
@@ -151,7 +151,7 @@ void sample_face_attribute(const Span<int> looptri_polys,
   const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
-    sample_face_attribute<T>(looptri_polys, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
+    sample_face_attribute<T>(looptri_faces, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 

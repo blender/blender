@@ -6,8 +6,8 @@
  * \ingroup spimage
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"

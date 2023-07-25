@@ -6,7 +6,7 @@
  * \ingroup edanimation
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -4501,7 +4501,7 @@ void ANIM_channel_draw(
     /* just skip - drawn as widget now */
     offset += ICON_WIDTH;
   }
-  else {
+  else if (!ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
     /* A bit of padding when there is no expand widget. */
     offset += short(0.2f * U.widget_unit);
   }

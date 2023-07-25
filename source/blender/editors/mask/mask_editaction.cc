@@ -6,11 +6,11 @@
  * \ingroup edmask
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -89,7 +89,7 @@ bool ED_masklayer_frame_select_check(const MaskLayer *mask_layer)
 {
   /* error checking */
   if (mask_layer == nullptr) {
-    return 0;
+    return false;
   }
 
   /* stop at the first one found */

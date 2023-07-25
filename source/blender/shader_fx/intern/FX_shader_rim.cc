@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
@@ -91,8 +91,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Rim = {
     /*name*/ N_("Rim"),
-    /*structName*/ "RimShaderFxData",
-    /*structSize*/ sizeof(RimShaderFxData),
+    /*struct_name*/ "RimShaderFxData",
+    /*struct_size*/ sizeof(RimShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

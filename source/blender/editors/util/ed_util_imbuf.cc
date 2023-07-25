@@ -45,7 +45,7 @@
 /** \name Image Pixel Sample Struct (Operator Custom Data)
  * \{ */
 
-typedef struct ImageSampleInfo {
+struct ImageSampleInfo {
   ARegionType *art;
   void *draw_handle;
   int x, y;
@@ -68,7 +68,7 @@ typedef struct ImageSampleInfo {
   bool draw;
   bool color_manage;
   int use_default_view;
-} ImageSampleInfo;
+};
 
 /** \} */
 
@@ -263,7 +263,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 #endif
   }
   else {
-    info->draw = 0;
+    info->draw = false;
   }
 
   ED_space_image_release_buffer(sima, ibuf, lock);
@@ -283,7 +283,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
   float fx, fy;
 
   if (ibuf == nullptr) {
-    info->draw = 0;
+    info->draw = false;
     return;
   }
 
@@ -303,7 +303,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
     info->x = x;
     info->y = y;
-    info->draw = 1;
+    info->draw = true;
     info->channels = ibuf->channels;
 
     info->colp = nullptr;
@@ -347,7 +347,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
     }
   }
   else {
-    info->draw = 0;
+    info->draw = false;
   }
 
   IMB_freeImBuf(ibuf);

@@ -661,11 +661,12 @@ void WM_OT_collada_export(wmOperatorType *ot)
                "Note: The Animation transformation type in the Anim Tab "
                "is always equal to the Object transformation type in the Geom tab");
 
-  RNA_def_boolean(ot->srna,
-                  "open_sim",
-                  0,
-                  "Export to SL/OpenSim",
-                  "Compatibility mode for SL, OpenSim and other compatible online worlds");
+  RNA_def_boolean(
+      ot->srna,
+      "open_sim",
+      0,
+      "Export to SL/OpenSim",
+      "Compatibility mode for Second Life, OpenSimulator and other compatible online worlds");
 
   RNA_def_boolean(ot->srna,
                   "limit_precision",

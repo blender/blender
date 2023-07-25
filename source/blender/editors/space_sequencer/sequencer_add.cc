@@ -6,10 +6,10 @@
  * \ingroup spseq
  */
 
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 

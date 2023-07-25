@@ -32,11 +32,11 @@ class AppView {
 
  public:
   // inherited
-  inline unsigned int width()
+  inline uint width()
   {
     return _width;
   }
-  inline unsigned int height()
+  inline uint height()
   {
     return _height;
   }
@@ -48,11 +48,11 @@ class AppView {
   {
     return _thickness;
   }
-  inline void setWidth(unsigned int width)
+  inline void setWidth(uint width)
   {
     _width = width;
   }
-  inline void setHeight(unsigned int height)
+  inline void setHeight(uint height)
   {
     _height = height;
   }
@@ -66,7 +66,7 @@ class AppView {
   }
 
  protected:
-  unsigned int _width, _height;
+  uint _width, _height;
   BBox<Vec2i> _border;
   float _thickness;
 

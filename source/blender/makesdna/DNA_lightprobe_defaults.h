@@ -21,6 +21,9 @@
     .grid_resolution_y = 4, \
     .grid_resolution_z = 4, \
     .grid_bake_samples = 2048, \
+    .grid_normal_bias = 0.3f, \
+    .grid_view_bias = 0.0f, \
+    .grid_facing_bias = 0.5f, \
     .surfel_density = 1.0f, \
     .distinf = 2.5f, \
     .distpar = 2.5f, \

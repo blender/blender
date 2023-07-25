@@ -7,16 +7,12 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../blentranslation
-  ../../bmesh
-  ../../depsgraph
   ../../functions
   ../../geometry
   ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../extern/fmtlib/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -201,12 +197,15 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  bf_bmesh
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
   bf_geometry
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

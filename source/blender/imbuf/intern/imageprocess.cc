@@ -11,8 +11,8 @@
  * It should probably move to `imbuf/intern/util.c`, but we'll keep it here for the time being.
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

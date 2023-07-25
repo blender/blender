@@ -646,7 +646,7 @@ void psys_calc_dmcache(struct Object *ob,
  * \param findex_orig: The input tessface index.
  * \param fw: Face weights (position of the particle inside the \a findex_orig tessface).
  * \param poly_nodes: May be NULL, otherwise an array of linked list,
- * one for each final \a mesh_final polygon, containing all its tessfaces indices.
+ * one for each final \a mesh_final face, containing all its tessfaces indices.
  * \return The \a mesh_final tessface index.
  */
 int psys_particle_dm_face_lookup(struct Mesh *mesh_final,

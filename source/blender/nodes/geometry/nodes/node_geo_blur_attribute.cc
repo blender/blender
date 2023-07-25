@@ -191,40 +191,40 @@ static void build_edge_to_edge_by_vert_map(const Span<int2> edges,
   });
 }
 
-static void build_face_to_face_by_edge_map(const OffsetIndices<int> polys,
+static void build_face_to_face_by_edge_map(const OffsetIndices<int> faces,
                                            const Span<int> corner_edges,
                                            const int edges_num,
                                            Array<int> &r_offsets,
                                            Array<int> &r_indices)
 {
-  Array<int> edge_to_poly_offset_data;
-  Array<int> edge_to_poly_indices;
-  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
-      polys, corner_edges, edges_num, edge_to_poly_offset_data, edge_to_poly_indices);
-  const OffsetIndices<int> edge_to_poly_offsets(edge_to_poly_offset_data);
+  Array<int> edge_to_face_offset_data;
+  Array<int> edge_to_face_indices;
+  const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
+      faces, corner_edges, edges_num, edge_to_face_offset_data, edge_to_face_indices);
+  const OffsetIndices<int> edge_to_face_offsets(edge_to_face_offset_data);
 
-  r_offsets = Array<int>(polys.size() + 1, 0);
-  threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
-    for (const int poly_i : range) {
-      for (const int edge : corner_edges.slice(polys[poly_i])) {
-        /* Subtract polygon itself from the number of polygons connected to the edge. */
-        r_offsets[poly_i] += edge_to_poly_offsets[edge].size() - 1;
+  r_offsets = Array<int>(faces.size() + 1, 0);
+  threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
+    for (const int face_i : range) {
+      for (const int edge : corner_edges.slice(faces[face_i])) {
+        /* Subtract face itself from the number of faces connected to the edge. */
+        r_offsets[face_i] += edge_to_face_offsets[edge].size() - 1;
       }
     }
   });
   const OffsetIndices<int> offsets = offset_indices::accumulate_counts_to_offsets(r_offsets);
   r_indices.reinitialize(offsets.total_size());
 
-  threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
-    for (const int poly_i : range) {
-      MutableSpan<int> neighbors = r_indices.as_mutable_span().slice(offsets[poly_i]);
+  threading::parallel_for(faces.index_range(), 1024, [&](IndexRange range) {
+    for (const int face_i : range) {
+      MutableSpan<int> neighbors = r_indices.as_mutable_span().slice(offsets[face_i]);
       if (neighbors.is_empty()) {
         continue;
       }
       int count = 0;
-      for (const int edge : corner_edges.slice(polys[poly_i])) {
-        for (const int neighbor : edge_to_poly_map[edge]) {
-          if (neighbor != poly_i) {
+      for (const int edge : corner_edges.slice(faces[face_i])) {
+        for (const int neighbor : edge_to_face_map[edge]) {
+          if (neighbor != face_i) {
             neighbors[count] = neighbor;
             count++;
           }
@@ -248,7 +248,7 @@ static GroupedSpan<int> create_mesh_map(const Mesh &mesh,
       break;
     case ATTR_DOMAIN_FACE:
       build_face_to_face_by_edge_map(
-          mesh.polys(), mesh.corner_edges(), mesh.totedge, r_offsets, r_indices);
+          mesh.faces(), mesh.corner_edges(), mesh.totedge, r_offsets, r_indices);
       break;
     default:
       BLI_assert_unreachable();

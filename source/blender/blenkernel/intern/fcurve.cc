@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <float.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1365,17 +1365,17 @@ void sort_time_fcurve(FCurve *fcu)
 
   bool ok = true;
   while (ok) {
-    ok = 0;
+    ok = false;
     /* Currently, will only be needed when there are beztriples. */
 
     /* Loop over ALL points to adjust position in array and recalculate handles. */
     for (a = 0, bezt = fcu->bezt; a < fcu->totvert; a++, bezt++) {
-      /* Check if thee's a next beztriple which we could try to swap with current. */
+      /* Check if there's a next beztriple which we could try to swap with current. */
       if (a < (fcu->totvert - 1)) {
         /* Swap if one is after the other (and indicate that order has changed). */
         if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
           SWAP(BezTriple, *bezt, *(bezt + 1));
-          ok = 1;
+          ok = true;
         }
       }
     }

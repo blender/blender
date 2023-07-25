@@ -387,7 +387,7 @@ static void set_job_filepath(blender::io::usd::ExportJobData *job, const char *f
     return;
   }
 
-  BLI_strncpy(job->unarchived_filepath, filepath, sizeof(job->unarchived_filepath));
+  STRNCPY(job->unarchived_filepath, filepath);
   job->usdz_filepath[0] = '\0';
 }
 

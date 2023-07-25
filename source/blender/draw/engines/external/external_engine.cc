@@ -46,29 +46,29 @@ extern char datatoc_common_view_lib_glsl[];
 
 /* GPUViewport.storage
  * Is freed every time the viewport engine changes. */
-typedef struct EXTERNAL_Storage {
+struct EXTERNAL_Storage {
   int dummy;
-} EXTERNAL_Storage;
+};
 
-typedef struct EXTERNAL_StorageList {
+struct EXTERNAL_StorageList {
   EXTERNAL_Storage *storage;
   struct EXTERNAL_PrivateData *g_data;
-} EXTERNAL_StorageList;
+};
 
-typedef struct EXTERNAL_FramebufferList {
+struct EXTERNAL_FramebufferList {
   GPUFrameBuffer *depth_buffer_fb;
-} EXTERNAL_FramebufferList;
+};
 
-typedef struct EXTERNAL_TextureList {
+struct EXTERNAL_TextureList {
   /* default */
   GPUTexture *depth_buffer_tx;
-} EXTERNAL_TextureList;
+};
 
-typedef struct EXTERNAL_PassList {
+struct EXTERNAL_PassList {
   DRWPass *depth_pass;
-} EXTERNAL_PassList;
+};
 
-typedef struct EXTERNAL_Data {
+struct EXTERNAL_Data {
   void *engine_type;
   EXTERNAL_FramebufferList *fbl;
   EXTERNAL_TextureList *txl;
@@ -77,7 +77,7 @@ typedef struct EXTERNAL_Data {
   void *instance_data;
 
   char info[GPU_INFO_SIZE];
-} EXTERNAL_Data;
+};
 
 /* *********** STATIC *********** */
 
@@ -86,13 +86,13 @@ static struct {
   GPUShader *depth_sh;
 } e_data = {nullptr}; /* Engine data */
 
-typedef struct EXTERNAL_PrivateData {
+struct EXTERNAL_PrivateData {
   DRWShadingGroup *depth_shgrp;
 
   /* Do we need to update the depth or can we reuse the last calculated texture. */
   bool need_depth;
   bool update_depth;
-} EXTERNAL_PrivateData; /* Transient data */
+}; /* Transient data */
 
 /* Functions */
 

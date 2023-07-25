@@ -177,6 +177,16 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_driver_data(ID *id, FCurve *fcurve);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
 
+  virtual void build_driver_scene_camera_variable(const OperationKey &driver_key,
+                                                  const RNAPathKey &self_key,
+                                                  Scene *scene,
+                                                  const char *rna_path);
+  virtual void build_driver_rna_path_variable(const OperationKey &driver_key,
+                                              const RNAPathKey &self_key,
+                                              ID *target_id,
+                                              const PointerRNA &target_prop,
+                                              const char *rna_path);
+
   /* Build operations of a property value from which is read by a driver target.
    *
    * The driver target points to a data-block (or a sub-data-block like View Layer).

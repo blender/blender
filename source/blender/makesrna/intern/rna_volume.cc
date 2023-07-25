@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -293,7 +293,7 @@ static void rna_def_volume_grid(BlenderRNA *brna)
   func = RNA_def_function(srna, "load", "rna_VolumeGrid_load");
   RNA_def_function_ui_description(func, "Load grid tree from file");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  parm = RNA_def_boolean(func, "success", 0, "", "True if grid tree was successfully loaded");
+  parm = RNA_def_boolean(func, "success", false, "", "True if grid tree was successfully loaded");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "unload", "rna_VolumeGrid_unload");
@@ -359,7 +359,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   func = RNA_def_function(srna, "load", "rna_Volume_load");
   RNA_def_function_ui_description(func, "Load list of grids and metadata from file");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
-  parm = RNA_def_boolean(func, "success", 0, "", "True if grid list was successfully loaded");
+  parm = RNA_def_boolean(func, "success", false, "", "True if grid list was successfully loaded");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "unload", "BKE_volume_unload");
@@ -370,7 +370,7 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_string_file_path(func, "filepath", nullptr, 0, "", "File path to save to");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "success", 0, "", "True if grid list was successfully loaded");
+  parm = RNA_def_boolean(func, "success", false, "", "True if grid list was successfully loaded");
   RNA_def_function_return(func, parm);
 }
 
@@ -634,7 +634,7 @@ static void rna_def_volume(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "mat", "totcol");
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_ui_text(prop, "Materials", "");
-  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
+  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.cc */
   RNA_def_property_collection_funcs(prop,
                                     nullptr,
                                     nullptr,

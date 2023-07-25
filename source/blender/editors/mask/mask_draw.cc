@@ -579,7 +579,7 @@ static void draw_layer_splines(const bContext *C,
     }
 
     /* show undeform for testing */
-    if (0) {
+    if (false) {
       MaskSplinePoint *back = spline->points_deform;
 
       spline->points_deform = nullptr;

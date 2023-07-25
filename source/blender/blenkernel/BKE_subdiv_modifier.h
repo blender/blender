@@ -51,7 +51,7 @@ typedef struct SubsurfRuntimeData {
   /* Cached from the draw code for stats display. */
   int stats_totvert;
   int stats_totedge;
-  int stats_totpoly;
+  int stats_faces_num;
   int stats_totloop;
 } SubsurfRuntimeData;
 

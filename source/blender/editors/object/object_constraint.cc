@@ -6,8 +6,8 @@
  * \ingroup edobj
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -280,7 +280,7 @@ static void set_constraint_nth_target(bConstraint *con,
       }
     }
 
-    BKE_constraint_targets_flush(con, &targets, 0);
+    BKE_constraint_targets_flush(con, &targets, false);
   }
 }
 
@@ -538,7 +538,7 @@ static void test_constraint(
     }
 
     /* free any temporary targets */
-    BKE_constraint_targets_flush(con, &targets, 0);
+    BKE_constraint_targets_flush(con, &targets, false);
   }
   else if (check_targets) {
     /* constraints with empty target list that actually require targets */
@@ -2401,7 +2401,7 @@ static int constraint_add_exec(
     bPoseChannel *tar_pchan = nullptr;
 
     /* get the target objects, adding them as need be */
-    if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, 1)) {
+    if (get_new_constraint_target(C, type, &tar_ob, &tar_pchan, true)) {
       /* Method of setting target depends on the type of target we've got - by default,
        * just set the first target (distinction here is only for multiple-targeted constraints).
        */
@@ -2675,7 +2675,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
   layout = UI_popup_menu_layout(pup);
 
   /* the type of targets we'll set determines the menu entries to show... */
-  if (get_new_constraint_target(C, CONSTRAINT_TYPE_KINEMATIC, &tar_ob, &tar_pchan, 0)) {
+  if (get_new_constraint_target(C, CONSTRAINT_TYPE_KINEMATIC, &tar_ob, &tar_pchan, false)) {
     /* bone target, or object target?
      * - the only thing that matters is that we want a target...
      */
@@ -2732,7 +2732,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "with_targets",
-                  1,
+                  true,
                   "With Targets",
                   "Assign IK Constraint with targets derived from the select bones/objects");
 }

@@ -24,7 +24,7 @@ static DMFlagMat subdiv_ccg_material_flags_eval(
     SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const int coarse_face_index)
 {
   CCGMaterialFromMeshData *data = (CCGMaterialFromMeshData *)material_flags_evaluator->user_data;
-  BLI_assert(coarse_face_index < data->mesh->totpoly);
+  BLI_assert(coarse_face_index < data->mesh->faces_num);
   DMFlagMat material_flags;
   material_flags.sharp = data->sharp_faces && data->sharp_faces[coarse_face_index];
   material_flags.mat_nr = data->material_indices ? data->material_indices[coarse_face_index] : 0;

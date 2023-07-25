@@ -6,7 +6,7 @@
  * \ingroup edundo
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -668,14 +668,21 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
   if (op) {
     CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
     wmWindowManager *wm = CTX_wm_manager(C);
+    const ScrArea *area = CTX_wm_area(C);
     Scene *scene = CTX_data_scene(C);
 
     /* keep in sync with logic in view3d_panel_operator_redo() */
     ARegion *region_orig = CTX_wm_region(C);
-    ARegion *region_win = BKE_area_find_region_active_win(CTX_wm_area(C));
+    /* If the redo is called from a HUD, this knows about the region type the operator was
+     * initially called in, so attempt to restore that. */
+    ARegion *redo_region_from_hud = (region_orig->regiontype == RGN_TYPE_HUD) ?
+                                        ED_area_type_hud_redo_region_find(area, region_orig) :
+                                        nullptr;
+    ARegion *region_repeat = redo_region_from_hud ? redo_region_from_hud :
+                                                    BKE_area_find_region_active_win(area);
 
-    if (region_win) {
-      CTX_wm_region_set(C, region_win);
+    if (region_repeat) {
+      CTX_wm_region_set(C, region_repeat);
     }
 
     if (WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type) &&

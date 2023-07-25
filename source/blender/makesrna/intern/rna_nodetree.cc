@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <limits.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_function_ref.hh"
 #include "BLI_math.h"
@@ -4512,6 +4512,16 @@ static const EnumPropertyItem node_refraction_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem node_sheen_items[] = {
+    {SHD_SHEEN_ASHIKHMIN, "ASHIKHMIN", 0, "Ashikhmin", "Classic Ashikhmin velvet (legacy model)"},
+    {SHD_SHEEN_MICROFIBER,
+     "MICROFIBER",
+     0,
+     "Microfiber",
+     "Microflake-based model of multiple scattering between normal-oriented fibers"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static const EnumPropertyItem node_toon_items[] = {
     {SHD_TOON_DIFFUSE, "DIFFUSE", 0, "Diffuse", "Use diffuse BSDF"},
     {SHD_TOON_GLOSSY, "GLOSSY", 0, "Glossy", "Use glossy BSDF"},
@@ -5982,6 +5992,17 @@ static void def_glass(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
   RNA_def_property_enum_items(prop, node_glass_items);
   RNA_def_property_ui_text(prop, "Distribution", "Light scattering distribution on rough surface");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_sheen(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_items(prop, node_sheen_items);
+  RNA_def_property_ui_text(prop, "Distribution", "Sheen shading model");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -7875,8 +7896,12 @@ static void def_cmp_tonemap(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem type_items[] = {
-      {1, "RD_PHOTORECEPTOR", 0, "R/D Photoreceptor", ""},
-      {0, "RH_SIMPLE", 0, "Rh Simple", ""},
+      {1,
+       "RD_PHOTORECEPTOR",
+       0,
+       "R/D Photoreceptor",
+       "More advanced algorithm based on eye physiology, by Reinhard and Devlin"},
+      {0, "RH_SIMPLE", 0, "Rh Simple", "Simpler photographic algorithm by Reinhard"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -8763,7 +8788,7 @@ static void def_cmp_keying(StructRNA *srna)
   prop = RNA_def_property(srna, "dilate_distance", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "dilate_distance");
   RNA_def_property_range(prop, -100, 100);
-  RNA_def_property_ui_text(prop, "Dilate/Erode", "Matte dilate/erode side");
+  RNA_def_property_ui_text(prop, "Dilate/Erode", "Distance to grow/shrink the matte");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);

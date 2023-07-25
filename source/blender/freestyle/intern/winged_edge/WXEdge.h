@@ -198,7 +198,7 @@ class WXEdge : public WEdge {
 /** Class to store a smooth edge (i.e Hertzman & Zorin smooth silhouette edges) */
 class WXSmoothEdge {
  public:
-  typedef unsigned short Configuration;
+  typedef ushort Configuration;
   static const Configuration EDGE_EDGE = 1;
   static const Configuration VERTEX_EDGE = 2;
   static const Configuration EDGE_VERTEX = 3;
@@ -316,10 +316,10 @@ class WXFaceLayer {
   // oldtmp values
   // count the number of positive dot products for vertices.
   // if this number is != 0 and !=_DotP.size() -> it is a silhouette fac
-  unsigned _nPosDotP;
+  uint _nPosDotP;
 
-  unsigned _nNullDotP;  // count the number of null dot products for vertices.
-  unsigned _ClosestPointIndex;
+  uint _nNullDotP;  // count the number of null dot products for vertices.
+  uint _ClosestPointIndex;
   bool _viewDependant;
 
   WXFaceLayer(WXFace *iFace, WXNature iNature, bool viewDependant)
@@ -364,12 +364,12 @@ class WXFaceLayer {
     return _DotP[i];
   }
 
-  inline unsigned nPosDotP() const
+  inline uint nPosDotP() const
   {
     return _nPosDotP;
   }
 
-  inline unsigned nNullDotP() const
+  inline uint nNullDotP() const
   {
     return _nNullDotP;
   }
@@ -425,11 +425,11 @@ class WXFaceLayer {
 
   /** If one of the face layer vertex has a DotP equal to 0, this method returns the vertex where
    * it happens */
-  unsigned int Get0VertexIndex() const;
+  uint Get0VertexIndex() const;
 
   /** In case one of the edge of the triangle is a smooth edge, this method allows to retrieve the
    * concerned edge */
-  unsigned int GetSmoothEdgeIndex() const;
+  uint GetSmoothEdgeIndex() const;
 
   /** retrieves the edges of the triangle for which the signs are different (a null value is not
    * considered) for the dotp values at each edge extremity
@@ -454,7 +454,7 @@ class WXFaceLayer {
     }
   }
 
-  inline void ReplaceDotP(unsigned int index, float newDotP)
+  inline void ReplaceDotP(uint index, float newDotP)
   {
     _DotP[index] = newDotP;
     updateDotPInfos();
@@ -757,7 +757,7 @@ class WXShape : public WShape {
    */
   virtual WFace *MakeFace(vector<WVertex *> &iVertexList,
                           vector<bool> &iFaceEdgeMarksList,
-                          unsigned iMaterialIndex);
+                          uint iMaterialIndex);
 
   /**
    * Adds a new face to the shape.
@@ -781,7 +781,7 @@ class WXShape : public WShape {
                           vector<Vec3f> &iNormalsList,
                           vector<Vec2f> &iTexCoordsList,
                           vector<bool> &iFaceEdgeMarksList,
-                          unsigned iMaterialIndex);
+                          uint iMaterialIndex);
 
   /** Reset all edges and vertices flags (which might have been set up on a previous pass) */
   virtual void Reset()

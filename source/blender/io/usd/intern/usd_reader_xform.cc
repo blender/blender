@@ -52,7 +52,7 @@ void USDXformReader::read_object_data(Main * /* bmain */, const double motionSam
     std::string prim_path = use_parent_xform_ ? prim_.GetParent().GetPath().GetAsString() :
                                                 prim_path_;
 
-    BLI_strncpy(data->object_path, prim_path.c_str(), FILE_MAX);
+    STRNCPY(data->object_path, prim_path.c_str());
 
     data->cache_file = settings_->cache_file;
     id_us_plus(&data->cache_file->id);

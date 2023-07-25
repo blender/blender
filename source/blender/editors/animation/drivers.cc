@@ -6,9 +6,9 @@
  * \ingroup edanimation
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -605,7 +605,7 @@ bool ANIM_copy_driver(
                 "path = %s)",
                 id->name,
                 rna_path);
-    return 0;
+    return false;
   }
 
   /* try to get F-Curve with Driver */
@@ -630,11 +630,11 @@ bool ANIM_copy_driver(
     fcu->rna_path = tmp_path;
 
     /* copied... */
-    return 1;
+    return true;
   }
 
   /* done */
-  return 0;
+  return false;
 }
 
 bool ANIM_paste_driver(
@@ -653,13 +653,13 @@ bool ANIM_paste_driver(
         "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
         id->name,
         rna_path);
-    return 0;
+    return false;
   }
 
   /* if the buffer is empty, cannot paste... */
   if (channeldriver_copypaste_buf == nullptr) {
     BKE_report(reports, RPT_ERROR, "Paste driver: no driver to paste");
-    return 0;
+    return false;
   }
 
   /* create Driver F-Curve, but without data which will be copied across... */
@@ -1140,7 +1140,7 @@ void ANIM_OT_driver_button_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Delete drivers for all elements of the array");
 }
 
 /* Edit Driver Button Operator ------------------------ */

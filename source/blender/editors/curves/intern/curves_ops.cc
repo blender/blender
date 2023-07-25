@@ -271,9 +271,9 @@ static void try_convert_single_object(Object &curves_ob,
   BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
 
   const Span<float3> positions_cu = curves.positions();
-  const Span<int> looptri_polys = surface_me.looptri_polys();
+  const Span<int> looptri_faces = surface_me.looptri_faces();
 
-  if (looptri_polys.is_empty()) {
+  if (looptri_faces.is_empty()) {
     *r_could_not_convert_some_curves = true;
   }
 
@@ -312,18 +312,18 @@ static void try_convert_single_object(Object &curves_ob,
 
   /* Prepare utility data structure to map hair roots to #MFace's. */
   const Span<int> mface_to_poly_map{
-      static_cast<const int *>(CustomData_get_layer(&surface_me.fdata, CD_ORIGINDEX)),
-      surface_me.totface};
-  Array<Vector<int>> poly_to_mface_map(surface_me.totpoly);
+      static_cast<const int *>(CustomData_get_layer(&surface_me.fdata_legacy, CD_ORIGINDEX)),
+      surface_me.totface_legacy};
+  Array<Vector<int>> poly_to_mface_map(surface_me.faces_num);
   for (const int mface_i : mface_to_poly_map.index_range()) {
-    const int poly_i = mface_to_poly_map[mface_i];
-    poly_to_mface_map[poly_i].append(mface_i);
+    const int face_i = mface_to_poly_map[mface_i];
+    poly_to_mface_map[face_i].append(mface_i);
   }
 
   /* Prepare transformation matrices. */
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
-  const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata, CD_MFACE);
+  const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata_legacy, CD_MFACE);
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = surface_me.vert_positions();
 
@@ -341,10 +341,10 @@ static void try_convert_single_object(Object &curves_ob,
     BLI_assert(nearest.index >= 0);
 
     const int looptri_i = nearest.index;
-    const int poly_i = looptri_polys[looptri_i];
+    const int face_i = looptri_faces[looptri_i];
 
     const int mface_i = find_mface_for_root_position(
-        positions, mfaces, poly_to_mface_map[poly_i], root_pos_su);
+        positions, mfaces, poly_to_mface_map[face_i], root_pos_su);
     const MFace &mface = mfaces[mface_i];
 
     const float4 mface_weights = compute_mface_weights_for_position(positions, mface, root_pos_su);

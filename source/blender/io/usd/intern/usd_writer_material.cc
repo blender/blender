@@ -172,8 +172,8 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
       pxr::TfToken source_name;
       if (input_spec.input_type == pxr::SdfValueTypeNames->Float) {
         /* If the input is a float, we connect it to either the texture alpha or red channels. */
-        source_name = strcmp(input_link->fromsock->identifier, "Alpha") == 0 ? usdtokens::a :
-                                                                               usdtokens::r;
+        source_name = STREQ(input_link->fromsock->identifier, "Alpha") ? usdtokens::a :
+                                                                         usdtokens::r;
       }
       else {
         source_name = usdtokens::rgb;

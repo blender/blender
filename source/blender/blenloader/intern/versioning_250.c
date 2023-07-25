@@ -1109,7 +1109,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     if (bmain->versionfile == 250 && bmain->subversionfile > 1) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-        CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+        CustomData_free_layer_active(&me->fdata_legacy, CD_MDISPS, me->totface_legacy);
       }
 
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {

@@ -750,7 +750,7 @@ static void splineik_execute_tree(
     /* Firstly, calculate the bone matrix the standard way,
      * since this is needed for roll control. */
     for (int i = tree->chainlen - 1; i >= 0; i--) {
-      BKE_pose_where_is_bone(depsgraph, scene, ob, tree->chain[i], ctime, 1);
+      BKE_pose_where_is_bone(depsgraph, scene, ob, tree->chain[i], ctime, true);
     }
 
     /* After that, evaluate the actual Spline IK, unless there are missing dependencies. */
@@ -891,7 +891,7 @@ void BKE_pose_eval_bone(Depsgraph *depsgraph, Scene *scene, Object *object, int 
         if ((pchan->flag & POSE_DONE) == 0) {
           /* TODO(sergey): Use time source node for time. */
           float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
-          BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
+          BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, true);
         }
       }
     }
@@ -919,7 +919,7 @@ void BKE_pose_constraints_evaluate(Depsgraph *depsgraph,
   else {
     if ((pchan->flag & POSE_DONE) == 0) {
       float ctime = BKE_scene_ctime_get(scene); /* not accurate... */
-      BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, 1);
+      BKE_pose_where_is_bone(depsgraph, scene, object, pchan, ctime, true);
     }
   }
 }

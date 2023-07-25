@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "RNA_define.h"
 
@@ -41,7 +41,7 @@ void RNA_api_lattice(StructRNA *srna)
   RNA_def_function_ui_description(func, "Transform lattice by a matrix");
   parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
+  RNA_def_boolean(func, "shape_keys", false, "", "Transform Shape Keys");
 
   RNA_def_function(srna, "update_gpu_tag", "rna_Lattice_update_gpu_tag");
 }

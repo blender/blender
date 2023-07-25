@@ -1331,6 +1331,27 @@ void GreasePencil::remove_drawing(const int index_to_remove)
   shrink_array<GreasePencilDrawingBase *>(&this->drawing_array, &this->drawing_array_num, 1);
 }
 
+blender::bke::greasepencil::Drawing *GreasePencil::get_editable_drawing_at(
+    const blender::bke::greasepencil::Layer *layer, const int frame_number) const
+{
+  if (layer == nullptr || !layer->is_editable()) {
+    return nullptr;
+  }
+
+  const int drawing_index = layer->drawing_index_at(frame_number);
+  if (drawing_index == -1) {
+    /* No drawing found. */
+    return nullptr;
+  }
+  GreasePencilDrawingBase *drawing_base = this->drawings()[drawing_index];
+  if (drawing_base->type != GP_DRAWING) {
+    /* Drawing references are not editable. */
+    return nullptr;
+  }
+  GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+  return &drawing->wrap();
+}
+
 enum ForeachDrawingMode {
   VISIBLE,
   EDITABLE,

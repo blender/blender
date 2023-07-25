@@ -105,7 +105,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
   }
 }
 
-static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
+static void extract_edituv_stretch_angle_iter_face_bm(const MeshRenderData *mr,
                                                       const BMFace *f,
                                                       const int /*f_index*/,
                                                       void *_data)
@@ -154,22 +154,22 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
-                                                        const int poly_index,
+static void extract_edituv_stretch_angle_iter_face_mesh(const MeshRenderData *mr,
+                                                        const int face_index,
                                                         void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
-  const IndexRange poly = mr->polys[poly_index];
+  const IndexRange face = mr->faces[face_index];
 
-  const int ml_index_end = poly.start() + poly.size();
-  for (int ml_index = poly.start(); ml_index < ml_index_end; ml_index += 1) {
+  const int ml_index_end = face.start() + face.size();
+  for (int ml_index = face.start(); ml_index < ml_index_end; ml_index += 1) {
     float(*auv)[2] = data->auv, *last_auv = data->last_auv;
     float(*av)[3] = data->av, *last_av = data->last_av;
     int l_next = ml_index + 1;
-    if (ml_index == poly.start()) {
+    if (ml_index == face.start()) {
       /* First loop in face. */
       const int ml_index_last = ml_index_end - 1;
-      const int l_next_tmp = poly.start();
+      const int l_next_tmp = face.start();
       compute_normalize_edge_vectors(auv,
                                      av,
                                      data->uv[ml_index_last],
@@ -181,7 +181,7 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
       copy_v3_v3(last_av, av[1]);
     }
     if (l_next == ml_index_end) {
-      l_next = poly.start();
+      l_next = face.start();
       /* Move previous edge. */
       copy_v2_v2(auv[0], auv[1]);
       copy_v3_v3(av[0], av[1]);
@@ -280,8 +280,8 @@ constexpr MeshExtract create_extractor_edituv_edituv_stretch_angle()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_stretch_angle_init;
-  extractor.iter_poly_bm = extract_edituv_stretch_angle_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_edituv_stretch_angle_iter_poly_mesh;
+  extractor.iter_face_bm = extract_edituv_stretch_angle_iter_face_bm;
+  extractor.iter_face_mesh = extract_edituv_stretch_angle_iter_face_mesh;
   extractor.init_subdiv = extract_edituv_stretch_angle_init_subdiv;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(MeshExtract_StretchAngle_Data);

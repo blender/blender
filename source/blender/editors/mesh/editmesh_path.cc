@@ -314,7 +314,7 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
     }
 #endif
   }
-  return 0;
+  return false;
 }
 static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
 {

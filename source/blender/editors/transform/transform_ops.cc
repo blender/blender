@@ -225,7 +225,7 @@ static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent 
 static bool delete_orientation_poll(bContext *C)
 {
   if (ED_operator_areaactive(C) == 0) {
-    return 0;
+    return false;
   }
 
   Scene *scene = CTX_data_scene(C);
@@ -660,7 +660,7 @@ void Transform_Properties(wmOperatorType *ot, int flags)
   }
 
   if (flags & P_MIRROR) {
-    prop = RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+    prop = RNA_def_boolean(ot->srna, "mirror", false, "Mirror Editing", "");
     if ((flags & P_MIRROR_DUMMY) == P_MIRROR_DUMMY) {
       /* only used so macros can disable this option */
       RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -668,7 +668,7 @@ void Transform_Properties(wmOperatorType *ot, int flags)
   }
 
   if (flags & P_PROPORTIONAL) {
-    RNA_def_boolean(ot->srna, "use_proportional_edit", 0, "Proportional Editing", "");
+    RNA_def_boolean(ot->srna, "use_proportional_edit", false, "Proportional Editing", "");
     prop = RNA_def_enum(ot->srna,
                         "proportional_edit_falloff",
                         rna_enum_proportional_falloff_items,
@@ -687,8 +687,8 @@ void Transform_Properties(wmOperatorType *ot, int flags)
                   0.001f,
                   100.0f);
 
-    RNA_def_boolean(ot->srna, "use_proportional_connected", 0, "Connected", "");
-    RNA_def_boolean(ot->srna, "use_proportional_projected", 0, "Projected (2D)", "");
+    RNA_def_boolean(ot->srna, "use_proportional_connected", false, "Connected", "");
+    RNA_def_boolean(ot->srna, "use_proportional_projected", false, "Projected (2D)", "");
   }
 
   if (flags & P_SNAP) {
@@ -749,23 +749,23 @@ void Transform_Properties(wmOperatorType *ot, int flags)
   if (flags & P_GPENCIL_EDIT) {
     prop = RNA_def_boolean(ot->srna,
                            "gpencil_strokes",
-                           0,
+                           false,
                            "Edit Grease Pencil",
                            "Edit selected Grease Pencil strokes");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
   if (flags & P_CURSOR_EDIT) {
-    prop = RNA_def_boolean(ot->srna, "cursor_transform", 0, "Transform Cursor", "");
+    prop = RNA_def_boolean(ot->srna, "cursor_transform", false, "Transform Cursor", "");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
   if ((flags & P_OPTIONS) && !(flags & P_NO_TEXSPACE)) {
     prop = RNA_def_boolean(
-        ot->srna, "texture_space", 0, "Edit Texture Space", "Edit object data texture space");
+        ot->srna, "texture_space", false, "Edit Texture Space", "Edit object data texture space");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
     prop = RNA_def_boolean(
-        ot->srna, "remove_on_cancel", 0, "Remove on Cancel", "Remove elements on cancel");
+        ot->srna, "remove_on_cancel", false, "Remove on Cancel", "Remove elements on cancel");
     RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   }
 
@@ -791,28 +791,26 @@ void Transform_Properties(wmOperatorType *ot, int flags)
   if ((flags & P_NO_DEFAULTS) == 0) {
     prop = RNA_def_boolean(ot->srna,
                            "release_confirm",
-                           0,
+                           false,
                            "Confirm on Release",
                            "Always confirm operation when releasing button");
     RNA_def_property_flag(prop, PROP_HIDDEN);
 
-    prop = RNA_def_boolean(ot->srna, "use_accurate", 0, "Accurate", "Use accurate transformation");
+    prop = RNA_def_boolean(
+        ot->srna, "use_accurate", false, "Accurate", "Use accurate transformation");
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 
-  if (flags & P_VIEW3D_NAVIGATION) {
-    prop = RNA_def_boolean(ot->srna,
-                           "allow_navigation",
-                           0,
-                           "Allow Navigation",
-                           "Allow navigation while transforming");
+  if (flags & P_VIEW3D_ALT_NAVIGATION) {
+    prop = RNA_def_boolean(
+        ot->srna, "alt_navigation", 0, "Transform Navigation with Alt", nullptr);
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 
   if (flags & P_POST_TRANSFORM) {
     prop = RNA_def_boolean(ot->srna,
                            "use_automerge_and_split",
-                           0,
+                           false,
                            "Auto Merge & Split",
                            "Forces the use of Auto Merge and Split");
     RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -843,7 +841,7 @@ static void TRANSFORM_OT_translate(wmOperatorType *ot)
   Transform_Properties(ot,
                        P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP |
                            P_OPTIONS | P_GPENCIL_EDIT | P_CURSOR_EDIT | P_VIEW2D_EDGE_PAN |
-                           P_VIEW3D_NAVIGATION | P_POST_TRANSFORM);
+                           P_VIEW3D_ALT_NAVIGATION | P_POST_TRANSFORM);
 }
 
 static void TRANSFORM_OT_resize(wmOperatorType *ot)
@@ -882,7 +880,7 @@ static void TRANSFORM_OT_resize(wmOperatorType *ot)
 
   Transform_Properties(ot,
                        P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP |
-                           P_OPTIONS | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_NAVIGATION);
+                           P_OPTIONS | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_ALT_NAVIGATION);
 }
 
 static void TRANSFORM_OT_skin_resize(wmOperatorType *ot)
@@ -959,7 +957,7 @@ static void TRANSFORM_OT_rotate(wmOperatorType *ot)
 
   Transform_Properties(ot,
                        P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
-                           P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_NAVIGATION);
+                           P_GEO_SNAP | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_ALT_NAVIGATION);
 }
 
 static void TRANSFORM_OT_tilt(wmOperatorType *ot)
@@ -1028,7 +1026,7 @@ static void TRANSFORM_OT_shear(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shear";
-  ot->description = "Shear selected items along the horizontal screen axis";
+  ot->description = "Shear selected items along the given axis";
   ot->idname = OP_SHEAR;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
@@ -1098,7 +1096,7 @@ static void TRANSFORM_OT_shrink_fatten(wmOperatorType *ot)
 
   WM_operatortype_props_advanced_begin(ot);
 
-  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_VIEW3D_NAVIGATION);
+  Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_VIEW3D_ALT_NAVIGATION);
 }
 
 static void TRANSFORM_OT_tosphere(wmOperatorType *ot)
@@ -1204,7 +1202,7 @@ static void TRANSFORM_OT_edge_slide(wmOperatorType *ot)
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
 
-  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV | P_VIEW3D_NAVIGATION);
+  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV | P_VIEW3D_ALT_NAVIGATION);
 }
 
 static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
@@ -1239,7 +1237,7 @@ static void TRANSFORM_OT_vert_slide(wmOperatorType *ot)
                   "When Even mode is active, flips between the two adjacent edge loops");
   RNA_def_boolean(ot->srna, "use_clamp", true, "Clamp", "Clamp within the edge extents");
 
-  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV | P_VIEW3D_NAVIGATION);
+  Transform_Properties(ot, P_MIRROR | P_GEO_SNAP | P_CORRECT_UV | P_VIEW3D_ALT_NAVIGATION);
 }
 
 static void TRANSFORM_OT_edge_crease(wmOperatorType *ot)
@@ -1387,7 +1385,7 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
 
   Transform_Properties(ot,
                        P_ORIENT_AXIS | P_ORIENT_MATRIX | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR |
-                           P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_NAVIGATION |
+                           P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER | P_VIEW3D_ALT_NAVIGATION |
                            P_POST_TRANSFORM);
 }
 

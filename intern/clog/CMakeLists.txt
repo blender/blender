@@ -3,8 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
-  ../atomic
+  PUBLIC .
 )
 
 set(INC_SYS
@@ -19,9 +18,12 @@ set(SRC
 
 set(LIB
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::atomic
 )
 
-# Disabled for makesdna/makesrna.
-add_definitions(-DWITH_CLOG_PTHREADS)
-
 blender_add_lib(bf_intern_clog "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# Disabled for makesdna/makesrna.
+target_compile_definitions(bf_intern_clog PRIVATE WITH_CLOG_PTHREADS)
+
+add_library(bf::intern::clog ALIAS bf_intern_clog)

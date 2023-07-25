@@ -6,7 +6,7 @@
  * \ingroup spgraph
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 

@@ -198,7 +198,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   ParticleSimulationData sim;
   ParticleSystem *psys = nullptr;
   ParticleData *pa = nullptr;
-  int totvert, totpoly, totloop, totedge;
+  int totvert, faces_num, totloop, totedge;
   int maxvert, maxpoly, maxloop, maxedge, part_end = 0, part_start;
   int k, p, p_skip;
   short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;
@@ -282,7 +282,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   totvert = mesh->totvert;
-  totpoly = mesh->totpoly;
+  faces_num = mesh->faces_num;
   totloop = mesh->totloop;
   totedge = mesh->totedge;
 
@@ -298,7 +298,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     maxvert += totvert;
-    maxpoly += totpoly;
+    maxpoly += faces_num;
     maxloop += totloop;
     maxedge += totedge;
   }
@@ -314,12 +314,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxpoly, maxloop);
 
-  const blender::OffsetIndices orig_polys = mesh->polys();
+  const blender::OffsetIndices orig_faces = mesh->faces();
   const blender::Span<int> orig_corner_verts = mesh->corner_verts();
   const blender::Span<int> orig_corner_edges = mesh->corner_edges();
   blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> edges = result->edges_for_write();
-  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = result->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
@@ -389,7 +389,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
           positions[vindex][axis] = 0.0;
         }
 
-        psys_get_particle_on_path(&sim, p, &state, 1);
+        psys_get_particle_on_path(&sim, p, &state, true);
 
         normalize_v3(state.vel);
 
@@ -457,7 +457,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
       else {
         state.time = -1.0;
-        psys_get_particle_state(&sim, p, &state, 1);
+        psys_get_particle_state(&sim, p, &state, true);
       }
 
       mul_qt_v3(state.rot, positions[vindex]);
@@ -477,20 +477,20 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       (*edge)[1] += p_skip * totvert;
     }
 
-    /* create polys and loops */
-    for (k = 0; k < totpoly; k++) {
-      const blender::IndexRange in_poly = orig_polys[k];
+    /* create faces and loops */
+    for (k = 0; k < faces_num; k++) {
+      const blender::IndexRange in_face = orig_faces[k];
 
-      CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * totpoly + k, 1);
-      const int dst_poly_start = in_poly.start() + p_skip * totloop;
-      poly_offsets[p_skip * totpoly + k] = dst_poly_start;
+      CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * faces_num + k, 1);
+      const int dst_face_start = in_face.start() + p_skip * totloop;
+      face_offsets[p_skip * faces_num + k] = dst_face_start;
 
       {
-        int orig_corner_i = in_poly.start();
-        int dst_corner_i = dst_poly_start;
-        int j = in_poly.size();
+        int orig_corner_i = in_face.start();
+        int dst_corner_i = dst_face_start;
+        int j = in_face.size();
 
-        CustomData_copy_data(&mesh->ldata, &result->ldata, in_poly.start(), dst_poly_start, j);
+        CustomData_copy_data(&mesh->ldata, &result->ldata, in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);

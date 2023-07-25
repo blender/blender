@@ -1467,7 +1467,7 @@ struct EdgeFeatData {
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_polys;
+  blender::Span<int> looptri_faces;
   LineartTriangle *tri_array;
   blender::VArray<bool> sharp_edges;
   blender::VArray<bool> sharp_faces;
@@ -1505,7 +1505,7 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
   Object *ob_eval = e_feat_data->ob_eval;
   LineartEdgeNeighbor *edge_nabr = e_feat_data->edge_nabr;
   const blender::Span<MLoopTri> looptris = e_feat_data->looptris;
-  const blender::Span<int> looptri_polys = e_feat_data->looptri_polys;
+  const blender::Span<int> looptri_faces = e_feat_data->looptri_faces;
 
   uint16_t edge_flag_result = 0;
 
@@ -1523,10 +1523,10 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     FreestyleFace *ff1, *ff2;
     int index = e_feat_data->freestyle_face_index;
     if (index > -1) {
-      ff1 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_polys[i / 3]];
+      ff1 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_faces[i / 3]];
     }
     if (edge_nabr[i].e > -1) {
-      ff2 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_polys[edge_nabr[i].e / 3]];
+      ff2 = &((FreestyleFace *)me->pdata.layers[index].data)[looptri_faces[edge_nabr[i].e / 3]];
     }
     else {
       /* Handle mesh boundary cases: We want mesh boundaries to respect
@@ -1640,8 +1640,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
     if (ld->conf.use_crease) {
       bool do_crease = true;
       if (!ld->conf.force_crease && !e_feat_data->use_auto_smooth &&
-          (!e_feat_data->sharp_faces[looptri_polys[f1]]) &&
-          (!e_feat_data->sharp_faces[looptri_polys[f2]]))
+          (!e_feat_data->sharp_faces[looptri_faces[f1]]) &&
+          (!e_feat_data->sharp_faces[looptri_faces[f2]]))
       {
         do_crease = false;
       }
@@ -1650,8 +1650,8 @@ static void lineart_identify_mlooptri_feature_edges(void *__restrict userdata,
       }
     }
 
-    int mat1 = material_indices ? material_indices[looptri_polys[f1]] : 0;
-    int mat2 = material_indices ? material_indices[looptri_polys[f2]] : 0;
+    int mat1 = material_indices ? material_indices[looptri_faces[f1]] : 0;
+    int mat2 = material_indices ? material_indices[looptri_faces[f2]] : 0;
 
     if (mat1 != mat2) {
       Material *m1 = BKE_object_material_get_eval(ob_eval, mat1 + 1);
@@ -1788,7 +1788,7 @@ struct TriData {
   blender::Span<blender::float3> positions;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_polys;
+  blender::Span<int> looptri_faces;
   const int *material_indices;
   LineartVert *vert_arr;
   LineartTriangle *tri_arr;
@@ -1805,7 +1805,7 @@ static void lineart_load_tri_task(void *__restrict userdata,
   const blender::Span<blender::float3> positions = tri_task_data->positions;
   const blender::Span<int> corner_verts = tri_task_data->corner_verts;
   const MLoopTri *looptri = &tri_task_data->looptris[i];
-  const int poly_i = tri_task_data->looptri_polys[i];
+  const int face_i = tri_task_data->looptri_faces[i];
   const int *material_indices = tri_task_data->material_indices;
   LineartVert *vert_arr = tri_task_data->vert_arr;
   LineartTriangle *tri = tri_task_data->tri_arr;
@@ -1822,7 +1822,7 @@ static void lineart_load_tri_task(void *__restrict userdata,
 
   /* Material mask bits and occlusion effectiveness assignment. */
   Material *mat = BKE_object_material_get(ob_info->original_ob_eval,
-                                          material_indices ? material_indices[poly_i] + 1 : 1);
+                                          material_indices ? material_indices[face_i] + 1 : 1);
   tri->material_mask_bits |= ((mat && (mat->lineart.flags & LRT_MATERIAL_MASK_ENABLED)) ?
                                   mat->lineart.material_mask_bits :
                                   0);
@@ -1864,7 +1864,7 @@ struct EdgeNeighborData {
   LineartAdjacentEdge *adj_e;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
-  blender::Span<int> looptri_polys;
+  blender::Span<int> looptri_faces;
 };
 
 static void lineart_edge_neighbor_init_task(void *__restrict userdata,
@@ -1927,7 +1927,7 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   en_data.edge_nabr = edge_nabr;
   en_data.corner_verts = me->corner_verts();
   en_data.looptris = me->looptris();
-  en_data.looptri_polys = me->looptri_polys();
+  en_data.looptri_faces = me->looptri_faces();
 
   BLI_task_parallel_range(0, total_edges, &en_data, lineart_edge_neighbor_init_task, &en_settings);
 
@@ -2067,7 +2067,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   tri_data.ob_info = ob_info;
   tri_data.positions = me->vert_positions();
   tri_data.looptris = looptris;
-  tri_data.looptri_polys = me->looptri_polys();
+  tri_data.looptri_faces = me->looptri_faces();
   tri_data.corner_verts = me->corner_verts();
   tri_data.material_indices = material_indices;
   tri_data.vert_arr = la_v_arr;
@@ -2107,7 +2107,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info,
   edge_feat_data.corner_verts = me->corner_verts();
   edge_feat_data.corner_edges = me->corner_edges();
   edge_feat_data.looptris = looptris;
-  edge_feat_data.looptri_polys = me->looptri_polys();
+  edge_feat_data.looptri_faces = me->looptri_faces();
   edge_feat_data.sharp_edges = sharp_edges;
   edge_feat_data.sharp_faces = sharp_faces;
   edge_feat_data.edge_nabr = lineart_build_edge_neighbor(me, total_edges);
@@ -2519,7 +2519,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
   obi->original_me = use_mesh;
   obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : (Object *)ref_ob);
   obi->original_ob_eval = DEG_get_evaluated_object(depsgraph, obi->original_ob);
-  lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->totpoly);
+  lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->faces_num);
 }
 
 void lineart_main_load_geometries(Depsgraph *depsgraph,

@@ -1065,7 +1065,7 @@ struct FaceDupliData_Mesh {
   FaceDupliData_Params params;
 
   int totface;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   Span<int> corner_verts;
   Span<float3> vert_positions;
   const float (*orco)[3];
@@ -1164,13 +1164,13 @@ static DupliObject *face_dupli_from_mesh(const DupliContext *ctx,
                                          const float scale_fac,
 
                                          /* Mesh variables. */
-                                         const Span<int> poly_verts,
+                                         const Span<int> face_verts,
                                          const Span<float3> vert_positions)
 {
-  Array<float3, 64> coords(poly_verts.size());
+  Array<float3, 64> coords(face_verts.size());
 
-  for (int i = 0; i < poly_verts.size(); i++) {
-    coords[i] = vert_positions[poly_verts[i]];
+  for (int i = 0; i < face_verts.size(); i++) {
+    coords[i] = vert_positions[face_verts[i]];
   }
 
   return face_dupli(ctx, inst_ob, child_imat, index, use_scale, scale_fac, coords);
@@ -1225,26 +1225,26 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
   const float scale_fac = ctx->object->instance_faces_scale;
 
   for (const int a : blender::IndexRange(totface)) {
-    const blender::IndexRange poly = fdd->polys[a];
-    const Span<int> poly_verts = fdd->corner_verts.slice(poly);
+    const blender::IndexRange face = fdd->faces[a];
+    const Span<int> face_verts = fdd->corner_verts.slice(face);
     DupliObject *dob = face_dupli_from_mesh(fdd->params.ctx,
                                             inst_ob,
                                             child_imat,
                                             a,
                                             use_scale,
                                             scale_fac,
-                                            poly_verts,
+                                            face_verts,
                                             fdd->vert_positions);
 
-    const float w = 1.0f / float(poly.size());
+    const float w = 1.0f / float(face.size());
     if (orco) {
-      for (int j = 0; j < poly.size(); j++) {
-        madd_v3_v3fl(dob->orco, orco[poly_verts[j]], w);
+      for (int j = 0; j < face.size(); j++) {
+        madd_v3_v3fl(dob->orco, orco[face_verts[j]], w);
       }
     }
     if (mloopuv) {
-      for (int j = 0; j < poly.size(); j++) {
-        madd_v2_v2fl(dob->uv, mloopuv[poly[j]], w);
+      for (int j = 0; j < face.size(); j++) {
+        madd_v2_v2fl(dob->uv, mloopuv[face[j]], w);
       }
     }
   }
@@ -1321,8 +1321,8 @@ static void make_duplis_faces(const DupliContext *ctx)
     const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_PROP_FLOAT2);
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
-    fdd.totface = me_eval->totpoly;
-    fdd.polys = me_eval->polys();
+    fdd.totface = me_eval->faces_num;
+    fdd.faces = me_eval->faces();
     fdd.corner_verts = me_eval->corner_verts();
     fdd.vert_positions = me_eval->vert_positions();
     fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(

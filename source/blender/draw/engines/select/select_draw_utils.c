@@ -163,7 +163,7 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
   if (select_mode & SCE_SELECT_FACE) {
     face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
     DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
-    *r_face_offset = initial_offset + me->totpoly;
+    *r_face_offset = initial_offset + me->faces_num;
   }
   else {
     /* Only draw faces to mask out verts, we don't want their selection ID's. */

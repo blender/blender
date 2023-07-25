@@ -38,7 +38,7 @@ class CulledOccluderSource : public OccluderSource {
   real occluderProscenium[4];
   real gridSpaceOccluderProscenium[4];
 
-  unsigned long rejected;
+  ulong rejected;
   bool gridSpaceOccluderProsceniumInitialized;
 };
 

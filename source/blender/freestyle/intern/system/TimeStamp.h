@@ -22,7 +22,7 @@ class TimeStamp {
     return &_instance;
   }
 
-  inline unsigned getTimeStamp() const
+  inline uint getTimeStamp() const
   {
     return _time_stamp;
   }
@@ -47,7 +47,7 @@ class TimeStamp {
 
  private:
   static TimeStamp _instance;
-  unsigned _time_stamp;
+  uint _time_stamp;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:TimeStamp")

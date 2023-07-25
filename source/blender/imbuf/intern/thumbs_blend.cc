@@ -6,9 +6,9 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */

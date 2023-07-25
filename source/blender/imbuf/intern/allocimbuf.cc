@@ -9,7 +9,7 @@
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
  * should remain. */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

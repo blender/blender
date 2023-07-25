@@ -388,29 +388,29 @@ static void gizmo_get_axis_constraint(const int axis_idx, bool r_axis[3])
     case MAN_AXIS_TRANS_X:
     case MAN_AXIS_ROT_X:
     case MAN_AXIS_SCALE_X:
-      r_axis[0] = 1;
+      r_axis[0] = true;
       break;
     case MAN_AXIS_TRANS_Y:
     case MAN_AXIS_ROT_Y:
     case MAN_AXIS_SCALE_Y:
-      r_axis[1] = 1;
+      r_axis[1] = true;
       break;
     case MAN_AXIS_TRANS_Z:
     case MAN_AXIS_ROT_Z:
     case MAN_AXIS_SCALE_Z:
-      r_axis[2] = 1;
+      r_axis[2] = true;
       break;
     case MAN_AXIS_TRANS_XY:
     case MAN_AXIS_SCALE_XY:
-      r_axis[0] = r_axis[1] = 1;
+      r_axis[0] = r_axis[1] = true;
       break;
     case MAN_AXIS_TRANS_YZ:
     case MAN_AXIS_SCALE_YZ:
-      r_axis[1] = r_axis[2] = 1;
+      r_axis[1] = r_axis[2] = true;
       break;
     case MAN_AXIS_TRANS_ZX:
     case MAN_AXIS_SCALE_ZX:
-      r_axis[2] = r_axis[0] = 1;
+      r_axis[2] = r_axis[0] = true;
       break;
     default:
       break;
@@ -1742,7 +1742,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 
   MAN_ITER_AXES_BEGIN (axis, axis_idx) {
     const short axis_type = gizmo_get_axis_type(axis_idx);
-    bool constraint_axis[3] = {1, 0, 0};
+    bool constraint_axis[3] = {true, false, false};
     PointerRNA *ptr = nullptr;
 
     gizmo_get_axis_constraint(axis_idx, constraint_axis);
@@ -1793,7 +1793,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
         }
       }
 
-      RNA_boolean_set(ptr, "release_confirm", 1);
+      RNA_boolean_set(ptr, "release_confirm", true);
     }
   }
   MAN_ITER_AXES_END;

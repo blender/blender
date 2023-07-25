@@ -111,7 +111,7 @@ template<class T, class Point> class Segment {
     _Intersections.clear();
   }
 
-  inline Point operator[](const unsigned short int &i) const
+  inline Point operator[](const ushort &i) const
   {
     return (i % 2 == 0) ? A : B;
   }

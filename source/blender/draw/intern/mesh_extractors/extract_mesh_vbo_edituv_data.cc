@@ -52,7 +52,7 @@ static void extract_edituv_data_init(const MeshRenderData *mr,
   extract_edituv_data_init_common(mr, vbo, data, mr->loop_len);
 }
 
-static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
+static void extract_edituv_data_iter_face_bm(const MeshRenderData *mr,
                                              const BMFace *f,
                                              const int /*f_index*/,
                                              void *_data)
@@ -70,17 +70,17 @@ static void extract_edituv_data_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
-                                               const int poly_index,
+static void extract_edituv_data_iter_face_mesh(const MeshRenderData *mr,
+                                               const int face_index,
                                                void *_data)
 {
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(_data);
-  const IndexRange poly = mr->polys[poly_index];
-  const int ml_index_end = poly.start() + poly.size();
-  for (int ml_index = poly.start(); ml_index < ml_index_end; ml_index += 1) {
+  const IndexRange face = mr->faces[face_index];
+  const int ml_index_end = face.start() + face.size();
+  for (int ml_index = face.start(); ml_index < ml_index_end; ml_index += 1) {
     EditLoopData *eldata = &data->vbo_data[ml_index];
     memset(eldata, 0x0, sizeof(*eldata));
-    BMFace *efa = bm_original_face_get(mr, poly_index);
+    BMFace *efa = bm_original_face_get(mr, face_index);
     if (efa) {
       BMVert *eve = bm_original_vert_get(mr, mr->corner_verts[ml_index]);
       BMEdge *eed = bm_original_edge_get(mr, mr->corner_edges[ml_index]);
@@ -94,8 +94,8 @@ static void extract_edituv_data_iter_poly_mesh(const MeshRenderData *mr,
         if (eed == nullptr) {
           /* Find if the loop's vert is not part of an edit edge.
            * For this, we check if the previous loop was on an edge. */
-          const int ml_index_last = poly.start() + poly.size() - 1;
-          const int l_prev = (ml_index == poly.start()) ? ml_index_last : (ml_index - 1);
+          const int ml_index_last = face.start() + face.size() - 1;
+          const int l_prev = (ml_index == face.start()) ? ml_index_last : (ml_index - 1);
           eed = bm_original_edge_get(mr, mr->corner_edges[l_prev]);
         }
         if (eed) {
@@ -178,8 +178,8 @@ constexpr MeshExtract create_extractor_edituv_data()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edituv_data_init;
-  extractor.iter_poly_bm = extract_edituv_data_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_edituv_data_iter_poly_mesh;
+  extractor.iter_face_bm = extract_edituv_data_iter_face_bm;
+  extractor.iter_face_mesh = extract_edituv_data_iter_face_mesh;
   extractor.init_subdiv = extract_edituv_data_init_subdiv;
   extractor.iter_subdiv_bm = extract_edituv_data_iter_subdiv_bm;
   extractor.iter_subdiv_mesh = extract_edituv_data_iter_subdiv_mesh;

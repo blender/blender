@@ -50,10 +50,10 @@
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"
 
-typedef enum eGP_EyeMode {
+enum eGP_EyeMode {
   GP_EYE_MATERIAL = 0,
   GP_EYE_PALETTE = 1,
-} eGP_EyeMode;
+};
 
 struct EyedropperGPencil {
   ColorManagedDisplay *display;

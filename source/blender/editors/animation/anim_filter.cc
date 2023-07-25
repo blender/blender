@@ -25,7 +25,7 @@
  * -- Joshua Leung, Dec 2008 (Last revision July 2009)
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"

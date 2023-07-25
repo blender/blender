@@ -8,7 +8,7 @@
  * Used for copy/paste operator, (using a temporary file).
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 

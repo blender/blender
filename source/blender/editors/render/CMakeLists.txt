@@ -5,9 +5,6 @@
 set(INC
   ../include
   ../../blenloader
-  ../../blentranslation
-  ../../bmesh
-  ../../depsgraph
   ../../draw
   ../../gpu
   ../../imbuf
@@ -15,7 +12,6 @@ set(INC
   ../../nodes
   ../../render
   ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -35,9 +31,13 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_HEADLESS)

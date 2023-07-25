@@ -3371,7 +3371,7 @@ void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Cyclical State";
   ot->idname = "GPENCIL_OT_stroke_cyclical_set";
-  ot->description = "Close or open the selected stroke adding an edge from last to first point";
+  ot->description = "Close or open the selected stroke adding a segment from last to first point";
 
   /* api callbacks */
   ot->exec = gpencil_stroke_cyclical_set_exec;

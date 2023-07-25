@@ -8,8 +8,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
@@ -1427,9 +1427,9 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
     /* For vertex format, count every vertex that is connected by an edge */
     int numOfEdges = mesh->totedge;
-    int numOfPolys = mesh->totpoly;
+    int numOfPolys = mesh->faces_num;
     const blender::Span<blender::int2> edges = mesh->edges();
-    const blender::OffsetIndices polys = mesh->polys();
+    const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* count number of edges per vertex */
@@ -1444,7 +1444,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     /* also add number of vertices to temp_data
      * to locate points on "mesh edge" */
     for (int i = 0; i < numOfPolys; i++) {
-      for (const int vert : corner_verts.slice(polys[i])) {
+      for (const int vert : corner_verts.slice(faces[i])) {
         temp_data[vert]++;
       }
     }
@@ -1804,7 +1804,7 @@ struct DynamicPaintModifierApplyData {
 
   blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   blender::Span<int> corner_verts;
 
   float (*fcolor)[4];
@@ -1882,7 +1882,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(void *__restrict userdata,
   MLoopCol *mloopcol = data->mloopcol;
   MLoopCol *mloopcol_wet = data->mloopcol_wet;
 
-  for (const int l_index : data->polys[p_index]) {
+  for (const int l_index : data->faces[p_index]) {
     const int v_index = corner_verts[l_index];
 
     /* save layer data to output layer */
@@ -1942,7 +1942,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
 
           /* vertex color paint */
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-            const blender::OffsetIndices polys = result->polys();
+            const blender::OffsetIndices faces = result->faces();
             const blender::Span<int> corner_verts = result->corner_verts();
 
             /* paint is stored on dry and wet layers, so mix final color first */
@@ -1991,16 +1991,16 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
 
             data.ob = ob;
             data.corner_verts = corner_verts;
-            data.polys = polys;
+            data.faces = faces;
             data.mloopcol = mloopcol;
             data.mloopcol_wet = mloopcol_wet;
 
             {
               TaskParallelSettings settings;
               BLI_parallel_range_settings_defaults(&settings);
-              settings.use_threading = (polys.size() > 1000);
+              settings.use_threading = (faces.size() > 1000);
               BLI_task_parallel_range(
-                  0, polys.size(), &data, dynamic_paint_apply_surface_vpaint_cb, &settings);
+                  0, faces.size(), &data, dynamic_paint_apply_surface_vpaint_cb, &settings);
             }
 
             MEM_freeN(fcolor);
@@ -2379,7 +2379,7 @@ static void dynamic_paint_create_uv_surface_neighbor_cb(void *__restrict userdat
               atomic_add_and_fetch_uint32(&tPoint->neighbor_pixel, 1);
               tPoint->tri_index = i;
 
-              /* Now calculate pixel data for this pixel as it was on polygon surface */
+              /* Now calculate pixel data for this pixel as it was on face surface */
               /* Add b-weights per anti-aliasing sample */
               for (int j = 0; j < aa_samples; j++) {
                 uv[0] = point[0] + jitter5sample[j * 2] / w;
@@ -2460,7 +2460,7 @@ static int dynamic_paint_find_neighbor_pixel(const DynamicPaintCreateUVSurfaceDa
                                              const int py,
                                              const int n_index)
 {
-  /* NOTE: Current method only uses polygon edges to detect neighboring pixels.
+  /* NOTE: Current method only uses face edges to detect neighboring pixels.
    *       -> It doesn't always lead to the optimum pixel but is accurate enough
    *          and faster/simpler than including possible face tip point links)
    */
@@ -2950,7 +2950,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
     /*
      * Now loop through every pixel that was left without index
      * and find if they have neighboring pixels that have an index.
-     * If so use that polygon as pixel surface.
+     * If so use that face as pixel surface.
      * (To avoid seams on uv island edges)
      */
     data.active_points = &active_points;
@@ -3110,11 +3110,11 @@ int dynamicPaint_createUVSurface(Scene *scene,
           active_points * aa_samples * sizeof(*f_data->barycentricWeights), "PaintUVPoint"));
 
       if (!f_data->uv_p || !f_data->barycentricWeights) {
-        error = 1;
+        error = true;
       }
     }
     else {
-      error = 1;
+      error = true;
     }
 
     /* in case of allocation error, free everything */
@@ -3180,7 +3180,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
       if (uvPoint->neighbor_pixel != -1) {
         pPoint->color[2] = 1.0f;
       }
-      /* and every pixel that finally got an polygon gets red color */
+      /* and every pixel that finally got an face gets red color */
       /* green color shows pixel face index hash */
       if (uvPoint->tri_index != -1) {
         pPoint->color[0] = 1.0f;

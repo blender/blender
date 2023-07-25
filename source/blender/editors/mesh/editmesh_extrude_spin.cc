@@ -189,7 +189,7 @@ void MESH_OT_spin(wmOperatorType *ot)
   /* props */
   RNA_def_int(ot->srna, "steps", 12, 0, 1000000, "Steps", "Steps", 0, 1000);
 
-  prop = RNA_def_boolean(ot->srna, "dupli", 0, "Use Duplicates", "");
+  prop = RNA_def_boolean(ot->srna, "dupli", false, "Use Duplicates", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_float(ot->srna,
@@ -207,7 +207,7 @@ void MESH_OT_spin(wmOperatorType *ot)
                   true,
                   "Auto Merge",
                   "Merge first/last when the angle is a full revolution");
-  RNA_def_boolean(ot->srna, "use_normal_flip", 0, "Flip Normals", "");
+  RNA_def_boolean(ot->srna, "use_normal_flip", false, "Flip Normals", "");
 
   RNA_def_float_vector_xyz(ot->srna,
                            "center",

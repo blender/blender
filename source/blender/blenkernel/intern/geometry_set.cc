@@ -228,7 +228,7 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
   if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
     parts.append(std::to_string(mesh->totvert) + " verts");
     parts.append(std::to_string(mesh->totedge) + " edges");
-    parts.append(std::to_string(mesh->totpoly) + " polys");
+    parts.append(std::to_string(mesh->faces_num) + " faces");
     parts.append(std::to_string(mesh->totloop) + " corners");
   }
   if (const Curves *curves = geometry_set.get_curves_for_read()) {

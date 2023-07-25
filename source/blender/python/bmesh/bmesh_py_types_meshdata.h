@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject BPy_BMLoopUV_Type;
 extern PyTypeObject BPy_BMDeformVert_Type;
 
@@ -37,3 +41,7 @@ PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert);
 
 /* call to init all types */
 void BPy_BM_init_types_meshdata(void);
+
+#ifdef __cplusplus
+}
+#endif

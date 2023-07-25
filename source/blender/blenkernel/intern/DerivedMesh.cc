@@ -154,11 +154,11 @@ static int *dm_getCornerEdgeArray(DerivedMesh *dm)
 
 static int *dm_getPolyArray(DerivedMesh *dm)
 {
-  if (!dm->poly_offsets) {
-    dm->poly_offsets = MEM_cnew_array<int>(dm->getNumPolys(dm) + 1, __func__);
-    dm->copyPolyArray(dm, dm->poly_offsets);
+  if (!dm->face_offsets) {
+    dm->face_offsets = MEM_cnew_array<int>(dm->getNumPolys(dm) + 1, __func__);
+    dm->copyPolyArray(dm, dm->face_offsets);
   }
-  return dm->poly_offsets;
+  return dm->face_offsets;
 }
 
 void DM_init_funcs(DerivedMesh *dm)
@@ -217,7 +217,7 @@ void DM_from_template(DerivedMesh *dm,
       &source->faceData, &dm->faceData, mask->fmask, CD_SET_DEFAULT, numTessFaces);
   CustomData_copy_layout(&source->loopData, &dm->loopData, mask->lmask, CD_SET_DEFAULT, numLoops);
   CustomData_copy_layout(&source->polyData, &dm->polyData, mask->pmask, CD_SET_DEFAULT, numPolys);
-  dm->poly_offsets = static_cast<int *>(MEM_dupallocN(source->poly_offsets));
+  dm->face_offsets = static_cast<int *>(MEM_dupallocN(source->face_offsets));
 
   dm->type = type;
   dm->numVertData = numVerts;
@@ -236,7 +236,7 @@ void DM_release(DerivedMesh *dm)
   CustomData_free(&dm->faceData, dm->numTessFaceData);
   CustomData_free(&dm->loopData, dm->numLoopData);
   CustomData_free(&dm->polyData, dm->numPolyData);
-  MEM_SAFE_FREE(dm->poly_offsets);
+  MEM_SAFE_FREE(dm->face_offsets);
 }
 
 void BKE_mesh_runtime_eval_to_meshkey(Mesh *me_deformed, Mesh *me, KeyBlock *kb)
@@ -271,7 +271,7 @@ static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 {
   CustomData_set_only_copy(&mesh->vdata, mask->vmask);
   CustomData_set_only_copy(&mesh->edata, mask->emask);
-  CustomData_set_only_copy(&mesh->fdata, mask->fmask);
+  CustomData_set_only_copy(&mesh->fdata_legacy, mask->fmask);
   /* this wasn't in 2.63 and is disabled for 2.64 because it gives problems with
    * weight paint mode when there are modifiers applied, needs further investigation,
    * see replies to r50969, Campbell */
@@ -470,7 +470,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
   }
 
   if (calc_loop_normals) {
-    /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
+    /* Compute loop normals (NOTE: will compute face and vert normals as well, if needed!). In case
      * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
     if (!subsurf_runtime_data || subsurf_runtime_data->resolution == 0) {
       BKE_mesh_calc_normals_split(mesh_final);
@@ -480,7 +480,7 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
     if (sculpt_dyntopo == false) {
       /* without this, drawing ngon tri's faces will show ugly tessellated face
        * normals and will also have to calculate normals on the fly, try avoid
-       * this where possible since calculating polygon normals isn't fast,
+       * this where possible since calculating face normals isn't fast,
        * note that this isn't a problem for subsurf (only quads) or edit-mode
        * which deals with drawing differently. */
       BKE_mesh_ensure_normals_for_display(mesh_final);
@@ -829,7 +829,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
           CustomData_add_layer(
               &mesh_final->edata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totedge);
           CustomData_add_layer(
-              &mesh_final->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->totpoly);
+              &mesh_final->pdata, CD_ORIGINDEX, CD_CONSTRUCT, mesh_final->faces_num);
 
           /* Not worth parallelizing this,
            * gives less than 0.1% overall speedup in best of best cases... */
@@ -842,8 +842,8 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
                      mesh_final->totedge,
                      0);
           range_vn_i((int *)CustomData_get_layer_for_write(
-                         &mesh_final->pdata, CD_ORIGINDEX, mesh_final->totpoly),
-                     mesh_final->totpoly,
+                         &mesh_final->pdata, CD_ORIGINDEX, mesh_final->faces_num),
+                     mesh_final->faces_num,
                      0);
         }
       }
@@ -1103,7 +1103,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
   }
   else {
     /* Same as #mesh_calc_modifiers.
-     * If using loop normals, poly normals have already been computed. */
+     * If using loop normals, face normals have already been computed. */
     BKE_mesh_ensure_normals_for_display(mesh_final);
 
     /* Some modifiers, like data-transfer, may generate those data, we do not want to keep them,
@@ -1728,19 +1728,19 @@ static void mesh_init_origspace(Mesh *mesh)
   OrigSpaceLoop *lof_array = (OrigSpaceLoop *)CustomData_get_layer_for_write(
       &mesh->ldata, CD_ORIGSPACE_MLOOP, mesh->totloop);
   const Span<float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   int j, k;
 
   blender::Vector<blender::float2, 64> vcos_2d;
 
-  for (const int i : polys.index_range()) {
-    const blender::IndexRange poly = polys[i];
-    OrigSpaceLoop *lof = lof_array + poly.start();
+  for (const int i : faces.index_range()) {
+    const blender::IndexRange face = faces[i];
+    OrigSpaceLoop *lof = lof_array + face.start();
 
-    if (ELEM(poly.size(), 3, 4)) {
-      for (j = 0; j < poly.size(); j++, lof++) {
+    if (ELEM(face.size(), 3, 4)) {
+      for (j = 0; j < face.size(); j++, lof++) {
         copy_v2_v2(lof->uv, default_osf[j]);
       }
     }
@@ -1751,14 +1751,14 @@ static void mesh_init_origspace(Mesh *mesh)
       float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
       float translate[2], scale[2];
 
-      const float3 p_nor = blender::bke::mesh::poly_normal_calc(positions,
-                                                                corner_verts.slice(poly));
+      const float3 p_nor = blender::bke::mesh::face_normal_calc(positions,
+                                                                corner_verts.slice(face));
 
       axis_dominant_v3_to_m3(mat, p_nor);
 
-      vcos_2d.resize(poly.size());
-      for (j = 0; j < poly.size(); j++) {
-        mul_v3_m3v3(co, mat, positions[corner_verts[poly[j]]]);
+      vcos_2d.resize(face.size());
+      for (j = 0; j < face.size(); j++) {
+        mul_v3_m3v3(co, mat, positions[corner_verts[face[j]]]);
         copy_v2_v2(vcos_2d[j], co);
 
         for (k = 0; k < 2; k++) {
@@ -1786,7 +1786,7 @@ static void mesh_init_origspace(Mesh *mesh)
 
       /* Finally, transform all vcos_2d into ((0, 0), (1, 1))
        * square and assign them as origspace. */
-      for (j = 0; j < poly.size(); j++, lof++) {
+      for (j = 0; j < face.size(); j++, lof++) {
         add_v2_v2v2(lof->uv, vcos_2d[j], translate);
         mul_v2_v2(lof->uv, scale);
       }

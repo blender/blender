@@ -661,8 +661,18 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeBsdfTransparent)) {
     node = graph->create_node<TransparentBsdfNode>();
   }
-  else if (b_node.is_a(&RNA_ShaderNodeBsdfVelvet)) {
-    node = graph->create_node<VelvetBsdfNode>();
+  else if (b_node.is_a(&RNA_ShaderNodeBsdfSheen)) {
+    BL::ShaderNodeBsdfSheen b_sheen_node(b_node);
+    SheenBsdfNode *sheen = graph->create_node<SheenBsdfNode>();
+    switch (b_sheen_node.distribution()) {
+      case BL::ShaderNodeBsdfSheen::distribution_ASHIKHMIN:
+        sheen->set_distribution(CLOSURE_BSDF_ASHIKHMIN_VELVET_ID);
+        break;
+      case BL::ShaderNodeBsdfSheen::distribution_MICROFIBER:
+        sheen->set_distribution(CLOSURE_BSDF_SHEEN_ID);
+        break;
+    }
+    node = sheen;
   }
   else if (b_node.is_a(&RNA_ShaderNodeEmission)) {
     node = graph->create_node<EmissionNode>();

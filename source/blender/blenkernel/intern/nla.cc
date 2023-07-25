@@ -6,12 +6,12 @@
  * \ingroup bke
  */
 
-#include <float.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "CLG_log.h"
 
@@ -847,7 +847,7 @@ void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
     /* if current strip occurs after the new strip, add it before */
     if (ns->start >= strip->start) {
       BLI_insertlinkbefore(strips, ns, strip);
-      not_added = 0;
+      not_added = false;
       break;
     }
   }

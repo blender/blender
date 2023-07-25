@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
@@ -185,7 +185,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
       RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
       RNA_def_property_ui_text(
-          prop, "Strength", "Sunlight strength in watts per meter squared (W/m^2)");
+          prop, "Strength", "Sunlight strength in watts per meter squared (W/m²)");
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }

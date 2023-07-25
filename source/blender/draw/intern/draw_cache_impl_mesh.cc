@@ -149,7 +149,7 @@ static constexpr DRWBatchFlag batches_that_use_buffer(const int buffer_index)
       return MBC_EDIT_SELECTION_VERTS;
     case BUFFER_INDEX(vbo.edge_idx):
       return MBC_EDIT_SELECTION_EDGES;
-    case BUFFER_INDEX(vbo.poly_idx):
+    case BUFFER_INDEX(vbo.face_idx):
       return MBC_EDIT_SELECTION_FACES;
     case BUFFER_INDEX(vbo.fdot_idx):
       return MBC_EDIT_SELECTION_FACEDOTS;
@@ -593,7 +593,7 @@ static void mesh_batch_cache_init(Object *object, Mesh *me)
   if (cache->is_editmode == false) {
     // cache->edge_len = mesh_render_edges_len_get(me);
     // cache->tri_len = mesh_render_looptri_len_get(me);
-    // cache->poly_len = mesh_render_polys_len_get(me);
+    // cache->face_len = mesh_render_faces_len_get(me);
     // cache->vert_len = mesh_render_verts_len_get(me);
   }
 
@@ -798,7 +798,7 @@ static void mesh_buffer_cache_clear(MeshBufferCache *mbc)
   mesh_buffer_list_clear(&mbc->buff);
 
   mbc->loose_geom = {};
-  mbc->poly_sorted = {};
+  mbc->face_sorted = {};
 }
 
 static void mesh_batch_cache_free_subdiv_cache(MeshBatchCache *cache)
@@ -1729,11 +1729,11 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
   }
   assert_deps_valid(
       MBC_EDIT_SELECTION_FACES,
-      {BUFFER_INDEX(ibo.tris), BUFFER_INDEX(vbo.pos_nor), BUFFER_INDEX(vbo.poly_idx)});
+      {BUFFER_INDEX(ibo.tris), BUFFER_INDEX(vbo.pos_nor), BUFFER_INDEX(vbo.face_idx)});
   if (DRW_batch_requested(cache->batch.edit_selection_faces, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache->batch.edit_selection_faces, &mbuflist->ibo.tris);
     DRW_vbo_request(cache->batch.edit_selection_faces, &mbuflist->vbo.pos_nor);
-    DRW_vbo_request(cache->batch.edit_selection_faces, &mbuflist->vbo.poly_idx);
+    DRW_vbo_request(cache->batch.edit_selection_faces, &mbuflist->vbo.face_idx);
   }
   assert_deps_valid(
       MBC_EDIT_SELECTION_FACEDOTS,
@@ -1836,7 +1836,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
   assert_final_deps_valid(BUFFER_INDEX(vbo.skin_roots));
   assert_final_deps_valid(BUFFER_INDEX(vbo.vert_idx));
   assert_final_deps_valid(BUFFER_INDEX(vbo.edge_idx));
-  assert_final_deps_valid(BUFFER_INDEX(vbo.poly_idx));
+  assert_final_deps_valid(BUFFER_INDEX(vbo.face_idx));
   assert_final_deps_valid(BUFFER_INDEX(vbo.fdot_idx));
   assert_final_deps_valid(BUFFER_INDEX(vbo.edituv_data));
   assert_final_deps_valid(BUFFER_INDEX(vbo.edituv_stretch_area));

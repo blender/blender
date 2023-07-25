@@ -8,9 +8,9 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1077,8 +1077,8 @@ static void do_mul_effect(const SeqRenderData *context,
 /** \name Blend Mode Effect
  * \{ */
 
-typedef void (*IMB_blend_func_byte)(uchar *dst, const uchar *src1, const uchar *src2);
-typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
+using IMB_blend_func_byte = void (*)(uchar *dst, const uchar *src1, const uchar *src2);
+using IMB_blend_func_float = void (*)(float *dst, const float *src1, const float *src2);
 
 BLI_INLINE void apply_blend_function_byte(float fac,
                                           int x,

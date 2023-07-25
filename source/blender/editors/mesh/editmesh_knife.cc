@@ -1898,7 +1898,7 @@ static void knife_join_edge(KnifeEdge *newkfe, KnifeEdge *kfe)
 static void knife_start_cut(KnifeTool_OpData *kcd)
 {
   kcd->prev = kcd->curr;
-  kcd->curr.is_space = 0; /* TODO: Why do we do this? */
+  kcd->curr.is_space = false; /* TODO: Why do we do this? */
   kcd->mdata.is_stored = false;
 
   if (kcd->prev.vert == nullptr && kcd->prev.edge == nullptr) {

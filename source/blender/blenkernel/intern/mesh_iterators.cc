@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-/* General note on iterating verts/loops/edges/polys and end mode.
+/* General note on iterating verts/loops/edges/faces and end mode.
  *
  * The edit mesh pointer is set for both final and cage meshes in both cases when there are
  * modifiers applied and not. This helps consistency of checks in the draw manager, where the
@@ -198,7 +198,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices polys = mesh->polys();
+    const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const int *v_index = static_cast<const int *>(
         CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
@@ -206,11 +206,11 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
         CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
 
     if (v_index || f_index) {
-      for (const int poly_i : polys.index_range()) {
-        for (const int corner : polys[poly_i]) {
+      for (const int face_i : faces.index_range()) {
+        for (const int corner : faces[face_i]) {
           const int vert = corner_verts[corner];
           const int v_idx = v_index ? v_index[vert] : vert;
-          const int f_idx = f_index ? f_index[poly_i] : poly_i;
+          const int f_idx = f_index ? f_index[face_i] : face_i;
           const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
           if (ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
             continue;
@@ -220,11 +220,11 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
       }
     }
     else {
-      for (const int poly_i : polys.index_range()) {
-        for (const int corner : polys[poly_i]) {
+      for (const int face_i : faces.index_range()) {
+        for (const int corner : faces[face_i]) {
           const int vert = corner_verts[corner];
           const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
-          func(userData, vert, poly_i, positions[vert], no);
+          func(userData, vert, face_i, positions[vert], no);
         }
       }
     }
@@ -241,49 +241,49 @@ void BKE_mesh_foreach_mapped_face_center(
   if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
-    blender::Span<blender::float3> poly_centers;
-    blender::Span<blender::float3> poly_normals;
+    blender::Span<blender::float3> face_centers;
+    blender::Span<blender::float3> face_normals;
     BMFace *efa;
     BMIter iter;
     int i;
 
-    BKE_editmesh_cache_ensure_poly_centers(em, mesh->runtime->edit_data);
-    poly_centers = mesh->runtime->edit_data->polyCos; /* always set */
+    BKE_editmesh_cache_ensure_face_centers(em, mesh->runtime->edit_data);
+    face_centers = mesh->runtime->edit_data->faceCos; /* always set */
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      BKE_editmesh_cache_ensure_poly_normals(em, mesh->runtime->edit_data);
-      poly_normals = mesh->runtime->edit_data->polyNos; /* maybe nullptr */
+      BKE_editmesh_cache_ensure_face_normals(em, mesh->runtime->edit_data);
+      face_normals = mesh->runtime->edit_data->faceNos; /* maybe nullptr */
     }
 
-    if (!poly_normals.is_empty()) {
+    if (!face_normals.is_empty()) {
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-        const float *no = poly_normals[i];
-        func(userData, i, poly_centers[i], no);
+        const float *no = face_normals[i];
+        func(userData, i, face_centers[i], no);
       }
     }
     else {
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? efa->no : nullptr;
-        func(userData, i, poly_centers[i], no);
+        func(userData, i, face_centers[i], no);
       }
     }
   }
   else {
     const blender::Span<float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices polys = mesh->polys();
+    const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
 
     if (index) {
-      for (const int i : polys.index_range()) {
+      for (const int i : faces.index_range()) {
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        const Span<int> poly_verts = corner_verts.slice(polys[i]);
-        const float3 center = bke::mesh::poly_center_calc(positions, poly_verts);
+        const Span<int> face_verts = corner_verts.slice(faces[i]);
+        const float3 center = bke::mesh::face_center_calc(positions, face_verts);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_verts);
+          const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
           func(userData, orig, center, normal);
         }
         else {
@@ -292,11 +292,11 @@ void BKE_mesh_foreach_mapped_face_center(
       }
     }
     else {
-      for (const int i : polys.index_range()) {
-        const Span<int> poly_verts = corner_verts.slice(polys[i]);
-        const float3 center = bke::mesh::poly_center_calc(positions, poly_verts);
+      for (const int i : faces.index_range()) {
+        const Span<int> face_verts = corner_verts.slice(faces[i]);
+        const float3 center = bke::mesh::face_center_calc(positions, face_verts);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_verts);
+          const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
           func(userData, i, center, normal);
         }
         else {
@@ -314,7 +314,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     MeshForeachFlag flag)
 {
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   blender::Span<blender::float3> vert_normals;
   if (flag & MESH_FOREACH_USE_NORMAL) {
@@ -324,12 +324,12 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
   const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
 
   if (index) {
-    for (const int i : polys.index_range()) {
+    for (const int i : faces.index_range()) {
       const int orig = *index++;
       if (orig == ORIGINDEX_NONE) {
         continue;
       }
-      for (const int vert : corner_verts.slice(polys[i])) {
+      for (const int vert : corner_verts.slice(faces[i])) {
         if (facedot_tags[vert]) {
           func(userData,
                orig,
@@ -340,8 +340,8 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     }
   }
   else {
-    for (const int i : polys.index_range()) {
-      for (const int vert : corner_verts.slice(polys[i])) {
+    for (const int i : faces.index_range()) {
+      for (const int vert : corner_verts.slice(faces[i])) {
         if (facedot_tags[vert]) {
           func(userData,
                i,

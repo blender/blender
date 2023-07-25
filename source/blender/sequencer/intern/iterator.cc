@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -27,7 +27,7 @@
 #include "render.h"
 
 /* -------------------------------------------------------------------- */
-/** \Iterator API
+/** \name Iterator API
  * \{ */
 
 bool SEQ_iterator_ensure(SeqCollection *collection, SeqIterator *iterator, Sequence **r_seq)

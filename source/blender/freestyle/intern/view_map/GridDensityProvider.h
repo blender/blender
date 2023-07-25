@@ -41,12 +41,12 @@ class GridDensityProvider {
     return _cellSize;
   }
 
-  unsigned cellsX()
+  uint cellsX()
   {
     return _cellsX;
   }
 
-  unsigned cellsY()
+  uint cellsY()
   {
     return _cellsY;
   }
@@ -113,7 +113,7 @@ class GridDensityProvider {
 
  protected:
   OccluderSource &source;
-  unsigned _cellsX, _cellsY;
+  uint _cellsX, _cellsY;
   float _cellSize;
   float _cellOrigin[2];
 

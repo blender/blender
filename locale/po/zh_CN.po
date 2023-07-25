@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -4280,6 +4280,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "使用自适应算法的简化系数"
 
 
+msgid "Active Layer"
+msgstr "活动层"
+
+
 msgid "Strokes Collision"
 msgstr "笔画碰撞"
 
@@ -4518,10 +4522,6 @@ msgstr "缓存层"
 
 msgid "Collection of cache layers"
 msgstr "缓存层集合"
-
-
-msgid "Active Layer"
-msgstr "活动层"
 
 
 msgid "Active layer of the CacheFile"
@@ -23700,6 +23700,10 @@ msgstr "探头裁剪起点，小于这个位置的物体将不会出现在反射
 
 msgid "Control how fast the probe influence decreases"
 msgstr "控制光照探头影响衰减的速率"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "更平滑的辐射插值, 但引入光会渗出"
 
 
 msgid "Resolution X"
@@ -45243,6 +45247,14 @@ msgid "Glossy refraction with sharp or microfacet distribution, typically used f
 msgstr "具有锐利或微有面元分布的光面折射，通常用于透光的材质"
 
 
+msgid ""
+"Reflection for materials such as cloth.\n"
+"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
+msgstr ""
+"布料等材质的反射。\n"
+"通常与其他着色器（如漫反射着色器）混合使用，单独使用并不是特别有用"
+
+
 msgid "Toon BSDF"
 msgstr "卡通 BSDF"
 
@@ -45277,18 +45289,6 @@ msgstr "透明 BSDF"
 
 msgid "Transparency without refraction, passing straight through the surface as if there were no geometry"
 msgstr "无折射的透明度，直接穿过表面，就好像不存在几何体一样"
-
-
-msgid "Velvet BSDF"
-msgstr "丝绒 BSDF"
-
-
-msgid ""
-"Reflection for materials such as cloth.\n"
-"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
-msgstr ""
-"布料等材质的反射。\n"
-"通常与其他着色器（如漫反射着色器）混合使用，单独使用并不是特别有用"
 
 
 msgid "Bump"
@@ -69263,15 +69263,6 @@ msgstr "按照补间姿态夸大当前姿态"
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "从静置姿态推移姿态"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "将当前姿态推离静置姿态"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "翻转四元数值"
 
@@ -69287,15 +69278,6 @@ msgstr "松弛姿态到补间姿态"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "使当前姿态与其补间姿态更接近"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "松弛姿态至静置姿态"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "使当前姿态与静置姿态更接近"
 
 
 msgctxt "Operator"
@@ -81663,10 +81645,6 @@ msgid "Cycles Render Devices"
 msgstr "Cycles 渲染设备"
 
 
-msgid "GPU Backend"
-msgstr "GPU后端"
-
-
 msgid "Memory & Limits"
 msgstr "内存 & 限额"
 
@@ -85064,6 +85042,10 @@ msgstr "GL 纹理限制"
 
 msgid "Limit the texture size to save graphics memory"
 msgstr "通过限制纹理尺寸来节约显存"
+
+
+msgid "GPU Backend"
+msgstr "GPU后端"
 
 
 msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
@@ -90103,10 +90085,6 @@ msgstr "用于调试捕获的光的辐射采样球的尺寸"
 
 msgid "Irradiance Smoothing"
 msgstr "辐射平滑"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "更平滑的辐射插值, 但引入光会渗出"
 
 
 msgid "Show Cubemap Cache"
@@ -105308,10 +105286,6 @@ msgid "Apply All Shape Keys"
 msgstr "应用全部形态键"
 
 
-msgid "Name collisions: , "
-msgstr "名称冲突: , "
-
-
 msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "名称排序"
@@ -109333,10 +109307,6 @@ msgstr "保存为棚灯"
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "加载初始Blender偏好设置"
-
-
-msgid "Requires a restart of Blender to take effect"
-msgstr "需要重新启动 Blender 才能生效"
 
 
 msgid "Player"
@@ -119207,10 +119177,6 @@ msgid "Gizmos hidden in this view"
 msgstr "在该视图中隐藏Gizmo"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "无法在视图偏移被锁定时滑动"
-
-
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "无法从外部库或不可编辑的重写中导航摄像机"
 
@@ -119221,6 +119187,10 @@ msgstr "无法在视图锁定至一个物体时开启飞行模式"
 
 msgid "Cannot fly an object with constraints"
 msgstr "清除物体约束"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "无法在视图偏移被锁定时滑动"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -120733,6 +120703,10 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "NLA 片段 '%s' 未在轨道 '%s' 中找到"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "注册节点插口类: '%s' 过长, 最大长度为 %d"
+
+
 msgid "CustomGroup"
 msgstr "自定义组"
 
@@ -120799,10 +120773,6 @@ msgstr "无法在节点树中找到节点 '%s'"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "无法在节点上找到接口 '%s'"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "注册节点插口类: '%s' 过长, 最大长度为 %d"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
@@ -123469,10 +123439,6 @@ msgstr "清漆"
 
 msgid "Clearcoat Roughness"
 msgstr "清漆粗糙度"
-
-
-msgid "Transmission Roughness"
-msgstr "透射粗糙度"
 
 
 msgid "Emission Strength"

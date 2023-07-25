@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <stdlib.h> /* abort */
-#include <string.h> /* strstr */
+#include <cstdlib> /* abort */
+#include <cstring> /* strstr */
+#include <cwctype>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <wctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -522,7 +522,7 @@ void BKE_text_clear(Text *text) /* called directly from rna */
 void BKE_text_write(Text *text, const char *str, int str_len) /* called directly from rna */
 {
   txt_insert_buf(text, str, str_len);
-  txt_move_eof(text, 0);
+  txt_move_eof(text, false);
   txt_make_dirty(text);
 }
 
@@ -1635,8 +1635,8 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
   if (s) {
     int newl = txt_get_span(static_cast<TextLine *>(text->lines.first), tl);
     int newc = int(s - tl->line);
-    txt_move_to(text, newl, newc, 0);
-    txt_move_to(text, newl, newc + strlen(findstr), 1);
+    txt_move_to(text, newl, newc, false);
+    txt_move_to(text, newl, newc + strlen(findstr), true);
     return 1;
   }
 
@@ -1876,7 +1876,7 @@ static bool txt_add_char_intern(Text *text, uint add, bool replace_tabs)
   size_t add_len;
 
   if (!text->curl) {
-    return 0;
+    return false;
   }
 
   if (add == '\n') {
@@ -1910,7 +1910,7 @@ static bool txt_add_char_intern(Text *text, uint add, bool replace_tabs)
   txt_make_dirty(text);
   txt_clean_text(text);
 
-  return 1;
+  return true;
 }
 
 bool txt_add_char(Text *text, uint add)
@@ -1920,7 +1920,7 @@ bool txt_add_char(Text *text, uint add)
 
 bool txt_add_raw_char(Text *text, uint add)
 {
-  return txt_add_char_intern(text, add, 0);
+  return txt_add_char_intern(text, add, false);
 }
 
 void txt_delete_selected(Text *text)
@@ -2239,10 +2239,10 @@ int txt_setcurr_tab_spaces(Text *text, int space)
         break;
       }
       if (ch == ':') {
-        is_indent = 1;
+        is_indent = true;
       }
       else if (!ELEM(ch, ' ', '\t')) {
-        is_indent = 0;
+        is_indent = false;
       }
     }
     if (is_indent) {

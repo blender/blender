@@ -8,7 +8,7 @@
 
 /* System includes ----------------------------------------------------- */
 
-#include <float.h>
+#include <cfloat>
 
 #include "MEM_guardedalloc.h"
 

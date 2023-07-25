@@ -57,11 +57,11 @@ struct LoaderState {
   float *pv;
   float *pn;
   IndexedFaceSet::FaceEdgeMark *pm;
-  unsigned *pvi;
-  unsigned *pni;
-  unsigned *pmi;
-  unsigned currentIndex;
-  unsigned currentMIndex;
+  uint *pvi;
+  uint *pni;
+  uint *pmi;
+  uint currentIndex;
+  uint currentMIndex;
   float minBBox[3];
   float maxBBox[3];
 };
@@ -76,7 +76,7 @@ class BlenderFileLoader {
   NodeGroup *Load();
 
   /** Gets the number of read faces */
-  inline unsigned int numFacesRead()
+  inline uint numFacesRead()
   {
     return _numFacesRead;
   }
@@ -128,14 +128,14 @@ class BlenderFileLoader {
 
  protected:
   struct detri_t {
-    unsigned viA, viB, viP;  // 0 <= viA, viB, viP < viSize
+    uint viA, viB, viP;  // 0 <= viA, viB, viP < viSize
     Vec3r v;
-    unsigned n;
+    uint n;
   };
   Render *_re;
   Depsgraph *_depsgraph;
   NodeGroup *_Scene;
-  unsigned _numFacesRead;
+  uint _numFacesRead;
 #if 0
   real _minEdgeSize;
 #endif

@@ -218,26 +218,26 @@ static void computed_masked_edges_smooth(const Mesh *mesh,
   *r_verts_add_num = verts_add_num;
 }
 
-static void computed_masked_polys(const Mesh *mesh,
+static void computed_masked_faces(const Mesh *mesh,
                                   Span<bool> vertex_mask,
-                                  Vector<int> &r_masked_poly_indices,
+                                  Vector<int> &r_masked_face_indices,
                                   Vector<int> &r_loop_starts,
-                                  uint *r_polys_masked_num,
+                                  uint *r_faces_masked_num,
                                   uint *r_loops_masked_num)
 {
   BLI_assert(mesh->totvert == vertex_mask.size());
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
-  r_masked_poly_indices.reserve(mesh->totpoly);
-  r_loop_starts.reserve(mesh->totpoly);
+  r_masked_face_indices.reserve(mesh->faces_num);
+  r_loop_starts.reserve(mesh->faces_num);
 
   uint loops_masked_num = 0;
-  for (int i : IndexRange(mesh->totpoly)) {
-    const blender::IndexRange poly = polys[i];
+  for (int i : IndexRange(mesh->faces_num)) {
+    const blender::IndexRange face = faces[i];
 
     bool all_verts_in_mask = true;
-    for (const int vert_i : corner_verts.slice(poly)) {
+    for (const int vert_i : corner_verts.slice(face)) {
       if (!vertex_mask[vert_i]) {
         all_verts_in_mask = false;
         break;
@@ -245,47 +245,47 @@ static void computed_masked_polys(const Mesh *mesh,
     }
 
     if (all_verts_in_mask) {
-      r_masked_poly_indices.append_unchecked(i);
+      r_masked_face_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(loops_masked_num);
-      loops_masked_num += poly.size();
+      loops_masked_num += face.size();
     }
   }
 
-  *r_polys_masked_num = r_masked_poly_indices.size();
+  *r_faces_masked_num = r_masked_face_indices.size();
   *r_loops_masked_num = loops_masked_num;
 }
 
-static void compute_interpolated_polys(const Mesh *mesh,
+static void compute_interpolated_faces(const Mesh *mesh,
                                        Span<bool> vertex_mask,
                                        uint verts_add_num,
                                        uint loops_masked_num,
-                                       Vector<int> &r_masked_poly_indices,
+                                       Vector<int> &r_masked_face_indices,
                                        Vector<int> &r_loop_starts,
                                        uint *r_edges_add_num,
-                                       uint *r_polys_add_num,
+                                       uint *r_faces_add_num,
                                        uint *r_loops_add_num)
 {
   BLI_assert(mesh->totvert == vertex_mask.size());
 
   /* Can't really know ahead of time how much space to use exactly. Estimate limit instead. */
   /* NOTE: this reserve can only lift the capacity if there are ngons, which get split. */
-  r_masked_poly_indices.reserve(r_masked_poly_indices.size() + verts_add_num);
+  r_masked_face_indices.reserve(r_masked_face_indices.size() + verts_add_num);
   r_loop_starts.reserve(r_loop_starts.size() + verts_add_num);
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   uint edges_add_num = 0;
-  uint polys_add_num = 0;
+  uint faces_add_num = 0;
   uint loops_add_num = 0;
-  for (int i : IndexRange(mesh->totpoly)) {
-    const blender::IndexRange poly_src = polys[i];
+  for (int i : IndexRange(mesh->faces_num)) {
+    const blender::IndexRange face_src = faces[i];
 
     int in_count = 0;
     int start = -1;
     int dst_totloop = -1;
-    const Span<int> poly_verts_src = corner_verts.slice(poly_src);
-    for (const int j : poly_verts_src.index_range()) {
-      const int vert_i = poly_verts_src[j];
+    const Span<int> face_verts_src = corner_verts.slice(face_src);
+    for (const int j : face_verts_src.index_range()) {
+      const int vert_i = face_verts_src[j];
       if (vertex_mask[vert_i]) {
         in_count++;
       }
@@ -293,22 +293,22 @@ static void compute_interpolated_polys(const Mesh *mesh,
         start = j;
       }
     }
-    if (0 < in_count && in_count < poly_src.size()) {
+    if (0 < in_count && in_count < face_src.size()) {
       /* Ring search starting at a vertex which is not included in the mask. */
-      int last_corner_vert = poly_verts_src[start];
+      int last_corner_vert = face_verts_src[start];
       bool v_loop_in_mask_last = vertex_mask[last_corner_vert];
-      for (const int j : poly_verts_src.index_range()) {
-        const int corner_vert = poly_verts_src[(start + 1 + j) % poly_src.size()];
+      for (const int j : face_verts_src.index_range()) {
+        const int corner_vert = face_verts_src[(start + 1 + j) % face_src.size()];
         const bool v_loop_in_mask = vertex_mask[corner_vert];
         if (v_loop_in_mask && !v_loop_in_mask_last) {
           dst_totloop = 3;
         }
         else if (!v_loop_in_mask && v_loop_in_mask_last) {
           BLI_assert(dst_totloop > 2);
-          r_masked_poly_indices.append(i);
+          r_masked_face_indices.append(i);
           r_loop_starts.append(loops_masked_num + loops_add_num);
           loops_add_num += dst_totloop;
-          polys_add_num++;
+          faces_add_num++;
           edges_add_num++;
           dst_totloop = -1;
         }
@@ -323,7 +323,7 @@ static void compute_interpolated_polys(const Mesh *mesh,
   }
 
   *r_edges_add_num = edges_add_num;
-  *r_polys_add_num = polys_add_num;
+  *r_faces_add_num = faces_add_num;
   *r_loops_add_num = loops_add_num;
 }
 
@@ -434,42 +434,42 @@ static void copy_masked_edges_to_new_mesh(const Mesh &src_mesh,
   }
 }
 
-static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
+static void copy_masked_faces_to_new_mesh(const Mesh &src_mesh,
                                           Mesh &dst_mesh,
                                           Span<int> vertex_map,
                                           Span<int> edge_map,
-                                          Span<int> masked_poly_indices,
+                                          Span<int> masked_face_indices,
                                           Span<int> new_loop_starts,
-                                          int polys_masked_num)
+                                          int faces_masked_num)
 {
-  const blender::OffsetIndices src_polys = src_mesh.polys();
-  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
+  const blender::OffsetIndices src_faces = src_mesh.faces();
+  MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
   MutableSpan<int> dst_corner_verts = dst_mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
-  for (const int i_dst : IndexRange(polys_masked_num)) {
-    const int i_src = masked_poly_indices[i_dst];
-    const blender::IndexRange src_poly = src_polys[i_src];
+  for (const int i_dst : IndexRange(faces_masked_num)) {
+    const int i_src = masked_face_indices[i_dst];
+    const blender::IndexRange src_face = src_faces[i_src];
 
-    dst_poly_offsets[i_dst] = new_loop_starts[i_dst];
+    dst_face_offsets[i_dst] = new_loop_starts[i_dst];
 
     CustomData_copy_data(&src_mesh.pdata, &dst_mesh.pdata, i_src, i_dst, 1);
     CustomData_copy_data(&src_mesh.ldata,
                          &dst_mesh.ldata,
-                         src_poly.start(),
-                         dst_poly_offsets[i_dst],
-                         src_poly.size());
+                         src_face.start(),
+                         dst_face_offsets[i_dst],
+                         src_face.size());
 
-    for (int i : IndexRange(src_poly.size())) {
-      dst_corner_verts[new_loop_starts[i_dst] + i] = vertex_map[src_corner_verts[src_poly[i]]];
-      dst_corner_edges[new_loop_starts[i_dst] + i] = edge_map[src_corner_edges[src_poly[i]]];
+    for (int i : IndexRange(src_face.size())) {
+      dst_corner_verts[new_loop_starts[i_dst] + i] = vertex_map[src_corner_verts[src_face[i]]];
+      dst_corner_edges[new_loop_starts[i_dst] + i] = edge_map[src_corner_edges[src_face[i]]];
     }
   }
 }
 
-static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
+static void add_interpolated_faces_to_new_mesh(const Mesh &src_mesh,
                                                Mesh &dst_mesh,
                                                Span<bool> vertex_mask,
                                                Span<int> vertex_map,
@@ -477,13 +477,13 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
                                                const MDeformVert *dvert,
                                                int defgrp_index,
                                                float threshold,
-                                               Span<int> masked_poly_indices,
+                                               Span<int> masked_face_indices,
                                                Span<int> new_loop_starts,
-                                               int polys_masked_num,
+                                               int faces_masked_num,
                                                int edges_add_num)
 {
-  const blender::OffsetIndices src_polys = src_mesh.polys();
-  MutableSpan<int> dst_poly_offsets = dst_mesh.poly_offsets_for_write();
+  const blender::OffsetIndices src_faces = src_mesh.faces();
+  MutableSpan<int> dst_face_offsets = dst_mesh.face_offsets_for_write();
   MutableSpan<int2> dst_edges = dst_mesh.edges_for_write();
   const Span<int> src_corner_verts = src_mesh.corner_verts();
   const Span<int> src_corner_edges = src_mesh.corner_edges();
@@ -491,33 +491,33 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
   MutableSpan<int> dst_corner_edges = dst_mesh.corner_edges_for_write();
 
   int edge_index = dst_mesh.totedge - edges_add_num;
-  int sub_poly_index = 0;
+  int sub_face_index = 0;
   int last_i_src = -1;
   for (const int i_dst :
-       IndexRange(polys_masked_num, masked_poly_indices.size() - polys_masked_num)) {
-    const int i_src = masked_poly_indices[i_dst];
+       IndexRange(faces_masked_num, masked_face_indices.size() - faces_masked_num)) {
+    const int i_src = masked_face_indices[i_dst];
     if (i_src == last_i_src) {
-      sub_poly_index++;
+      sub_face_index++;
     }
     else {
-      sub_poly_index = 0;
+      sub_face_index = 0;
       last_i_src = i_src;
     }
 
-    const blender::IndexRange src_poly = src_polys[i_src];
-    const int i_ml_src = src_poly.start();
+    const blender::IndexRange src_face = src_faces[i_src];
+    const int i_ml_src = src_face.start();
     int i_ml_dst = new_loop_starts[i_dst];
     CustomData_copy_data(&src_mesh.pdata, &dst_mesh.pdata, i_src, i_dst, 1);
 
-    dst_poly_offsets[i_dst] = i_ml_dst;
+    dst_face_offsets[i_dst] = i_ml_dst;
 
     /* Ring search starting at a vertex which is not included in the mask. */
-    int start = -sub_poly_index - 1;
+    int start = -sub_face_index - 1;
     bool skip = false;
-    const Span<int> poly_verts_src = src_corner_verts.slice(src_poly);
-    const Span<int> poly_edges_src = src_corner_edges.slice(src_poly);
-    for (const int j : poly_verts_src.index_range()) {
-      if (!vertex_mask[poly_verts_src[j]]) {
+    const Span<int> face_verts_src = src_corner_verts.slice(src_face);
+    const Span<int> face_edges_src = src_corner_edges.slice(src_face);
+    for (const int j : face_verts_src.index_range()) {
+      if (!vertex_mask[face_verts_src[j]]) {
         if (start == -1) {
           start = j;
           break;
@@ -536,42 +536,42 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
     BLI_assert(edge_index < dst_mesh.totedge);
 
     int last_index = start;
-    bool v_loop_in_mask_last = vertex_mask[poly_verts_src[last_index]];
-    for (const int j : poly_verts_src.index_range()) {
-      const int index = (start + 1 + j) % src_poly.size();
-      const bool v_loop_in_mask = vertex_mask[poly_verts_src[index]];
+    bool v_loop_in_mask_last = vertex_mask[face_verts_src[last_index]];
+    for (const int j : face_verts_src.index_range()) {
+      const int index = (start + 1 + j) % src_face.size();
+      const bool v_loop_in_mask = vertex_mask[face_verts_src[index]];
       if (v_loop_in_mask && !v_loop_in_mask_last) {
         /* Start new cut. */
         float fac = get_interp_factor_from_vgroup(
-            dvert, defgrp_index, threshold, poly_verts_src[last_index], poly_verts_src[index]);
+            dvert, defgrp_index, threshold, face_verts_src[last_index], face_verts_src[index]);
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
         CustomData_interp(
             &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
-        dst_corner_edges[i_ml_dst] = edge_map[poly_edges_src[last_index]];
+        dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[last_index]];
         dst_corner_verts[i_ml_dst] = dst_edges[dst_corner_edges[i_ml_dst]][0];
         i_ml_dst++;
 
         CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src + index, i_ml_dst, 1);
-        dst_corner_verts[i_ml_dst] = vertex_map[poly_verts_src[index]];
-        dst_corner_edges[i_ml_dst] = edge_map[poly_edges_src[index]];
+        dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
+        dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;
       }
       else if (!v_loop_in_mask && v_loop_in_mask_last) {
-        BLI_assert(i_ml_dst != dst_poly_offsets[i_dst]);
+        BLI_assert(i_ml_dst != dst_face_offsets[i_dst]);
         /* End active cut. */
         float fac = get_interp_factor_from_vgroup(
-            dvert, defgrp_index, threshold, poly_verts_src[last_index], poly_verts_src[index]);
+            dvert, defgrp_index, threshold, face_verts_src[last_index], face_verts_src[index]);
         float weights[2] = {1.0f - fac, fac};
         int indices[2] = {i_ml_src + last_index, i_ml_src + index};
         CustomData_interp(
             &src_mesh.ldata, &dst_mesh.ldata, indices, weights, nullptr, 2, i_ml_dst);
         dst_corner_edges[i_ml_dst] = edge_index;
-        dst_corner_verts[i_ml_dst] = dst_edges[edge_map[poly_edges_src[last_index]]][0];
+        dst_corner_verts[i_ml_dst] = dst_edges[edge_map[face_edges_src[last_index]]][0];
 
         /* Create closing edge. */
         int2 &cut_edge = dst_edges[edge_index];
-        cut_edge[0] = dst_corner_verts[dst_poly_offsets[i_dst]];
+        cut_edge[0] = dst_corner_verts[dst_face_offsets[i_dst]];
         cut_edge[1] = dst_corner_verts[i_ml_dst];
         BLI_assert(cut_edge[0] != cut_edge[1]);
         edge_index++;
@@ -581,11 +581,11 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
         break;
       }
       else if (v_loop_in_mask && v_loop_in_mask_last) {
-        BLI_assert(i_ml_dst != dst_poly_offsets[i_dst]);
-        /* Extend active poly. */
+        BLI_assert(i_ml_dst != dst_face_offsets[i_dst]);
+        /* Extend active face. */
         CustomData_copy_data(&src_mesh.ldata, &dst_mesh.ldata, i_ml_src + index, i_ml_dst, 1);
-        dst_corner_verts[i_ml_dst] = vertex_map[poly_verts_src[index]];
-        dst_corner_edges[i_ml_dst] = edge_map[poly_edges_src[index]];
+        dst_corner_verts[i_ml_dst] = vertex_map[face_verts_src[index]];
+        dst_corner_edges[i_ml_dst] = edge_map[face_edges_src[index]];
         i_ml_dst++;
       }
       last_index = index;
@@ -597,8 +597,8 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
 
 /* Components of the algorithm:
  * 1. Figure out which vertices should be present in the output mesh.
- * 2. Find edges and polygons only using those vertices.
- * 3. Create a new mesh that only uses the found vertices, edges and polygons.
+ * 2. Find edges and faces only using those vertices.
+ * 3. Create a new mesh that only uses the found vertices, edges and faces.
  */
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)
 {
@@ -668,36 +668,36 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
     verts_add_num = 0;
   }
 
-  Vector<int> masked_poly_indices;
+  Vector<int> masked_face_indices;
   Vector<int> new_loop_starts;
-  uint polys_masked_num;
+  uint faces_masked_num;
   uint loops_masked_num;
-  computed_masked_polys(mesh,
+  computed_masked_faces(mesh,
                         vertex_mask,
-                        masked_poly_indices,
+                        masked_face_indices,
                         new_loop_starts,
-                        &polys_masked_num,
+                        &faces_masked_num,
                         &loops_masked_num);
 
   uint edges_add_num = 0;
-  uint polys_add_num = 0;
+  uint faces_add_num = 0;
   uint loops_add_num = 0;
   if (use_interpolation) {
-    compute_interpolated_polys(mesh,
+    compute_interpolated_faces(mesh,
                                vertex_mask,
                                verts_add_num,
                                loops_masked_num,
-                               masked_poly_indices,
+                               masked_face_indices,
                                new_loop_starts,
                                &edges_add_num,
-                               &polys_add_num,
+                               &faces_add_num,
                                &loops_add_num);
   }
 
   Mesh *result = BKE_mesh_new_nomain_from_template(mesh,
                                                    verts_masked_num + verts_add_num,
                                                    edges_masked_num + edges_add_num,
-                                                   polys_masked_num + polys_add_num,
+                                                   faces_masked_num + faces_add_num,
                                                    loops_masked_num + loops_add_num);
 
   copy_masked_verts_to_new_mesh(*mesh, *result, vertex_map);
@@ -716,15 +716,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
   else {
     copy_masked_edges_to_new_mesh(*mesh, *result, vertex_map, edge_map);
   }
-  copy_masked_polys_to_new_mesh(*mesh,
+  copy_masked_faces_to_new_mesh(*mesh,
                                 *result,
                                 vertex_map,
                                 edge_map,
-                                masked_poly_indices,
+                                masked_face_indices,
                                 new_loop_starts,
-                                polys_masked_num);
+                                faces_masked_num);
   if (use_interpolation) {
-    add_interpolated_polys_to_new_mesh(*mesh,
+    add_interpolated_faces_to_new_mesh(*mesh,
                                        *result,
                                        vertex_mask,
                                        vertex_map,
@@ -732,9 +732,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                        dverts.data(),
                                        defgrp_index,
                                        mmd->threshold,
-                                       masked_poly_indices,
+                                       masked_face_indices,
                                        new_loop_starts,
-                                       polys_masked_num,
+                                       faces_masked_num,
                                        edges_add_num);
   }
 

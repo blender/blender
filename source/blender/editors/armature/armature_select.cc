@@ -190,7 +190,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
         }
         else {
           data = nullptr;
-          sel = 0;
+          sel = false;
         }
       }
       else {
@@ -219,7 +219,7 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
               firstSel = data;
               firstSel_base = base;
             }
-            takeNext = 1;
+            takeNext = true;
           }
         }
         else {
@@ -551,7 +551,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Leave disabled by default as this matches pose mode. */
-  RNA_def_boolean(ot->srna, "all_forks", 0, "All Forks", "Follow forks in the parents chain");
+  RNA_def_boolean(ot->srna, "all_forks", false, "All Forks", "Follow forks in the parents chain");
 }
 
 /** \} */
@@ -613,9 +613,9 @@ void ARMATURE_OT_select_linked_pick(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+  RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "");
   /* Leave disabled by default as this matches pose mode. */
-  RNA_def_boolean(ot->srna, "all_forks", 0, "All Forks", "Follow forks in the parents chain");
+  RNA_def_boolean(ot->srna, "all_forks", false, "All Forks", "Follow forks in the parents chain");
 }
 
 /** \} */

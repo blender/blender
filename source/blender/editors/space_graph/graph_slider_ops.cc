@@ -12,8 +12,8 @@
  * to modify the operator.
  */
 
-#include <float.h>
-#include <string.h>
+#include <cfloat>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1230,11 +1230,11 @@ void GRAPH_OT_gaussian_smooth(wmOperatorType *ot)
 /** \name Butterworth Smooth Operator
  * \{ */
 
-typedef struct tBtwOperatorData {
+struct tBtwOperatorData {
   ButterworthCoefficients *coefficients;
   ListBase segment_links; /* tFCurveSegmentLink */
   ListBase anim_data;     /* bAnimListElem */
-} tBtwOperatorData;
+};
 
 static int btw_calculate_sample_count(BezTriple *right_bezt,
                                       BezTriple *left_bezt,
@@ -1467,7 +1467,7 @@ void GRAPH_OT_butterworth_smooth(wmOperatorType *ot)
                 3.0f,
                 0.0f,
                 FLT_MAX,
-                "Frquency Cutoff (Hz)",
+                "Frequency Cutoff (Hz)",
                 "Lower values give a smoother curve",
                 0.0f,
                 FLT_MAX);

@@ -26,7 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 struct PolyCornerIndex {
-  int poly_index;
+  int face_index;
   int corner;
 };
 
@@ -36,14 +36,14 @@ struct MultiresDisplacementData {
   /* Mesh is used to read external displacement. */
   Mesh *mesh;
   const MultiresModifierData *mmd;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   const MDisps *mdisps;
-  /* Indexed by PTEX face index, contains polygon/corner which corresponds
+  /* Indexed by PTEX face index, contains face/corner which corresponds
    * to it.
    *
-   * NOTE: For quad polygon this is an index of first corner only, since
+   * NOTE: For quad face this is an index of first corner only, since
    * there we only have one PTEX. */
-  PolyCornerIndex *ptex_poly_corner;
+  PolyCornerIndex *ptex_face_corner;
   /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
   int *face_ptex_offset;
@@ -54,12 +54,12 @@ struct MultiresDisplacementData {
 
 /* Denotes which grid to use to average value of the displacement read from the
  * grid which corresponds to the PTEX face. */
-typedef enum eAverageWith {
+enum eAverageWith {
   AVERAGE_WITH_NONE,
   AVERAGE_WITH_ALL,
   AVERAGE_WITH_PREV,
   AVERAGE_WITH_NEXT,
-} eAverageWith;
+};
 
 static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
                                            const int ptex_face_index,
@@ -71,11 +71,11 @@ static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const blender::IndexRange poly = data->polys[poly_corner->poly_index];
-  const int start_grid_index = poly.start() + poly_corner->corner;
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const blender::IndexRange face = data->faces[face_corner->face_index];
+  const int start_grid_index = face.start() + face_corner->corner;
   int corner = 0;
-  if (poly.size() == 4) {
+  if (face.size() == 4) {
     float corner_u, corner_v;
     corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_displacement_grid = &data->mdisps[start_grid_index + corner];
@@ -95,11 +95,11 @@ static const MDisps *displacement_get_other_grid(SubdivDisplacement *displacemen
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const blender::IndexRange poly = data->polys[poly_corner->poly_index];
-  const int effective_corner = (poly.size() == 4) ? corner : poly_corner->corner;
-  const int next_corner = (effective_corner + corner_delta + poly.size()) % poly.size();
-  return &data->mdisps[poly[next_corner]];
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const blender::IndexRange face = data->faces[face_corner->face_index];
+  const int effective_corner = (face.size() == 4) ? corner : face_corner->corner;
+  const int next_corner = (effective_corner + corner_delta + face.size()) % face.size();
+  return &data->mdisps[face[next_corner]];
 }
 
 BLI_INLINE eAverageWith read_displacement_grid(const MDisps *displacement_grid,
@@ -174,8 +174,8 @@ static void average_read_displacement_object(MultiresDisplacementData *data,
                                              const int corner_index,
                                              float r_D[3])
 {
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const int num_corners = data->polys[poly_corner->poly_index].size();
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const int num_corners = data->faces[face_corner->face_index].size();
   /* Get (u, v) coordinate within the other PTEX face which corresponds to
    * the grid coordinates. */
   float u, v;
@@ -199,11 +199,11 @@ static void average_get_other_ptex_and_corner(MultiresDisplacementData *data,
                                               int *r_other_ptex_face_index,
                                               int *r_other_corner_index)
 {
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const int poly_index = poly_corner->poly_index;
-  const int num_corners = data->polys[poly_corner->poly_index].size();
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const int face_index = face_corner->face_index;
+  const int num_corners = data->faces[face_corner->face_index].size();
   const bool is_quad = (num_corners == 4);
-  const int start_ptex_face_index = data->face_ptex_offset[poly_index];
+  const int start_ptex_face_index = data->face_ptex_offset[face_index];
   *r_other_corner_index = (corner + corner_delta + num_corners) % num_corners;
   *r_other_ptex_face_index = is_quad ? start_ptex_face_index :
                                        start_ptex_face_index + *r_other_corner_index;
@@ -248,8 +248,8 @@ static void average_with_all(SubdivDisplacement *displacement,
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const int num_corners = data->polys[poly_corner->poly_index].size();
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const int num_corners = data->faces[face_corner->face_index].size();
   for (int corner_delta = 1; corner_delta < num_corners; corner_delta++) {
     average_with_other(displacement, ptex_face_index, corner, 0.0f, 0.0f, corner_delta, r_D);
   }
@@ -303,15 +303,15 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
                                         const float u,
                                         const float v)
 {
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const int num_corners = data->polys[poly_corner->poly_index].size();
+  const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
+  const int num_corners = data->faces[face_corner->face_index].size();
   const bool is_quad = (num_corners == 4);
   if (is_quad) {
     float dummy_corner_u, dummy_corner_v;
     return BKE_subdiv_rotate_quad_to_corner(u, v, &dummy_corner_u, &dummy_corner_v);
   }
 
-  return poly_corner->corner;
+  return face_corner->corner;
 }
 
 static void initialize(SubdivDisplacement *displacement)
@@ -357,7 +357,7 @@ static void free_displacement(SubdivDisplacement *displacement)
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  MEM_freeN(data->ptex_poly_corner);
+  MEM_freeN(data->ptex_face_corner);
   MEM_freeN(data);
 }
 
@@ -366,9 +366,9 @@ static void free_displacement(SubdivDisplacement *displacement)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const blender::OffsetIndices polys = mesh->polys();
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    num_ptex_faces += (polys[poly_index].size() == 4) ? 1 : polys[poly_index].size();
+  const blender::OffsetIndices faces = mesh->faces();
+  for (int face_index = 0; face_index < mesh->faces_num; face_index++) {
+    num_ptex_faces += (faces[face_index].size() == 4) ? 1 : faces[face_index].size();
   }
   return num_ptex_faces;
 }
@@ -377,25 +377,25 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement, con
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
-      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), "PTEX poly corner"));
+  data->ptex_face_corner = static_cast<PolyCornerIndex *>(
+      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_face_corner), "PTEX face corner"));
   /* Fill in offsets. */
   int ptex_face_index = 0;
-  PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const blender::IndexRange poly = polys[poly_index];
-    if (poly.size() == 4) {
-      ptex_poly_corner[ptex_face_index].poly_index = poly_index;
-      ptex_poly_corner[ptex_face_index].corner = 0;
+  PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;
+  for (int face_index = 0; face_index < mesh->faces_num; face_index++) {
+    const blender::IndexRange face = faces[face_index];
+    if (face.size() == 4) {
+      ptex_face_corner[ptex_face_index].face_index = face_index;
+      ptex_face_corner[ptex_face_index].corner = 0;
       ptex_face_index++;
     }
     else {
-      for (int corner = 0; corner < poly.size(); corner++) {
-        ptex_poly_corner[ptex_face_index].poly_index = poly_index;
-        ptex_poly_corner[ptex_face_index].corner = corner;
+      for (int corner = 0; corner < face.size(); corner++) {
+        ptex_face_corner[ptex_face_index].face_index = face_index;
+        ptex_face_corner[ptex_face_index].corner = corner;
         ptex_face_index++;
       }
     }
@@ -413,7 +413,7 @@ static void displacement_init_data(SubdivDisplacement *displacement,
   data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
   data->mmd = mmd;
-  data->polys = mesh->polys();
+  data->faces = mesh->faces();
   data->mdisps = static_cast<const MDisps *>(CustomData_get_layer(&mesh->ldata, CD_MDISPS));
   data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
   data->is_initialized = false;

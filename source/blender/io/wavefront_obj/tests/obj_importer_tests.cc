@@ -40,7 +40,7 @@ namespace blender::io::obj {
 struct Expectation {
   std::string name;
   short type; /* OB_MESH, ... */
-  int totvert, mesh_totedge_or_curve_endp, mesh_totpoly_or_curve_order,
+  int totvert, mesh_totedge_or_curve_endp, mesh_faces_num_or_curve_order,
       mesh_totloop_or_curve_cyclic;
   float3 vert_first, vert_last;
   float3 normal_first;
@@ -100,7 +100,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
           printf("OB_MESH, %i, %i, %i, %i, float3(%g, %g, %g), float3(%g, %g, %g)",
                  mesh->totvert,
                  mesh->totedge,
-                 mesh->totpoly,
+                 mesh->faces_num,
                  mesh->totloop,
                  positions.first().x,
                  positions.first().y,
@@ -132,7 +132,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         Mesh *mesh = BKE_object_get_evaluated_mesh(object);
         EXPECT_EQ(mesh->totvert, exp.totvert);
         EXPECT_EQ(mesh->totedge, exp.mesh_totedge_or_curve_endp);
-        EXPECT_EQ(mesh->totpoly, exp.mesh_totpoly_or_curve_order);
+        EXPECT_EQ(mesh->faces_num, exp.mesh_faces_num_or_curve_order);
         EXPECT_EQ(mesh->totloop, exp.mesh_totloop_or_curve_cyclic);
         const Span<float3> positions = mesh->vert_positions();
         EXPECT_V3_NEAR(positions.first(), exp.vert_first, 0.0001f);
@@ -163,7 +163,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         MEM_freeN(vertexCos);
         const Nurb *nurb = static_cast<const Nurb *>(BLI_findlink(&curve->nurb, 0));
         int endpoint = (nurb->flagu & CU_NURB_ENDPOINT) ? 1 : 0;
-        EXPECT_EQ(nurb->orderu, exp.mesh_totpoly_or_curve_order);
+        EXPECT_EQ(nurb->orderu, exp.mesh_faces_num_or_curve_order);
         EXPECT_EQ(endpoint, exp.mesh_totedge_or_curve_endp);
         /* Cyclic flag is not set by the importer yet. */
         // int cyclic = (nurb->flagu & CU_NURB_CYCLIC) ? 1 : 0;

@@ -10,6 +10,10 @@
 
 #include "BLI_compiler_attrs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject BPyGPUOffScreen_Type;
 
 #define BPyGPUOffScreen_Check(v) (Py_TYPE(v) == &BPyGPUOffScreen_Type)
@@ -23,3 +27,7 @@ typedef struct BPyGPUOffScreen {
 } BPyGPUOffScreen;
 
 PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
+
+#ifdef __cplusplus
+}
+#endif

@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern PyTypeObject BPyGPU_BufferType;
 
 #define BPyGPU_Buffer_Check(v) (Py_TYPE(v) == &BPyGPU_BufferType)
@@ -47,3 +51,7 @@ BPyGPUBuffer *BPyGPU_Buffer_CreatePyObject(int format,
                                            const Py_ssize_t *shape,
                                            int shape_len,
                                            void *buffer);
+
+#ifdef __cplusplus
+}
+#endif

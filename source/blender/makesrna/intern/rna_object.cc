@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_action_types.h"
 #include "DNA_brush_types.h"
@@ -1077,8 +1077,8 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
   if (ob->type == OB_MESH && ob->data) {
     me = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < me->fdata.totlayer; a++) {
-      layer = &me->fdata.layers[a];
+    for (a = 0; a < me->fdata_legacy.totlayer; a++) {
+      layer = &me->fdata_legacy.layers[a];
 
       if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);

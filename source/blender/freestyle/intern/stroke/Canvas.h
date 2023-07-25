@@ -137,7 +137,7 @@ class Canvas {
    */
   void loadMap(const char *iFileName,
                const char *iMapName,
-               unsigned iNbLevels = 4,
+               uint iNbLevels = 4,
                float iSigma = 1.0f);
 
   /** Reads a pixel value in a map.
@@ -211,11 +211,11 @@ class Canvas {
 
   /** inserts a shader at pos index+1 */
   void PushBackStyleModule(StyleModule *iStyleModule);
-  void InsertStyleModule(unsigned index, StyleModule *iStyleModule);
-  void RemoveStyleModule(unsigned index);
-  void SwapStyleModules(unsigned i1, unsigned i2);
-  void ReplaceStyleModule(unsigned index, StyleModule *iStyleModule);
-  void setVisible(unsigned index, bool iVisible);
+  void InsertStyleModule(uint index, StyleModule *iStyleModule);
+  void RemoveStyleModule(uint index);
+  void SwapStyleModules(uint i1, uint i2);
+  void ReplaceStyleModule(uint index, StyleModule *iStyleModule);
+  void setVisible(uint index, bool iVisible);
 
 #if 0
   inline void setDensityMap(InformationMap<RGBImage> *iMap)
@@ -230,8 +230,8 @@ class Canvas {
   }
 
   void resetModified(bool iMod = false);
-  void causalStyleModules(std::vector<unsigned> &vec, unsigned index = 0);
-  void setModified(unsigned index, bool iMod);
+  void causalStyleModules(std::vector<uint> &vec, uint index = 0);
+  void setModified(uint index, bool iMod);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Canvas")

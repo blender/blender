@@ -523,7 +523,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
       }
     }
 
-    if (1) {
+    if (true) {
       /* Now convert link-nodes into arrays for faster per pixel access. */
       uint **buckets_face = MEM_cnew_array<uint *>(bucket_tot, __func__);
       uint bucket_index;

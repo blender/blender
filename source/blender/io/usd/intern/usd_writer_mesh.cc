@@ -356,16 +356,16 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
     }
   }
 
-  usd_mesh_data.face_vertex_counts.reserve(mesh->totpoly);
+  usd_mesh_data.face_vertex_counts.reserve(mesh->faces_num);
   usd_mesh_data.face_indices.reserve(mesh->totloop);
 
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
-  for (const int i : polys.index_range()) {
-    const IndexRange poly = polys[i];
-    usd_mesh_data.face_vertex_counts.push_back(poly.size());
-    for (const int vert : corner_verts.slice(poly)) {
+  for (const int i : faces.index_range()) {
+    const IndexRange face = faces[i];
+    usd_mesh_data.face_vertex_counts.push_back(face.size());
+    for (const int vert : corner_verts.slice(face)) {
       usd_mesh_data.face_indices.push_back(vert);
     }
   }
@@ -500,7 +500,7 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   pxr::UsdTimeCode timecode = get_export_time_code();
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   pxr::VtVec3fArray loop_normals;
@@ -516,21 +516,21 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
     /* Compute the loop normals based on the 'smooth' flag. */
     bke::AttributeAccessor attributes = mesh->attributes();
     const Span<float3> vert_normals = mesh->vert_normals();
-    const Span<float3> poly_normals = mesh->poly_normals();
+    const Span<float3> face_normals = mesh->face_normals();
     const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
         "sharp_face", ATTR_DOMAIN_FACE, false);
-    for (const int i : polys.index_range()) {
-      const IndexRange poly = polys[i];
+    for (const int i : faces.index_range()) {
+      const IndexRange face = faces[i];
       if (sharp_faces[i]) {
         /* Flat shaded, use common normal for all verts. */
-        pxr::GfVec3f pxr_normal(&poly_normals[i].x);
-        for (int loop_idx = 0; loop_idx < poly.size(); ++loop_idx) {
+        pxr::GfVec3f pxr_normal(&face_normals[i].x);
+        for (int loop_idx = 0; loop_idx < face.size(); ++loop_idx) {
           loop_normals.push_back(pxr_normal);
         }
       }
       else {
         /* Smooth shaded, use individual vert normals. */
-        for (const int vert : corner_verts.slice(poly)) {
+        for (const int vert : corner_verts.slice(face)) {
           loop_normals.push_back(pxr::GfVec3f(&vert_normals[vert].x));
         }
       }

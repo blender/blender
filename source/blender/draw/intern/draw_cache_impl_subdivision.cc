@@ -635,14 +635,14 @@ static void draw_patch_map_free(DRWPatchMap *gpu_patch_map)
 /** \name DRWSubdivCache
  * \{ */
 
-static bool draw_subdiv_cache_need_polygon_data(const DRWSubdivCache *cache)
+static bool draw_subdiv_cache_need_face_data(const DRWSubdivCache *cache)
 {
   return cache->subdiv && cache->subdiv->evaluator && cache->num_subdiv_loops != 0;
 }
 
 static void draw_subdiv_cache_free_material_data(DRWSubdivCache *cache)
 {
-  GPU_VERTBUF_DISCARD_SAFE(cache->polygon_mat_offset);
+  GPU_VERTBUF_DISCARD_SAFE(cache->face_mat_offset);
   MEM_SAFE_FREE(cache->mat_start);
   MEM_SAFE_FREE(cache->mat_end);
 }
@@ -660,12 +660,12 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   GPU_VERTBUF_DISCARD_SAFE(cache->patch_coords);
   GPU_VERTBUF_DISCARD_SAFE(cache->corner_patch_coords);
   GPU_VERTBUF_DISCARD_SAFE(cache->face_ptex_offset_buffer);
-  GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_polygon_offset_buffer);
+  GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_face_offset_buffer);
   GPU_VERTBUF_DISCARD_SAFE(cache->extra_coarse_face_data);
   MEM_SAFE_FREE(cache->subdiv_loop_subdiv_vert_index);
   MEM_SAFE_FREE(cache->subdiv_loop_subdiv_edge_index);
-  MEM_SAFE_FREE(cache->subdiv_loop_poly_index);
-  MEM_SAFE_FREE(cache->subdiv_polygon_offset);
+  MEM_SAFE_FREE(cache->subdiv_loop_face_index);
+  MEM_SAFE_FREE(cache->subdiv_face_offset);
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency_offsets);
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_vertex_face_adjacency);
   cache->resolution = 0;
@@ -673,7 +673,7 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   cache->num_subdiv_edges = 0;
   cache->num_subdiv_verts = 0;
   cache->num_subdiv_triangles = 0;
-  cache->num_coarse_poly = 0;
+  cache->num_coarse_faces = 0;
   cache->num_subdiv_quads = 0;
   cache->may_have_loose_geom = false;
   draw_subdiv_free_edit_mode_cache(cache);
@@ -751,8 +751,8 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
                                                           Mesh *mesh,
                                                           uint32_t *flags_data)
 {
-  const blender::OffsetIndices polys = mesh->polys();
-  for (const int i : polys.index_range()) {
+  const blender::OffsetIndices faces = mesh->faces();
+  for (const int i : faces.index_range()) {
     uint32_t flag = 0;
     if (!(mr->sharp_faces && mr->sharp_faces[i])) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
@@ -763,7 +763,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData *
     if (mr->hide_poly && mr->hide_poly[i]) {
       flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
-    flags_data[i] = uint(polys[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[i] = uint(faces[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -777,8 +777,8 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     return;
   }
 
-  const blender::OffsetIndices polys = mesh->polys();
-  for (const int i : polys.index_range()) {
+  const blender::OffsetIndices faces = mesh->faces();
+  for (const int i : faces.index_range()) {
     BMFace *f = bm_original_face_get(mr, i);
     /* Selection and hiding from bmesh. */
     uint32_t flag = (f) ? compute_coarse_face_flag_bm(f, mr->efa_act) : 0;
@@ -786,7 +786,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
     if (!(mr->sharp_faces && mr->sharp_faces[i])) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SMOOTH;
     }
-    flags_data[i] = uint(polys[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
+    flags_data[i] = uint(faces[i].start()) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
 }
 
@@ -803,7 +803,7 @@ static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache *cach
     GPU_vertbuf_init_with_format_ex(cache->extra_coarse_face_data, &format, GPU_USAGE_DYNAMIC);
     GPU_vertbuf_data_alloc(cache->extra_coarse_face_data,
                            mr->extract_type == MR_EXTRACT_BMESH ? cache->bm->totface :
-                                                                  mesh->totpoly);
+                                                                  mesh->faces_num);
   }
 
   uint32_t *flags_data = (uint32_t *)GPU_vertbuf_get_data(cache->extra_coarse_face_data);
@@ -881,7 +881,7 @@ struct DRWCacheBuildingContext {
   int *subdiv_loop_edge_index;
   int *subdiv_loop_edge_draw_flag;
   int *subdiv_loop_subdiv_edge_index;
-  int *subdiv_loop_poly_index;
+  int *subdiv_loop_face_index;
 
   /* Temporary buffers used during traversal. */
   int *vert_origindex_map;
@@ -899,8 +899,8 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
                                          const int num_verts,
                                          const int num_edges,
                                          const int num_loops,
-                                         const int num_polys,
-                                         const int *subdiv_polygon_offset)
+                                         const int num_faces,
+                                         const int *subdiv_face_offset)
 {
   /* num_loops does not take into account meshes with only loose geometry, which might be meshes
    * used as custom bone shapes, so let's check the num_verts also. */
@@ -916,8 +916,8 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
     cache->num_subdiv_edges = uint(num_edges);
     cache->num_subdiv_loops = uint(num_loops);
     cache->num_subdiv_verts = uint(num_verts);
-    cache->num_subdiv_quads = uint(num_polys);
-    cache->subdiv_polygon_offset = static_cast<int *>(MEM_dupallocN(subdiv_polygon_offset));
+    cache->num_subdiv_quads = uint(num_faces);
+    cache->subdiv_face_offset = static_cast<int *>(MEM_dupallocN(subdiv_face_offset));
   }
 
   cache->may_have_loose_geom = num_verts != 0 || num_edges != 0;
@@ -956,8 +956,8 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   cache->subdiv_loop_subdiv_edge_index = static_cast<int *>(
       MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_subdiv_edge_index"));
 
-  cache->subdiv_loop_poly_index = static_cast<int *>(
-      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_poly_index"));
+  cache->subdiv_loop_face_index = static_cast<int *>(
+      MEM_mallocN(cache->num_subdiv_loops * sizeof(int), "subdiv_loop_face_index"));
 
   /* Initialize context pointers and temporary buffers. */
   ctx->patch_coords = (CompressedPatchCoord *)GPU_vertbuf_get_data(cache->patch_coords);
@@ -966,7 +966,7 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_edge_draw_flag = (int *)GPU_vertbuf_get_data(cache->edges_draw_flag);
   ctx->subdiv_loop_subdiv_vert_index = cache->subdiv_loop_subdiv_vert_index;
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
-  ctx->subdiv_loop_poly_index = cache->subdiv_loop_poly_index;
+  ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
 
   ctx->v_origindex = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->vdata, CD_ORIGINDEX));
@@ -1001,7 +1001,7 @@ static void draw_subdiv_vertex_corner_cb(const SubdivForeachContext *foreach_con
                                          const float /*u*/,
                                          const float /*v*/,
                                          const int coarse_vertex_index,
-                                         const int /*coarse_poly_index*/,
+                                         const int /*coarse_face_index*/,
                                          const int /*coarse_corner*/,
                                          const int subdiv_vertex_index)
 {
@@ -1016,7 +1016,7 @@ static void draw_subdiv_vertex_edge_cb(const SubdivForeachContext * /*foreach_co
                                        const float /*u*/,
                                        const float /*v*/,
                                        const int /*coarse_edge_index*/,
-                                       const int /*coarse_poly_index*/,
+                                       const int /*coarse_face_index*/,
                                        const int /*coarse_corner*/,
                                        const int /*subdiv_vertex_index*/)
 {
@@ -1066,7 +1066,7 @@ static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
                                 const float u,
                                 const float v,
                                 const int /*coarse_loop_index*/,
-                                const int coarse_poly_index,
+                                const int coarse_face_index,
                                 const int /*coarse_corner*/,
                                 const int subdiv_loop_index,
                                 const int subdiv_vertex_index,
@@ -1079,7 +1079,7 @@ static void draw_subdiv_loop_cb(const SubdivForeachContext *foreach_context,
 
   ctx->subdiv_loop_subdiv_vert_index[subdiv_loop_index] = subdiv_vertex_index;
   ctx->subdiv_loop_subdiv_edge_index[subdiv_loop_index] = subdiv_edge_index;
-  ctx->subdiv_loop_poly_index[subdiv_loop_index] = coarse_poly_index;
+  ctx->subdiv_loop_face_index[subdiv_loop_index] = coarse_face_index;
   ctx->subdiv_loop_vert_index[subdiv_loop_index] = coarse_vertex_index;
 }
 
@@ -1192,14 +1192,14 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   if (cache->num_subdiv_loops == 0 && cache->num_subdiv_verts == 0 && !cache->may_have_loose_geom)
   {
     /* Either the traversal failed, or we have an empty mesh, either way we cannot go any further.
-     * The subdiv_polygon_offset cannot then be reliably stored in the cache, so free it directly.
+     * The subdiv_face_offset cannot then be reliably stored in the cache, so free it directly.
      */
-    MEM_SAFE_FREE(cache->subdiv_polygon_offset);
+    MEM_SAFE_FREE(cache->subdiv_face_offset);
     return false;
   }
 
-  /* Only build polygon related data if we have polygons. */
-  const blender::OffsetIndices polys = mesh_eval->polys();
+  /* Only build face related data if we have polygons. */
+  const blender::OffsetIndices faces = mesh_eval->faces();
   if (cache->num_subdiv_loops != 0) {
     /* Build buffers for the PatchMap. */
     draw_patch_map_build(&cache->gpu_patch_map, subdiv);
@@ -1208,12 +1208,12 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
 
     /* Build patch coordinates for all the face dots. */
     cache->fdots_patch_coords = gpu_vertbuf_create_from_format(get_blender_patch_coords_format(),
-                                                               mesh_eval->totpoly);
+                                                               mesh_eval->faces_num);
     CompressedPatchCoord *blender_fdots_patch_coords = (CompressedPatchCoord *)
         GPU_vertbuf_get_data(cache->fdots_patch_coords);
-    for (int i = 0; i < mesh_eval->totpoly; i++) {
+    for (int i = 0; i < mesh_eval->faces_num; i++) {
       const int ptex_face_index = cache->face_ptex_offset[i];
-      if (polys[i].size() == 4) {
+      if (faces[i].size() == 4) {
         /* For quads, the center coordinate of the coarse face has `u = v = 0.5`. */
         blender_fdots_patch_coords[i] = make_patch_coord(ptex_face_index, 0.5f, 0.5f);
       }
@@ -1225,17 +1225,17 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
       }
     }
 
-    cache->subdiv_polygon_offset_buffer = draw_subdiv_build_origindex_buffer(
-        cache->subdiv_polygon_offset, polys.size());
+    cache->subdiv_face_offset_buffer = draw_subdiv_build_origindex_buffer(
+        cache->subdiv_face_offset, faces.size());
 
     cache->face_ptex_offset_buffer = draw_subdiv_build_origindex_buffer(cache->face_ptex_offset,
-                                                                        polys.size() + 1);
+                                                                        faces.size() + 1);
 
     build_vertex_face_adjacency_maps(cache);
   }
 
   cache->resolution = to_mesh_settings.resolution;
-  cache->num_coarse_poly = polys.size();
+  cache->num_coarse_faces = faces.size();
 
   /* To avoid floating point precision issues when evaluating patches at patch boundaries,
    * ensure that all loops sharing a vertex use the same patch coordinate. This could cause
@@ -1290,7 +1290,7 @@ struct DRWSubdivUboStorage {
   int patches_are_triangular;
 
   /* Coarse topology information. */
-  int coarse_poly_count;
+  int coarse_face_count;
   uint edge_loose_offset;
 
   /* Refined topology information. */
@@ -1333,7 +1333,7 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache *cache,
   ubo->max_patch_face = cache->gpu_patch_map.max_patch_face;
   ubo->max_depth = cache->gpu_patch_map.max_depth;
   ubo->patches_are_triangular = cache->gpu_patch_map.patches_are_triangular;
-  ubo->coarse_poly_count = cache->num_coarse_poly;
+  ubo->coarse_face_count = cache->num_coarse_faces;
   ubo->num_subdiv_loops = cache->num_subdiv_loops;
   ubo->edge_loose_offset = cache->num_subdiv_loops * 2;
   ubo->has_sculpt_mask = has_sculpt_mask;
@@ -1427,7 +1427,7 @@ void draw_subdiv_extract_pos_nor(const DRWSubdivCache *cache,
                                  GPUVertBuf *pos_nor,
                                  GPUVertBuf *orco)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1509,7 +1509,7 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
                              const int face_varying_channel,
                              const int dst_offset)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1580,7 +1580,7 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
                                     int dimensions,
                                     int dst_offset)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1589,8 +1589,8 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
   GPU_shader_bind(shader);
 
   int binding_point = 0;
-  /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  /* subdiv_face_offset is always at binding point 0 for each shader using it. */
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_face_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(src_data, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->face_ptex_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->corner_patch_coords, binding_point++);
@@ -1719,7 +1719,7 @@ void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
                                    GPUIndexBuf *subdiv_tris,
                                    const int material_count)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1732,15 +1732,15 @@ void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
 
   int binding_point = 0;
 
-  /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  /* subdiv_face_offset is always at binding point 0 for each shader using it. */
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_face_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
 
   /* Outputs */
   GPU_indexbuf_bind_as_ssbo(subdiv_tris, binding_point++);
 
   if (!do_single_material) {
-    GPU_vertbuf_bind_as_ssbo(cache->polygon_mat_offset, binding_point++);
+    GPU_vertbuf_bind_as_ssbo(cache->face_mat_offset, binding_point++);
   }
 
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
@@ -1759,7 +1759,7 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
                                      GPUVertBuf *fdots_nor,
                                      GPUIndexBuf *fdots_indices)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1812,7 +1812,7 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
 
-  drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_coarse_poly);
+  drw_subdiv_compute_dispatch(cache, shader, 0, 0, cache->num_coarse_faces);
 
   /* This generates two vertex buffers and an index buffer, so we need to put a barrier on the
    * vertex attributes and element arrays. */
@@ -1833,7 +1833,7 @@ void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache, GPUIndexBuf *li
   GPU_shader_bind(shader);
 
   int binding_point = 0;
-  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_face_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->edges_draw_flag, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   GPU_indexbuf_bind_as_ssbo(lines_indices, binding_point++);
@@ -1897,7 +1897,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
                                    GPUVertBuf *pos_nor,
                                    GPUVertBuf *lnor)
 {
-  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+  if (!draw_subdiv_cache_need_face_data(cache)) {
     /* Happens on meshes with only loose geometry. */
     return;
   }
@@ -1907,8 +1907,8 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
 
   int binding_point = 0;
   /* Inputs */
-  /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  /* subdiv_face_offset is always at binding point 0 for each shader using it. */
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_face_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->verts_orig_index, binding_point++);
@@ -1935,8 +1935,8 @@ void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache *cache,
 
   int binding_point = 0;
   /* Inputs */
-  /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
-  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  /* subdiv_face_offset is always at binding point 0 for each shader using it. */
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_face_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(coarse_data, binding_point++);
 
   /* Outputs */
@@ -1984,7 +1984,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
 /**
  * For material assignments we want indices for triangles that share a common material to be laid
  * out contiguously in memory. To achieve this, we sort the indices based on which material the
- * coarse polygon was assigned. The sort is performed by offsetting the loops indices so that they
+ * coarse face was assigned. The sort is performed by offsetting the loops indices so that they
  * are directly assigned to the right sorted indices.
  *
  * \code{.unparsed}
@@ -2011,7 +2011,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache *cache,
  * \endcode
  *
  * The offsets are computed not based on the loops indices, but on the number of subdivided
- * polygons for each coarse polygon. We then only store a single offset for each coarse polygon,
+ * polygons for each coarse face. We then only store a single offset for each coarse face,
  * since all sub-faces are contiguous, they all share the same offset.
  */
 static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
@@ -2036,13 +2036,13 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
 
   /* Count number of subdivided polygons for each material. */
   int *mat_start = static_cast<int *>(MEM_callocN(sizeof(int) * mat_len, "subdiv mat_start"));
-  int *subdiv_polygon_offset = cache->subdiv_polygon_offset;
+  int *subdiv_face_offset = cache->subdiv_face_offset;
 
   /* TODO: parallel_reduce? */
-  for (int i = 0; i < mesh_eval->totpoly; i++) {
-    const int next_offset = (i == mesh_eval->totpoly - 1) ? number_of_quads :
-                                                            subdiv_polygon_offset[i + 1];
-    const int quad_count = next_offset - subdiv_polygon_offset[i];
+  for (int i = 0; i < mesh_eval->faces_num; i++) {
+    const int next_offset = (i == mesh_eval->faces_num - 1) ? number_of_quads :
+                                                              subdiv_face_offset[i + 1];
+    const int quad_count = next_offset - subdiv_face_offset[i];
     const int mat_index = material_indices[i];
     mat_start[mat_index] += quad_count;
   }
@@ -2056,29 +2056,29 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
     ofs += tmp;
   }
 
-  /* Compute per polygon offsets. */
+  /* Compute per face offsets. */
   int *mat_end = static_cast<int *>(MEM_dupallocN(mat_start));
-  int *per_polygon_mat_offset = static_cast<int *>(
-      MEM_mallocN(sizeof(int) * mesh_eval->totpoly, "per_polygon_mat_offset"));
+  int *per_face_mat_offset = static_cast<int *>(
+      MEM_mallocN(sizeof(int) * mesh_eval->faces_num, "per_face_mat_offset"));
 
-  for (int i = 0; i < mesh_eval->totpoly; i++) {
+  for (int i = 0; i < mesh_eval->faces_num; i++) {
     const int mat_index = material_indices[i];
-    const int single_material_index = subdiv_polygon_offset[i];
+    const int single_material_index = subdiv_face_offset[i];
     const int material_offset = mat_end[mat_index];
-    const int next_offset = (i == mesh_eval->totpoly - 1) ? number_of_quads :
-                                                            subdiv_polygon_offset[i + 1];
-    const int quad_count = next_offset - subdiv_polygon_offset[i];
+    const int next_offset = (i == mesh_eval->faces_num - 1) ? number_of_quads :
+                                                              subdiv_face_offset[i + 1];
+    const int quad_count = next_offset - subdiv_face_offset[i];
     mat_end[mat_index] += quad_count;
 
-    per_polygon_mat_offset[i] = material_offset - single_material_index;
+    per_face_mat_offset[i] = material_offset - single_material_index;
   }
 
-  cache->polygon_mat_offset = draw_subdiv_build_origindex_buffer(per_polygon_mat_offset,
-                                                                 mesh_eval->totpoly);
+  cache->face_mat_offset = draw_subdiv_build_origindex_buffer(per_face_mat_offset,
+                                                              mesh_eval->faces_num);
   cache->mat_start = mat_start;
   cache->mat_end = mat_end;
 
-  MEM_freeN(per_polygon_mat_offset);
+  MEM_freeN(per_face_mat_offset);
 }
 
 static bool draw_subdiv_create_requested_buffers(Object *ob,
@@ -2126,7 +2126,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
      *   topology.
      * In either way, we can't safely continue. However, we still have to handle potential loose
      * geometry, which is done separately. */
-    if (mesh_eval->totpoly) {
+    if (mesh_eval->faces_num) {
       return false;
     }
   }
@@ -2149,7 +2149,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   /* Copy topology information for stats display. */
   runtime_data->stats_totvert = draw_cache->num_subdiv_verts;
   runtime_data->stats_totedge = draw_cache->num_subdiv_edges;
-  runtime_data->stats_totpoly = draw_cache->num_subdiv_quads;
+  runtime_data->stats_faces_num = draw_cache->num_subdiv_quads;
   runtime_data->stats_totloop = draw_cache->num_subdiv_loops;
 
   draw_cache->use_custom_loop_normals = (runtime_data->use_loop_normals) &&
@@ -2167,7 +2167,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   draw_cache->use_hide = use_hide;
 
   /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
-   * See comments in #extract_lnor_iter_poly_mesh.
+   * See comments in #extract_lnor_iter_face_mesh.
    */
   draw_cache->is_edit_mode = mr->edit_bmesh != nullptr;
 

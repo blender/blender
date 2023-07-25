@@ -6,9 +6,9 @@
  * \ingroup bke
  */
 
+#include <cstdio>
+#include <cstring>
 #include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -16,7 +16,7 @@
 #  include <io.h>
 #endif
 
-#include <time.h>
+#include <ctime>
 
 #include "MEM_guardedalloc.h"
 
@@ -488,10 +488,10 @@ static void get_proxy_filepath(const MovieClip *clip,
 
 #ifdef WITH_OPENEXR
 
-typedef struct MultilayerConvertContext {
+struct MultilayerConvertContext {
   float *combined_pass;
   int num_combined_channels;
-} MultilayerConvertContext;
+};
 
 static void *movieclip_convert_multilayer_add_view(void * /*ctx_v*/, const char * /*view_name*/)
 {
@@ -680,7 +680,7 @@ static void movieclip_calc_length(MovieClip *clip)
 
 /*********************** image buffer cache *************************/
 
-typedef struct MovieClipCache {
+struct MovieClipCache {
   /* regular movie cache */
   MovieCache *moviecache;
 
@@ -721,17 +721,17 @@ typedef struct MovieClipCache {
   int sequence_offset;
 
   bool is_still_sequence;
-} MovieClipCache;
+};
 
-typedef struct MovieClipImBufCacheKey {
+struct MovieClipImBufCacheKey {
   int framenr;
   int proxy;
   short render_flag;
-} MovieClipImBufCacheKey;
+};
 
-typedef struct MovieClipCachePriorityData {
+struct MovieClipCachePriorityData {
   int framenr;
-} MovieClipCachePriorityData;
+};
 
 static int user_frame_to_cache_frame(MovieClip *clip, int framenr)
 {
@@ -1071,7 +1071,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, MovieDistortion *distortion,
 
   if (distortion) {
     undistibuf = BKE_tracking_distortion_exec(
-        distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
+        distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, true);
   }
   else {
     undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
@@ -1084,7 +1084,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, MovieDistortion *distortion,
 
 static bool need_undistortion_postprocess(const MovieClipUser *user, int clip_flag)
 {
-  bool result = 0;
+  bool result = false;
   const bool uses_full_frame = ((clip_flag & MCLIP_USE_PROXY) == 0) ||
                                (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL);
   /* Only full undistorted render can be used as on-fly undistorting image. */
@@ -1208,7 +1208,7 @@ static ImBuf *postprocess_frame(
     bool grayscale = (postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE) != 0;
 
     if (disable_red || disable_green || disable_blue || grayscale) {
-      BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
+      BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, true);
     }
   }
 

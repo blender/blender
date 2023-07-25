@@ -6,8 +6,8 @@
  * \ingroup edphys
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -681,7 +681,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "all", 0, "All Hair", "Disconnect all hair systems from the emitter mesh");
+      ot->srna, "all", false, "All Hair", "Disconnect all hair systems from the emitter mesh");
 }
 
 /* from/to_world_space : whether from/to particles are in world or hair space
@@ -759,8 +759,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     mul_m4_v3(to_mat, positions[i]);
   }
 
-  if (mesh->totface != 0) {
-    mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata, CD_MFACE));
+  if (mesh->totface_legacy != 0) {
+    mface = static_cast<const MFace *>(CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->totedge != 0) {
@@ -985,15 +985,16 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
   /* No REGISTER, redo does not work due to missing update, see #47750. */
   ot->flag = OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "all", 0, "All Hair", "Connect all hair systems to the emitter mesh");
+  RNA_def_boolean(
+      ot->srna, "all", false, "All Hair", "Connect all hair systems to the emitter mesh");
 }
 
 /************************ particle system copy operator *********************/
 
-typedef enum eCopyParticlesSpace {
+enum eCopyParticlesSpace {
   PAR_COPY_SPACE_OBJECT = 0,
   PAR_COPY_SPACE_WORLD = 1,
-} eCopyParticlesSpace;
+};
 
 static void copy_particle_edit(Depsgraph *depsgraph,
                                Scene *scene,

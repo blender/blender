@@ -8,12 +8,12 @@
  * Main internationalization functions to set the locale and query available languages.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #ifndef _WIN32
-#  include <locale.h>
+#  include <clocale>
 #endif
 
 #include "RNA_types.h"
@@ -26,8 +26,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
-
-#include "IMB_thumbs.h"
 
 #include "DNA_userdef_types.h"
 

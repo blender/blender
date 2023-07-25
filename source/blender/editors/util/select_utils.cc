@@ -6,7 +6,7 @@
  * \ingroup edutil
  */
 
-#include <float.h>
+#include <cfloat>
 
 #include "BLI_kdtree.h"
 #include "BLI_math.h"
@@ -84,7 +84,7 @@ bool ED_select_similar_compare_float(const float delta,
       return ((delta - thresh) <= 0.0f);
     default:
       BLI_assert_unreachable();
-      return 0;
+      return false;
   }
 }
 

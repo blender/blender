@@ -474,7 +474,7 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
   CustomData_free_layer_named(&mesh->ldata, ".corner_edge", 0);
   mesh->totvert = io_mesh->lookup_int("num_vertices").value_or(0);
   mesh->totedge = io_mesh->lookup_int("num_edges").value_or(0);
-  mesh->totpoly = io_mesh->lookup_int("num_polygons").value_or(0);
+  mesh->faces_num = io_mesh->lookup_int("num_polygons").value_or(0);
   mesh->totloop = io_mesh->lookup_int("num_corners").value_or(0);
 
   auto cancel = [&]() {
@@ -482,17 +482,17 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
     return nullptr;
   };
 
-  if (mesh->totpoly > 0) {
-    const auto io_poly_offsets = io_mesh->lookup_dict("poly_offsets");
-    if (!io_poly_offsets) {
+  if (mesh->faces_num > 0) {
+    const auto io_face_offsets = io_mesh->lookup_dict("face_offsets");
+    if (!io_face_offsets) {
       return cancel();
     }
-    if (!read_bdata_shared_simple_span(*io_poly_offsets,
+    if (!read_bdata_shared_simple_span(*io_face_offsets,
                                        bdata_reader,
                                        bdata_sharing,
-                                       mesh->totpoly + 1,
-                                       &mesh->poly_offset_indices,
-                                       &mesh->runtime->poly_offsets_sharing_info))
+                                       mesh->faces_num + 1,
+                                       &mesh->face_offset_indices,
+                                       &mesh->runtime->face_offsets_sharing_info))
     {
       return cancel();
     }
@@ -647,15 +647,15 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     io_mesh->append_int("num_vertices", mesh.totvert);
     io_mesh->append_int("num_edges", mesh.totedge);
-    io_mesh->append_int("num_polygons", mesh.totpoly);
+    io_mesh->append_int("num_polygons", mesh.faces_num);
     io_mesh->append_int("num_corners", mesh.totloop);
 
-    if (mesh.totpoly > 0) {
-      io_mesh->append("poly_offsets",
+    if (mesh.faces_num > 0) {
+      io_mesh->append("face_offsets",
                       write_bdata_shared_simple_gspan(bdata_writer,
                                                       bdata_sharing,
-                                                      mesh.poly_offsets(),
-                                                      mesh.runtime->poly_offsets_sharing_info));
+                                                      mesh.face_offsets(),
+                                                      mesh.runtime->face_offsets_sharing_info));
     }
 
     auto io_materials = serialize_material_slots({mesh.mat, mesh.totcol});

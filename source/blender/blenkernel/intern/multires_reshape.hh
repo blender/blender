@@ -37,7 +37,7 @@ struct MultiresReshapeContext {
   Mesh *base_mesh;
   blender::Span<blender::float3> base_positions;
   blender::Span<blender::int2> base_edges;
-  blender::OffsetIndices<int> base_polys;
+  blender::OffsetIndices<int> base_faces;
   blender::Span<int> base_corner_verts;
   blender::Span<int> base_corner_edges;
 
@@ -83,8 +83,8 @@ struct MultiresReshapeContext {
   /* Indexed by face index, gives first grid index of the face. */
   int *face_start_grid_index;
 
-  /* Indexed by grid index, contains face (poly) index in the base mesh from which the grid has
-   * been created (in other words, index of a poly which contains loop corresponding to the grid
+  /* Indexed by grid index, contains face index in the base mesh from which the grid has
+   * been created (in other words, index of a face which contains loop corresponding to the grid
    * index). */
   int *grid_to_face_index;
 

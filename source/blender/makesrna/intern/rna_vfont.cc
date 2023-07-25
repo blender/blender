@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "RNA_define.h"
 
@@ -25,7 +25,7 @@
 
 #  include "WM_api.h"
 
-/* Matching function in rna_ID.c */
+/* Matching function in rna_ID.cc */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   VFont *vfont = (VFont *)ptr->owner_id;

@@ -6,7 +6,7 @@
  * \ingroup sequencer
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"

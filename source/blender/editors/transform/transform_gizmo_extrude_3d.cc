@@ -191,7 +191,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
   for (int i = 0; i < 4; i++) {
     PointerRNA *ptr = WM_gizmo_operator_set(ggd->invoke_xyz_no[i], 0, ggd->ot_extrude, nullptr);
     {
-      bool constraint[3] = {0, 0, 0};
+      bool constraint[3] = {false, false, false};
       constraint[(i < 3) ? i : ggd->normal_axis] = true;
       PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
       RNA_boolean_set(&macroptr, "release_confirm", true);
@@ -204,7 +204,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
     PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
     RNA_boolean_set(&macroptr, "release_confirm", true);
 
-    const bool constraint[3] = {0, 0, 0};
+    const bool constraint[3] = {false, false, false};
     RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
   }
 

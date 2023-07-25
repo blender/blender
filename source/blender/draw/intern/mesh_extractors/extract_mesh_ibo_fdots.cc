@@ -21,10 +21,10 @@ static void extract_fdots_init(const MeshRenderData *mr,
                                void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->poly_len, mr->poly_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr->face_len, mr->face_len);
 }
 
-static void extract_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
+static void extract_fdots_iter_face_bm(const MeshRenderData * /*mr*/,
                                        const BMFace *f,
                                        const int f_index,
                                        void *_userdata)
@@ -38,31 +38,31 @@ static void extract_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
   }
 }
 
-static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
-                                         const int poly_index,
+static void extract_fdots_iter_face_mesh(const MeshRenderData *mr,
+                                         const int face_index,
                                          void *_userdata)
 {
-  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[poly_index];
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[face_index];
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   if (mr->use_subsurf_fdots) {
     const BitSpan facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
-    for (const int ml_index : mr->polys[poly_index]) {
+    for (const int ml_index : mr->faces[face_index]) {
       const int vert = mr->corner_verts[ml_index];
       if (facedot_tags[vert] && !hidden) {
-        GPU_indexbuf_set_point_vert(elb, poly_index, poly_index);
+        GPU_indexbuf_set_point_vert(elb, face_index, face_index);
         return;
       }
     }
-    GPU_indexbuf_set_point_restart(elb, poly_index);
+    GPU_indexbuf_set_point_restart(elb, face_index);
   }
   else {
     if (!hidden) {
-      GPU_indexbuf_set_point_vert(elb, poly_index, poly_index);
+      GPU_indexbuf_set_point_vert(elb, face_index, face_index);
     }
     else {
-      GPU_indexbuf_set_point_restart(elb, poly_index);
+      GPU_indexbuf_set_point_restart(elb, face_index);
     }
   }
 }
@@ -81,8 +81,8 @@ constexpr MeshExtract create_extractor_fdots()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_fdots_init;
-  extractor.iter_poly_bm = extract_fdots_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_fdots_iter_poly_mesh;
+  extractor.iter_face_bm = extract_fdots_iter_face_bm;
+  extractor.iter_face_mesh = extract_fdots_iter_face_mesh;
   extractor.finish = extract_fdots_finish;
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = sizeof(GPUIndexBufBuilder);

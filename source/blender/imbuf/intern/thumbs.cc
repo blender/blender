@@ -6,8 +6,8 @@
  * \ingroup imbuf
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,11 +31,11 @@
 #include "IMB_metadata.h"
 #include "IMB_thumbs.h"
 
-#include <ctype.h>
-#include <string.h>
+#include <cctype>
+#include <cstring>
+#include <ctime>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -85,7 +85,7 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
   const char *home = BLI_getenv("HOME");
 #  endif
   if (!home) {
-    return 0;
+    return false;
   }
   s += BLI_strncpy_rlen(s, home, FILE_MAX);
 
@@ -106,13 +106,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
       subdir = SEP_STR THUMBNAILS SEP_STR "fail" SEP_STR "blender" SEP_STR;
       break;
     default:
-      return 0; /* unknown size */
+      return false; /* unknown size */
   }
 
   s += BLI_strncpy_rlen(s, subdir, FILE_MAX - (s - dir));
   (void)s;
 
-  return 1;
+  return true;
 }
 
 #undef THUMBNAILS
@@ -128,13 +128,13 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
  *
  * \{ */
 
-typedef enum {
+enum eUnsafeCharacterSet {
   UNSAFE_ALL = 0x1,        /* Escape all unsafe characters. */
   UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+' */
   UNSAFE_PATH = 0x8,       /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
   UNSAFE_HOST = 0x10,      /* Allows '/' and ':' and '@' */
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */
-} UnsafeCharacterSet;
+};
 
 /* Don't lose comment alignment. */
 /* clang-format off */
@@ -161,38 +161,35 @@ static const char hex[17] = "0123456789abcdef";
  * escape something else, please read RFC-2396 */
 static void escape_uri_string(const char *string,
                               char *escaped_string,
-                              int escaped_string_size,
-                              UnsafeCharacterSet mask)
+                              const int escaped_string_size,
+                              const eUnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & use_mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a)-32] & mask))
+
+  BLI_assert(escaped_string_size > 0);
+  /* Remove space for \0. */
+  int escaped_string_len = escaped_string_size - 1;
 
   const char *p;
   char *q;
   int c;
-  UnsafeCharacterSet use_mask;
-  use_mask = mask;
 
-  BLI_assert(escaped_string_size > 0);
-
-  /* space for \0 */
-  escaped_string_size -= 1;
-
-  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_size; p++) {
+  for (q = escaped_string, p = string; (*p != '\0') && escaped_string_len; p++) {
     c = uchar(*p);
 
     if (!ACCEPTABLE(c)) {
-      if (escaped_string_size < 3) {
+      if (escaped_string_len < 3) {
         break;
       }
 
       *q++ = '%'; /* means hex coming */
       *q++ = hex[c >> 4];
       *q++ = hex[c & 15];
-      escaped_string_size -= 3;
+      escaped_string_len -= 3;
     }
     else {
       *q++ = *p;
-      escaped_string_size -= 1;
+      escaped_string_len -= 1;
     }
   }
 
@@ -249,7 +246,7 @@ static bool uri_from_filename(const char *path, char *uri)
 
   escape_uri_string(orig_uri, uri, URI_MAX, UNSAFE_PATH);
 
-  return 1;
+  return true;
 }
 
 static bool thumbpathname_from_uri(const char *uri,

@@ -109,7 +109,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   const float (*mloopuv)[2];
   float (*buffer)[2];
   int layer_index;
@@ -122,7 +122,7 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   FaceVaryingDataFromUVContext *ctx = static_cast<FaceVaryingDataFromUVContext *>(userdata);
   OpenSubdiv_TopologyRefiner *topology_refiner = ctx->topology_refiner;
   const int layer_index = ctx->layer_index;
-  const float(*mluv)[2] = &ctx->mloopuv[ctx->polys[face_index].start()];
+  const float(*mluv)[2] = &ctx->mloopuv[ctx->faces[face_index].start()];
 
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
@@ -155,7 +155,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
   ctx.layer_index = layer_index;
   ctx.mloopuv = mluv;
   ctx.mesh = mesh;
-  ctx.polys = mesh->polys();
+  ctx.faces = mesh->faces();
   ctx.buffer = buffer;
 
   TaskParallelSettings parallel_range_settings;

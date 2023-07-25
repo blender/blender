@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cstdlib>
 
 #include "RNA_define.h"
 

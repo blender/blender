@@ -278,7 +278,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 
   const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
-  const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
+  const int *looptri_faces = BKE_mesh_runtime_looptri_faces_ensure(me_eval);
 
   const blender::Span<blender::float3> positions = me_eval->vert_positions();
   const blender::Span<int> corner_verts = me_eval->corner_verts();
@@ -302,8 +302,8 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
   for (i = 0; i < tottri; i++, lt++) {
-    const int poly_i = looptri_polys[i];
-    findex = index_mp_to_orig ? index_mp_to_orig[poly_i] : poly_i;
+    const int face_i = looptri_faces[i];
+    findex = index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
 
     if (findex == faceindex) {
       const float(*mloopuv)[2];
@@ -319,7 +319,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
         const TexPaintSlot *slot;
 
         ma = BKE_object_material_get(
-            ob_eval, material_indices == nullptr ? 1 : material_indices[poly_i] + 1);
+            ob_eval, material_indices == nullptr ? 1 : material_indices[face_i] + 1);
         slot = &ma->texpaintslot[ma->paint_active_slot];
 
         if (!(slot && slot->uvname &&
@@ -354,9 +354,9 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 }
 
 /* returns 0 if not found, otherwise 1 */
-static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index, uint totpoly)
+static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index, uint faces_num)
 {
-  if (totpoly == 0) {
+  if (faces_num == 0) {
     return 0;
   }
 
@@ -364,7 +364,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
   ED_view3d_select_id_validate(vc);
   *r_index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, mval);
 
-  if ((*r_index) == 0 || (*r_index) > uint(totpoly)) {
+  if ((*r_index) == 0 || (*r_index) > uint(faces_num)) {
     return 0;
   }
 
@@ -419,14 +419,14 @@ void paint_sample_color(
       ViewContext vc;
       const int mval[2] = {x, y};
       uint faceindex;
-      uint totpoly = me->totpoly;
+      uint faces_num = me->faces_num;
 
       if (CustomData_has_layer(&me_eval->ldata, CD_PROP_FLOAT2)) {
         ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
         view3d_operator_needs_opengl(C);
 
-        if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
+        if (imapaint_pick_face(&vc, mval, &faceindex, faces_num)) {
           Image *image = nullptr;
           int interp = SHD_INTERP_LINEAR;
 
@@ -678,7 +678,7 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+  RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
 }
 
 static int face_select_all_exec(bContext *C, wmOperator *op)
@@ -709,7 +709,7 @@ static int paint_select_more_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -740,7 +740,7 @@ static int paint_select_less_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -902,7 +902,7 @@ static int paintvert_select_more_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -935,7 +935,7 @@ static int paintvert_select_less_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   Mesh *mesh = BKE_mesh_from_object(ob);
-  if (mesh == nullptr || mesh->totpoly == 0) {
+  if (mesh == nullptr || mesh->faces_num == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -985,7 +985,7 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected objects");
 }
 
 static int vert_select_hide_exec(bContext *C, wmOperator *op)
@@ -1008,8 +1008,11 @@ void PAINT_OT_vert_select_hide(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected vertices");
+  RNA_def_boolean(ot->srna,
+                  "unselected",
+                  false,
+                  "Unselected",
+                  "Hide unselected rather than selected vertices");
 }
 
 static int face_vert_reveal_exec(bContext *C, wmOperator *op)

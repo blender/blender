@@ -9,7 +9,7 @@
  * This file contains functions/API's for renaming bones and/or working with them.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -123,13 +123,14 @@ static void constraint_bone_name_fix(Object *ob,
         }
       }
 
-      BKE_constraint_targets_flush(curcon, &targets, 0);
+      BKE_constraint_targets_flush(curcon, &targets, false);
     }
 
     /* action constraints */
     if (curcon->type == CONSTRAINT_TYPE_ACTION) {
       bActionConstraint *actcon = (bActionConstraint *)curcon->data;
-      BKE_action_fix_paths_rename(&ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, 1);
+      BKE_action_fix_paths_rename(
+          &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
     }
   }
 }
@@ -609,7 +610,7 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* settings */
-  ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
+  ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis to tag names with");
 }
 
 /** \} */

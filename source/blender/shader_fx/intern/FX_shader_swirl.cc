@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
@@ -92,8 +92,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /*name*/ N_("Swirl"),
-    /*structName*/ "SwirlShaderFxData",
-    /*structSize*/ sizeof(SwirlShaderFxData),
+    /*struct_name*/ "SwirlShaderFxData",
+    /*struct_size*/ sizeof(SwirlShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

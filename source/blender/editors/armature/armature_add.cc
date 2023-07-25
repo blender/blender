@@ -414,7 +414,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
             }
           }
 
-          BKE_constraint_targets_flush(curcon, &targets, 0);
+          BKE_constraint_targets_flush(curcon, &targets, false);
         }
       }
     }
@@ -1408,17 +1408,24 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool forked = RNA_boolean_get(op->ptr, "forked");
   bool changed_multi = false;
-
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
+
+  enum ExtrudePoint {
+    SKIP_EXTRUDE,
+    TIP_EXTRUDE,
+    ROOT_EXTRUDE,
+  };
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool forked_iter = forked;
 
     EditBone *newbone = nullptr, *ebone, *flipbone, *first = nullptr;
-    int a, totbone = 0, do_extrude;
+    int a, totbone = 0;
+    ExtrudePoint do_extrude;
 
     /* since we allow root extrude too, we have to make sure selection is OK */
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
@@ -1439,9 +1446,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
     {
       if (EBONE_VISIBLE(arm, ebone)) {
         /* we extrude per definition the tip */
-        do_extrude = false;
+        do_extrude = SKIP_EXTRUDE;
         if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
-          do_extrude = true;
+          do_extrude = TIP_EXTRUDE;
         }
         else if (ebone->flag & BONE_ROOTSEL) {
           /* but, a bone with parent deselected we do the root... */
@@ -1449,7 +1456,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             /* pass */
           }
           else {
-            do_extrude = 2;
+            do_extrude = ROOT_EXTRUDE;
           }
         }
 
@@ -1459,7 +1466,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
           if (arm->flag & ARM_MIRROR_EDIT) {
             flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
             if (flipbone) {
-              forked_iter = 0; /* we extrude 2 different bones */
+              forked_iter = false; /* we extrude 2 different bones */
               if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED)) {
                 /* don't want this bone to be selected... */
                 flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -1481,7 +1488,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             totbone++;
             newbone = static_cast<EditBone *>(MEM_callocN(sizeof(EditBone), "extrudebone"));
 
-            if (do_extrude != 0) {
+            if (do_extrude == TIP_EXTRUDE) {
               copy_v3_v3(newbone->head, ebone->tail);
               copy_v3_v3(newbone->tail, newbone->head);
               newbone->parent = ebone;
@@ -1493,7 +1500,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
                 newbone->flag |= BONE_CONNECTED;
               }
             }
-            else {
+            else if (do_extrude == ROOT_EXTRUDE) {
               copy_v3_v3(newbone->head, ebone->head);
               copy_v3_v3(newbone->tail, ebone->head);
               newbone->parent = ebone->parent;
@@ -1599,7 +1606,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
+  RNA_def_boolean(ot->srna, "forked", false, "Forked", "");
 }
 
 /* ********************** Bone Add *************************************/

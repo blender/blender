@@ -616,15 +616,15 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
 static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   zero_v3(boundary->twist.pivot_position);
-  float(*poly_verts)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "poly verts"));
+  float(*face_verts)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "face verts"));
   for (int i = 0; i < boundary->verts_num; i++) {
     add_v3_v3(boundary->twist.pivot_position, SCULPT_vertex_co_get(ss, boundary->verts[i]));
-    copy_v3_v3(poly_verts[i], SCULPT_vertex_co_get(ss, boundary->verts[i]));
+    copy_v3_v3(face_verts[i], SCULPT_vertex_co_get(ss, boundary->verts[i]));
   }
   mul_v3_fl(boundary->twist.pivot_position, 1.0f / boundary->verts_num);
   if (boundary->forms_loop) {
-    normal_poly_v3(boundary->twist.rotation_axis, poly_verts, boundary->verts_num);
+    normal_poly_v3(boundary->twist.rotation_axis, face_verts, boundary->verts_num);
   }
   else {
     sub_v3_v3v3(boundary->twist.rotation_axis,
@@ -632,7 +632,7 @@ static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *b
                 SCULPT_vertex_co_get(ss, boundary->initial_vertex));
     normalize_v3(boundary->twist.rotation_axis);
   }
-  MEM_freeN(poly_verts);
+  MEM_freeN(face_verts);
 }
 
 static float sculpt_boundary_displacement_from_grab_delta_get(SculptSession *ss,

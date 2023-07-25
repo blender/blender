@@ -76,7 +76,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
       interp_v3_v3v3(gz->color, axis_color[i_ortho_a], axis_color[i_ortho_b], 0.75f);
       gz->color[3] = 0.5f;
       PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-      RNA_boolean_set(ptr, "release_confirm", 1);
+      RNA_boolean_set(ptr, "release_confirm", true);
       xgzgroup->gizmo[i][j] = gz;
     }
   }
@@ -89,7 +89,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *
     gz->color[3] = 0.5f;
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_OFFSET_SCALE, true);
     PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, nullptr);
-    RNA_boolean_set(ptr, "release_confirm", 1);
+    RNA_boolean_set(ptr, "release_confirm", true);
     xgzgroup->gizmo_view[i] = gz;
 
     /* Unlike the other gizmos, this never changes so can be set on setup. */

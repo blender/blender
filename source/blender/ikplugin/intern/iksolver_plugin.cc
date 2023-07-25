@@ -24,7 +24,7 @@
 #include "IK_solver.h"
 #include "iksolver_plugin.h"
 
-#include <string.h> /* memcpy */
+#include <cstring> /* memcpy */
 
 #define USE_NONUNIFORM_SCALE
 
@@ -602,7 +602,7 @@ void iksolver_execute_tree(
     /* 4. walk over the tree for regular solving */
     for (a = 0; a < tree->totchannel; a++) {
       if (!(tree->pchan[a]->flag & POSE_DONE)) { /* successive trees can set the flag */
-        BKE_pose_where_is_bone(depsgraph, scene, ob, tree->pchan[a], ctime, 1);
+        BKE_pose_where_is_bone(depsgraph, scene, ob, tree->pchan[a], ctime, true);
       }
       /* Tell blender that this channel was controlled by IK,
        * it's cleared on each BKE_pose_where_is(). */

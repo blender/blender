@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -3267,6 +3267,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "적응형 알고리즘을 사용한 단순화 요소"
 
 
+msgid "Active Layer"
+msgstr "활성 레이어"
+
+
 msgid "Default Eraser"
 msgstr "기본 지우게"
 
@@ -3389,10 +3393,6 @@ msgstr "UV 랜덤"
 
 msgid "Mode Type"
 msgstr "모드 유형"
-
-
-msgid "Active Layer"
-msgstr "활성 레이어"
 
 
 msgid "Object Path"
@@ -17946,6 +17946,10 @@ msgstr "프로브 클립 시작, 그 이하의 오브젝트는 반사광이 나�
 
 msgid "Control how fast the probe influence decreases"
 msgstr "프로브 영향이 얼마나 빨리 감소하는지 제어합니다"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "매끄러운 방사 보간법이지만 라이트 번짐"
 
 
 msgid "Resolution X"
@@ -34026,10 +34030,6 @@ msgstr "반투명 BSDF"
 
 msgid "Transparent BSDF"
 msgstr "투명 BSDF"
-
-
-msgid "Velvet BSDF"
-msgstr "벨벳 BSDF"
 
 
 msgid "Bump"
@@ -52014,15 +52014,6 @@ msgstr "휴식 포즈와 관련하여 현재 포즈를 과장합니다"
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "레스트 포즈에서 포즈를 밀기"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "현재 포즈를 레스트 포즈에서 더 멀리 밀어냅니다"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "쿼즈를 뒤집기"
 
@@ -52038,15 +52029,6 @@ msgstr "릴렉스 포즈를 브렉다우너로"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "현재 포즈를 브렉다우너 포즈와 비슷하게 만듭니다"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "릴렉스 포즈를 레스트 포즈로"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "현재 포즈를 레스트 포즈와 비슷하게 만듭니다"
 
 
 msgctxt "Operator"
@@ -67224,10 +67206,6 @@ msgstr "포착된 빛을 디버그하기 위한 방사 샘플 구체의 크기"
 
 msgid "Irradiance Smoothing"
 msgstr "방사 조도 스무딩"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "매끄러운 방사 보간법이지만 라이트 번짐"
 
 
 msgid "Show Cubemap Cache"
@@ -85799,16 +85777,16 @@ msgid "Gizmos hidden in this view"
 msgstr "이 뷰에서 숨겨진 기즈모"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "뷰 오프셋이 잠길 때 돌리를 사용할 수 없습니다"
-
-
 msgid "Cannot fly when the view offset is locked"
 msgstr "뷰 오프셋이 잠겨있을 때 비행 할 수 없습니다"
 
 
 msgid "Cannot fly an object with constraints"
 msgstr "제약 있는 오브젝트는 비행 할 수 없습니다"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "뷰 오프셋이 잠길 때 돌리를 사용할 수 없습니다"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -86685,6 +86663,10 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "NLA 스트립 '%s'을 트랙 '%s'에서 찾을 수 없습니다"
 
 
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "등록하는 노드 소켓 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "소켓의 동일한 입력/출력 방향"
 
@@ -86715,10 +86697,6 @@ msgstr "노드 트리에서 노드 '%s' 찾을 수 없음"
 
 msgid "Unable to locate socket '%s' in node"
 msgstr "노드에서 소켓 '%s' 찾을 수 없음"
-
-
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "등록하는 노드 소켓 클래스: '%s' 는 너무 깁니다, 최대 길이는 %d"
 
 
 msgid "Can only assign evaluated data to evaluated object, or original data to original object"
@@ -87172,10 +87150,6 @@ msgstr "클리어코트"
 
 msgid "Clearcoat Roughness"
 msgstr "클리어코트 거칠기"
-
-
-msgid "Transmission Roughness"
-msgstr "전송 거칠기"
 
 
 msgid "Emission Strength"

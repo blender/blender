@@ -3,15 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
-  gizmo
-  gizmo/intern
+  PUBLIC .
+  PUBLIC gizmo
+  PRIVATE gizmo/intern
   ../asset_system
-  ../blenfont
   ../blenloader
-  ../blentranslation
   ../compositor
-  ../depsgraph
   ../editors/include
   ../draw
   ../gpu
@@ -20,56 +17,54 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/memutil
-  ../bmesh
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(SRC
-  intern/wm.c
-  intern/wm_cursors.c
+  intern/wm.cc
+  intern/wm_cursors.cc
   intern/wm_dragdrop.cc
-  intern/wm_draw.c
-  intern/wm_event_query.c
+  intern/wm_draw.cc
+  intern/wm_event_query.cc
   intern/wm_event_system.cc
   intern/wm_files.cc
-  intern/wm_files_link.c
-  intern/wm_gesture.c
-  intern/wm_gesture_ops.c
+  intern/wm_files_link.cc
+  intern/wm_gesture.cc
+  intern/wm_gesture_ops.cc
   intern/wm_init_exit.cc
-  intern/wm_jobs.c
-  intern/wm_keymap.c
-  intern/wm_keymap_utils.c
-  intern/wm_menu_type.c
-  intern/wm_operator_props.c
-  intern/wm_operator_type.c
-  intern/wm_operator_utils.c
-  intern/wm_operators.c
-  intern/wm_panel_type.c
-  intern/wm_platform_support.c
-  intern/wm_playanim.c
-  intern/wm_splash_screen.c
-  intern/wm_stereo.c
-  intern/wm_subwindow.c
-  intern/wm_surface.c
-  intern/wm_toolsystem.c
-  intern/wm_tooltip.c
-  intern/wm_uilist_type.c
-  intern/wm_utils.c
-  intern/wm_window.c
-  gizmo/intern/wm_gizmo.c
-  gizmo/intern/wm_gizmo_group.c
-  gizmo/intern/wm_gizmo_group_type.c
-  gizmo/intern/wm_gizmo_map.c
-  gizmo/intern/wm_gizmo_target_props.c
-  gizmo/intern/wm_gizmo_type.c
-  message_bus/intern/wm_message_bus.c
-  message_bus/intern/wm_message_bus_rna.c
-  message_bus/intern/wm_message_bus_static.c
+  intern/wm_jobs.cc
+  intern/wm_keymap.cc
+  intern/wm_keymap_utils.cc
+  intern/wm_menu_type.cc
+  intern/wm_operator_props.cc
+  intern/wm_operator_type.cc
+  intern/wm_operator_utils.cc
+  intern/wm_operators.cc
+  intern/wm_panel_type.cc
+  intern/wm_platform_support.cc
+  intern/wm_playanim.cc
+  intern/wm_splash_screen.cc
+  intern/wm_stereo.cc
+  intern/wm_subwindow.cc
+  intern/wm_surface.cc
+  intern/wm_toolsystem.cc
+  intern/wm_tooltip.cc
+  intern/wm_uilist_type.cc
+  intern/wm_utils.cc
+  intern/wm_window.cc
+  gizmo/intern/wm_gizmo.cc
+  gizmo/intern/wm_gizmo_group.cc
+  gizmo/intern/wm_gizmo_group_type.cc
+  gizmo/intern/wm_gizmo_map.cc
+  gizmo/intern/wm_gizmo_target_props.cc
+  gizmo/intern/wm_gizmo_type.cc
+  message_bus/intern/wm_message_bus.cc
+  message_bus/intern/wm_message_bus_rna.cc
+  message_bus/intern/wm_message_bus_static.cc
 
   WM_api.h
   WM_keymap.h
@@ -96,10 +91,15 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
+  PRIVATE bf::bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_sequencer
 )
@@ -192,12 +192,12 @@ if(WITH_XR_OPENXR)
   )
 
   list(APPEND SRC
-    xr/intern/wm_xr.c
-    xr/intern/wm_xr_action.c
-    xr/intern/wm_xr_actionmap.c
-    xr/intern/wm_xr_draw.c
-    xr/intern/wm_xr_operators.c
-    xr/intern/wm_xr_session.c
+    xr/intern/wm_xr.cc
+    xr/intern/wm_xr_action.cc
+    xr/intern/wm_xr_actionmap.cc
+    xr/intern/wm_xr_draw.cc
+    xr/intern/wm_xr_operators.cc
+    xr/intern/wm_xr_session.cc
 
     xr/wm_xr.h
     xr/intern/wm_xr_intern.h
@@ -205,6 +205,7 @@ if(WITH_XR_OPENXR)
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::windowmanager ALIAS bf_windowmanager)
 
 # RNA_prototypes.h
 add_dependencies(bf_windowmanager bf_rna)

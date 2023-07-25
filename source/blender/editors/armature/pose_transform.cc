@@ -1379,7 +1379,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       bPoseChannel *pchan;
 
       /* execute animation step for current frame using a dummy copy of the pose */
-      BKE_pose_copy_data(&dummyPose, ob->pose, 0);
+      BKE_pose_copy_data(&dummyPose, ob->pose, false);
 
       STRNCPY(workob.id.name, "OB<ClearTfmWorkOb>");
       workob.type = OB_ARMATURE;
@@ -1393,7 +1393,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
       /* Copy back values, but on selected bones only. */
       for (pchan = static_cast<bPoseChannel *>(dummyPose->chanbase.first); pchan;
            pchan = pchan->next) {
-        pose_bone_do_paste(ob, pchan, only_select, 0);
+        pose_bone_do_paste(ob, pchan, only_select, false);
       }
 
       /* free temp data - free manually as was copied without constraints */

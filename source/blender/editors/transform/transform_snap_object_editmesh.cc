@@ -466,7 +466,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 const ID * /*id*/,
                                 const float4x4 &obmat,
                                 eSnapMode snap_to_flag,
-                                int polygon)
+                                int face)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
 
@@ -479,7 +479,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
   BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-  BMFace *f = BM_face_at_index(em->bm, polygon);
+  BMFace *f = BM_face_at_index(em->bm, face);
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   if (snap_to_flag & SCE_SNAP_TO_EDGE) {

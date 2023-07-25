@@ -9,11 +9,11 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <float.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -6290,7 +6290,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
 
     /* free targets + 'constraint-ob' */
     if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, 1);
+      cti->flush_constraint_targets(con, &targets, true);
     }
     MEM_freeN(cob);
   }
@@ -6417,7 +6417,7 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
      *   as constraints may have done some nasty things to it...
      */
     if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, 1);
+      cti->flush_constraint_targets(con, &targets, true);
     }
 
     /* move owner back into world-space for next constraint/other business */

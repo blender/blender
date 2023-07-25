@@ -27,10 +27,11 @@
 #  include <tbb/task_group.h>
 #endif
 
-/* Task
+/**
+ * Task
  *
- * Unit of work to execute. This is a C++ class to work with TBB. */
-
+ * Unit of work to execute. This is a C++ class to work with TBB.
+ */
 class Task {
  public:
   TaskPool *pool;

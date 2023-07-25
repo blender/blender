@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
@@ -161,8 +161,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*name*/ N_("Shadow"),
-    /*structName*/ "ShadowShaderFxData",
-    /*structSize*/ sizeof(ShadowShaderFxData),
+    /*struct_name*/ "ShadowShaderFxData",
+    /*struct_size*/ sizeof(ShadowShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

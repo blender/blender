@@ -33,7 +33,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "float.h"
+#include <cfloat>
 
 #define FOREACH_SELECTED_BEZT_BEGIN(bezt, nurbs) \
   LISTBASE_FOREACH (Nurb *, nu, nurbs) { \

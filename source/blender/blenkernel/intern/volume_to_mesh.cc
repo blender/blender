@@ -114,10 +114,10 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  const Span<openvdb::Vec3I> vdb_tris,
                                  const Span<openvdb::Vec4I> vdb_quads,
                                  const int vert_offset,
-                                 const int poly_offset,
+                                 const int face_offset,
                                  const int loop_offset,
                                  MutableSpan<float3> vert_positions,
-                                 MutableSpan<int> poly_offsets,
+                                 MutableSpan<int> face_offsets,
                                  MutableSpan<int> corner_verts)
 {
   /* Write vertices. */
@@ -125,7 +125,7 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
 
   /* Write triangles. */
   for (const int i : vdb_tris.index_range()) {
-    poly_offsets[poly_offset + i] = loop_offset + 3 * i;
+    face_offsets[face_offset + i] = loop_offset + 3 * i;
     for (int j = 0; j < 3; j++) {
       /* Reverse vertex order to get correct normals. */
       corner_verts[loop_offset + 3 * i + j] = vert_offset + vdb_tris[i][2 - j];
@@ -133,10 +133,10 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
   }
 
   /* Write quads. */
-  const int quad_offset = poly_offset + vdb_tris.size();
+  const int quad_offset = face_offset + vdb_tris.size();
   const int quad_loop_offset = loop_offset + vdb_tris.size() * 3;
   for (const int i : vdb_quads.index_range()) {
-    poly_offsets[quad_offset + i] = quad_loop_offset + 4 * i;
+    face_offsets[quad_offset + i] = quad_loop_offset + 4 * i;
     for (int j = 0; j < 4; j++) {
       /* Reverse vertex order to get correct normals. */
       corner_verts[quad_loop_offset + 4 * i + j] = vert_offset + vdb_quads[i][3 - j];
@@ -167,8 +167,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
       grid, resolution, threshold, adaptivity);
 
   const int tot_loops = 3 * mesh_data.tris.size() + 4 * mesh_data.quads.size();
-  const int tot_polys = mesh_data.tris.size() + mesh_data.quads.size();
-  Mesh *mesh = BKE_mesh_new_nomain(mesh_data.verts.size(), 0, tot_polys, tot_loops);
+  const int tot_faces = mesh_data.tris.size() + mesh_data.quads.size();
+  Mesh *mesh = BKE_mesh_new_nomain(mesh_data.verts.size(), 0, tot_faces, tot_loops);
 
   fill_mesh_from_openvdb_data(mesh_data.verts,
                               mesh_data.tris,
@@ -177,7 +177,7 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                               0,
                               0,
                               mesh->vert_positions_for_write(),
-                              mesh->poly_offsets_for_write(),
+                              mesh->face_offsets_for_write(),
                               mesh->corner_verts_for_write());
 
   BKE_mesh_calc_edges(mesh, false, false);

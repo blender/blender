@@ -136,7 +136,7 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
                                       const MutableSpan<float> r_distances_sq,
                                       const MutableSpan<float3> r_positions)
 {
-  BLI_assert(mesh.totpoly > 0);
+  BLI_assert(mesh.faces_num > 0);
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 2);
   get_closest_in_bvhtree(
@@ -144,21 +144,21 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
   free_bvhtree_from_mesh(&tree_data);
 }
 
-static void get_closest_mesh_polys(const Mesh &mesh,
+static void get_closest_mesh_faces(const Mesh &mesh,
                                    const VArray<float3> &positions,
                                    const IndexMask &mask,
-                                   const MutableSpan<int> r_poly_indices,
+                                   const MutableSpan<int> r_face_indices,
                                    const MutableSpan<float> r_distances_sq,
                                    const MutableSpan<float3> r_positions)
 {
-  BLI_assert(mesh.totpoly > 0);
+  BLI_assert(mesh.faces_num > 0);
 
   Array<int> looptri_indices(positions.size());
   get_closest_mesh_looptris(mesh, positions, mask, looptri_indices, r_distances_sq, r_positions);
 
-  const Span<int> looptri_polys = mesh.looptri_polys();
+  const Span<int> looptri_faces = mesh.looptri_faces();
 
-  mask.foreach_index([&](const int i) { r_poly_indices[i] = looptri_polys[looptri_indices[i]]; });
+  mask.foreach_index([&](const int i) { r_face_indices[i] = looptri_faces[looptri_indices[i]]; });
 }
 
 /* The closest corner is defined to be the closest corner on the closest face. */
@@ -170,22 +170,22 @@ static void get_closest_mesh_corners(const Mesh &mesh,
                                      const MutableSpan<float3> r_positions)
 {
   const Span<float3> vert_positions = mesh.vert_positions();
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
   BLI_assert(mesh.totloop > 0);
-  Array<int> poly_indices(positions.size());
-  get_closest_mesh_polys(mesh, positions, mask, poly_indices, {}, {});
+  Array<int> face_indices(positions.size());
+  get_closest_mesh_faces(mesh, positions, mask, face_indices, {}, {});
 
   mask.foreach_index([&](const int i) {
     const float3 position = positions[i];
-    const int poly_index = poly_indices[i];
+    const int face_index = face_indices[i];
 
-    /* Find the closest vertex in the polygon. */
+    /* Find the closest vertex in the face. */
     float min_distance_sq = FLT_MAX;
     int closest_vert_index = 0;
     int closest_loop_index = 0;
-    for (const int loop_index : polys[poly_index]) {
+    for (const int loop_index : faces[face_index]) {
       const int vertex_index = corner_verts[loop_index];
       const float distance_sq = math::distance_squared(position, vert_positions[vertex_index]);
       if (distance_sq < min_distance_sq) {
@@ -278,7 +278,7 @@ class SampleNearestFunction : public mf::MultiFunction {
             get_closest_mesh_edges(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_FACE:
-            get_closest_mesh_polys(mesh, positions, mask, indices, {}, {});
+            get_closest_mesh_faces(mesh, positions, mask, indices, {}, {});
             break;
           case ATTR_DOMAIN_CORNER:
             get_closest_mesh_corners(mesh, positions, mask, indices, {}, {});

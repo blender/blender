@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2023-07-08 18:30+0200\n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"PO-Revision-Date: 2023-07-18 23:33+0200\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -4403,6 +4403,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Facteur de simplification avec l’algorithme adaptatif"
 
 
+msgid "Active Layer"
+msgstr "Calque actif"
+
+
 msgid "Strokes Collision"
 msgstr "Collision des traits"
 
@@ -4641,10 +4645,6 @@ msgstr "Calques de cache"
 
 msgid "Collection of cache layers"
 msgstr "Collection de calques de cache"
-
-
-msgid "Active Layer"
-msgstr "Calque actif"
 
 
 msgid "Active layer of the CacheFile"
@@ -12081,11 +12081,11 @@ msgstr "Frame à laquelle est placé ce point de contrôle"
 
 
 msgid "Upper bound of envelope at this control-point"
-msgstr "Limite supérieure de l’enveloppe à ce point de contrôle"
+msgstr "Borne supérieure de l’enveloppe à ce point de contrôle"
 
 
 msgid "Lower bound of envelope at this control-point"
-msgstr "Limite inférieure de l’enveloppe à ce point de contrôle"
+msgstr "Borne inférieure de l’enveloppe à ce point de contrôle"
 
 
 msgid "Field Settings"
@@ -13654,11 +13654,11 @@ msgstr "Mettre les voxels en subrillance avec les valeurs du champ en utilisant 
 
 
 msgid "Lower Bound"
-msgstr "Limite basse"
+msgstr "Borne inférieure"
 
 
 msgid "Lower bound of the highlighting range"
-msgstr "Limite basse de l’intervalle de surbrillance"
+msgstr "Borne inférieure de l’intervalle de surbrillance"
 
 
 msgid "Color used to highlight the range"
@@ -13666,11 +13666,11 @@ msgstr "Couleur à utiliser pour mettre l’intervalle en surbrillance"
 
 
 msgid "Upper Bound"
-msgstr "Limite haute"
+msgstr "Borne supérieure"
 
 
 msgid "Upper bound of the highlighting range"
-msgstr "Limite haute de l’intervalle de surbrillance"
+msgstr "Borne supérieure de l’intervalle de surbrillance"
 
 
 msgid "Guiding weight (higher value results in greater lag)"
@@ -20642,7 +20642,7 @@ msgstr "Facteur de lissage du trait"
 
 
 msgid "Higher values give a smoother stroke"
-msgstr "De plus hautes valeurs donnent un trait plus lisse"
+msgstr "Des valeurs plus hautes donnent un trait plus lisse"
 
 
 msgid "Smooth Stroke Radius"
@@ -24412,7 +24412,7 @@ msgstr "Distribution exponentielle"
 
 
 msgid "Higher value increase resolution towards the viewpoint"
-msgstr "De plus hautes valeurs augmentent la résolution vers le point de vue"
+msgstr "Des valeurs plus hautes augmentent la résolution vers le point de vue"
 
 
 msgid "Cascade Fade"
@@ -24453,6 +24453,10 @@ msgstr "Échantillons de précalcul"
 
 msgid "Number of ray directions to evaluate when baking"
 msgstr "Nombre de directions de rayons à évaluer lors du précalcul"
+
+
+msgid "Smoother irradiance interpolation but introduce light bleeding"
+msgstr "Interpolation plus douce de l’irradiance, mais peut introduire des bavures de lumière"
 
 
 msgid "Resolution X"
@@ -26538,6 +26542,10 @@ msgstr "Afficher les clés de forme en mode édition (pour les maillages uniquem
 
 msgid "Use Simulation Cache"
 msgstr "Utiliser le cache de simulation"
+
+
+msgid "Cache frames during simulation nodes playback"
+msgstr "Mettre les frames en cache durant la lecture des nœuds de simulation"
 
 
 msgid "Vertex Groups"
@@ -29965,6 +29973,14 @@ msgid "Prevents the user from modifying that override operation (NOT USED)"
 msgstr "Empêche l’utilisateur de modifier cette opération prédéfinie (INUTILISÉ)"
 
 
+msgid "Match Reference"
+msgstr "Correspondre à la référence"
+
+
+msgid "The ID pointer overridden by this operation is expected to match the reference hierarchy"
+msgstr "Le pointeur ID redéfini par cette opération est supposé correspondre à la hiérarchie de référence"
+
+
 msgid "Operation"
 msgstr "Opération"
 
@@ -30174,7 +30190,7 @@ msgstr "Étapes max"
 
 
 msgid "Higher bound for timestep in second in case of automatic substeps"
-msgstr "Limite haute des pas temporels, en secondes, en cas de sous-étapes automatiques"
+msgstr "Borne supérieure des pas temporels, en secondes, en cas de sous-étapes automatiques"
 
 
 msgid "Min Step"
@@ -30182,7 +30198,7 @@ msgstr "Étapes min"
 
 
 msgid "Lower bound for timestep in second in case of automatic substeps"
-msgstr "Limite basse des pas temporels, en secondes, en cas de sous-étapes automatiques"
+msgstr "Borne inférieure des pas temporels, en secondes, en cas de sous-étapes automatiques"
 
 
 msgid "Translate Roots"
@@ -33090,7 +33106,7 @@ msgstr "Max d’intervalle"
 
 
 msgid "Upper bound of the input range the mapping is applied"
-msgstr "Limite haute de l’intervalle d’entrée à laquelle la conversion est appliquée"
+msgstr "Borne supérieure de l’intervalle d’entrée à laquelle la conversion est appliquée"
 
 
 msgid "Range Min"
@@ -33098,7 +33114,7 @@ msgstr "Min d’intervalle"
 
 
 msgid "Lower bound of the input range the mapping is applied"
-msgstr "Limite basse de l’intervalle d’entrée à laquelle la conversion est appliquée"
+msgstr "Borne inférieure de l’intervalle d’entrée à laquelle la conversion est appliquée"
 
 
 msgid "Change alpha transparency based on the distance from an object"
@@ -39414,6 +39430,10 @@ msgid "Add Threshold"
 msgstr "Seuil d’ajout"
 
 
+msgid "Lower (inclusive) bound for a vertex's weight to be added to the vgroup"
+msgstr "Borne inférieure (inclusive) du poids d’un sommet pour qu’il soit ajouté au groupe de sommets"
+
+
 msgid "Default Weight"
 msgstr "Poids par défaut"
 
@@ -39535,6 +39555,10 @@ msgstr "Normaliser les poids résultants (autrement ils sont restreints entre 0.
 
 msgid "Remove Threshold"
 msgstr "Seuil de suppression"
+
+
+msgid "Upper (inclusive) bound for a vertex's weight to be removed from the vgroup"
+msgstr "Borne supérieure (inclusive) du poids d’un sommet pour qu’il soit retiré du groupe de sommets"
 
 
 msgid "Group Add"
@@ -45650,8 +45674,20 @@ msgid "Delete an attribute with a specified name from a geometry. Typically used
 msgstr "Supprimer un attribut avec un nom spécifié d’une géométrie. Habituellement utilisé pour optimiser les performances"
 
 
+msgid "Repeat Input"
+msgstr "Entrée de répétition"
+
+
 msgid "Paired Output"
 msgstr "Sortie appareillée"
+
+
+msgid "Repeat output node that this input node is paired with"
+msgstr "Nœud de sortie de répétition avec lequel ce nœud d’entrée est appareillé"
+
+
+msgid "Repeat Output"
+msgstr "Sortie de répétition"
 
 
 msgid "Active Item Index"
@@ -46567,6 +46603,14 @@ msgid "Glossy refraction with sharp or microfacet distribution, typically used f
 msgstr "Réfraction brillante avec distribution nette ou à microfacettes, typiquement utilisée pour les matériaux qui transmettent la lumière"
 
 
+msgid ""
+"Reflection for materials such as cloth.\n"
+"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
+msgstr ""
+"Réflexion pour des matériaux tels que du tissu.\n"
+"Typiquement mélangé avec d’autres shaders (comme un shader diffus) et pas particulièrement utile en soi"
+
+
 msgid "Toon BSDF"
 msgstr "BSDF toon"
 
@@ -46601,18 +46645,6 @@ msgstr "BSDF transparence"
 
 msgid "Transparency without refraction, passing straight through the surface as if there were no geometry"
 msgstr "Transparence sans réfraction, traversant directement la surface comme s’il n’y avait pas de géométrie"
-
-
-msgid "Velvet BSDF"
-msgstr "BSDF velours"
-
-
-msgid ""
-"Reflection for materials such as cloth.\n"
-"Typically mixed with other shaders (such as a Diffuse Shader) and is not particularly useful on its own"
-msgstr ""
-"Réflexion pour des matériaux tels que du tissu.\n"
-"Typiquement mélangé avec d’autres shaders (comme un shader diffus) et pas particulièrement utile en soi"
 
 
 msgid "Bump"
@@ -48224,6 +48256,10 @@ msgstr "Mélanger RVB"
 
 msgid "Value to Normal"
 msgstr "Valeur vers normale"
+
+
+msgid "Collection of repeat items"
+msgstr "Collection d’éléments de répétition"
 
 
 msgid "Collection of simulation items"
@@ -56670,7 +56706,7 @@ msgstr "Facteur de stabilisation du trait"
 
 
 msgid "Higher values gives a smoother stroke"
-msgstr "De plus hautes valeurs donnent un trait plus lisse"
+msgstr "Des valeurs plus hautes donnent un trait plus lisse"
 
 
 msgid "Stabilizer Stroke Radius"
@@ -58173,7 +58209,7 @@ msgstr "Sélectionner tous les points dont les couleurs de sommets sont similair
 
 
 msgid "Tolerance of the selection. Higher values select a wider range of similar colors"
-msgstr "Tolérance de la sélection. De plus hautes valeurs sélectionnent une plus grande gamme de couleurs similaires"
+msgstr "Tolérance de la sélection. Des valeurs plus hautes sélectionnent une plus grande gamme de couleurs similaires"
 
 
 msgid "Hide/Unhide selected points for Grease Pencil strokes setting alpha factor"
@@ -59065,6 +59101,51 @@ msgstr "Préférer la clé, soit de gauche, soit de droite"
 
 
 msgctxt "Operator"
+msgid "Butterworth Smooth"
+msgstr "Adoucissement Butterworth"
+
+
+msgid "Smooth an F-Curve while maintaining the general shape of the curve"
+msgstr "Adoucir une F-courbe tout en gardant sa forme générale"
+
+
+msgid "How much to blend to the smoothed curve"
+msgstr "Combien mélanger vers la courbe adoucie"
+
+
+msgid "Blend In/Out"
+msgstr "Mélanger en entrée/sortie"
+
+
+msgid "Linearly blend the smooth data to the border frames of the selection"
+msgstr "Faire un fondu linéaire des données adoucies sur ce nombre de frames au début et à la fin de la sélection"
+
+
+msgid "Frquency Cutoff (Hz)"
+msgstr "Fréquence de coupure (Hz)"
+
+
+msgid "Lower values give a smoother curve"
+msgstr "Des valeurs plus basses donnent une courbe plus lisse"
+
+
+msgid "Filter Order"
+msgstr "Ordre du filtre"
+
+
+msgid "Higher values produce a harder frequency cutoff"
+msgstr "Des valeurs plus hautes produisent une fréquence de coupure plus dure"
+
+
+msgid "Samples per Frame"
+msgstr "Échantillons par frame"
+
+
+msgid "How many samples to calculate per frame, helps with subframe data"
+msgstr "Combien d’échantillons calculer par frame ; aide avec les données sous-frame"
+
+
+msgctxt "Operator"
 msgid "Click-Insert Keyframes"
 msgstr "Cliquer-insérer images clés"
 
@@ -59721,6 +59802,10 @@ msgstr "Sélectionner des points aléatoires dans la sélection de traits actuel
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Mode de sélection"
+
+
+msgid "Change the selection mode for Grease Pencil strokes"
+msgstr "Changer de mode de sélection pour les traits de crayon gras"
 
 
 msgid "Select only points"
@@ -65103,6 +65188,15 @@ msgid "Add an object info node to the current node editor"
 msgstr "Ajouter un nœud d’infos objet à l’éditeur de nœuds actuel"
 
 
+msgctxt "Operator"
+msgid "Add Repeat Zone"
+msgstr "Ajouter une zone de répétition"
+
+
+msgid "Add a repeat zone that allows executing nodes a dynamic number of times"
+msgstr "Ajouter une zone de répétition permettant d’exécuter des nœuds un nombre dynamique de fois"
+
+
 msgid "Offset of nodes from the cursor when added"
 msgstr "Décalage des nœuds depuis le curseur lors de leur ajout"
 
@@ -65706,6 +65800,33 @@ msgstr "Rendre le calque modifié"
 
 msgid "Render current scene, when input node's layer has been changed"
 msgstr "Rendre la scène actuelle, quand les calques du nœud d’entrée ont été modifiés"
+
+
+msgctxt "Operator"
+msgid "Add Repeat Item"
+msgstr "Ajouter un élément de répétition"
+
+
+msgid "Add a repeat item to the repeat zone"
+msgstr "Ajouter un élément de répétition à la zone de répétition"
+
+
+msgctxt "Operator"
+msgid "Move Repeat Item"
+msgstr "Déplacer un élément de répétition"
+
+
+msgid "Move a repeat item up or down in the list"
+msgstr "Déplacer un élément de répétition vers le haut ou le bas dans la liste"
+
+
+msgctxt "Operator"
+msgid "Remove Repeat Item"
+msgstr "Supprimer un élément de répétition"
+
+
+msgid "Remove a repeat item from the repeat zone"
+msgstr "Supprimer un élément de répétition de la zone de répétition"
 
 
 msgctxt "Operator"
@@ -71763,15 +71884,6 @@ msgstr "Exagérer la pose actuelle par rapport à l’intervalle principal"
 
 
 msgctxt "Operator"
-msgid "Push Pose from Rest Pose"
-msgstr "Exagérer depuis la pose de repos"
-
-
-msgid "Push the current pose further away from the rest pose"
-msgstr "Exagérer la pose actuelle par rapport à la pose de repos"
-
-
-msgctxt "Operator"
 msgid "Flip Quats"
 msgstr "Inverser les quats"
 
@@ -71787,15 +71899,6 @@ msgstr "Relâcher la pose vers l’intervalle"
 
 msgid "Make the current pose more similar to its breakdown pose"
 msgstr "Rendre la pose actuelle plus similaire à son intervalle"
-
-
-msgctxt "Operator"
-msgid "Relax Pose to Rest Pose"
-msgstr "Relâcher la pose vers la pose de repos"
-
-
-msgid "Make the current pose more similar to the rest pose"
-msgstr "Rendre la pose actuelle plus similaire à la pose de repos"
 
 
 msgctxt "Operator"
@@ -76847,14 +76950,6 @@ msgid "Edge Slide"
 msgstr "Glisser les arêtes"
 
 
-msgid "Allow Navigation"
-msgstr "Permettre la navigation"
-
-
-msgid "Allow navigation while transforming"
-msgstr "Permettre la navigation lors de la transformation"
-
-
 msgid "Correct UVs"
 msgstr "Corriger les UV"
 
@@ -79186,10 +79281,6 @@ msgstr "Déposer un monde dans la scène"
 msgctxt "Operator"
 msgid "Extrude Individual and Move"
 msgstr "Extruder individuels et déplacer"
-
-
-msgid "Allow navigation"
-msgstr "Permettre la navigation"
 
 
 msgctxt "Operator"
@@ -81930,6 +82021,10 @@ msgid "Reload Start-Up File"
 msgstr "Recharger le fichier de démarrage"
 
 
+msgid "Open the default file"
+msgstr "Ouvrir le fichier par défaut"
+
+
 msgid "Path to an alternative start-up file"
 msgstr "Chemin vers un fichier de démarrage alternatif"
 
@@ -82476,6 +82571,10 @@ msgid "Import All Materials"
 msgstr "Importer tous les matériaux"
 
 
+msgid "Also import materials that are not used by any geometry. Note that when this option is false, materials referenced by geometry will still be imported"
+msgstr "Importer également les matériaux qui ne sont utilisés par aucune géométrie. Si cette option est désactivée, les matériaux référencés par une géométrie seront quand même importés"
+
+
 msgid "Import guide geometry"
 msgstr "Importer la géométrie guide"
 
@@ -82590,6 +82689,10 @@ msgstr "Si un matériau avec le même nom existe déjà, le référencer au lieu
 
 msgid "Path Mask"
 msgstr "Masque de chemin"
+
+
+msgid "Import only the primitive at the given path and its descendants. Multiple paths may be specified in a list delimited by commas or semicolons"
+msgstr "N’importer que la primitive au chemin spécifié et ses descendants. Plusieurs chemins peuvent être spécifiés dans une liste délimitée par des virgules ou des points-virgules"
 
 
 msgid "Read mesh color attributes"
@@ -84715,10 +84818,6 @@ msgstr "HDRI"
 
 msgid "Cycles Render Devices"
 msgstr "Périphériques de rendu Cycles"
-
-
-msgid "GPU Backend"
-msgstr "Dorsal GPU"
 
 
 msgid "Memory & Limits"
@@ -87292,6 +87391,14 @@ msgid "Enables visibility of the new Volume nodes in the UI"
 msgstr "Activer la visibilité des nouveaux nœuds de volume dans l’interface"
 
 
+msgid "Node Group Operators"
+msgstr "Opérateurs groupes de nœuds"
+
+
+msgid "Enable using geometry nodes as edit operators"
+msgstr "Permettre l’utilisation de nœuds de géométrie comme opérateurs d’édition"
+
+
 msgid "Enable node panels UI for grouping sockets in node groups"
 msgstr "Activer l’interface de panneaux de nœuds pour regrouper les prises dans les groupes de nœuds"
 
@@ -88264,6 +88371,10 @@ msgstr "Limite de texture GL"
 
 msgid "Limit the texture size to save graphics memory"
 msgstr "Limiter la taille de la texture pour épargner la mémoire graphique"
+
+
+msgid "GPU Backend"
+msgstr "Dorsal GPU"
 
 
 msgid "GPU backend to use (requires restarting Blender for changes to take effect)"
@@ -91201,7 +91312,7 @@ msgstr "Résolution de la carte"
 
 
 msgid "Importance map size is resolution x resolution/2; higher values potentially produce less noise, at the cost of memory and speed"
-msgstr "La taille de la carte d’importance est résolution × résolution/2. De plus hautes valeurs peuvent produisent moins de bruit, au prix de l’utilisation mémoire et de la vitesse"
+msgstr "La taille de la carte d’importance est résolution × résolution/2. Des valeurs plus hautes peuvent produisent moins de bruit, au prix de l’utilisation mémoire et de la vitesse"
 
 
 msgid "Sampling Method"
@@ -92756,6 +92867,10 @@ msgid "Active index in render view array"
 msgstr "Indice actif dans le tableau des vues de rendu"
 
 
+msgid "Repeat Item"
+msgstr "Élément de répétition"
+
+
 msgid "Color of the corresponding socket type in the node editor"
 msgstr "Couleur du type de prise correspondant dans l’éditeur de nœuds"
 
@@ -93738,10 +93853,6 @@ msgstr "Taille des sphères d’échantillons d’irradiance pour débuguer la l
 
 msgid "Irradiance Smoothing"
 msgstr "Lissage de l’irradiance"
-
-
-msgid "Smoother irradiance interpolation but introduce light bleeding"
-msgstr "Interpolation plus douce de l’irradiance, mais peut introduire des bavures de lumière"
 
 
 msgid "Show Cubemap Cache"
@@ -98927,6 +99038,14 @@ msgid "Display overlays like colored or dashed wires"
 msgstr "Afficher les surimpressions, comme les liens colorés ou en pointillés"
 
 
+msgid "Show Node Previews"
+msgstr "Afficher les prévisualisations des nœuds"
+
+
+msgid "Display each node's preview if node is toggled"
+msgstr "Afficher la prévisualisation d’un nœud s’il est activé"
+
+
 msgid "Show Timing"
 msgstr "Afficher la durée"
 
@@ -100826,6 +100945,10 @@ msgstr "Courbure des liens entre nœuds"
 
 msgid "Pattern Node"
 msgstr "Nœud de motif"
+
+
+msgid "Repeat Zone"
+msgstr "Zone de répétition"
 
 
 msgid "Script Node"
@@ -103960,6 +104083,10 @@ msgid "Node ID"
 msgstr "Identifiant du nœud"
 
 
+msgid "Repeat Output Node ID"
+msgstr "Identifiant du nœud de sortie de répétition"
+
+
 msgid "Simulation Output Node ID"
 msgstr "Identifiant du nœud de sortie de simulation"
 
@@ -105224,14 +105351,6 @@ msgstr "Bascule avec Tout sélectionner"
 
 msgid "Causes select-all ('A' key) to de-select in the case a selection exists"
 msgstr "Si une sélection existe déjà, Tout sélectionner désélectionne au lieu de sélectionner"
-
-
-msgid "Navigate during Transform"
-msgstr "Naviguer durant la transformation"
-
-
-msgid "Enable view navigation while using transform operators. Proportional Influence, Automatic Constraints and Auto IK Chain Length shortcuts will require holding Alt key"
-msgstr "Permettre la navigation de la vue pendant l’utilisation des opérateurs de transformation. Les raccourcis d’influence proportionnelles, de contraintes automatiques et de longueur de chaine IK auto peuvent être utilisés en maintenant la touche Alt"
 
 
 msgid "Tweak Select: Mouse Select & Move"
@@ -109665,10 +109784,6 @@ msgid "Apply All Shape Keys"
 msgstr "Appliquer toutes les clés de forme"
 
 
-msgid "Name collisions: , "
-msgstr "Collision de noms : "
-
-
 msgctxt "Operator"
 msgid "Sort by Name"
 msgstr "Trier par nom"
@@ -112282,6 +112397,10 @@ msgid "Inputs:"
 msgstr "Entrées :"
 
 
+msgid "Previews"
+msgstr "Prévisualisations"
+
+
 msgid "Timings"
 msgstr "Minutages"
 
@@ -113781,10 +113900,6 @@ msgstr "Enregistrer comme éclairage studio"
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Charger les préférences d’usine de Blender"
-
-
-msgid "Requires a restart of Blender to take effect"
-msgstr "Nécessite un redémarrage de Blender pour prendre effet"
 
 
 msgid "Microsoft Store installation"
@@ -117500,6 +117615,10 @@ msgid "No ID block to insert keyframe in (path = %s)"
 msgstr "Pas de bloc ID dans lequel insérer des images clés (chemin : « %s »)"
 
 
+msgid "'%s' on %s is not editable"
+msgstr "« %s » sur %s n’est pas éditable"
+
+
 msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
 msgstr "Impossible d’insérer une image clé, car ce type ne prend pas en charge les données d’animation (ID : %s, chemin : %s)"
 
@@ -118965,6 +119084,18 @@ msgstr "Clic"
 msgctxt "Operator"
 msgid "Drag"
 msgstr "Glisser"
+
+
+msgid "Move layer {} into {}"
+msgstr "Déplacer le calque {} dans {}"
+
+
+msgid "Move layer {} above {}"
+msgstr "Déplacer le calque {} au-dessus de {}"
+
+
+msgid "Move layer {} below {}"
+msgstr "Déplacer le calque {} en dessous de {}"
 
 
 msgid "Add to light linking collection"
@@ -120514,6 +120645,10 @@ msgstr "Aucune collection sélectionnée"
 
 msgid "Unexpected error, collection not found"
 msgstr "Erreur inopinée, collection introuvable"
+
+
+msgid "Cannot add objects to a library override or linked collection"
+msgstr "Impossible d’ajouter des objets à une collection de redéfinition de bibliothèque ou à une collection liée"
 
 
 msgid "No objects selected"
@@ -123246,6 +123381,10 @@ msgid "Color field based on:"
 msgstr "Champ couleur d’après :"
 
 
+msgid "Rotation field based on:"
+msgstr "Champ rotation d’après :"
+
+
 msgid "• {}"
 msgstr "• {}"
 
@@ -123380,6 +123519,14 @@ msgstr "Impossible d’ajouter le nœud d’entrée de simulation « %s » à 
 
 msgid "Can not add simulation output node '%s' to a group without its paired input '%s'"
 msgstr "Impossible d’ajouter le nœud de sortie de simulation « %s » à un groupe sans son entrée appareillée « %s »"
+
+
+msgid "Can not add repeat input node '%s' to a group without its paired output '%s'"
+msgstr "Impossible d’ajouter le nœud d’entrée de répétition « %s » à un groupe sans sa sortie appareillée « %s »"
+
+
+msgid "Can not add repeat output node '%s' to a group without its paired input '%s'"
+msgstr "Impossible d’ajouter le nœud de sortie de répétition « %s » à un groupe sans son entrée appareillée « %s »"
 
 
 msgid "Can not insert group '%s' in '%s'"
@@ -124527,10 +124674,6 @@ msgid "Gizmos hidden in this view"
 msgstr "Gizmos cachés dans cette vue"
 
 
-msgid "Cannot dolly when the view offset is locked"
-msgstr "Impossible de faire un travelling quand le décalage de la vue est verrouillé"
-
-
 msgid "Cannot navigate a camera from an external library or non-editable override"
 msgstr "Impossible de déplacer une caméra provenant d’une bibliothèque externe ou d’une redéfinition non-éditable"
 
@@ -124541,6 +124684,10 @@ msgstr "Impossible de voler quand le décalage de la vue est verrouillé"
 
 msgid "Cannot fly an object with constraints"
 msgstr "Impossible de faire voler un objet avec des contraintes"
+
+
+msgid "Cannot dolly when the view offset is locked"
+msgstr "Impossible de faire un travelling quand le décalage de la vue est verrouillé"
 
 
 msgid "Cannot navigate when the view offset is locked"
@@ -125546,6 +125693,10 @@ msgid "%s: Texture import directory path empty, couldn't import %s"
 msgstr "%s : le chemin du dossier d’import de textures est vide, impossible d’importer %s"
 
 
+msgid "%s: import directory is relative but the blend file path is empty. Please save the blend file before importing the USD or provide an absolute import directory path. Can't import %s"
+msgstr "%s : le dossier d’import est en relatif, mais le chemin du fichier blend est vide. Veuillez enregistrer le fichier blend avant d’importer l’USD, ou donner un chemin absolu pour le dossier à importer. Impossible d’importer %s"
+
+
 msgid "%s: Couldn't create texture import directory %s"
 msgstr "%s : impossible de créer le dossier d’import de textures %s"
 
@@ -126377,6 +126528,14 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "La bande NLA « %s » est introuvable dans la piste « %s »"
 
 
+msgid "Panel is not in the node tree interface"
+msgstr "Le panneau n’est pas dans l’interface de l’arborescence de nœuds"
+
+
+msgid "Registering node socket class: '%s' is too long, maximum length is %d"
+msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, longueur maximum de %d"
+
+
 msgid "CustomGroup"
 msgstr "GroupePersonnalisé"
 
@@ -126442,10 +126601,6 @@ msgid "Unable to move sockets in built-in node"
 msgstr "Impossible de déplacer des prises d’un nœud intégré"
 
 
-msgid "Panel is not in the node tree interface"
-msgstr "Le panneau n’est pas dans l’interface de l’arborescence de nœuds"
-
-
 msgid "Unable to create panel"
 msgstr "Impossible de créer le panneau"
 
@@ -126482,12 +126637,12 @@ msgid "Unable to locate socket '%s' in node"
 msgstr "Impossible de trouver la prise « %s » dans le nœud"
 
 
-msgid "Registering node socket class: '%s' is too long, maximum length is %d"
-msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, longueur maximum de %d"
-
-
 msgid "Failed to pair simulation input node %s with output node %s"
 msgstr "L’appareillage du nœud d’entrée de simulation %s avec le nœud de sortie %s a échoué"
+
+
+msgid "Failed to pair repeat input node %s with output node %s"
+msgstr "L’appareillage du nœud d’entrée de répétition %s avec le nœud de sortie %s a échoué"
 
 
 msgid "Unable to locate item '%s' in node"
@@ -129210,6 +129365,10 @@ msgid "Cannot delete built-in attribute: \"{}\""
 msgstr "Impossible de supprimer l’attribut prédéfini appelé « {} »"
 
 
+msgid "Add a new repeat input and output nodes to the node tree"
+msgstr "Ajouter de nouveaux nœuds d’entrée et de sortie de répétition à l’arborescence de nœuds"
+
+
 msgid "Which element to retrieve a value from on the geometry"
 msgstr "Depuis quel élément obtenir une valeur sur la géométrie"
 
@@ -129572,10 +129731,6 @@ msgstr "Vernis"
 
 msgid "Clearcoat Roughness"
 msgstr "Rugosité de vernis"
-
-
-msgid "Transmission Roughness"
-msgstr "Rugosité de transmission"
 
 
 msgid "Emission Strength"

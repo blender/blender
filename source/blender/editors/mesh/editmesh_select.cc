@@ -1916,7 +1916,7 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "toggle", false, "Toggle Select", "Toggle the selection");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
+  prop = RNA_def_boolean(ot->srna, "ring", true, "Select Ring", "Select ring");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3842,7 +3842,7 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 
   /* identifiers */
   ot->name = "Select Faces by Sides";
-  ot->description = "Select vertices or faces by the number of polygon sides";
+  ot->description = "Select vertices or faces by the number of face sides";
   ot->idname = "MESH_OT_select_face_by_sides";
 
   /* api callbacks */

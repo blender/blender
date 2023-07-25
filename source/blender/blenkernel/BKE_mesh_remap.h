@@ -78,10 +78,10 @@ enum {
   MREMAP_MODE_VERT_EDGEINTERP_NEAREST = MREMAP_MODE_VERT | MREMAP_USE_EDGE | MREMAP_USE_NEAREST |
                                         MREMAP_USE_INTERP,
 
-  /* Nearest vertex of nearest poly. */
-  MREMAP_MODE_VERT_POLY_NEAREST = MREMAP_MODE_VERT | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
-  /* Those two use all verts of selected poly (weighted interpolation). */
-  /* Nearest point on nearest poly. */
+  /* Nearest vertex of nearest face. */
+  MREMAP_MODE_VERT_FACE_NEAREST = MREMAP_MODE_VERT | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
+  /* Those two use all verts of selected face (weighted interpolation). */
+  /* Nearest point on nearest face. */
   MREMAP_MODE_VERT_POLYINTERP_NEAREST = MREMAP_MODE_VERT | MREMAP_USE_POLY | MREMAP_USE_NEAREST |
                                         MREMAP_USE_INTERP,
   /* Point on nearest face hit by ray from target vertex's normal. */
@@ -97,7 +97,7 @@ enum {
   /* Nearest source edge (using mid-point). */
   MREMAP_MODE_EDGE_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_EDGE | MREMAP_USE_NEAREST,
 
-  /* Nearest edge of nearest poly (using mid-point). */
+  /* Nearest edge of nearest face (using mid-point). */
   MREMAP_MODE_EDGE_POLY_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
 
   /* Cast a set of rays from along destination edge,
@@ -114,30 +114,30 @@ enum {
   /* Best normal-matching loop from nearest vert. */
   MREMAP_MODE_LOOP_NEAREST_LOOPNOR = MREMAP_MODE_LOOP | MREMAP_USE_LOOP | MREMAP_USE_VERT |
                                      MREMAP_USE_NEAREST | MREMAP_USE_NORMAL,
-  /* Loop from best normal-matching poly from nearest vert. */
+  /* Loop from best normal-matching face from nearest vert. */
   MREMAP_MODE_LOOP_NEAREST_POLYNOR = MREMAP_MODE_LOOP | MREMAP_USE_POLY | MREMAP_USE_VERT |
                                      MREMAP_USE_NEAREST | MREMAP_USE_NORMAL,
 
-  /* Loop from nearest vertex of nearest poly. */
+  /* Loop from nearest vertex of nearest face. */
   MREMAP_MODE_LOOP_POLY_NEAREST = MREMAP_MODE_LOOP | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
-  /* Those two use all verts of selected poly (weighted interpolation). */
-  /* Nearest point on nearest poly. */
+  /* Those two use all verts of selected face (weighted interpolation). */
+  /* Nearest point on nearest face. */
   MREMAP_MODE_LOOP_POLYINTERP_NEAREST = MREMAP_MODE_LOOP | MREMAP_USE_POLY | MREMAP_USE_NEAREST |
                                         MREMAP_USE_INTERP,
   /* Point on nearest face hit by ray from target loop's normal. */
   MREMAP_MODE_LOOP_POLYINTERP_LNORPROJ = MREMAP_MODE_LOOP | MREMAP_USE_POLY | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
 
-  /* ***** Target's polygons ***** */
+  /* ***** Target's faces ***** */
   MREMAP_MODE_POLY = 1 << 27,
 
-  /* Nearest source poly. */
+  /* Nearest source face. */
   MREMAP_MODE_POLY_NEAREST = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
-  /* Source poly from best normal-matching destination poly. */
+  /* Source face from best normal-matching destination face. */
   MREMAP_MODE_POLY_NOR = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORMAL,
 
-  /* Project destination poly onto source mesh using its normal,
-   * and use interpolation of all intersecting source polys. */
+  /* Project destination face onto source mesh using its normal,
+   * and use interpolation of all intersecting source faces. */
   MREMAP_MODE_POLY_POLYINTERP_PNORPROJ = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
 
@@ -149,7 +149,7 @@ void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
     int vert_mode,
     int edge_mode,
     int loop_mode,
-    int poly_mode,
+    int face_mode,
     struct CustomData_MeshMasks *cddata_mask);
 
 /**
@@ -217,7 +217,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const int *corner_verts_dst,
                                          const int *corner_edges_dst,
                                          int numloops_dst,
-                                         const blender::OffsetIndices<int> polys_dst,
+                                         const blender::OffsetIndices<int> faces_dst,
                                          struct CustomData *ldata_dst,
                                          bool use_split_nors_dst,
                                          float split_angle_dst,
@@ -227,7 +227,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          float islands_precision_src,
                                          struct MeshPairRemap *r_map);
 
-void BKE_mesh_remap_calc_polys_from_mesh(int mode,
+void BKE_mesh_remap_calc_faces_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
@@ -235,7 +235,7 @@ void BKE_mesh_remap_calc_polys_from_mesh(int mode,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          const int *corner_verts,
-                                         const blender::OffsetIndices<int> polys_dst,
+                                         const blender::OffsetIndices<int> faces_dst,
                                          const struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
 

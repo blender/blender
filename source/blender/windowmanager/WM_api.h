@@ -173,7 +173,10 @@ typedef enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
   /** Ability to copy/paste system clipboard images. */
   WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
+  /** The initial value, indicates the value needs to be set by inspecting GHOST. */
+  WM_CAPABILITY_INITIALIZED = (1 << 31),
 } eWM_CapabilitiesFlag;
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_CLIPBOARD_IMAGES)
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);
 

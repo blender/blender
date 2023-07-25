@@ -566,10 +566,11 @@ class TipRemoverShader : public StrokeShader {
   real _tipLength;
 };
 
-/** [ Texture Shader ].
- *  Shader to assign texture to the Stroke material.
+/**
+ * Texture Shader.
+ *
+ * Shader to assign texture to the Stroke material.
  */
-
 class BlenderTextureShader : public StrokeShader {
  private:
   MTex *_mtex;
@@ -605,10 +606,11 @@ class BlenderTextureShader : public StrokeShader {
   virtual int shade(Stroke &stroke) const;
 };
 
-/** [ Texture Shader ].
- *  Shader to assign texture to the Stroke material.
+/**
+ * Texture Shader.
+ *
+ * Shader to assign texture to the Stroke material.
  */
-
 class StrokeTextureStepShader : public StrokeShader {
  private:
   float _step;

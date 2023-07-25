@@ -64,7 +64,7 @@ using Alembic::AbcGeom::V2fArraySamplePtr;
 
 namespace blender::io::alembic {
 
-/* NOTE: Alembic's polygon winding order is clockwise, to match with Renderman. */
+/* NOTE: Alembic's face winding order is clockwise, to match with Renderman. */
 
 /* Some helpers for mesh generation */
 namespace utils {
@@ -185,7 +185,7 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
 
 static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 {
-  int *poly_offsets = config.poly_offsets;
+  int *face_offsets = config.face_offsets;
   int *corner_verts = config.corner_verts;
   float2 *mloopuvs = config.mloopuv;
 
@@ -207,7 +207,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
   for (int i = 0; i < face_counts->size(); i++) {
     const int face_size = (*face_counts)[i];
 
-    poly_offsets[i] = loop_index;
+    face_offsets[i] = loop_index;
 
     /* Polygons are always assumed to be smooth-shaded. If the Alembic mesh should be flat-shaded,
      * this is encoded in custom loop normals. See #71246. */
@@ -268,7 +268,7 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   if (loop_count != mesh->totloop) {
     /* This happens in certain Houdini exports. When a mesh is animated and then replaced by a
      * fluid simulation, Houdini will still write the original mesh's loop normals, but the mesh
-     * verts/loops/polys are from the simulation. In such cases the normals cannot be mapped to the
+     * verts/loops/faces are from the simulation. In such cases the normals cannot be mapped to the
      * mesh, so it's better to ignore them. */
     process_no_normals(config);
     return;
@@ -277,14 +277,14 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  const OffsetIndices polys = mesh->polys();
+  const OffsetIndices faces = mesh->faces();
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
-  for (int i = 0, e = mesh->totpoly; i < e; i++) {
-    const IndexRange poly = polys[i];
+  for (int i = 0, e = mesh->faces_num; i < e; i++) {
+    const IndexRange face = faces[i];
     /* As usual, ABC orders the loops in reverse. */
-    for (int j = poly.size() - 1; j >= 0; j--, abc_index++) {
-      int blender_index = poly[j];
+    for (int j = face.size() - 1; j >= 0; j--, abc_index++) {
+      int blender_index = face[j];
       copy_zup_from_yup(lnors[blender_index], loop_normals[abc_index].getValue());
     }
   }
@@ -554,10 +554,10 @@ CDStreamConfig get_config(Mesh *mesh)
   config.mesh = mesh;
   config.positions = mesh->vert_positions_for_write().data();
   config.corner_verts = mesh->corner_verts_for_write().data();
-  config.poly_offsets = mesh->poly_offsets_for_write().data();
+  config.face_offsets = mesh->face_offsets_for_write().data();
   config.totvert = mesh->totvert;
   config.totloop = mesh->totloop;
-  config.totpoly = mesh->totpoly;
+  config.faces_num = mesh->faces_num;
   config.loopdata = &mesh->ldata;
   config.add_customdata_cb = add_customdata_cb;
 
@@ -705,7 +705,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
 
   /* It the counters are different, we can be sure the topology is different. */
   const bool different_counters = positions->size() != existing_mesh->totvert ||
-                                  face_counts->size() != existing_mesh->totpoly ||
+                                  face_counts->size() != existing_mesh->faces_num ||
                                   face_indices->size() != existing_mesh->totloop;
   if (different_counters) {
     return true;
@@ -724,10 +724,10 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
   uint abc_index = 0;
 
   const int *mesh_corner_verts = existing_mesh->corner_verts().data();
-  const int *mesh_poly_offsets = existing_mesh->poly_offsets().data();
+  const int *mesh_face_offsets = existing_mesh->face_offsets().data();
 
   for (int i = 0; i < face_counts->size(); i++) {
-    if (mesh_poly_offsets[i] != abc_index) {
+    if (mesh_face_offsets[i] != abc_index) {
       return true;
     }
 
@@ -806,7 +806,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     /* If the face count changed (e.g. by triangulation), only read points.
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
-    if (face_counts->size() != existing_mesh->totpoly ||
+    if (face_counts->size() != existing_mesh->faces_num ||
         face_indices->size() != existing_mesh->totloop)
     {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
@@ -830,8 +830,8 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
     /* Here we assume that the number of materials doesn't change, i.e. that
      * the material slots that were created when the object was loaded from
      * Alembic are still valid now. */
-    size_t num_polys = new_mesh->totpoly;
-    if (num_polys > 0) {
+    size_t num_faces = new_mesh->faces_num;
+    if (num_faces > 0) {
       std::map<std::string, int> mat_map;
       bke::MutableAttributeAccessor attributes = new_mesh->attributes_for_write();
       bke::SpanAttributeWriter<int> material_indices =
@@ -1146,7 +1146,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
     /* If the face count changed (e.g. by triangulation), only read points.
      * This prevents crash from #49813.
      * TODO(kevin): perhaps find a better way to do this? */
-    if (face_counts->size() != existing_mesh->totpoly ||
+    if (face_counts->size() != existing_mesh->faces_num ||
         face_indices->size() != existing_mesh->totloop)
     {
       settings.read_flag = MOD_MESHSEQ_READ_VERT;

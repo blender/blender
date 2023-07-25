@@ -64,8 +64,8 @@ def test_lookup_coverage():
             for op_id in dir(getattr(bpy.ops, submod_id)):
                 yield (op_path, "%s.%s" % (op_path, op_id))
 
-    # check coverage
-    from bl_operators import wm
+    # Check coverage:
+    # from bl_operators import wm
 
     set_group_all = set()
     set_group_doc = set()

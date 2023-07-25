@@ -19,17 +19,15 @@ class ArbitraryGridDensityProvider : public GridDensityProvider {
   ArbitraryGridDensityProvider &operator=(const ArbitraryGridDensityProvider &other);
 
  public:
-  ArbitraryGridDensityProvider(OccluderSource &source,
-                               const real proscenium[4],
-                               unsigned numCells);
+  ArbitraryGridDensityProvider(OccluderSource &source, const real proscenium[4], uint numCells);
   ArbitraryGridDensityProvider(OccluderSource &source,
                                const BBox<Vec3r> &bbox,
                                const GridHelpers::Transform &transform,
-                               unsigned numCells);
-  ArbitraryGridDensityProvider(OccluderSource &source, unsigned numCells);
+                               uint numCells);
+  ArbitraryGridDensityProvider(OccluderSource &source, uint numCells);
 
  protected:
-  unsigned numCells;
+  uint numCells;
 
  private:
   void initialize(const real proscenium[4]);
@@ -37,7 +35,7 @@ class ArbitraryGridDensityProvider : public GridDensityProvider {
 
 class ArbitraryGridDensityProviderFactory : public GridDensityProviderFactory {
  public:
-  ArbitraryGridDensityProviderFactory(unsigned numCells);
+  ArbitraryGridDensityProviderFactory(uint numCells);
 
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                       const real proscenium[4]);
@@ -47,7 +45,7 @@ class ArbitraryGridDensityProviderFactory : public GridDensityProviderFactory {
   AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source);
 
  protected:
-  unsigned numCells;
+  uint numCells;
 };
 
 } /* namespace Freestyle */

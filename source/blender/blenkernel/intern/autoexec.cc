@@ -9,8 +9,8 @@
  * may add signing here later.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_userdef_types.h"
 

@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -1275,12 +1275,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         else if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
           /* Shift is modifier for higher precision transform. */
-          t->mouse.precision = 1;
+          t->mouse.precision = true;
           t->redraw |= TREDRAW_HARD;
         }
         else if (event->prev_val == KM_RELEASE) {
           t->modifiers &= ~MOD_PRECISION;
-          t->mouse.precision = 0;
+          t->mouse.precision = false;
           t->redraw |= TREDRAW_HARD;
         }
         break;
@@ -1915,7 +1915,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (t->data_len_all == 0) {
     postTrans(C, t);
-    return 0;
+    return false;
   }
 
   /* When proportional editing is enabled, data_len_all can be non zero when
@@ -1935,7 +1935,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (!has_selected_any) {
       postTrans(C, t);
-      return 0;
+      return false;
     }
   }
 
@@ -2035,7 +2035,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   if (t->state == TRANS_CANCEL) {
     postTrans(C, t);
-    return 0;
+    return false;
   }
 
   /* Transformation axis from operator */
@@ -2099,7 +2099,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->context = nullptr;
 
-  return 1;
+  return true;
 }
 
 void transformApply(bContext *C, TransInfo *t)

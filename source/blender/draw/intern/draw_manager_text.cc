@@ -341,10 +341,10 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
-    const float(*poly_normals)[3] = nullptr;
+    const float(*face_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      poly_normals = BKE_mesh_wrapper_poly_normals(me);
+      face_normals = BKE_mesh_wrapper_face_normals(me);
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
@@ -380,8 +380,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             mul_m4_v3(ob->object_to_world, vmid);
 
             if (use_coords) {
-              copy_v3_v3(no_a, poly_normals[BM_elem_index_get(l_a->f)]);
-              copy_v3_v3(no_b, poly_normals[BM_elem_index_get(l_b->f)]);
+              copy_v3_v3(no_a, face_normals[BM_elem_index_get(l_a->f)]);
+              copy_v3_v3(no_b, face_normals[BM_elem_index_get(l_b->f)]);
             }
             else {
               copy_v3_v3(no_a, l_a->f->no);

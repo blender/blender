@@ -509,8 +509,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
   else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
            !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
   {
-    /* Simple case (both edges around that vertex are sharp in related polygon),
-     * this vertex just takes its poly normal.
+    /* Simple case (both edges around that vertex are sharp in related face),
+     * this vertex just takes its face normal.
      */
     const int l_curr_index = BM_elem_index_get(l_curr);
     const float *no = fnos ? fnos[BM_elem_index_get(l_curr->f)] : l_curr->f->no;
@@ -640,7 +640,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
       {
         /* Code similar to accumulate_vertex_normals_poly_v3. */
-        /* Calculate angle between the two poly edges incident on this vertex. */
+        /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
         const float fac = saacos(dot_v3v3(vec_next, vec_curr));
         const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
@@ -850,7 +850,7 @@ static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
       }
       else {
         /* Note that we do not care about the other sharp-edge cases
-         * (sharp poly, non-manifold edge, etc.),
+         * (sharp face, non-manifold edge, etc.),
          * only tag edge as sharp when it is due to angle threshold. */
         BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
       }

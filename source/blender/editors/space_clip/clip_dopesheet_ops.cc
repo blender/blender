@@ -144,7 +144,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
                        100.0f);
   RNA_def_boolean(ot->srna,
                   "extend",
-                  0,
+                  false,
                   "Extend",
                   "Extend selection rather than clearing the existing selection");
 }

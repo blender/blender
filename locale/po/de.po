@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"POT-Creation-Date: 2023-07-24 15:42:18\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -3814,6 +3814,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Faktor der Vereinfachung mit adaptivem Algorithmus"
 
 
+msgid "Active Layer"
+msgstr "Aktive Ebene"
+
+
 msgid "Default Eraser"
 msgstr "Standard Radierer"
 
@@ -4008,10 +4012,6 @@ msgstr "Ebene ausblenden"
 
 msgid "Cache Layers"
 msgstr "Cache-Ebenen"
-
-
-msgid "Active Layer"
-msgstr "Aktive Ebene"
 
 
 msgid "Object Path"
@@ -26085,10 +26085,6 @@ msgstr "Transluzent BSDF"
 
 msgid "Transparent BSDF"
 msgstr "Transparent"
-
-
-msgid "Velvet BSDF"
-msgstr "Samt BSDF"
 
 
 msgid "Bump"
@@ -64024,10 +64020,6 @@ msgstr "Klarlack"
 
 msgid "Clearcoat Roughness"
 msgstr "Klarlack-Rauheit"
-
-
-msgid "Transmission Roughness"
-msgstr "Transmission-Rauheit"
 
 
 msgid "Emission Strength"

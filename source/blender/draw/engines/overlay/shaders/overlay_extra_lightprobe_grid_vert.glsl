@@ -54,7 +54,7 @@ void main()
   if (z_delta > 0.0) {
     float fac = 1.0 - z_delta * 10000.0;
     /* Smooth blend to avoid flickering. */
-    finalColor = mix(colorBackground, finalColor, clamp(fac, 0.5, 1.0));
+    finalColor = mix(colorBackground, finalColor, clamp(fac, 0.2, 1.0));
   }
 
   view_clipping_distances(ws_cell_location);

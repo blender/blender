@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* All use #BPy_BMLayerAccess struct. */
 
 extern PyTypeObject BPy_BMLayerAccessVert_Type;
@@ -59,3 +63,7 @@ void BPy_BM_init_types_customdata(void);
  */
 PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer);
 int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *value);
+
+#ifdef __cplusplus
+}
+#endif

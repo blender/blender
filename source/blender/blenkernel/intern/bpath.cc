@@ -15,7 +15,7 @@
 
 #include <sys/stat.h>
 
-#include <string.h>
+#include <cstring>
 
 /* path/file handling stuff */
 #ifndef WIN32

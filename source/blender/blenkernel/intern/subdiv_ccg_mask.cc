@@ -24,21 +24,21 @@
 #include "MEM_guardedalloc.h"
 
 struct PolyCornerIndex {
-  int poly_index;
+  int face_index;
   int corner;
 };
 
 struct GridPaintMaskData {
   // int grid_size;
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   const GridPaintMask *grid_paint_mask;
-  /* Indexed by ptex face index, contains polygon/corner which corresponds
+  /* Indexed by ptex face index, contains face/corner which corresponds
    * to it.
    *
-   * NOTE: For quad polygon this is an index of first corner only, since
+   * NOTE: For quad face this is an index of first corner only, since
    * there we only have one ptex.
    */
-  PolyCornerIndex *ptex_poly_corner;
+  PolyCornerIndex *ptex_face_corner;
 };
 
 static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
@@ -50,11 +50,11 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
                                    float *grid_v)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const blender::IndexRange poly = data->polys[poly_corner->poly_index];
-  const int start_grid_index = poly.start() + poly_corner->corner;
+  const PolyCornerIndex *poly_corner = &data->ptex_face_corner[ptex_face_index];
+  const blender::IndexRange face = data->faces[poly_corner->face_index];
+  const int start_grid_index = face.start() + poly_corner->corner;
   int corner = 0;
-  if (poly.size() == 4) {
+  if (face.size() == 4) {
     float corner_u, corner_v;
     corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_mask_grid = &data->grid_paint_mask[start_grid_index + corner];
@@ -94,7 +94,7 @@ static float eval_mask(SubdivCCGMaskEvaluator *mask_evaluator,
 static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  MEM_freeN(data->ptex_poly_corner);
+  MEM_freeN(data->ptex_face_corner);
   MEM_freeN(data);
 }
 
@@ -104,9 +104,9 @@ static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const blender::OffsetIndices polys = mesh->polys();
-  for (const int poly_index : polys.index_range()) {
-    num_ptex_faces += (polys[poly_index].size() == 4) ? 1 : polys[poly_index].size();
+  const blender::OffsetIndices faces = mesh->faces();
+  for (const int face_index : faces.index_range()) {
+    num_ptex_faces += (faces[face_index].size() == 4) ? 1 : faces[face_index].size();
   }
   return num_ptex_faces;
 }
@@ -114,25 +114,25 @@ static int count_num_ptex_faces(const Mesh *mesh)
 static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
-      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_poly_corner), __func__));
+  data->ptex_face_corner = static_cast<PolyCornerIndex *>(
+      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_face_corner), __func__));
   /* Fill in offsets. */
   int ptex_face_index = 0;
-  PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
-  for (const int poly_index : polys.index_range()) {
-    const blender::IndexRange poly = polys[poly_index];
-    if (poly.size() == 4) {
-      ptex_poly_corner[ptex_face_index].poly_index = poly_index;
-      ptex_poly_corner[ptex_face_index].corner = 0;
+  PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;
+  for (const int face_index : faces.index_range()) {
+    const blender::IndexRange face = faces[face_index];
+    if (face.size() == 4) {
+      ptex_face_corner[ptex_face_index].face_index = face_index;
+      ptex_face_corner[ptex_face_index].corner = 0;
       ptex_face_index++;
     }
     else {
-      for (int corner = 0; corner < poly.size(); corner++) {
-        ptex_poly_corner[ptex_face_index].poly_index = poly_index;
-        ptex_poly_corner[ptex_face_index].corner = corner;
+      for (int corner = 0; corner < face.size(); corner++) {
+        ptex_face_corner[ptex_face_index].face_index = face_index;
+        ptex_face_corner[ptex_face_index].corner = corner;
         ptex_face_index++;
       }
     }
@@ -142,7 +142,7 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
 static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  data->polys = mesh->polys();
+  data->faces = mesh->faces();
   data->grid_paint_mask = static_cast<const GridPaintMask *>(
       CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK));
   mask_data_init_mapping(mask_evaluator, mesh);

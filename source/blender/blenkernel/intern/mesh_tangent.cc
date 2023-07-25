@@ -40,44 +40,44 @@ using blender::float2;
 struct BKEMeshToTangent {
   uint GetNumFaces()
   {
-    return uint(num_polys);
+    return uint(num_faces);
   }
 
   uint GetNumVerticesOfFace(const uint face_num)
   {
-    return uint(polys[face_num].size());
+    return uint(faces[face_num].size());
   }
 
   mikk::float3 GetPosition(const uint face_num, const uint vert_num)
   {
-    const uint loop_idx = uint(polys[face_num].start()) + vert_num;
+    const uint loop_idx = uint(faces[face_num].start()) + vert_num;
     return mikk::float3(positions[corner_verts[loop_idx]]);
   }
 
   mikk::float3 GetTexCoord(const uint face_num, const uint vert_num)
   {
-    const float *uv = luvs[uint(polys[face_num].start()) + vert_num];
+    const float *uv = luvs[uint(faces[face_num].start()) + vert_num];
     return mikk::float3(uv[0], uv[1], 1.0f);
   }
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
   {
-    return mikk::float3(loop_normals[uint(polys[face_num].start()) + vert_num]);
+    return mikk::float3(loop_normals[uint(faces[face_num].start()) + vert_num]);
   }
 
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)
   {
-    float *p_res = tangents[uint(polys[face_num].start()) + vert_num];
+    float *p_res = tangents[uint(faces[face_num].start()) + vert_num];
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
 
-  blender::OffsetIndices<int> polys; /* faces */
+  blender::OffsetIndices<int> faces; /* faces */
   const int *corner_verts;           /* faces vertices */
   const float (*positions)[3];       /* vertices */
   const float (*luvs)[2];            /* texture coordinates */
   const float (*loop_normals)[3];    /* loops' normals */
   float (*tangents)[4];              /* output tangents */
-  int num_polys;                     /* number of polygons */
+  int num_faces;                     /* number of polygons */
 };
 
 void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
@@ -87,24 +87,24 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*loop_normals)[3],
                                           const float (*loop_uvs)[2],
                                           const int /*numLoops*/,
-                                          const blender::OffsetIndices<int> polys,
+                                          const blender::OffsetIndices<int> faces,
                                           ReportList *reports)
 {
   /* Compute Mikktspace's tangent normals. */
   BKEMeshToTangent mesh_to_tangent;
-  mesh_to_tangent.polys = polys;
+  mesh_to_tangent.faces = faces;
   mesh_to_tangent.corner_verts = corner_verts;
   mesh_to_tangent.positions = vert_positions;
   mesh_to_tangent.luvs = loop_uvs;
   mesh_to_tangent.loop_normals = loop_normals;
   mesh_to_tangent.tangents = r_looptangent;
-  mesh_to_tangent.num_polys = int(polys.size());
+  mesh_to_tangent.num_faces = int(faces.size());
 
   mikk::Mikktspace<BKEMeshToTangent> mikk(mesh_to_tangent);
 
   /* First check we do have a tris/quads only mesh. */
-  for (const int64_t i : polys.index_range()) {
-    if (polys[i].size() > 4) {
+  for (const int64_t i : faces.index_range()) {
+    if (faces[i].size() > 4) {
       BKE_report(
           reports, RPT_ERROR, "Tangent space can only be computed for tris/quads, aborting");
       return;
@@ -152,7 +152,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
       loop_normals,
       reinterpret_cast<const float(*)[2]>(uv_map.data()),
       mesh->totloop,
-      mesh->polys(),
+      mesh->faces(),
       reports);
 }
 
@@ -179,8 +179,8 @@ struct SGLSLMeshToTangent {
   {
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
-      const int poly_index = looptri_polys[face_as_quad_map[face_num]];
-      if (polys[poly_index].size() == 4) {
+      const int face_index = looptri_faces[face_as_quad_map[face_num]];
+      if (faces[face_index].size() == 4) {
         return 4;
       }
     }
@@ -191,20 +191,20 @@ struct SGLSLMeshToTangent {
 #endif
   }
 
-  uint GetLoop(const uint face_num, const uint vert_num, MLoopTri &lt, int &poly_index)
+  uint GetLoop(const uint face_num, const uint vert_num, MLoopTri &lt, int &face_index)
   {
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
       lt = looptri[face_as_quad_map[face_num]];
-      poly_index = looptri_polys[face_as_quad_map[face_num]];
-      if (polys[poly_index].size() == 4) {
-        return uint(polys[poly_index][vert_num]);
+      face_index = looptri_faces[face_as_quad_map[face_num]];
+      if (faces[face_index].size() == 4) {
+        return uint(faces[face_index][vert_num]);
       }
       /* fall through to regular triangle */
     }
     else {
       lt = looptri[face_num];
-      poly_index = looptri_polys[face_num];
+      face_index = looptri_faces[face_num];
     }
 #else
     lt = &looptri[face_num];
@@ -215,16 +215,16 @@ struct SGLSLMeshToTangent {
   mikk::float3 GetPosition(const uint face_num, const uint vert_num)
   {
     MLoopTri lt;
-    int poly_index;
-    uint loop_index = GetLoop(face_num, vert_num, lt, poly_index);
+    int face_index;
+    uint loop_index = GetLoop(face_num, vert_num, lt, face_index);
     return mikk::float3(positions[corner_verts[loop_index]]);
   }
 
   mikk::float3 GetTexCoord(const uint face_num, const uint vert_num)
   {
     MLoopTri lt;
-    int poly_index;
-    uint loop_index = GetLoop(face_num, vert_num, lt, poly_index);
+    int face_index;
+    uint loop_index = GetLoop(face_num, vert_num, lt, face_index);
     if (mloopuv != nullptr) {
       const float2 &uv = mloopuv[loop_index];
       return mikk::float3(uv[0], uv[1], 1.0f);
@@ -238,24 +238,24 @@ struct SGLSLMeshToTangent {
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
   {
     MLoopTri lt;
-    int poly_index;
-    uint loop_index = GetLoop(face_num, vert_num, lt, poly_index);
+    int face_index;
+    uint loop_index = GetLoop(face_num, vert_num, lt, face_index);
     if (precomputedLoopNormals) {
       return mikk::float3(precomputedLoopNormals[loop_index]);
     }
-    if (sharp_faces && sharp_faces[poly_index]) { /* flat */
+    if (sharp_faces && sharp_faces[face_index]) { /* flat */
       if (precomputedFaceNormals) {
-        return mikk::float3(precomputedFaceNormals[poly_index]);
+        return mikk::float3(precomputedFaceNormals[face_index]);
       }
 #ifdef USE_LOOPTRI_DETECT_QUADS
-      const blender::IndexRange poly = polys[poly_index];
+      const blender::IndexRange face = faces[face_index];
       float normal[3];
-      if (poly.size() == 4) {
+      if (face.size() == 4) {
         normal_quad_v3(normal,
-                       positions[corner_verts[poly[0]]],
-                       positions[corner_verts[poly[1]]],
-                       positions[corner_verts[poly[2]]],
-                       positions[corner_verts[poly[3]]]);
+                       positions[corner_verts[face[0]]],
+                       positions[corner_verts[face[1]]],
+                       positions[corner_verts[face[2]]],
+                       positions[corner_verts[face[3]]]);
       }
       else
 #endif
@@ -273,8 +273,8 @@ struct SGLSLMeshToTangent {
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)
   {
     MLoopTri lt;
-    int poly_index;
-    uint loop_index = GetLoop(face_num, vert_num, lt, poly_index);
+    int face_index;
+    uint loop_index = GetLoop(face_num, vert_num, lt, face_index);
 
     copy_v4_fl4(tangent[loop_index], T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
   }
@@ -282,9 +282,9 @@ struct SGLSLMeshToTangent {
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
   const MLoopTri *looptri;
-  const int *looptri_polys;
+  const int *looptri_faces;
   const float2 *mloopuv; /* texture coordinates */
-  blender::OffsetIndices<int> polys;
+  blender::OffsetIndices<int> faces;
   const int *corner_verts;     /* indices */
   const float (*positions)[3]; /* vertex coordinates */
   const float (*vert_normals)[3];
@@ -398,10 +398,10 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
 }
 
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
-                                   const blender::OffsetIndices<int> polys,
+                                   const blender::OffsetIndices<int> faces,
                                    const int *corner_verts,
                                    const MLoopTri *looptri,
-                                   const int *looptri_polys,
+                                   const int *looptri_faces,
                                    const uint looptri_len,
                                    const bool *sharp_faces,
 
@@ -410,7 +410,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
                                    const float (*vert_normals)[3],
-                                   const float (*poly_normals)[3],
+                                   const float (*face_normals)[3],
                                    const float (*loop_normals)[3],
                                    const float (*vert_orco)[3],
                                    /* result */
@@ -467,7 +467,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     int *face_as_quad_map = nullptr;
 
     /* map faces to quads */
-    if (looptri_len != uint(polys.size())) {
+    if (looptri_len != uint(faces.size())) {
       /* Over allocate, since we don't know how many ngon or quads we have. */
 
       /* map fake face index to looptri */
@@ -476,7 +476,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
       for (k = 0, j = 0; j < int(looptri_len); k++, j++) {
         face_as_quad_map[k] = j;
         /* step over all quads */
-        if (polys[looptri_polys[j]].size() == 4) {
+        if (faces[looptri_faces[j]].size() == 4) {
           j++; /* skips the nest looptri */
         }
       }
@@ -506,15 +506,15 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
 #endif
         mesh2tangent->positions = vert_positions;
         mesh2tangent->vert_normals = vert_normals;
-        mesh2tangent->polys = polys;
+        mesh2tangent->faces = faces;
         mesh2tangent->corner_verts = corner_verts;
         mesh2tangent->looptri = looptri;
-        mesh2tangent->looptri_polys = looptri_polys;
+        mesh2tangent->looptri_faces = looptri_faces;
         mesh2tangent->sharp_faces = sharp_faces;
         /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
         mesh2tangent->precomputedLoopNormals = loop_normals;
-        mesh2tangent->precomputedFaceNormals = poly_normals;
+        mesh2tangent->precomputedFaceNormals = face_normals;
 
         mesh2tangent->orco = nullptr;
         mesh2tangent->mloopuv = static_cast<const float2 *>(CustomData_get_layer_named(
@@ -591,10 +591,10 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
       reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
-      me_eval->polys(),
+      me_eval->faces(),
       me_eval->corner_verts().data(),
       looptris.data(),
-      me_eval->looptri_polys().data(),
+      me_eval->looptri_faces().data(),
       uint(looptris.size()),
       static_cast<const bool *>(
           CustomData_get_layer_named(&me_eval->pdata, CD_PROP_BOOL, "sharp_face")),
@@ -603,7 +603,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
       tangent_names,
       tangent_names_len,
       reinterpret_cast<const float(*)[3]>(me_eval->vert_normals().data()),
-      reinterpret_cast<const float(*)[3]>(me_eval->poly_normals().data()),
+      reinterpret_cast<const float(*)[3]>(me_eval->face_normals().data()),
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->ldata, CD_NORMAL)),
       /* may be nullptr */
       static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vdata, CD_ORCO)),

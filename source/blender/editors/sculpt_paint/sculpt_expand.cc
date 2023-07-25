@@ -153,11 +153,11 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      vertex.i = ss->corner_verts[ss->polys[f].start()];
+      vertex.i = ss->corner_verts[ss->faces[f].start()];
       break;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      vertex.i = ss->polys[f].start() * key->grid_area;
+      vertex.i = ss->faces[f].start() * key->grid_area;
 
       break;
     }
@@ -693,7 +693,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
 
-  /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
+  /* This algorithm uses mesh data (faces and loops), so this falloff type can't be initialized for
    * Multires. It also does not make sense to implement it for dyntopo as the result will be the
    * same as Topology falloff. */
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
@@ -728,8 +728,8 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
 
     int v_next_i = BKE_pbvh_vertex_to_index(ss->pbvh, v_next);
 
-    for (const int poly : ss->pmap[v_next_i]) {
-      for (const int vert : ss->corner_verts.slice(ss->polys[poly])) {
+    for (const int face : ss->pmap[v_next_i]) {
+      for (const int vert : ss->corner_verts.slice(ss->faces[face])) {
         const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
         if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
           continue;
@@ -807,32 +807,32 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
                                                  Mesh *mesh,
                                                  ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int corner : polys[i]) {
+    for (const int corner : faces[i]) {
       const int grid_loop_index = corner * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
         accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff[i] = accum / (polys[i].size() * key->grid_area);
+    expand_cache->face_falloff[i] = accum / (faces[i].size() * key->grid_area);
   }
 }
 
 static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int vert : corner_verts.slice(polys[i])) {
+    for (const int vert : corner_verts.slice(faces[i])) {
       accum += expand_cache->vert_falloff[vert];
     }
-    expand_cache->face_falloff[i] = accum / polys[i].size();
+    expand_cache->face_falloff[i] = accum / faces[i].size();
   }
 }
 
@@ -847,7 +847,7 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
 
   if (!expand_cache->face_falloff) {
     expand_cache->face_falloff = static_cast<float *>(
-        MEM_malloc_arrayN(mesh->totpoly, sizeof(float), __func__));
+        MEM_malloc_arrayN(mesh->faces_num, sizeof(float), __func__));
   }
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
@@ -1129,9 +1129,9 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
 
-  for (const int i : ss->polys.index_range()) {
+  for (const int i : ss->faces.index_range()) {
     bool any_disabled = false;
-    for (const int vert : ss->corner_verts.slice(ss->polys[i])) {
+    for (const int vert : ss->corner_verts.slice(ss->faces[i])) {
       if (!BLI_BITMAP_TEST(enabled_verts, vert)) {
         any_disabled = true;
         break;
@@ -1987,7 +1987,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 {
   const int totface = ss->totfaces;
   const blender::GroupedSpan<int> pmap = ss->pmap;
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
@@ -2023,7 +2023,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
-      for (const int vert : corner_verts.slice(polys[f_index])) {
+      for (const int vert : corner_verts.slice(faces[f_index])) {
         for (const int neighbor_face_index : pmap[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
@@ -2045,8 +2045,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     }
     if (!any_updated) {
       /* No Face Sets where updated in this iteration, which means that no more content to keep
-       * filling the polys of the deleted Face Set was found. Break to avoid entering an infinite
-       * loop trying to search for those polys again. */
+       * filling the faces of the deleted Face Set was found. Break to avoid entering an infinite
+       * loop trying to search for those faces again. */
       break;
     }
 

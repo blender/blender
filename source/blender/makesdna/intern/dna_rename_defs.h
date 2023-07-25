@@ -11,7 +11,7 @@
  * - When renaming the member of a struct which has itself been renamed
  *   refer to the newer name, not the original.
  *
- * - Changes here only change generated code for `makesdna.cc` and `makesrna.c`
+ * - Changes here only change generated code for `makesdna.cc` and `makesrna.cc`
  *   without impacting Blender's run-time, besides allowing us to use the new names.
  *
  * - Renaming something that has already been renamed can be done
@@ -104,6 +104,9 @@ DNA_STRUCT_RENAME_ELEM(MVert, flag, flag_legacy)
 DNA_STRUCT_RENAME_ELEM(MaskLayer, restrictflag, visibility_flag)
 DNA_STRUCT_RENAME_ELEM(MaterialLineArt, transparency_mask, material_mask_bits)
 DNA_STRUCT_RENAME_ELEM(Mesh, loc, texspace_location)
+DNA_STRUCT_RENAME_ELEM(Mesh, poly_offset_indices, face_offset_indices)
+DNA_STRUCT_RENAME_ELEM(Mesh, totface, totface_legacy)
+DNA_STRUCT_RENAME_ELEM(Mesh, totpoly, faces_num)
 DNA_STRUCT_RENAME_ELEM(Mesh, size, texspace_size)
 DNA_STRUCT_RENAME_ELEM(Mesh, texflag, texspace_flag)
 DNA_STRUCT_RENAME_ELEM(MeshDeformModifierData, totcagevert, cage_verts_num)

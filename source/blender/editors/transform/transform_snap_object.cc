@@ -1332,7 +1332,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       /* Small offset to simulate a kind of volume for edges and vertices. */
       new_clipplane[3] += 0.01f;
 
-      /* Try to snap only to the polygon. */
+      /* Try to snap only to the face. */
       elem_test = snap_polygon(sctx, sctx->runtime.snap_to_flag);
       if (elem_test) {
         elem = elem_test;

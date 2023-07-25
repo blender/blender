@@ -9,10 +9,10 @@
  * OpenMP hints by Christian Schnellhammer
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

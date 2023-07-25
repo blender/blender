@@ -155,12 +155,12 @@ struct SculptUndoNodeGeometry {
   CustomData edata;
   CustomData ldata;
   CustomData pdata;
-  int *poly_offset_indices;
-  const blender::ImplicitSharingInfo *poly_offsets_sharing_info;
+  int *face_offset_indices;
+  const blender::ImplicitSharingInfo *face_offsets_sharing_info;
   int totvert;
   int totedge;
   int totloop;
-  int totpoly;
+  int faces_num;
 };
 
 struct SculptUndoNode {
@@ -730,7 +730,7 @@ struct ExpandCache {
   /* Max falloff value in *vert_falloff. */
   float max_vert_falloff;
 
-  /* Indexed by base mesh poly index, precalculated falloff value of that face. These values are
+  /* Indexed by base mesh face index, precalculated falloff value of that face. These values are
    * calculated from the per vertex falloff (*vert_falloff) when needed. */
   float *face_falloff;
   float max_face_falloff;

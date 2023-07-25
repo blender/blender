@@ -8,7 +8,7 @@
  * Contains management of #Main database itself.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

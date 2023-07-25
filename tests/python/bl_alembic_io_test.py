@@ -13,7 +13,6 @@ import tempfile
 import unittest
 
 import bpy
-from mathutils import Euler, Matrix, Vector
 
 args = None
 
@@ -256,7 +255,7 @@ class CameraExportImportTest(unittest.TestCase):
         # Unload the current blend file to release the imported Alembic file.
         # This is necessary on Windows in order to be able to delete the
         # temporary ABC file.
-        bpy.ops.wm.read_homefile()
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
         self._tempdir.cleanup()
 
     def test_export_hierarchy(self):

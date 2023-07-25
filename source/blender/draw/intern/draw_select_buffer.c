@@ -208,7 +208,7 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                          ARegion *region,
                                          View3D *v3d,
                                          const int poly[][2],
-                                         const int poly_len,
+                                         const int face_len,
                                          const rcti *rect,
                                          uint *r_bitmap_len)
 {
@@ -235,7 +235,7 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                 rect_px.xmax,
                                 rect_px.ymax,
                                 poly,
-                                poly_len,
+                                face_len,
                                 drw_select_mask_px_cb,
                                 &poly_mask_data);
 

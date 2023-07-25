@@ -27,7 +27,7 @@ struct MEdgeDataPrev {
   int corner_a;
 
   /* Data that represents:
-   * - the index of the polygon of `corner_a` before the 2nd loop is found
+   * - the index of the face of `corner_a` before the 2nd loop is found
    * - the index of the next radial corner after the 2nd loop is found */
   int data;
 };
@@ -87,7 +87,7 @@ static void extract_edge_fac_init(const MeshRenderData *mr,
   data->vbo_data = static_cast<uchar *>(GPU_vertbuf_get_data(vbo));
 }
 
-static void extract_edge_fac_iter_poly_bm(const MeshRenderData *mr,
+static void extract_edge_fac_iter_face_bm(const MeshRenderData *mr,
                                           const BMFace *f,
                                           const int /*f_index*/,
                                           void *_data)
@@ -109,15 +109,15 @@ static void extract_edge_fac_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
-                                            const int poly_index,
+static void extract_edge_fac_iter_face_mesh(const MeshRenderData *mr,
+                                            const int face_index,
                                             void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
-  const IndexRange poly = mr->polys[poly_index];
+  const IndexRange face = mr->faces[face_index];
   const BitSpan optimal_display_edges = mr->me->runtime->subsurf_optimal_display_edges;
 
-  for (const int ml_index : poly) {
+  for (const int ml_index : face) {
     const int edge = mr->corner_edges[ml_index];
 
     if (data->use_edge_render && !optimal_display_edges[edge]) {
@@ -132,13 +132,13 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
         if (corner_count == 0) {
           /* Prepare to calculate the factor. */
           medata->corner_a = ml_index;
-          medata->data = poly_index;
+          medata->data = face_index;
         }
         else if (corner_count == 1) {
           /* Calculate the factor for both corners. */
-          const int poly_index_a = medata->data;
-          uint8_t fac = loop_edge_factor_get(float3(mr->poly_normals[poly_index_a]),
-                                             float3(mr->poly_normals[poly_index]));
+          const int face_index_a = medata->data;
+          uint8_t fac = loop_edge_factor_get(float3(mr->face_normals[face_index_a]),
+                                             float3(mr->face_normals[face_index]));
           data->vbo_data[medata->corner_a] = fac;
           data->vbo_data[ml_index] = fac;
 
@@ -205,9 +205,9 @@ static void extract_edge_fac_finish(const MeshRenderData *mr,
     GPU_vertbuf_init_with_format(vbo, &format);
     GPU_vertbuf_data_alloc(vbo, buf_len);
 
-    float *fdata = (float *)GPU_vertbuf_get_data(vbo);
-    for (int ml_index = 0; ml_index < buf_len; ml_index++, fdata++) {
-      *fdata = data->vbo_data[ml_index] / 255.0f;
+    float *fdata_legacy = (float *)GPU_vertbuf_get_data(vbo);
+    for (int ml_index = 0; ml_index < buf_len; ml_index++, fdata_legacy++) {
+      *fdata_legacy = data->vbo_data[ml_index] / 255.0f;
     }
     /* Free old byte data. */
     MEM_freeN(data->vbo_data);
@@ -334,8 +334,8 @@ constexpr MeshExtract create_extractor_edge_fac()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_edge_fac_init;
-  extractor.iter_poly_bm = extract_edge_fac_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_edge_fac_iter_poly_mesh;
+  extractor.iter_face_bm = extract_edge_fac_iter_face_bm;
+  extractor.iter_face_mesh = extract_edge_fac_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_edge_fac_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_edge_fac_iter_loose_edge_mesh;
   extractor.init_subdiv = extract_edge_fac_init_subdiv;

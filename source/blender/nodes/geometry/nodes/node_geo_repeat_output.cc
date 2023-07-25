@@ -120,7 +120,7 @@ static void search_node_add_ops(GatherAddNodeSearchParams &params)
 {
   AddNodeItem item;
   item.ui_name = IFACE_("Repeat Zone");
-  item.description = TIP_("Add a new repeat input and output nodes to the node tree");
+  item.description = TIP_("Add new repeat input and output nodes to the node tree");
   item.add_fn = [](const bContext &C, bNodeTree &node_tree, float2 cursor) {
     bNode *input = nodeAddNode(&C, &node_tree, "GeometryNodeRepeatInput");
     bNode *output = nodeAddNode(&C, &node_tree, "GeometryNodeRepeatOutput");

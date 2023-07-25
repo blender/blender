@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"
@@ -480,7 +480,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
     NlaStrip *strip;
 
     /* make some meta-strips for chains of selected strips */
-    BKE_nlastrips_make_metas(&nlt->strips, 1);
+    BKE_nlastrips_make_metas(&nlt->strips, true);
 
     /* only consider selected strips */
     for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
@@ -506,7 +506,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
      */
     for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
-      BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+      BKE_nlastrips_clear_metas(&nlt->strips, false, true);
     }
 
     /* cleanup temp list */
@@ -977,7 +977,7 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *t)
     BKE_nlatrack_sort_strips(nlt);
 
     /* remove the temp metas */
-    BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+    BKE_nlastrips_clear_metas(&nlt->strips, false, true);
   }
 
   /* General refresh for the outliner because the following might have happened:

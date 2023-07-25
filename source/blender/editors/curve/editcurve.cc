@@ -596,7 +596,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
           key_to_bezt(prevfp, prevp, &prev);
         }
 
-        BKE_nurb_handle_calc(&cur, prevp ? &prev : nullptr, nextp ? &next : nullptr, 0, 0);
+        BKE_nurb_handle_calc(&cur, prevp ? &prev : nullptr, nextp ? &next : nullptr, false, 0);
         bezt_to_key(&cur, fp);
 
         prevp = bezt;
@@ -1564,11 +1564,11 @@ static bool isNurbselU(Nurb *nu, int *v, int flag)
     }
     else if (sel >= 1) {
       *v = 0;
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 /* return true if V direction is selected and number of selected rows u */
@@ -1592,11 +1592,11 @@ static bool isNurbselV(Nurb *nu, int *u, int flag)
     }
     else if (sel >= 1) {
       *u = 0;
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 static void rotateflagNurb(ListBase *editnurb,
@@ -3324,7 +3324,8 @@ void CURVE_OT_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
+  RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected");
 }
 
 /** \} */
@@ -3955,7 +3956,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
   RNA_def_boolean(ot->srna,
                   "use_handles",
-                  0,
+                  false,
                   "Handles",
                   "Use handles when converting bezier curves into polygons");
 }
@@ -4803,7 +4804,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   const bool use_handle_select = vert_without_handles &&
                                  (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
 
-  bool found = ED_curve_pick_vert_ex(&vc, 1, dist_px, &nu, &bezt, &bp, &hand, &basact);
+  bool found = ED_curve_pick_vert_ex(&vc, true, dist_px, &nu, &bezt, &bp, &hand, &basact);
 
   if (params->sel_op == SEL_OP_SET) {
     if ((found && params->select_passthrough) &&

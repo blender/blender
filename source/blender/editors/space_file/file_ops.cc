@@ -49,11 +49,11 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name File Selection Utilities
@@ -90,11 +90,11 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   return sel;
 }
 
-typedef enum FileSelect {
+enum FileSelect {
   FILE_SELECT_NOTHING = 0,
   FILE_SELECT_DIR = 1,
   FILE_SELECT_FILE = 2,
-} FileSelect;
+};
 
 static void clamp_to_filelist(int numfiles, FileSelection *sel)
 {
@@ -458,7 +458,7 @@ static int file_box_select_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
     ED_fileselect_layout_isect_rect(sfile->layout, &region->v2d, &rect, &rect);
 
-    sel = file_selection_get(C, &rect, 0);
+    sel = file_selection_get(C, &rect, false);
     if ((sel.first != params->sel_first) || (sel.last != params->sel_last)) {
       int idx;
 
@@ -1543,7 +1543,7 @@ static bool file_operator_poll(bContext *C)
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (!sfile || !sfile->op) {
-    poll = 0;
+    poll = false;
   }
 
   return poll;

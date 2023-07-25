@@ -24,7 +24,7 @@ namespace blender::deg {
 
 /* Use pointer for map value to ensure span returned by get_all_registered_graphs
  * remains unchanged as other mains are added or removed. */
-typedef std::unique_ptr<VectorSet<Depsgraph *>> GraphSetPtr;
+using GraphSetPtr = std::unique_ptr<VectorSet<Depsgraph *>>;
 struct GraphRegistry {
   Map<Main *, GraphSetPtr> map;
   std::mutex mutex;

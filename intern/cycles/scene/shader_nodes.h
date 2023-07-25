@@ -531,8 +531,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
                ShaderInput *clearcoat_roughness,
                ShaderInput *ior,
                ShaderInput *transmission,
-               ShaderInput *anisotropic_rotation,
-               ShaderInput *transmission_roughness);
+               ShaderInput *anisotropic_rotation);
 
   NODE_SOCKET_API(float3, base_color)
   NODE_SOCKET_API(float3, subsurface_color)
@@ -552,7 +551,6 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, ior)
   NODE_SOCKET_API(float, transmission)
   NODE_SOCKET_API(float, anisotropic_rotation)
-  NODE_SOCKET_API(float, transmission_roughness)
   NODE_SOCKET_API(float3, normal)
   NODE_SOCKET_API(float3, clearcoat_normal)
   NODE_SOCKET_API(float3, tangent)
@@ -586,11 +584,17 @@ class TransparentBsdfNode : public BsdfNode {
   }
 };
 
-class VelvetBsdfNode : public BsdfNode {
+class SheenBsdfNode : public BsdfNode {
  public:
-  SHADER_NODE_CLASS(VelvetBsdfNode)
+  SHADER_NODE_CLASS(SheenBsdfNode)
 
-  NODE_SOCKET_API(float, sigma)
+  NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(ClosureType, distribution)
+
+  ClosureType get_closure_type()
+  {
+    return distribution;
+  }
 };
 
 class GlossyBsdfNode : public BsdfNode {

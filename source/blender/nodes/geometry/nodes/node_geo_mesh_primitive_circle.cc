@@ -117,7 +117,7 @@ static Mesh *create_circle_mesh(const float radius,
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
@@ -150,8 +150,8 @@ static Mesh *create_circle_mesh(const float radius,
 
   /* Create corners and faces. */
   if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
-    poly_offsets.first() = 0;
-    poly_offsets.last() = corner_verts.size();
+    face_offsets.first() = 0;
+    face_offsets.last() = corner_verts.size();
 
     std::iota(corner_verts.begin(), corner_verts.end(), 0);
     std::iota(corner_edges.begin(), corner_edges.end(), 0);
@@ -159,8 +159,8 @@ static Mesh *create_circle_mesh(const float radius,
     mesh->tag_loose_edges_none();
   }
   else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
-    for (const int i : poly_offsets.index_range()) {
-      poly_offsets[i] = 3 * i;
+    for (const int i : face_offsets.index_range()) {
+      face_offsets[i] = 3 * i;
     }
     for (const int i : IndexRange(verts_num)) {
       corner_verts[3 * i] = i;

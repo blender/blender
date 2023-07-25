@@ -62,7 +62,7 @@
 struct StitchPreviewer {
   /* here we'll store the preview triangle indices of the mesh */
   float *preview_polys;
-  /* uvs per polygon. */
+  /* uvs per face. */
   uint *uvs_per_polygon;
   /* Number of preview polygons. */
   uint num_polys;
@@ -119,7 +119,7 @@ struct UvEdge {
   uchar flag;
   /**
    * Element that guarantees `element.l` has the edge on
-   * `element.loop_of_poly_index` and `element->loop_of_poly_index + 1` is the second UV.
+   * `element.loop_of_face_index` and `element->loop_of_face_index + 1` is the second UV.
    */
   UvElement *element;
   /** next uv edge with the same exact vertices as this one.
@@ -478,10 +478,10 @@ static void stitch_calculate_island_snapping(const int cd_loop_uv_offset,
             stitch_uv_rotate(rotation_mat,
                              island_stitch_data[i].medianPoint,
                              preview->preview_polys + face_preview_pos +
-                                 2 * element->loop_of_poly_index,
+                                 2 * element->loop_of_face_index,
                              state->aspect);
 
-            add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->loop_of_poly_index,
+            add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->loop_of_face_index,
                       island_stitch_data[i].translation);
           }
         }
@@ -924,7 +924,7 @@ static void stitch_propagate_uv_final_position(Scene *scene,
             preview_position[BM_elem_index_get(element_iter->l->f)].data_position;
         if (face_preview_pos != STITCH_NO_PREVIEW) {
           copy_v2_v2(preview->preview_polys + face_preview_pos +
-                         2 * element_iter->loop_of_poly_index,
+                         2 * element_iter->loop_of_face_index,
                      final_position[index].uv);
         }
       }
@@ -1987,7 +1987,7 @@ static StitchState *stitch_init(bContext *C,
   /* we use boundary edges to calculate 2D normals.
    * to disambiguate the direction of the normal, we also need
    * a point "inside" the island, that can be provided by
-   * the winding of the polygon (assuming counter-clockwise flow). */
+   * the winding of the face (assuming counter-clockwise flow). */
 
   for (i = 0; i < total_edges; i++) {
     UvEdge *edge = edges + i;
@@ -2414,7 +2414,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
         RNA_collection_add(op->ptr, "selection", &itemptr);
 
         RNA_int_set(&itemptr, "face_index", BM_elem_index_get(element->l->f));
-        RNA_int_set(&itemptr, "element_index", element->loop_of_poly_index);
+        RNA_int_set(&itemptr, "element_index", element->loop_of_face_index);
       }
       uvedit_live_unwrap_update(sima, scene, obedit);
 

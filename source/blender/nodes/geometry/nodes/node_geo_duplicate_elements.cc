@@ -421,7 +421,7 @@ static void copy_face_attributes_without_id(
  */
 static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask &selection,
-                                 const OffsetIndices<int> poly_offsets,
+                                 const OffsetIndices<int> face_offsets,
                                  const Span<int> vert_mapping,
                                  const bke::AttributeAccessor src_attributes,
                                  bke::MutableAttributeAccessor dst_attributes)
@@ -439,14 +439,14 @@ static void copy_stable_id_faces(const Mesh &mesh,
   VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.span.typed<int>();
 
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   int loop_index = 0;
-  for (const int i_poly : selection.index_range()) {
-    const IndexRange range = poly_offsets[i_poly];
+  for (const int i_face : selection.index_range()) {
+    const IndexRange range = face_offsets[i_face];
     if (range.size() == 0) {
       continue;
     }
-    const IndexRange source = polys[i_poly];
+    const IndexRange source = faces[i_face];
     for ([[maybe_unused]] const int i_duplicate : IndexRange(range.size())) {
       for ([[maybe_unused]] const int i_loops : IndexRange(source.size())) {
         if (i_duplicate == 0) {
@@ -476,34 +476,34 @@ static void duplicate_faces(GeometrySet &geometry_set,
   geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
 
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
 
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
-  FieldEvaluator evaluator(field_context, polys.size());
+  FieldEvaluator evaluator(field_context, faces.size());
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
   const VArray<int> counts = evaluator.get_evaluated<int>(0);
 
-  int total_polys = 0;
+  int total_faces = 0;
   int total_loops = 0;
   Array<int> offset_data(selection.size() + 1);
   selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
     const int count = counts[index];
-    offset_data[i_selection] = total_polys;
-    total_polys += count;
-    total_loops += count * polys[index].size();
+    offset_data[i_selection] = total_faces;
+    total_faces += count;
+    total_loops += count * faces[index].size();
   });
-  offset_data[selection.size()] = total_polys;
+  offset_data[selection.size()] = total_faces;
 
   const OffsetIndices<int> duplicates(offset_data);
 
-  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_polys, total_loops);
+  Mesh *new_mesh = BKE_mesh_new_nomain(total_loops, total_loops, total_faces, total_loops);
   MutableSpan<int2> new_edges = new_mesh->edges_for_write();
-  MutableSpan<int> new_poly_offsets = new_mesh->poly_offsets_for_write();
+  MutableSpan<int> new_face_offsets = new_mesh->face_offsets_for_write();
   MutableSpan<int> new_corner_verts = new_mesh->corner_verts_for_write();
   MutableSpan<int> new_corner_edges = new_mesh->corner_edges_for_write();
 
@@ -511,13 +511,13 @@ static void duplicate_faces(GeometrySet &geometry_set,
   Array<int> edge_mapping(new_edges.size());
   Array<int> loop_mapping(total_loops);
 
-  int poly_index = 0;
+  int face_index = 0;
   int loop_index = 0;
   selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
-    const IndexRange poly_range = duplicates[i_selection];
-    const IndexRange source = polys[index];
-    for ([[maybe_unused]] const int i_duplicate : poly_range.index_range()) {
-      new_poly_offsets[poly_index] = loop_index;
+    const IndexRange face_range = duplicates[i_selection];
+    const IndexRange source = faces[index];
+    for ([[maybe_unused]] const int i_duplicate : face_range.index_range()) {
+      new_face_offsets[face_index] = loop_index;
       for (const int src_corner : source) {
         loop_mapping[loop_index] = src_corner;
         vert_mapping[loop_index] = corner_verts[src_corner];
@@ -527,11 +527,11 @@ static void duplicate_faces(GeometrySet &geometry_set,
           new_edges[loop_index][1] = loop_index + 1;
         }
         else {
-          new_edges[loop_index][1] = new_poly_offsets[poly_index];
+          new_edges[loop_index][1] = new_face_offsets[face_index];
         }
         loop_index++;
       }
-      poly_index++;
+      face_index++;
     }
   });
   std::iota(new_corner_verts.begin(), new_corner_verts.end(), 0);

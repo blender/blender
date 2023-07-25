@@ -135,7 +135,7 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
              ymax - ymin,
              rectx,
              recty,
-             (int)(xfac * 100.0f));
+             int(xfac * 100.0f));
     }
 #endif
     int ii, jj;
@@ -184,7 +184,7 @@ void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage &oImage) c
              ymax - ymin,
              rectx,
              recty,
-             (int)(xfac * 100.0f));
+             int(xfac * 100.0f));
     }
 #endif
     int ii, jj;

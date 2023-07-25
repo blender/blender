@@ -8,10 +8,10 @@
  * Glyph rendering, texturing and caching. Wraps Freetype and OpenGL functions.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <ft2build.h>
 

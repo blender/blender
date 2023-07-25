@@ -24,13 +24,11 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             float ClearcoatRoughness = 0.03,
                             float IOR = 1.45,
                             float Transmission = 0.0,
-                            float TransmissionRoughness = 0.0,
                             normal Normal = N,
                             normal ClearcoatNormal = N,
                             normal Tangent = normalize(dPdu),
                             output closure color BSDF = 0)
 {
-  float f = max(IOR, 1e-5);
   float diffuse_weight = (1.0 - clamp(Metallic, 0.0, 1.0)) * (1.0 - clamp(Transmission, 0.0, 1.0));
   float final_transmission = clamp(Transmission, 0.0, 1.0) * (1.0 - clamp(Metallic, 0.0, 1.0));
   float specular_weight = (1.0 - final_transmission);
@@ -92,34 +90,15 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
 
   if (final_transmission > 1e-5) {
     color Cspec0 = mix(color(1.0), BaseColor, SpecularTint);
-    float eta = backfacing() ? 1.0 / f : f;
+    float eta = max(IOR, 1e-5);
+    eta = backfacing() ? 1.0 / eta : eta;
 
-    if (distribution == "ggx" || Roughness <= 5e-2) {
-      float cosNI = dot(Normal, I);
-      float Fr = fresnel_dielectric_cos(cosNI, eta);
-
-      float refl_roughness = Roughness;
-      if (Roughness <= 1e-2)
-        refl_roughness = 0.0;
-
-      float transmission_roughness = refl_roughness;
-      if (distribution == "ggx")
-        transmission_roughness = 1.0 - (1.0 - refl_roughness) * (1.0 - TransmissionRoughness);
-
-      closure color refraction = microfacet(
-          "ggx", Normal, transmission_roughness * transmission_roughness, eta, 1);
-      closure color reflection = microfacet_aniso_fresnel(
-          Normal, T, r2, r2, Cspec0, color(1.0), eta, "ggx");
-      BSDF += final_transmission * mix(BaseColor * refraction, reflection, Fr);
-    }
-    else {
-      BSDF += final_transmission *
-              dielectric_bsdf(Normal, vector(0.0), Cspec0, BaseColor, r2, r2, eta, "multi_ggx");
-    }
+    BSDF += final_transmission *
+            dielectric_bsdf(Normal, vector(0.0), Cspec0, BaseColor, r2, r2, eta, distribution);
   }
 
   if (Clearcoat > 1e-5) {
-    BSDF += principled_clearcoat(
-        ClearcoatNormal, Clearcoat, ClearcoatRoughness * ClearcoatRoughness);
+    float clearcoat_r2 = ClearcoatRoughness * ClearcoatRoughness;
+    BSDF += 0.25 * Clearcoat * microfacet("clearcoat", ClearcoatNormal, clearcoat_r2, 1.5, 0);
   }
 }

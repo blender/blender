@@ -6,11 +6,11 @@
  * \ingroup edgpencil
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1278,7 +1278,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   /* make sure the active view (at the starting time) is a 3d-view */
   if (curarea == nullptr) {
     p->status = GP_STATUS_ERROR;
-    return 0;
+    return false;
   }
 
   /* pass on current scene and window */
@@ -1306,7 +1306,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
 
       if (region->regiondata == nullptr) {
         p->status = GP_STATUS_ERROR;
-        return 0;
+        return false;
       }
       break;
     }
@@ -1332,7 +1332,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
       /* check that gpencil data is allowed to be drawn */
       if (!((sseq->mainb == SEQ_DRAW_IMG_IMBUF) && (region->regiontype == RGN_TYPE_PREVIEW))) {
         p->status = GP_STATUS_ERROR;
-        return 0;
+        return false;
       }
       break;
     }
@@ -1393,7 +1393,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
     /* unsupported views */
     default: {
       p->status = GP_STATUS_ERROR;
-      return 0;
+      return false;
     }
   }
 
@@ -1401,7 +1401,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   gpd_ptr = ED_annotation_data_get_pointers(C, &p->ownerPtr);
   if ((gpd_ptr == nullptr) || !ED_gpencil_data_owner_is_annotation(&p->ownerPtr)) {
     p->status = GP_STATUS_ERROR;
-    return 0;
+    return false;
   }
 
   /* if no existing GPencil block exists, add one */
@@ -1424,7 +1424,7 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   /* clear out buffer (stored in gp-data), in case something contaminated it */
   annotation_session_validatebuffer(p);
 
-  return 1;
+  return true;
 }
 
 /* Enable the annotations in the current space. */

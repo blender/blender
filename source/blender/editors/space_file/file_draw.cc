@@ -1033,11 +1033,11 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (FILE_IMGDISPLAY == params->display) {
       const int icon = filelist_geticon(files, i, false);
-      is_icon = 0;
+      is_icon = false;
       const ImBuf *imb = filelist_getimage(files, i);
       if (!imb) {
         imb = filelist_geticon_image(files, i);
-        is_icon = 1;
+        is_icon = true;
       }
 
       float scale = 0;

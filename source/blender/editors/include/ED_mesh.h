@@ -565,12 +565,12 @@ void ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 void ED_mesh_verts_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_loops_add(struct Mesh *mesh, struct ReportList *reports, int count);
-void ED_mesh_polys_add(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count);
 
 void ED_mesh_verts_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_loops_remove(struct Mesh *mesh, struct ReportList *reports, int count);
-void ED_mesh_polys_remove(struct Mesh *mesh, struct ReportList *reports, int count);
+void ED_mesh_faces_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 
 void ED_mesh_geometry_clear(struct Mesh *mesh);
 

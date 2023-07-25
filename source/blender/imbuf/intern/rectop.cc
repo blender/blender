@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
@@ -486,8 +486,8 @@ void IMB_rectcpy(ImBuf *dbuf,
                 false);
 }
 
-typedef void (*IMB_blend_func)(uchar *dst, const uchar *src1, const uchar *src2);
-typedef void (*IMB_blend_func_float)(float *dst, const float *src1, const float *src2);
+using IMB_blend_func = void (*)(uchar *dst, const uchar *src1, const uchar *src2);
+using IMB_blend_func_float = void (*)(float *dst, const float *src1, const float *src2);
 
 void IMB_rectblend(ImBuf *dbuf,
                    const ImBuf *obuf,

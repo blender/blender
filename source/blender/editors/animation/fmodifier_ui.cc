@@ -13,7 +13,7 @@
  * F-Modifiers, as used by F-Curves in the Graph Editor and NLA-Strips in the NLA Editor.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -44,7 +44,7 @@
 
 #include "DEG_depsgraph.h"
 
-typedef void (*PanelDrawFn)(const bContext *, Panel *);
+using PanelDrawFn = void (*)(const bContext *, Panel *);
 static void fmodifier_panel_header(const bContext *C, Panel *panel);
 
 /* -------------------------------------------------------------------- */
@@ -962,7 +962,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
 
   /* sanity checks */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
-    return 0;
+    return false;
   }
 
   /* copy the whole list, or just the active one? */
@@ -974,7 +974,7 @@ bool ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, bool active)
       BLI_addtail(&fmodifier_copypaste_buf, fcmN);
     }
     else {
-      ok = 0;
+      ok = false;
     }
   }
   else {
@@ -992,7 +992,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
 
   /* sanity checks */
   if (modifiers == nullptr) {
-    return 0;
+    return false;
   }
 
   bool was_cyclic = curve && BKE_fcurve_is_cyclic(curve);
@@ -1014,7 +1014,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
 
     /* now add it to the end of the list */
     BLI_addtail(modifiers, fcmN);
-    ok = 1;
+    ok = true;
   }
 
   /* adding or removing the Cycles modifier requires an update to handles */

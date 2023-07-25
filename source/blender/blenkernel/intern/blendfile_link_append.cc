@@ -10,8 +10,8 @@
  * collections/objects/object-data in current scene.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "CLG_log.h"
 

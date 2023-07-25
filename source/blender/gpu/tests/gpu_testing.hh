@@ -38,10 +38,12 @@ class GPUTest : public ::testing::Test {
   void TearDown() override;
 };
 
+#ifdef WITH_OPENGL_BACKEND
 class GPUOpenGLTest : public GPUTest {
  public:
   GPUOpenGLTest() : GPUTest(GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL) {}
 };
+#endif
 
 #define GPU_OPENGL_TEST(test_name) \
   TEST_F(GPUOpenGLTest, test_name) \

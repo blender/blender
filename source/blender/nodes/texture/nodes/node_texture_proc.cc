@@ -51,7 +51,7 @@ static void do_proc(float *result,
   }
 }
 
-typedef void (*MapFn)(Tex *tex, bNodeStack **in, TexParams *p, const short thread);
+using MapFn = void (*)(Tex *tex, bNodeStack **in, TexParams *p, const short thread);
 
 static void texfn(
     float *result, TexParams *p, bNode *node, bNodeStack **in, MapFn map_inputs, short thread)

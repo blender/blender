@@ -16,19 +16,19 @@ namespace blender::geometry {
 
 void flip_faces(Mesh &mesh, const IndexMask &selection)
 {
-  if (mesh.totpoly == 0 || selection.is_empty()) {
+  if (mesh.faces_num == 0 || selection.is_empty()) {
     return;
   }
 
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
   selection.foreach_index(GrainSize(1024), [&](const int i) {
-    const IndexRange poly = polys[i];
-    for (const int j : IndexRange(poly.size() / 2)) {
-      const int a = poly[j + 1];
-      const int b = poly.last(j);
+    const IndexRange face = faces[i];
+    for (const int j : IndexRange(face.size() / 2)) {
+      const int a = face[j + 1];
+      const int b = face.last(j);
       std::swap(corner_verts[a], corner_verts[b]);
       std::swap(corner_edges[a - 1], corner_edges[b]);
     }
@@ -51,7 +51,7 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
           using T = decltype(dummy);
           MutableSpan<T> dst_span = attribute.span.typed<T>();
           selection.foreach_index(GrainSize(1024), [&](const int i) {
-            dst_span.slice(polys[i].drop_front(1)).reverse();
+            dst_span.slice(faces[i].drop_front(1)).reverse();
           });
         });
         attribute.finish();

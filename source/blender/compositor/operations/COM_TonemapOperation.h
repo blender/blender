@@ -86,7 +86,6 @@ class TonemapOperation : public MultiThreadedOperation {
  * most parts have already been done in #TonemapOperation.
  * \ingroup operation
  */
-
 class PhotoreceptorTonemapOperation : public TonemapOperation {
  public:
   /**

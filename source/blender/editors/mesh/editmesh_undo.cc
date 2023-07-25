@@ -123,7 +123,7 @@ struct UndoMesh {
   /* Null arrays are considered empty. */
   struct { /* most data is stored as 'custom' data */
     BArrayCustomData *vdata, *edata, *ldata, *pdata;
-    BArrayState *poly_offset_indices;
+    BArrayState *face_offset_indices;
     BArrayState **keyblocks;
     BArrayState *mselect;
   } store;
@@ -367,7 +367,7 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
    * Since this is itself a background thread, using too many threads here could
    * interfere with foreground tasks. */
   blender::threading::parallel_invoke(
-      4096 < (me->totvert + me->totedge + me->totloop + me->totpoly),
+      4096 < (me->totvert + me->totedge + me->totloop + me->faces_num),
       [&]() {
         um_arraystore_cd_compact(&me->vdata,
                                  me->totvert,
@@ -394,27 +394,27 @@ static void um_arraystore_compact_ex(UndoMesh *um, const UndoMesh *um_ref, bool 
       },
       [&]() {
         um_arraystore_cd_compact(&me->pdata,
-                                 me->totpoly,
+                                 me->faces_num,
                                  create,
                                  ARRAY_STORE_INDEX_POLY,
                                  um_ref ? um_ref->store.pdata : nullptr,
                                  &um->store.pdata);
       },
       [&]() {
-        if (me->poly_offset_indices) {
-          BLI_assert(create == (um->store.poly_offset_indices == nullptr));
+        if (me->face_offset_indices) {
+          BLI_assert(create == (um->store.face_offset_indices == nullptr));
           if (create) {
-            BArrayState *state_reference = um_ref ? um_ref->store.poly_offset_indices : nullptr;
-            const size_t stride = sizeof(*me->poly_offset_indices);
+            BArrayState *state_reference = um_ref ? um_ref->store.face_offset_indices : nullptr;
+            const size_t stride = sizeof(*me->face_offset_indices);
             BArrayStore *bs = BLI_array_store_at_size_ensure(
                 &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS],
                 stride,
                 array_chunk_size_calc(stride));
-            um->store.poly_offset_indices = BLI_array_store_state_add(
-                bs, me->poly_offset_indices, size_t(me->totpoly + 1) * stride, state_reference);
+            um->store.face_offset_indices = BLI_array_store_state_add(
+                bs, me->face_offset_indices, size_t(me->faces_num + 1) * stride, state_reference);
           }
-          blender::implicit_sharing::free_shared_data(&me->poly_offset_indices,
-                                                      &me->runtime->poly_offsets_sharing_info);
+          blender::implicit_sharing::free_shared_data(&me->face_offset_indices,
+                                                      &me->runtime->face_offsets_sharing_info);
         }
       },
       [&]() {
@@ -562,7 +562,7 @@ static void um_arraystore_expand(UndoMesh *um)
   um_arraystore_cd_expand(um->store.vdata, &me->vdata, me->totvert);
   um_arraystore_cd_expand(um->store.edata, &me->edata, me->totedge);
   um_arraystore_cd_expand(um->store.ldata, &me->ldata, me->totloop);
-  um_arraystore_cd_expand(um->store.pdata, &me->pdata, me->totpoly);
+  um_arraystore_cd_expand(um->store.pdata, &me->pdata, me->faces_num);
 
   if (um->store.keyblocks) {
     const size_t stride = me->key->elemsize;
@@ -576,15 +576,15 @@ static void um_arraystore_expand(UndoMesh *um)
     }
   }
 
-  if (um->store.poly_offset_indices) {
-    const size_t stride = sizeof(*me->poly_offset_indices);
-    BArrayState *state = um->store.poly_offset_indices;
+  if (um->store.face_offset_indices) {
+    const size_t stride = sizeof(*me->face_offset_indices);
+    BArrayState *state = um->store.face_offset_indices;
     size_t state_len;
-    me->poly_offset_indices = static_cast<int *>(
+    me->face_offset_indices = static_cast<int *>(
         BLI_array_store_state_data_get_alloc(state, &state_len));
-    me->runtime->poly_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
-        me->poly_offset_indices);
-    BLI_assert((me->totpoly + 1) == (state_len / stride));
+    me->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
+        me->face_offset_indices);
+    BLI_assert((me->faces_num + 1) == (state_len / stride));
     UNUSED_VARS_NDEBUG(stride);
   }
   if (um->store.mselect) {
@@ -618,13 +618,13 @@ static void um_arraystore_free(UndoMesh *um)
     um->store.keyblocks = nullptr;
   }
 
-  if (um->store.poly_offset_indices) {
-    const size_t stride = sizeof(*me->poly_offset_indices);
+  if (um->store.face_offset_indices) {
+    const size_t stride = sizeof(*me->face_offset_indices);
     BArrayStore *bs = BLI_array_store_at_size_get(
         &um_arraystore.bs_stride[ARRAY_STORE_INDEX_POLY_OFFSETS], stride);
-    BArrayState *state = um->store.poly_offset_indices;
+    BArrayState *state = um->store.face_offset_indices;
     BLI_array_store_state_remove(bs, state);
-    um->store.poly_offset_indices = nullptr;
+    um->store.face_offset_indices = nullptr;
   }
   if (um->store.mselect) {
     const size_t stride = sizeof(*me->mselect);

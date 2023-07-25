@@ -6,7 +6,7 @@
  * \ingroup shader_fx
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -73,8 +73,8 @@ static void panelRegister(ARegionType *region_type)
 
 ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*name*/ N_("Colorize"),
-    /*structName*/ "ColorizeShaderFxData",
-    /*structSize*/ sizeof(ColorizeShaderFxData),
+    /*struct_name*/ "ColorizeShaderFxData",
+    /*struct_size*/ sizeof(ColorizeShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 

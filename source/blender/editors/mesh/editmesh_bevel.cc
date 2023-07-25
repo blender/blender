@@ -64,13 +64,13 @@ static const float value_clamp_max[NUM_VALUE_KINDS] = {1e6, 100.0f, 1.0f, SEGMEN
 static const float value_start[NUM_VALUE_KINDS] = {0.0f, 0.0f, 0.5f, 1.0f};
 static const float value_scale_per_inch[NUM_VALUE_KINDS] = {0.0f, 100.0f, 1.0f, 4.0f};
 
-typedef struct {
+struct BevelObjectStore {
   /** Every object must have a valid #BMEditMesh. */
   Object *ob;
   BMBackup mesh_backup;
-} BevelObjectStore;
+};
 
-typedef struct {
+struct BevelData {
   float initial_length[NUM_VALUE_KINDS];
   float scale[NUM_VALUE_KINDS];
   NumInput num_input[NUM_VALUE_KINDS];
@@ -90,7 +90,7 @@ typedef struct {
   float segments;   /* Segments as float so smooth mouse pan works in small increments */
 
   CurveProfile *custom_profile;
-} BevelData;
+};
 
 enum {
   BEV_MODAL_CANCEL = 1,
@@ -1183,6 +1183,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
                "Vertex Mesh Method",
                "The method to use to create meshes at intersections");
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

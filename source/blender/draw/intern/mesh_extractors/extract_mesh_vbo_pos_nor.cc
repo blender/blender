@@ -65,7 +65,7 @@ static void extract_pos_nor_init(const MeshRenderData *mr,
   }
 }
 
-static void extract_pos_nor_iter_poly_bm(const MeshRenderData *mr,
+static void extract_pos_nor_iter_face_bm(const MeshRenderData *mr,
                                          const BMFace *f,
                                          const int /*f_index*/,
                                          void *_data)
@@ -82,14 +82,14 @@ static void extract_pos_nor_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_pos_nor_iter_poly_mesh(const MeshRenderData *mr,
-                                           const int poly_index,
+static void extract_pos_nor_iter_face_mesh(const MeshRenderData *mr,
+                                           const int face_index,
                                            void *_data)
 {
   MeshExtract_PosNor_Data *data = static_cast<MeshExtract_PosNor_Data *>(_data);
-  const bool poly_hidden = mr->hide_poly && mr->hide_poly[poly_index];
+  const bool poly_hidden = mr->hide_poly && mr->hide_poly[face_index];
 
-  for (const int ml_index : mr->polys[poly_index]) {
+  for (const int ml_index : mr->faces[face_index]) {
     const int vert_i = mr->corner_verts[ml_index];
     PosNorLoop *vert = &data->vbo_data[ml_index];
     const bool vert_hidden = mr->hide_vert && mr->hide_vert[vert_i];
@@ -368,8 +368,8 @@ constexpr MeshExtract create_extractor_pos_nor()
 {
   MeshExtract extractor = {nullptr};
   extractor.init = extract_pos_nor_init;
-  extractor.iter_poly_bm = extract_pos_nor_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_pos_nor_iter_poly_mesh;
+  extractor.iter_face_bm = extract_pos_nor_iter_face_bm;
+  extractor.iter_face_mesh = extract_pos_nor_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_pos_nor_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_pos_nor_iter_loose_edge_mesh;
   extractor.iter_loose_vert_bm = extract_pos_nor_iter_loose_vert_bm;
@@ -437,7 +437,7 @@ static void extract_pos_nor_hq_init(const MeshRenderData *mr,
   }
 }
 
-static void extract_pos_nor_hq_iter_poly_bm(const MeshRenderData *mr,
+static void extract_pos_nor_hq_iter_face_bm(const MeshRenderData *mr,
                                             const BMFace *f,
                                             const int /*f_index*/,
                                             void *_data)
@@ -455,14 +455,14 @@ static void extract_pos_nor_hq_iter_poly_bm(const MeshRenderData *mr,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_pos_nor_hq_iter_poly_mesh(const MeshRenderData *mr,
-                                              const int poly_index,
+static void extract_pos_nor_hq_iter_face_mesh(const MeshRenderData *mr,
+                                              const int face_index,
                                               void *_data)
 {
   MeshExtract_PosNorHQ_Data *data = static_cast<MeshExtract_PosNorHQ_Data *>(_data);
-  const bool poly_hidden = mr->hide_poly && mr->hide_poly[poly_index];
+  const bool poly_hidden = mr->hide_poly && mr->hide_poly[face_index];
 
-  for (const int ml_index : mr->polys[poly_index]) {
+  for (const int ml_index : mr->faces[face_index]) {
     const int vert_i = mr->corner_verts[ml_index];
 
     const bool vert_hidden = mr->hide_vert && mr->hide_vert[vert_i];
@@ -561,8 +561,8 @@ constexpr MeshExtract create_extractor_pos_nor_hq()
   MeshExtract extractor = {nullptr};
   extractor.init = extract_pos_nor_hq_init;
   extractor.init_subdiv = extract_pos_nor_init_subdiv;
-  extractor.iter_poly_bm = extract_pos_nor_hq_iter_poly_bm;
-  extractor.iter_poly_mesh = extract_pos_nor_hq_iter_poly_mesh;
+  extractor.iter_face_bm = extract_pos_nor_hq_iter_face_bm;
+  extractor.iter_face_mesh = extract_pos_nor_hq_iter_face_mesh;
   extractor.iter_loose_edge_bm = extract_pos_nor_hq_iter_loose_edge_bm;
   extractor.iter_loose_edge_mesh = extract_pos_nor_hq_iter_loose_edge_mesh;
   extractor.iter_loose_vert_bm = extract_pos_nor_hq_iter_loose_vert_bm;

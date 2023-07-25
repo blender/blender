@@ -20,7 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
 #include "BLI_threads.h"
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 

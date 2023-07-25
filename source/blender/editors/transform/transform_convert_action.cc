@@ -777,11 +777,11 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
       BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
                                       SELECT,
                                       false); /* only use handles in graph editor */
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
     }
     else {
       BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
@@ -838,10 +838,10 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
            */
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
             if (adt) {
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
               BKE_fcurve_merge_duplicate_keys(
                   fcu, SELECT, false); /* only use handles in graph editor */
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
             }
             else {
               BKE_fcurve_merge_duplicate_keys(

@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math.h"
 #include "BLI_string_utf8_symbols.h"
@@ -1284,7 +1284,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Edit Bone", "Edit mode bone in an armature data-block");
   RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "EditBone");
@@ -1375,7 +1375,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   RNA_api_armature_edit_bone(srna);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 /* armature.bones.* */

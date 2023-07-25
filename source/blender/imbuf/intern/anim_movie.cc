@@ -26,11 +26,11 @@
 
 #endif
 
-#include <ctype.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cctype>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <sys/types.h>
 #ifndef _WIN32
 #  include <dirent.h>

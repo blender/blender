@@ -24,11 +24,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
 {
-  if (mesh.totpoly == 0) {
+  if (mesh.faces_num == 0) {
     return;
   }
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
-  fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
+  fn::FieldEvaluator evaluator{field_context, mesh.faces_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);

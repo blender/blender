@@ -8,7 +8,7 @@
  * \name Generic Gizmo Utilities.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 

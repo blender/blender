@@ -268,6 +268,36 @@ static void version_replace_texcoord_normal_socket(bNodeTree *ntree)
   }
 }
 
+static void version_principled_transmission_roughness(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+      continue;
+    }
+    bNodeSocket *sock = nodeFindSocket(node, SOCK_IN, "Transmission Roughness");
+    if (sock != nullptr) {
+      nodeRemoveSocket(ntree, node, sock);
+    }
+  }
+}
+
+/* Convert legacy Velvet BSDF nodes into the new Sheen BSDF node. */
+static void version_replace_velvet_sheen_node(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_BSDF_SHEEN) {
+      STRNCPY(node->idname, "ShaderNodeBsdfSheen");
+
+      bNodeSocket *sigmaInput = nodeFindSocket(node, SOCK_IN, "Sigma");
+      if (sigmaInput != nullptr) {
+        node->custom1 = SHD_SHEEN_ASHIKHMIN;
+        STRNCPY(sigmaInput->identifier, "Roughness");
+        STRNCPY(sigmaInput->name, "Roughness");
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -376,14 +406,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
   {
-    /* Convert anisotropic BSDF node to glossy BSDF. */
-
     /* Keep this block, even when empty. */
 
-    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "grid_bake_sample_count")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "grid_bake_samples")) {
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->grid_bake_samples = 2048;
         lightprobe->surfel_density = 1.0f;
+        lightprobe->grid_normal_bias = 0.3f;
+        lightprobe->grid_view_bias = 0.0f;
+        lightprobe->grid_facing_bias = 0.5f;
       }
     }
 
@@ -414,6 +445,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         layer->opacity = 1.0f;
       }
     }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        /* Remove Transmission Roughness from Principled BSDF. */
+        version_principled_transmission_roughness(ntree);
+        /* Convert legacy Velvet BSDF nodes into the new Sheen BSDF node. */
+        version_replace_velvet_sheen_node(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   if (!DNA_struct_find(fd->filesdna, "AssetShelfHook")) {

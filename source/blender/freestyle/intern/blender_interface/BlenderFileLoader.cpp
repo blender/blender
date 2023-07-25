@@ -409,14 +409,14 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   char *name = ob->id.name + 2;
 
   const Span<float3> vert_positions = me->vert_positions();
-  const OffsetIndices mesh_polys = me->polys();
+  const OffsetIndices mesh_polys = me->faces();
   const Span<int> corner_verts = me->corner_verts();
 
   // Compute loop triangles
-  int tottri = poly_to_tri_count(me->totpoly, me->totloop);
+  int tottri = poly_to_tri_count(me->faces_num, me->totloop);
   MLoopTri *mlooptri = (MLoopTri *)MEM_malloc_arrayN(tottri, sizeof(*mlooptri), __func__);
   blender::bke::mesh::looptris_calc(vert_positions, mesh_polys, corner_verts, {mlooptri, tottri});
-  const blender::Span<int> looptri_polys = me->looptri_polys();
+  const blender::Span<int> looptri_faces = me->looptri_faces();
 
   // Compute loop normals
   BKE_mesh_calc_normals_split(me);
@@ -526,7 +526,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   // by the near and far view planes.
   for (int a = 0; a < tottri; a++) {
     const MLoopTri *lt = &mlooptri[a];
-    const int poly_i = looptri_polys[a];
+    const int poly_i = looptri_faces[a];
     Material *mat = BKE_object_material_get(ob, material_indices[poly_i] + 1);
 
     copy_v3_v3(v1, vert_positions[corner_verts[lt->tri[0]]]);

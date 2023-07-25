@@ -11,6 +11,7 @@
 #include "kernel/closure/bsdf_phong_ramp.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/closure/bsdf_sheen.h"
 #include "kernel/closure/bsdf_transparent.h"
 #include "kernel/closure/bsdf_ashikhmin_shirley.h"
 #include "kernel/closure/bsdf_toon.h"
@@ -214,6 +215,11 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *sampled_roughness = one_float2();
       *eta = 1.0f;
       break;
+    case CLOSURE_BSDF_SHEEN_ID:
+      label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
+      *sampled_roughness = one_float2();
+      *eta = 1.0f;
+      break;
 #endif
     default:
       label = LABEL_NONE;
@@ -349,6 +355,11 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *roughness = one_float2();
       *eta = 1.0f;
       break;
+    case CLOSURE_BSDF_SHEEN_ID:
+      alpha = ((ccl_private SheenBsdf *)sc)->roughness;
+      *roughness = make_float2(alpha, alpha);
+      *eta = 1.0f;
+      break;
 #endif
     default:
       *roughness = one_float2();
@@ -429,6 +440,7 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
     case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
+    case CLOSURE_BSDF_SHEEN_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
 #endif
@@ -524,6 +536,9 @@ ccl_device_inline
       break;
     case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
       eval = bsdf_principled_sheen_eval(sc, sd->wi, wo, pdf);
+      break;
+    case CLOSURE_BSDF_SHEEN_ID:
+      eval = bsdf_sheen_eval(sc, sd->wi, wo, pdf);
       break;
 #endif
     default:

@@ -6,10 +6,10 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1004,7 +1004,7 @@ void BKE_pose_channels_remove(Object *ob,
               }
             }
 
-            BKE_constraint_targets_flush(con, &targets, 0);
+            BKE_constraint_targets_flush(con, &targets, false);
           }
         }
 

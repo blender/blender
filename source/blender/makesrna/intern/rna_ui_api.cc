@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
@@ -1683,7 +1683,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "template_palette", "uiTemplatePalette");
   RNA_def_function_ui_description(func, "Item. A palette used to pick colors");
   api_ui_item_rna_common(func);
-  RNA_def_boolean(func, "color", 0, "", "Display the colors as colors or values");
+  RNA_def_boolean(func, "color", false, "", "Display the colors as colors or values");
 
   func = RNA_def_function(srna, "template_image_layers", "uiTemplateImageLayers");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

@@ -70,7 +70,7 @@ class ExtractorRunDatas : public Vector<ExtractorRunData> {
         result.append(data);
         continue;
       }
-      if ((iter_type & MR_ITER_POLY) && *(&extractor->iter_poly_bm + is_mesh)) {
+      if ((iter_type & MR_ITER_POLY) && *(&extractor->iter_face_bm + is_mesh)) {
         result.append(data);
         continue;
       }
@@ -281,7 +281,7 @@ static void extract_range_iter_looptri_mesh(void *__restrict userdata,
   }
 }
 
-static void extract_range_iter_poly_bm(void *__restrict userdata,
+static void extract_range_iter_face_bm(void *__restrict userdata,
                                        const int iter,
                                        const TaskParallelTLS *__restrict tls)
 {
@@ -291,12 +291,12 @@ static void extract_range_iter_poly_bm(void *__restrict userdata,
   const MeshRenderData *mr = data->mr;
   const BMFace *f = ((const BMFace **)data->elems)[iter];
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_poly_bm(
+    run_data.extractor->iter_face_bm(
         mr, f, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
 
-static void extract_range_iter_poly_mesh(void *__restrict userdata,
+static void extract_range_iter_face_mesh(void *__restrict userdata,
                                          const int iter,
                                          const TaskParallelTLS *__restrict tls)
 {
@@ -305,7 +305,7 @@ static void extract_range_iter_poly_mesh(void *__restrict userdata,
   const ExtractorIterData *data = static_cast<ExtractorIterData *>(userdata);
   const MeshRenderData *mr = data->mr;
   for (const ExtractorRunData &run_data : data->extractors) {
-    run_data.extractor->iter_poly_mesh(
+    run_data.extractor->iter_face_mesh(
         mr, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
   }
 }
@@ -390,9 +390,9 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
       stop = mr->tri_len;
       break;
     case MR_ITER_POLY:
-      range_data.elems = is_mesh ? mr->polys.data() : (void *)mr->bm->ftable;
-      func = is_mesh ? extract_range_iter_poly_mesh : extract_range_iter_poly_bm;
-      stop = mr->poly_len;
+      range_data.elems = is_mesh ? mr->faces.data() : (void *)mr->bm->ftable;
+      func = is_mesh ? extract_range_iter_face_mesh : extract_range_iter_face_bm;
+      stop = mr->face_len;
       break;
     case MR_ITER_LOOSE_EDGE:
       range_data.loose_elems = mr->loose_edges.data();
@@ -523,7 +523,7 @@ static void mesh_extract_render_data_node_exec(void *__restrict task_data)
   mesh_render_data_update_normals(mr, data_flag);
   mesh_render_data_update_looptris(mr, iter_type, data_flag);
   mesh_render_data_update_loose_geom(mr, update_task_data->cache, iter_type, data_flag);
-  mesh_render_data_update_polys_sorted(mr, update_task_data->cache, data_flag);
+  mesh_render_data_update_faces_sorted(mr, update_task_data->cache, data_flag);
 }
 
 static TaskNode *mesh_extract_render_data_node_create(TaskGraph *task_graph,
@@ -630,7 +630,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   EXTRACT_ADD_REQUESTED(vbo, fdots_nor);
   EXTRACT_ADD_REQUESTED(vbo, fdots_uv);
   EXTRACT_ADD_REQUESTED(vbo, fdots_edituv_data);
-  EXTRACT_ADD_REQUESTED(vbo, poly_idx);
+  EXTRACT_ADD_REQUESTED(vbo, face_idx);
   EXTRACT_ADD_REQUESTED(vbo, edge_idx);
   EXTRACT_ADD_REQUESTED(vbo, vert_idx);
   EXTRACT_ADD_REQUESTED(vbo, fdot_idx);
@@ -835,7 +835,7 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   EXTRACT_ADD_REQUESTED(ibo, edituv_lines);
   EXTRACT_ADD_REQUESTED(vbo, vert_idx);
   EXTRACT_ADD_REQUESTED(vbo, edge_idx);
-  EXTRACT_ADD_REQUESTED(vbo, poly_idx);
+  EXTRACT_ADD_REQUESTED(vbo, face_idx);
   EXTRACT_ADD_REQUESTED(vbo, edge_fac);
   EXTRACT_ADD_REQUESTED(ibo, points);
   EXTRACT_ADD_REQUESTED(vbo, edit_data);
@@ -872,21 +872,21 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
     extractor->init_subdiv(subdiv_cache, mr, cache, buffer, data);
 
     if (extractor->iter_subdiv_mesh || extractor->iter_subdiv_bm) {
-      int *subdiv_loop_poly_index = subdiv_cache->subdiv_loop_poly_index;
+      int *subdiv_loop_face_index = subdiv_cache->subdiv_loop_face_index;
       if (mr->extract_type == MR_EXTRACT_BMESH) {
         for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
-          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
+          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_face_index is
            * based on the subdivision loops. */
-          const int poly_origindex = subdiv_loop_poly_index[i * 4];
+          const int poly_origindex = subdiv_loop_face_index[i * 4];
           const BMFace *efa = BM_face_at_index(mr->bm, poly_origindex);
           extractor->iter_subdiv_bm(subdiv_cache, mr, data, i, efa);
         }
       }
       else {
         for (uint i = 0; i < subdiv_cache->num_subdiv_quads; i++) {
-          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_poly_index is
+          /* Multiply by 4 to have the start index of the quad's loop, as subdiv_loop_face_index is
            * based on the subdivision loops. */
-          const int poly_origindex = subdiv_loop_poly_index[i * 4];
+          const int poly_origindex = subdiv_loop_face_index[i * 4];
           extractor->iter_subdiv_mesh(subdiv_cache, mr, data, i, poly_origindex);
         }
       }

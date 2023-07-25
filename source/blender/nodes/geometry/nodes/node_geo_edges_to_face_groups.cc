@@ -54,18 +54,18 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
     evaluator.evaluate();
     const IndexMask non_boundary_edges = evaluator.get_evaluated_as_mask(0);
 
-    const OffsetIndices polys = mesh.polys();
+    const OffsetIndices faces = mesh.faces();
 
     Array<int> edge_to_face_offsets;
     Array<int> edge_to_face_indices;
-    const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_poly_map(
-        polys, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
+    const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
+        faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
 
-    AtomicDisjointSet islands(polys.size());
+    AtomicDisjointSet islands(faces.size());
     non_boundary_edges.foreach_index(
         [&](const int edge) { join_indices(islands, edge_to_face_map[edge]); });
 
-    Array<int> output(polys.size());
+    Array<int> output(faces.size());
     islands.calc_reduced_ids(output);
 
     return mesh.attributes().adapt_domain(

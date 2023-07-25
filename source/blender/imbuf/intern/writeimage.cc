@@ -6,9 +6,9 @@
  * \ingroup imbuf
  */
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"

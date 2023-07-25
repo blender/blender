@@ -13,9 +13,9 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -174,7 +174,7 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
       }
       case SPACE_TEXT: {
         SpaceText *st = (SpaceText *)sl;
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_NOP);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_USER_ONE);
         break;
       }
       case SPACE_SCRIPT: {
@@ -987,7 +987,7 @@ ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type)
   return nullptr;
 }
 
-ARegion *BKE_area_find_region_active_win(ScrArea *area)
+ARegion *BKE_area_find_region_active_win(const ScrArea *area)
 {
   if (area == nullptr) {
     return nullptr;
@@ -1003,7 +1003,7 @@ ARegion *BKE_area_find_region_active_win(ScrArea *area)
   return BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 }
 
-ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int xy[2])
+ARegion *BKE_area_find_region_xy(const ScrArea *area, const int regiontype, const int xy[2])
 {
   if (area == nullptr) {
     return nullptr;
@@ -1019,7 +1019,7 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int 
   return nullptr;
 }
 
-ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const int xy[2])
+ARegion *BKE_screen_find_region_xy(const bScreen *screen, const int regiontype, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
@@ -1031,7 +1031,7 @@ ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const 
   return nullptr;
 }
 
-ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
+ScrArea *BKE_screen_find_area_from_space(const bScreen *screen, const SpaceLink *sl)
 {
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (BLI_findindex(&area->spacedata, sl) != -1) {
@@ -1042,7 +1042,7 @@ ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
   return nullptr;
 }
 
-ScrArea *BKE_screen_find_big_area(bScreen *screen, const int spacetype, const short min)
+ScrArea *BKE_screen_find_big_area(const bScreen *screen, const int spacetype, const short min)
 {
   ScrArea *big = nullptr;
   int maxsize = 0;
@@ -1079,7 +1079,7 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
   }
   return nullptr;
 }
-ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, const int xy[2])
+ScrArea *BKE_screen_find_area_xy(const bScreen *screen, const int spacetype, const int xy[2])
 {
   return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, xy);
 }
@@ -1121,7 +1121,9 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
   memcpy(shading, shading_default, sizeof(*shading));
 }
 
-ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen, const int space_type, const int xy[2])
+ARegion *BKE_screen_find_main_region_at_xy(const bScreen *screen,
+                                           const int space_type,
+                                           const int xy[2])
 {
   ScrArea *area = BKE_screen_find_area_xy(screen, space_type, xy);
   if (!area) {

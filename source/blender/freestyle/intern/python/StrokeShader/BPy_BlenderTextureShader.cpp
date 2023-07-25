@@ -10,11 +10,11 @@
 
 #include "../../stroke/BasicStrokeShaders.h"
 
+#include "../../../../python/generic/py_capi_utils.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "../../../../python/generic/py_capi_utils.h"
 
 using namespace Freestyle;
 

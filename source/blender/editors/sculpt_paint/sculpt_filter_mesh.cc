@@ -265,7 +265,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   ss->filter_cache = nullptr;
 }
 
-typedef enum eSculptMeshFilterType {
+enum eSculptMeshFilterType {
   MESH_FILTER_SMOOTH = 0,
   MESH_FILTER_SCALE = 1,
   MESH_FILTER_INFLATE = 2,
@@ -277,7 +277,7 @@ typedef enum eSculptMeshFilterType {
   MESH_FILTER_SHARPEN = 8,
   MESH_FILTER_ENHANCE_DETAILS = 9,
   MESH_FILTER_ERASE_DISPLACEMENT = 10,
-} eSculptMeshFilterType;
+};
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
     {MESH_FILTER_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth mesh"},
@@ -310,11 +310,11 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef enum eMeshFilterDeformAxis {
+enum eMeshFilterDeformAxis {
   MESH_FILTER_DEFORM_X = 1 << 0,
   MESH_FILTER_DEFORM_Y = 1 << 1,
   MESH_FILTER_DEFORM_Z = 1 << 2,
-} eMeshFilterDeformAxis;
+};
 
 static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
     {MESH_FILTER_DEFORM_X, "X", 0, "X", "Deform in the X axis"},

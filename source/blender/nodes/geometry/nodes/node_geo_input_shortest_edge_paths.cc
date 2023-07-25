@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Total Cost").reference_pass_all();
 }
 
-typedef std::pair<float, int> VertPriority;
+using VertPriority = std::pair<float, int>;
 
 struct EdgeVertMap {
   Array<Vector<int>> edges_by_vertex_map;

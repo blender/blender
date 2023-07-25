@@ -1138,8 +1138,9 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   float(*screen_points)[2] = sgcontext->gesture_points;
 
   const int trim_totverts = tot_screen_points * 2;
-  const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
-  trim_operation->mesh = BKE_mesh_new_nomain(trim_totverts, 0, trim_totpolys, trim_totpolys * 3);
+  const int trim_faces_nums = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
+  trim_operation->mesh = BKE_mesh_new_nomain(
+      trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
 
@@ -1238,26 +1239,26 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
 
   /* Write the front face triangle indices. */
-  blender::MutableSpan<int> poly_offsets = trim_operation->mesh->poly_offsets_for_write();
+  blender::MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
   blender::MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
-  int poly_index = 0;
+  int face_index = 0;
   int loop_index = 0;
   for (int i = 0; i < tot_tris_face; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0];
     corner_verts[loop_index + 1] = r_tris[i][1];
     corner_verts[loop_index + 2] = r_tris[i][2];
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     corner_verts[loop_index + 0] = r_tris[i][0] + tot_screen_points;
     corner_verts[loop_index + 1] = r_tris[i][1] + tot_screen_points;
     corner_verts[loop_index + 2] = r_tris[i][2] + tot_screen_points;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
@@ -1265,7 +1266,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   /* Write the indices for the lateral triangles. */
   for (int i = 0; i < tot_screen_points; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
@@ -1274,12 +1275,12 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     corner_verts[loop_index + 0] = next_index + tot_screen_points;
     corner_verts[loop_index + 1] = next_index;
     corner_verts[loop_index + 2] = current_index;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
   for (int i = 0; i < tot_screen_points; i++) {
-    poly_offsets[poly_index] = loop_index;
+    face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= tot_screen_points) {
@@ -1288,7 +1289,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     corner_verts[loop_index + 0] = current_index;
     corner_verts[loop_index + 1] = current_index + tot_screen_points;
     corner_verts[loop_index + 2] = next_index + tot_screen_points;
-    poly_index++;
+    face_index++;
     loop_index += 3;
   }
 
@@ -1335,7 +1336,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMIter iter;
   int i;
-  const int i_faces_end = trim_mesh->totpoly;
+  const int i_faces_end = trim_mesh->faces_num;
 
   /* We need face normals because of 'BM_face_split_edgenet'
    * we could calculate on the fly too (before calling split). */
@@ -1435,7 +1436,7 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgco
   Mesh *mesh = (Mesh *)object->data;
 
   ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);

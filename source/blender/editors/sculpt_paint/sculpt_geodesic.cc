@@ -89,7 +89,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 
   float(*vert_positions)[3] = SCULPT_mesh_deformed_positions_get(ss);
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
@@ -97,8 +97,8 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   BLI_bitmap *edge_tag = BLI_BITMAP_NEW(totedge, "edge tag");
 
   if (ss->epmap.is_empty()) {
-    ss->epmap = blender::bke::mesh::build_edge_to_poly_map(
-        polys, corner_edges, edges.size(), ss->edge_to_poly_offsets, ss->edge_to_poly_indices);
+    ss->epmap = blender::bke::mesh::build_edge_to_face_map(
+        faces, corner_edges, edges.size(), ss->edge_to_face_offsets, ss->edge_to_face_indices);
   }
   if (ss->vemap.is_empty()) {
     ss->vemap = blender::bke::mesh::build_vert_to_edge_map(
@@ -173,12 +173,12 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
       }
 
       if (ss->epmap[e].size() != 0) {
-        for (int poly_map_index = 0; poly_map_index < ss->epmap[e].size(); poly_map_index++) {
-          const int poly = ss->epmap[e][poly_map_index];
-          if (ss->hide_poly && ss->hide_poly[poly]) {
+        for (int face_map_index = 0; face_map_index < ss->epmap[e].size(); face_map_index++) {
+          const int face = ss->epmap[e][face_map_index];
+          if (ss->hide_poly && ss->hide_poly[face]) {
             continue;
           }
-          for (const int v_other : corner_verts.slice(polys[poly])) {
+          for (const int v_other : corner_verts.slice(faces[face])) {
             if (ELEM(v_other, v1, v2)) {
               continue;
             }

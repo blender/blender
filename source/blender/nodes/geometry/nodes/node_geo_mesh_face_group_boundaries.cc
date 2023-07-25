@@ -41,7 +41,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
-    FieldEvaluator face_evaluator{face_context, mesh.totpoly};
+    FieldEvaluator face_evaluator{face_context, mesh.faces_num};
     face_evaluator.add(face_set_);
     face_evaluator.evaluate();
     const VArray<int> face_set = face_evaluator.get_evaluated<int>(0);
@@ -49,10 +49,10 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
     Array<bool> boundary(mesh.totedge, false);
     Array<bool> edge_visited(mesh.totedge, false);
     Array<int> edge_face_set(mesh.totedge, 0);
-    const OffsetIndices polys = mesh.polys();
+    const OffsetIndices faces = mesh.faces();
     const Span<int> corner_edges = mesh.corner_edges();
-    for (const int i : polys.index_range()) {
-      for (const int edge : corner_edges.slice(polys[i])) {
+    for (const int i : faces.index_range()) {
+      for (const int edge : corner_edges.slice(faces[i])) {
         if (edge_visited[edge]) {
           if (edge_face_set[edge] != face_set[i]) {
             /* This edge is connected to two faces on different face sets. */

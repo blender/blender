@@ -6,8 +6,8 @@
  * \ingroup spclip
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_defaults.h"
 
@@ -695,7 +695,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
       tmpibuf = ED_space_clip_get_stable_buffer(sc, nullptr, nullptr, nullptr);
     }
 
-    if (ED_clip_view_selection(C, region, 0)) {
+    if (ED_clip_view_selection(C, region, false)) {
       sc->xof += sc->xlockof;
       sc->yof += sc->ylockof;
     }

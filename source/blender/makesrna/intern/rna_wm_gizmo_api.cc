@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
@@ -294,7 +294,7 @@ void RNA_api_gizmo(StructRNA *srna)
   parm = RNA_def_string(func, "property", nullptr, 0, "", "Property identifier");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_function_ui_description(func, "");
-  parm = RNA_def_boolean(func, "result", 0, "", "");
+  parm = RNA_def_boolean(func, "result", false, "", "");
   RNA_def_function_return(func, parm);
 }
 

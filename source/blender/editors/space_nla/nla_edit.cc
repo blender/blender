@@ -184,7 +184,7 @@ void NLA_OT_tweakmode_enter(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_boolean(ot->srna,
                          "isolate_action",
-                         0,
+                         false,
                          "Isolate Action",
                          "Enable 'solo' on the NLA Track containing the active strip, "
                          "to edit it without seeing the effects of the NLA stack");
@@ -293,7 +293,7 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot)
   /* properties */
   prop = RNA_def_boolean(ot->srna,
                          "isolate_action",
-                         0,
+                         false,
                          "Isolate Action",
                          "Disable 'solo' on any of the NLA Tracks after exiting tweak mode "
                          "to get things back to normal");
@@ -1014,7 +1014,7 @@ static int nlaedit_add_meta_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* create meta-strips from the continuous chains of selected strips */
-    BKE_nlastrips_make_metas(&nlt->strips, 0);
+    BKE_nlastrips_make_metas(&nlt->strips, false);
 
     /* name the metas */
     LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
@@ -1087,7 +1087,7 @@ static int nlaedit_remove_meta_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* clear all selected meta-strips, regardless of whether they are temporary or not */
-    BKE_nlastrips_clear_metas(&nlt->strips, 1, 0);
+    BKE_nlastrips_clear_metas(&nlt->strips, true, false);
 
     ale->update |= ANIM_UPDATE_DEPS;
   }
@@ -1593,7 +1593,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
     }
 
     /* Make temporary meta-strips so that entire islands of selections can be moved around. */
-    BKE_nlastrips_make_metas(&nlt->strips, 1);
+    BKE_nlastrips_make_metas(&nlt->strips, true);
 
     /* special case: if there is only 1 island
      * (i.e. temp meta BUT NOT unselected/normal/normal-meta strips) left after this,
@@ -1606,7 +1606,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
           (BLI_listbase_count_at_most(&mstrip->strips, 3) == 2))
       {
         /* remove this temp meta, so that we can see the strips inside */
-        BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+        BKE_nlastrips_clear_metas(&nlt->strips, false, true);
       }
     }
 
@@ -1706,7 +1706,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
     }
 
     /* Clear (temp) meta-strips. */
-    BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+    BKE_nlastrips_clear_metas(&nlt->strips, false, true);
   }
 
   /* free temp data */
@@ -2007,7 +2007,7 @@ void NLA_OT_action_sync_length(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_boolean(ot->srna,
                              "active",
-                             1,
+                             true,
                              "Active Strip Only",
                              "Only sync the active length for the active strip");
 }
@@ -2359,7 +2359,7 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
     const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale->id);
 
     /* create meta-strips from the continuous chains of selected strips */
-    BKE_nlastrips_make_metas(&nlt->strips, 1);
+    BKE_nlastrips_make_metas(&nlt->strips, true);
 
     /* apply the snapping to all the temp meta-strips, then put them in a separate list to be added
      * back to the original only if they still fit
@@ -2421,14 +2421,14 @@ static int nlaedit_snap_exec(bContext *C, wmOperator *op)
 
         /* clear temp meta-strips on this new track,
          * as we may not be able to get back to it */
-        BKE_nlastrips_clear_metas(&track->strips, 0, 1);
+        BKE_nlastrips_clear_metas(&track->strips, false, true);
 
         any_added = true;
       }
     }
 
     /* remove the meta-strips now that we're done */
-    BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+    BKE_nlastrips_clear_metas(&nlt->strips, false, true);
 
     /* tag for recalculating the animation */
     ale->update |= ANIM_UPDATE_DEPS;
@@ -2659,7 +2659,7 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
       }
 
       /* TODO: when 'active' vs 'all' boolean is added, change last param! */
-      ok |= ANIM_fmodifiers_copy_to_buf(&strip->modifiers, 0);
+      ok |= ANIM_fmodifiers_copy_to_buf(&strip->modifiers, false);
     }
   }
 

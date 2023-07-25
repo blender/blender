@@ -887,6 +887,7 @@ typedef enum {
    * deleted in a safe context. */
   WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
 } wmTimerFlags;
+ENUM_OPERATORS(wmTimerFlags, WM_TIMER_TAGGED_FOR_REMOVAL)
 
 typedef struct wmTimer {
   struct wmTimer *next, *prev;

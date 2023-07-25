@@ -22,15 +22,15 @@ static void node_declare(NodeDeclarationBuilder &b)
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
-  auto area_fn = [positions, polys, corner_verts](const int i) -> float {
-    return bke::mesh::poly_area_calc(positions, corner_verts.slice(polys[i]));
+  auto area_fn = [positions, faces, corner_verts](const int i) -> float {
+    return bke::mesh::face_area_calc(positions, corner_verts.slice(faces[i]));
   };
 
   return mesh.attributes().adapt_domain<float>(
-      VArray<float>::ForFunc(polys.size(), area_fn), ATTR_DOMAIN_FACE, domain);
+      VArray<float>::ForFunc(faces.size(), area_fn), ATTR_DOMAIN_FACE, domain);
 }
 
 class FaceAreaFieldInput final : public bke::MeshFieldInput {

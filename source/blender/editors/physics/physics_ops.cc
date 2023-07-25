@@ -6,7 +6,7 @@
  * \ingroup edphys
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "WM_api.h"
 

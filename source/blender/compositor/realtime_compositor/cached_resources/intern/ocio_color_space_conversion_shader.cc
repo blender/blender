@@ -88,9 +88,9 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   }
 
   /* This is ignored since we query using our own GPU capabilities system. */
-  void setTextureMaxWidth(unsigned /*max_width*/) override {}
+  void setTextureMaxWidth(uint /*max_width*/) override {}
 
-  unsigned getTextureMaxWidth() const noexcept override
+  uint getTextureMaxWidth() const noexcept override
   {
     return GPU_max_texture_size();
   }
@@ -198,8 +198,8 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   void addTexture(const char *texture_name,
                   const char *sampler_name,
-                  unsigned width,
-                  unsigned height,
+                  uint width,
+                  uint height,
                   TextureType channel,
                   OCIO::Interpolation interpolation,
                   const float *values) override
@@ -233,7 +233,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
   void add3DTexture(const char *texture_name,
                     const char *sampler_name,
-                    unsigned size,
+                    uint size,
                     OCIO::Interpolation interpolation,
                     const float *values) override
   {

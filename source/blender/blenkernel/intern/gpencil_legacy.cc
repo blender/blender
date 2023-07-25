@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "CLG_log.h"
 
@@ -2145,7 +2145,7 @@ bool BKE_gpencil_merge_materials(Object *ob,
   short *totcol = BKE_object_material_len_p(ob);
   if (totcol == 0) {
     *r_removed = 0;
-    return 0;
+    return false;
   }
 
   /* Review materials. */

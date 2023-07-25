@@ -112,7 +112,7 @@ struct MeshBufferList {
     /* Selection */
     GPUVertBuf *vert_idx; /* extend */
     GPUVertBuf *edge_idx; /* extend */
-    GPUVertBuf *poly_idx;
+    GPUVertBuf *face_idx;
     GPUVertBuf *fdot_idx;
     GPUVertBuf *attr[GPU_MAX_ATTR];
     GPUVertBuf *attr_viewer;
@@ -229,7 +229,7 @@ struct MeshExtractLooseGeom {
   blender::Array<int> edges;
 };
 
-struct SortedPolyData {
+struct SortedFaceData {
   /** The first triangle index for each polygon, sorted into slices by material. */
   blender::Array<int> tri_first_index;
   /** The number of visible triangles assigned to each material. */
@@ -248,7 +248,7 @@ struct MeshBufferCache {
 
   MeshExtractLooseGeom loose_geom;
 
-  SortedPolyData poly_sorted;
+  SortedFaceData face_sorted;
 };
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
@@ -276,7 +276,7 @@ struct MeshBatchCache {
   /* Settings to determine if cache is invalid. */
   int edge_len;
   int tri_len;
-  int poly_len;
+  int face_len;
   int vert_len;
   int mat_len;
   /* Instantly invalidates cache, skipping mesh check */

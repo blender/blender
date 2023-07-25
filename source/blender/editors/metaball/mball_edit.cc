@@ -6,8 +6,8 @@
  * \ingroup edmeta
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -652,7 +652,7 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   MetaBall *mb = (MetaBall *)obedit->data;
   MetaElem *ml;
-  const bool invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : 0;
+  const bool invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : false;
 
   ml = static_cast<MetaElem *>(mb->editelems->first);
 

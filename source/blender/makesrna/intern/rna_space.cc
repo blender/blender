@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -4136,12 +4136,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "selected_studio_light", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "StudioLight");
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
   RNA_def_property_ui_text(prop, "Studio Light", "Selected StudioLight");
   RNA_def_property_pointer_funcs(
       prop, "rna_View3DShading_selected_studio_light_get", nullptr, nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 
   prop = RNA_def_property(srna, "studiolight_rotate_z", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, nullptr, "studiolight_rot_z");

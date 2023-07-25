@@ -128,16 +128,16 @@ typedef struct DRWSubdivCache {
    * counters above will all be set to zero if we do not have subdivision loops. */
   bool may_have_loose_geom;
 
-  /* Number of polygons in the coarse mesh, notably used to compute a coarse polygon index given a
+  /* Number of faces in the coarse mesh, notably used to compute a coarse face index given a
    * subdivision loop index. */
-  int num_coarse_poly;
+  int num_coarse_faces;
 
   /* Maps subdivision loop to subdivided vertex index. */
   int *subdiv_loop_subdiv_vert_index;
   /* Maps subdivision loop to subdivided edge index. */
   int *subdiv_loop_subdiv_edge_index;
-  /* Maps subdivision loop to original coarse poly index. */
-  int *subdiv_loop_poly_index;
+  /* Maps subdivision loop to original coarse face index. */
+  int *subdiv_loop_face_index;
 
   /* Indices of faces adjacent to the vertices, ordered by vertex index, with no particular
    * winding. */
@@ -153,16 +153,16 @@ typedef struct DRWSubdivCache {
   /* Indicates if edge should be drawn in optimal display mode. */
   struct GPUVertBuf *edges_draw_flag;
 
-  /* Owned by #Subdiv. Indexed by coarse polygon index, difference between value (i + 1) and (i)
-   * gives the number of ptex faces for coarse polygon (i). */
+  /* Owned by #Subdiv. Indexed by coarse face index, difference between value (i + 1) and (i)
+   * gives the number of ptex faces for coarse face (i). */
   int *face_ptex_offset;
   /* Vertex buffer for face_ptex_offset. */
   struct GPUVertBuf *face_ptex_offset_buffer;
 
-  int *subdiv_polygon_offset;
-  struct GPUVertBuf *subdiv_polygon_offset_buffer;
+  int *subdiv_face_offset;
+  struct GPUVertBuf *subdiv_face_offset_buffer;
 
-  /* Contains the start loop index and the smooth flag for each coarse polygon. */
+  /* Contains the start loop index and the smooth flag for each coarse face. */
   struct GPUVertBuf *extra_coarse_face_data;
 
   /* Computed for `ibo.points`, one value per subdivided vertex,
@@ -172,7 +172,7 @@ typedef struct DRWSubdivCache {
   /* Material offsets. */
   int *mat_start;
   int *mat_end;
-  struct GPUVertBuf *polygon_mat_offset;
+  struct GPUVertBuf *face_mat_offset;
 
   DRWPatchMap gpu_patch_map;
 

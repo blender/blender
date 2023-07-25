@@ -17,6 +17,9 @@
 
 namespace blender::eevee {
 
+using blender::math::AxisSigned;
+using blender::math::CartesianBasis;
+
 class Instance;
 class CapturePipeline;
 class ShadowModule;
@@ -59,12 +62,9 @@ class IrradianceBake {
    * Basis orientation for each baking projection.
    * Note that this is the view orientation. The projection matrix will take the negative Z axis
    * as forward and Y as up. */
-  math::CartesianBasis basis_x_ = {
-      math::AxisSigned::Y_POS, math::AxisSigned::Z_POS, math::AxisSigned::X_POS};
-  math::CartesianBasis basis_y_ = {
-      math::AxisSigned::X_POS, math::AxisSigned::Z_POS, math::AxisSigned::Y_NEG};
-  math::CartesianBasis basis_z_ = {
-      math::AxisSigned::X_POS, math::AxisSigned::Y_POS, math::AxisSigned::Z_POS};
+  CartesianBasis basis_x_ = {AxisSigned::Z_POS, AxisSigned::Y_POS, AxisSigned::X_NEG};
+  CartesianBasis basis_y_ = {AxisSigned::X_POS, AxisSigned::Z_POS, AxisSigned::Y_NEG};
+  CartesianBasis basis_z_ = {AxisSigned::Y_POS, AxisSigned::X_POS, AxisSigned::Z_NEG};
   /** Views for each baking projection. */
   View view_x_ = {"BakingViewX"};
   View view_y_ = {"BakingViewY"};

@@ -76,15 +76,15 @@ static void compute_area_ratio(const MeshRenderData *mr,
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
     const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
-    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
-      const IndexRange poly = mr->polys[poly_index];
-      const float area = bke::mesh::poly_area_calc(mr->vert_positions,
-                                                   mr->corner_verts.slice(poly));
-      float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[poly.start()]),
-                                  poly.size());
+    for (int face_index = 0; face_index < mr->face_len; face_index++) {
+      const IndexRange face = mr->faces[face_index];
+      const float area = bke::mesh::face_area_calc(mr->vert_positions,
+                                                   mr->corner_verts.slice(face));
+      float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[face.start()]),
+                                  face.size());
       tot_area += area;
       tot_uv_area += uvarea;
-      r_area_ratio[poly_index] = area_ratio_get(area, uvarea);
+      r_area_ratio[face_index] = area_ratio_get(area, uvarea);
     }
   }
 
@@ -98,7 +98,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
                                                void * /*data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
-  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->poly_len, __func__));
+  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr->face_len, __func__));
   compute_area_ratio(mr, area_ratio, cache->tot_area, cache->tot_uv_area);
 
   /* Copy face data for each loop. */
@@ -116,9 +116,9 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
-      for (const int l_index : mr->polys[poly_index]) {
-        loop_stretch[l_index] = area_ratio[poly_index];
+    for (int face_index = 0; face_index < mr->face_len; face_index++) {
+      for (const int l_index : mr->faces[face_index]) {
+        loop_stretch[l_index] = area_ratio[face_index];
       }
     }
   }

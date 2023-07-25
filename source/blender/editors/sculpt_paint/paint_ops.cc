@@ -1019,11 +1019,11 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   }
 
   prop = RNA_def_boolean(
-      ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
+      ot->srna, "toggle", false, "Toggle", "Toggle between two brushes rather than cycling");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   prop = RNA_def_boolean(ot->srna,
                          "create_missing",
-                         0,
+                         false,
                          "Create Missing",
                          "If the requested brush type does not exist, create a new brush");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
@@ -1382,10 +1382,10 @@ static void BRUSH_OT_stencil_fit_image_aspect(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "use_repeat", 1, "Use Repeat", "Use repeat mapping values");
-  RNA_def_boolean(ot->srna, "use_scale", 1, "Use Scale", "Use texture scale values");
+  RNA_def_boolean(ot->srna, "use_repeat", true, "Use Repeat", "Use repeat mapping values");
+  RNA_def_boolean(ot->srna, "use_scale", true, "Use Scale", "Use texture scale values");
   RNA_def_boolean(
-      ot->srna, "mask", 0, "Modify Mask Stencil", "Modify either the primary or mask stencil");
+      ot->srna, "mask", false, "Modify Mask Stencil", "Modify either the primary or mask stencil");
 }
 
 static int stencil_reset_transform_exec(bContext *C, wmOperator *op)
@@ -1437,7 +1437,7 @@ static void BRUSH_OT_stencil_reset_transform(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "mask", 0, "Modify Mask Stencil", "Modify either the primary or mask stencil");
+      ot->srna, "mask", false, "Modify Mask Stencil", "Modify either the primary or mask stencil");
 }
 
 /**************************** registration **********************************/

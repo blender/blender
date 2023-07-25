@@ -504,10 +504,10 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     /* assign operator */
     ptr = WM_gizmo_operator_set(ggd->cage, 0, ot_translate, nullptr);
-    RNA_boolean_set(ptr, "release_confirm", 1);
+    RNA_boolean_set(ptr, "release_confirm", true);
 
-    const bool constraint_x[3] = {1, 0, 0};
-    const bool constraint_y[3] = {0, 1, 0};
+    const bool constraint_x[3] = {true, false, false};
+    const bool constraint_y[3] = {false, true, false};
 
     ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X, ot_resize, nullptr);
     PropertyRNA *prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");

@@ -197,7 +197,7 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   parm = RNA_def_boolean(
       func,
       "deferred",
-      0,
+      false,
       "",
       "Whether to activate the ID immediately (false) or after the file browser refreshes (true)");
 

@@ -150,17 +150,17 @@ BLI_NOINLINE static void calculate_sphere_edge_indices(MutableSpan<int2> edges,
   }
 }
 
-BLI_NOINLINE static void calculate_sphere_faces(MutableSpan<int> poly_offsets, const int segments)
+BLI_NOINLINE static void calculate_sphere_faces(MutableSpan<int> face_offsets, const int segments)
 {
-  MutableSpan<int> poly_sizes = poly_offsets.drop_back(1);
+  MutableSpan<int> face_sizes = face_offsets.drop_back(1);
   /* Add the triangles connected to the top vertex. */
-  poly_sizes.take_front(segments).fill(3);
+  face_sizes.take_front(segments).fill(3);
   /* Add the middle quads. */
-  poly_sizes.drop_front(segments).drop_back(segments).fill(4);
+  face_sizes.drop_front(segments).drop_back(segments).fill(4);
   /* Add the triangles connected to the bottom vertex. */
-  poly_sizes.take_back(segments).fill(3);
+  face_sizes.take_back(segments).fill(3);
 
-  offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
 }
 
 BLI_NOINLINE static void calculate_sphere_corners(MutableSpan<int> corner_verts,
@@ -310,7 +310,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
   BKE_mesh_smooth_flag_set(mesh, false);
@@ -324,7 +324,7 @@ static Mesh *create_uv_sphere_mesh(const float radius,
         BKE_mesh_vert_normals_clear_dirty(mesh);
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
-      [&]() { calculate_sphere_faces(poly_offsets, segments); },
+      [&]() { calculate_sphere_faces(face_offsets, segments); },
       [&]() { calculate_sphere_corners(corner_verts, corner_edges, segments, rings); },
       [&]() {
         if (uv_map_id) {

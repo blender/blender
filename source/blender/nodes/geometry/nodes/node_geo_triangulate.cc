@@ -45,7 +45,7 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
 {
   CustomData_MeshMasks cd_mask_extra = {
       CD_MASK_ORIGINDEX, CD_MASK_ORIGINDEX, 0, CD_MASK_ORIGINDEX};
-  BMeshCreateParams create_params{0};
+  BMeshCreateParams create_params{false};
   BMeshFromMeshParams from_mesh_params{};
   from_mesh_params.calc_face_normal = true;
   from_mesh_params.calc_vert_normal = true;
@@ -84,7 +84,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
     const bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
-    FieldEvaluator evaluator{context, mesh_in.totpoly};
+    FieldEvaluator evaluator{context, mesh_in.faces_num};
     evaluator.add(selection_field);
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_as_mask(0);

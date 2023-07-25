@@ -729,9 +729,9 @@ static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRend
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
   if (lmd->anchor_grp_name[0]) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

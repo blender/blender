@@ -7,7 +7,7 @@
  * Implementation of Bone Groups operators and editing API's.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -478,7 +478,7 @@ static int pose_group_select_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  pose_group_select(ob, 1);
+  pose_group_select(ob, true);
 
   /* notifiers for updates */
   bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -513,7 +513,7 @@ static int pose_group_deselect_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  pose_group_select(ob, 0);
+  pose_group_select(ob, false);
 
   /* notifiers for updates */
   bArmature *arm = static_cast<bArmature *>(ob->data);

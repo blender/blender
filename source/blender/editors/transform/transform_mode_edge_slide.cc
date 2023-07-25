@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -614,7 +614,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
   STACK_DECLARE(sv_array);
   STACK_INIT(sv_array, sv_tot);
 
-  while (1) {
+  while (true) {
     float vec_a[3], vec_b[3];
     BMLoop *l_a, *l_b;
     BMLoop *l_a_prev, *l_b_prev;
@@ -998,7 +998,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
 
         j = sv_tot;
 
-        while (1) {
+        while (true) {
           BMVert *v_other = BM_edge_other_vert(e_step, v);
           int endpoint = ((sv_table[BM_elem_index_get(v_other)] != -1) +
                           (BM_vert_is_edge_pair(v_other) == false));

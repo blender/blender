@@ -6,9 +6,9 @@
  * \ingroup edscr
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -1298,7 +1298,7 @@ static eContextResult screen_ctx_ui_list(const bContext *C, bContextDataResult *
 
 /* Registry of context callback functions. */
 
-typedef eContextResult (*context_callback)(const bContext *C, bContextDataResult *result);
+using context_callback = eContextResult (*)(const bContext *C, bContextDataResult *result);
 static GHash *ed_screen_context_functions = nullptr;
 
 static void free_context_function_ghash(void * /*user_data*/)

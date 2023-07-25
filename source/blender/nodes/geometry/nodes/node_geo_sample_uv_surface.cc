@@ -243,7 +243,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  if (mesh->totpoly == 0 && mesh->totvert != 0) {
+  if (mesh->faces_num == 0 && mesh->totvert != 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The source mesh must have faces"));
     params.set_default_remaining_outputs();
     return;

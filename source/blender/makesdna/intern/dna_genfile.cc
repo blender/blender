@@ -12,10 +12,10 @@
  * SDNA and the SDNA of the current (running) version of Blender.
  */
 
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
@@ -860,7 +860,7 @@ static bool elem_streq(const char *name, const char *oname)
 {
   int a = 0;
 
-  while (1) {
+  while (true) {
     if (name[a] != oname[a]) {
       return false;
     }
@@ -978,11 +978,11 @@ static int elem_offset(const SDNA *sdna,
 }
 
 /* Each struct member belongs to one of the categories below. */
-typedef enum eStructMemberCategory {
+enum eStructMemberCategory {
   STRUCT_MEMBER_CATEGORY_STRUCT,
   STRUCT_MEMBER_CATEGORY_PRIMITIVE,
   STRUCT_MEMBER_CATEGORY_POINTER,
-} eStructMemberCategory;
+};
 
 static eStructMemberCategory get_struct_member_category(const SDNA *sdna,
                                                         const SDNA_StructMember *member)
@@ -1077,16 +1077,16 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
   }
 }
 
-typedef enum eReconstructStepType {
+enum eReconstructStepType {
   RECONSTRUCT_STEP_MEMCPY,
   RECONSTRUCT_STEP_CAST_PRIMITIVE,
   RECONSTRUCT_STEP_CAST_POINTER_TO_32,
   RECONSTRUCT_STEP_CAST_POINTER_TO_64,
   RECONSTRUCT_STEP_SUBSTRUCT,
   RECONSTRUCT_STEP_INIT_ZERO,
-} eReconstructStepType;
+};
 
-typedef struct ReconstructStep {
+struct ReconstructStep {
   eReconstructStepType type;
   union {
     struct {
@@ -1114,16 +1114,16 @@ typedef struct ReconstructStep {
       short new_struct_nr;
     } substruct;
   } data;
-} ReconstructStep;
+};
 
-typedef struct DNA_ReconstructInfo {
+struct DNA_ReconstructInfo {
   const SDNA *oldsdna;
   const SDNA *newsdna;
   const char *compare_flags;
 
   int *step_counts;
   ReconstructStep **steps;
-} DNA_ReconstructInfo;
+};
 
 static void reconstruct_structs(const DNA_ReconstructInfo *reconstruct_info,
                                 const int blocks,

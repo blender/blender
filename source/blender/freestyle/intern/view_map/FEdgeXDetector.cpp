@@ -499,8 +499,8 @@ void FEdgeXDetector::ProcessRidgeFace(WXFace *iFace)
         Face_Curvature_Info *second_layer_info =
             (Face_Curvature_Info *)second_ridge_layer[0]->userdata;
 
-        unsigned index1 = wxf->GetIndex(oppositeEdge->GetaVertex());
-        unsigned index2 = wxf->GetIndex(oppositeEdge->GetbVertex());
+        uint index1 = wxf->GetIndex(oppositeEdge->GetaVertex());
+        uint index2 = wxf->GetIndex(oppositeEdge->GetbVertex());
         real K1_1 = second_layer_info->vec_curvature_info[index1]->K1;
         real K1_2 = second_layer_info->vec_curvature_info[index2]->K1;
         real K1 = (1.0 - t) * K1_1 + t * K1_2;

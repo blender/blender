@@ -6,11 +6,11 @@
  * \ingroup spimage
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -855,7 +855,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
   ot->flag = OPTYPE_LOCK_BYPASS;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+  prop = RNA_def_boolean(ot->srna, "fit_view", false, "Fit View", "Fit frame to the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -898,7 +898,7 @@ void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
   ot->poll = ED_space_image_cursor_poll;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+  prop = RNA_def_boolean(ot->srna, "fit_view", false, "Fit View", "Fit frame to the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -2078,7 +2078,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna,
       "save_as_render",
-      0,
+      false,
       "Save As Render",
       "Save image with render color management.\n"
       "For display image formats like PNG, apply view and display transform.\n"
@@ -2086,7 +2086,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "copy",
-                         0,
+                         false,
                          "Copy",
                          "Create a new image file without modifying the current image in Blender");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2707,20 +2707,23 @@ void IMAGE_OT_new(wmOperatorType *ot)
       ot->srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
   RNA_def_property_float_array_default(prop, default_color);
-  RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+  RNA_def_boolean(ot->srna, "alpha", true, "Alpha", "Create an image with an alpha channel");
   RNA_def_enum(ot->srna,
                "generated_type",
                rna_enum_image_generated_type_items,
                IMA_GENTYPE_BLANK,
                "Generated Type",
                "Fill the image with a grid for UV map testing");
-  RNA_def_boolean(
-      ot->srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
+  RNA_def_boolean(ot->srna,
+                  "float",
+                  false,
+                  "32-bit Float",
+                  "Create image with 32-bit floating-point bit depth");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_boolean(
-      ot->srna, "use_stereo_3d", 0, "Stereo 3D", "Create an image with left and right views");
+      ot->srna, "use_stereo_3d", false, "Stereo 3D", "Create an image with left and right views");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-  prop = RNA_def_boolean(ot->srna, "tiled", 0, "Tiled", "Create a tiled image");
+  prop = RNA_def_boolean(ot->srna, "tiled", false, "Tiled", "Create a tiled image");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3077,13 +3080,13 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   ot->poll = image_from_context_has_data_poll_active_tile;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert red channel");
+  prop = RNA_def_boolean(ot->srna, "invert_r", false, "Red", "Invert red channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert green channel");
+  prop = RNA_def_boolean(ot->srna, "invert_g", false, "Green", "Invert green channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert blue channel");
+  prop = RNA_def_boolean(ot->srna, "invert_b", false, "Blue", "Invert blue channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert alpha channel");
+  prop = RNA_def_boolean(ot->srna, "invert_a", false, "Alpha", "Invert alpha channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* flags */
@@ -3607,7 +3610,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER;
 
-  RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
+  RNA_def_boolean(ot->srna, "reverse", false, "Cycle in Reverse", "");
 }
 
 /** \} */
@@ -3723,7 +3726,7 @@ static bool change_frame_poll(bContext *C)
 {
   /* prevent changes during render */
   if (G.is_rendering) {
-    return 0;
+    return false;
   }
 
   return space_image_main_region_poll(C);
@@ -4068,8 +4071,8 @@ static void def_fill_tile(StructOrFunctionRNA *srna)
 
   /* Only needed when filling the first tile. */
   RNA_def_boolean(
-      srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
-  RNA_def_boolean(srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+      srna, "float", false, "32-bit Float", "Create image with 32-bit floating-point bit depth");
+  RNA_def_boolean(srna, "alpha", true, "Alpha", "Create an image with an alpha channel");
 }
 
 static bool tile_add_poll(bContext *C)

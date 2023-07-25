@@ -40,8 +40,8 @@ char *BKE_mesh_debug_info(const Mesh *me)
   BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)me);
   BLI_dynstr_appendf(dynstr, "    'totvert': %d,\n", me->totvert);
   BLI_dynstr_appendf(dynstr, "    'totedge': %d,\n", me->totedge);
-  BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me->totface);
-  BLI_dynstr_appendf(dynstr, "    'totpoly': %d,\n", me->totpoly);
+  BLI_dynstr_appendf(dynstr, "    'totface': %d,\n", me->totface_legacy);
+  BLI_dynstr_appendf(dynstr, "    'faces_num': %d,\n", me->faces_num);
 
   BLI_dynstr_appendf(dynstr, "    'runtime.deformed_only': %d,\n", me->runtime->deformed_only);
   BLI_dynstr_appendf(
@@ -64,7 +64,7 @@ char *BKE_mesh_debug_info(const Mesh *me)
   BLI_dynstr_append(dynstr, "    ),\n");
 
   BLI_dynstr_append(dynstr, "    'tessface_layers': (\n");
-  CustomData_debug_info_from_layers(&me->fdata, indent8, dynstr);
+  CustomData_debug_info_from_layers(&me->fdata_legacy, indent8, dynstr);
   BLI_dynstr_append(dynstr, "    ),\n");
 
   BLI_dynstr_append(dynstr, "}\n");

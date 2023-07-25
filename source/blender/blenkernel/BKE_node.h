@@ -952,7 +952,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_BSDF_GLASS 134
 #define SH_NODE_BSDF_TRANSLUCENT 137
 #define SH_NODE_BSDF_TRANSPARENT 138
-#define SH_NODE_BSDF_VELVET 139
+#define SH_NODE_BSDF_SHEEN 139
 #define SH_NODE_EMISSION 140
 #define SH_NODE_NEW_GEOMETRY 141
 #define SH_NODE_LIGHT_PATH 142

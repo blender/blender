@@ -9,8 +9,8 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
-#include <float.h>
-#include <string.h>
+#include <cfloat>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -1847,11 +1847,11 @@ static void update_noise_node_dimensions(bNodeTree *ntree)
 /* This structure is only used to pass data to
  * update_mapping_node_fcurve_rna_path_callback.
  */
-typedef struct {
+struct MappingNodeFCurveCallbackData {
   char *nodePath;
   bNode *minimumNode;
   bNode *maximumNode;
-} MappingNodeFCurveCallbackData;
+};
 
 /* This callback function is used by update_mapping_node_inputs_and_properties.
  * It is executed on every fcurve in the nodetree id updating its RNA paths. The
@@ -2924,7 +2924,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
      * harm to be expected anyway for being over-conservative. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       /* Check if we need to convert mfaces to polys. */
-      if (me->totface && !me->totpoly) {
+      if (me->totface_legacy && !me->faces_num) {
         /* temporarily switch main so that reading from
          * external CustomData works */
         Main *orig_gmain = BKE_blender_globals_main_swap(bmain);
@@ -3199,7 +3199,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2))
         {
           CustomData_update_typemap(&me->pdata);
-          CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->totpoly);
+          CustomData_free_layers(&me->pdata, CD_MTEXPOLY, me->faces_num);
         }
       }
     }
@@ -6364,7 +6364,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Default Face Set Color. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      if (me->totpoly > 0) {
+      if (me->faces_num > 0) {
         const int *face_sets = static_cast<const int *>(
             CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS));
         if (face_sets) {

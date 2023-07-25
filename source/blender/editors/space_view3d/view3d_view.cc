@@ -240,6 +240,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
     if (v3d->scenelock && scene->camera != ob) {
       scene->camera = ob;
       DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_relations_tag_update(CTX_data_main(C));
     }
 
     /* unlikely but looks like a glitch when set to the same */

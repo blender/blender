@@ -1592,7 +1592,7 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
                                         float *r_edge_length)
 {
   if (node->flag & PBVH_FullyHidden) {
-    return 0;
+    return false;
   }
 
   GSetIterator gs_iter;
