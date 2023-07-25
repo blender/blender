@@ -34,17 +34,16 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-/* Density
- * Mean area depth value
- * distance to a point
- */
-
 class ViewVertex;
 class ViewEdge;
 class ViewShape;
 class TVertex;
 
-/** Class defining the ViewMap. */
+/**
+ * Class defining the ViewMap.
+ *
+ * \note density is the mean area depth value distance to a point.
+ */
 class ViewMap {
  public:
   typedef vector<ViewEdge *> viewedges_container;

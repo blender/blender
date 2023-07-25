@@ -101,7 +101,6 @@ struct ArmatureDrawContext {
  * manage drawing. These subclasses are defined further down in the file. This
  * abstract class needs to be defined before any function that uses it, though.
  */
-
 class ArmatureBoneDrawStrategy {
  public:
   virtual void update_display_matrix(EditBone *eBone, bPoseChannel *pchan) const = 0;

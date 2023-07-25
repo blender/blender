@@ -61,11 +61,12 @@ class TexturePool : public realtime_compositor::TexturePool {
   }
 };
 
-/* Render Context Data
+/**
+ * Render Context Data
  *
  * Stored separately from the context so we can update it without losing any cached
- * data from the context. */
-
+ * data from the context.
+ */
 class ContextInputData {
  public:
   const Scene *scene;

@@ -12,7 +12,6 @@ namespace blender::compositor {
  * All this programs converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-
 class MixBaseOperation : public MultiThreadedOperation {
  protected:
   struct PixelCursor {

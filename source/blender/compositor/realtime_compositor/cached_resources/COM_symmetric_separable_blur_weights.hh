@@ -17,9 +17,10 @@
 
 namespace blender::realtime_compositor {
 
-/* ------------------------------------------------------------------------------------------------
- * Symmetric Separable Blur Weights Key.
- */
+/* -------------------------------------------------------------------- */
+/** \name Symmetric Separable Blur Weights Key
+ * \{ */
+
 class SymmetricSeparableBlurWeightsKey {
  public:
   int type;
@@ -33,13 +34,17 @@ class SymmetricSeparableBlurWeightsKey {
 bool operator==(const SymmetricSeparableBlurWeightsKey &a,
                 const SymmetricSeparableBlurWeightsKey &b);
 
-/* -------------------------------------------------------------------------------------------------
- * Symmetric Separable Blur Weights.
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Symmetric Separable Blur Weights
  *
  * A cached resource that computes and caches a 1D GPU texture containing the weights of the
  * separable filter of the given type and radius. The filter is assumed to be symmetric, because
  * the filter functions are all even functions. Consequently, only the positive half of the filter
- * is computed and the shader takes that into consideration. */
+ * is computed and the shader takes that into consideration.
+ * \{ */
+
 class SymmetricSeparableBlurWeights : public CachedResource {
  private:
   GPUTexture *texture_ = nullptr;
@@ -54,9 +59,11 @@ class SymmetricSeparableBlurWeights : public CachedResource {
   void unbind_as_texture() const;
 };
 
-/* ------------------------------------------------------------------------------------------------
- * Symmetric Separable Blur Weights Container.
- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Symmetric Separable Blur Weights Container
+ * \{ */
 
 class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
  private:
@@ -71,5 +78,7 @@ class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
    * cached for the next evaluation. */
   SymmetricSeparableBlurWeights &get(int type, float radius);
 };
+
+/** \} */
 
 }  // namespace blender::realtime_compositor
