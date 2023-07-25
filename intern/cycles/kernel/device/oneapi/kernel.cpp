@@ -9,6 +9,8 @@
 #  include <map>
 #  include <set>
 
+/* <algorithm> is needed until included upstream in sycl/detail/property_list_base.hpp */
+#  include <algorithm>
 #  include <sycl/sycl.hpp>
 
 #  include "kernel/device/oneapi/compat.h"
