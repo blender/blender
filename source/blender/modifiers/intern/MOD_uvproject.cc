@@ -207,22 +207,18 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     const blender::IndexRange face = faces[i];
     if (projectors_num == 1) {
       if (projectors[0].uci) {
-        uint fidx = face.size() - 1;
-        do {
-          uint lidx = face.start() + fidx;
-          const int vidx = corner_verts[lidx];
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
           BLI_uvproject_from_camera(
-              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(projectors[0].uci));
-        } while (fidx--);
+              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(projectors[0].uci));
+        }
       }
       else {
         /* apply transformed coords as UVs */
-        uint fidx = face.size() - 1;
-        do {
-          uint lidx = face.start() + fidx;
-          const int vidx = corner_verts[lidx];
-          copy_v2_v2(mloop_uv[lidx], coords[vidx]);
-        } while (fidx--);
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          copy_v2_v2(mloop_uv[corner], coords[vert]);
+        }
       }
     }
     else {
@@ -250,21 +246,17 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       }
 
       if (best_projector->uci) {
-        uint fidx = face.size() - 1;
-        do {
-          uint lidx = face.start() + fidx;
-          const int vidx = corner_verts[lidx];
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
           BLI_uvproject_from_camera(
-              mloop_uv[lidx], coords[vidx], static_cast<ProjCameraInfo *>(best_projector->uci));
-        } while (fidx--);
+              mloop_uv[corner], coords[vert], static_cast<ProjCameraInfo *>(best_projector->uci));
+        }
       }
       else {
-        uint fidx = face.size() - 1;
-        do {
-          uint lidx = face.start() + fidx;
-          const int vidx = corner_verts[lidx];
-          mul_v2_project_m4_v3(mloop_uv[lidx], best_projector->projmat, coords[vidx]);
-        } while (fidx--);
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          mul_v2_project_m4_v3(mloop_uv[corner], best_projector->projmat, coords[vert]);
+        }
       }
     }
   }

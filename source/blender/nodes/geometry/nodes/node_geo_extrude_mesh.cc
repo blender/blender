@@ -1185,7 +1185,7 @@ static void extrude_individual_mesh_faces(
         MutableSpan<int> face_verts = corner_verts.slice(face);
         MutableSpan<int> face_edges = corner_edges.slice(face);
 
-        for (const int i : IndexRange(face.size())) {
+        for (const int i : face.index_range()) {
           const int i_extrude = extrude_range[i];
           new_vert_indices[i_extrude] = face_verts[i];
           duplicate_edge_indices[i_extrude] = face_edges[i];
@@ -1194,7 +1194,7 @@ static void extrude_individual_mesh_faces(
           face_edges[i] = duplicate_edge_range[i_extrude];
         }
 
-        for (const int i : IndexRange(face.size())) {
+        for (const int i : face.index_range()) {
           const int i_next = (i == face.size() - 1) ? 0 : i + 1;
           const int i_extrude = extrude_range[i];
           const int i_extrude_next = extrude_range[i_next];
@@ -1259,7 +1259,7 @@ static void extrude_individual_mesh_faces(
 
                 /* For the extruded edges, mix the data from the two neighboring original edges of
                  * the extruded face. */
-                for (const int i : IndexRange(face.size())) {
+                for (const int i : face.index_range()) {
                   const int i_prev = (i == 0) ? face.size() - 1 : i - 1;
                   const int i_extrude = extrude_range[i];
                   const int i_extrude_prev = extrude_range[i_prev];
@@ -1306,7 +1306,7 @@ static void extrude_individual_mesh_faces(
                 const Span<T> face_loop_data = data.slice(face);
                 const IndexRange extrude_range = group_per_face[i_selection];
 
-                for (const int i : IndexRange(face.size())) {
+                for (const int i : face.index_range()) {
                   const int i_next = (i == face.size() - 1) ? 0 : i + 1;
                   const int i_extrude = extrude_range[i];
 

@@ -855,15 +855,11 @@ static void loop_manifold_fan_around_vert_next(const Span<int> corner_verts,
   {
     /* We need the previous loop, but current one is our vertex's loop. */
     *r_mlfan_vert_index = *r_mlfan_curr_index;
-    if (--(*r_mlfan_curr_index) < face_fan_next.start()) {
-      *r_mlfan_curr_index = face_fan_next.start() + face_fan_next.size() - 1;
-    }
+    *r_mlfan_curr_index = face_corner_prev(face_fan_next, *r_mlfan_curr_index);
   }
   else {
     /* We need the next loop, which is also our vertex's loop. */
-    if (++(*r_mlfan_curr_index) >= face_fan_next.start() + face_fan_next.size()) {
-      *r_mlfan_curr_index = face_fan_next.start();
-    }
+    *r_mlfan_curr_index = face_corner_next(face_fan_next, *r_mlfan_curr_index);
     *r_mlfan_vert_index = *r_mlfan_curr_index;
   }
 }

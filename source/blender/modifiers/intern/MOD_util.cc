@@ -106,20 +106,15 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
       /* verts are given the UV from the first face that uses them */
       for (const int i : faces.index_range()) {
         const IndexRange face = faces[i];
-        uint fidx = face.size() - 1;
-
-        do {
-          uint lidx = face.start() + fidx;
-          const int vidx = corner_verts[lidx];
-
-          if (!BLI_BITMAP_TEST(done, vidx)) {
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          if (!BLI_BITMAP_TEST(done, vert)) {
             /* remap UVs from [0, 1] to [-1, 1] */
-            r_texco[vidx][0] = (mloop_uv[lidx][0] * 2.0f) - 1.0f;
-            r_texco[vidx][1] = (mloop_uv[lidx][1] * 2.0f) - 1.0f;
-            BLI_BITMAP_ENABLE(done, vidx);
+            r_texco[vert][0] = (mloop_uv[corner][0] * 2.0f) - 1.0f;
+            r_texco[vert][1] = (mloop_uv[corner][1] * 2.0f) - 1.0f;
+            BLI_BITMAP_ENABLE(done, vert);
           }
-
-        } while (fidx--);
+        }
       }
 
       MEM_freeN(done);
