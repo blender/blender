@@ -986,7 +986,7 @@ ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type)
   return nullptr;
 }
 
-ARegion *BKE_area_find_region_active_win(ScrArea *area)
+ARegion *BKE_area_find_region_active_win(const ScrArea *area)
 {
   if (area == nullptr) {
     return nullptr;
@@ -1002,7 +1002,7 @@ ARegion *BKE_area_find_region_active_win(ScrArea *area)
   return BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 }
 
-ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int xy[2])
+ARegion *BKE_area_find_region_xy(const ScrArea *area, const int regiontype, const int xy[2])
 {
   if (area == nullptr) {
     return nullptr;
@@ -1018,7 +1018,7 @@ ARegion *BKE_area_find_region_xy(ScrArea *area, const int regiontype, const int 
   return nullptr;
 }
 
-ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const int xy[2])
+ARegion *BKE_screen_find_region_xy(const bScreen *screen, const int regiontype, const int xy[2])
 {
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (ELEM(regiontype, RGN_TYPE_ANY, region->regiontype)) {
@@ -1030,7 +1030,7 @@ ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const 
   return nullptr;
 }
 
-ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
+ScrArea *BKE_screen_find_area_from_space(const bScreen *screen, const SpaceLink *sl)
 {
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (BLI_findindex(&area->spacedata, sl) != -1) {
@@ -1041,7 +1041,7 @@ ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
   return nullptr;
 }
 
-ScrArea *BKE_screen_find_big_area(bScreen *screen, const int spacetype, const short min)
+ScrArea *BKE_screen_find_big_area(const bScreen *screen, const int spacetype, const short min)
 {
   ScrArea *big = nullptr;
   int maxsize = 0;
@@ -1078,7 +1078,7 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
   }
   return nullptr;
 }
-ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, const int xy[2])
+ScrArea *BKE_screen_find_area_xy(const bScreen *screen, const int spacetype, const int xy[2])
 {
   return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, xy);
 }
