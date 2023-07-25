@@ -485,7 +485,6 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
-  UI_but_drawflag_enable(but, UI_BUT_FORCE_TOOLTIP_LABEL);
   UI_but_func_tooltip_label_set(but, [this](const uiBut * /*but*/) { return label; });
   but->emboss = UI_EMBOSS_NONE;
 }
