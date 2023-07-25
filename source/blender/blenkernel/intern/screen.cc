@@ -1120,7 +1120,9 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
   memcpy(shading, shading_default, sizeof(*shading));
 }
 
-ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen, const int space_type, const int xy[2])
+ARegion *BKE_screen_find_main_region_at_xy(const bScreen *screen,
+                                           const int space_type,
+                                           const int xy[2])
 {
   ScrArea *area = BKE_screen_find_area_xy(screen, space_type, xy);
   if (!area) {
