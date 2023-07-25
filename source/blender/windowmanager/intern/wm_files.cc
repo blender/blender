@@ -668,7 +668,9 @@ struct wmFileReadPost_Params {
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const wmFileReadPost_Params *params)
+static void wm_file_read_post(bContext *C,
+                              const char *filepath,
+                              const wmFileReadPost_Params *params)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -753,6 +755,13 @@ static void wm_file_read_post(bContext *C, const wmFileReadPost_Params *params)
   if (use_data) {
     /* Important to do before nulling the context. */
     BKE_callback_exec_null(bmain, BKE_CB_EVT_VERSION_UPDATE);
+
+    /* Load-post must run before evaluating drivers & depsgraph, see: #109720.
+     * On failure, the caller handles #BKE_CB_EVT_LOAD_POST_FAIL. */
+    if (params->success) {
+      BKE_callback_exec_string(bmain, BKE_CB_EVT_LOAD_POST, filepath);
+    }
+
     if (is_factory_startup) {
       BKE_callback_exec_null(bmain, BKE_CB_EVT_LOAD_FACTORY_STARTUP_POST);
     }
@@ -827,8 +836,11 @@ static void wm_read_callback_post_wrapper(bContext *C, const char *filepath, con
     wmWindow *win = static_cast<wmWindow *>(wm->windows.first);
     CTX_wm_window_set(C, win);
   }
-  BKE_callback_exec_string(
-      bmain, success ? BKE_CB_EVT_LOAD_POST : BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+
+  /* On success: #BKE_CB_EVT_LOAD_POST runs from #wm_file_read_post. */
+  if (success == false) {
+    BKE_callback_exec_string(bmain, BKE_CB_EVT_LOAD_POST_FAIL, filepath);
+  }
 
   /* This function should leave the window null when the function entered. */
   if (!has_window) {
@@ -1048,7 +1060,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.reset_app_template = false;
       read_file_post_params.success = true;
       read_file_post_params.is_alloc = false;
-      wm_file_read_post(C, &read_file_post_params);
+      wm_file_read_post(C, filepath, &read_file_post_params);
 
       bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
@@ -1485,10 +1497,11 @@ void wm_homefile_read(bContext *C,
 
 void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file_read_post)
 {
-  wm_file_read_post(C, params_file_read_post);
+  const char *filepath = "";
+  wm_file_read_post(C, filepath, params_file_read_post);
 
   if (params_file_read_post->use_data) {
-    wm_read_callback_post_wrapper(C, "", params_file_read_post->success);
+    wm_read_callback_post_wrapper(C, filepath, params_file_read_post->success);
   }
 
   if (params_file_read_post->is_alloc) {
