@@ -3,12 +3,15 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  PUBLIC .
+  .
+  ../blenkernel
+  ../bmesh
   ../draw
   ../functions
   ../makesrna
   ../modifiers
   ../sequencer
+  ../windowmanager
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -148,13 +151,11 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::bmesh
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)
@@ -165,7 +166,6 @@ if(WITH_PYTHON)
 endif()
 
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::depsgraph ALIAS bf_depsgraph)
 
 # RNA_prototypes.h
 add_dependencies(bf_depsgraph bf_rna)

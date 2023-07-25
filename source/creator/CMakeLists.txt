@@ -3,23 +3,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
+  ../../intern/clog
+  ../blender/blenkernel
+  ../blender/depsgraph
   ../blender/editors/include
   ../blender/gpu
   ../blender/imbuf
   ../blender/io/usd
+  ../blender/bmesh
   ../blender/makesrna
   ../blender/render
+  ../blender/windowmanager
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
+  bf_windowmanager
 )
 
 if(HAVE_FEENABLEEXCEPT)

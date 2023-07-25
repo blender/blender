@@ -4,8 +4,10 @@
 
 set(INC
   .
+  ../../blenkernel
   ../../gpu
   ../../makesrna
+  ../../../../intern/clog
 )
 
 set(INC_SYS
@@ -41,10 +43,8 @@ set(LIB
   ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
-  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )
 

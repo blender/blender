@@ -5,13 +5,19 @@
 set(INC
   .
   intern
+  ../blenfont
+  ../blenkernel
   ../blenloader
+  ../blentranslation
+  ../bmesh
+  ../depsgraph
   ../editors/include
   ../functions
   ../geometry
   ../makesrna
   ../nodes
   ../render
+  ../windowmanager
   ../../../intern/eigen
 
   # RNA_prototypes.h
@@ -101,15 +107,10 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenfont
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
   PUBLIC bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
 )
 
 if(WITH_ALEMBIC)

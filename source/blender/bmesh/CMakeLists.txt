@@ -3,7 +3,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  PUBLIC .
+  .
+  ../blenkernel
+  ../blentranslation
+  ../depsgraph
+  ../../../intern/clog
   ../../../intern/eigen
   ../../../extern/rangetree
 )
@@ -162,12 +166,9 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   extern_rangetree
   PRIVATE bf::intern::atomic
@@ -217,7 +218,6 @@ if(WITH_TBB)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::bmesh ALIAS bf_bmesh)
 
 if(MSVC AND NOT MSVC_CLANG)
   target_compile_options(bf_bmesh PRIVATE /WX /wd4101)

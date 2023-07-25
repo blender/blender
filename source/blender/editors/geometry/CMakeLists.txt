@@ -5,9 +5,14 @@
 set(INC
   ../include
   ../../asset_system
+  ../../blenkernel
+  ../../blentranslation
+  ../../depsgraph
   ../../functions
   ../../makesrna
   ../../nodes
+  ../../windowmanager
+  ../../bmesh
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -25,15 +30,13 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
+  bf_depsgraph
   PRIVATE bf::dna
   bf_editor_object
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
+  bf_windowmanager
 )
 
 blender_add_lib(bf_editor_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

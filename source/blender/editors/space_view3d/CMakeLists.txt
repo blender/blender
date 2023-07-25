@@ -5,12 +5,18 @@
 set(INC
   ../include
   ../../asset_system
+  ../../blenfont
+  ../../blenkernel
   ../../blenloader
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
   ../../draw
   ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
+  ../../windowmanager
   ../../../../intern/mantaflow/extern
 
   # RNA_prototypes.h
@@ -72,18 +78,12 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenfont
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

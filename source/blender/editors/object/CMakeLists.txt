@@ -4,6 +4,11 @@
 
 set(INC
   ../include
+  ../../blenfont
+  ../../blenkernel
+  ../../blentranslation
+  ../../bmesh
+  ../../depsgraph
   ../../functions
   ../../gpencil_modifiers_legacy
   ../../gpu
@@ -14,6 +19,8 @@ set(INC
   ../../python
   ../../render
   ../../shader_fx
+  ../../windowmanager
+  ../../../../intern/clog
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -54,19 +61,14 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenfont
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
-  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render
-  PRIVATE bf::windowmanager
+  bf_windowmanager
 )
 
 
