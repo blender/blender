@@ -206,6 +206,7 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
         /* Skipping "internal" Blender properties. Also skipping
          * material_index as it's dealt with elsewhere. */
         if (attribute_id.name()[0] == '.' ||
+            meta_data.domain == ATTR_DOMAIN_EDGE ||
             ELEM(attribute_id.name(), "position", "material_index")) {
           return true;
         }
