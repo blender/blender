@@ -66,6 +66,8 @@ class Params:
         "use_alt_click_leader",
         # Transform keys G/S/R activate tools instead of immediately transforming.
         "use_key_activate_tools",
+        # Side-bar toggle opens a pie menu instead of immediately toggling the side-bar.
+        "use_toolbar_pie",
         # Optionally use a modifier to access tools.
         "tool_modifier",
         # Experimental option.
@@ -113,6 +115,7 @@ class Params:
             # User preferences.
             spacebar_action='TOOL',
             use_key_activate_tools=False,
+            use_toolbar_pie=False,
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
@@ -193,6 +196,7 @@ class Params:
         # User preferences:
         self.spacebar_action = spacebar_action
         self.use_key_activate_tools = use_key_activate_tools
+        self.use_toolbar_pie = use_toolbar_pie
 
         self.use_gizmo_drag = use_gizmo_drag
         self.use_select_all_toggle = use_select_all_toggle
@@ -311,8 +315,21 @@ def _template_items_context_panel(menu, key_args_primary):
     ]
 
 
-def _template_space_region_type_toggle(*, toolbar_key=None, sidebar_key=None, channels_key=None):
+def _template_space_region_type_toggle(
+        params,
+        *,
+        toolbar_key=None,
+        sidebar_key=None,
+        channels_key=None,
+):
     items = []
+
+    if params.use_toolbar_pie:
+        pie_key = sidebar_key or sidebar_key or channels_key
+        if pie_key is not None:
+            items.append(op_menu_pie("WM_MT_toolbar_toggle_pie", pie_key))
+        return items
+
     if toolbar_key is not None:
         items.append(
             ("wm.context_toggle", toolbar_key,
@@ -1412,7 +1429,7 @@ def km_uv_editor(params):
 # Editor (3D View)
 
 # 3D View: all regions.
-def km_view3d_generic(_params):
+def km_view3d_generic(params):
     items = []
     keymap = (
         "3D View Generic",
@@ -1422,6 +1439,7 @@ def km_view3d_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         )
@@ -1759,7 +1777,7 @@ def km_view3d(params):
 # ------------------------------------------------------------------------------
 # Editor (Graph Editor)
 
-def km_graph_editor_generic(_params):
+def km_graph_editor_generic(params):
     items = []
     keymap = (
         "Graph Editor Generic",
@@ -1769,6 +1787,7 @@ def km_graph_editor_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("graph.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
@@ -1931,6 +1950,7 @@ def km_image_generic(params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
@@ -2051,7 +2071,7 @@ def km_image(params):
 # ------------------------------------------------------------------------------
 # Editor (Node)
 
-def km_node_generic(_params):
+def km_node_generic(params):
     items = []
     keymap = (
         "Node Generic",
@@ -2061,6 +2081,7 @@ def km_node_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
@@ -2252,6 +2273,7 @@ def km_file_browser(params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
         ),
         ("wm.context_toggle", {"type": 'N', "value": 'PRESS'},
@@ -2399,7 +2421,7 @@ def km_file_browser_buttons(_params):
 # ------------------------------------------------------------------------------
 # Editor (Dope Sheet)
 
-def km_dopesheet_generic(_params):
+def km_dopesheet_generic(params):
     items = []
     keymap = (
         "Dopesheet Generic",
@@ -2409,6 +2431,7 @@ def km_dopesheet_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
@@ -2536,7 +2559,7 @@ def km_dopesheet(params):
 # ------------------------------------------------------------------------------
 # Editor (NLA)
 
-def km_nla_generic(_params):
+def km_nla_generic(params):
     items = []
     keymap = (
         "NLA Generic",
@@ -2546,6 +2569,7 @@ def km_nla_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("nla.tweakmode_enter", {"type": 'TAB', "value": 'PRESS'},
@@ -2667,7 +2691,7 @@ def km_nla_editor(params):
 # ------------------------------------------------------------------------------
 # Editor (Text)
 
-def km_text_generic(_params):
+def km_text_generic(params):
     items = []
     keymap = (
         "Text Generic",
@@ -2677,6 +2701,7 @@ def km_text_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'T', "value": 'PRESS', "ctrl": True},
         ),
         ("text.start_find", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
@@ -2841,6 +2866,7 @@ def km_sequencercommon(params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
@@ -3147,7 +3173,7 @@ def km_console(_params):
 # ------------------------------------------------------------------------------
 # Editor (Clip)
 
-def km_clip(_params):
+def km_clip(params):
     items = []
     keymap = (
         "Clip",
@@ -3157,6 +3183,7 @@ def km_clip(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             toolbar_key={"type": 'T', "value": 'PRESS'},
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
@@ -3380,7 +3407,7 @@ def km_clip_dopesheet_editor(_params):
 # ------------------------------------------------------------------------------
 # Editor (Spreadsheet)
 
-def km_spreadsheet_generic(_params):
+def km_spreadsheet_generic(params):
     items = []
     keymap = (
         "Spreadsheet Generic",
@@ -3390,6 +3417,7 @@ def km_spreadsheet_generic(_params):
 
     items.extend([
         *_template_space_region_type_toggle(
+            params,
             sidebar_key={"type": 'N', "value": 'PRESS'},
             channels_key={"type": 'T', "value": 'PRESS'},
         ),
