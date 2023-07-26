@@ -79,14 +79,14 @@ class AbstractGridViewItem : public AbstractViewItem {
    * activated through the grid view (e.g. through a click), not if the grid view reflects an
    * external change (e.g. #AbstractGridViewItem::should_be_active() changes from returning false
    * to returning true).
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
+   * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
    */
   void activate();
   void deactivate();
 
  private:
-  /** See #AbstractTreeView::change_state_delayed() */
+  /** See #AbstractGridView::change_state_delayed() */
   void change_state_delayed();
   /**
    * Like #activate() but does not call #on_activate(). Use it to reflect changes in the active
