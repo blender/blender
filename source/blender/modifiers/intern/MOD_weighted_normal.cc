@@ -658,6 +658,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_WeightedNormal = {
+    /*idname*/ "WeightedNormal",
     /*name*/ N_("WeightedNormal"),
     /*structName*/ "WeightedNormalModifierData",
     /*structSize*/ sizeof(WeightedNormalModifierData),

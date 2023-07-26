@@ -471,6 +471,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Warp = {
+    /*idname*/ "Warp",
     /*name*/ N_("Warp"),
     /*structName*/ "WarpModifierData",
     /*structSize*/ sizeof(WarpModifierData),

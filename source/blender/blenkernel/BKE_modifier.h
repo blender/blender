@@ -154,6 +154,10 @@ typedef struct ModifierEvalContext {
 } ModifierEvalContext;
 
 typedef struct ModifierTypeInfo {
+  /* A unique identifier for this modifier. Used to generate the panel id type name.
+   * See #BKE_modifier_type_panel_id. */
+  char idname[32];
+
   /* The user visible name for this modifier */
   char name[32];
 
@@ -386,7 +390,7 @@ typedef struct ModifierTypeInfo {
   void (*blendRead)(struct BlendDataReader *reader, struct ModifierData *md);
 } ModifierTypeInfo;
 
-/* Used to find a modifier's panel type. */
+/* Used to set a modifier's panel type. */
 #define MODIFIER_TYPE_PANEL_PREFIX "MOD_PT_"
 
 /* Initialize modifier's global data (type info and some common global storage). */

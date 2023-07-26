@@ -389,6 +389,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
+    /*idname*/ "VertexWeightEdit",
     /*name*/ N_("VertexWeightEdit"),
     /*structName*/ "WeightVGEditModifierData",
     /*structSize*/ sizeof(WeightVGEditModifierData),

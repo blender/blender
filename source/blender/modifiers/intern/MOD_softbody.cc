@@ -87,6 +87,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Softbody = {
+    /*idname*/ "Softbody",
     /*name*/ N_("Softbody"),
     /*structName*/ "SoftbodyModifierData",
     /*structSize*/ sizeof(SoftbodyModifierData),

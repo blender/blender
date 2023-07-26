@@ -240,6 +240,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Fluid = {
+    /*idname*/ "Fluid",
     /*name*/ N_("Fluid"),
     /*structName*/ "FluidModifierData",
     /*structSize*/ sizeof(FluidModifierData),

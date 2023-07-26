@@ -271,6 +271,7 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Collision = {
+    /*idname*/ "Collision",
     /*name*/ N_("Collision"),
     /*structName*/ "CollisionModifierData",
     /*structSize*/ sizeof(CollisionModifierData),

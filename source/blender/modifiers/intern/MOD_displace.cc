@@ -446,6 +446,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Displace = {
+    /*idname*/ "Displace",
     /*name*/ N_("Displace"),
     /*structName*/ "DisplaceModifierData",
     /*structSize*/ sizeof(DisplaceModifierData),

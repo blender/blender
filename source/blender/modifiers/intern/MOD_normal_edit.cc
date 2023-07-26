@@ -747,6 +747,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
+    /*idname*/ "NormalEdit",
     /*name*/ N_("NormalEdit"),
     /*structName*/ "NormalEditModifierData",
     /*structSize*/ sizeof(NormalEditModifierData),

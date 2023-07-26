@@ -1043,6 +1043,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Array = {
+    /*idname*/ "Array",
     /*name*/ N_("Array"),
     /*structName*/ "ArrayModifierData",
     /*structSize*/ sizeof(ArrayModifierData),

@@ -179,6 +179,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Weld = {
+    /*idname*/ "Weld",
     /*name*/ N_("Weld"),
     /*structName*/ "WeldModifierData",
     /*structSize*/ sizeof(WeldModifierData),

@@ -512,6 +512,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Cast = {
+    /*idname*/ "Cast",
     /*name*/ N_("Cast"),
     /*structName*/ "CastModifierData",
     /*structSize*/ sizeof(CastModifierData),

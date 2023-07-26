@@ -491,6 +491,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_WeightVGMix = {
+    /*idname*/ "VertexWeightMix",
     /*name*/ N_("VertexWeightMix"),
     /*structName*/ "WeightVGMixModifierData",
     /*structSize*/ sizeof(WeightVGMixModifierData),

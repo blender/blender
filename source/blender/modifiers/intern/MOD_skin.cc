@@ -2071,6 +2071,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Skin = {
+    /*idname*/ "Skin",
     /*name*/ N_("Skin"),
     /*structName*/ "SkinModifierData",
     /*structSize*/ sizeof(SkinModifierData),

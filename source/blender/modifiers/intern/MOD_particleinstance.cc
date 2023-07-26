@@ -635,6 +635,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_ParticleInstance = {
+    /*idname*/ "ParticleInstance",
     /*name*/ N_("ParticleInstance"),
     /*structName*/ "ParticleInstanceModifierData",
     /*structSize*/ sizeof(ParticleInstanceModifierData),

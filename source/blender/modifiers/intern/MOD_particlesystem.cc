@@ -264,6 +264,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_ParticleSystem = {
+    /*idname*/ "ParticleSystem",
     /*name*/ N_("ParticleSystem"),
     /*structName*/ "ParticleSystemModifierData",
     /*structSize*/ sizeof(ParticleSystemModifierData),
