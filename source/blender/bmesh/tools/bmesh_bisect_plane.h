@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \param use_snap_center: Snap verts onto the plane.
  * \param use_tag: Only bisect tagged edges and faces.
@@ -20,3 +24,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
                           short oflag_center,
                           short oflag_new,
                           float eps);
+
+#ifdef __cplusplus
+}
+#endif

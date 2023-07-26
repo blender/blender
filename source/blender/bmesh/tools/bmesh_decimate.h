@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief BM_mesh_decimate
  * \param bm: The mesh
@@ -49,3 +53,7 @@ void BM_mesh_decimate_dissolve(BMesh *bm,
                                float angle_limit,
                                bool do_dissolve_boundaries,
                                const BMO_Delimit delimit);
+
+#ifdef __cplusplus
+}
+#endif

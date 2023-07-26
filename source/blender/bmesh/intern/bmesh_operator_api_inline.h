@@ -10,6 +10,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Tool Flag API: Tool code must never put junk in header flags (#BMHeader.hflag)
  * instead, use this API to set flags.
  * If you need to store a value per element, use a #GHash or a mapping slot to do it. */
@@ -218,3 +222,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE
 
   return NULL;
 }
+
+#ifdef __cplusplus
+}
+#endif

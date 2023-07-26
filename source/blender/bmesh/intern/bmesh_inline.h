@@ -10,6 +10,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(ele, hflag) _bm_elem_flag_test(&(ele)->head, hflag)
 #define BM_elem_flag_test_bool(ele, hflag) _bm_elem_flag_test_bool(&(ele)->head, hflag)
@@ -122,3 +126,7 @@ BLI_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
   return head->index;
 }
+
+#ifdef __cplusplus
+}
+#endif

@@ -80,7 +80,7 @@
 #else
 #  define STACK_SWAP(stack_a, stack_b) \
     { \
-      SWAP(void *, stack_a, stack_b); \
+      SWAP(void *, *(void **)&stack_a, *(void **)&stack_b); \
       SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
       _STACK_SWAP_TOTALLOC(stack_a, stack_b); \
     } \

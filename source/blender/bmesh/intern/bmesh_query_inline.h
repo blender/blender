@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Returns whether or not a given vertex is
  * is part of a given edge.
@@ -139,3 +143,7 @@ ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) BLI_INLINE bool BM_vert_is_wire_endpoint
   }
   return false;
 }
+
+#ifdef __cplusplus
+}
+#endif
