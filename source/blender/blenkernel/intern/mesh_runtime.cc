@@ -247,14 +247,6 @@ bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
   return true;
 }
 
-void BKE_mesh_runtime_reset_edit_data(Mesh *mesh)
-{
-  using namespace blender::bke;
-  if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data) {
-    *edit_data = {};
-  }
-}
-
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 {
   using namespace blender::bke;

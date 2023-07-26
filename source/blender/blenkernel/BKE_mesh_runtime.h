@@ -30,7 +30,6 @@ int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 const int *BKE_mesh_runtime_looptri_faces_ensure(const struct Mesh *mesh);
 
 bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
-void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
 
 /**
  * Clear and free any derived caches associated with the mesh geometry data. Examples include BVH
