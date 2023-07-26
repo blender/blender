@@ -25,7 +25,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
     {RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
     {RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
-    {RGN_TYPE_UI, "UI", 0, "UI", ""},
+    {RGN_TYPE_UI, "UI", 0, "Sidebar", ""},
     {RGN_TYPE_TOOLS, "TOOLS", 0, "Tools", ""},
     {RGN_TYPE_TOOL_PROPS, "TOOL_PROPS", 0, "Tool Properties", ""},
     {RGN_TYPE_PREVIEW, "PREVIEW", 0, "Preview", ""},
