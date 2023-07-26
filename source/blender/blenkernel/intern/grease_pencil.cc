@@ -577,6 +577,16 @@ bool Layer::is_editable() const
   return !this->is_locked() && this->is_visible();
 }
 
+bool Layer::is_empty() const
+{
+  return (this->frames().size() == 0);
+}
+
+bool Layer::is_selected() const
+{
+  return ((this->base.flag & GP_LAYER_TREE_NODE_SELECT) != 0);
+}
+
 GreasePencilFrame *Layer::add_frame_internal(const int frame_number, const int drawing_index)
 {
   BLI_assert(drawing_index != -1);

@@ -243,6 +243,8 @@ class Layer : public ::GreasePencilLayer {
   bool is_visible() const;
   bool is_locked() const;
   bool is_editable() const;
+  bool is_empty() const;
+  bool is_selected() const;
 
   /**
    * Adds a new frame into the layer frames map.
