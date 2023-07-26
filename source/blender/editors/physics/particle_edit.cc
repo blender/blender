@@ -33,7 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -1459,8 +1459,8 @@ void recalc_emitter_field(Depsgraph * /*depsgraph*/, Object * /*ob*/, ParticleSy
   vec = edit->emitter_cosnos;
   nor = vec + 3;
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
+  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   for (i = 0; i < totface; i++, vec += 6, nor += 6) {
     const MFace *mface = &mfaces[i];
@@ -4217,7 +4217,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
 
   totface = mesh->totface_legacy;
   mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
   /* lets intersect the faces */
   for (i = 0; i < totface; i++, mface++) {

@@ -746,7 +746,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   layers_num = CustomData_number_of_layers(&split_m->fdata_legacy, CD_MTFACE);
 
-  float(*split_m_positions)[3] = BKE_mesh_vert_positions_for_write(split_m);
+  blender::MutableSpan<blender::float3> split_m_positions = split_m->vert_positions_for_write();
 
   /* copy new faces & verts (is it really this painful with custom data??) */
   for (i = 0; i < totvert; i++) {
@@ -1004,7 +1004,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   psys_sim_data_init(&sim);
 
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  float(*explode_positions)[3] = BKE_mesh_vert_positions_for_write(explode);
+  blender::MutableSpan<blender::float3> explode_positions = explode->vert_positions_for_write();
 
   /* duplicate & displace vertices */
   ehi = BLI_edgehashIterator_new(vertpahash);

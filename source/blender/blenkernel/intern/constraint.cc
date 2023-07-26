@@ -57,7 +57,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
@@ -547,17 +547,16 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
     }
   }
   else if (me_eval) {
-    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me_eval);
+    const blender::Span<blender::float3> positions = me_eval->vert_positions();
+    const blender::Span<blender::float3> vert_normals = me_eval->vert_normals();
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
         CustomData_get_layer(&me_eval->vert_data, CD_MDEFORMVERT));
-    const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-    int numVerts = me_eval->totvert;
 
     /* check that dvert is a valid pointers (just in case) */
     if (dvert) {
 
       /* get the average of all verts with that are in the vertex-group */
-      for (int i = 0; i < numVerts; i++) {
+      for (const int i : positions.index_range()) {
         const MDeformVert *dv = &dvert[i];
         const MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
 

@@ -1254,11 +1254,12 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
       }
       else {
         BKE_mesh_wrapper_ensure_mdata(mesh_final);
-        BKE_modifier_deform_verts(md,
-                                  &mectx,
-                                  mesh_final,
-                                  BKE_mesh_vert_positions_for_write(mesh_final),
-                                  mesh_final->totvert);
+        BKE_modifier_deform_verts(
+            md,
+            &mectx,
+            mesh_final,
+            reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
+            mesh_final->totvert);
         BKE_mesh_tag_positions_changed(mesh_final);
       }
     }

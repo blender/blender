@@ -3824,7 +3824,8 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
   mesh_p = BKE_mesh_copy_for_eval(dynamicPaint_brush_mesh_get(brush));
   numOfVerts_p = mesh_p->totvert;
 
-  float(*positions_p)[3] = BKE_mesh_vert_positions_for_write(mesh_p);
+  float(*positions_p)[3] = reinterpret_cast<float(*)[3]>(
+      mesh_p->vert_positions_for_write().data());
   copy_m4_m4(prev_obmat, ob->object_to_world);
 
   /* current frame mesh */
@@ -3840,7 +3841,8 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
                                       eModifierType_DynamicPaint);
   mesh_c = dynamicPaint_brush_mesh_get(brush);
   numOfVerts_c = mesh_c->totvert;
-  float(*positions_c)[3] = BKE_mesh_vert_positions_for_write(mesh_c);
+  float(*positions_c)[3] = reinterpret_cast<float(*)[3]>(
+      mesh_c->vert_positions_for_write().data());
 
   (*brushVel) = (Vec3f *)MEM_mallocN(numOfVerts_c * sizeof(Vec3f), "Dynamic Paint brush velocity");
   if (!(*brushVel)) {

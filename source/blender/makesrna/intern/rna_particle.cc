@@ -25,7 +25,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 
 #include "BLI_listbase.h"
@@ -215,7 +215,7 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
     Mesh *hair_mesh = (psmd->psys->flag & PSYS_HAIR_DYNAMICS) ? psmd->psys->hair_out_mesh :
                                                                 nullptr;
     if (hair_mesh) {
-      const float(*positions)[3] = BKE_mesh_vert_positions(hair_mesh);
+      const blender::Span<blender::float3> positions = hair_mesh->vert_positions();
       copy_v3_v3(values, positions[pa->hair_index + (hkey - pa->hair)]);
     }
     else {
@@ -280,7 +280,7 @@ static void hair_key_location_object_set(HairKey *hair_key,
     if (hair_key_index == -1) {
       return;
     }
-    float(*positions)[3] = BKE_mesh_vert_positions_for_write(hair_mesh);
+    blender::MutableSpan<blender::float3> positions = hair_mesh->vert_positions_for_write();
     copy_v3_v3(positions[particle->hair_index + (hair_key_index)], src_co);
     return;
   }
@@ -324,7 +324,7 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey,
                                                                   nullptr;
   if (particle) {
     if (hair_mesh) {
-      const float(*positions)[3] = BKE_mesh_vert_positions(hair_mesh);
+      const blender::Span<blender::float3> positions = hair_mesh->vert_positions();
       copy_v3_v3(n_co, positions[particle->hair_index + (hairkey - particle->hair)]);
     }
     else {

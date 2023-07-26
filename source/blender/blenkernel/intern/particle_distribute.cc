@@ -28,7 +28,7 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -100,7 +100,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 {
   ParticleData *pa = nullptr;
   float min[3], max[3], delta[3], d;
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   int totvert = mesh->totvert, from = psys->part->from;
   int i, j, k, p, res = psys->part->grid_res, size[3], axis;
 
@@ -581,7 +581,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls won't need skipping */
 
   MFace *mface;
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
 
   pa->num = i = ctx->index[p];
   MFace *mfaces = (MFace *)CustomData_get_layer_for_write(
@@ -619,8 +619,18 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
   /* experimental */
   tot = mesh->totface_legacy;
 
-  psys_interpolate_face(
-      mesh, positions, BKE_mesh_vert_normals_ensure(mesh), mface, 0, 0, pa->fuv, co, nor, 0, 0, 0);
+  psys_interpolate_face(mesh,
+                        reinterpret_cast<const float(*)[3]>(positions.data()),
+                        reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data()),
+                        mface,
+                        0,
+                        0,
+                        pa->fuv,
+                        co,
+                        nor,
+                        0,
+                        0,
+                        0);
 
   normalize_v3(nor);
   negate_v3(nor);
@@ -1003,7 +1013,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     BKE_mesh_orco_ensure(ob, mesh);
 
     if (from == PART_FROM_VERT) {
-      const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+      const blender::Span<blender::float3> positions = mesh->vert_positions();
       const float(*orcodata)[3] = static_cast<const float(*)[3]>(
           CustomData_get_layer(&mesh->vert_data, CD_ORCO));
       int totvert = mesh->totvert;
@@ -1078,7 +1088,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         }
       }
       else {
-        const float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+        blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
         copy_v3_v3(co1, positions[mf->v1]);
         copy_v3_v3(co2, positions[mf->v2]);
         copy_v3_v3(co3, positions[mf->v3]);

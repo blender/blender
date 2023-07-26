@@ -52,11 +52,11 @@ enum {
  * any changes to the underlying mesh invalidate the #MLoopTri array,
  * which will need to be re-calculated.
  *
- * Users normally access this via #BKE_mesh_runtime_looptri_ensure.
- * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
+ * Users normally access this via #Mesh::looptris().
+ * In rare cases its calculated directly, with #bke::mesh::looptris_calc.
  *
  * Typical usage includes:
- * - OpenGL drawing.
+ * - Viewport drawing.
  * - #BVHTree creation.
  * - Physics/collision detection.
  *

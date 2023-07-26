@@ -101,10 +101,8 @@ static void rna_Mesh_calc_smooth_groups(
   const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
       &mesh->face_data, CD_PROP_BOOL, "sharp_face");
   *r_poly_group = BKE_mesh_calc_smoothgroups(mesh->totedge,
-                                             BKE_mesh_face_offsets(mesh),
-                                             mesh->faces_num,
-                                             mesh->corner_edges().data(),
-                                             mesh->totloop,
+                                             mesh->faces(),
+                                             mesh->corner_edges(),
                                              sharp_edges,
                                              sharp_faces,
                                              r_group_total,

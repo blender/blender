@@ -1731,18 +1731,11 @@ void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
   /* We could support faces in paint modes. */
 }
 
-void BKE_mesh_vert_coords_get(const Mesh *mesh, float (*vert_coords)[3])
-{
-  blender::bke::AttributeAccessor attributes = mesh->attributes();
-  VArray<float3> positions = *attributes.lookup_or_default(
-      "position", ATTR_DOMAIN_POINT, float3(0));
-  positions.materialize({(float3 *)vert_coords, mesh->totvert});
-}
-
 float (*BKE_mesh_vert_coords_alloc(const Mesh *mesh, int *r_vert_len))[3]
 {
   float(*vert_coords)[3] = (float(*)[3])MEM_mallocN(sizeof(float[3]) * mesh->totvert, __func__);
-  BKE_mesh_vert_coords_get(mesh, vert_coords);
+  MutableSpan(reinterpret_cast<float3 *>(vert_coords), mesh->totvert)
+      .copy_from(mesh->vert_positions());
   if (r_vert_len) {
     *r_vert_len = mesh->totvert;
   }

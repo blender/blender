@@ -221,11 +221,6 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
   return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
-{
-  return mesh->looptris().data();
-}
-
 const int *BKE_mesh_runtime_looptri_faces_ensure(const Mesh *mesh)
 {
   return mesh->looptri_faces().data();

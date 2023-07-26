@@ -87,11 +87,7 @@ extern "C" {
 
 /**
  * Recreate #MFace Tessellation.
- *
- * \note This doesn't use multi-threading like #BKE_mesh_recalc_looptri since
- * it's not used in many places and #MFace should be phased out.
  */
-
 void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 void BKE_mesh_tessface_ensure(struct Mesh *mesh);

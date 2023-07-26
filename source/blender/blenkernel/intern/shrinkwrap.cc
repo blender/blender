@@ -194,7 +194,7 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 {
   using namespace blender;
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<float3> positions = mesh->vert_positions();
   const blender::Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
@@ -1424,7 +1424,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertex positions, normals and deform weights */
-    calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
+    calc.vert_positions = reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data());
     calc.vert_normals = mesh->vert_normals();
 
     /* Using vertices positions/normals as if a subsurface was applied */
@@ -1554,15 +1554,16 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 
   Mesh *src_me = static_cast<Mesh *>(ob_source->data);
 
-  shrinkwrapModifier_deform(&ssmd,
-                            &ctx,
-                            sce,
-                            ob_source,
-                            src_me,
-                            nullptr,
-                            -1,
-                            BKE_mesh_vert_positions_for_write(src_me),
-                            src_me->totvert);
+  shrinkwrapModifier_deform(
+      &ssmd,
+      &ctx,
+      sce,
+      ob_source,
+      src_me,
+      nullptr,
+      -1,
+      reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data()),
+      src_me->totvert);
   BKE_mesh_tag_positions_changed(src_me);
 }
 
@@ -1585,12 +1586,12 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
-  calc.vertexCos = BKE_mesh_vert_positions_for_write(src_me);
+  calc.vertexCos = reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data());
   calc.vert_normals = src_me->vert_normals();
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
-  calc.vert_positions = BKE_mesh_vert_positions_for_write(src_me);
+  calc.vert_positions = reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data());
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;

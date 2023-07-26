@@ -601,15 +601,13 @@ static void face_edge_loop_islands_calc(const int totedge,
   }
 }
 
-int *BKE_mesh_calc_smoothgroups(const int totedge,
-                                const int *face_offsets,
-                                const int faces_num,
-                                const int *corner_edges,
-                                const int totloop,
+int *BKE_mesh_calc_smoothgroups(int edges_num,
+                                const blender::OffsetIndices<int> faces,
+                                const blender::Span<int> corner_edges,
                                 const bool *sharp_edges,
                                 const bool *sharp_faces,
                                 int *r_totgroup,
-                                const bool use_bitflags)
+                                bool use_bitflags)
 {
   int *face_groups = nullptr;
 
@@ -633,9 +631,9 @@ int *BKE_mesh_calc_smoothgroups(const int totedge,
     return true;
   };
 
-  face_edge_loop_islands_calc(totedge,
-                              blender::Span(face_offsets, faces_num + 1),
-                              {corner_edges, totloop},
+  face_edge_loop_islands_calc(edges_num,
+                              faces,
+                              corner_edges,
                               {},
                               use_bitflags,
                               face_is_island_boundary_smooth,

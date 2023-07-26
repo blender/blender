@@ -203,10 +203,8 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&export_mesh_->face_data, CD_PROP_BOOL, "sharp_face"));
   poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
-                                                   mesh_faces_.data(),
-                                                   mesh_faces_.size(),
-                                                   export_mesh_->corner_edges().data(),
-                                                   export_mesh_->totloop,
+                                                   mesh_faces_,
+                                                   export_mesh_->corner_edges(),
                                                    sharp_edges,
                                                    sharp_faces,
                                                    &tot_smooth_groups_,

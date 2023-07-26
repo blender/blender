@@ -39,7 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
@@ -368,7 +368,8 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = rigidbody_get_mesh(ob);
-    positions = (mesh) ? BKE_mesh_vert_positions_for_write(mesh) : nullptr;
+    positions = (mesh) ? reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()) :
+                         nullptr;
     totvert = (mesh) ? mesh->totvert : 0;
   }
   else {
@@ -394,23 +395,16 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
   rbCollisionShape *shape = nullptr;
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = nullptr;
-    const MLoopTri *looptri;
-    int totvert;
-    int tottri;
-
-    mesh = rigidbody_get_mesh(ob);
-
-    /* ensure mesh validity, then grab data */
+    Mesh *mesh = rigidbody_get_mesh(ob);
     if (mesh == nullptr) {
       return nullptr;
     }
 
-    const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-    totvert = mesh->totvert;
-    looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-    tottri = BKE_mesh_runtime_looptri_len(mesh);
-    const int *corner_verts = BKE_mesh_corner_verts(mesh);
+    const blender::Span<blender::float3> positions = mesh->vert_positions();
+    const int totvert = mesh->totvert;
+    const blender::Span<MLoopTri> looptris = mesh->looptris();
+    const int tottri = looptris.size();
+    const blender::Span<int> corner_verts = mesh->corner_verts();
 
     /* sanity checking - potential case when no data will be present */
     if ((totvert == 0) || (tottri == 0)) {
@@ -424,20 +418,20 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
       /* init mesh data for collision shape */
       mdata = RB_trimesh_data_new(tottri, totvert);
 
-      RB_trimesh_add_vertices(mdata, (float *)positions, totvert, sizeof(float[3]));
+      RB_trimesh_add_vertices(mdata, (float *)positions.data(), totvert, sizeof(float[3]));
 
       /* loop over all faces, adding them as triangles to the collision shape
        * (so for some faces, more than triangle will get added)
        */
-      if (positions && looptri) {
+      if (positions.data()) {
         for (i = 0; i < tottri; i++) {
           /* add first triangle - verts 1,2,3 */
-          const MLoopTri *lt = &looptri[i];
+          const MLoopTri &lt = looptris[i];
           int vtri[3];
 
-          vtri[0] = corner_verts[lt->tri[0]];
-          vtri[1] = corner_verts[lt->tri[1]];
-          vtri[2] = corner_verts[lt->tri[2]];
+          vtri[0] = corner_verts[lt.tri[0]];
+          vtri[1] = corner_verts[lt.tri[1]];
+          vtri[2] = corner_verts[lt.tri[2]];
 
           RB_trimesh_add_triangle_indices(mdata, i, UNPACK3(vtri));
         }
@@ -674,22 +668,22 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        const MLoopTri *lt = nullptr;
-        int totvert, tottri = 0;
-
-        /* ensure mesh validity, then grab data */
         if (mesh == nullptr) {
           return;
         }
 
-        const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-        totvert = mesh->totvert;
-        lt = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = BKE_mesh_runtime_looptri_len(mesh);
+        const blender::Span<blender::float3> positions = mesh->vert_positions();
+        const blender::Span<MLoopTri> looptris = mesh->looptris();
         const int *corner_verts = BKE_mesh_corner_verts(mesh);
 
-        if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(positions, totvert, lt, tottri, corner_verts, &volume, nullptr);
+        if (!positions.is_empty() && !looptris.is_empty()) {
+          BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
+                               positions.size(),
+                               looptris.data(),
+                               looptris.size(),
+                               corner_verts,
+                               &volume,
+                               nullptr);
           const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
           volume *= fabsf(volume_scale);
         }
@@ -748,22 +742,21 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
         Mesh *mesh = rigidbody_get_mesh(ob);
-        const MLoopTri *looptri;
-        int totvert, tottri;
-
-        /* ensure mesh validity, then grab data */
         if (mesh == nullptr) {
           return;
         }
 
-        const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
-        totvert = mesh->totvert;
-        looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-        tottri = BKE_mesh_runtime_looptri_len(mesh);
+        const blender::Span<blender::float3> positions = mesh->vert_positions();
+        const blender::Span<MLoopTri> looptris = mesh->looptris();
 
-        if (totvert > 0 && tottri > 0) {
-          BKE_mesh_calc_volume(
-              positions, totvert, looptri, tottri, BKE_mesh_corner_verts(mesh), nullptr, r_center);
+        if (!positions.is_empty() && !looptris.is_empty()) {
+          BKE_mesh_calc_volume(reinterpret_cast<const float(*)[3]>(positions.data()),
+                               positions.size(),
+                               looptris.data(),
+                               looptris.size(),
+                               mesh->corner_verts().data(),
+                               nullptr,
+                               r_center);
         }
       }
       break;
@@ -1771,7 +1764,8 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
     Mesh *mesh = ob->runtime.mesh_deform_eval;
     if (mesh) {
-      float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+      float(*positions)[3] = reinterpret_cast<float(*)[3]>(
+          mesh->vert_positions_for_write().data());
       int totvert = mesh->totvert;
       const BoundBox *bb = BKE_object_boundbox_get(ob);
 

@@ -255,7 +255,9 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
                                            const float (*luvs)[2],
                                            MeshIslandStore *r_island_store);
 
-#endif
+#  ifdef __cplusplus
+}
+#  endif
 
 /**
  * Calculate smooth groups from sharp edges.
@@ -265,31 +267,23 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
  * starting at 1 (0 being used as 'invalid' flag).
  * Note it's callers's responsibility to MEM_freeN returned array.
  */
-int *BKE_mesh_calc_smoothgroups(int totedge,
-                                const int *face_offsets,
-                                int faces_num,
-                                const int *corner_edges,
-                                int totloop,
+int *BKE_mesh_calc_smoothgroups(int edges_num,
+                                blender::OffsetIndices<int> faces,
+                                blender::Span<int> corner_edges,
                                 const bool *sharp_edges,
                                 const bool *sharp_faces,
                                 int *r_totgroup,
                                 bool use_bitflags);
 
 /* use on looptri vertex values */
-#define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
-  ((CHECK_TYPE_ANY( \
-        _tri, unsigned int *, int *, int[3], const unsigned int *, const int *, const int[3]), \
-    CHECK_TYPE_ANY(_v, unsigned int, const unsigned int, int, const int)), \
-   (((_tri)[0] == _v) ? 0 : \
-    ((_tri)[1] == _v) ? 1 : \
-    ((_tri)[2] == _v) ? 2 : \
-                        -1))
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
+#  define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
+    ((CHECK_TYPE_ANY( \
+          _tri, unsigned int *, int *, int[3], const unsigned int *, const int *, const int[3]), \
+      CHECK_TYPE_ANY(_v, unsigned int, const unsigned int, int, const int)), \
+     (((_tri)[0] == _v) ? 0 : \
+      ((_tri)[1] == _v) ? 1 : \
+      ((_tri)[2] == _v) ? 2 : \
+                          -1))
 
 namespace blender::bke::mesh {
 

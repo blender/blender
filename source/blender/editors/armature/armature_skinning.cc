@@ -22,7 +22,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -416,7 +416,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* transform verts to global space */
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   for (int i = 0; i < mesh->totvert; i++) {
     if (!vertsfilled) {
       copy_v3_v3(verts[i], positions[i]);

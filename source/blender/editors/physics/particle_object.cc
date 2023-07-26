@@ -27,7 +27,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -752,7 +752,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   BKE_mesh_tessface_ensure(mesh);
 
   numverts = mesh->totvert;
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+  blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
 
   /* convert to global coordinates */
   for (int i = 0; i < numverts; i++) {

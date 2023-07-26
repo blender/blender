@@ -344,8 +344,9 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
         XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
             MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
         memset(xod, 0x0, sizeof(*xod));
+        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), me->totvert)
+            .copy_from(me->vert_positions());
 
-        BKE_mesh_vert_coords_get(me, xod->elem_array);
         xod_base = &xod->base;
 
         if (key != nullptr) {

@@ -150,12 +150,12 @@ static void deformVerts(ModifierData *md,
       collmd->mvert_num = mvert_num;
 
       {
-        const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
-        collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh);
+        const blender::Span<MLoopTri> looptris = mesh->looptris();
+        collmd->tri_num = looptris.size();
         MVertTri *tri = static_cast<MVertTri *>(
             MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
         BKE_mesh_runtime_verttri_from_looptri(
-            tri, mesh->corner_verts().data(), looptri, collmd->tri_num);
+            tri, mesh->corner_verts().data(), looptris.data(), collmd->tri_num);
         collmd->tri = tri;
       }
 

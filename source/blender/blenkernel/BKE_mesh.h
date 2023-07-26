@@ -285,7 +285,6 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
 float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
-void BKE_mesh_vert_coords_get(const struct Mesh *mesh, float (*vert_coords)[3]);
 
 void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float (*vert_coords)[3],
@@ -295,7 +294,7 @@ void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]
 /* *** mesh_tessellate.cc *** */
 
 /**
- * Calculate tessellation into #MLoopTri which exist only for this purpose.
+ * See #bke::mesh::looptris_calc
  */
 void BKE_mesh_recalc_looptri(const int *corner_verts,
                              const int *face_offsets,
@@ -754,11 +753,6 @@ BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
 {
   return (const float(*)[3])CustomData_get_layer_named(
       &mesh->vert_data, CD_PROP_FLOAT3, "position");
-}
-BLI_INLINE float (*BKE_mesh_vert_positions_for_write(Mesh *mesh))[3]
-{
-  return (float(*)[3])CustomData_get_layer_named_for_write(
-      &mesh->vert_data, CD_PROP_FLOAT3, "position", mesh->totvert);
 }
 
 BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)

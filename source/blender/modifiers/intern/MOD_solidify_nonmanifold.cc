@@ -16,6 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_deform.h"
 #include "BKE_mesh.hh"
 #include "BKE_particle.h"
