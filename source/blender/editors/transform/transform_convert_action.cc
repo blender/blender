@@ -367,6 +367,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
       adt_count = count_gplayer_frames(
           static_cast<bGPDlayer *>(ale->data), t->frame_side, cfra, is_prop_edit);
     }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      /* GPv3: To be implemented. */
+    }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       adt_count = count_masklayer_frames(
           static_cast<MaskLayer *>(ale->data), t->frame_side, cfra, is_prop_edit);

@@ -50,10 +50,29 @@ eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
 
 #ifdef __cplusplus
 
+#  include "BKE_grease_pencil.hh"
+
 #  include "BLI_generic_span.hh"
 #  include "BLI_math_matrix_types.hh"
 
 namespace blender::ed::greasepencil {
+
+void select_layer_channel(GreasePencil *grease_pencil, bke::greasepencil::Layer *layer);
+
+/**
+ * Sets the selection flag, according to \a selection_mode to the frame at \a frame_number in the
+ * \a layer if such frame exists. Returns false if no such frame exists.
+ */
+bool select_frame_at(bke::greasepencil::Layer *layer,
+                     const int frame_number,
+                     const short select_mode);
+
+void select_all_frames(bke::greasepencil::Layer *layer, const short select_mode);
+
+/**
+ * Returns true if any frame of the \a layer is selected.
+ */
+bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer);
 
 bool active_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);

@@ -499,6 +499,11 @@ inline bool GreasePencilFrame::is_implicit_hold() const
   return (this->flag & GP_FRAME_IMPLICIT_HOLD) != 0;
 }
 
+inline bool GreasePencilFrame::is_selected() const
+{
+  return (this->flag & GP_FRAME_SELECTED) != 0;
+}
+
 inline blender::bke::greasepencil::TreeNode &GreasePencilLayerTreeNode::wrap()
 {
   return *reinterpret_cast<blender::bke::greasepencil::TreeNode *>(this);

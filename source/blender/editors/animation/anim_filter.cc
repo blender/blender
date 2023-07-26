@@ -1872,12 +1872,12 @@ static size_t animdata_filter_grease_pencil_data(ListBase *anim_data,
       /* Add data block container (if for drawing, and it contains sub-channels). */
       ANIMCHANNEL_NEW_CHANNEL(
           grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
-
-      /* Add the list of collected channels. */
-      BLI_movelisttolist(anim_data, &tmp_data);
-      BLI_assert(BLI_listbase_is_empty(&tmp_data));
-      items += tmp_items;
     }
+
+    /* Add the list of collected channels. */
+    BLI_movelisttolist(anim_data, &tmp_data);
+    BLI_assert(BLI_listbase_is_empty(&tmp_data));
+    items += tmp_items;
   }
 
   return items;
