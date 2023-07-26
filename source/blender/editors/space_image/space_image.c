@@ -664,8 +664,8 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
       BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
       UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
       ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
-      ED_space_image_release_buffer(sima, ibuf, lock);
     }
+    ED_space_image_release_buffer(sima, ibuf, lock);
   }
 
   /* sample line */
