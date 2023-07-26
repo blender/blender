@@ -138,18 +138,13 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   virtual void build_tree() = 0;
 
  private:
+  void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const final;
   void update_children_from_old(const AbstractView &old_view) override;
   static void update_children_from_old_recursive(const TreeViewOrItem &new_items,
                                                  const TreeViewOrItem &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
                                                    const TreeViewOrItem &items);
 
-  /**
-   * Items may want to do additional work when state changes. But these state changes can only be
-   * reliably detected after the tree has completed reconstruction (see #is_reconstructed()). So
-   * the actual state changes are done in a delayed manner through this function.
-   */
-  void change_state_delayed();
   void draw_hierarchy_lines(const ARegion &region) const;
   void draw_hierarchy_lines_recursive(const ARegion &region,
                                       const TreeViewOrItem &parent,
@@ -209,20 +204,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   bool is_collapsible() const;
 
  protected:
-  /**
-   * Called when the tree view changes an item's state from inactive to active. Will only be called
-   * if the state change is triggered through the tree view, not through external changes. E.g. a
-   * click on an item calls it, a change in the value returned by #should_be_active() to reflect an
-   * external state change does not.
-   */
-  virtual void on_activate();
-  /**
-   * If the result is not empty, it controls whether the item should be active or not, usually
-   * depending on the data that the view represents. Note that since this is meant to reflect
-   * externally managed state changes, #on_activate() will never be called if this returns true.
-   */
-  virtual std::optional<bool> should_be_active() const;
-
   /** See AbstractViewItem::get_rename_string(). */
   /* virtual */ StringRef get_rename_string() const override;
   /** See AbstractViewItem::rename(). */
@@ -253,18 +234,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   virtual bool matches_single(const AbstractTreeViewItem &other) const;
 
   /**
-   * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
-   * function and ensures this item's parents are not collapsed (so the item is visible). Should
-   * only be called when the item was activated through the tree view (e.g. through a click), not
-   * if the tree view reflects an external change (e.g. #AbstractTreeViewItem::should_be_active()
-   * changes from returning false to returning true).
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
-   */
-  void activate();
-  void deactivate();
-
-  /**
    * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The
    * hovered state can't be queried reliably otherwise.
    * Note that this does a linear lookup in the old block, so isn't too great performance-wise.
@@ -278,14 +247,11 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
   static bool is_collapse_chevron_but(const uiBut *but);
 
-  /** See #AbstractTreeView::change_state_delayed() */
-  void change_state_delayed();
   /**
-   * Like #activate() but does not call #on_activate(). Use it to reflect changes in the active
-   * state that happened externally.
-   * \return true of the item was activated.
+   * Override of #AbstractViewItem::set_state_active() that also ensures the parents of this
+   * element are uncollapsed so that the item is visible.
    */
-  bool set_state_active();
+  bool set_state_active() final;
 
   void add_treerow_button(uiBlock &block);
   int indent_width() const;
