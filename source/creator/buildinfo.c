@@ -6,11 +6,11 @@
  * \ingroup creator
  */
 
-#include "BLI_sys_types.h"
-
 #ifdef WITH_BUILDINFO_HEADER
 #  include "buildinfo.h"
 #endif
+
+typedef unsigned long ulong;
 
 #ifdef BUILD_DATE
 
