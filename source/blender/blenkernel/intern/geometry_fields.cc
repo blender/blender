@@ -76,6 +76,7 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
     }
     case GeometryComponent::Type::Volume:
     case GeometryComponent::Type::Edit:
+    case GeometryComponent::Type::GreasePencil:
       BLI_assert_unreachable();
       break;
   }

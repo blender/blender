@@ -985,6 +985,10 @@ static void create_inspection_string_for_geometry_info(const geo_log::GeometryIn
         }
         break;
       }
+      case bke::GeometryComponent::Type::GreasePencil: {
+        /* TODO. Do nothing for now. */
+        break;
+      }
     }
     if (type != component_types.last()) {
       ss << ".\n";
@@ -1036,6 +1040,10 @@ static void create_inspection_string_for_geometry_socket(std::stringstream &ss,
         break;
       }
       case bke::GeometryComponent::Type::Edit: {
+        break;
+      }
+      case bke::GeometryComponent::Type::GreasePencil: {
+        ss << TIP_("Grease Pencil");
         break;
       }
     }

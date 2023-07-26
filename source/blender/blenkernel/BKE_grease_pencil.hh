@@ -542,6 +542,7 @@ inline bool GreasePencil::has_active_layer() const
 
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
+GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(struct Depsgraph *depsgraph,
                                    struct Scene *scene,

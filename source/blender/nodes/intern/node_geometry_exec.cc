@@ -96,6 +96,10 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
       case GeometryComponent::Type::Edit: {
         continue;
       }
+      case GeometryComponent::Type::GreasePencil: {
+        message += TIP_("Grease Pencil");
+        break;
+      }
     }
     this->error_message_add(NodeWarningType::Info, std::move(message));
   }

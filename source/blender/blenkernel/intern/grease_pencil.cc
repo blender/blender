@@ -1044,6 +1044,12 @@ GreasePencil *BKE_grease_pencil_new_nomain()
   return grease_pencil;
 }
 
+GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src)
+{
+  return reinterpret_cast<GreasePencil *>(
+      BKE_id_copy_ex(nullptr, &grease_pencil_src->id, nullptr, LIB_ID_COPY_LOCALIZE));
+}
+
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob)
 {
   using namespace blender;

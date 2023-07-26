@@ -133,6 +133,7 @@ set(SRC
   intern/freestyle.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_edit_data.cc
+  intern/geometry_component_grease_pencil.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc

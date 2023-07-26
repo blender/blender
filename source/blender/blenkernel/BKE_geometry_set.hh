@@ -22,10 +22,11 @@ struct Curve;
 struct Mesh;
 struct PointCloud;
 struct Volume;
+struct GreasePencil;
 
 namespace blender::bke {
 
-#define GEO_COMPONENT_TYPE_ENUM_SIZE 6
+#define GEO_COMPONENT_TYPE_ENUM_SIZE 7
 
 enum class GeometryOwnershipType {
   /* The geometry is owned. This implies that it can be changed. */
@@ -63,6 +64,7 @@ class GeometryComponent : public ImplicitSharingMixin {
     Volume = 3,
     Curve = 4,
     Edit = 5,
+    GreasePencil = 6,
   };
 
  private:
@@ -120,6 +122,7 @@ inline constexpr bool is_geometry_component_v = std::is_base_of_v<GeometryCompon
  *  - #PointCloudComponent
  *  - #InstancesComponent
  *  - #VolumeComponent
+ *  - #GreasePencilComponent
  *
  * Copying a geometry set is a relatively cheap operation, because it does not copy the referenced
  * geometry components, so #GeometrySet can often be passed or moved by value.
@@ -266,6 +269,11 @@ struct GeometrySet {
    */
   static GeometrySet create_with_instances(
       Instances *instances, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Create a new geometry set that only contains the given Grease Pencil data.
+   */
+  static GeometrySet create_with_grease_pencil(
+      GreasePencil *grease_pencil, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
   /* Utility methods for access. */
   /**
@@ -292,6 +300,10 @@ struct GeometrySet {
    * Returns true when the geometry set has any data that is not an instance.
    */
   bool has_realized_data() const;
+  /**
+   * Returns true when the geometry set has a Grease Pencil component that has grease pencil data.
+   */
+  bool has_grease_pencil() const;
   /**
    * Return true if the geometry set has any component that isn't empty.
    */
@@ -321,6 +333,10 @@ struct GeometrySet {
    * Returns read-only curve edit hints or null.
    */
   const CurvesEditHints *get_curve_edit_hints_for_read() const;
+  /**
+   * Returns a read-only Grease Pencil data-block or null.
+   */
+  const GreasePencil *get_grease_pencil_for_read() const;
 
   /**
    * Returns a mutable mesh or null. No ownership is transferred.
@@ -346,6 +362,10 @@ struct GeometrySet {
    * Returns mutable curve edit hints or null.
    */
   CurvesEditHints *get_curve_edit_hints_for_write();
+  /**
+   * Returns a mutable Grease Pencil data-block or null. No ownership is transferred.
+   */
+  GreasePencil *get_grease_pencil_for_write();
 
   /* Utility methods for replacement. */
   /**
@@ -372,6 +392,11 @@ struct GeometrySet {
    */
   void replace_instances(Instances *instances,
                          GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Clear the existing Grease Pencil data-block and replace it with the given one.
+   */
+  void replace_grease_pencil(GreasePencil *grease_pencil,
+                             GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
 
  private:
   /**
@@ -653,6 +678,45 @@ class GeometryComponentEditData final : public GeometryComponent {
   static void remember_deformed_curve_positions_if_necessary(GeometrySet &geometry);
 
   static constexpr inline GeometryComponent::Type static_type = GeometryComponent::Type::Edit;
+};
+
+/**
+ * A geometry component that stores #GreasePencil data.
+ * This component does not implement an attribute API, because the #GreasePencil data itself does
+ * not store any attributes, only the individual drawings within it.
+ */
+class GreasePencilComponent : public GeometryComponent {
+ private:
+  GreasePencil *grease_pencil_ = nullptr;
+  GeometryOwnershipType ownership_ = GeometryOwnershipType::Owned;
+
+ public:
+  GreasePencilComponent();
+  ~GreasePencilComponent();
+  GeometryComponent *copy() const override;
+
+  void clear() override;
+  bool has_grease_pencil() const;
+  /**
+   * Clear the component and replace it with the new \a grease_pencil data.
+   */
+  void replace(GreasePencil *grease_pencil,
+               GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
+   * Return the Grease Pencil data and clear the component. The caller takes over responsibility
+   * for freeing the Grease Pencil data (if the component was responsible before).
+   */
+  GreasePencil *release();
+
+  const GreasePencil *get_for_read() const;
+  GreasePencil *get_for_write();
+
+  bool is_empty() const final;
+
+  bool owns_direct_data() const override;
+  void ensure_owns_direct_data() override;
+
+  static constexpr inline GeometryComponent::Type static_type = Type::GreasePencil;
 };
 
 }  // namespace blender::bke
