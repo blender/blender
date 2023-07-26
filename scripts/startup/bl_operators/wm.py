@@ -3301,8 +3301,8 @@ class WM_MT_splash_about(Menu):
         col.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
 
 
-class WM_MT_toolbar_toggle_pie(Menu):
-    bl_label = "Toggle Toolbars"
+class WM_MT_region_toggle_pie(Menu):
+    bl_label = "Region Toggle"
 
     # Map the `region.type` to the `space_data` attribute & text label.
     # The order of items defines priority, so in the sequencer for e.g.
@@ -3491,5 +3491,5 @@ classes = (
     WM_MT_splash_quick_setup,
     WM_MT_splash,
     WM_MT_splash_about,
-    WM_MT_toolbar_toggle_pie
+    WM_MT_region_toggle_pie
 )

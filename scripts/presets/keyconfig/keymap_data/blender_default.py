@@ -67,7 +67,7 @@ class Params:
         # Transform keys G/S/R activate tools instead of immediately transforming.
         "use_key_activate_tools",
         # Side-bar toggle opens a pie menu instead of immediately toggling the side-bar.
-        "use_toolbar_pie",
+        "use_region_toggle_pie",
         # Optionally use a modifier to access tools.
         "tool_modifier",
         # Experimental option.
@@ -115,7 +115,7 @@ class Params:
             # User preferences.
             spacebar_action='TOOL',
             use_key_activate_tools=False,
-            use_toolbar_pie=False,
+            use_region_toggle_pie=False,
             use_select_all_toggle=False,
             use_gizmo_drag=True,
             use_fallback_tool=False,
@@ -196,7 +196,7 @@ class Params:
         # User preferences:
         self.spacebar_action = spacebar_action
         self.use_key_activate_tools = use_key_activate_tools
-        self.use_toolbar_pie = use_toolbar_pie
+        self.use_region_toggle_pie = use_region_toggle_pie
 
         self.use_gizmo_drag = use_gizmo_drag
         self.use_select_all_toggle = use_select_all_toggle
@@ -324,10 +324,10 @@ def _template_space_region_type_toggle(
 ):
     items = []
 
-    if params.use_toolbar_pie:
+    if params.use_region_toggle_pie:
         pie_key = sidebar_key or sidebar_key or channels_key
         if pie_key is not None:
-            items.append(op_menu_pie("WM_MT_toolbar_toggle_pie", pie_key))
+            items.append(op_menu_pie("WM_MT_region_toggle_pie", pie_key))
         return items
 
     if toolbar_key is not None:
