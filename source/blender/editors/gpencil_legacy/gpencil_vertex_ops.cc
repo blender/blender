@@ -40,7 +40,7 @@ static const EnumPropertyItem gpencil_modesEnumPropertyItem_mode[] = {
     {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", ""},
     {GPPAINT_MODE_FILL, "FILL", 0, "Fill", ""},
     {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 /* Helper: Check if any stroke is selected. */
@@ -55,10 +55,11 @@ static bool is_any_stroke_selected(bContext *C, const bool is_multiedit, const b
   }
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
@@ -68,7 +69,7 @@ static bool is_any_stroke_selected(bContext *C, const bool is_multiedit, const b
           }
 
           if (is_curve_edit) {
-            if (gps->editcurve == NULL) {
+            if (gps->editcurve == nullptr) {
               continue;
             }
             bGPDcurve *gpc = gps->editcurve;
@@ -100,7 +101,7 @@ static bool is_any_stroke_selected(bContext *C, const bool is_multiedit, const b
 static bool gpencil_vertexpaint_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ob == nullptr) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -120,7 +121,7 @@ static int gpencil_vertexpaint_brightness_contrast_exec(bContext *C, wmOperator 
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
 
   float gain, offset;
@@ -149,11 +150,12 @@ static int gpencil_vertexpaint_brightness_contrast_exec(bContext *C, wmOperator 
   /* Loop all selected strokes. */
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -201,7 +203,7 @@ static int gpencil_vertexpaint_brightness_contrast_exec(bContext *C, wmOperator 
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -238,7 +240,7 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float hue = RNA_float_get(op->ptr, "h");
   float sat = RNA_float_get(op->ptr, "s");
@@ -246,11 +248,12 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -323,7 +326,7 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -357,16 +360,17 @@ static int gpencil_vertexpaint_invert_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -416,7 +420,7 @@ static int gpencil_vertexpaint_invert_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -447,18 +451,19 @@ static int gpencil_vertexpaint_levels_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)ob->data;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float gain = RNA_float_get(op->ptr, "gain");
   float offset = RNA_float_get(op->ptr, "offset");
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -507,7 +512,7 @@ static int gpencil_vertexpaint_levels_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -547,17 +552,18 @@ static int gpencil_vertexpaint_set_exec(bContext *C, wmOperator *op)
   Brush *brush = paint->brush;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float factor = RNA_float_get(op->ptr, "factor");
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -606,7 +612,7 @@ static int gpencil_vertexpaint_set_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -657,7 +663,7 @@ static bool gpencil_extract_palette_from_vertex(bContext *C,
           continue;
         }
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
-        if (gp_style == NULL) {
+        if (gp_style == nullptr) {
           continue;
         }
 
@@ -720,17 +726,17 @@ static bool gpencil_extract_palette_from_vertex(bContext *C,
   done = BKE_palette_from_hash(bmain, color_table, ob->id.name + 2, true);
 
   /* Free memory. */
-  BLI_ghash_free(color_table, NULL, NULL);
+  BLI_ghash_free(color_table, nullptr, nullptr);
 
   return done;
 }
 
 /* Convert Materials to Vertex Color. */
-typedef struct GPMatArray {
+struct GPMatArray {
   uint key;
   Material *ma;
   int index;
-} GPMatArray;
+};
 
 static uint get_material_type(MaterialGPencilStyle *gp_style,
                               bool use_stroke,
@@ -802,7 +808,7 @@ static bool gpencil_material_to_vertex_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ob == nullptr) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -819,8 +825,8 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   const bool selected = RNA_boolean_get(op->ptr, "selected");
 
   char name[32] = "";
-  Material *ma = NULL;
-  GPMatArray *mat_elm = NULL;
+  Material *ma = nullptr;
+  GPMatArray *mat_elm = nullptr;
 
   bool changed = false;
 
@@ -831,7 +837,8 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
 
   /* These arrays hold all materials and index in the material slots for all combinations. */
   int totmat = *totcol;
-  GPMatArray *mat_table = MEM_calloc_arrayN(totmat, sizeof(GPMatArray), __func__);
+  GPMatArray *mat_table = static_cast<GPMatArray *>(
+      MEM_calloc_arrayN(totmat, sizeof(GPMatArray), __func__));
 
   /* Update stroke material index. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -849,7 +856,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
         }
 
         MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
-        if (gp_style == NULL) {
+        if (gp_style == nullptr) {
           continue;
         }
 
@@ -886,7 +893,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
           int i;
           for (i = 0; i < totmat; i++) {
             mat_elm = &mat_table[i];
-            if (mat_elm->ma == NULL) {
+            if (mat_elm->ma == nullptr) {
               break;
             }
             if (key == mat_elm->key) {
@@ -949,7 +956,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   /* Free memory. */
@@ -963,7 +970,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   /* Clean unused materials. */
   if (remove) {
     WM_operator_name_call(
-        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
+        C, "OBJECT_OT_material_slot_remove_unused", WM_OP_INVOKE_REGION_WIN, nullptr, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -999,7 +1006,7 @@ static bool gpencil_extract_palette_vertex_poll(bContext *C)
 {
   /* only supported with grease pencil objects */
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ob == nullptr) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -1066,7 +1073,7 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)obact->data;
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const eGp_Vertex_Mode mode = RNA_enum_get(op->ptr, "mode");
+  const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
 
   /* First need to check if there are something selected. If not, apply to all strokes. */
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, is_curve_edit);
@@ -1074,11 +1081,12 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
   /* Reset Vertex colors. */
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -1089,7 +1097,7 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
           }
 
           if (is_curve_edit) {
-            if (gps->editcurve == NULL) {
+            if (gps->editcurve == nullptr) {
               continue;
             }
             bGPDcurve *gpc = gps->editcurve;
@@ -1119,7 +1127,7 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&gpd->id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
     DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -1131,7 +1139,7 @@ void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot)
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Reset Vertex Color to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Reset Vertex Color to Fill only"},
       {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Reset Vertex Color to Stroke and Fill"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

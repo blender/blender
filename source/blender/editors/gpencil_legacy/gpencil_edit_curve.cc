@@ -44,7 +44,7 @@
 static bool gpencil_curve_edit_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ob == nullptr) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -53,18 +53,18 @@ static bool gpencil_curve_edit_mode_poll(bContext *C)
   }
 
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
-  return (gpl != NULL);
+  return (gpl != nullptr);
 }
 
 static int gpencil_stroke_enter_editcurve_mode_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  bGPdata *gpd = ob->data;
+  bGPdata *gpd = static_cast<bGPdata *>(ob->data);
 
   float error_threshold = RNA_float_get(op->ptr, "error_threshold");
   gpd->curve_edit_threshold = error_threshold;
 
-  if (ELEM(NULL, gpd)) {
+  if (ELEM(nullptr, gpd)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -73,8 +73,8 @@ static int gpencil_stroke_enter_editcurve_mode_exec(bContext *C, wmOperator *op)
       if (gpf == gpl->actframe) {
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* only allow selected and non-converted strokes to be transformed */
-          if ((gps->flag & GP_STROKE_SELECT && gps->editcurve == NULL) ||
-              (gps->editcurve != NULL && gps->editcurve->flag & GP_CURVE_NEEDS_STROKE_UPDATE))
+          if ((gps->flag & GP_STROKE_SELECT && gps->editcurve == nullptr) ||
+              (gps->editcurve != nullptr && gps->editcurve->flag & GP_CURVE_NEEDS_STROKE_UPDATE))
           {
             BKE_gpencil_stroke_editcurve_update(gpd, gpl, gps);
             /* Update the selection from the stroke to the curve. */
@@ -91,7 +91,7 @@ static int gpencil_stroke_enter_editcurve_mode_exec(bContext *C, wmOperator *op)
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -134,10 +134,10 @@ void GPENCIL_OT_stroke_enter_editcurve_mode(wmOperatorType *ot)
 static int gpencil_editcurve_set_handle_type_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  bGPdata *gpd = ob->data;
+  bGPdata *gpd = static_cast<bGPdata *>(ob->data);
   const int handle_type = RNA_enum_get(op->ptr, "type");
 
-  if (ELEM(NULL, gpd)) {
+  if (ELEM(nullptr, gpd)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -172,7 +172,7 @@ static int gpencil_editcurve_set_handle_type_exec(bContext *C, wmOperator *op)
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -184,7 +184,7 @@ void GPENCIL_OT_stroke_editcurve_set_handle_type(wmOperatorType *ot)
       {HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
       {HD_VECT, "VECTOR", 0, "Vector", ""},
       {HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

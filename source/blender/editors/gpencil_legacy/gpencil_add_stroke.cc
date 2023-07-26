@@ -27,11 +27,11 @@
 #include "ED_gpencil_legacy.h"
 
 /* Definition of the most important info from a color */
-typedef struct ColorTemplate {
+struct ColorTemplate {
   const char *name;
   float line[4];
   float fill[4];
-} ColorTemplate;
+};
 
 /* Add color an ensure duplications (matched by name) */
 static int gpencil_stroke_material(Main *bmain,

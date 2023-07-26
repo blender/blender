@@ -70,7 +70,7 @@
 
 /* ----- General Defines ------ */
 /* flags for sflag */
-typedef enum eDrawStrokeFlags {
+enum eDrawStrokeFlags {
   /** don't draw status info */
   GP_DRAWDATA_NOSTATUS = (1 << 0),
   /** only draw 3d-strokes */
@@ -89,7 +89,7 @@ typedef enum eDrawStrokeFlags {
   GP_DRAWDATA_VOLUMETRIC = (1 << 7),
   /** fill insides/bounded-regions of strokes */
   GP_DRAWDATA_FILL = (1 << 8),
-} eDrawStrokeFlags;
+};
 
 /* thickness above which we should use special drawing */
 #if 0
@@ -167,14 +167,14 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   int cyclic_add = (cyclic) ? 1 : 0;
 
   GPUVertFormat *format = immVertexFormat();
-  const struct {
+  struct {
     uint pos, color, thickness;
-  } attr_id = {
-      .pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
-      .color = GPU_vertformat_attr_add(
-          format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT),
-      .thickness = GPU_vertformat_attr_add(format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT),
-  };
+  } attr_id{};
+  attr_id.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  attr_id.color = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  attr_id.thickness = GPU_vertformat_attr_add(
+      format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
 
@@ -284,7 +284,7 @@ static bool gpencil_can_draw_stroke(const bGPDstroke *gps, const int dflag)
   }
 
   /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == NULL) || (gps->totpoints < 1)) {
+  if ((gps->points == nullptr) || (gps->totpoints < 1)) {
     return false;
   }
 
@@ -298,8 +298,8 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
   float tcolor[4];
   short sthickness;
   float ink[4];
-  const bool is_unique = (tgpw->gps != NULL);
-  const bool use_mat = (tgpw->gpd->mat != NULL);
+  const bool is_unique = (tgpw->gps != nullptr);
+  const bool use_mat = (tgpw->gpd->mat != nullptr);
 
   GPU_program_point_size(true);
 
@@ -307,7 +307,8 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
   bool prev_depth_mask = GPU_depth_mask_get();
   GPU_depth_mask(false);
 
-  bGPDstroke *gps_init = (tgpw->gps) ? tgpw->gps : tgpw->t_gpf->strokes.first;
+  bGPDstroke *gps_init = static_cast<bGPDstroke *>((tgpw->gps) ? tgpw->gps :
+                                                                 tgpw->t_gpf->strokes.first);
 
   for (bGPDstroke *gps = gps_init; gps; gps = gps->next) {
     /* check if stroke can be drawn */
@@ -316,9 +317,9 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
     }
     /* check if the color is visible */
     Material *ma = (use_mat) ? tgpw->gpd->mat[gps->mat_nr] : BKE_material_default_gpencil();
-    MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : NULL;
+    MaterialGPencilStyle *gp_style = (ma) ? ma->gp_style : nullptr;
 
-    if ((gp_style == NULL) || (gp_style->flag & GP_MATERIAL_HIDE) ||
+    if ((gp_style == nullptr) || (gp_style->flag & GP_MATERIAL_HIDE) ||
         /* If onion and ghost flag do not draw. */
         (tgpw->onion && (gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN)))
     {

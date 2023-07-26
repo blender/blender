@@ -14,33 +14,27 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "ED_gpencil_legacy.h"
 
 /* Definition of the most important info from a color */
-typedef struct ColorTemplate {
+struct ColorTemplate {
   const char *name;
   float line[4];
   float fill[4];
-} ColorTemplate;
+};
 
 /* Add color an ensure duplications (matched by name) */
-static int gpencil_lineart_material(Main *bmain,
-                                    Object *ob,
-                                    const ColorTemplate *pct,
-                                    const bool fill)
+static int gpencil_stroke_material(Main *bmain, Object *ob, const ColorTemplate *pct)
 {
   int index;
   Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, DATA_(pct->name), &index);
@@ -51,12 +45,11 @@ static int gpencil_lineart_material(Main *bmain,
   copy_v4_v4(ma->gp_style->fill_rgba, pct->fill);
   srgb_to_linearrgb_v4(ma->gp_style->fill_rgba, ma->gp_style->fill_rgba);
 
-  if (fill) {
-    ma->gp_style->flag |= GP_MATERIAL_FILL_SHOW;
-  }
-
   return index;
 }
+
+/* ***************************************************************** */
+/* Stroke Geometry */
 
 /* ***************************************************************** */
 /* Color Data */
@@ -68,27 +61,27 @@ static const ColorTemplate gp_stroke_material_black = {
 };
 
 /* ***************************************************************** */
-/* LineArt API */
+/* Blank API */
 
-void ED_gpencil_create_lineart(bContext *C, Object *ob)
+void ED_gpencil_create_blank(bContext *C, Object *ob, float[4][4] /*mat*/)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
   /* create colors */
-  int color_black = gpencil_lineart_material(bmain, ob, &gp_stroke_material_black, false);
+  int color_black = gpencil_stroke_material(bmain, ob, &gp_stroke_material_black);
 
   /* set first color as active and in brushes */
   ob->actcol = color_black + 1;
 
   /* layers */
-  bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true, false);
+  bGPDlayer *layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
 
   /* frames */
-  BKE_gpencil_frame_addnew(lines, 0);
+  BKE_gpencil_frame_addnew(layer, scene->r.cfra);
 
   /* update depsgraph */
-  /* To trigger modifier update, this is still needed although we don't have any strokes. */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 }

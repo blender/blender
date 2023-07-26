@@ -64,7 +64,7 @@ potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
 
   bm = (potrace_bitmap_t *)MEM_mallocN(sizeof(potrace_bitmap_t), __func__);
   if (!bm) {
-    return NULL;
+    return nullptr;
   }
   bm->w = w;
   bm->h = h;
@@ -72,7 +72,7 @@ potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
   bm->map = (potrace_word *)calloc(h, dy * BM_WORDSIZE);
   if (!bm->map) {
     free(bm);
-    return NULL;
+    return nullptr;
   }
 
   return bm;
@@ -80,7 +80,7 @@ potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
 
 void ED_gpencil_trace_bitmap_free(const potrace_bitmap_t *bm)
 {
-  if (bm != NULL) {
+  if (bm != nullptr) {
     free(bm->map);
   }
   MEM_SAFE_FREE(bm);
@@ -153,10 +153,11 @@ static void add_point(bGPDstroke *gps, float scale, const int32_t offset[2], flo
 {
   int32_t idx = gps->totpoints;
   if (gps->totpoints == 0) {
-    gps->points = MEM_callocN(sizeof(bGPDspoint), "gp_stroke_points");
+    gps->points = static_cast<bGPDspoint *>(MEM_callocN(sizeof(bGPDspoint), "gp_stroke_points"));
   }
   else {
-    gps->points = MEM_recallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
+    gps->points = static_cast<bGPDspoint *>(
+        MEM_recallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1)));
   }
   bGPDspoint *pt = &gps->points[idx];
   pt->x = (x - offset[0]) * scale;
@@ -242,7 +243,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
   const float scalef = 0.008f * scale;
   /* Draw each curve. */
   potrace_path_t *path = st->plist;
-  while (path != NULL) {
+  while (path != nullptr) {
     n = path->curve.n;
     tag = path->curve.tag;
     c = path->curve.c;
@@ -312,7 +313,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
      * long stroke. Here the length is checked and removed if the length is too big. */
     float length = BKE_gpencil_stroke_length(gps, true);
     if (length <= MAX_LENGTH) {
-      bGPdata *gpd = ob->data;
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       if (sample > 0.0f) {
         /* Resample stroke. Don't need to call to BKE_gpencil_stroke_geometry_update() because
          * the sample function already call that. */

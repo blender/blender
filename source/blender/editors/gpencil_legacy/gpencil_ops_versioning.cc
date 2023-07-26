@@ -44,7 +44,7 @@
 static void free_gpencil_colors(bGPDpalette *palette)
 {
   /* error checking */
-  if (palette == NULL) {
+  if (palette == nullptr) {
     return;
   }
 
@@ -58,12 +58,14 @@ static void free_palettes(ListBase *list)
   bGPDpalette *palette_next;
 
   /* error checking */
-  if (list == NULL) {
+  if (list == nullptr) {
     return;
   }
 
   /* delete palettes */
-  for (bGPDpalette *palette = list->first; palette; palette = palette_next) {
+  for (bGPDpalette *palette = static_cast<bGPDpalette *>(list->first); palette;
+       palette = palette_next)
+  {
     palette_next = palette->next;
     /* free palette colors */
     free_gpencil_colors(palette);
@@ -78,7 +80,7 @@ static bool gpencil_convert_old_files_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  return (int)(scene->gpd != NULL);
+  return (int)(scene->gpd != nullptr);
 }
 
 static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
@@ -90,7 +92,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = scene->gpd;
 
   /* Convert grease pencil scene datablock to GP object */
-  if ((!is_annotation) && (view_layer != NULL)) {
+  if ((!is_annotation) && (view_layer != nullptr)) {
     Object *ob;
     ob = BKE_object_add_for_data(
         bmain, scene, view_layer, OB_GPENCIL_LEGACY, "GP_Scene", &scene->gpd->id, false);
@@ -102,7 +104,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
       LISTBASE_FOREACH (bGPDpalettecolor *, palcolor, &palette->colors) {
 
         /* create material slot */
-        Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, NULL);
+        Material *ma = BKE_gpencil_object_material_new(bmain, ob, palcolor->info, nullptr);
 
         /* copy color settings */
         MaterialGPencilStyle *gp_style = ma->gp_style;
@@ -127,7 +129,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
                 gps->mat_nr = ob->totcol - 1;
                 gps->colorname[0] = '\0';
                 /* weights array */
-                gps->dvert = NULL;
+                gps->dvert = nullptr;
               }
             }
           }
@@ -142,9 +144,9 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
     ED_gpencil_setup_modes(C, gpd, 0);
 
     /* set cache as dirty */
-    BKE_gpencil_batch_cache_dirty_tag(ob->data);
+    BKE_gpencil_batch_cache_dirty_tag(static_cast<bGPdata *>(ob->data));
 
-    scene->gpd = NULL;
+    scene->gpd = nullptr;
   }
 
   if (is_annotation) {
@@ -173,7 +175,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
   }
 
   /* notifiers */
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

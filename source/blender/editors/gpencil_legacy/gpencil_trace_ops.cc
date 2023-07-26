@@ -43,7 +43,7 @@
 #include "gpencil_intern.h"
 #include "gpencil_trace.h"
 
-typedef struct TraceJob {
+struct TraceJob {
   /* from wmJob */
   Object *owner;
   bool *stop, *do_update;
@@ -78,7 +78,7 @@ typedef struct TraceJob {
 
   bool success;
   bool was_canceled;
-} TraceJob;
+};
 
 /**
  * Trace a image.
@@ -87,9 +87,9 @@ typedef struct TraceJob {
  */
 static bool gpencil_trace_image(TraceJob *trace_job, ImBuf *ibuf, bGPDframe *gpf)
 {
-  potrace_bitmap_t *bm = NULL;
-  potrace_param_t *param = NULL;
-  potrace_state_t *st = NULL;
+  potrace_bitmap_t *bm = nullptr;
+  potrace_param_t *param = nullptr;
+  potrace_state_t *st = nullptr;
 
   /* Create an empty BW bitmap. */
   bm = ED_gpencil_trace_bitmap_new(ibuf->x, ibuf->y);
@@ -157,7 +157,7 @@ static bool gpencil_trace_image(TraceJob *trace_job, ImBuf *ibuf, bGPDframe *gpf
 static bool gpencil_trace_image_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_EMPTY) || (ob->data == NULL)) {
+  if ((ob == nullptr) || (ob->type != OB_EMPTY) || (ob->data == nullptr)) {
     CTX_wm_operator_poll_msg_set(C, "No image empty selected");
     return false;
   }
@@ -174,7 +174,7 @@ static bool gpencil_trace_image_poll(bContext *C)
 static void trace_initialize_job_data(TraceJob *trace_job)
 {
   /* Create a new grease pencil object. */
-  if (trace_job->ob_gpencil == NULL) {
+  if (trace_job->ob_gpencil == nullptr) {
     ushort local_view_bits = (trace_job->v3d && trace_job->v3d->localvd) ?
                                  trace_job->v3d->local_view_uuid :
                                  0;
@@ -194,14 +194,14 @@ static void trace_initialize_job_data(TraceJob *trace_job)
   /* Create Layer. */
   trace_job->gpd = (bGPdata *)trace_job->ob_gpencil->data;
   trace_job->gpl = BKE_gpencil_layer_active_get(trace_job->gpd);
-  if (trace_job->gpl == NULL) {
+  if (trace_job->gpl == nullptr) {
     trace_job->gpl = BKE_gpencil_layer_addnew(trace_job->gpd, DATA_("Trace"), true, false);
   }
 }
 
 static void trace_start_job(void *customdata, bool *stop, bool *do_update, float *progress)
 {
-  TraceJob *trace_job = customdata;
+  TraceJob *trace_job = static_cast<TraceJob *>(customdata);
 
   trace_job->stop = stop;
   trace_job->do_update = do_update;
@@ -263,11 +263,11 @@ static void trace_start_job(void *customdata, bool *stop, bool *do_update, float
 
 static void trace_end_job(void *customdata)
 {
-  TraceJob *trace_job = customdata;
+  TraceJob *trace_job = static_cast<TraceJob *>(customdata);
 
   /* If canceled, delete all previously created object and data-block. */
   if ((trace_job->was_canceled) && (trace_job->was_ob_created) && (trace_job->ob_gpencil)) {
-    bGPdata *gpd = trace_job->ob_gpencil->data;
+    bGPdata *gpd = static_cast<bGPdata *>(trace_job->ob_gpencil->data);
     BKE_id_delete(trace_job->bmain, &trace_job->ob_gpencil->id);
     BKE_id_delete(trace_job->bmain, &gpd->id);
   }
@@ -278,20 +278,20 @@ static void trace_end_job(void *customdata)
     DEG_id_tag_update(&trace_job->scene->id, ID_RECALC_SELECT);
     DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
-    WM_main_add_notifier(NC_OBJECT | NA_ADDED, NULL);
+    WM_main_add_notifier(NC_OBJECT | NA_ADDED, nullptr);
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, trace_job->scene);
   }
 }
 
 static void trace_free_job(void *customdata)
 {
-  TraceJob *tj = customdata;
+  TraceJob *tj = static_cast<TraceJob *>(customdata);
   MEM_freeN(tj);
 }
 
 static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
 {
-  TraceJob *job = MEM_mallocN(sizeof(TraceJob), "TraceJob");
+  TraceJob *job = static_cast<TraceJob *>(MEM_mallocN(sizeof(TraceJob), "TraceJob"));
   job->C = C;
   job->owner = CTX_data_active_object(C);
   job->wm = CTX_wm_manager(C);
@@ -306,20 +306,20 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   job->use_current_frame = RNA_boolean_get(op->ptr, "use_current_frame");
 
   /* Create a new grease pencil object or reuse selected. */
-  eGP_TargetObjectMode target = RNA_enum_get(op->ptr, "target");
+  eGP_TargetObjectMode target = eGP_TargetObjectMode(RNA_enum_get(op->ptr, "target"));
   job->ob_gpencil = (target == GP_TARGET_OB_SELECTED) ?
                         BKE_view_layer_non_active_selected_object(
                             scene, CTX_data_view_layer(C), job->v3d) :
-                        NULL;
+                        nullptr;
 
-  if (job->ob_gpencil != NULL) {
+  if (job->ob_gpencil != nullptr) {
     if (job->ob_gpencil->type != OB_GPENCIL_LEGACY) {
       BKE_report(op->reports, RPT_WARNING, "Target object not a grease pencil, ignoring!");
-      job->ob_gpencil = NULL;
+      job->ob_gpencil = nullptr;
     }
     else if (BKE_object_obdata_is_libdata(job->ob_gpencil)) {
       BKE_report(op->reports, RPT_WARNING, "Target object library-data, ignoring!");
-      job->ob_gpencil = NULL;
+      job->ob_gpencil = nullptr;
     }
   }
 
@@ -356,7 +356,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
 
     WM_jobs_customdata_set(wm_job, job, trace_free_job);
     WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
-    WM_jobs_callbacks(wm_job, trace_start_job, NULL, NULL, trace_end_job);
+    WM_jobs_callbacks(wm_job, trace_start_job, nullptr, nullptr, trace_end_job);
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
@@ -364,7 +364,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gpencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int gpencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* Show popup dialog to allow editing. */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
@@ -401,19 +401,19 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
        "Prefers to connect the color (black or white) that occurs most frequently in the local "
        "neighborhood of the current position"},
       {POTRACE_TURNPOLICY_RANDOM, "RANDOM", 0, "Random", "Choose pseudo-randomly"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem trace_modes[] = {
       {GPENCIL_TRACE_MODE_SINGLE, "SINGLE", 0, "Single", "Trace the current frame of the image"},
       {GPENCIL_TRACE_MODE_SEQUENCE, "SEQUENCE", 0, "Sequence", "Trace full sequence"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   static const EnumPropertyItem target_object_modes[] = {
       {GP_TARGET_OB_NEW, "NEW", 0, "New Object", ""},
       {GP_TARGET_OB_SELECTED, "SELECTED", 0, "Selected Object", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

@@ -9,13 +9,16 @@
 #pragma once
 
 /* internal exports only */
-struct FILE;
 struct ImBuf;
 struct Main;
 struct Object;
 struct bGPDframe;
 
 #include "potracelib.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Potrace macros for writing individual bitmap pixels. */
 #define BM_WORDSIZE ((int)sizeof(potrace_word))
@@ -95,3 +98,7 @@ void ED_gpencil_trace_data_to_strokes(struct Main *bmain,
                                       float sample,
                                       int32_t resolution,
                                       int32_t thickness);
+
+#ifdef __cplusplus
+}
+#endif

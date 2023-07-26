@@ -77,7 +77,7 @@ static int gpencil_bone_looper(Object *ob,
     count += bone_func(ob, bone, data);
 
     /* try to execute bone_func for the first child */
-    count += gpencil_bone_looper(ob, bone->childbase.first, data, bone_func);
+    count += gpencil_bone_looper(ob, static_cast<Bone *>(bone->childbase.first), data, bone_func);
 
     /* try to execute bone_func for the next bone at this
      * depth of the recursion.
@@ -88,7 +88,7 @@ static int gpencil_bone_looper(Object *ob,
   return count;
 }
 
-static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap)
+static int gpencil_bone_skinnable_cb(Object * /*ob*/, Bone *bone, void *datap)
 {
   /* Bones that are deforming
    * are regarded to be "skinnable" and are eligible for
@@ -114,11 +114,11 @@ static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap
    */
   Bone ***hbone;
   int a, segments;
-  struct {
+  struct Data {
     Object *armob;
     void *list;
     int heat;
-  } *data = datap;
+  } *data = static_cast<Data *>(datap);
 
   if (!(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
@@ -130,7 +130,7 @@ static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap
         segments = 1;
       }
 
-      if (data->list != NULL) {
+      if (data->list != nullptr) {
         hbone = (Bone ***)&data->list;
 
         for (a = 0; a < segments; a++) {
@@ -144,7 +144,7 @@ static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap
   return 0;
 }
 
-static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
+static int vgroup_add_unique_bone_cb(Object *ob, Bone *bone, void * /*ptr*/)
 {
   /* This group creates a vertex group to ob that has the
    * same name as bone (provided the bone is skinnable).
@@ -184,14 +184,14 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
    *      pointers to bDeformGroups, all with names
    *      of skinnable bones.
    */
-  bDeformGroup ***hgroup, *defgroup = NULL;
+  bDeformGroup ***hgroup, *defgroup = nullptr;
   int a, segments;
-  struct {
+  struct Data {
     Object *armob;
     void *list;
     int heat;
-  } *data = datap;
-  bArmature *arm = data->armob->data;
+  } *data = static_cast<Data *>(datap);
+  bArmature *arm = static_cast<bArmature *>(data->armob->data);
 
   if (!(bone->flag & BONE_HIDDEN_P)) {
     if (!(bone->flag & BONE_NO_DEFORM)) {
@@ -209,11 +209,11 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
         }
         else if (defgroup->flag & DG_LOCK_WEIGHT) {
           /* In case vgroup already exists and is locked, do not modify it here. See #43814. */
-          defgroup = NULL;
+          defgroup = nullptr;
         }
       }
 
-      if (data->list != NULL) {
+      if (data->list != nullptr) {
         hgroup = (bDeformGroup ***)&data->list;
 
         for (a = 0; a < segments; a++) {
@@ -245,14 +245,14 @@ static float get_weight(float dist, float decay_rad, float dif_rad)
 static void gpencil_add_verts_to_dgroups(
     const bContext *C, Object *ob, Object *ob_arm, const float ratio, const float decay)
 {
-  bArmature *arm = ob_arm->data;
+  bArmature *arm = static_cast<bArmature *>(ob_arm->data);
   Bone **bonelist, *bone;
   bDeformGroup **dgrouplist;
   bPoseChannel *pchan;
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
-  Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = NULL;
+  Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = nullptr;
   float(*root)[3], (*tip)[3], (*verts)[3];
   float *radsqr;
   int *selected;
@@ -266,10 +266,11 @@ static void gpencil_add_verts_to_dgroups(
 
   looper_data.armob = ob_arm;
   looper_data.heat = true;
-  looper_data.list = NULL;
+  looper_data.list = nullptr;
 
   /* count the number of skinnable bones */
-  numbones = gpencil_bone_looper(ob, arm->bonebase.first, &looper_data, gpencil_bone_skinnable_cb);
+  numbones = gpencil_bone_looper(
+      ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, gpencil_bone_skinnable_cb);
 
   if (numbones == 0) {
     return;
@@ -277,24 +278,27 @@ static void gpencil_add_verts_to_dgroups(
 
   /* create an array of pointer to bones that are skinnable
    * and fill it with all of the skinnable bones */
-  bonelist = MEM_callocN(numbones * sizeof(Bone *), "bonelist");
+  bonelist = static_cast<Bone **>(MEM_callocN(numbones * sizeof(Bone *), "bonelist"));
   looper_data.list = bonelist;
-  gpencil_bone_looper(ob, arm->bonebase.first, &looper_data, gpencil_bone_skinnable_cb);
+  gpencil_bone_looper(
+      ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, gpencil_bone_skinnable_cb);
 
   /* create an array of pointers to the deform groups that
    * correspond to the skinnable bones (creating them
    * as necessary. */
-  dgrouplist = MEM_callocN(numbones * sizeof(bDeformGroup *), "dgrouplist");
+  dgrouplist = static_cast<bDeformGroup **>(
+      MEM_callocN(numbones * sizeof(bDeformGroup *), "dgrouplist"));
 
   looper_data.list = dgrouplist;
-  gpencil_bone_looper(ob, arm->bonebase.first, &looper_data, dgroup_skinnable_cb);
+  gpencil_bone_looper(
+      ob, static_cast<Bone *>(arm->bonebase.first), &looper_data, dgroup_skinnable_cb);
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = MEM_callocN(sizeof(float[3]) * numbones, "root");
-  tip = MEM_callocN(sizeof(float[3]) * numbones, "tip");
-  selected = MEM_callocN(sizeof(int) * numbones, "selected");
-  radsqr = MEM_callocN(sizeof(float) * numbones, "radsqr");
+  root = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "root"));
+  tip = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * numbones, "tip"));
+  selected = static_cast<int *>(MEM_callocN(sizeof(int) * numbones, "selected"));
+  radsqr = static_cast<float *>(MEM_callocN(sizeof(float) * numbones, "radsqr"));
 
   for (j = 0; j < numbones; j++) {
     bone = bonelist[j];
@@ -302,7 +306,7 @@ static void gpencil_add_verts_to_dgroups(
     /* handle bbone */
     if (segments == 0) {
       segments = 1;
-      bbone = NULL;
+      bbone = nullptr;
 
       if ((ob_arm->pose) && (pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name))) {
         if (bone->segments > 1) {
@@ -341,13 +345,14 @@ static void gpencil_add_verts_to_dgroups(
 
   /* loop all strokes */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
-    bGPDspoint *pt = NULL;
+    bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
+                                                                    gpl->actframe);
+    bGPDspoint *pt = nullptr;
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
 
-        if (gpf == NULL) {
+        if (gpf == nullptr) {
           continue;
         }
 
@@ -360,7 +365,7 @@ static void gpencil_add_verts_to_dgroups(
           BKE_gpencil_dvert_ensure(gps);
 
           /* create verts array */
-          verts = MEM_callocN(gps->totpoints * sizeof(*verts), __func__);
+          verts = static_cast<float(*)[3]>(MEM_callocN(gps->totpoints * sizeof(*verts), __func__));
 
           /* transform stroke points to global space */
           for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
@@ -437,7 +442,7 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
   /* Lets try to create some vertex groups
    * based on the bones of the parent armature.
    */
-  bArmature *arm = ob_arm->data;
+  bArmature *arm = static_cast<bArmature *>(ob_arm->data);
 
   /* always create groups */
   const int defbase_tot = BKE_object_defgroup_count(ob);
@@ -445,12 +450,13 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
   /* Traverse the bone list, trying to create empty vertex
    * groups corresponding to the bone.
    */
-  defbase_add = gpencil_bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
+  defbase_add = gpencil_bone_looper(
+      ob, static_cast<Bone *>(arm->bonebase.first), nullptr, vgroup_add_unique_bone_cb);
 
   if (defbase_add) {
     /* It's possible there are DWeights outside the range of the current
      * object's deform groups. In this case the new groups won't be empty */
-    ED_vgroup_data_clamp_range(ob->data, defbase_tot);
+    ED_vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
   }
 
   if (mode == GP_ARMATURE_AUTO) {
@@ -469,16 +475,16 @@ bool ED_gpencil_add_armature(const bContext *C, ReportList *reports, Object *ob,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
 
   /* if no armature modifier, add a new one */
   GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Armature);
-  if (md == NULL) {
+  if (md == nullptr) {
     md = ED_object_gpencil_modifier_add(
         reports, bmain, scene, ob, "Armature", eGpencilModifierType_Armature);
-    if (md == NULL) {
+    if (md == nullptr) {
       BKE_report(reports, RPT_ERROR, "Unable to add a new Armature modifier to object");
       return false;
     }
@@ -487,7 +493,7 @@ bool ED_gpencil_add_armature(const bContext *C, ReportList *reports, Object *ob,
 
   /* verify armature */
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-  if (mmd->object == NULL) {
+  if (mmd->object == nullptr) {
     mmd->object = ob_arm;
   }
   else {
@@ -504,7 +510,7 @@ bool ED_gpencil_add_armature(const bContext *C, ReportList *reports, Object *ob,
 bool ED_gpencil_add_armature_weights(
     const bContext *C, ReportList *reports, Object *ob, Object *ob_arm, int mode)
 {
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
 
@@ -522,7 +528,7 @@ static bool gpencil_generate_weights_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
 
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
 
@@ -557,14 +563,14 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bGPdata *gpd = (bGPdata *)ob->data;
-  Object *ob_arm = NULL;
+  Object *ob_arm = nullptr;
 
   const int mode = RNA_enum_get(op->ptr, "mode");
   const float ratio = RNA_float_get(op->ptr, "ratio");
   const float decay = RNA_float_get(op->ptr, "decay");
 
   /* sanity checks */
-  if (ELEM(NULL, ob, gpd)) {
+  if (ELEM(nullptr, ob, gpd)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -572,20 +578,21 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
   const int arm_idx = RNA_enum_get(op->ptr, "armature");
   if (arm_idx > 0) {
     BKE_view_layer_synced_ensure(scene, view_layer);
-    Base *base = BLI_findlink(BKE_view_layer_object_bases_get(view_layer), arm_idx - 1);
+    Base *base = static_cast<Base *>(
+        BLI_findlink(BKE_view_layer_object_bases_get(view_layer), arm_idx - 1));
     ob_arm = base->object;
   }
   else {
     /* get armature from modifier */
     GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob_eval,
                                                                 eGpencilModifierType_Armature);
-    if (md == NULL) {
+    if (md == nullptr) {
       BKE_report(op->reports, RPT_ERROR, "The grease pencil object need an Armature modifier");
       return OPERATOR_CANCELLED;
     }
 
     ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
-    if (mmd->object == NULL) {
+    if (mmd->object == nullptr) {
       BKE_report(op->reports, RPT_ERROR, "Armature modifier is not valid or wrong defined");
       return OPERATOR_CANCELLED;
     }
@@ -593,7 +600,7 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
     ob_arm = mmd->object;
   }
 
-  if (ob_arm == NULL) {
+  if (ob_arm == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Armature object in the view layer");
     return OPERATOR_CANCELLED;
   }
@@ -602,24 +609,24 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
 
 /* Dynamically populate an enum of Armatures */
 static const EnumPropertyItem *gpencil_armatures_enum_itemf(bContext *C,
-                                                            PointerRNA *UNUSED(ptr),
-                                                            PropertyRNA *UNUSED(prop),
+                                                            PointerRNA * /*ptr*/,
+                                                            PropertyRNA * /*prop*/,
                                                             bool *r_free)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  EnumPropertyItem *item = NULL, item_tmp = {0};
+  EnumPropertyItem *item = nullptr, item_tmp = {0};
   int totitem = 0;
   int i = 0;
 
-  if (C == NULL) {
+  if (C == nullptr) {
     return DummyRNA_DEFAULT_items;
   }
 
@@ -652,7 +659,7 @@ void GPENCIL_OT_generate_weights(wmOperatorType *ot)
   static const EnumPropertyItem mode_type[] = {
       {GP_ARMATURE_NAME, "NAME", 0, "Empty Groups", ""},
       {GP_ARMATURE_AUTO, "AUTO", 0, "Automatic Weights", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   PropertyRNA *prop;

@@ -40,7 +40,7 @@
 
 #include "gpencil_intern.h"
 
-typedef struct GpUvData {
+struct GpUvData {
   Object *ob;
   bGPdata *gpd;
   GP_SpaceConversion gsc;
@@ -63,7 +63,7 @@ typedef struct GpUvData {
   float vinit_rotation[2];
 
   void *draw_handle_pixel;
-} GpUvData;
+};
 
 enum {
   GP_UV_ROTATE = 0,
@@ -132,14 +132,14 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
 {
   GpUvData *opdata;
 
-  op->customdata = opdata = MEM_mallocN(sizeof(GpUvData), __func__);
+  op->customdata = opdata = static_cast<GpUvData *>(MEM_mallocN(sizeof(GpUvData), __func__));
 
   opdata->ob = CTX_data_active_object(C);
   opdata->gpd = (bGPdata *)opdata->ob->data;
   gpencil_point_conversion_init(C, &opdata->gsc);
-  opdata->array_loc = NULL;
-  opdata->array_rot = NULL;
-  opdata->array_scale = NULL;
+  opdata->array_loc = nullptr;
+  opdata->array_rot = nullptr;
+  opdata->array_scale = nullptr;
   opdata->ob_scale = mat4_to_scale(opdata->ob->object_to_world);
 
   opdata->vinit_rotation[0] = 1.0f;
@@ -170,9 +170,9 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
   if (i > 0) {
     mul_v3_fl(center, 1.0f / i);
     /* Create arrays to save all transformations. */
-    opdata->array_loc = MEM_calloc_arrayN(i, sizeof(float[2]), __func__);
-    opdata->array_rot = MEM_calloc_arrayN(i, sizeof(float), __func__);
-    opdata->array_scale = MEM_calloc_arrayN(i, sizeof(float), __func__);
+    opdata->array_loc = static_cast<float(*)[2]>(MEM_calloc_arrayN(i, sizeof(float[2]), __func__));
+    opdata->array_rot = static_cast<float *>(MEM_calloc_arrayN(i, sizeof(float), __func__));
+    opdata->array_scale = static_cast<float *>(MEM_calloc_arrayN(i, sizeof(float), __func__));
     i = 0;
     GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
       if (gps->flag & GP_STROKE_SELECT) {
@@ -195,7 +195,7 @@ static void gpencil_uv_transform_exit(bContext *C, wmOperator *op)
   GpUvData *opdata;
   ScrArea *area = CTX_wm_area(C);
 
-  opdata = op->customdata;
+  opdata = static_cast<GpUvData *>(op->customdata);
 
   ARegion *region = CTX_wm_region(C);
 
@@ -204,9 +204,9 @@ static void gpencil_uv_transform_exit(bContext *C, wmOperator *op)
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
 
   if (area) {
-    ED_area_status_text(area, NULL);
+    ED_area_status_text(area, nullptr);
   }
-  WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
 
   MEM_SAFE_FREE(opdata->array_loc);
   MEM_SAFE_FREE(opdata->array_rot);
@@ -216,7 +216,7 @@ static void gpencil_uv_transform_exit(bContext *C, wmOperator *op)
 
 static void gpencil_transform_fill_cancel(bContext *C, wmOperator *op)
 {
-  GpUvData *opdata = op->customdata;
+  GpUvData *opdata = static_cast<GpUvData *>(op->customdata);
   UNUSED_VARS(opdata);
 
   gpencil_uv_transform_exit(C, op);
@@ -228,7 +228,7 @@ static void gpencil_transform_fill_cancel(bContext *C, wmOperator *op)
 static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
 {
   const int mode = RNA_enum_get(op->ptr, "mode");
-  GpUvData *opdata = op->customdata;
+  GpUvData *opdata = static_cast<GpUvData *>(op->customdata);
   bGPdata *gpd = opdata->gpd;
 
   bool changed = false;
@@ -315,8 +315,8 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
   if (changed) {
     /* Update cursor line. */
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return changed;
@@ -328,17 +328,17 @@ static bool gpencil_transform_fill_poll(bContext *C)
     return false;
   }
   Object *ob = CTX_data_active_object(C);
-  if ((ob == NULL) || (ob->type != OB_GPENCIL_LEGACY)) {
+  if ((ob == nullptr) || (ob->type != OB_GPENCIL_LEGACY)) {
     return false;
   }
   bGPdata *gpd = (bGPdata *)ob->data;
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return false;
   }
 
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
 
-  if ((gpl == NULL) || (ob->mode != OB_MODE_EDIT_GPENCIL_LEGACY)) {
+  if ((gpl == nullptr) || (ob->mode != OB_MODE_EDIT_GPENCIL_LEGACY)) {
     return false;
   }
 
@@ -355,7 +355,7 @@ static int gpencil_transform_fill_invoke(bContext *C, wmOperator *op, const wmEv
     return OPERATOR_CANCELLED;
   }
 
-  GpUvData *opdata = op->customdata;
+  GpUvData *opdata = static_cast<GpUvData *>(op->customdata);
   /* initialize mouse values */
   opdata->mouse[0] = event->mval[0];
   opdata->mouse[1] = event->mval[1];
@@ -389,7 +389,7 @@ static int gpencil_transform_fill_invoke(bContext *C, wmOperator *op, const wmEv
 
 static int gpencil_transform_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  GpUvData *opdata = op->customdata;
+  GpUvData *opdata = static_cast<GpUvData *>(op->customdata);
 
   switch (event->type) {
     case EVT_ESCKEY:
@@ -433,7 +433,7 @@ void GPENCIL_OT_transform_fill(wmOperatorType *ot)
       {GP_UV_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
       {GP_UV_ROTATE, "ROTATE", 0, "Rotate", ""},
       {GP_UV_SCALE, "SCALE", 0, "Scale", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   PropertyRNA *prop;
@@ -456,13 +456,13 @@ void GPENCIL_OT_transform_fill(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "mode", uv_mode, GP_UV_ROTATE, "Mode", "");
 
   prop = RNA_def_float_vector(
-      ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "", -FLT_MAX, FLT_MAX);
+      ot->srna, "location", 2, nullptr, -FLT_MAX, FLT_MAX, "Location", "", -FLT_MAX, FLT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   prop = RNA_def_float_rotation(ot->srna,
                                 "rotation",
                                 0,
-                                NULL,
+                                nullptr,
                                 DEG2RADF(-360.0f),
                                 DEG2RADF(360.0f),
                                 "Rotation",
@@ -510,7 +510,7 @@ static int gpencil_reset_transform_fill_exec(bContext *C, wmOperator *op)
   /* notifiers */
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   return OPERATOR_FINISHED;
@@ -523,7 +523,7 @@ void GPENCIL_OT_reset_transform_fill(wmOperatorType *ot)
       {GP_UV_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
       {GP_UV_ROTATE, "ROTATE", 0, "Rotate", ""},
       {GP_UV_SCALE, "SCALE", 0, "Scale", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
