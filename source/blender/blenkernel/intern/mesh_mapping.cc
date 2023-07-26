@@ -257,7 +257,7 @@ void BKE_mesh_origindex_map_create(MeshElemMap **r_map,
     map[i].count = 0;
   }
 
-  /* assign face-tessface users */
+  /* Assign face-tessellation users. */
   for (i = 0; i < totfinal; i++) {
     if (final_origindex[i] != ORIGINDEX_NONE) {
       MeshElemMap *map_ele = &map[final_origindex[i]];
@@ -286,7 +286,7 @@ void BKE_mesh_origindex_map_create_looptri(MeshElemMap **r_map,
     index_step += ME_FACE_TRI_TOT(faces[i].size());
   }
 
-  /* assign face-tessface users */
+  /* Assign face-tessellation users. */
   for (int i = 0; i < looptri_num; i++) {
     MeshElemMap *map_ele = &map[looptri_faces[i]];
     map_ele->indices[map_ele->count++] = i;

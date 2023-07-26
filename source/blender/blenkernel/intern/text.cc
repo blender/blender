@@ -170,7 +170,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
     text->flags &= ~TXT_ISEXT;
   }
 
-  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
   text->compiled = nullptr;
 
   /* write LibData */
@@ -182,7 +182,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
   }
 
   if (!(text->flags & TXT_ISEXT)) {
-    /* now write the text data, in two steps for optimization in the readfunction */
+    /* Now write the text data, in two steps for optimization in the read-function. */
     LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
       BLO_write_struct(writer, TextLine, tmp);
     }

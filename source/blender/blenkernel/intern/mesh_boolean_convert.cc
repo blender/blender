@@ -492,7 +492,7 @@ static int fill_orig_loops(const Face *f,
   int orig_me_vert_offset = mim.mesh_vert_offset[orig_me_index];
   int first_orig_v_in_orig_me = first_orig_v - orig_me_vert_offset;
   BLI_assert(0 <= first_orig_v_in_orig_me && first_orig_v_in_orig_me < orig_me->totvert);
-  /* Assume all vertices in an mpoly are unique. */
+  /* Assume all vertices in each face is unique. */
   int offset = -1;
   for (int i = 0; i < orig_mplen; ++i) {
     int loop_i = i + orig_face.start();
