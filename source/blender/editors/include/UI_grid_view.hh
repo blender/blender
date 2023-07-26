@@ -44,7 +44,7 @@ class AbstractGridViewItem : public AbstractViewItem {
   uiButViewItem *view_item_but_ = nullptr;
 
  public:
-  virtual ~AbstractGridViewItem() = default;
+  /* virtual */ ~AbstractGridViewItem() override = default;
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
@@ -54,7 +54,7 @@ class AbstractGridViewItem : public AbstractViewItem {
   AbstractGridViewItem(StringRef identifier);
 
   /** See AbstractViewItem::matches(). */
-  virtual bool matches(const AbstractViewItem &other) const override;
+  /* virtual */ bool matches(const AbstractViewItem &other) const override;
 
   /** Called when the item's state changes from inactive to active. */
   virtual void on_activate();
@@ -64,7 +64,7 @@ class AbstractGridViewItem : public AbstractViewItem {
    */
   virtual std::optional<bool> should_be_active() const;
 
-  virtual std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
+  /* virtual */ std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
   virtual std::unique_ptr<GridViewItemDropTarget> create_drop_target();
 
   /**
@@ -111,7 +111,7 @@ class AbstractGridView : public AbstractView {
 
  public:
   AbstractGridView();
-  virtual ~AbstractGridView() = default;
+  /* virtual */ ~AbstractGridView() override = default;
 
   using ItemIterFn = FunctionRef<void(AbstractGridViewItem &)>;
   void foreach_item(ItemIterFn iter_fn) const;
