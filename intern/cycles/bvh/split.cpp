@@ -425,6 +425,7 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
   /* No real splitting support for points, assume they are small enough for it
    * not to matter. */
   float3 point = pointcloud->get_points()[prim_index];
+  float radius = pointcloud->get_radius()[prim_index];
 
   if (tfm != NULL) {
     point = transform_point(tfm, point);
@@ -432,11 +433,11 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
   point = get_unaligned_point(point);
 
   if (point[dim] <= pos) {
-    left_bounds.grow(point);
+    left_bounds.grow(point, radius);
   }
 
   if (point[dim] >= pos) {
-    right_bounds.grow(point);
+    right_bounds.grow(point, radius);
   }
 }
 
