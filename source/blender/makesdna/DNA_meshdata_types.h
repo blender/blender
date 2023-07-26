@@ -329,8 +329,8 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-/** Number of tri's that make up this polygon once tessellated. */
-#define ME_FACE_TRI_TOT(size) (size - 2)
+/** Number of triangles that make up this face once tessellated. */
+#define ME_FACE_TRI_TOT(face_loop_num) ((face_loop_num)-2)
 
 /** \} */
 
