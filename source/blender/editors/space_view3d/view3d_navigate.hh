@@ -71,12 +71,10 @@ enum eViewOpsFlag {
    * Some operations don't require this (view zoom/pan or NDOF where subtle rotation is common
    * so we don't want it to trigger auto-perspective). */
   VIEWOPS_FLAG_PERSP_ENSURE = (1 << 2),
-  /** When set, ignore any options that depend on initial cursor location. */
-  VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 
-  VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 4),
+  VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 3),
 
-  VIEWOPS_FLAG_INIT_ZFAC = (1 << 5),
+  VIEWOPS_FLAG_INIT_ZFAC = (1 << 4),
 };
 ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_INIT_ZFAC);
 
@@ -126,8 +124,8 @@ struct ViewOpsData {
 
     /** #wmEvent.xy. */
     int event_xy[2];
-    /** Offset to use when #VIEWOPS_FLAG_USE_MOUSE_INIT is not set.
-     * so we can simulate pressing in the middle of the screen. */
+    /* Offset used when "use_cursor_init" is false to simulate pressing in the middle of the
+     * region. */
     int event_xy_offset[2];
     /** #wmEvent.type that triggered the operator. */
     int event_type;
