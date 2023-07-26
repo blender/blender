@@ -15,7 +15,9 @@
 #ifdef DEBUG
 #  define STACK_DECLARE(stack) unsigned int _##stack##_index, _##stack##_num_alloc
 #  define STACK_INIT(stack, stack_num) \
-    ((void)stack, (void)((_##stack##_index) = 0), (void)((_##stack##_num_alloc) = (stack_num)))
+    ((void)stack, \
+     (void)((_##stack##_index) = 0), \
+     (void)((_##stack##_num_alloc) = (unsigned int)(stack_num)))
 #  define _STACK_SIZETEST(stack, off) \
     (BLI_assert((_##stack##_index) + (off) <= _##stack##_num_alloc))
 #  define _STACK_SWAP_TOTALLOC(stack_a, stack_b) \
