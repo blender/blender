@@ -803,7 +803,7 @@ void Transform_Properties(wmOperatorType *ot, int flags)
 
   if (flags & P_VIEW3D_ALT_NAVIGATION) {
     prop = RNA_def_boolean(
-        ot->srna, "alt_navigation", 0, "Transform Navigation with Alt", nullptr);
+        ot->srna, "alt_navigation", false, "Transform Navigation with Alt", nullptr);
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 

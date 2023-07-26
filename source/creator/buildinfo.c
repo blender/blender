@@ -6,6 +6,8 @@
  * \ingroup creator
  */
 
+#include "BLI_sys_types.h"
+
 #ifdef WITH_BUILDINFO_HEADER
 #  include "buildinfo.h"
 #endif
@@ -15,7 +17,7 @@
 extern char build_date[];
 extern char build_time[];
 extern char build_hash[];
-extern unsigned long build_commit_timestamp;
+extern ulong build_commit_timestamp;
 extern char build_commit_date[];
 extern char build_commit_time[];
 extern char build_branch[];
@@ -30,7 +32,7 @@ extern char build_system[];
 char build_date[] = BUILD_DATE;
 char build_time[] = BUILD_TIME;
 char build_hash[] = BUILD_HASH;
-unsigned long build_commit_timestamp = BUILD_COMMIT_TIMESTAMP;
+ulong build_commit_timestamp = BUILD_COMMIT_TIMESTAMP;
 char build_commit_date[16] = "\0";
 char build_commit_time[16] = "\0";
 char build_branch[] = BUILD_BRANCH;
