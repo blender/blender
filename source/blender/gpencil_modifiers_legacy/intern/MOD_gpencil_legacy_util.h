@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct Depsgraph;
 struct GpencilModifierData;
 struct MDeformVert;
@@ -52,3 +56,7 @@ void generic_bake_deform_stroke(struct Depsgraph *depsgraph,
                                 struct Object *ob,
                                 bool retime,
                                 gpBakeCb bake_cb);
+
+#ifdef __cplusplus
+}
+#endif

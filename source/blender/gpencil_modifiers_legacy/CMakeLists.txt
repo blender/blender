@@ -25,35 +25,35 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/MOD_gpencil_legacy_ui_common.c
+  intern/MOD_gpencil_legacy_ui_common.cc
 
-  intern/MOD_gpencil_legacy_armature.c
-  intern/MOD_gpencil_legacy_array.c
-  intern/MOD_gpencil_legacy_build.c
-  intern/MOD_gpencil_legacy_color.c
-  intern/MOD_gpencil_legacy_dash.c
-  intern/MOD_gpencil_legacy_envelope.c
-  intern/MOD_gpencil_legacy_hook.c
-  intern/MOD_gpencil_legacy_lattice.c
-  intern/MOD_gpencil_legacy_length.c
-  intern/MOD_gpencil_legacy_lineart.c
-  intern/MOD_gpencil_legacy_mirror.c
-  intern/MOD_gpencil_legacy_multiply.c
-  intern/MOD_gpencil_legacy_noise.c
-  intern/MOD_gpencil_legacy_offset.c
-  intern/MOD_gpencil_legacy_opacity.c
-  intern/MOD_gpencil_legacy_outline.c
-  intern/MOD_gpencil_legacy_shrinkwrap.c
-  intern/MOD_gpencil_legacy_simplify.c
-  intern/MOD_gpencil_legacy_smooth.c
-  intern/MOD_gpencil_legacy_subdiv.c
-  intern/MOD_gpencil_legacy_texture.c
-  intern/MOD_gpencil_legacy_thick.c
-  intern/MOD_gpencil_legacy_time.c
-  intern/MOD_gpencil_legacy_tint.c
-  intern/MOD_gpencil_legacy_util.c
-  intern/MOD_gpencil_legacy_weight_angle.c
-  intern/MOD_gpencil_legacy_weight_proximity.c
+  intern/MOD_gpencil_legacy_armature.cc
+  intern/MOD_gpencil_legacy_array.cc
+  intern/MOD_gpencil_legacy_build.cc
+  intern/MOD_gpencil_legacy_color.cc
+  intern/MOD_gpencil_legacy_dash.cc
+  intern/MOD_gpencil_legacy_envelope.cc
+  intern/MOD_gpencil_legacy_hook.cc
+  intern/MOD_gpencil_legacy_lattice.cc
+  intern/MOD_gpencil_legacy_length.cc
+  intern/MOD_gpencil_legacy_lineart.cc
+  intern/MOD_gpencil_legacy_mirror.cc
+  intern/MOD_gpencil_legacy_multiply.cc
+  intern/MOD_gpencil_legacy_noise.cc
+  intern/MOD_gpencil_legacy_offset.cc
+  intern/MOD_gpencil_legacy_opacity.cc
+  intern/MOD_gpencil_legacy_outline.cc
+  intern/MOD_gpencil_legacy_shrinkwrap.cc
+  intern/MOD_gpencil_legacy_simplify.cc
+  intern/MOD_gpencil_legacy_smooth.cc
+  intern/MOD_gpencil_legacy_subdiv.cc
+  intern/MOD_gpencil_legacy_texture.cc
+  intern/MOD_gpencil_legacy_thick.cc
+  intern/MOD_gpencil_legacy_time.cc
+  intern/MOD_gpencil_legacy_tint.cc
+  intern/MOD_gpencil_legacy_util.cc
+  intern/MOD_gpencil_legacy_weight_angle.cc
+  intern/MOD_gpencil_legacy_weight_proximity.cc
 
   MOD_gpencil_legacy_lineart.h
   MOD_gpencil_legacy_modifiertypes.h
@@ -61,11 +61,11 @@ set(SRC
   intern/MOD_gpencil_legacy_util.h
 
   # Lineart code
-  intern/lineart/lineart_chain.c
+  intern/lineart/lineart_chain.cc
   intern/lineart/lineart_cpu.cc
-  intern/lineart/lineart_ops.c
-  intern/lineart/lineart_shadow.c
-  intern/lineart/lineart_util.c
+  intern/lineart/lineart_ops.cc
+  intern/lineart/lineart_shadow.cc
+  intern/lineart/lineart_util.cc
 
   intern/lineart/MOD_lineart.h
   intern/lineart/lineart_intern.h
