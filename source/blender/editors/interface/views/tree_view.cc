@@ -282,12 +282,12 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeViewItem::tree_row_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
+void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *item_but = (uiButViewItem *)but_arg1;
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
-  tree_item.activate();
+  tree_item.activate(*C);
   /* Not only activate the item, also show its children. Maybe this should be optional, or
    * controlled by the specific tree-view. */
   tree_item.set_collapsed(false);
@@ -346,7 +346,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   /* When collapsing an item with an active child, make this collapsed item active instead so the
    * active item stays visible. */
   if (hovered_item->has_active_child()) {
-    hovered_item->activate();
+    hovered_item->activate(*C);
   }
 }
 
@@ -711,10 +711,10 @@ void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override
   uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 
-void BasicTreeViewItem::on_activate()
+void BasicTreeViewItem::on_activate(bContext &C)
 {
   if (activate_fn_) {
-    activate_fn_(*this);
+    activate_fn_(C, *this);
   }
 }
 

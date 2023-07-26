@@ -277,7 +277,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 class BasicTreeViewItem : public AbstractTreeViewItem {
  public:
   using IsActiveFn = std::function<bool()>;
-  using ActivateFn = std::function<void(BasicTreeViewItem &new_active)>;
+  using ActivateFn = std::function<void(bContext &C, BasicTreeViewItem &new_active)>;
   BIFIconID icon;
 
   explicit BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
@@ -304,7 +304,7 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
 
   std::optional<bool> should_be_active() const override;
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 };
 
 /** \} */

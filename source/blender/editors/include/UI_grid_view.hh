@@ -189,7 +189,7 @@ class GridViewBuilder {
 class PreviewGridItem : public AbstractGridViewItem {
  public:
   using IsActiveFn = std::function<bool()>;
-  using ActivateFn = std::function<void(PreviewGridItem &new_active)>;
+  using ActivateFn = std::function<void(bContext &C, PreviewGridItem &new_active)>;
 
  protected:
   /** See #set_on_activate_fn() */
@@ -218,7 +218,7 @@ class PreviewGridItem : public AbstractGridViewItem {
 
  private:
   std::optional<bool> should_be_active() const override;
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 };
 
 /** \} */

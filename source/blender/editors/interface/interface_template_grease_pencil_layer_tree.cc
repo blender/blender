@@ -180,7 +180,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     return {};
   }
 
-  void on_activate() override
+  void on_activate(bContext & /*C*/) override
   {
     this->grease_pencil_.set_active_layer(&layer_);
   }

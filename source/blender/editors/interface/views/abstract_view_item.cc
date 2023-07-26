@@ -36,7 +36,7 @@ void AbstractViewItem::update_from_old(const AbstractViewItem &old)
 /** \name Active Item State
  * \{ */
 
-void AbstractViewItem::on_activate()
+void AbstractViewItem::on_activate(bContext & /*C*/)
 {
   /* Do nothing by default. */
 }
@@ -65,10 +65,10 @@ bool AbstractViewItem::set_state_active()
   return true;
 }
 
-void AbstractViewItem::activate()
+void AbstractViewItem::activate(bContext &C)
 {
   if (set_state_active()) {
-    on_activate();
+    on_activate(C);
   }
 }
 

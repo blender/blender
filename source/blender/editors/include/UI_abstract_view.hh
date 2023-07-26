@@ -168,7 +168,7 @@ class AbstractViewItem {
    * an item calls it, a change in the value returned by #should_be_active() to reflect an external
    * state change does not.
    */
-  virtual void on_activate();
+  virtual void on_activate(bContext &C);
   /**
    * If the result is not empty, it controls whether the item should be active or not, usually
    * depending on the data that the view represents. Note that since this is meant to reflect
@@ -238,7 +238,7 @@ class AbstractViewItem {
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
    * actual item state is unknown, possibly calling state-change update functions incorrectly.
    */
-  void activate();
+  void activate(bContext &C);
   void deactivate();
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we

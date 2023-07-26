@@ -127,13 +127,13 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::grid_tile_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
+void AbstractGridViewItem::grid_tile_click_fn(bContext *C, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
       *view_item_but->view_item);
 
-  grid_item.activate();
+  grid_item.activate(*C);
 }
 
 void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
@@ -441,10 +441,10 @@ void PreviewGridItem::set_is_active_fn(IsActiveFn fn)
   is_active_fn_ = fn;
 }
 
-void PreviewGridItem::on_activate()
+void PreviewGridItem::on_activate(bContext &C)
 {
   if (activate_fn_) {
-    activate_fn_(*this);
+    activate_fn_(C, *this);
   }
 }
 

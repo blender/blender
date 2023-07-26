@@ -41,7 +41,7 @@ class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
                               StringRef label,
                               BIFIconID icon);
 
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 
   void build_row(uiLayout &row) override;
 
@@ -56,7 +56,6 @@ class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
 
 class GeometryDataSetTreeView : public ui::AbstractTreeView {
   bke::GeometrySet geometry_set_;
-  const bContext &C_;
   SpaceSpreadsheet &sspreadsheet_;
   bScreen &screen_;
 
@@ -65,7 +64,6 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
  public:
   GeometryDataSetTreeView(bke::GeometrySet geometry_set, const bContext &C)
       : geometry_set_(std::move(geometry_set)),
-        C_(C),
         sspreadsheet_(*CTX_wm_space_spreadsheet(&C)),
         screen_(*CTX_wm_screen(&C))
   {
@@ -129,10 +127,9 @@ GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(
   label_ = label;
 }
 
-void GeometryDataSetTreeViewItem::on_activate()
+void GeometryDataSetTreeViewItem::on_activate(bContext &C)
 {
   GeometryDataSetTreeView &tree_view = this->get_tree();
-  bContext &C = const_cast<bContext &>(tree_view.C_);
   SpaceSpreadsheet &sspreadsheet = tree_view.sspreadsheet_;
   tree_view.sspreadsheet_.geometry_component_type = uint8_t(component_type_);
   if (domain_) {

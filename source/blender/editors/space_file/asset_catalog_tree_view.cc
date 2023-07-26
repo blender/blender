@@ -82,7 +82,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
  public:
   AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item);
 
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 
   void build_row(uiLayout &row) override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
@@ -220,7 +220,7 @@ AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
   FileAssetSelectParams *params = params_;
 
   AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"));
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
+  item.set_on_activate_fn([params](bContext & /*C*/, ui::BasicTreeViewItem & /*item*/) {
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
@@ -236,7 +236,7 @@ void AssetCatalogTreeView::add_unassigned_item()
   AssetCatalogTreeViewUnassignedItem &item = add_tree_item<AssetCatalogTreeViewUnassignedItem>(
       IFACE_("Unassigned"), ICON_FILE_HIDDEN);
 
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
+  item.set_on_activate_fn([params](bContext & /*C*/, ui::BasicTreeViewItem & /*item*/) {
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
@@ -264,7 +264,7 @@ AssetCatalogTreeViewItem::AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog
 {
 }
 
-void AssetCatalogTreeViewItem::on_activate()
+void AssetCatalogTreeViewItem::on_activate(bContext & /*C*/)
 {
   AssetCatalogTreeView &tree_view = static_cast<AssetCatalogTreeView &>(get_tree_view());
   tree_view.activate_catalog_by_id(catalog_item_.get_catalog_id());
