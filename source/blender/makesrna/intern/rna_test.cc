@@ -107,17 +107,17 @@ void RNA_def_test(BlenderRNA *brna)
   PropertyRNA *prop;
   ushort dimsize[] = {MARRAY_DIMSIZE};
 
-  srna = RNA_def_struct(brna, "Test", NULL);
+  srna = RNA_def_struct(brna, "Test", nullptr);
   RNA_def_struct_sdna(srna, "Test");
 
   prop = RNA_def_float_array(
-      srna, "farr", ARRAY_SIZE, NULL, 0.0f, 0.0f, "farr", "float array", 0.0f, 0.0f);
-  RNA_def_property_float_funcs(prop, "rna_Test_farr_get", "rna_Test_farr_set", NULL);
+      srna, "farr", ARRAY_SIZE, nullptr, 0.0f, 0.0f, "farr", "float array", 0.0f, 0.0f);
+  RNA_def_property_float_funcs(prop, "rna_Test_farr_get", "rna_Test_farr_set", nullptr);
 
-  prop = RNA_def_int_array(srna, "iarr", ARRAY_SIZE, NULL, 0, 0, "iarr", "int array", 0, 0);
-  RNA_def_property_int_funcs(prop, "rna_Test_iarr_get", "rna_Test_iarr_set", NULL);
+  prop = RNA_def_int_array(srna, "iarr", ARRAY_SIZE, nullptr, 0, 0, "iarr", "int array", 0, 0);
+  RNA_def_property_int_funcs(prop, "rna_Test_iarr_get", "rna_Test_iarr_set", nullptr);
 
-  prop = RNA_def_boolean_array(srna, "barr", ARRAY_SIZE, NULL, "barr", "boolean array");
+  prop = RNA_def_boolean_array(srna, "barr", ARRAY_SIZE, nullptr, "barr", "boolean array");
   RNA_def_property_boolean_funcs(prop, "rna_Test_barr_get", "rna_Test_barr_set");
 
   /* dynamic arrays */
@@ -125,7 +125,7 @@ void RNA_def_test(BlenderRNA *brna)
   prop = RNA_def_float_array(srna,
                              "fdarr",
                              DYNAMIC_ARRAY_SIZE,
-                             NULL,
+                             nullptr,
                              0.0f,
                              0.0f,
                              "fdarr",
@@ -135,16 +135,17 @@ void RNA_def_test(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_Test_fdarr_get_length", "rna_Test_fdarr_set_length");
-  RNA_def_property_float_funcs(prop, "rna_Test_fdarr_get", "rna_Test_fdarr_set", NULL);
+  RNA_def_property_float_funcs(prop, "rna_Test_fdarr_get", "rna_Test_fdarr_set", nullptr);
 
   prop = RNA_def_int_array(
-      srna, "idarr", DYNAMIC_ARRAY_SIZE, NULL, 0, 0, "idarr", "int array", 0, 0);
+      srna, "idarr", DYNAMIC_ARRAY_SIZE, nullptr, 0, 0, "idarr", "int array", 0, 0);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_Test_idarr_get_length", "rna_Test_idarr_set_length");
-  RNA_def_property_int_funcs(prop, "rna_Test_idarr_get", "rna_Test_idarr_set", NULL);
+  RNA_def_property_int_funcs(prop, "rna_Test_idarr_get", "rna_Test_idarr_set", nullptr);
 
-  prop = RNA_def_boolean_array(srna, "bdarr", DYNAMIC_ARRAY_SIZE, NULL, "bdarr", "boolean array");
+  prop = RNA_def_boolean_array(
+      srna, "bdarr", DYNAMIC_ARRAY_SIZE, nullptr, "bdarr", "boolean array");
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_Test_bdarr_get_length", "rna_Test_bdarr_set_length");
@@ -154,11 +155,11 @@ void RNA_def_test(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "fmarr", PROP_FLOAT, PROP_NONE);
   RNA_def_property_multidimensional_array(prop, MARRAY_SIZE(float), MARRAY_TOTDIM, dimsize);
-  RNA_def_property_float_funcs(prop, "rna_Test_fmarr_get", "rna_Test_fmarr_set", NULL);
+  RNA_def_property_float_funcs(prop, "rna_Test_fmarr_get", "rna_Test_fmarr_set", nullptr);
 
   prop = RNA_def_property(srna, "imarr", PROP_INT, PROP_NONE);
   RNA_def_property_multidimensional_array(prop, MARRAY_SIZE(int), MARRAY_TOTDIM, dimsize);
-  RNA_def_property_int_funcs(prop, "rna_Test_imarr_get", "rna_Test_imarr_set", NULL);
+  RNA_def_property_int_funcs(prop, "rna_Test_imarr_get", "rna_Test_imarr_set", nullptr);
 
   prop = RNA_def_property(srna, "bmarr", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_multidimensional_array(prop, MARRAY_SIZE(int), MARRAY_TOTDIM, dimsize);
@@ -172,14 +173,14 @@ void RNA_def_test(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_Test_fdmarr_get_length", "rna_Test_fdmarr_set_length");
-  RNA_def_property_float_funcs(prop, "rna_Test_fdmarr_get", "rna_Test_fdmarr_set", NULL);
+  RNA_def_property_float_funcs(prop, "rna_Test_fdmarr_get", "rna_Test_fdmarr_set", nullptr);
 
   prop = RNA_def_property(srna, "idmarr", PROP_INT, PROP_NONE);
   RNA_def_property_multidimensional_array(prop, DYNAMIC_MARRAY_SIZE(int), MARRAY_TOTDIM, dimsize);
   RNA_def_property_flag(prop, PROP_DYNAMIC);
   RNA_def_property_dynamic_array_funcs(
       prop, "rna_Test_idmarr_get_length", "rna_Test_idmarr_set_length");
-  RNA_def_property_int_funcs(prop, "rna_Test_idmarr_get", "rna_Test_idmarr_set", NULL);
+  RNA_def_property_int_funcs(prop, "rna_Test_idmarr_get", "rna_Test_idmarr_set", nullptr);
 
   prop = RNA_def_property(srna, "bdmarr", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_multidimensional_array(prop, DYNAMIC_MARRAY_SIZE(int), MARRAY_TOTDIM, dimsize);
