@@ -494,26 +494,32 @@ int AbstractTreeViewItem::count_parents() const
   return i;
 }
 
-void AbstractTreeViewItem::activate()
+bool AbstractTreeViewItem::set_state_active()
 {
   BLI_assert_msg(get_tree_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
   if (!is_activatable_) {
-    return;
+    return false;
   }
   if (is_active()) {
-    return;
+    return false;
   }
 
   /* Deactivate other items in the tree. */
   get_tree_view().foreach_item([](auto &item) { item.deactivate(); });
-
-  on_activate();
   /* Make sure the active item is always visible. */
   ensure_parents_uncollapsed();
 
   is_active_ = true;
+  return true;
+}
+
+void AbstractTreeViewItem::activate()
+{
+  if (set_state_active()) {
+    on_activate();
+  }
 }
 
 void AbstractTreeViewItem::deactivate()
@@ -595,7 +601,9 @@ void AbstractTreeViewItem::change_state_delayed()
 {
   const std::optional<bool> should_be_active = this->should_be_active();
   if (should_be_active.has_value() && *should_be_active) {
-    activate();
+    /* Don't call #activate() here, since this reflects an external state change and therefore
+     * shouldn't call #on_activate(). */
+    set_state_active();
   }
 }
 

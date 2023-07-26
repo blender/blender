@@ -186,28 +186,36 @@ void AbstractGridViewItem::change_state_delayed()
 {
   const std::optional<bool> should_be_active = this->should_be_active();
   if (should_be_active.has_value() && *should_be_active) {
-    activate();
+    /* Don't call #activate() here, since this reflects an external state change and therefore
+     * shouldn't call #on_activate(). */
+    set_state_active();
   }
 }
 
-void AbstractGridViewItem::activate()
+bool AbstractGridViewItem::set_state_active()
 {
   BLI_assert_msg(get_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
   if (!is_activatable_) {
-    return;
+    return false;
   }
   if (is_active()) {
-    return;
+    return false;
   }
 
-  /* Deactivate other items in the tree. */
+  /* Deactivate other items in the view. */
   get_view().foreach_item([](auto &item) { item.deactivate(); });
 
-  on_activate();
-
   is_active_ = true;
+  return true;
+}
+
+void AbstractGridViewItem::activate()
+{
+  if (set_state_active()) {
+    on_activate();
+  }
 }
 
 void AbstractGridViewItem::deactivate()
