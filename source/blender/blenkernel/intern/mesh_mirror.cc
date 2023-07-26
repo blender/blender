@@ -417,9 +417,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
                                           result->face_normals(),
                                           sharp_edges,
                                           sharp_faces,
+                                          clnors,
                                           true,
                                           result->smoothresh,
-                                          clnors,
                                           &lnors_spacearr,
                                           loop_normals);
 

@@ -156,9 +156,9 @@ void normals_calc_loop(Span<float3> vert_positions,
                        Span<float3> face_normals,
                        const bool *sharp_edges,
                        const bool *sharp_faces,
+                       const short2 *clnors_data,
                        bool use_split_normals,
                        float split_angle,
-                       short2 *clnors_data,
                        CornerNormalSpaceArray *r_lnors_spacearr,
                        MutableSpan<float3> r_loop_normals);
 

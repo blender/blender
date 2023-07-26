@@ -1343,8 +1343,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         face_normals_dst = mesh_dst->face_normals();
       }
       if (need_lnors_dst) {
-        blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
-            CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, numloops_dst));
+        const blender::short2 *custom_nors_dst = static_cast<const blender::short2 *>(
+            CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
 
         /* Cache loop normals into a temporary custom data layer. */
         loop_normals_dst = static_cast<blender::float3 *>(
@@ -1372,9 +1372,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               mesh_dst->face_normals(),
               sharp_edges,
               sharp_faces,
+              custom_nors_dst,
               use_split_nors_dst,
               split_angle_dst,
-              custom_nors_dst,
               nullptr,
               {loop_normals_dst, numloops_dst});
         }
