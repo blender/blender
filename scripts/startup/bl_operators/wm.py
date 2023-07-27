@@ -3324,7 +3324,7 @@ class WM_MT_region_toggle_pie(Menu):
         'BOTTOM': 2,
         'TOP': 3,
     }
-    # Map the axis-aligned pie position to it's opposite side, see `ui_radial_dir_order` in C++ source.
+    # Map the axis-aligned pie to alternative directions, see `ui_radial_dir_order` in C++ source.
     # The value is the preferred direction in order of priority, two diagonals, then the flipped direction.
     _region_dir_pie_alternatives = {
         0: (4, 6, 1),
@@ -3345,16 +3345,14 @@ class WM_MT_region_toggle_pie(Menu):
 
         for region in context.area.regions:
             region_type = region.type
-            attr = cls._region_info.get(region_type, (None, None))
+            attr = cls._region_info.get(region_type, None)
             if attr is None:
                 continue
             # In some cases channels exists but can't be toggled.
-            if region_type == 'CHANNELS':
-                if not hasattr(space_data, attr):
-                    continue
+            assert hasattr(space_data, attr)
             # Technically possible these double-up, in practice this should never happen.
             if region_type in region_by_type:
-                print("%s: Unexpected double-up of region types %r" % (type(self).__name__, region_type))
+                print("%s: Unexpected double-up of region types %r" % (cls.__name__, region_type))
             region_by_type[region_type] = region
 
         # Axis aligned pie menu items to populate.
