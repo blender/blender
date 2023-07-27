@@ -38,6 +38,19 @@ AssetShelf *active_shelf_from_context(const bContext *C);
 void send_redraw_notifier(const bContext &C);
 
 /**
+ * Deep-copies \a hook into newly allocated memory. Must be freed using
+ * #ED_asset_shelf_hook_free().
+ */
+struct AssetShelfHook *hook_duplicate(const AssetShelfHook *hook);
+/**
+ * Frees the contained data and \a hook itself.
+ */
+void hook_free(AssetShelfHook **hook);
+
+void hook_blend_write(struct BlendWriter *writer, const struct AssetShelfHook *hook);
+void hook_blend_read_data(struct BlendDataReader *reader, struct AssetShelfHook **hook);
+
+/**
  * Frees the contained data, not \a shelf_settings itself.
  */
 void settings_free(AssetShelfSettings *settings);

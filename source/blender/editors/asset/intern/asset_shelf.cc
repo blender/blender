@@ -171,6 +171,25 @@ static AssetShelf *update_active_shelf(const bContext &C,
 /** \name Asset Shelf Regions
  * \{ */
 
+void *ED_asset_shelf_region_duplicate(void *regiondata)
+{
+  const AssetShelfHook *hook = static_cast<AssetShelfHook *>(regiondata);
+  if (!hook) {
+    return nullptr;
+  }
+
+  return shelf::hook_duplicate(hook);
+}
+
+void ED_asset_shelf_region_free(ARegion *region)
+{
+  AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*region);
+  if (hook) {
+    shelf::hook_free(&hook);
+  }
+  region->regiondata = nullptr;
+}
+
 /**
  * Check if there is any asset shelf type in this space returning true in its poll. If not, no
  * asset shelf region should be displayed.
@@ -232,8 +251,13 @@ void ED_asset_shelf_region_listen(const wmRegionListenerParams *params)
 
 void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
 {
+  if (!region->regiondata) {
+    region->regiondata = MEM_cnew<AssetShelfHook>("AssetShelfHook");
+  }
+  AssetShelfHook &hook = *AssetShelfHook::get_from_asset_shelf_region(*region);
+
   /* Active shelf is only set on draw, so this may be null! */
-  AssetShelf *active_shelf = static_cast<AssetShelf *>(region->regiondata);
+  AssetShelf *active_shelf = hook.active_shelf;
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_PANELS_UI, region->winx, region->winy);
 
@@ -272,7 +296,8 @@ int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int 
     return size;
   }
 
-  const AssetShelf *active_shelf = static_cast<AssetShelf *>(region->regiondata);
+  const AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*region);
+  const AssetShelf *active_shelf = hook->active_shelf;
 
   /* Using scaled values only simplifies things. Simply divide the result by the scale again. */
   const int size_scaled = size * UI_SCALE_FAC;
@@ -345,14 +370,19 @@ static const AssetLibraryReference &asset_shelf_library_ref()
   return all_library_ref;
 }
 
-void ED_asset_shelf_region_layout(const bContext *C, ARegion *region, AssetShelfHook *shelf_hook)
+void ED_asset_shelf_region_layout(const bContext *C, ARegion *region)
 {
   const SpaceLink *space = CTX_wm_space_data(C);
   const SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
 
-  AssetShelf *active_shelf = update_active_shelf(*C, *space_type, *shelf_hook);
-  region->regiondata = active_shelf;
-  region->flag |= RGN_FLAG_TEMP_REGIONDATA;
+  AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*region);
+  if (!hook) {
+    /* Hook should've been created by a previously called ED_asset_shelf_region_init(). */
+    BLI_assert_unreachable();
+    return;
+  }
+
+  AssetShelf *active_shelf = update_active_shelf(*C, *space_type, *hook);
   if (!active_shelf) {
     return;
   }
@@ -417,6 +447,14 @@ void ED_asset_shelf_header_region_init(wmWindowManager * /*wm*/, ARegion *region
 
 void ED_asset_shelf_header_region(const bContext *C, ARegion *region)
 {
+  const SpaceLink *space = CTX_wm_space_data(C);
+  const SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
+  const ARegion *main_shelf_region = BKE_area_find_region_type(CTX_wm_area(C),
+                                                               RGN_TYPE_ASSET_SHELF);
+
+  AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*main_shelf_region);
+  update_active_shelf(*C, *space_type, *hook);
+
   ED_region_header(C, region);
 }
 
@@ -426,16 +464,32 @@ int ED_asset_shelf_header_region_size()
   return ED_area_headersize() * 0.85f;
 }
 
+void ED_asset_shelf_region_blend_read_data(BlendDataReader *reader, ARegion *region)
+{
+  AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*region);
+  if (!hook) {
+    return;
+  }
+  shelf::hook_blend_read_data(reader, &hook);
+  region->regiondata = hook;
+}
+
+void ED_asset_shelf_region_blend_write(BlendWriter *writer, ARegion *region)
+{
+  AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*region);
+  if (!hook) {
+    return;
+  }
+  shelf::hook_blend_write(writer, hook);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Asset Shelf Context
  * \{ */
 
-int ED_asset_shelf_context(const bContext *C,
-                           const char *member,
-                           bContextDataResult *result,
-                           AssetShelfHook *shelf_hook)
+int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataResult *result)
 {
   static const char *context_dir[] = {
       "asset_shelf",
@@ -452,7 +506,19 @@ int ED_asset_shelf_context(const bContext *C,
   bScreen *screen = CTX_wm_screen(C);
 
   if (CTX_data_equals(member, "asset_shelf")) {
-    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, shelf_hook->active_shelf);
+    const ARegion *shelf_region = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_ASSET_SHELF);
+    if (!shelf_region) {
+      /* Called in wrong context, area doesn't have a shelf. */
+      BLI_assert_unreachable();
+      return CTX_RESULT_NO_DATA;
+    }
+
+    const AssetShelfHook *hook = AssetShelfHook::get_from_asset_shelf_region(*shelf_region);
+    if (!hook) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    CTX_data_pointer_set(result, &screen->id, &RNA_AssetShelf, hook->active_shelf);
 
     return CTX_RESULT_OK;
   }

@@ -509,9 +509,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           if (sl->spacetype != SPACE_VIEW3D) {
             continue;
           }
-          View3D *v3d = reinterpret_cast<View3D *>(sl);
-
-          v3d->asset_shelf_hook = MEM_cnew<AssetShelfHook>("Versioning AssetShelfHook");
 
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;

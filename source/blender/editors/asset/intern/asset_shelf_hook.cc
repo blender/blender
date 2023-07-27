@@ -13,11 +13,19 @@
 
 #include "asset_shelf.hh"
 
-#include "ED_asset_shelf.h"
+AssetShelfHook *AssetShelfHook::get_from_asset_shelf_region(const ARegion &region)
+{
+  if (region.regiontype != RGN_TYPE_ASSET_SHELF) {
+    /* Should only be called on main asset shelf region. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  return static_cast<AssetShelfHook *>(region.regiondata);
+}
 
-using namespace blender::ed::asset::shelf;
+namespace blender::ed::asset::shelf {
 
-AssetShelfHook *ED_asset_shelf_hook_duplicate(const AssetShelfHook *hook)
+AssetShelfHook *hook_duplicate(const AssetShelfHook *hook)
 {
   static_assert(std::is_trivial_v<AssetShelfHook>,
                 "AssetShelfHook needs to be trivial to allow freeing with MEM_freeN()");
@@ -37,7 +45,7 @@ AssetShelfHook *ED_asset_shelf_hook_duplicate(const AssetShelfHook *hook)
   return new_hook;
 }
 
-void ED_asset_shelf_hook_free(AssetShelfHook **hook)
+void hook_free(AssetShelfHook **hook)
 {
   LISTBASE_FOREACH_MUTABLE (AssetShelf *, shelf, &(*hook)->shelves) {
     MEM_delete(shelf);
@@ -45,7 +53,7 @@ void ED_asset_shelf_hook_free(AssetShelfHook **hook)
   MEM_SAFE_FREE(*hook);
 }
 
-void ED_asset_shelf_hook_blend_write(BlendWriter *writer, const AssetShelfHook *hook)
+void hook_blend_write(BlendWriter *writer, const AssetShelfHook *hook)
 {
   BLO_write_struct(writer, AssetShelfHook, hook);
   LISTBASE_FOREACH (const AssetShelf *, shelf, &hook->shelves) {
@@ -54,7 +62,7 @@ void ED_asset_shelf_hook_blend_write(BlendWriter *writer, const AssetShelfHook *
   }
 }
 
-void ED_asset_shelf_hook_blend_read_data(BlendDataReader *reader, AssetShelfHook **hook)
+void hook_blend_read_data(BlendDataReader *reader, AssetShelfHook **hook)
 {
   if (!*hook) {
     return;
@@ -71,3 +79,5 @@ void ED_asset_shelf_hook_blend_read_data(BlendDataReader *reader, AssetShelfHook
     settings_blend_read_data(reader, shelf->settings);
   }
 }
+
+}  // namespace blender::ed::asset::shelf

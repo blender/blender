@@ -822,6 +822,9 @@ typedef struct AssetShelfHook {
   /** The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
    */
   AssetShelf *active_shelf; /* Non-owning. */
+#ifdef __cplusplus
+  static AssetShelfHook *get_from_asset_shelf_region(const ARegion &region);
+#endif
 } AssetShelfHook;
 
 /* #AssetShelfSettings.display_flag */
