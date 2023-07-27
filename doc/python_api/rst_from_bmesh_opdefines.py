@@ -157,6 +157,8 @@ def main():
             l = l.strip()
             # casts
             l = l.replace("(int)", "")
+            l = re.sub(r'to_subtype_union\((.*?)\)', '{\\1}', l)
+            l = re.sub(r'eBMOpSlotSubType_Elem\((.*?)\)', '\\1', l)
 
             l = l.replace("{", "(")
             l = l.replace("}", ")")
