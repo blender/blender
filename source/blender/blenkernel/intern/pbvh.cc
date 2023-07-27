@@ -11,12 +11,12 @@
 #include <climits>
 
 #include "BLI_bitmap.h"
-#include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -91,7 +91,7 @@ void BB_expand(BB *bb, const float co[3])
   }
 }
 
-void BB_expand_with_bb(BB *bb, BB *bb2)
+void BB_expand_with_bb(BB *bb, const BB *bb2)
 {
   for (int i = 0; i < 3; i++) {
     bb->bmin[i] = min_ff(bb->bmin[i], bb2->bmin[i]);
@@ -295,27 +295,22 @@ void pbvh_grow_nodes(PBVH *pbvh, int totnode)
 
 /* Add a vertex to the map, with a positive value for unique vertices and
  * a negative value for additional vertices */
-static int map_insert_vert(PBVH *pbvh, GHash *map, int *face_verts, int *uniq_verts, int vertex)
+static int map_insert_vert(
+    PBVH *pbvh, blender::Map<int, int> &map, int *face_verts, int *uniq_verts, int vertex)
 {
-  void *key, **value_p;
-
-  key = POINTER_FROM_INT(vertex);
-  if (!BLI_ghash_ensure_p(map, key, &value_p)) {
-    int value_i;
+  return map.lookup_or_add_cb(vertex, [&]() {
+    int value;
     if (!pbvh->vert_bitmap[vertex]) {
       pbvh->vert_bitmap[vertex] = true;
-      value_i = *uniq_verts;
+      value = *uniq_verts;
       (*uniq_verts)++;
     }
     else {
-      value_i = ~(*face_verts);
+      value = ~(*face_verts);
       (*face_verts)++;
     }
-    *value_p = POINTER_FROM_INT(value_i);
-    return value_i;
-  }
-
-  return POINTER_AS_INT(*value_p);
+    return value;
+  });
 }
 
 /* Find vertices used by the faces in this node and update the draw buffers */
@@ -327,7 +322,8 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
   const int totface = node->prim_indices.size();
 
   /* reserve size is rough guess */
-  GHash *map = BLI_ghash_int_new_ex("build_mesh_leaf_node gh", 2 * totface);
+  blender::Map<int, int> map;
+  map.reserve(totface);
 
   node->face_vert_indices.reinitialize(totface);
 
@@ -349,16 +345,13 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
   node->vert_indices.reinitialize(node->uniq_verts + node->face_verts);
 
   /* Build the vertex list, unique verts first */
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, map) {
-    void *value = BLI_ghashIterator_getValue(&gh_iter);
-    int ndx = POINTER_AS_INT(value);
-
-    if (ndx < 0) {
-      ndx = -ndx + node->uniq_verts - 1;
+  for (const blender::MapItem<int, int> item : map.items()) {
+    int value = item.value;
+    if (value < 0) {
+      value = -value + node->uniq_verts - 1;
     }
 
-    node->vert_indices[ndx] = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+    node->vert_indices[value] = item.key;
   }
 
   for (int i = 0; i < totface; i++) {
@@ -374,8 +367,6 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
   BKE_pbvh_node_mark_rebuild_draw(node);
 
   BKE_pbvh_node_fully_hidden_set(node, !has_visible);
-
-  BLI_ghash_free(map, nullptr, nullptr);
 }
 
 static void update_vb(PBVH *pbvh, PBVHNode *node, const Span<BBC> prim_bbc, int offset, int count)
