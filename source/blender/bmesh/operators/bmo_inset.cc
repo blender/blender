@@ -519,7 +519,7 @@ static float bm_edge_info_average_length(BMVert *v, SplitEdgeInfo *edge_info)
   }
 
   if (tot != 0) {
-    return len / (float)tot;
+    return len / float(tot);
   }
   return -1.0f;
 }
@@ -608,7 +608,7 @@ static float bm_edge_info_average_length_fallback(BMVert *v_lookup,
         const int v_index = BM_elem_index_get(v);
 
         BLI_assert(vert_lengths[v_index].count > 0);
-        vert_lengths[v_index].length_accum /= (float)vert_lengths[v_index].count;
+        vert_lengths[v_index].length_accum /= float(vert_lengths[v_index].count);
         vert_lengths[v_index].count = -1; /* Ignore in future passes. */
 
         BMIter iter;
@@ -1200,7 +1200,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
      * tiny speedup here we could be more clever and copy from known adjacent data
      * also - we could attempt to interpolate the loop data,
      * this would be much slower but more useful too. */
-    if (0) {
+    if (false) {
       /* Don't use this because face boundaries have no adjacent loops and won't be filled in.
        * instead copy from the opposite side with the code below */
       BM_face_copy_shared(bm, f, nullptr, nullptr);

@@ -151,7 +151,7 @@ void lineart_register_intersection_shadow_cuts(LineartData *ld, ListBase *shadow
   for (int i = 0; i < eln_isect_original->element_count; i++) {
     LineartEdge *e = &((LineartEdge *)eln_isect_original->pointer)[i];
     LineartEdge *shadow_e = lineart_find_matching_edge(eln_isect_shadow,
-                                                       (uint64_t)e->edge_identifier);
+                                                       uint64_t(e->edge_identifier));
     if (shadow_e) {
       lineart_register_shadow_cuts(ld, e, shadow_e);
     }

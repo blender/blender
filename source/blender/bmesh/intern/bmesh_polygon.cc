@@ -548,7 +548,7 @@ void BM_face_calc_center_median(const BMFace *f, float r_cent[3])
   do {
     add_v3_v3(r_cent, l_iter->v->co);
   } while ((l_iter = l_iter->next) != l_first);
-  mul_v3_fl(r_cent, 1.0f / (float)f->len);
+  mul_v3_fl(r_cent, 1.0f / float(f->len));
 }
 
 void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
@@ -571,7 +571,7 @@ void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
   } while ((l_iter = l_iter->next) != l_first);
 
   if (totw != 0.0f) {
-    mul_v3_fl(r_cent, 1.0f / (float)totw);
+    mul_v3_fl(r_cent, 1.0f / float(totw));
   }
 }
 
@@ -776,7 +776,7 @@ float BM_face_calc_normal_vcos(const BMesh *bm,
 void BM_verts_calc_normal_from_cloud_ex(
     BMVert **varr, int varr_len, float r_normal[3], float r_center[3], int *r_index_tangent)
 {
-  const float varr_len_inv = 1.0f / (float)varr_len;
+  const float varr_len_inv = 1.0f / float(varr_len);
 
   /* Get the center point and collect vector array since we loop over these a lot. */
   float center[3] = {0.0f, 0.0f, 0.0f};

@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -116,7 +116,7 @@ static void deformStroke(GpencilModifierData *md,
   }
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -181,8 +181,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Texture = {
     /*name*/ N_("TextureMapping"),
-    /*structName*/ "TextureGpencilModifierData",
-    /*structSize*/ sizeof(TextureGpencilModifierData),
+    /*struct_name*/ "TextureGpencilModifierData",
+    /*struct_size*/ sizeof(TextureGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

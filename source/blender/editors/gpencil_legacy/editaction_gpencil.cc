@@ -6,11 +6,11 @@
  * \ingroup edgpencil
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -80,7 +80,7 @@ void ED_gpencil_layer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, bool onlys
     if ((onlysel == 0) || (gpf->flag & GP_FRAME_SELECT)) {
       ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "CfraElem"));
 
-      ce->cfra = (float)gpf->framenum;
+      ce->cfra = float(gpf->framenum);
       ce->sel = (gpf->flag & GP_FRAME_SELECT) ? 1 : 0;
 
       BLI_addtail(elems, ce);
@@ -305,7 +305,7 @@ static int gpencil_anim_copy_firstframe = 999999999;
 static int gpencil_anim_copy_lastframe = -999999999;
 static int gpencil_anim_copy_cfra = 0;
 
-void ED_gpencil_anim_copybuf_free(void)
+void ED_gpencil_anim_copybuf_free()
 {
   BKE_gpencil_free_layers(&gpencil_anim_copybuf);
   BLI_listbase_clear(&gpencil_anim_copybuf);
@@ -513,9 +513,9 @@ static bool gpencil_frame_snap_nearest(bGPDframe * /*gpf*/, Scene * /*scene*/)
 
 static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 {
-  float secf = (float)FPS;
+  float secf = float(FPS);
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = (int)(floorf(gpf->framenum / secf + 0.5f) * secf);
+    gpf->framenum = int(floorf(gpf->framenum / secf + 0.5f) * secf);
   }
   return false;
 }
@@ -523,7 +523,7 @@ static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = (int)scene->r.cfra;
+    gpf->framenum = int(scene->r.cfra);
   }
   return false;
 }
@@ -532,7 +532,7 @@ static bool gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)ED_markers_find_nearest_marker_time(&scene->markers,
-                                                             (float)gpf->framenum);
+                                                             float(gpf->framenum));
   }
   return false;
 }

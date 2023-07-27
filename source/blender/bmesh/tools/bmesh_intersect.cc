@@ -116,7 +116,7 @@ struct ISectState {
 
   MemArena *mem_arena;
 
-  struct ISectEpsilon epsilon;
+  ISectEpsilon epsilon;
 };
 
 /**
@@ -131,7 +131,7 @@ struct LinkBase {
 static bool ghash_insert_link(GHash *gh, void *key, void *val, bool use_test, MemArena *mem_arena)
 {
   void **ls_base_p;
-  struct LinkBase *ls_base;
+  LinkBase *ls_base;
   LinkNode *ls;
 
   if (!BLI_ghash_ensure_p(gh, key, &ls_base_p)) {
@@ -162,11 +162,11 @@ struct vert_sort_t {
 };
 
 #ifdef USE_SPLICE
-static void edge_verts_sort(const float co[3], struct LinkBase *v_ls_base)
+static void edge_verts_sort(const float co[3], LinkBase *v_ls_base)
 {
   /* not optimal but list will be typically < 5 */
   uint i;
-  struct vert_sort_t *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
+  vert_sort_t *vert_sort = BLI_array_alloca(vert_sort, v_ls_base->list_len);
   LinkNode *node;
 
   BLI_assert(v_ls_base->list_len > 1);
@@ -186,14 +186,14 @@ static void edge_verts_sort(const float co[3], struct LinkBase *v_ls_base)
 }
 #endif
 
-static void edge_verts_add(struct ISectState *s, BMEdge *e, BMVert *v, const bool use_test)
+static void edge_verts_add(ISectState *s, BMEdge *e, BMVert *v, const bool use_test)
 {
   BLI_assert(e->head.htype == BM_EDGE);
   BLI_assert(v->head.htype == BM_VERT);
   ghash_insert_link(s->edge_verts, (void *)e, v, use_test, s->mem_arena);
 }
 
-static void face_edges_add(struct ISectState *s, const int f_index, BMEdge *e, const bool use_test)
+static void face_edges_add(ISectState *s, const int f_index, BMEdge *e, const bool use_test)
 {
   void *f_index_key = POINTER_FROM_INT(f_index);
   BLI_assert(e->head.htype == BM_EDGE);
@@ -206,7 +206,7 @@ static void face_edges_add(struct ISectState *s, const int f_index, BMEdge *e, c
 #ifdef USE_NET
 static void face_edges_split(BMesh *bm,
                              BMFace *f,
-                             struct LinkBase *e_ls_base,
+                             LinkBase *e_ls_base,
                              bool use_island_connect,
                              bool use_partial_connect,
                              MemArena *mem_arena_edgenet)
@@ -247,12 +247,12 @@ static void face_edges_split(BMesh *bm,
   UNUSED_VARS(use_island_connect, mem_arena_edgenet);
 #  endif
 
-  BM_face_split_edgenet(bm, f, edge_arr, (int)edge_arr_len, nullptr, nullptr);
+  BM_face_split_edgenet(bm, f, edge_arr, int(edge_arr_len), nullptr, nullptr);
 }
 #endif
 
 #ifdef USE_DISSOLVE
-static void vert_dissolve_add(struct ISectState *s, BMVert *v)
+static void vert_dissolve_add(ISectState *s, BMVert *v)
 {
   BLI_assert(v->head.htype == BM_VERT);
   BLI_assert(!BM_elem_flag_test(v, BM_ELEM_TAG));
@@ -268,7 +268,7 @@ static enum ISectType intersect_line_tri(const float p0[3],
                                          const float *t_cos[3],
                                          const float t_nor[3],
                                          float r_ix[3],
-                                         const struct ISectEpsilon *e)
+                                         const ISectEpsilon *e)
 {
   float p_dir[3];
   uint i_t0;
@@ -333,7 +333,7 @@ static enum ISectType intersect_line_tri(const float p0[3],
   return IX_NONE;
 }
 
-static BMVert *bm_isect_edge_tri(struct ISectState *s,
+static BMVert *bm_isect_edge_tri(ISectState *s,
                                  BMVert *e_v0,
                                  BMVert *e_v1,
                                  BMVert *t[3],
@@ -444,7 +444,7 @@ static BMVert *bm_isect_edge_tri(struct ISectState *s,
     }
 
     if ((*r_side >= IX_EDGE_TRI_EDGE0) && (*r_side <= IX_EDGE_TRI_EDGE2)) {
-      i = (uint)(*r_side - IX_EDGE_TRI_EDGE0);
+      i = uint(*r_side - IX_EDGE_TRI_EDGE0);
       e = BM_edge_exists(t[i], t[(i + 1) % 3]);
       if (e) {
         edge_verts_add(s, e, iv, false);
@@ -477,7 +477,7 @@ static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
   }
 
   if (l->radial_next != l) {
-    struct LoopFilterWrap *data = static_cast<LoopFilterWrap *>(user_data);
+    LoopFilterWrap *data = static_cast<LoopFilterWrap *>(user_data);
     BMLoop *l_iter = l->radial_next;
     const int face_side = data->test_fn(l->f, data->user_data);
     do {
@@ -498,7 +498,7 @@ static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
  * Return true if we have any intersections.
  */
 static void bm_isect_tri_tri(
-    struct ISectState *s, int a_index, int b_index, BMLoop **a, BMLoop **b, bool no_shared)
+    ISectState *s, int a_index, int b_index, BMLoop **a, BMLoop **b, bool no_shared)
 {
   BMFace *f_a = (*a)->f;
   BMFace *f_b = (*b)->f;
@@ -844,7 +844,7 @@ struct RaycastData {
 };
 
 #  ifdef USE_KDOPBVH_WATERTIGHT
-static const struct IsectRayPrecalc isect_precalc_x = {1, 2, 0, 0, 0, 1};
+static const IsectRayPrecalc isect_precalc_x = {1, 2, 0, 0, 0, 1};
 #  endif
 
 static void raycast_callback(void *userdata,
@@ -852,7 +852,7 @@ static void raycast_callback(void *userdata,
                              const BVHTreeRay *ray,
                              BVHTreeRayHit * /*hit*/)
 {
-  struct RaycastData *raycast_data = static_cast<RaycastData *>(userdata);
+  RaycastData *raycast_data = static_cast<RaycastData *>(userdata);
   const float **looptris = raycast_data->looptris;
   const float *v0 = looptris[index * 3 + 0];
   const float *v1 = looptris[index * 3 + 1];
@@ -891,7 +891,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
 {
   BLI_buffer_declare_static(float, z_buffer, BLI_BUFFER_NOP, 64);
 
-  struct RaycastData raycast_data = {
+  RaycastData raycast_data = {
       looptris,
       &z_buffer,
   };
@@ -959,7 +959,7 @@ bool BM_mesh_intersect(BMesh *bm,
                        const int boolean_mode,
                        const float eps)
 {
-  struct ISectState s;
+  ISectState s;
   const int totface_orig = bm->totface;
 
   /* use to check if we made any changes */
@@ -1031,7 +1031,7 @@ bool BM_mesh_intersect(BMesh *bm,
     int i, j;
 
     cos = static_cast<float **>(
-        MEM_mallocN((size_t)looptris_tot * sizeof(*looptri_coords) * 3, __func__));
+        MEM_mallocN(size_t(looptris_tot) * sizeof(*looptri_coords) * 3, __func__));
     for (i = 0, j = 0; i < looptris_tot; i++) {
       cos[j++] = looptris[i][0]->v->co;
       cos[j++] = looptris[i][1]->v->co;
@@ -1164,7 +1164,7 @@ bool BM_mesh_intersect(BMesh *bm,
 
     GHASH_ITER (gh_iter, s.edge_verts) {
       BMEdge *e = static_cast<BMEdge *>(BLI_ghashIterator_getKey(&gh_iter));
-      struct LinkBase *v_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+      LinkBase *v_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
 
       BMVert *v_start;
       BMVert *v_end;
@@ -1355,7 +1355,7 @@ bool BM_mesh_intersect(BMesh *bm,
       GHashIterator gh_iter;
 
       GHASH_ITER (gh_iter, s.face_edges) {
-        struct LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+        LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
         LinkNode **node_prev_p;
 
         node_prev_p = &e_ls_base->list;
@@ -1454,7 +1454,7 @@ bool BM_mesh_intersect(BMesh *bm,
     GHASH_ITER (gh_iter, s.face_edges) {
       const int f_index = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
       BMFace *f;
-      struct LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
+      LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
 
       BLI_assert(f_index >= 0 && f_index < totface_orig);
 
@@ -1524,7 +1524,7 @@ bool BM_mesh_intersect(BMesh *bm,
     user_data_wrap.user_data = user_data;
 
     groups_array = static_cast<int *>(
-        MEM_mallocN(sizeof(*groups_array) * (size_t)bm->totface, __func__));
+        MEM_mallocN(sizeof(*groups_array) * size_t(bm->totface), __func__));
     group_tot = BM_mesh_calc_face_groups(
         bm, groups_array, &group_index, bm_loop_filter_fn, nullptr, &user_data_wrap, 0, BM_EDGE);
 

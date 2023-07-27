@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 
@@ -168,7 +168,7 @@ static void bakeModifier(Main * /*bmain*/,
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
@@ -248,8 +248,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Mirror = {
     /*name*/ N_("Mirror"),
-    /*structName*/ "MirrorGpencilModifierData",
-    /*structSize*/ sizeof(MirrorGpencilModifierData),
+    /*struct_name*/ "MirrorGpencilModifierData",
+    /*struct_size*/ sizeof(MirrorGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

@@ -8,11 +8,11 @@
  * Operators for dealing with GP data-blocks and layers.
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -472,7 +472,7 @@ static int gpencil_layer_copy_exec(bContext *C, wmOperator *op)
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
   bGPDlayer *new_layer;
   const int mode = RNA_enum_get(op->ptr, "mode");
-  const bool dup_strokes = (bool)(mode == GP_LAYER_DUPLICATE_ALL);
+  const bool dup_strokes = bool(mode == GP_LAYER_DUPLICATE_ALL);
   /* sanity checks */
   if (ELEM(nullptr, gpd, gpl)) {
     return OPERATOR_CANCELLED;
@@ -805,7 +805,7 @@ static int gpencil_frame_clean_loose_exec(bContext *C, wmOperator *op)
   bool changed = false;
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   int limit = RNA_int_get(op->ptr, "limit");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
@@ -1085,7 +1085,7 @@ void GPENCIL_OT_hide(wmOperatorType *ot)
 
   /* props */
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected layers");
 }
 
 /* ********************** Show All Layers ***************************** */
@@ -1349,8 +1349,8 @@ static void apply_layer_settings(bGPDlayer *gpl)
       gps->vert_color_fill[3] *= gpl->opacity;
       for (int p = 0; p < gps->totpoints; p++) {
         bGPDspoint *pt = &gps->points[p];
-        float factor = (((float)gps->thickness * pt->pressure) + (float)gpl->line_change) /
-                       ((float)gps->thickness * pt->pressure);
+        float factor = ((float(gps->thickness) * pt->pressure) + float(gpl->line_change)) /
+                       (float(gps->thickness) * pt->pressure);
         pt->pressure *= factor;
         pt->strength *= gpl->opacity;
 
@@ -1603,7 +1603,7 @@ static int gpencil_stroke_arrange_exec(bContext *C, wmOperator *op)
   }
 
   const int direction = RNA_enum_get(op->ptr, "direction");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   bGPDstroke *gps_target = nullptr;
 
   bool changed = false;
@@ -1798,7 +1798,7 @@ static int gpencil_stroke_change_color_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   if (ELEM(nullptr, ma)) {
     return OPERATOR_CANCELLED;
   }
@@ -3329,7 +3329,7 @@ void GPENCIL_OT_material_hide(wmOperatorType *ot)
 
   /* props */
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected colors");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected colors");
 }
 
 /* ********************** Show All Colors ***************************** */
@@ -3497,7 +3497,7 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
   MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, ob->actcol);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const bool deselected = RNA_boolean_get(op->ptr, "deselect");
 
   /* sanity checks */
@@ -3580,7 +3580,7 @@ void GPENCIL_OT_material_select(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  ot->prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Unselect strokes");
+  ot->prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Unselect strokes");
   RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

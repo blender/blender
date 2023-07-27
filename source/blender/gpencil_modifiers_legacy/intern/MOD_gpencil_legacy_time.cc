@@ -6,9 +6,9 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -162,7 +162,7 @@ static int remapTime(GpencilModifierData *md,
 
   if (mmd->mode == GP_TIME_MODE_PINGPONG) {
     if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
-      if (((int)(cfra + offset - 1) / (efra - sfra)) % (2)) {
+      if ((int(cfra + offset - 1) / (efra - sfra)) % (2)) {
         nfra = efra - (cfra + offset - 1) % (efra - sfra);
       }
       else {
@@ -174,7 +174,7 @@ static int remapTime(GpencilModifierData *md,
     }
     else {
 
-      if (((int)(cfra + offset - 1) / (efra - sfra)) % (2)) {
+      if ((int(cfra + offset - 1) / (efra - sfra)) % (2)) {
         nfra = efra - (cfra + offset - 1) % (efra - sfra);
       }
       else {
@@ -426,8 +426,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Time = {
     /*name*/ N_("TimeOffset"),
-    /*structName*/ "TimeGpencilModifierData",
-    /*structSize*/ sizeof(TimeGpencilModifierData),
+    /*struct_name*/ "TimeGpencilModifierData",
+    /*struct_size*/ sizeof(TimeGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_NoApply,
 

@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
+#include <cstdio>
+#include <cstring> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -103,7 +103,7 @@ static void deformStroke(GpencilModifierData *md,
   }
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -162,8 +162,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Simplify = {
     /*name*/ N_("Simplify"),
-    /*structName*/ "SimplifyGpencilModifierData",
-    /*structSize*/ sizeof(SimplifyGpencilModifierData),
+    /*struct_name*/ "SimplifyGpencilModifierData",
+    /*struct_size*/ sizeof(SimplifyGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

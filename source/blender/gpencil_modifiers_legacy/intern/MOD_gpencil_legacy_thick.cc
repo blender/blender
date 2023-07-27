@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -128,7 +128,7 @@ static void deformStroke(GpencilModifierData *md,
 
     if ((mmd->flag & GP_THICK_CUSTOM_CURVE) && (mmd->curve_thickness)) {
       /* Normalize value to evaluate curve. */
-      float value = (float)i / (gps->totpoints - 1);
+      float value = float(i) / (gps->totpoints - 1);
       curvef = BKE_curvemapping_evaluateF(mmd->curve_thickness, 0, value);
     }
 
@@ -148,7 +148,7 @@ static void deformStroke(GpencilModifierData *md,
   }
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -209,8 +209,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
     /*name*/ N_("Thickness"),
-    /*structName*/ "ThickGpencilModifierData",
-    /*structSize*/ sizeof(ThickGpencilModifierData),
+    /*struct_name*/ "ThickGpencilModifierData",
+    /*struct_size*/ sizeof(ThickGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

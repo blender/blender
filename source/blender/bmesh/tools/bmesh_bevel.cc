@@ -72,7 +72,7 @@ struct BoundVert;
 /* Data for one end of an edge involved in a bevel. */
 struct EdgeHalf {
   /** Other EdgeHalves connected to the same BevVert, in CCW order. */
-  struct EdgeHalf *next, *prev;
+  EdgeHalf *next, *prev;
   /** Original mesh edge. */
   BMEdge *e;
   /** Face between this edge and previous, if any. */
@@ -80,9 +80,9 @@ struct EdgeHalf {
   /** Face between this edge and next, if any. */
   BMFace *fnext;
   /** Left boundary vert (looking along edge to end). */
-  struct BoundVert *leftv;
+  BoundVert *leftv;
   /** Right boundary vert, if beveled. */
-  struct BoundVert *rightv;
+  BoundVert *rightv;
   /** Offset into profile to attach non-beveled edge. */
   int profile_index;
   /** How many segments for the bevel. */
@@ -195,7 +195,7 @@ struct MathLayerInfo {
  */
 struct BoundVert {
   /** In CCW order. */
-  struct BoundVert *next, *prev;
+  BoundVert *next, *prev;
   NewVert nv;
   /** First of edges attached here: in CCW order. */
   EdgeHalf *efirst;
@@ -209,7 +209,7 @@ struct BoundVert {
   /** When eon set, ratio of sines of angles to eon edge. */
   float sinratio;
   /** Adjustment chain or cycle link pointer. */
-  struct BoundVert *adjchain;
+  BoundVert *adjchain;
   /** Edge profile between this and next BoundVert. */
   Profile profile;
   /** Are any of the edges attached here seams? */
@@ -431,7 +431,7 @@ static bool nearly_parallel(const float d1[3], const float d2[3])
 {
   float ang = angle_v3v3(d1, d2);
 
-  return (fabsf(ang) < BEVEL_EPSILON_ANG) || (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG);
+  return (fabsf(ang) < BEVEL_EPSILON_ANG) || (fabsf(ang - float(M_PI)) < BEVEL_EPSILON_ANG);
 }
 
 /**
@@ -728,7 +728,7 @@ static BMFace *bev_create_ngon(BMesh *bm,
   }
 
   if (mat_nr >= 0) {
-    f->mat_nr = (short)mat_nr;
+    f->mat_nr = short(mat_nr);
   }
   return f;
 }
@@ -965,12 +965,12 @@ static BMFace *choose_rep_face(BevelParams *bp, BMFace **face, int nfaces)
     int value_index = 0;
     /* First tie-breaker: lower math-layer connected component id. */
     value_vecs[f][value_index++] = bp->math_layer_info.face_component ?
-                                       (float)bp->math_layer_info.face_component[bmf_index] :
+                                       float(bp->math_layer_info.face_component[bmf_index]) :
                                        0.0f;
     /* Next tie-breaker: selected face beats unselected one. */
     value_vecs[f][value_index++] = BM_elem_flag_test(bmf, BM_ELEM_SELECT) ? 0.0f : 1.0f;
     /* Next tie-breaker: lower material index. */
-    value_vecs[f][value_index++] = bmf->mat_nr >= 0 ? (float)bmf->mat_nr : 0.0f;
+    value_vecs[f][value_index++] = bmf->mat_nr >= 0 ? float(bmf->mat_nr) : 0.0f;
     /* Next three tie-breakers: z, x, y components of face center. */
     float cent[3];
     BM_face_calc_center_bounds(bmf, cent);
@@ -1039,7 +1039,7 @@ static void bev_merge_uvs(BMesh *bm, BMVert *v)
       n++;
     }
     if (n > 1) {
-      mul_v2_fl(uv, 1.0f / (float)n);
+      mul_v2_fl(uv, 1.0f / float(n));
       BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
         float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
         copy_v2_v2(luv, uv);
@@ -1098,7 +1098,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float r_slideco[3])
   float len = normalize_v3(dir);
 
   if (d > len) {
-    d = len - (float)(50.0 * BEVEL_EPSILON_D);
+    d = len - float(50.0 * BEVEL_EPSILON_D);
   }
   copy_v3_v3(r_slideco, v->co);
   madd_v3_v3fl(r_slideco, dir, -d);
@@ -1182,11 +1182,11 @@ static bool point_between_edges(
   /* Angles are in [0,pi]. Need to compare cross product with normal to see if they are reflex. */
   cross_v3_v3v3(no, dir1, dir2);
   if (dot_v3v3(no, f->no) < 0.0f) {
-    ang11 = (float)(M_PI * 2.0) - ang11;
+    ang11 = float(M_PI * 2.0) - ang11;
   }
   cross_v3_v3v3(no, dir1, dirco);
   if (dot_v3v3(no, f->no) < 0.0f) {
-    ang1co = (float)(M_PI * 2.0) - ang1co;
+    ang1co = float(M_PI * 2.0) - ang1co;
   }
   return (ang11 - ang1co > -BEVEL_EPSILON_ANG);
 }
@@ -1398,7 +1398,7 @@ static void offset_meet(BevelParams *bp,
     madd_v3_v3fl(off1a, norm_perp1, d);
     copy_v3_v3(meetco, off1a);
   }
-  else if (fabsf(ang - (float)M_PI) < BEVEL_EPSILON_ANG) {
+  else if (fabsf(ang - float(M_PI)) < BEVEL_EPSILON_ANG) {
     /* Special case: e1 and e2 are anti-parallel, so bevel is into a zero-area face.
      * Just make the offset point on the common line, at offset distance from v. */
     float d = max_ff(e1->offset_r, e2->offset_l);
@@ -1501,7 +1501,7 @@ static void offset_meet(BevelParams *bp,
           /* Don't drop to the faces next to the in plane edge. */
           if (e_in_plane) {
             ang = angle_v3v3(fnext->no, e_in_plane->fnext->no);
-            if ((fabsf(ang) < BEVEL_SMALL_ANG) || (fabsf(ang - (float)M_PI) < BEVEL_SMALL_ANG)) {
+            if ((fabsf(ang) < BEVEL_SMALL_ANG) || (fabsf(ang - float(M_PI)) < BEVEL_SMALL_ANG)) {
               continue;
             }
           }
@@ -1550,7 +1550,7 @@ static bool offset_meet_edge(
   float fno[3];
   cross_v3_v3v3(fno, dir1, dir2);
   if (dot_v3v3(fno, v->no) < 0.0f) {
-    ang = 2.0f * (float)M_PI - ang; /* Angle is reflex. */
+    ang = 2.0f * float(M_PI) - ang; /* Angle is reflex. */
     if (r_angle) {
       *r_angle = ang;
     }
@@ -1560,7 +1560,7 @@ static bool offset_meet_edge(
     *r_angle = ang;
   }
 
-  if (fabsf(ang - (float)M_PI) < BEVEL_GOOD_ANGLE) {
+  if (fabsf(ang - float(M_PI)) < BEVEL_GOOD_ANGLE) {
     return false;
   }
 
@@ -1959,7 +1959,7 @@ static bool make_unit_square_map(const float va[3],
     return false;
   }
 
-  if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) <= BEVEL_EPSILON_ANG) {
+  if (fabsf(angle_v3v3(va_vmid, vb_vmid) - float(M_PI)) <= BEVEL_EPSILON_ANG) {
     return false;
   }
 
@@ -2109,15 +2109,15 @@ static void calculate_profile_segments(const Profile *profile,
     else {
       if (use_map) {
         const float p[3] = {
-            reversed ? (float)yvals[ns - k] : (float)xvals[k],
-            reversed ? (float)xvals[ns - k] : (float)yvals[k],
+            reversed ? float(yvals[ns - k]) : float(xvals[k]),
+            reversed ? float(xvals[ns - k]) : float(yvals[k]),
             0.0f,
         };
         /* Do the 2D->3D transformation of the profile coordinates. */
         mul_v3_m4v3(co, map, p);
       }
       else {
-        interp_v3_v3v3(co, profile->start, profile->end, (float)k / (float)ns);
+        interp_v3_v3v3(co, profile->start, profile->end, float(k) / float(ns));
       }
     }
     /* Finish the 2D->3D transformation by projecting onto the final profile plane. */
@@ -3670,12 +3670,12 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
     if (iscycle || i < np - 1) {
       eright = v->efirst;
       eleft = v->elast;
-      eright->offset_r = (float)val;
+      eright->offset_r = float(val);
 #ifdef DEBUG_ADJUST
       printf("e%d->offset_r = %f\n", BM_elem_index_get(eright->e), eright->offset_r);
 #endif
       if (iscycle || v != vstart) {
-        eleft->offset_l = (float)(v->sinratio * val);
+        eleft->offset_l = float(v->sinratio * val);
 #ifdef DEBUG_ADJUST
         printf("e%d->offset_l = %f\n", BM_elem_index_get(eleft->e), eleft->offset_l);
 #endif
@@ -3684,7 +3684,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
     else {
       /* Not a cycle, and last of chain. */
       eleft = v->elast;
-      eleft->offset_l = (float)val;
+      eleft->offset_l = float(val);
 #ifdef DEBUG_ADJUST
       printf("e%d->offset_l = %f\n", BM_elem_index_get(eleft->e), eleft->offset_l);
 #endif
@@ -3943,7 +3943,7 @@ static void vmesh_center(VMesh *vm, float r_cent[3])
     for (int i = 0; i < n; i++) {
       add_v3_v3(r_cent, mesh_vert(vm, i, ns2, ns2)->co);
     }
-    mul_v3_fl(r_cent, 1.0f / (float)n);
+    mul_v3_fl(r_cent, 1.0f / float(n));
   }
   else {
     copy_v3_v3(r_cent, mesh_vert(vm, 0, ns2, ns2)->co);
@@ -3978,7 +3978,7 @@ static float sabin_gamma(int n)
   if (n == 6) {
     return 0.523423277f;
   }
-  double k = cos(M_PI / (double)n);
+  double k = cos(M_PI / double(n));
   /* Need x, real root of x^3 + (4k^2 - 3)x - 2k = 0.
    * Answer calculated via Wolfram Alpha. */
   double k2 = k * k;
@@ -4290,8 +4290,8 @@ static VMesh *cubic_subdiv(BevelParams *bp, VMesh *vm_in)
     add_v3_v3(co2, mesh_vert(vm_out, i, ns_in - 1, ns_in + 1)->co);
   }
   copy_v3_v3(co, co1);
-  mul_v3_fl(co, 1.0f / (float)n_boundary);
-  madd_v3_v3fl(co, co2, beta / (2.0f * (float)n_boundary));
+  mul_v3_fl(co, 1.0f / float(n_boundary));
+  madd_v3_v3fl(co, co2, beta / (2.0f * float(n_boundary)));
   madd_v3_v3fl(co, mesh_vert(vm_in, 0, ns_in2, ns_in2)->co, gamma);
   for (int i = 0; i < n_boundary; i++) {
     copy_v3_v3(mesh_vert(vm_out, i, ns_in, ns_in)->co, co);
@@ -4333,8 +4333,8 @@ static VMesh *make_cube_corner_square(MemArena *mem_arena, int nseg)
         }
         float co[3];
         co[i] = 1.0f;
-        co[(i + 1) % 3] = (float)k * 2.0f / (float)nseg;
-        co[(i + 2) % 3] = (float)j * 2.0f / (float)nseg;
+        co[(i + 1) % 3] = float(k) * 2.0f / float(nseg);
+        co[(i + 2) % 3] = float(j) * 2.0f / float(nseg);
         copy_v3_v3(mesh_vert(vm, i, j, k)->co, co);
       }
     }
@@ -4363,19 +4363,19 @@ static VMesh *make_cube_corner_square_in(MemArena *mem_arena, int nseg)
 
   float b;
   if (odd) {
-    b = 2.0f / (2.0f * (float)ns2 + (float)M_SQRT2);
+    b = 2.0f / (2.0f * float(ns2) + float(M_SQRT2));
   }
   else {
-    b = 2.0f / (float)nseg;
+    b = 2.0f / float(nseg);
   }
   for (int i = 0; i < 3; i++) {
     for (int k = 0; k <= ns2; k++) {
       float co[3];
-      co[i] = 1.0f - (float)k * b;
+      co[i] = 1.0f - float(k) * b;
       co[(i + 1) % 3] = 0.0f;
       co[(i + 2) % 3] = 0.0f;
       copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);
-      co[(i + 1) % 3] = 1.0f - (float)k * b;
+      co[(i + 1) % 3] = 1.0f - float(k) * b;
       co[(i + 2) % 3] = 0.0f;
       co[i] = 0.0f;
       copy_v3_v3(mesh_vert(vm, i, 0, nseg - k)->co, co);
@@ -4438,7 +4438,7 @@ static VMesh *make_cube_corner_adj_vmesh(BevelParams *bp)
   }
   /* Center vertex. */
   float co[3];
-  copy_v3_fl(co, (float)M_SQRT1_3);
+  copy_v3_fl(co, float(M_SQRT1_3));
 
   if (nseg > 2) {
     if (r > 1.5f) {
@@ -4497,7 +4497,7 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
     if (absang <= M_PI_4) {
       in_plane_e++;
     }
-    else if (absang >= 3.0f * (float)M_PI_4) {
+    else if (absang >= 3.0f * float(M_PI_4)) {
       return -1;
     }
 
@@ -4510,9 +4510,9 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
   if (in_plane_e != bv->edgecount - 3) {
     return -1;
   }
-  float angdiff = fabsf(fabsf(totang) - 3.0f * (float)M_PI_2);
-  if ((bp->pro_super_r == PRO_SQUARE_R && angdiff > (float)M_PI / 16.0f) ||
-      (angdiff > (float)M_PI_4))
+  float angdiff = fabsf(fabsf(totang) - 3.0f * float(M_PI_2));
+  if ((bp->pro_super_r == PRO_SQUARE_R && angdiff > float(M_PI) / 16.0f) ||
+      (angdiff > float(M_PI_4)))
   {
     return -1;
   }
@@ -4579,7 +4579,7 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
     add_v3_v3(boundverts_center, bndv->nv.co);
     bndv = bndv->next;
   }
-  mul_v3_fl(boundverts_center, 1.0f / (float)n_bndv);
+  mul_v3_fl(boundverts_center, 1.0f / float(n_bndv));
 
   /* To place the center vertex:
    * 'negative_fullest' is the reflection of the original vertex across the boundverts' center.
@@ -4704,14 +4704,14 @@ static VMesh *pipe_adj_vmesh(BevelParams *bp, BevVert *bv, BoundVert *vpipe)
               /* This is part of either pipe profile boundvert area in the 4-way intersection. */
               profile_point_pipe1 = mesh_vert(vm, i, 0, k)->co;
               profile_point_pipe2 = mesh_vert(vm, (i == ipipe1) ? ipipe2 : ipipe1, 0, ns - k)->co;
-              f = (float)j / (float)ns; /* The ring index brings us closer to the other side. */
+              f = float(j) / float(ns); /* The ring index brings us closer to the other side. */
             }
           }
           else {
             /* The profile vertices are on both ends of each of the side profile's rings. */
             profile_point_pipe1 = mesh_vert(vm, i, j, 0)->co;
             profile_point_pipe2 = mesh_vert(vm, i, j, ns)->co;
-            f = (float)k / (float)ns; /* Ring runs along the pipe, so segment is used here. */
+            f = float(k) / float(ns); /* Ring runs along the pipe, so segment is used here. */
           }
 
           /* Place the vertex by interpolating between the two profile points using the factor. */
@@ -5035,7 +5035,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   int ns = bv->vmesh->seg;
   int ns2 = ns / 2;
   int odd = ns % 2;
-  float ns2inv = 1.0f / (float)ns2;
+  float ns2inv = 1.0f / float(ns2);
   VMesh *vm = new_adj_vmesh(bp->mem_arena, n_bndv, ns, bv->vmesh->boundstart);
   int clstride = 3 * (ns2 + 1);
   float *centerline = static_cast<float *>(
@@ -6084,7 +6084,7 @@ static float edge_face_angle(EdgeHalf *e)
 {
   if (e->fprev && e->fnext) {
     /* Angle between faces is supplement of angle between face normals. */
-    return (float)M_PI - angle_normalized_v3v3(e->fprev->no, e->fnext->no);
+    return float(M_PI) - angle_normalized_v3v3(e->fprev->no, e->fnext->no);
   }
   return 0.0f;
 }
@@ -7322,8 +7322,8 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
   if (r == PRO_LINE_R) {
     /* Linear spacing. */
     for (int i = 0; i <= n; i++) {
-      xvals[i] = (double)i / n;
-      yvals[i] = 1.0 - (double)i / n;
+      xvals[i] = double(i) / n;
+      yvals[i] = 1.0 - double(i) / n;
     }
     return;
   }
@@ -7341,7 +7341,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     if (!seg_odd) {
       for (int i = 0; i <= n2; i++) {
         xvals[i] = 0.0;
-        yvals[i] = 1.0 - (double)i / n2;
+        yvals[i] = 1.0 - double(i) / n2;
         xvals[n - i] = yvals[i];
         yvals[n - i] = xvals[i];
       }
@@ -7351,7 +7351,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
       double temp = 1.0 / (n2 + M_SQRT2 / 2.0);
       for (int i = 0; i <= n2; i++) {
         xvals[i] = 0.0;
-        yvals[i] = 1.0 - (double)i * temp;
+        yvals[i] = 1.0 - double(i) * temp;
         xvals[n - i] = yvals[i];
         yvals[n - i] = xvals[i];
       }
@@ -7362,7 +7362,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     /* n is even, distribute first and second half linear. */
     if (!seg_odd) {
       for (int i = 0; i <= n2; i++) {
-        xvals[i] = (double)i / n2;
+        xvals[i] = double(i) / n2;
         yvals[i] = 1.0;
         xvals[n - i] = yvals[i];
         yvals[n - i] = xvals[i];
@@ -7372,7 +7372,7 @@ static void find_even_superellipse_chords(int n, float r, double *xvals, double 
     else {
       double temp = 1.0 / (n2 + M_SQRT2 / 2);
       for (int i = 0; i <= n2; i++) {
-        xvals[i] = (double)i * temp;
+        xvals[i] = double(i) * temp;
         yvals[i] = 1.0;
         xvals[n - i] = yvals[i];
         yvals[n - i] = xvals[i];
@@ -7414,7 +7414,7 @@ static float find_profile_fullness(BevelParams *bp)
     /* Set fullness to the average "height" of the profile's sampled points. */
     fullness = 0.0f;
     for (int i = 0; i < nseg; i++) { /* Don't use the end points. */
-      fullness += (float)(bp->pro_spacing.xvals[i] + bp->pro_spacing.yvals[i]) / (2.0f * nseg);
+      fullness += float(bp->pro_spacing.xvals[i] + bp->pro_spacing.yvals[i]) / (2.0f * nseg);
     }
   }
   else {
@@ -7479,12 +7479,12 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
                                                         sizeof(double) * (seg_2 + 1));
     if (custom) {
       /* Make sure the curve profile widget's sample table is full of the seg_2 samples. */
-      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg_2);
+      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, short(seg_2));
 
       /* Copy segment locations into the profile spacing struct. */
       for (int i = 0; i < seg_2 + 1; i++) {
-        pro_spacing->xvals_2[i] = (double)bp->custom_profile->segments[i].y;
-        pro_spacing->yvals_2[i] = (double)bp->custom_profile->segments[i].x;
+        pro_spacing->xvals_2[i] = double(bp->custom_profile->segments[i].y);
+        pro_spacing->yvals_2[i] = double(bp->custom_profile->segments[i].x);
       }
     }
     else {
@@ -7499,13 +7499,13 @@ static void set_profile_spacing(BevelParams *bp, ProfileSpacing *pro_spacing, bo
   if (custom) {
     /* Make sure the curve profile's sample table is full. */
     if (bp->custom_profile->segments_len != seg || !bp->custom_profile->segments) {
-      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, (short)seg);
+      BKE_curveprofile_init((CurveProfile *)bp->custom_profile, short(seg));
     }
 
     /* Copy segment locations into the profile spacing struct. */
     for (int i = 0; i < seg + 1; i++) {
-      pro_spacing->xvals[i] = (double)bp->custom_profile->segments[i].y;
-      pro_spacing->yvals[i] = (double)bp->custom_profile->segments[i].x;
+      pro_spacing->xvals[i] = double(bp->custom_profile->segments[i].y);
+      pro_spacing->yvals[i] = double(bp->custom_profile->segments[i].x);
     }
   }
   else {

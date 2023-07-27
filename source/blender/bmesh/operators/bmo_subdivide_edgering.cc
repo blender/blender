@@ -99,7 +99,7 @@ static float bezier_handle_calc_length_v3(const float co_a[3],
   return (len * 0.5f) * fac;
 }
 
-static void bm_edgeloop_vert_tag(struct BMEdgeLoopStore *el_store, const bool tag)
+static void bm_edgeloop_vert_tag(BMEdgeLoopStore *el_store, const bool tag)
 {
   LinkData *node = static_cast<LinkData *>(BM_edgeloop_verts_get(el_store)->first);
   do {
@@ -108,7 +108,7 @@ static void bm_edgeloop_vert_tag(struct BMEdgeLoopStore *el_store, const bool ta
 }
 
 static void bmo_edgeloop_vert_tag(BMesh *bm,
-                                  struct BMEdgeLoopStore *el_store,
+                                  BMEdgeLoopStore *el_store,
                                   const short oflag,
                                   const bool tag)
 {
@@ -151,8 +151,8 @@ static bool bm_vert_is_tag_edge_connect(BMesh *bm, BMVert *v)
  * when trimming endpoints is not enough to ensure consistency.
  */
 static bool bm_edgeloop_check_overlap_all(BMesh *bm,
-                                          struct BMEdgeLoopStore *el_store_a,
-                                          struct BMEdgeLoopStore *el_store_b)
+                                          BMEdgeLoopStore *el_store_a,
+                                          BMEdgeLoopStore *el_store_b)
 {
   bool has_overlap = true;
   LinkData *node;
@@ -212,7 +212,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
   GSet *eloop_pair_gs = BLI_gset_pair_new(__func__);
   GHash *vert_eloop_gh = BLI_ghash_ptr_new(__func__);
 
-  struct BMEdgeLoopStore *el_store;
+  BMEdgeLoopStore *el_store;
 
   /* create vert -> eloop map */
   for (el_store = static_cast<BMEdgeLoopStore *>(eloops_rim->first); el_store;
@@ -235,7 +235,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
     BM_ITER_ELEM (e, &eiter, (BMVert *)v, BM_EDGES_OF_VERT) {
       if (BMO_edge_flag_test(bm, e, EDGE_RING)) {
-        struct BMEdgeLoopStore *el_store_other;
+        BMEdgeLoopStore *el_store_other;
         BMVert *v_other = BM_edge_other_vert(e, v);
         GHashPair pair_test;
 
@@ -278,7 +278,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 static void bm_edge_subdiv_as_loop(
     BMesh *bm, ListBase *eloops, BMEdge *e, BMVert *v_a, const int cuts)
 {
-  struct BMEdgeLoopStore *eloop;
+  BMEdgeLoopStore *eloop;
   BMVert **v_arr = BLI_array_alloca(v_arr, cuts + 2);
   BMVert *v_b;
   BLI_assert(BM_vert_in_edge(e, v_a));
@@ -442,8 +442,8 @@ struct LoopPairStore {
 };
 
 static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
-                                                    struct BMEdgeLoopStore *el_store_a,
-                                                    struct BMEdgeLoopStore *el_store_b,
+                                                    BMEdgeLoopStore *el_store_a,
+                                                    BMEdgeLoopStore *el_store_b,
                                                     const int interp_mode)
 {
   LoopPairStore *lpair = static_cast<LoopPairStore *>(MEM_mallocN(sizeof(*lpair), __func__));
@@ -457,7 +457,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     BMEdge **e_arr_b = BLI_array_alloca(e_arr_b, e_arr_b_len);
     uint i;
 
-    struct BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
+    BMEdgeLoopStore *el_store_pair[2] = {el_store_a, el_store_b};
     uint side_index;
     float(*nors_pair[2])[3];
     GHash *nors_gh_pair[2];
@@ -492,7 +492,7 @@ static LoopPairStore *bm_edgering_pair_store_create(BMesh *bm,
     /* now we have all data we need, calculate vertex spline nor! */
     for (side_index = 0; side_index < 2; side_index++) {
       /* iter vars */
-      struct BMEdgeLoopStore *el_store = el_store_pair[side_index];
+      BMEdgeLoopStore *el_store = el_store_pair[side_index];
       ListBase *lb = BM_edgeloop_verts_get(el_store);
       GHash *nors_gh_iter = nors_gh_pair[side_index];
       float(*nor)[3] = nors_pair[side_index];
@@ -538,8 +538,8 @@ static void bm_edgering_pair_store_free(LoopPairStore *lpair, const int interp_m
 
 static void bm_edgering_pair_interpolate(BMesh *bm,
                                          LoopPairStore *lpair,
-                                         struct BMEdgeLoopStore *el_store_a,
-                                         struct BMEdgeLoopStore *el_store_b,
+                                         BMEdgeLoopStore *el_store_a,
+                                         BMEdgeLoopStore *el_store_b,
                                          ListBase *eloops_ring,
                                          const int interp_mode,
                                          const int cuts,
@@ -554,7 +554,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
   float el_store_a_co[3], el_store_b_co[3];
   float el_store_a_no[3], el_store_b_no[3];
 
-  struct BMEdgeLoopStore *el_store_ring;
+  BMEdgeLoopStore *el_store_ring;
 
   float(*coord_array_main)[3] = nullptr;
 
@@ -631,7 +631,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
             MEM_mallocN(dims * (resolu) * sizeof(float), __func__));
         for (i = 0; i < resolu; i++) {
           interp_v3_v3v3(
-              coord_array[i], el_store_a_co, el_store_b_co, (float)i / (float)(resolu - 1));
+              coord_array[i], el_store_a_co, el_store_b_co, float(i) / float(resolu - 1));
         }
 
         for (el_store_ring = static_cast<BMEdgeLoopStore *>(eloops_ring->first); el_store_ring;
@@ -744,7 +744,7 @@ static void bm_edgering_pair_interpolate(BMesh *bm,
           transform_point_by_tri_v3(co_a, v_a->co, UNPACK3(tri_tmp), UNPACK3(tri_sta));
           transform_point_by_tri_v3(co_b, v_b->co, UNPACK3(tri_tmp), UNPACK3(tri_end));
 
-          interp_v3_v3v3(((BMVert *)v_iter->data)->co, co_a, co_b, (float)i / (float)(resolu - 1));
+          interp_v3_v3v3(((BMVert *)v_iter->data)->co, co_a, co_b, float(i) / float(resolu - 1));
         }
       }
 
@@ -863,8 +863,8 @@ static void bm_face_slice(BMesh *bm, BMLoop *l, const int cuts)
 }
 
 static bool bm_edgering_pair_order_is_flipped(BMesh * /*bm*/,
-                                              struct BMEdgeLoopStore *el_store_a,
-                                              struct BMEdgeLoopStore *el_store_b)
+                                              BMEdgeLoopStore *el_store_a,
+                                              BMEdgeLoopStore *el_store_b)
 {
   ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
   ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
@@ -909,8 +909,8 @@ static bool bm_edgering_pair_order_is_flipped(BMesh * /*bm*/,
  * sort their verts and rotates the list so the lined up.
  */
 static void bm_edgering_pair_order(BMesh *bm,
-                                   struct BMEdgeLoopStore *el_store_a,
-                                   struct BMEdgeLoopStore *el_store_b)
+                                   BMEdgeLoopStore *el_store_a,
+                                   BMEdgeLoopStore *el_store_b)
 {
   ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
   ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
@@ -979,8 +979,8 @@ static void bm_edgering_pair_order(BMesh *bm,
  * \note loops are _not_ aligned.
  */
 static void bm_edgering_pair_subdiv(BMesh *bm,
-                                    struct BMEdgeLoopStore *el_store_a,
-                                    struct BMEdgeLoopStore *el_store_b,
+                                    BMEdgeLoopStore *el_store_a,
+                                    BMEdgeLoopStore *el_store_b,
                                     ListBase *eloops_ring,
                                     const int cuts)
 {
@@ -993,7 +993,7 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
   BMFace **faces_ring_arr = BLI_array_alloca(faces_ring_arr, stack_max);
   STACK_DECLARE(edges_ring_arr);
   STACK_DECLARE(faces_ring_arr);
-  struct BMEdgeLoopStore *el_store_ring;
+  BMEdgeLoopStore *el_store_ring;
   LinkData *node;
   BMEdge *e;
   BMFace *f;
@@ -1071,8 +1071,8 @@ static void bm_edgering_pair_subdiv(BMesh *bm,
 
 static void bm_edgering_pair_ringsubd(BMesh *bm,
                                       LoopPairStore *lpair,
-                                      struct BMEdgeLoopStore *el_store_a,
-                                      struct BMEdgeLoopStore *el_store_b,
+                                      BMEdgeLoopStore *el_store_a,
+                                      BMEdgeLoopStore *el_store_b,
                                       const int interp_mode,
                                       const int cuts,
                                       const float smooth,
@@ -1160,7 +1160,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     int i;
     for (i = 0; i < resolu; i++) {
       float shape_size = 1.0f;
-      float fac = (float)i / (float)(resolu - 1);
+      float fac = float(i) / float(resolu - 1);
       fac = fabsf(1.0f - 2.0f * fabsf(0.5f - fac));
       fac = bmesh_subd_falloff_calc(profile_shape, fac);
       shape_size += fac * profile_shape_factor;
@@ -1181,8 +1181,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
   else if (count == 2) {
     /* this case could be removed,
      * but simple to avoid 'bm_edgering_pair_calc' in this case since there's only one. */
-    struct BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>(eloops_rim.first);
-    struct BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>(eloops_rim.last);
+    BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>(eloops_rim.first);
+    BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>(eloops_rim.last);
     LoopPairStore *lpair;
 
     if (bm_edgeloop_check_overlap_all(bm, el_store_a, el_store_b)) {
@@ -1220,10 +1220,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
     /* first cache pairs */
     GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
       GHashPair *eloop_pair = static_cast<GHashPair *>(BLI_gsetIterator_getKey(&gs_iter));
-      struct BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>(
-          (void *)eloop_pair->first);
-      struct BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>(
-          (void *)eloop_pair->second);
+      BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->first);
+      BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->second);
       LoopPairStore *lpair;
 
       if (bm_edgeloop_check_overlap_all(bm, el_store_a, el_store_b)) {
@@ -1239,10 +1237,8 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 
     GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {
       GHashPair *eloop_pair = static_cast<GHashPair *>(BLI_gsetIterator_getKey(&gs_iter));
-      struct BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>(
-          (void *)eloop_pair->first);
-      struct BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>(
-          (void *)eloop_pair->second);
+      BMEdgeLoopStore *el_store_a = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->first);
+      BMEdgeLoopStore *el_store_b = static_cast<BMEdgeLoopStore *>((void *)eloop_pair->second);
       LoopPairStore *lpair = lpair_arr[i];
 
       if (lpair) {

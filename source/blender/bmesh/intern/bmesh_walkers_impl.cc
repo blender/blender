@@ -8,7 +8,7 @@
  * BMesh Walker Code.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -680,7 +680,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 
   f = l->f;
 
-  while (1) {
+  while (true) {
     l = BM_loop_other_edge_loop(l, v);
     if (BM_loop_is_manifold(l)) {
       l = l->radial_next;

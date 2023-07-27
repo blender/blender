@@ -270,7 +270,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
 
   /* Rotate. */
   if (mode == GP_UV_ROTATE) {
-    changed |= (bool)(uv_rotation != 0.0f);
+    changed |= bool(uv_rotation != 0.0f);
     RNA_float_set(op->ptr, "rotation", uv_rotation);
 
     if (changed) {
@@ -297,7 +297,7 @@ static bool gpencil_uv_transform_calc(bContext *C, wmOperator *op)
     scale *= SMOOTH_FACTOR;
     RNA_float_set(op->ptr, "scale", scale);
 
-    changed |= (bool)(scale != 0.0f);
+    changed |= bool(scale != 0.0f);
 
     if (changed) {
       GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
@@ -476,7 +476,7 @@ void GPENCIL_OT_transform_fill(wmOperatorType *ot)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

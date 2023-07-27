@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -192,8 +192,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Armature = {
     /*name*/ N_("Armature"),
-    /*structName*/ "ArmatureGpencilModifierData",
-    /*structSize*/ sizeof(ArmatureGpencilModifierData),
+    /*struct_name*/ "ArmatureGpencilModifierData",
+    /*struct_size*/ sizeof(ArmatureGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -179,7 +179,7 @@ void generic_bake_deform_stroke(
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {

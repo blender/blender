@@ -8,7 +8,7 @@
  * BMesh decimator that uses an edge collapse method.
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 
@@ -106,7 +106,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
       cross_v3_v3v3(edge_plane, edge_vector, f->no);
       copy_v3db_v3fl(edge_plane_db, edge_plane);
 
-      if (normalize_v3_db(edge_plane_db) > (double)FLT_EPSILON) {
+      if (normalize_v3_db(edge_plane_db) > double(FLT_EPSILON)) {
         Quadric q;
         float center[3];
 
@@ -138,9 +138,9 @@ static void bm_decim_calc_target_co_db(BMEdge *e, double optimize_co[3], const Q
     return;
   }
 
-  optimize_co[0] = 0.5 * ((double)e->v1->co[0] + (double)e->v2->co[0]);
-  optimize_co[1] = 0.5 * ((double)e->v1->co[1] + (double)e->v2->co[1]);
-  optimize_co[2] = 0.5 * ((double)e->v1->co[2] + (double)e->v2->co[2]);
+  optimize_co[0] = 0.5 * (double(e->v1->co[0]) + double(e->v2->co[0]));
+  optimize_co[1] = 0.5 * (double(e->v1->co[1]) + double(e->v2->co[1]));
+  optimize_co[2] = 0.5 * (double(e->v1->co[2]) + double(e->v2->co[2]));
 }
 
 static void bm_decim_calc_target_co_fl(BMEdge *e, float optimize_co[3], const Quadric *vquadrics)
@@ -370,7 +370,7 @@ static bool bm_edge_symmetry_check_cb(void *user_data,
                                       const float[3] /*co*/,
                                       float /*dist_sq*/)
 {
-  struct KD_Symmetry_Data *sym_data = static_cast<KD_Symmetry_Data *>(user_data);
+  KD_Symmetry_Data *sym_data = static_cast<KD_Symmetry_Data *>(user_data);
   BMEdge *e_other = sym_data->etable[index];
   float e_other_dir[3];
 
@@ -398,7 +398,7 @@ static bool bm_edge_symmetry_check_cb(void *user_data,
 
 static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 {
-  struct KD_Symmetry_Data sym_data;
+  KD_Symmetry_Data sym_data;
   BMIter iter;
   BMEdge *e, **etable;
   uint i;

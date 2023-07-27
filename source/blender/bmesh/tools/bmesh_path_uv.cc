@@ -64,7 +64,7 @@ static void verttag_add_adjacent_uv(HeapSimple *heap,
                                     BMLoop *l_a,
                                     BMLoop **loops_prev,
                                     float *cost,
-                                    const struct BMCalcPathUVParams *params)
+                                    const BMCalcPathUVParams *params)
 {
   BLI_assert(params->aspect_y != 0.0f);
   const int cd_loop_uv_offset = params->cd_loop_uv_offset;
@@ -112,7 +112,7 @@ static void verttag_add_adjacent_uv(HeapSimple *heap,
 LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
                                     BMLoop *l_src,
                                     BMLoop *l_dst,
-                                    const struct BMCalcPathUVParams *params,
+                                    const BMCalcPathUVParams *params,
                                     bool (*filter_fn)(BMLoop *, void *),
                                     void *user_data)
 {
@@ -224,7 +224,7 @@ static void edgetag_add_adjacent_uv(HeapSimple *heap,
                                     BMLoop *l_a,
                                     BMLoop **loops_prev,
                                     float *cost,
-                                    const struct BMCalcPathUVParams *params)
+                                    const BMCalcPathUVParams *params)
 {
   BLI_assert(params->aspect_y != 0.0f);
   const int cd_loop_uv_offset = params->cd_loop_uv_offset;
@@ -317,7 +317,7 @@ static void edgetag_add_adjacent_uv(HeapSimple *heap,
 LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
                                     BMLoop *l_src,
                                     BMLoop *l_dst,
-                                    const struct BMCalcPathUVParams *params,
+                                    const BMCalcPathUVParams *params,
                                     bool (*filter_fn)(BMLoop *, void *),
                                     void *user_data)
 {
@@ -461,7 +461,7 @@ static void facetag_add_adjacent_uv(HeapSimple *heap,
                                     float *cost,
                                     const void *const f_endpoints[2],
                                     const float aspect_v2[2],
-                                    const struct BMCalcPathUVParams *params)
+                                    const BMCalcPathUVParams *params)
 {
   const int cd_loop_uv_offset = params->cd_loop_uv_offset;
   const int f_a_index = BM_elem_index_get(f_a);
@@ -539,7 +539,7 @@ static void facetag_add_adjacent_uv(HeapSimple *heap,
 LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
                                     BMFace *f_src,
                                     BMFace *f_dst,
-                                    const struct BMCalcPathUVParams *params,
+                                    const BMCalcPathUVParams *params,
                                     bool (*filter_fn)(BMFace *, void *),
                                     void *user_data)
 {

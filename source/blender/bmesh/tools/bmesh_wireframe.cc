@@ -329,7 +329,7 @@ void BM_mesh_wireframe(BMesh *bm,
 
       fac_shell = fac;
       if (use_even_offset) {
-        fac_shell *= shell_angle_to_dist(((float)M_PI - BM_loop_calc_face_angle(l)) * 0.5f);
+        fac_shell *= shell_angle_to_dist((float(M_PI) - BM_loop_calc_face_angle(l)) * 0.5f);
       }
 
       madd_v3_v3v3fl(tvec, l->v->co, tvec, inset * fac_shell);
@@ -366,7 +366,7 @@ void BM_mesh_wireframe(BMesh *bm,
               if (use_even_offset) {
                 if (va_other) { /* for verts with only one boundary edge - this will be nullptr */
                   fac_shell *= shell_angle_to_dist(
-                      ((float)M_PI - angle_on_axis_v3v3v3_v3(
+                      (float(M_PI) - angle_on_axis_v3v3v3_v3(
                                          va_other->co, v_boundary->co, vb_other->co, no_face)) *
                       0.5f);
                 }

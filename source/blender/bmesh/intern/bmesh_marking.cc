@@ -13,7 +13,7 @@
  * that should be addressed eventually.
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "MEM_guardedalloc.h"
 

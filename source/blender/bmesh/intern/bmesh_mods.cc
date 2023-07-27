@@ -569,7 +569,7 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
   BMVert *v_new = nullptr;
 
   for (i = 0; i < numcuts; i++) {
-    percent = 1.0f / (float)(numcuts + 1 - i);
+    percent = 1.0f / float(numcuts + 1 - i);
     v_new = BM_edge_split(bm, e, e->v2, nullptr, percent);
     if (r_varr) {
       /* fill in reverse order (v1 -> v2) */

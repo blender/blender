@@ -51,7 +51,7 @@ static bool bm_vert_pair_share_best_splittable_face_cb(BMFace *f,
                                                        BMLoop *l_b,
                                                        void *userdata)
 {
-  struct EDBMSplitBestFaceData *data = static_cast<EDBMSplitBestFaceData *>(userdata);
+  EDBMSplitBestFaceData *data = static_cast<EDBMSplitBestFaceData *>(userdata);
   float no[3];
   copy_v3_v3(no, f->no);
 
@@ -205,7 +205,7 @@ struct EDBMSplitData {
 
 /* Utils */
 
-static void bm_vert_pair_elem_setup_ex(BMVert *v, struct EDBMSplitElem *r_pair_elem)
+static void bm_vert_pair_elem_setup_ex(BMVert *v, EDBMSplitElem *r_pair_elem)
 {
   r_pair_elem->vert = v;
 }
@@ -213,7 +213,7 @@ static void bm_vert_pair_elem_setup_ex(BMVert *v, struct EDBMSplitElem *r_pair_e
 static void bm_edge_pair_elem_setup(BMEdge *e,
                                     float lambda,
                                     int *r_data_cut_edges_len,
-                                    struct EDBMSplitElem *r_pair_elem)
+                                    EDBMSplitElem *r_pair_elem)
 {
   r_pair_elem->edge = e;
   r_pair_elem->lambda = lambda;
@@ -236,7 +236,7 @@ static bool bm_edgexvert_isect_impl(BMVert *v,
                                     float lambda,
                                     float data_dist_sq,
                                     int *data_cut_edges_len,
-                                    struct EDBMSplitElem r_pair[2])
+                                    EDBMSplitElem r_pair[2])
 {
   BMVert *e_v;
   float dist_sq_vert_factor;
@@ -280,12 +280,11 @@ static bool bm_edgexvert_isect_impl(BMVert *v,
 
 static bool bm_vertxvert_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
-  struct EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
+  EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
   BMVert *v_a = BM_vert_at_index(data->bm, index_a);
   BMVert *v_b = BM_vert_at_index(data->bm, index_b);
 
-  struct EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(
-      BLI_stack_push_r(data->pair_stack[thread]));
+  EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(BLI_stack_push_r(data->pair_stack[thread]));
 
   bm_vert_pair_elem_setup_ex(v_a, &pair[0]);
   bm_vert_pair_elem_setup_ex(v_b, &pair[1]);
@@ -305,7 +304,7 @@ static bool bm_vertxvert_self_isect_cb(void *userdata, int index_a, int index_b,
 
 static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
-  struct EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
+  EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
   BMEdge *e = BM_edge_at_index(data->bm, index_a);
   BMVert *v = BM_vert_at_index(data->bm, index_b);
 
@@ -314,11 +313,10 @@ static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int 
   sub_v3_v3v3(dir, e->v2->co, co);
   lambda = ray_point_factor_v3_ex(v->co, co, dir, 0.0f, -1.0f);
 
-  struct EDBMSplitElem pair_tmp[2];
+  EDBMSplitElem pair_tmp[2];
   if (bm_edgexvert_isect_impl(
           v, e, co, dir, lambda, data->dist_sq, &data->cut_edges_len, pair_tmp)) {
-    struct EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(
-        BLI_stack_push_r(data->pair_stack[thread]));
+    EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(BLI_stack_push_r(data->pair_stack[thread]));
     pair[0] = pair_tmp[0];
     pair[1] = pair_tmp[1];
   }
@@ -329,7 +327,7 @@ static bool bm_edgexvert_isect_cb(void *userdata, int index_a, int index_b, int 
 
 /* Edge x Edge Callbacks */
 
-static bool bm_edgexedge_isect_impl(struct EDBMSplitData *data,
+static bool bm_edgexedge_isect_impl(EDBMSplitData *data,
                                     BMEdge *e_a,
                                     BMEdge *e_b,
                                     const float co_a[3],
@@ -338,7 +336,7 @@ static bool bm_edgexedge_isect_impl(struct EDBMSplitData *data,
                                     const float dir_b[3],
                                     float lambda_a,
                                     float lambda_b,
-                                    struct EDBMSplitElem r_pair[2])
+                                    EDBMSplitElem r_pair[2])
 {
   float dist_sq_va_factor, dist_sq_vb_factor;
   BMVert *e_a_v, *e_b_v;
@@ -390,7 +388,7 @@ static bool bm_edgexedge_isect_impl(struct EDBMSplitData *data,
 
 static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int thread)
 {
-  struct EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
+  EDBMSplitData *data = static_cast<EDBMSplitData *>(userdata);
   BMEdge *e_a = BM_edge_at_index(data->bm, index_a);
   BMEdge *e_b = BM_edge_at_index(data->bm, index_b);
 
@@ -409,11 +407,11 @@ static bool bm_edgexedge_isect_cb(void *userdata, int index_a, int index_b, int 
   float lambda_a, lambda_b;
   /* Using with dist^4 as `epsilon` is not the best solution, but it fits in most cases. */
   if (isect_ray_ray_epsilon_v3(co_a, dir_a, co_b, dir_b, data->dist_sq_sq, &lambda_a, &lambda_b)) {
-    struct EDBMSplitElem pair_tmp[2];
+    EDBMSplitElem pair_tmp[2];
     if (bm_edgexedge_isect_impl(
             data, e_a, e_b, co_a, dir_a, co_b, dir_b, lambda_a, lambda_b, pair_tmp))
     {
-      struct EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(
+      EDBMSplitElem *pair = static_cast<EDBMSplitElem *>(
           BLI_stack_push_r(data->pair_stack[thread]));
       pair[0] = pair_tmp[0];
       pair[1] = pair_tmp[1];
@@ -438,13 +436,13 @@ static bool bm_edgexedge_self_isect_cb(void *userdata, int index_a, int index_b,
 static void bm_elemxelem_bvhtree_overlap(const BVHTree *tree1,
                                          const BVHTree *tree2,
                                          BVHTree_OverlapCallback callback,
-                                         struct EDBMSplitData *data,
+                                         EDBMSplitData *data,
                                          BLI_Stack **pair_stack)
 {
   int parallel_tasks_num = BLI_bvhtree_overlap_thread_num(tree1);
   for (int i = 0; i < parallel_tasks_num; i++) {
     if (pair_stack[i] == nullptr) {
-      pair_stack[i] = BLI_stack_new(sizeof(const struct EDBMSplitElem[2]), __func__);
+      pair_stack[i] = BLI_stack_new(sizeof(const EDBMSplitElem[2]), __func__);
     }
   }
   data->pair_stack = pair_stack;
@@ -456,7 +454,7 @@ static void bm_elemxelem_bvhtree_overlap(const BVHTree *tree1,
 
 static int sort_cmp_by_lambda_cb(const void *index1_v, const void *index2_v, void *keys_v)
 {
-  const struct EDBMSplitElem *pair_flat = static_cast<const EDBMSplitElem *>(keys_v);
+  const EDBMSplitElem *pair_flat = static_cast<const EDBMSplitElem *>(keys_v);
   const int index1 = *(int *)index1_v;
   const int index2 = *(int *)index2_v;
 
@@ -482,7 +480,7 @@ bool BM_mesh_intersect_edges(
   int i;
 
   /* Store all intersections in this array. */
-  struct EDBMSplitElem(*pair_iter)[2], (*pair_array)[2] = nullptr;
+  EDBMSplitElem(*pair_iter)[2], (*pair_array)[2] = nullptr;
   int pair_len = 0;
 
   BLI_Stack *pair_stack[BLI_STACK_PAIR_LEN] = {nullptr};
@@ -706,7 +704,7 @@ bool BM_mesh_intersect_edges(
       pair_iter = pair_array;
       for (i = 0; i < BLI_STACK_PAIR_LEN; i++) {
         if (pair_stack[i]) {
-          uint count = (uint)BLI_stack_count(pair_stack[i]);
+          uint count = uint(BLI_stack_count(pair_stack[i]));
           BLI_stack_pop_n_reverse(pair_stack[i], pair_iter, count);
           pair_iter += count;
         }
@@ -732,7 +730,7 @@ bool BM_mesh_intersect_edges(
 #  endif
 
       size_t e_map_size = (data.cut_edges_len * sizeof(*e_map)) +
-                          (((size_t)2 * edgexedge_pair_len + edgexvert_pair_len) *
+                          ((size_t(2) * edgexedge_pair_len + edgexvert_pair_len) *
                            sizeof(*(e_map->cuts_index)));
 
       e_map = static_cast<EdgeIntersectionsMap *>(MEM_mallocN(e_map_size, __func__));
@@ -743,8 +741,8 @@ bool BM_mesh_intersect_edges(
       /* The list of pairs starts with [vert x vert] followed by [edge x edge]
        * and finally [edge x vert].
        * Ignore the [vert x vert] pairs */
-      struct EDBMSplitElem *pair_flat, *pair_flat_iter;
-      pair_flat = (struct EDBMSplitElem *)&pair_array[vertxvert_pair_len];
+      EDBMSplitElem *pair_flat, *pair_flat_iter;
+      pair_flat = (EDBMSplitElem *)&pair_array[vertxvert_pair_len];
       pair_flat_iter = &pair_flat[0];
       uint pair_flat_len = 2 * edgexelem_pair_len;
       for (i = 0; i < pair_flat_len; i++, pair_flat_iter++) {
@@ -786,7 +784,7 @@ bool BM_mesh_intersect_edges(
         for (int j = 0; j < e_map_iter->cuts_len; j++) {
           uint index = e_map_iter->cuts_index[j];
 
-          struct EDBMSplitElem *pair_elem = &pair_flat[index];
+          EDBMSplitElem *pair_elem = &pair_flat[index];
           lambda = (pair_elem->lambda - lambda_prev) / (1.0f - lambda_prev);
           lambda_prev = pair_elem->lambda;
           e = pair_elem->edge;
@@ -816,7 +814,7 @@ bool BM_mesh_intersect_edges(
       pair_iter = pair_array;
       for (i = 0; i < BLI_STACK_PAIR_LEN; i++) {
         if (pair_stack[i]) {
-          uint count = (uint)BLI_stack_count(pair_stack[i]);
+          uint count = uint(BLI_stack_count(pair_stack[i]));
           BLI_stack_pop_n_reverse(pair_stack[i], pair_iter, count);
           pair_iter += count;
         }
@@ -866,7 +864,7 @@ bool BM_mesh_intersect_edges(
         BMEdge **edgenet = nullptr;
         int edgenet_alloc_len = 0;
 
-        struct EDBMSplitElem *pair_flat = (struct EDBMSplitElem *)&pair_array[0];
+        EDBMSplitElem *pair_flat = (EDBMSplitElem *)&pair_array[0];
         BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
             /* Edge out of context or already tested. */

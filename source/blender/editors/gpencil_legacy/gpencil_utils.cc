@@ -6,11 +6,11 @@
  * \ingroup edgpencil
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -692,13 +692,13 @@ void gpencil_point_to_xy(
   else {
     if (subrect == nullptr) {
       /* normal 3D view (or view space) */
-      *r_x = (int)(pt->x / 100 * region->winx);
-      *r_y = (int)(pt->y / 100 * region->winy);
+      *r_x = int(pt->x / 100 * region->winx);
+      *r_y = int(pt->y / 100 * region->winy);
     }
     else {
       /* camera view, use subrect */
-      *r_x = (int)((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
-      *r_y = (int)((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
+      *r_x = int((pt->x / 100) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+      *r_y = int((pt->y / 100) * BLI_rctf_size_y(subrect)) + subrect->ymin;
     }
   }
 }
@@ -742,8 +742,8 @@ void gpencil_point_to_xy_fl(const GP_SpaceConversion *gsc,
       *r_y = 0.0f;
     }
     else {
-      *r_x = (float)t_x;
-      *r_y = (float)t_y;
+      *r_x = float(t_x);
+      *r_y = float(t_y);
     }
   }
   else {
@@ -796,8 +796,8 @@ void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
       xy[1] = 0.0f;
     }
     else {
-      xy[0] = (float)t_x;
-      xy[1] = (float)t_y;
+      xy[0] = float(t_x);
+      xy[1] = float(t_y);
     }
   }
   else {
@@ -1456,7 +1456,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const int def_nr = gpd->vertex_group_active_index - 1;
   if (!BLI_findlink(&gpd->vertex_group_names, def_nr)) {
     return;
@@ -1510,7 +1510,7 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const int def_nr = gpd->vertex_group_active_index - 1;
   if (!BLI_findlink(&gpd->vertex_group_names, def_nr)) {
     return;
@@ -1563,7 +1563,7 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const int def_nr = gpd->vertex_group_active_index - 1;
   if (!BLI_findlink(&gpd->vertex_group_names, def_nr)) {
     return;
@@ -1618,7 +1618,7 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const int def_nr = gpd->vertex_group_active_index - 1;
   if (!BLI_findlink(&gpd->vertex_group_names, def_nr)) {
     return;
@@ -1694,7 +1694,7 @@ static bool gpencil_check_cursor_region(bContext *C, const int mval_i[2])
 
 void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 {
-  short radius = (short)brush->size;
+  short radius = short(brush->size);
 
   GPUVertFormat *format = immVertexFormat();
   const uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1763,23 +1763,23 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
   /* Strokes in screen space or world space? */
   if ((gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0) {
     /* In screen space the cursor radius matches the brush size. */
-    radius = (float)brush->size * 0.5f;
+    radius = float(brush->size) * 0.5f;
   }
   else {
     /* To calculate the brush size in world space, we have to establish the zoom level.
      * For this we take two 2D screen coordinates with a fixed offset,
      * convert them to 3D coordinates and measure the offset distance in 3D.
      * A small distance means a high zoom level. */
-    point2D.m_xy[0] = (float)x;
-    point2D.m_xy[1] = (float)y;
+    point2D.m_xy[0] = float(x);
+    point2D.m_xy[1] = float(y);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p1);
-    point2D.m_xy[0] = (float)(x + 64);
+    point2D.m_xy[0] = float(x + 64);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p2);
     /* Clip extreme zoom level (and avoid division by zero). */
     distance = MAX2(len_v3v3(p1, p2), 0.001f);
 
     /* Handle layer thickness change. */
-    float brush_size = (float)brush->size;
+    float brush_size = float(brush->size);
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
     if (gpl != nullptr) {
       brush_size = MAX2(1.0f, brush_size + gpl->line_change);
@@ -1885,7 +1885,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
         /* Strokes in screen space or world space? */
         if ((gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS) != 0) {
           /* In screen space the cursor radius matches the brush size. */
-          radius = (float)brush->size * 0.5f;
+          radius = float(brush->size) * 0.5f;
         }
         else {
           radius = ED_gpencil_cursor_radius(C, x, y);
@@ -2844,7 +2844,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
                                      const int mval[2],
                                      GpRandomSettings *random_settings)
 {
-  int seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
+  int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
   /* Use mouse position to get randomness. */
   int ix = mval[0] * seed;
   int iy = mval[1] * seed;
@@ -2890,10 +2890,10 @@ static void gpencil_sbuffer_vertex_color_random(
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
-    int seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
+    int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
 
-    int ix = (int)(tpt->m_xy[0] * seed);
-    int iy = (int)(tpt->m_xy[1] * seed);
+    int ix = int(tpt->m_xy[0] * seed);
+    int iy = int(tpt->m_xy[1] * seed);
     int iz = ix + iy * seed;
     float hsv[3];
     float factor_value[3];
@@ -3065,7 +3065,7 @@ bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
                                        const int radius,
                                        const float diff_mat[4][4])
 {
-  const int offset = (int)ceil(sqrt((radius * radius) * 2));
+  const int offset = int(ceil(sqrt((radius * radius) * 2)));
   float boundbox_min[2];
   float boundbox_max[2];
 

@@ -7,11 +7,11 @@
  * Operators for interpolating new Grease Pencil frames from existing strokes.
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -57,7 +57,7 @@
 
 /* Temporary interpolate operation data */
 struct tGPDinterpolate_layer {
-  struct tGPDinterpolate_layer *next, *prev;
+  tGPDinterpolate_layer *next, *prev;
 
   /** layer */
   bGPDlayer *gpl;
@@ -90,7 +90,7 @@ struct tGPDinterpolate {
   /** current GP datablock */
   bGPdata *gpd;
   /** current material */
-  struct Material *mat;
+  Material *mat;
   /* Space Conversion Data */
   GP_SpaceConversion gsc;
 
@@ -265,7 +265,7 @@ static void gpencil_stroke_pair_table(bContext *C,
   bGPdata *gpd = tgpi->gpd;
   const bool only_selected = (GPENCIL_EDIT_MODE(gpd) &&
                               ((tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) != 0));
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   /* Create hash tablets with relationship between strokes. */
   BLI_listbase_clear(&tgpil->selected_strokes);
@@ -465,7 +465,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
   const bool exclude_breakdowns = (tgpi->flag & GP_TOOLFLAG_INTERPOLATE_EXCLUDE_BREAKDOWNS) != 0;
 
   /* save initial factor for active layer to define shift limits */
-  tgpi->init_factor = (float)(tgpi->cframe - actframe->framenum) /
+  tgpi->init_factor = float(tgpi->cframe - actframe->framenum) /
                       (actframe->next->framenum - actframe->framenum + 1);
 
   /* limits are 100% below 0 and 100% over the 100% */
@@ -510,7 +510,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil->interFrame->framenum = tgpi->cframe;
 
     /* get interpolation factor by layer (usually must be equal for all layers, but not sure) */
-    tgpil->factor = (float)(tgpi->cframe - tgpil->prevFrame->framenum) /
+    tgpil->factor = float(tgpi->cframe - tgpil->prevFrame->framenum) /
                     (tgpil->nextFrame->framenum - tgpil->prevFrame->framenum + 1);
 
     /* Load the relationship between frames. */
@@ -575,7 +575,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
  */
 static void gpencil_mouse_update_shift(tGPDinterpolate *tgpi, wmOperator *op, const wmEvent *event)
 {
-  float mid = (float)(tgpi->region->winx - tgpi->region->winrct.xmin) / 2.0f;
+  float mid = float(tgpi->region->winx - tgpi->region->winrct.xmin) / 2.0f;
   float mpos = event->xy[0] - tgpi->region->winrct.xmin;
 
   if (mpos >= mid) {
@@ -605,7 +605,7 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
     SNPRINTF(status_str, "%s%s", msg_str, str_ofs);
   }
   else {
-    SNPRINTF(status_str, "%s%d %%", msg_str, (int)((p->init_factor + p->shift) * 100.0f));
+    SNPRINTF(status_str, "%s%d %%", msg_str, int((p->init_factor + p->shift) * 100.0f));
   }
 
   ED_area_status_text(p->area, status_str);
@@ -719,7 +719,7 @@ static bool gpencil_interpolate_set_init_values(bContext *C, wmOperator *op, tGP
   /* Set layers */
   gpencil_interpolate_set_points(C, tgpi);
 
-  return 1;
+  return true;
 }
 
 /* Allocate memory and initialize values */
@@ -984,7 +984,7 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "interpolate_selected_only",
-                  0,
+                  false,
                   "Only Selected",
                   "Interpolate only selected strokes");
 
@@ -1021,7 +1021,7 @@ void GPENCIL_OT_interpolate(wmOperatorType *ot)
                 0.0f,
                 2.0f);
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -1247,8 +1247,8 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 
   GP_Interpolate_Settings *ipo_settings = &ts->gp_interpolate;
   const int step = RNA_int_get(op->ptr, "step");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool all_layers = (bool)(RNA_enum_get(op->ptr, "layers") == 1);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool all_layers = bool(RNA_enum_get(op->ptr, "layers") == 1);
   const bool only_selected = (GPENCIL_EDIT_MODE(gpd) &&
                               (RNA_boolean_get(op->ptr, "interpolate_selected_only") != 0));
   const bool exclude_breakdowns = RNA_boolean_get(op->ptr, "exclude_breakdowns");
@@ -1368,7 +1368,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       /* Get interpolation factor. */
       float framerange = nextFrame->framenum - prevFrame->framenum;
       CLAMP_MIN(framerange, 1.0f);
-      float factor = (float)(cframe - prevFrame->framenum) / framerange;
+      float factor = float(cframe - prevFrame->framenum) / framerange;
 
       if (type == GP_IPO_CURVEMAP) {
         /* Custom curve-map. */
@@ -1624,7 +1624,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "interpolate_selected_only",
-                  0,
+                  false,
                   "Only Selected",
                   "Interpolate only selected strokes");
 

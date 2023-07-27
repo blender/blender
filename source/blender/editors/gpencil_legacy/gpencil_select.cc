@@ -6,11 +6,11 @@
  * \ingroup edgpencil
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -254,7 +254,7 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   int action = RNA_enum_get(op->ptr, "action");
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -318,7 +318,7 @@ void GPENCIL_OT_select_all(wmOperatorType *ot)
 static int gpencil_select_linked_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -395,7 +395,7 @@ static int gpencil_select_alternate_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   const bool unselect_ends = RNA_boolean_get(op->ptr, "unselect_ends");
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -540,7 +540,7 @@ static int gpencil_select_random_exec(bContext *C, wmOperator *op)
   const float randfac = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
   const int start = (unselect_ends) ? 1 : 0;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   int selectmode;
   if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
@@ -760,7 +760,7 @@ static bool gpencil_select_same_layer(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -829,7 +829,7 @@ static bool gpencil_select_same_layer(bContext *C)
 static bool gpencil_select_same_material(bContext *C)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   /* First, build set containing all the colors of selected strokes */
   GSet *selected_colors = BLI_gset_int_new("GP Selected Colors");
 
@@ -967,7 +967,7 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 static int gpencil_select_first_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   /* If not edit/sculpt mode, the event has been caught but not processed. */
   if (GPENCIL_NONE_EDIT_MODE(gpd)) {
@@ -1077,7 +1077,7 @@ void GPENCIL_OT_select_first(wmOperatorType *ot)
 static int gpencil_select_last_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   /* If not edit/sculpt mode, the event has been caught but not processed. */
   if (GPENCIL_NONE_EDIT_MODE(gpd)) {
@@ -1187,7 +1187,7 @@ void GPENCIL_OT_select_last(wmOperatorType *ot)
 static int gpencil_select_more_exec(bContext *C, wmOperator * /*op*/)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   /* If not edit/sculpt mode, the event has been caught but not processed. */
   if (GPENCIL_NONE_EDIT_MODE(gpd)) {
     return OPERATOR_CANCELLED;
@@ -1326,7 +1326,7 @@ void GPENCIL_OT_select_more(wmOperatorType *ot)
 static int gpencil_select_less_exec(bContext *C, wmOperator * /*op*/)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   /* If not edit/sculpt mode, the event has been caught but not processed. */
   if (GPENCIL_NONE_EDIT_MODE(gpd)) {
@@ -1531,7 +1531,7 @@ static bool gpencil_stroke_do_circle_sel(bGPdata *gpd,
         /* Expand selection to segment. */
         if ((hit) && (selectmode == GP_SELECTMODE_SEGMENT) && (select) && (pt_active != nullptr)) {
           float r_hita[3], r_hitb[3];
-          bool hit_select = (bool)(pt_active->flag & GP_SPOINT_SELECT);
+          bool hit_select = bool(pt_active->flag & GP_SPOINT_SELECT);
           ED_gpencil_select_stroke_segment(
               gpd, gpl, gps_active, pt_active, hit_select, false, scale, r_hita, r_hitb);
         }
@@ -1671,7 +1671,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   int selectmode;
   if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
@@ -2087,7 +2087,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
 
           /* Expand selection to segment. */
           if (segmentmode) {
-            bool hit_select = (bool)(pt_active->flag & GP_SPOINT_SELECT);
+            bool hit_select = bool(pt_active->flag & GP_SPOINT_SELECT);
             float r_hita[3], r_hitb[3];
             ED_gpencil_select_stroke_segment(
                 gpd, gpl, gps_active, pt_active, hit_select, false, scale, r_hita, r_hitb);
@@ -2165,7 +2165,7 @@ static int gpencil_generic_select_exec(bContext *C,
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   ScrArea *area = CTX_wm_area(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   int selectmode;
   if (ob && ob->mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
@@ -2411,11 +2411,11 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const float scale = ts->gp_sculpt.isect_threshold;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   /* "radius" is simply a threshold (screen space) to make it easier to test with a tolerance */
   const float radius = 0.4f * U.widget_unit;
-  const int radius_squared = (int)(radius * radius);
+  const int radius_squared = int(radius * radius);
 
   const bool use_shift_extend = RNA_boolean_get(op->ptr, "use_shift_extend");
   bool extend = RNA_boolean_get(op->ptr, "extend") || use_shift_extend;
@@ -2446,15 +2446,15 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
   /* if select mode is stroke, use whole stroke */
   if ((ob) && (ob->mode == OB_MODE_SCULPT_GPENCIL_LEGACY)) {
-    whole |= (bool)(gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag(
-                        ts->gpencil_selectmode_sculpt)) == GP_SELECTMODE_STROKE);
+    whole |= bool(gpencil_select_mode_from_sculpt(eGP_Sculpt_SelectMaskFlag(
+                      ts->gpencil_selectmode_sculpt)) == GP_SELECTMODE_STROKE);
   }
   else if ((ob) && (ob->mode == OB_MODE_VERTEX_GPENCIL_LEGACY)) {
-    whole |= (bool)(gpencil_select_mode_from_vertex(eGP_Sculpt_SelectMaskFlag(
-                        ts->gpencil_selectmode_sculpt)) == GP_SELECTMODE_STROKE);
+    whole |= bool(gpencil_select_mode_from_vertex(eGP_Sculpt_SelectMaskFlag(
+                      ts->gpencil_selectmode_sculpt)) == GP_SELECTMODE_STROKE);
   }
   else {
-    whole |= (bool)(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
+    whole |= bool(ts->gpencil_selectmode_edit == GP_SELECTMODE_STROKE);
   }
 
   if (is_curve_edit) {
@@ -2625,7 +2625,7 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
         if (selectmode == GP_SELECTMODE_SEGMENT) {
           float r_hita[3], r_hitb[3];
-          bool hit_select = (bool)(hit_point->flag & GP_SPOINT_SELECT);
+          bool hit_select = bool(hit_point->flag & GP_SPOINT_SELECT);
           ED_gpencil_select_stroke_segment(
               gpd, hit_layer, hit_stroke, hit_point, hit_select, false, scale, r_hita, r_hitb);
         }

@@ -6,9 +6,9 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -121,10 +121,10 @@ static void pixel_at_index(const ImBuf *ibuf, const int32_t idx, float r_col[4])
   }
   else {
     uchar *cp = ibuf->byte_buffer.data + 4 * idx;
-    r_col[0] = (float)cp[0] / 255.0f;
-    r_col[1] = (float)cp[1] / 255.0f;
-    r_col[2] = (float)cp[2] / 255.0f;
-    r_col[3] = (float)cp[3] / 255.0f;
+    r_col[0] = float(cp[0]) / 255.0f;
+    r_col[1] = float(cp[1]) / 255.0f;
+    r_col[2] = float(cp[2]) / 255.0f;
+    r_col[3] = float(cp[3]) / 255.0f;
   }
 }
 
@@ -180,7 +180,7 @@ static void add_bezier(bGPDstroke *gps,
                        float bcp4[2],
                        const bool skip)
 {
-  const float step = 1.0f / (float)(resolution - 1);
+  const float step = 1.0f / float(resolution - 1);
   float a = 0.0f;
 
   for (int32_t i = 0; i < resolution; i++) {

@@ -8,7 +8,7 @@
  * Edge-net Fill.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -129,7 +129,7 @@ static bool bm_edgenet_path_check_overlap(BMVert *v1, BMVert *v2, VertNetInfo *v
       vert_arr[i] = static_cast<BMVert *>(v_lnk->link);
     }
 
-    return BM_face_exists_overlap_subset(vert_arr, (int)v_ls_tot);
+    return BM_face_exists_overlap_subset(vert_arr, int(v_ls_tot));
   }
   return false;
 }
@@ -162,7 +162,7 @@ static BMFace *bm_edgenet_face_from_path(BMesh *bm, LinkNode *path, const uint p
   }
 #endif
 
-  f = BM_face_create(bm, vert_arr, edge_arr, (int)path_len, nullptr, BM_CREATE_NOP);
+  f = BM_face_create(bm, vert_arr, edge_arr, int(path_len), nullptr, BM_CREATE_NOP);
 
   return f;
 }
@@ -414,7 +414,7 @@ static LinkNode *bm_edgenet_path_calc_best(BMEdge *e,
 void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face_tag)
 {
   VertNetInfo *vnet_info = static_cast<VertNetInfo *>(
-      MEM_callocN(sizeof(*vnet_info) * (size_t)bm->totvert, __func__));
+      MEM_callocN(sizeof(*vnet_info) * size_t(bm->totvert), __func__));
   BLI_mempool *edge_queue_pool = BLI_mempool_create(sizeof(LinkNode), 0, 512, BLI_MEMPOOL_NOP);
   BLI_mempool *path_pool = BLI_mempool_create(sizeof(LinkNode), 0, 512, BLI_MEMPOOL_NOP);
   LinkNode *edge_queue = nullptr;

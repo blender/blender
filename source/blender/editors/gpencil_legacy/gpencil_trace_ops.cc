@@ -130,10 +130,10 @@ static bool gpencil_trace_image(TraceJob *trace_job, ImBuf *ibuf, bGPDframe *gpf
    * Really, there isn't documented in Potrace about how the scale is calculated,
    * but after doing a lot of tests, it looks is using a VGA resolution (640) as a base.
    * Maybe there are others ways to get the right scale conversion, but this solution works. */
-  float scale_potrace = trace_job->scale * (640.0f / (float)ibuf->x) *
-                        ((float)ibuf->x / (float)ibuf->y);
+  float scale_potrace = trace_job->scale * (640.0f / float(ibuf->x)) *
+                        (float(ibuf->x) / float(ibuf->y));
   if (ibuf->x > ibuf->y) {
-    scale_potrace *= (float)ibuf->y / (float)ibuf->x;
+    scale_potrace *= float(ibuf->y) / float(ibuf->x);
   }
 
   ED_gpencil_trace_data_to_strokes(trace_job->bmain,
@@ -239,7 +239,7 @@ static void trace_start_job(void *customdata, bool *stop, bool *do_update, float
         break;
       }
 
-      *(trace_job->progress) = (float)i / (float)iuser->frames;
+      *(trace_job->progress) = float(i) / float(iuser->frames);
       *do_update = true;
 
       iuser->framenr = i + 1;

@@ -216,10 +216,10 @@ static float brush_influence_calc(tGP_BrushVertexpaintData *gso, const int radiu
   /* distance fading */
   int mval_i[2];
   round_v2i_v2fl(mval_i, gso->mval);
-  float distance = (float)len_v2v2_int(mval_i, co);
+  float distance = float(len_v2v2_int(mval_i, co));
 
   /* Apply Brush curve. */
-  float brush_falloff = BKE_brush_curve_strength(brush, distance, (float)radius);
+  float brush_falloff = BKE_brush_curve_strength(brush, distance, float(radius));
   influence *= brush_falloff;
 
   /* apply multiframe falloff */
@@ -232,8 +232,8 @@ static float brush_influence_calc(tGP_BrushVertexpaintData *gso, const int radiu
 /* Compute effect vector for directional brushes. */
 static void brush_calc_dvec_2d(tGP_BrushVertexpaintData *gso)
 {
-  gso->dvec[0] = (float)(gso->mval[0] - gso->mval_prev[0]);
-  gso->dvec[1] = (float)(gso->mval[1] - gso->mval_prev[1]);
+  gso->dvec[0] = float(gso->mval[0] - gso->mval_prev[0]);
+  gso->dvec[1] = float(gso->mval[1] - gso->mval_prev[1]);
 
   normalize_v2(gso->dvec);
 }
@@ -388,7 +388,7 @@ static void gpencil_grid_colors_calc(tGP_BrushVertexpaintData *gso)
   for (int i = 0; i < gso->grid_len; i++) {
     grid = &gso->grid[i];
     if (grid->totcol > 0) {
-      mul_v3_fl(grid->color, (1.0f / (float)grid->totcol));
+      mul_v3_fl(grid->color, (1.0f / float(grid->totcol)));
     }
   }
 
@@ -516,7 +516,7 @@ static bool get_surrounding_color(tGP_BrushVertexpaintData *gso,
     }
   }
   if (totcol > 0) {
-    mul_v3_fl(r_color, (1.0f / (float)totcol));
+    mul_v3_fl(r_color, (1.0f / float(totcol)));
     return true;
   }
 
@@ -637,8 +637,8 @@ static bool brush_smear_apply(tGP_BrushVertexpaintData *gso,
   /* Calc distance from initial sample location and add a falloff effect. */
   int mval_i[2];
   round_v2i_v2fl(mval_i, gso->mval);
-  float distance = (float)len_v2v2_int(mval_i, gso->grid_sample);
-  float fac = 1.0f - (distance / (float)(brush->size * 2));
+  float distance = float(len_v2v2_int(mval_i, gso->grid_sample));
+  float fac = 1.0f - (distance / float(brush->size * 2));
   CLAMP(fac, 0.0f, 1.0f);
   inf *= fac;
 
@@ -726,7 +726,7 @@ static bool gpencil_vertexpaint_brush_init(bContext *C, wmOperator *op)
   gso->pbuffer_used = 0;
 
   /* Alloc grid array */
-  gso->grid_size = (int)(((gso->brush->size * 2.0f) / GP_GRID_PIXEL_SIZE) + 1.0);
+  gso->grid_size = int(((gso->brush->size * 2.0f) / GP_GRID_PIXEL_SIZE) + 1.0);
   /* Square value. */
   gso->grid_len = gso->grid_size * gso->grid_size;
   gso->grid = static_cast<tGP_Grid *>(MEM_callocN(sizeof(tGP_Grid) * gso->grid_len, "tGP_Grid"));
@@ -742,7 +742,7 @@ static bool gpencil_vertexpaint_brush_init(bContext *C, wmOperator *op)
   gso->mask = eGP_Vertex_SelectMaskFlag(ts->gpencil_selectmode_vertex);
 
   /* Multi-frame settings. */
-  gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
+  gso->is_multiframe = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd));
   gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 
   /* Init multi-edit falloff curve data before doing anything,
@@ -1050,7 +1050,7 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
 
     /* Get average. */
     if (totcol > 0) {
-      mul_v3_fl(average_color, (1.0f / (float)totcol));
+      mul_v3_fl(average_color, (1.0f / float(totcol)));
     }
   }
 
@@ -1182,8 +1182,8 @@ static void gpencil_vertexpaint_brush_apply(bContext *C, wmOperator *op, Pointer
 
   /* Get latest mouse coordinates */
   RNA_float_get_array(itemptr, "mouse", mousef);
-  gso->mval[0] = mouse[0] = (int)(mousef[0]);
-  gso->mval[1] = mouse[1] = (int)(mousef[1]);
+  gso->mval[0] = mouse[0] = int(mousef[0]);
+  gso->mval[1] = mouse[1] = int(mousef[1]);
 
   gso->pressure = RNA_float_get(itemptr, "pressure");
 

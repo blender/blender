@@ -7,11 +7,11 @@
  * Operators for editing Grease Pencil strokes.
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -154,7 +154,7 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const int back = RNA_boolean_get(op->ptr, "back");
 
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bool is_object = false;
   short mode;
@@ -247,7 +247,7 @@ void GPENCIL_OT_editmode_toggle(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_boolean(
-      ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+      ot->srna, "back", false, "Return to Previous Mode", "Return to previous mode");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -354,7 +354,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const bool back = RNA_boolean_get(op->ptr, "back");
 
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -446,7 +446,7 @@ void GPENCIL_OT_paintmode_toggle(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_boolean(
-      ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+      ot->srna, "back", false, "Return to Previous Mode", "Return to previous mode");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -473,7 +473,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 
   const bool back = RNA_boolean_get(op->ptr, "back");
 
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bool is_object = false;
   short mode;
@@ -559,7 +559,7 @@ void GPENCIL_OT_sculptmode_toggle(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_boolean(
-      ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+      ot->srna, "back", false, "Return to Previous Mode", "Return to previous mode");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -582,7 +582,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 
   const bool back = RNA_boolean_get(op->ptr, "back");
 
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bool is_object = false;
   short mode;
@@ -667,7 +667,7 @@ void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_boolean(
-      ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+      ot->srna, "back", false, "Return to Previous Mode", "Return to previous mode");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -690,7 +690,7 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const bool back = RNA_boolean_get(op->ptr, "back");
 
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -778,7 +778,7 @@ void GPENCIL_OT_vertexmode_toggle(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_boolean(
-      ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+      ot->srna, "back", false, "Return to Previous Mode", "Return to previous mode");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -916,7 +916,7 @@ static void gpencil_duplicate_points(bGPdata *gpd,
 static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -1282,8 +1282,8 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)obact->data;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   bGPDstroke *gps = nullptr;
 
   if (gpd == nullptr) {
@@ -1420,7 +1420,7 @@ static void gpencil_strokes_copypastebuf_colors_name_to_material_free(GHash *nam
   BLI_ghash_free(name_to_ma, MEM_freeN, nullptr);
 }
 
-void ED_gpencil_strokes_copybuf_free(void)
+void ED_gpencil_strokes_copybuf_free()
 {
   bGPDstroke *gps, *gpsn;
 
@@ -1490,8 +1490,8 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -1639,8 +1639,8 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd); /* only use active for copy merge */
   Scene *scene = CTX_data_scene(C);
 
@@ -1833,7 +1833,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", copy_type, GP_COPY_TO_ACTIVE, "Type", "");
 
   prop = RNA_def_boolean(
-      ot->srna, "paste_back", 0, "Paste on Back", "Add pasted strokes behind all strokes");
+      ot->srna, "paste_back", false, "Paste on Back", "Add pasted strokes behind all strokes");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1850,8 +1850,8 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
   bGPDlayer *target_layer = nullptr;
   ListBase strokes = {nullptr, nullptr};
   int layer_num = RNA_int_get(op->ptr, "layer");
-  const bool use_autolock = (bool)(gpd->flag & GP_DATA_AUTOLOCK_LAYERS);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool use_autolock = bool(gpd->flag & GP_DATA_AUTOLOCK_LAYERS);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   /* If autolock enabled, disabled now. */
   if (use_autolock) {
@@ -2246,7 +2246,7 @@ enum eGP_DissolveMode {
 static int gpencil_delete_selected_strokes(bContext *C)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -2631,7 +2631,7 @@ static int gpencil_dissolve_selected_points(bContext *C, eGP_DissolveMode mode)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   bool changed = false;
 
   if (is_curve_edit) {
@@ -2656,8 +2656,8 @@ static int gpencil_delete_selected_points(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   bool changed = false;
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -2859,7 +2859,7 @@ static int gpencil_snap_to_grid(bContext *C, wmOperator * /*op*/)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
   const float gridf = ED_view3d_grid_view_scale(scene, v3d, region, nullptr);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
@@ -2984,7 +2984,7 @@ void GPENCIL_OT_snap_to_grid(wmOperatorType *ot)
 static int gpencil_snap_to_cursor(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
@@ -3153,7 +3153,7 @@ static int gpencil_snap_cursor_to_sel(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obact = CTX_data_active_object(C);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   Scene *scene = CTX_data_scene(C);
 
@@ -3179,7 +3179,7 @@ static int gpencil_snap_cursor_to_sel(bContext *C, wmOperator *op)
     else { /* #V3D_AROUND_CENTER_MEDIAN. */
       zero_v3(cursor);
       if (count) {
-        mul_v3_fl(centroid, 1.0f / (float)count);
+        mul_v3_fl(centroid, 1.0f / float(count));
         copy_v3_v3(cursor, centroid);
       }
     }
@@ -3277,8 +3277,8 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool geometry = RNA_boolean_get(op->ptr, "geometry");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   bGPDstroke *gps = nullptr;
 
   /* sanity checks */
@@ -3311,7 +3311,7 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
             continue;
           }
 
-          bool before = (bool)(gps->flag & GP_STROKE_CYCLIC);
+          bool before = bool(gps->flag & GP_STROKE_CYCLIC);
           switch (type) {
             case GP_STROKE_CYCLIC_CLOSE:
               /* Close all (enable) */
@@ -3429,7 +3429,7 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Object *ob = CTX_data_active_object(C);
   const int type = RNA_enum_get(op->ptr, "type");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   /* sanity checks */
   if (ELEM(nullptr, gpd)) {
@@ -3611,7 +3611,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   if (is_curve_edit) {
     return OPERATOR_CANCELLED;
   }
@@ -3758,8 +3758,8 @@ static int gpencil_stroke_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   /* Read all selected strokes. */
@@ -3842,8 +3842,8 @@ static int gpencil_stroke_start_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   if (is_curve_edit) {
     BKE_report(op->reports, RPT_ERROR, "Curve Edit mode not supported");
     return OPERATOR_CANCELLED;
@@ -3938,11 +3938,11 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
   const eGP_ReprojectModes mode = eGP_ReprojectModes(RNA_enum_get(op->ptr, "type"));
   const bool keep_original = RNA_boolean_get(op->ptr, "keep_original");
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const float offset = RNA_float_get(op->ptr, "offset");
 
   /* Init snap context for geometry projection. */
@@ -4097,7 +4097,7 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 
   prop = RNA_def_boolean(ot->srna,
                          "keep_original",
-                         0,
+                         false,
                          "Keep Original",
                          "Keep original strokes and create a copy before reprojecting");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
@@ -4159,7 +4159,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
 
   const int view_mode = RNA_enum_get(op->ptr, "view_mode");
   const int material_mode = RNA_enum_get(op->ptr, "material_mode");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   /* sanity checks */
   if (ELEM(nullptr, gpd)) {
@@ -4669,7 +4669,7 @@ static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   if (is_curve_edit) {
@@ -4779,7 +4779,7 @@ static int gpencil_stroke_simplify_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   if (is_curve_edit) {
@@ -4839,7 +4839,7 @@ static int gpencil_stroke_simplify_fixed_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   bool changed = false;
   if (is_curve_edit) {
@@ -4957,8 +4957,8 @@ static int gpencil_stroke_trim_exec(bContext *C, wmOperator *op)
   }
 
   /* Go through each editable + selected stroke */
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
@@ -5053,8 +5053,8 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
 
   eGP_SeparateModes mode = eGP_SeparateModes(RNA_enum_get(op->ptr, "mode"));
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_src);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_src);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_src));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_src));
 
   /* sanity checks */
   if (ELEM(nullptr, gpd_src)) {
@@ -5337,8 +5337,8 @@ static int gpencil_stroke_split_exec(bContext *C, wmOperator *op)
   if (ELEM(nullptr, gpd)) {
     return OPERATOR_CANCELLED;
   }
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   /* loop strokes and split parts */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
@@ -5506,8 +5506,7 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
                                const float diff_mat[4][4],
                                void *user_data)
 {
-  const struct GP_SelectLassoUserData *data = static_cast<const GP_SelectLassoUserData *>(
-      user_data);
+  const GP_SelectLassoUserData *data = static_cast<const GP_SelectLassoUserData *>(user_data);
   bGPDspoint pt2;
   int x0, y0;
   gpencil_point_to_world_space(pt, diff_mat, &pt2);
@@ -5598,7 +5597,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
   ToolSettings *ts = CTX_data_tool_settings(C);
   const float scale = ts->gp_sculpt.isect_threshold;
   const bool flat_caps = RNA_boolean_get(op->ptr, "flat_caps");
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
 
   bGPDspoint *pt;
   GP_SpaceConversion gsc = {nullptr};
@@ -5793,7 +5792,7 @@ void GPENCIL_OT_stroke_cutter(wmOperatorType *ot)
   /* properties */
   WM_operator_properties_gesture_lasso(ot);
 
-  RNA_def_boolean(ot->srna, "flat_caps", 0, "Flat Caps", "");
+  RNA_def_boolean(ot->srna, "flat_caps", false, "Flat Caps", "");
 }
 
 bool ED_object_gpencil_exit(Main *bmain, Object *ob)
@@ -5851,7 +5850,7 @@ static int gpencil_merge_by_distance_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   if (is_curve_edit) {
     /* TODO: merge curve points by distance */
@@ -5894,8 +5893,11 @@ void GPENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot)
   /* avoid re-using last var */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  prop = RNA_def_boolean(
-      ot->srna, "use_unselected", 0, "Unselected", "Use whole stroke, not only selected points");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_unselected",
+                         false,
+                         "Unselected",
+                         "Use whole stroke, not only selected points");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -5962,8 +5964,8 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
   const float factor = RNA_float_get(op->ptr, "factor");
 
   /* Go through each editable + selected stroke. */
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
@@ -6002,7 +6004,7 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
             for (int i = 0; i < gps->totpoints; i++) {
               bGPDspoint *pt = &gps->points[i];
               if (mode == GP_NORMALIZE_THICKNESS) {
-                pt->pressure = max_ff((float)value * stroke_thickness_inv, 0.0f);
+                pt->pressure = max_ff(float(value) * stroke_thickness_inv, 0.0f);
               }
               else if (mode == GP_NORMALIZE_OPACITY) {
                 pt->strength = factor;
@@ -6015,7 +6017,7 @@ static int gpencil_stroke_normalize_exec(bContext *C, wmOperator *op)
             for (int i = 0; i < gps->editcurve->tot_curve_points; i++) {
               bGPDcurve_point *gpc_pt = &gps->editcurve->curve_points[i];
               if (mode == GP_NORMALIZE_THICKNESS) {
-                gpc_pt->pressure = max_ff((float)value * stroke_thickness_inv, 0.0f);
+                gpc_pt->pressure = max_ff(float(value) * stroke_thickness_inv, 0.0f);
               }
               else if (mode == GP_NORMALIZE_OPACITY) {
                 gpc_pt->strength = factor;

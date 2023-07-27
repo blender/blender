@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -154,7 +154,7 @@ static void duplicateStroke(Object *ob,
 
     pt = new_gps->points;
 
-    float offset_fac = (count == 1) ? 0.5f : (i / (float)(count - 1));
+    float offset_fac = (count == 1) ? 0.5f : (i / float(count - 1));
 
     if (fading) {
       thickness_factor = interpf(1.0f - fading_thickness, 1.0f, fabsf(offset_fac - fading_center));
@@ -316,8 +316,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Multiply = {
     /*name*/ N_("MultipleStrokes"),
-    /*structName*/ "MultiplyGpencilModifierData",
-    /*structSize*/ sizeof(MultiplyGpencilModifierData),
+    /*struct_name*/ "MultiplyGpencilModifierData",
+    /*struct_size*/ sizeof(MultiplyGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ GpencilModifierTypeFlag(0),
 

@@ -9,7 +9,7 @@
  * so they don't share any vertices/edges with other faces.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 

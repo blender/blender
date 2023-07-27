@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
+#include <cstdio>
+#include <cstring> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -102,7 +102,7 @@ static void deformStroke(GpencilModifierData *md,
       continue;
     }
     BKE_lattice_deform_data_eval_co(
-        (struct LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
+        (LatticeDeformData *)mmd->cache_data, &pt->x, mmd->strength * weight);
   }
   /* Calc geometry data. */
   BKE_gpencil_stroke_geometry_update(gpd, gps);
@@ -118,9 +118,9 @@ static void bakeModifier(Main * /*bmain*/,
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  struct LatticeDeformData *ldata = nullptr;
+  LatticeDeformData *ldata = nullptr;
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
 
   if ((mmd->object == nullptr) || (mmd->object->type != OB_LATTICE)) {
     return;
@@ -148,7 +148,7 @@ static void bakeModifier(Main * /*bmain*/,
   }
 
   /* Free lingering data. */
-  ldata = (struct LatticeDeformData *)mmd->cache_data;
+  ldata = (LatticeDeformData *)mmd->cache_data;
   if (ldata) {
     BKE_lattice_deform_data_destroy(ldata);
     mmd->cache_data = nullptr;
@@ -162,7 +162,7 @@ static void bakeModifier(Main * /*bmain*/,
 static void freeData(GpencilModifierData *md)
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
-  struct LatticeDeformData *ldata = (struct LatticeDeformData *)mmd->cache_data;
+  LatticeDeformData *ldata = (LatticeDeformData *)mmd->cache_data;
   /* free deform data */
   if (ldata) {
     BKE_lattice_deform_data_destroy(ldata);
@@ -251,8 +251,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Lattice = {
     /*name*/ N_("Lattice"),
-    /*structName*/ "LatticeGpencilModifierData",
-    /*structSize*/ sizeof(LatticeGpencilModifierData),
+    /*struct_name*/ "LatticeGpencilModifierData",
+    /*struct_size*/ sizeof(LatticeGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

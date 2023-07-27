@@ -326,9 +326,12 @@ static void alter_co(BMVert *v,
     add_v3_v3v3(co2, v->co, params->fractal_ofs);
     mul_v3_fl(co2, 10.0f);
 
-    tvec[0] = fac * (BLI_noise_generic_turbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 2) - 0.5f);
-    tvec[1] = fac * (BLI_noise_generic_turbulence(1.0, co2[1], co2[0], co2[2], 15, 0, 2) - 0.5f);
-    tvec[2] = fac * (BLI_noise_generic_turbulence(1.0, co2[1], co2[2], co2[0], 15, 0, 2) - 0.5f);
+    tvec[0] = fac *
+              (BLI_noise_generic_turbulence(1.0, co2[0], co2[1], co2[2], 15, false, 2) - 0.5f);
+    tvec[1] = fac *
+              (BLI_noise_generic_turbulence(1.0, co2[1], co2[0], co2[2], 15, false, 2) - 0.5f);
+    tvec[2] = fac *
+              (BLI_noise_generic_turbulence(1.0, co2[1], co2[2], co2[0], 15, false, 2) - 0.5f);
 
     /* add displacement */
     madd_v3_v3fl(co, normal, tvec[0]);
@@ -418,8 +421,8 @@ static BMVert *subdivide_edge_num(BMesh *bm,
     factor_subd = 0.0f;
   }
   else {
-    factor_edge_split = 1.0f / (float)(totpoint + 1 - curpoint);
-    factor_subd = (float)(curpoint + 1) / (float)(totpoint + 1);
+    factor_edge_split = 1.0f / float(totpoint + 1 - curpoint);
+    factor_subd = float(curpoint + 1) / float(totpoint + 1);
   }
 
   v_new = bm_subdivide_edge_addvert(
@@ -1064,11 +1067,11 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       pat = static_cast<const SubDPattern *>(
           *BMO_slot_map_data_get(params.slot_custom_patterns, face));
       for (i = 0; i < pat->len; i++) {
-        matched = 1;
+        matched = true;
         for (j = 0; j < pat->len; j++) {
           a = (j + i) % pat->len;
           if (!!BMO_edge_flag_test(bm, edges[a], SUBD_SPLIT) != (!!pat->seledges[j])) {
-            matched = 0;
+            matched = false;
             break;
           }
         }
@@ -1097,11 +1100,11 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
       if (pat->len == face->len) {
         for (a = 0; a < pat->len; a++) {
-          matched = 1;
+          matched = true;
           for (b = 0; b < pat->len; b++) {
             j = (b + a) % pat->len;
             if (!!BMO_edge_flag_test(bm, edges[j], SUBD_SPLIT) != (!!pat->seledges[b])) {
-              matched = 0;
+              matched = false;
               break;
             }
           }

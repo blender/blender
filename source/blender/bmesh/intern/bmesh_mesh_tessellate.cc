@@ -209,7 +209,7 @@ static void bmesh_calc_tessellation_for_face_fn(void *__restrict userdata,
                                                 MempoolIterData *mp_f,
                                                 const TaskParallelTLS *__restrict tls)
 {
-  struct TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
+  TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
   BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(userdata);
   BMFace *f = (BMFace *)mp_f;
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
@@ -221,7 +221,7 @@ static void bmesh_calc_tessellation_for_face_with_normals_fn(void *__restrict us
                                                              MempoolIterData *mp_f,
                                                              const TaskParallelTLS *__restrict tls)
 {
-  struct TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
+  TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls->userdata_chunk);
   BMLoop *(*looptris)[3] = static_cast<BMLoop *(*)[3]>(userdata);
   BMFace *f = (BMFace *)mp_f;
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
@@ -232,7 +232,7 @@ static void bmesh_calc_tessellation_for_face_with_normals_fn(void *__restrict us
 static void bmesh_calc_tessellation_for_face_free_fn(const void *__restrict /*userdata*/,
                                                      void *__restrict tls_v)
 {
-  struct TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls_v);
+  TessellationUserTLS *tls_data = static_cast<TessellationUserTLS *>(tls_v);
   if (tls_data->pf_arena) {
     BLI_memarena_free(tls_data->pf_arena);
   }
@@ -245,7 +245,7 @@ static void bm_mesh_calc_tessellation__multi_threaded(BMesh *bm,
   BM_mesh_elem_index_ensure(bm, BM_LOOP | BM_FACE);
 
   TaskParallelSettings settings;
-  struct TessellationUserTLS tls_dummy = {nullptr};
+  TessellationUserTLS tls_dummy = {nullptr};
   BLI_parallel_mempool_settings_defaults(&settings);
   settings.userdata_chunk = &tls_dummy;
   settings.userdata_chunk_size = sizeof(tls_dummy);
@@ -260,7 +260,7 @@ static void bm_mesh_calc_tessellation__multi_threaded(BMesh *bm,
 
 void BM_mesh_calc_tessellation_ex(BMesh *bm,
                                   BMLoop *(*looptris)[3],
-                                  const struct BMeshCalcTessellation_Params *params)
+                                  const BMeshCalcTessellation_Params *params)
 {
   if (bm->totface < BM_FACE_TESSELLATE_THREADED_LIMIT) {
     bm_mesh_calc_tessellation__single_threaded(bm, looptris, params->face_normals);
@@ -296,9 +296,9 @@ static void bmesh_calc_tessellation_for_face_partial_fn(void *__restrict userdat
                                                         const int index,
                                                         const TaskParallelTLS *__restrict tls)
 {
-  struct PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(
+  PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(
       tls->userdata_chunk);
-  struct PartialTessellationUserData *data = static_cast<PartialTessellationUserData *>(userdata);
+  PartialTessellationUserData *data = static_cast<PartialTessellationUserData *>(userdata);
   BMFace *f = data->faces[index];
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
   const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
@@ -308,9 +308,9 @@ static void bmesh_calc_tessellation_for_face_partial_fn(void *__restrict userdat
 static void bmesh_calc_tessellation_for_face_partial_with_normals_fn(
     void *__restrict userdata, const int index, const TaskParallelTLS *__restrict tls)
 {
-  struct PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(
+  PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(
       tls->userdata_chunk);
-  struct PartialTessellationUserData *data = static_cast<PartialTessellationUserData *>(userdata);
+  PartialTessellationUserData *data = static_cast<PartialTessellationUserData *>(userdata);
   BMFace *f = data->faces[index];
   BMLoop *l = BM_FACE_FIRST_LOOP(f);
   const int offset = BM_elem_index_get(l) - (BM_elem_index_get(f) * 2);
@@ -320,7 +320,7 @@ static void bmesh_calc_tessellation_for_face_partial_with_normals_fn(
 static void bmesh_calc_tessellation_for_face_partial_free_fn(const void *__restrict /*userdata*/,
                                                              void *__restrict tls_v)
 {
-  struct PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(tls_v);
+  PartialTessellationUserTLS *tls_data = static_cast<PartialTessellationUserTLS *>(tls_v);
   if (tls_data->pf_arena) {
     BLI_memarena_free(tls_data->pf_arena);
   }
@@ -329,7 +329,7 @@ static void bmesh_calc_tessellation_for_face_partial_free_fn(const void *__restr
 static void bm_mesh_calc_tessellation_with_partial__multi_threaded(
     BMLoop *(*looptris)[3],
     const BMPartialUpdate *bmpinfo,
-    const struct BMeshCalcTessellation_Params *params)
+    const BMeshCalcTessellation_Params *params)
 {
   const int faces_len = bmpinfo->faces_len;
   BMFace **faces = bmpinfo->faces;
@@ -338,7 +338,7 @@ static void bm_mesh_calc_tessellation_with_partial__multi_threaded(
   data.faces = faces;
   data.looptris = looptris;
 
-  struct PartialTessellationUserTLS tls_dummy = {nullptr};
+  PartialTessellationUserTLS tls_dummy = {nullptr};
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = true;
@@ -358,7 +358,7 @@ static void bm_mesh_calc_tessellation_with_partial__multi_threaded(
 static void bm_mesh_calc_tessellation_with_partial__single_threaded(
     BMLoop *(*looptris)[3],
     const BMPartialUpdate *bmpinfo,
-    const struct BMeshCalcTessellation_Params *params)
+    const BMeshCalcTessellation_Params *params)
 {
   const int faces_len = bmpinfo->faces_len;
   BMFace **faces = bmpinfo->faces;
@@ -390,7 +390,7 @@ static void bm_mesh_calc_tessellation_with_partial__single_threaded(
 void BM_mesh_calc_tessellation_with_partial_ex(BMesh *bm,
                                                BMLoop *(*looptris)[3],
                                                const BMPartialUpdate *bmpinfo,
-                                               const struct BMeshCalcTessellation_Params *params)
+                                               const BMeshCalcTessellation_Params *params)
 {
   BLI_assert(bmpinfo->params.do_tessellate);
   /* While harmless, exit early if there is nothing to do (avoids ensuring the index). */

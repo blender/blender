@@ -6,7 +6,7 @@
  * \ingroup edgpencil
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -297,7 +297,7 @@ static void add_endpoint_radius_help(bGPDframe *gpf,
 {
   float circumference = 2.0f * M_PI * radius;
   float vertex_spacing = 0.005f;
-  int num_vertices = min_ii(max_ii((int)ceilf(circumference / vertex_spacing), 3), 40);
+  int num_vertices = min_ii(max_ii(int(ceilf(circumference / vertex_spacing)), 3), 40);
 
   bGPDstroke *gps_new = BKE_gpencil_stroke_new(gps->mat_nr, num_vertices, gps->thickness);
   gps_new->flag |= GP_STROKE_NOFILL | GP_STROKE_CYCLIC | GP_STROKE_HELP;
@@ -307,7 +307,7 @@ static void add_endpoint_radius_help(bGPDframe *gpf,
   BLI_addtail(&gpf->strokes, gps_new);
 
   for (int i = 0; i < num_vertices; i++) {
-    float angle = ((float)i / (float)num_vertices) * 2.0f * M_PI;
+    float angle = (float(i) / float(num_vertices)) * 2.0f * M_PI;
     bGPDspoint *pt = &gps_new->points[i];
     pt->x = endpoint[0] + radius * cosf(angle);
     pt->y = endpoint[1];
@@ -526,8 +526,8 @@ static void gpencil_stroke_collision(
     /* Loop all segments of the stroke. */
     for (int i = 0; i < gps_b->totpoints - 1; i++) {
       /* Skip segments over same pixel. */
-      if (((int)a1xy[0] == (int)stroke->points2d[i + 1][0]) &&
-          ((int)a1xy[1] == (int)stroke->points2d[i + 1][1]))
+      if ((int(a1xy[0]) == int(stroke->points2d[i + 1][0])) &&
+          (int(a1xy[1]) == int(stroke->points2d[i + 1][1])))
       {
         continue;
       }
@@ -1232,14 +1232,14 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   /* resize region */
   tgpf->region->winrct.xmin = 0;
   tgpf->region->winrct.ymin = 0;
-  tgpf->region->winrct.xmax = max_ii((int)tgpf->region->winx * tgpf->fill_factor, MIN_WINDOW_SIZE);
-  tgpf->region->winrct.ymax = max_ii((int)tgpf->region->winy * tgpf->fill_factor, MIN_WINDOW_SIZE);
-  tgpf->region->winx = (short)abs(tgpf->region->winrct.xmax - tgpf->region->winrct.xmin);
-  tgpf->region->winy = (short)abs(tgpf->region->winrct.ymax - tgpf->region->winrct.ymin);
+  tgpf->region->winrct.xmax = max_ii(int(tgpf->region->winx) * tgpf->fill_factor, MIN_WINDOW_SIZE);
+  tgpf->region->winrct.ymax = max_ii(int(tgpf->region->winy) * tgpf->fill_factor, MIN_WINDOW_SIZE);
+  tgpf->region->winx = short(abs(tgpf->region->winrct.xmax - tgpf->region->winrct.xmin));
+  tgpf->region->winy = short(abs(tgpf->region->winrct.ymax - tgpf->region->winrct.ymin));
 
   /* save new size */
-  tgpf->sizex = (int)tgpf->region->winx;
-  tgpf->sizey = (int)tgpf->region->winy;
+  tgpf->sizex = int(tgpf->region->winx);
+  tgpf->sizey = int(tgpf->region->winy);
 
   char err_out[256] = "unknown";
   GPUOffScreen *offscreen = GPU_offscreen_create(
@@ -1457,7 +1457,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
       t_b = true; /* edge of image */
     }
   }
-  return (bool)(t_a && t_b);
+  return bool(t_a && t_b);
 }
 
 /**
@@ -1656,7 +1656,7 @@ static void gpencil_erase_processed_area(tGPDfill *tgpf)
 
   /* First set in blue the perimeter. */
   for (int i = 0; i < tgpf->sbuffer_used && point2D; i++, point2D++) {
-    int image_idx = ibuf->x * (int)point2D->m_xy[1] + (int)point2D->m_xy[0];
+    int image_idx = ibuf->x * int(point2D->m_xy[1]) + int(point2D->m_xy[0]);
     set_pixel(ibuf, image_idx, blue_col);
   }
 
@@ -2115,7 +2115,7 @@ static int gpencil_points_from_stack(tGPDfill *tgpf)
     return 0;
   }
 
-  tgpf->sbuffer_used = (short)totpoints;
+  tgpf->sbuffer_used = short(totpoints);
   tgpf->sbuffer = MEM_callocN(sizeof(tGPspoint) * totpoints, __func__);
 
   point2D = static_cast<tGPspoint *>(tgpf->sbuffer);
@@ -2139,8 +2139,8 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 {
   ToolSettings *ts = tgpf->scene->toolsettings;
   const char align_flag = ts->gpencil_v3d_align;
-  const bool is_depth = (bool)(align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
-  const bool is_lock_axis_view = (bool)(ts->gp_sculpt.lock_axis == 0);
+  const bool is_depth = bool(align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
+  const bool is_lock_axis_view = bool(ts->gp_sculpt.lock_axis == 0);
   const bool is_camera = is_lock_axis_view && (tgpf->rv3d->persp == RV3D_CAMOB) && (!is_depth);
 
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
@@ -2211,7 +2211,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
   point2D = (tGPspoint *)tgpf->sbuffer;
 
   const int def_nr = tgpf->gpd->vertex_group_active_index - 1;
-  const bool have_weight = (bool)BLI_findlink(&tgpf->gpd->vertex_group_names, def_nr);
+  const bool have_weight = bool(BLI_findlink(&tgpf->gpd->vertex_group_names, def_nr));
 
   if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
     BKE_gpencil_dvert_ensure(gps);
@@ -2411,7 +2411,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   tgpf->fill_extend_fac = brush->gpencil_settings->fill_extend_fac;
   tgpf->fill_factor = max_ff(GPENCIL_MIN_FILL_FAC,
                              min_ff(brush->gpencil_settings->fill_factor, GPENCIL_MAX_FILL_FAC));
-  tgpf->fill_leak = (int)ceil(FILL_LEAK * tgpf->fill_factor);
+  tgpf->fill_leak = int(ceil(FILL_LEAK * tgpf->fill_factor));
 
   int totcol = tgpf->ob->totcol;
 
@@ -2690,8 +2690,8 @@ static void gpencil_zoom_level_set(tGPDfill *tgpf)
   width = ceilf(width);
   height = ceilf(height);
 
-  float zoomx = (width > tgpf->region->winx) ? width / (float)tgpf->region->winx : 1.0f;
-  float zoomy = (height > tgpf->region->winy) ? height / (float)tgpf->region->winy : 1.0f;
+  float zoomx = (width > tgpf->region->winx) ? width / float(tgpf->region->winx) : 1.0f;
+  float zoomy = (height > tgpf->region->winy) ? height / float(tgpf->region->winy) : 1.0f;
   if ((zoomx != 1.0f) || (zoomy != 1.0f)) {
     tgpf->zoom = min_ff(max_ff(zoomx, zoomy) * 1.5f, 5.0f);
   }
@@ -2822,7 +2822,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
   const bool is_brush_inv = brush_settings->fill_direction == BRUSH_DIR_IN;
   const bool is_inverted = (is_brush_inv && (event->modifier & KM_CTRL) == 0) ||
                            (!is_brush_inv && (event->modifier & KM_CTRL) != 0);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(tgpf->gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(tgpf->gpd));
   const bool extend_lines = (tgpf->fill_extend_fac > 0.0f);
   const bool show_extend = ((tgpf->flag & GP_BRUSH_FILL_SHOW_EXTENDLINES) && !is_inverted);
   const bool help_lines = (((tgpf->flag & GP_BRUSH_FILL_SHOW_HELPLINES) || show_extend) &&
@@ -2898,7 +2898,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             GHASH_ITER (gh_iter, frame_list) {
               /* Set active frame as current for filling. */
               tgpf->active_cfra = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
-              int step = ((float)i / (float)total) * 100.0f;
+              int step = (float(i) / float(total)) * 100.0f;
               WM_cursor_time(win, step);
 
               if (extend_lines) {
@@ -2914,8 +2914,8 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
                 gpencil_do_frame_fill(tgpf, is_inverted);
 
                 /* restore size */
-                tgpf->region->winx = (short)tgpf->bwinx;
-                tgpf->region->winy = (short)tgpf->bwiny;
+                tgpf->region->winx = short(tgpf->bwinx);
+                tgpf->region->winy = short(tgpf->bwiny);
                 tgpf->region->winrct = tgpf->brect;
                 if (!tgpf->done) {
                   /* If the zoom was not set before, avoid a loop. */

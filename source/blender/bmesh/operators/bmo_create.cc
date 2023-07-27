@@ -210,7 +210,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
   /* Continue with ad-hoc fill methods since operators fail,
    * edge, vcloud... may add more */
 
-  if (0) { /* nice feature but perhaps it should be a different tool? */
+  if (false) { /* nice feature but perhaps it should be a different tool? */
 
     /* tricky feature for making a line/edge from selection history...
      *

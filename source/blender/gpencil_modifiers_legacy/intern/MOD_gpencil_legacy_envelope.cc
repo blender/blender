@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -587,7 +587,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -652,8 +652,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Envelope = {
     /*name*/ N_("Envelope"),
-    /*structName*/ "EnvelopeGpencilModifierData",
-    /*structSize*/ sizeof(EnvelopeGpencilModifierData),
+    /*struct_name*/ "EnvelopeGpencilModifierData",
+    /*struct_size*/ sizeof(EnvelopeGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

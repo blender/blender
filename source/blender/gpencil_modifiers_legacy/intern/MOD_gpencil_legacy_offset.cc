@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
@@ -155,7 +155,7 @@ static void deformStroke(GpencilModifierData *md,
       offset_factor = ((offset_size - (offset_index / step + start_offset % offset_size) %
                                           offset_size * step % offset_size) -
                        1) /
-                      (float)offset_size;
+                      float(offset_size);
       for (int j = 0; j < 3; j++) {
         for (int i = 0; i < 3; i++) {
           rand[j][i] = offset_factor;
@@ -212,7 +212,7 @@ static void deformStroke(GpencilModifierData *md,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -315,8 +315,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Offset = {
     /*name*/ N_("Offset"),
-    /*structName*/ "OffsetGpencilModifierData",
-    /*structSize*/ sizeof(OffsetGpencilModifierData),
+    /*struct_name*/ "OffsetGpencilModifierData",
+    /*struct_size*/ sizeof(OffsetGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

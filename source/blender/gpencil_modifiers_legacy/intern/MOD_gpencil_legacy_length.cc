@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
@@ -71,7 +71,7 @@ static float *noise_table(int len, int offset, int seed)
 
 BLI_INLINE float table_sample(float *table, float x)
 {
-  return interpf(table[(int)ceilf(x)], table[(int)floor(x)], fractf(x));
+  return interpf(table[int(ceilf(x))], table[int(floor(x))], fractf(x));
 }
 
 static bool gpencil_modify_stroke(bGPDstroke *gps,
@@ -139,7 +139,7 @@ static void applyLength(GpencilModifierData *md,
     seed += BLI_hash_string(md->name);
 
     if (lmd->flag & GP_LENGTH_USE_RANDOM) {
-      seed += (int)DEG_get_ctime(depsgraph) / lmd->step;
+      seed += int(DEG_get_ctime(depsgraph)) / lmd->step;
     }
 
     float rand_offset = BLI_hash_int_01(seed);
@@ -150,7 +150,7 @@ static void applyLength(GpencilModifierData *md,
     double offset[2] = {0.0f, 0.0f};
     double r[2];
 
-    float *noise_table_length = noise_table(4, (int)floor(lmd->rand_offset), seed + 2);
+    float *noise_table_length = noise_table(4, int(floor(lmd->rand_offset)), seed + 2);
 
     /* To ensure a nice distribution, we use halton sequence and offset using the seed. */
     BLI_halton_2d(primes, offset, rnd_index, r);
@@ -189,7 +189,7 @@ static void applyLength(GpencilModifierData *md,
    * `ceil(overshoot_fac*(gps->totpoints - 2))` is used in stretch and never
    * produce a result higher than `totpoints - 2`. */
   const float second_overshoot_fac = lmd->overshoot_fac * (totpoints - 2) /
-                                     ((float)gps->totpoints - 2) *
+                                     (float(gps->totpoints) - 2) *
                                      (1.0f - 0.1f / (totpoints - 1.0f));
   changed |= gpencil_modify_stroke(gps,
                                    len * second_fac,
@@ -358,8 +358,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Length = {
     /*name*/ N_("Length"),
-    /*structName*/ "LengthGpencilModifierData",
-    /*structSize*/ sizeof(LengthGpencilModifierData),
+    /*struct_name*/ "LengthGpencilModifierData",
+    /*struct_size*/ sizeof(LengthGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 
@@ -133,7 +133,7 @@ static void deformStroke(GpencilModifierData *md,
       float factor_value[3];
       copy_v3_v3(factor_value, factor);
       if (use_curve) {
-        float value = (float)i / (gps->totpoints - 1);
+        float value = float(i) / (gps->totpoints - 1);
         float mixfac = BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
         mul_v3_fl(factor_value, mixfac);
       }
@@ -208,8 +208,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Color = {
     /*name*/ N_("Hue/Saturation"),
-    /*structName*/ "ColorGpencilModifierData",
-    /*structSize*/ sizeof(ColorGpencilModifierData),
+    /*struct_name*/ "ColorGpencilModifierData",
+    /*struct_size*/ sizeof(ColorGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

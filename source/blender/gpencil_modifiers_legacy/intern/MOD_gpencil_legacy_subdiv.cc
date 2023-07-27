@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
+#include <cstdio>
+#include <cstring> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -83,7 +83,7 @@ static void deformStroke(GpencilModifierData *md,
   BKE_gpencil_stroke_subdivide(gpd, gps, mmd->level, type);
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -127,8 +127,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Subdiv = {
     /*name*/ N_("Subdivide"),
-    /*structName*/ "SubdivGpencilModifierData",
-    /*structSize*/ sizeof(SubdivGpencilModifierData),
+    /*struct_name*/ "SubdivGpencilModifierData",
+    /*struct_size*/ sizeof(SubdivGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

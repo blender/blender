@@ -296,7 +296,7 @@ BMFace *BM_face_create_ngon_verts(BMesh *bm,
 
 void BM_verts_sort_radial_plane(BMVert **vert_arr, int len)
 {
-  struct SortIntByFloat *vang = BLI_array_alloca(vang, len);
+  SortIntByFloat *vang = BLI_array_alloca(vang, len);
   BMVert **vert_arr_map = BLI_array_alloca(vert_arr_map, len);
 
   float nor[3], cent[3];

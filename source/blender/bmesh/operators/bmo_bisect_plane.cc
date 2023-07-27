@@ -58,7 +58,7 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
      * over-allocate the total possible vert count. */
     const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_len(op->slots_in, "geom"));
     BMVert **vert_arr = static_cast<BMVert **>(
-        MEM_mallocN(sizeof(*vert_arr) * (size_t)vert_arr_max, __func__));
+        MEM_mallocN(sizeof(*vert_arr) * size_t(vert_arr_max), __func__));
     BMOIter siter;
     BMVert *v;
     float plane_inner[4];

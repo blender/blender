@@ -7,11 +7,11 @@
  * Operators for editing Grease Pencil strokes.
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_view3d_types.h"

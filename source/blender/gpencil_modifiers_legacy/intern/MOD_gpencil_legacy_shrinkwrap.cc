@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
+#include <cstdio>
+#include <cstring> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -129,7 +129,7 @@ static void bakeModifier(Main * /*bmain*/,
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
 
   if ((mmd->target == ob) || (mmd->aux_target == ob)) {
     return;
@@ -312,8 +312,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap = {
     /*name*/ N_("Shrinkwrap"),
-    /*structName*/ "ShrinkwrapGpencilModifierData",
-    /*structSize*/ sizeof(ShrinkwrapGpencilModifierData),
+    /*struct_name*/ "ShrinkwrapGpencilModifierData",
+    /*struct_size*/ sizeof(ShrinkwrapGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

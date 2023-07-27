@@ -7,11 +7,11 @@
  * Operator for converting Grease Pencil data to geometry.
  */
 
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -182,12 +182,12 @@ static void gpencil_strokepoint_convertcoords(bContext *C,
     }
     else {
       if (subrect) {
-        mvalf[0] = (((float)pt->x / 100.0f) * BLI_rctf_size_x(subrect)) + subrect->xmin;
-        mvalf[1] = (((float)pt->y / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
+        mvalf[0] = ((float(pt->x) / 100.0f) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+        mvalf[1] = ((float(pt->y) / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
       }
       else {
-        mvalf[0] = (float)pt->x / 100.0f * region->winx;
-        mvalf[1] = (float)pt->y / 100.0f * region->winy;
+        mvalf[0] = float(pt->x) / 100.0f * region->winx;
+        mvalf[1] = float(pt->y) / 100.0f * region->winy;
       }
     }
 
@@ -271,13 +271,13 @@ static void gpencil_timing_data_add_point(tGpTimingData *gtd,
   }
   else if (time < 0.0f) {
     /* This is a gap, negative value! */
-    gtd->times[cur_point] = -((float)(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
+    gtd->times[cur_point] = -(float(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
     delta_time = -gtd->times[cur_point] - gtd->times[cur_point - 1];
 
     gtd->gap_tot_time += delta_time;
   }
   else {
-    gtd->times[cur_point] = ((float)(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
+    gtd->times[cur_point] = (float(stroke_inittime - gtd->inittime) + time + gtd->offset_time);
     delta_time = gtd->times[cur_point] - fabsf(gtd->times[cur_point - 1]);
   }
 
@@ -371,7 +371,7 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
   }
   gtd->tot_time -= delta_time;
 
-  *r_tot_gaps_time = (float)(*gaps_count) * gtd->gap_duration;
+  *r_tot_gaps_time = float(*gaps_count) * gtd->gap_duration;
   gtd->tot_time += *r_tot_gaps_time;
   if (gtd->gap_randomness > 0.0f) {
     BLI_rng_srandom(rng, gtd->seed);
@@ -391,7 +391,7 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
                                                         const float tot_gaps_time)
 {
   /* Use actual recorded timing! */
-  const float time_start = (float)gtd->start_frame;
+  const float time_start = float(gtd->start_frame);
 
   float last_valid_time = 0.0f;
   int end_stroke_idx = -1, start_stroke_idx = 0;
@@ -531,7 +531,7 @@ static void gpencil_stroke_path_animation(bContext *C,
     fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
 
     cu->ctime = 0.0f;
-    cfra = (float)gtd->start_frame;
+    cfra = float(gtd->start_frame);
     AnimationEvalContext anim_eval_context_start = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       cfra);
     insert_keyframe_direct(reports,
@@ -545,10 +545,10 @@ static void gpencil_stroke_path_animation(bContext *C,
 
     cu->ctime = cu->pathlen;
     if (gtd->realtime) {
-      cfra += (float)TIME2FRA(gtd->tot_time); /* Seconds to frames */
+      cfra += float(TIME2FRA(gtd->tot_time)); /* Seconds to frames */
     }
     else {
-      cfra = (float)gtd->end_frame;
+      cfra = float(gtd->end_frame);
     }
     AnimationEvalContext anim_eval_context_end = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     cfra);
@@ -575,10 +575,10 @@ static void gpencil_stroke_path_animation(bContext *C,
     }
 
     if (gtd->realtime) {
-      time_range = (float)TIME2FRA(gtd->tot_time); /* Seconds to frames */
+      time_range = float(TIME2FRA(gtd->tot_time)); /* Seconds to frames */
     }
     else {
-      time_range = (float)(gtd->end_frame - gtd->start_frame);
+      time_range = float(gtd->end_frame - gtd->start_frame);
     }
 
     gpencil_stroke_path_animation_add_keyframes(
@@ -1431,7 +1431,7 @@ static bool gpencil_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, 
 
     prev_time = cur_time;
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-      cur_time = base_time + (double)pt->time;
+      cur_time = base_time + double(pt->time);
       /* First point of a stroke should have the same time as stroke's inittime,
        * so it's the only case where equality is allowed!
        */

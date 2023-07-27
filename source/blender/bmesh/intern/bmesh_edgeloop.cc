@@ -21,7 +21,7 @@
 #include "bmesh_edgeloop.h" /* own include */
 
 struct BMEdgeLoopStore {
-  struct BMEdgeLoopStore *next, *prev;
+  BMEdgeLoopStore *next, *prev;
   ListBase verts;
   int flag;
   int len;
@@ -178,14 +178,14 @@ int BM_mesh_edgeloops_find(BMesh *bm,
  * Add to
  */
 struct VertStep {
-  struct VertStep *next, *prev;
+  VertStep *next, *prev;
   BMVert *v;
 };
 
 static void vs_add(
     BLI_mempool *vs_pool, ListBase *lb, BMVert *v, BMEdge *e_prev, const int iter_tot)
 {
-  struct VertStep *vs_new = static_cast<VertStep *>(BLI_mempool_alloc(vs_pool));
+  VertStep *vs_new = static_cast<VertStep *>(BLI_mempool_alloc(vs_pool));
   vs_new->v = v;
 
   BM_elem_index_set(v, iter_tot); /* set_dirty */
@@ -206,7 +206,7 @@ static bool bm_loop_path_build_step(BLI_mempool *vs_pool,
                                     BMVert *v_match[2])
 {
   ListBase lb_tmp = {nullptr, nullptr};
-  struct VertStep *vs, *vs_next;
+  VertStep *vs, *vs_next;
   BLI_assert(abs(dir) == 1);
 
   for (vs = static_cast<VertStep *>(lb->first); vs; vs = vs_next) {
@@ -321,7 +321,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
     BMVert *v_match[2] = {nullptr, nullptr};
     ListBase lb_src = {nullptr, nullptr};
     ListBase lb_dst = {nullptr, nullptr};
-    BLI_mempool *vs_pool = BLI_mempool_create(sizeof(struct VertStep), 0, 512, BLI_MEMPOOL_NOP);
+    BLI_mempool *vs_pool = BLI_mempool_create(sizeof(VertStep), 0, 512, BLI_MEMPOOL_NOP);
 
     /* edge args are dummy */
     vs_add(vs_pool, &lb_src, v_src, v_src->e, 1);
@@ -437,7 +437,7 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/, ListBase *eloops, const bool u
   {
     add_v3_v3(cent, el_store->co);
   }
-  mul_v3_fl(cent, 1.0f / (float)tot);
+  mul_v3_fl(cent, 1.0f / float(tot));
 
   /* Find the furthest out loop. */
   {
@@ -609,10 +609,10 @@ void BM_edgeloop_calc_center(BMesh * /*bm*/, BMEdgeLoopStore *el_store)
     v_prev = v_curr;
     v_curr = v_next;
     v_next = NODE_AS_CO(node_next);
-  } while (1);
+  } while (true);
 
   if (totw != 0.0f) {
-    mul_v3_fl(el_store->co, 1.0f / (float)totw);
+    mul_v3_fl(el_store->co, 1.0f / float(totw));
   }
 }
 

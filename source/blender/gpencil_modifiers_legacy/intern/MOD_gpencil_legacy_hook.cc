@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -97,7 +97,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 }
 
 /* Calculate the factor of falloff. */
-static float gpencil_hook_falloff(const struct GPHookData_cb *tData, const float len_sq)
+static float gpencil_hook_falloff(const GPHookData_cb *tData, const float len_sq)
 {
   BLI_assert(tData->falloff_sq);
   if (len_sq > tData->falloff_sq) {
@@ -150,7 +150,7 @@ static float gpencil_hook_falloff(const struct GPHookData_cb *tData, const float
 }
 
 /* apply point deformation */
-static void gpencil_hook_co_apply(struct GPHookData_cb *tData, float weight, bGPDspoint *pt)
+static void gpencil_hook_co_apply(GPHookData_cb *tData, float weight, bGPDspoint *pt)
 {
   float fac;
 
@@ -196,7 +196,7 @@ static void deformStroke(GpencilModifierData *md,
 
   bPoseChannel *pchan = BKE_pose_channel_find_name(mmd->object->pose, mmd->subtarget);
   float dmat[4][4];
-  struct GPHookData_cb tData;
+  GPHookData_cb tData;
 
   if (!is_stroke_affected_by_modifier(ob,
                                       mmd->layername,
@@ -391,8 +391,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
     /*name*/ N_("Hook"),
-    /*structName*/ "HookGpencilModifierData",
-    /*structSize*/ sizeof(HookGpencilModifierData),
+    /*struct_name*/ "HookGpencilModifierData",
+    /*struct_size*/ sizeof(HookGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

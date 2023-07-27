@@ -478,10 +478,10 @@ static float brush_influence_calc(tGP_BrushWeightpaintData *gso, const int radiu
   /* distance fading */
   int mouse_i[2];
   round_v2i_v2fl(mouse_i, gso->mouse);
-  float distance = (float)len_v2v2_int(mouse_i, co);
+  float distance = float(len_v2v2_int(mouse_i, co));
 
   /* Apply Brush curve. */
-  float brush_falloff = BKE_brush_curve_strength(brush, distance, (float)radius);
+  float brush_falloff = BKE_brush_curve_strength(brush, distance, float(radius));
   influence *= brush_falloff;
 
   /* apply multi-frame falloff */
@@ -784,7 +784,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   gso->region = CTX_wm_region(C);
 
   /* Multi-frame settings. */
-  gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
+  gso->is_multiframe = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd));
   gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
 
   /* Init multi-edit falloff curve data before doing anything,
@@ -925,7 +925,7 @@ static void gpencil_save_selected_point(tGP_BrushWeightpaintData *gso,
           gso->fn_added, POINTER_FROM_INT(point_hash), POINTER_FROM_INT(gso->fn_used));
 
       float pc_f[2];
-      copy_v2_fl2(pc_f, (float)pc[0], (float)pc[1]);
+      copy_v2_fl2(pc_f, float(pc[0]), float(pc[1]));
       BLI_kdtree_2d_insert(gso->fn_kdtree, gso->fn_used, pc_f);
 
       gso->fn_do_balance = true;
@@ -1244,8 +1244,8 @@ static void gpencil_weightpaint_brush_apply(bContext *C, wmOperator *op, Pointer
 
   /* Get latest mouse coordinates */
   RNA_float_get_array(itemptr, "mouse", mousef);
-  gso->mouse[0] = mouse[0] = (int)(mousef[0]);
-  gso->mouse[1] = mouse[1] = (int)(mousef[1]);
+  gso->mouse[0] = mouse[0] = int(mousef[0]);
+  gso->mouse[1] = mouse[1] = int(mousef[1]);
 
   gso->pressure = RNA_float_get(itemptr, "pressure");
 

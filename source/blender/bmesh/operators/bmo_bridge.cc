@@ -92,8 +92,7 @@ static float bm_edgeloop_offset_length(LinkData *el_a,
   return len;
 }
 
-static void bm_bridge_best_rotation(struct BMEdgeLoopStore *el_store_a,
-                                    struct BMEdgeLoopStore *el_store_b)
+static void bm_bridge_best_rotation(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_store_b)
 {
   ListBase *lb_a = BM_edgeloop_verts_get(el_store_a);
   ListBase *lb_b = BM_edgeloop_verts_get(el_store_b);
@@ -132,8 +131,8 @@ static bool bm_edge_test_cb(BMEdge *e, void *bm_v)
 }
 
 static void bridge_loop_pair(BMesh *bm,
-                             struct BMEdgeLoopStore *el_store_a,
-                             struct BMEdgeLoopStore *el_store_b,
+                             BMEdgeLoopStore *el_store_a,
+                             BMEdgeLoopStore *el_store_b,
                              const bool use_merge,
                              const float merge_factor,
                              const int twist_offset)
@@ -147,12 +146,12 @@ static void bridge_loop_pair(BMesh *bm,
   float dot_a, dot_b;
   const bool use_edgeout = true;
 
-  el_store_a_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_a);
-  el_store_b_len = BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store_b);
+  el_store_a_len = BM_edgeloop_length_get((BMEdgeLoopStore *)el_store_a);
+  el_store_b_len = BM_edgeloop_length_get((BMEdgeLoopStore *)el_store_b);
 
   if (el_store_a_len < el_store_b_len) {
     SWAP(int, el_store_a_len, el_store_b_len);
-    SWAP(struct BMEdgeLoopStore *, el_store_a, el_store_b);
+    SWAP(BMEdgeLoopStore *, el_store_a, el_store_b);
   }
 
   if (use_merge) {
@@ -253,7 +252,7 @@ static void bridge_loop_pair(BMesh *bm,
 
     /* vote on winding (so new face winding is based on existing connected faces) */
     if (bm->totface) {
-      struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
+      BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
       int i;
       int winding_votes[2] = {0, 0};
       int winding_dir = 1;
@@ -487,7 +486,7 @@ static void bridge_loop_pair(BMesh *bm,
   }
 
   if (el_store_a_len != el_store_b_len) {
-    struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
+    BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
     int i;
 
     BMOperator op_sub;
@@ -555,7 +554,7 @@ static void bridge_loop_pair(BMesh *bm,
 
   if (use_edgeout && use_merge == false) {
     /* we've enabled all face edges above, now disable all loop edges */
-    struct BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
+    BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
     int i;
     for (i = 0; i < 2; i++) {
       LinkData *el;
@@ -612,7 +611,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
     bool match = true;
     const int eloop_len = BM_edgeloop_length_get(static_cast<BMEdgeLoopStore *>(eloops.first));
     for (el_store = static_cast<LinkData *>(eloops.first); el_store; el_store = el_store->next) {
-      if (eloop_len != BM_edgeloop_length_get((struct BMEdgeLoopStore *)el_store)) {
+      if (eloop_len != BM_edgeloop_length_get((BMEdgeLoopStore *)el_store)) {
         match = false;
         break;
       }
@@ -643,8 +642,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
     }
 
     bridge_loop_pair(bm,
-                     (struct BMEdgeLoopStore *)el_store,
-                     (struct BMEdgeLoopStore *)el_store_next,
+                     (BMEdgeLoopStore *)el_store,
+                     (BMEdgeLoopStore *)el_store_next,
                      use_merge,
                      merge_factor,
                      twist_offset);

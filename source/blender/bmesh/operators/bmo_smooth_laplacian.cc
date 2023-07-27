@@ -42,7 +42,7 @@ struct BLaplacianSystem {
   /* Data. */
   float min_area;
 };
-typedef struct BLaplacianSystem LaplacianSystem;
+typedef BLaplacianSystem LaplacianSystem;
 
 static bool vert_is_boundary(BMVert *v);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numLoops, int a_numVerts);
@@ -327,15 +327,15 @@ static bool vert_is_boundary(BMVert *v)
   BMIter fi;
   BM_ITER_ELEM (ed, &ei, v, BM_EDGES_OF_VERT) {
     if (BM_edge_is_boundary(ed)) {
-      return 1;
+      return true;
     }
   }
   BM_ITER_ELEM (f, &fi, v, BM_FACES_OF_VERT) {
     if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 static void volume_preservation(

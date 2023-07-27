@@ -785,8 +785,8 @@ void BM_mesh_calc_uvs_grid(BMesh *bm,
   BMLoop *l;
   BMIter iter, liter;
 
-  const float dx = 1.0f / (float)(x_segments);
-  const float dy = 1.0f / (float)(y_segments);
+  const float dx = 1.0f / float(x_segments);
+  const float dy = 1.0f / float(y_segments);
   const float dx_wrap = 1.0 - (dx / 2.0f);
   float x = 0.0f;
   float y = dy;
@@ -851,7 +851,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
-  const float phid = (float)M_PI / tot;
+  const float phid = float(M_PI) / tot;
   /* phi = 0.25f * (float)M_PI; */ /* UNUSED */
 
   /* one segment first */
@@ -1081,13 +1081,13 @@ static void bm_mesh_calc_uvs_sphere_face(BMFace *f, const int cd_loop_uv_offset)
     }
 
     /* Shift borderline coordinates to the left. */
-    if (fabsf(theta - (float)M_PI) < 0.0001f) {
+    if (fabsf(theta - float(M_PI)) < 0.0001f) {
       theta = -M_PI;
     }
 
     float phi = saacos(z / len);
-    luv[0] = 0.5f + theta / ((float)M_PI * 2);
-    luv[1] = 1.0f - phi / (float)M_PI;
+    luv[0] = 0.5f + theta / (float(M_PI) * 2);
+    luv[1] = 1.0f - phi / float(M_PI);
 
     uvs[loop_index] = luv;
   }
@@ -1514,7 +1514,7 @@ void BM_mesh_calc_uvs_cone(BMesh *bm,
   BMLoop *l;
   BMIter fiter, liter;
 
-  const float uv_width = 1.0f / (float)segments;
+  const float uv_width = 1.0f / float(segments);
   const float uv_height = cap_ends ? 0.5f : 1.0f;
 
   /* Note that all this allows us to handle all cases
@@ -1635,7 +1635,7 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
   for (int x = -1; x < 2; x += 2) {
     for (int y = -1; y < 2; y += 2) {
       for (int z = -1; z < 2; z += 2) {
-        float vec[3] = {(float)x * off, (float)y * off, (float)z * off};
+        float vec[3] = {float(x) * off, float(y) * off, float(z) * off};
         mul_m4_v3(mat, vec);
         verts[i] = BM_vert_create(bm, vec, nullptr, BM_CREATE_NOP);
         BMO_vert_flag_enable(bm, verts[i], VERT_MARK);

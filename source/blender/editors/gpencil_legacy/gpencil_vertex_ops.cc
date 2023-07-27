@@ -120,7 +120,7 @@ static int gpencil_vertexpaint_brightness_contrast_exec(bContext *C, wmOperator 
 {
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
 
@@ -239,7 +239,7 @@ static int gpencil_vertexpaint_hsv_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float hue = RNA_float_get(op->ptr, "h");
@@ -359,7 +359,7 @@ static int gpencil_vertexpaint_invert_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
 
@@ -450,7 +450,7 @@ static int gpencil_vertexpaint_levels_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float gain = RNA_float_get(op->ptr, "gain");
@@ -551,7 +551,7 @@ static int gpencil_vertexpaint_set_exec(bContext *C, wmOperator *op)
   Paint *paint = &ts->gp_vertexpaint->paint;
   Brush *brush = paint->brush;
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
   const bool any_selected = is_any_stroke_selected(C, is_multiedit, false);
   float factor = RNA_float_get(op->ptr, "factor");
@@ -1071,8 +1071,8 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)obact->data;
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
 
   /* First need to check if there are something selected. If not, apply to all strokes. */

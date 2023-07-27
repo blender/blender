@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_utildefines.h"
 
@@ -227,7 +227,7 @@ static void bakeModifier(Main * /*bmain*/,
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
-  int oldframe = (int)DEG_get_ctime(depsgraph);
+  int oldframe = int(DEG_get_ctime(depsgraph));
 
   /* Calc camera view matrix. */
   if (!scene->camera) {
@@ -327,8 +327,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Outline = {
     /*name*/ N_("Outline"),
-    /*structName*/ "OutlineGpencilModifierData",
-    /*structSize*/ sizeof(OutlineGpencilModifierData),
+    /*struct_name*/ "OutlineGpencilModifierData",
+    /*struct_size*/ sizeof(OutlineGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

@@ -14,7 +14,7 @@
 
 #include "lineart_intern.h"
 
-#include <math.h>
+#include <cmath>
 
 #define LRT_OTHER_VERT(e, vt) ((vt) == (e)->v1 ? (e)->v2 : ((vt) == (e)->v2 ? (e)->v1 : nullptr))
 
@@ -27,7 +27,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
                                                LineartVert **new_vt,
                                                int match_flag,
                                                uint8_t match_isec_mask,
-                                               struct Object *match_isec_object)
+                                               Object *match_isec_object)
 {
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
@@ -1078,7 +1078,7 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
   }
 }
 
-LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, struct Object *ob)
+LineartElementLinkNode *lineart_find_matching_eln_obj(ListBase *elns, Object *ob)
 {
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, elns) {
     if (eln->object_ref == ob) {

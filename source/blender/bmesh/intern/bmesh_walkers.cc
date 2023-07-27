@@ -27,8 +27,8 @@
  *   for if walkers fail.
  */
 
-#include <stdlib.h>
-#include <string.h> /* for memcpy */
+#include <cstdlib>
+#include <cstring> /* for memcpy */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

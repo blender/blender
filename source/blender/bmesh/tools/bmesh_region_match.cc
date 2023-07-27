@@ -19,7 +19,7 @@
  *   (uniqueness is improved by re-hashing with connected data).
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_alloca.h"
 #include "BLI_ghash.h"
@@ -101,7 +101,7 @@ struct UUIDWalk {
 
 /* stores a set of potential faces to step onto */
 struct UUIDFaceStep {
-  struct UUIDFaceStep *next, *prev;
+  UUIDFaceStep *next, *prev;
 
   /* unsorted 'BMFace' */
   LinkNode *faces;
@@ -112,7 +112,7 @@ struct UUIDFaceStep {
 
 /* store face-lists with same uuid */
 struct UUIDFaceStepItem {
-  struct UUIDFaceStepItem *next, *prev;
+  UUIDFaceStepItem *next, *prev;
   uintptr_t uuid;
 
   LinkNode *list;
@@ -152,7 +152,7 @@ BLI_INLINE bool bm_uuidwalk_face_lookup(UUIDWalk *uuidwalk, BMFace *f, UUID_Int 
 static uint ghashutil_bmelem_indexhash(const void *key)
 {
   const BMElem *ele = static_cast<const BMElem *>(key);
-  return (uint)BM_elem_index_get(ele);
+  return uint(BM_elem_index_get(ele));
 }
 
 static bool ghashutil_bmelem_indexcmp(const void *a, const void *b)
@@ -320,7 +320,7 @@ static UUID_Int bm_uuidwalk_calc_face_uuid(UUIDWalk *uuidwalk, BMFace *f)
 
   UUID_Int uuid;
 
-  uuid = uuidwalk->pass * (uint)f->len * PRIME_FACE_LARGE;
+  uuid = uuidwalk->pass * uint(f->len) * PRIME_FACE_LARGE;
 
   /* face-verts */
   {
@@ -557,7 +557,7 @@ static int bm_face_len_cmp(const void *v1, const void *v2)
 static uint bm_uuidwalk_init_from_edge(UUIDWalk *uuidwalk, BMEdge *e)
 {
   BMLoop *l_iter = e->l;
-  uint f_arr_len = (uint)BM_edge_face_count(e);
+  uint f_arr_len = uint(BM_edge_face_count(e));
   BMFace **f_arr = BLI_array_alloca(f_arr, f_arr_len);
   uint fstep_num = 0, i = 0;
 
@@ -1214,7 +1214,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
     pass = 0;
   }
 
-  *r_depth = (uint)pass;
+  *r_depth = uint(pass);
 
   return e_pivot;
 }
@@ -1249,7 +1249,7 @@ static UUIDFashMatch bm_vert_fasthash_single(BMVert *v)
       e_num += 1;
       do {
         f_num += 1;
-        l_num += (uint)l_iter->f->len;
+        l_num += uint(l_iter->f->len);
       } while ((l_iter = l_iter->radial_next) != e->l);
     }
   }
@@ -1270,9 +1270,9 @@ static UUIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
   BMIter iter;
 
   id_prev = static_cast<UUIDFashMatch *>(
-      MEM_mallocN(sizeof(*id_prev) * (uint)bm->totvert, __func__));
+      MEM_mallocN(sizeof(*id_prev) * uint(bm->totvert), __func__));
   id_curr = static_cast<UUIDFashMatch *>(
-      MEM_mallocN(sizeof(*id_curr) * (uint)bm->totvert, __func__));
+      MEM_mallocN(sizeof(*id_curr) * uint(bm->totvert), __func__));
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
     id_prev[i] = bm_vert_fasthash_single(v);
@@ -1281,7 +1281,7 @@ static UUIDFashMatch *bm_vert_fasthash_create(BMesh *bm, const uint depth)
   for (pass = 0; pass < depth; pass++) {
     BMEdge *e;
 
-    memcpy(id_curr, id_prev, sizeof(*id_prev) * (uint)bm->totvert);
+    memcpy(id_curr, id_prev, sizeof(*id_prev) * uint(bm->totvert));
 
     BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
       if (BM_edge_is_wire(e) == false) {
@@ -1467,5 +1467,5 @@ int BM_mesh_region_match(BMesh *bm,
   TIMEIT_END(region_match);
 #endif
 
-  return (int)faces_result_len;
+  return int(faces_result_len);
 }

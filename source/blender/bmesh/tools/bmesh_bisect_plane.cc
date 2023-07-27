@@ -15,7 +15,7 @@
  * see: #bm_face_bisect_verts
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -94,8 +94,8 @@ BLI_INLINE bool vert_is_center_test(BMVert *v)
 
 BLI_INLINE bool vert_pair_adjacent_in_orig_face(BMVert *v_a, BMVert *v_b, const uint f_len_orig)
 {
-  const uint delta = (uint)abs((int)BM_VERT_LOOPINDEX(v_a) - (int)BM_VERT_LOOPINDEX(v_b));
-  return ELEM(delta, 1, (uint)(f_len_orig - 1));
+  const uint delta = uint(abs(int(BM_VERT_LOOPINDEX(v_a)) - int(BM_VERT_LOOPINDEX(v_b))));
+  return ELEM(delta, 1, uint(f_len_orig - 1));
 }
 
 /** Enable when the edge can be cut. */
@@ -150,7 +150,7 @@ static void bm_face_bisect_verts(
     BMesh *bm, BMFace *f, const float plane[4], const short oflag_center, const short oflag_new)
 {
   /* Unlikely more than 2 verts are needed. */
-  const uint f_len_orig = (uint)f->len;
+  const uint f_len_orig = uint(f->len);
   BMVert **vert_split_arr = BLI_array_alloca(vert_split_arr, f_len_orig);
   STACK_DECLARE(vert_split_arr);
   BMLoop *l_iter, *l_first;
@@ -411,7 +411,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
   uint einput_len;
   uint i;
   BMEdge **edges_arr = static_cast<BMEdge **>(
-      MEM_mallocN(sizeof(*edges_arr) * (size_t)bm->totedge, __func__));
+      MEM_mallocN(sizeof(*edges_arr) * size_t(bm->totedge), __func__));
 
   BLI_LINKSTACK_DECLARE(face_stack, BMFace *);
 
@@ -443,7 +443,7 @@ void BM_mesh_bisect_plane(BMesh *bm,
   }
   else {
     BMEdge *e;
-    einput_len = (uint)bm->totedge;
+    einput_len = uint(bm->totedge);
     BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
       edge_is_cut_enable(e);
       edges_arr[i] = e;

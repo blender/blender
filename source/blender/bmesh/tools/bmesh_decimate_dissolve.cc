@@ -27,17 +27,17 @@ struct DelimitData;
 
 static bool bm_edge_is_delimiter(const BMEdge *e,
                                  const BMO_Delimit delimit,
-                                 const struct DelimitData *delimit_data);
+                                 const DelimitData *delimit_data);
 static bool bm_vert_is_delimiter(const BMVert *v,
                                  const BMO_Delimit delimit,
-                                 const struct DelimitData *delimit_data);
+                                 const DelimitData *delimit_data);
 
 /* multiply vertex edge angle by face angle
  * this means we are not left with sharp corners between _almost_ planer faces
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
 static float bm_vert_edge_face_angle(BMVert *v,
                                      const BMO_Delimit delimit,
-                                     const struct DelimitData *delimit_data)
+                                     const DelimitData *delimit_data)
 {
 #define UNIT_TO_ANGLE DEG2RADF(90.0f)
 #define ANGLE_TO_UNIT (1.0f / UNIT_TO_ANGLE)
@@ -69,8 +69,7 @@ struct DelimitData {
   int cd_loop_offset_end;
 };
 
-static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
-                                              const struct DelimitData *delimit_data)
+static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData *delimit_data)
 {
   int cd_loop_offset;
   for (cd_loop_offset = delimit_data->cd_loop_offset;
@@ -87,7 +86,7 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
 
 static bool bm_edge_is_delimiter(const BMEdge *e,
                                  const BMO_Delimit delimit,
-                                 const struct DelimitData *delimit_data)
+                                 const DelimitData *delimit_data)
 {
   /* Caller must ensure. */
   BLI_assert(BM_edge_is_manifold(e));
@@ -125,7 +124,7 @@ static bool bm_edge_is_delimiter(const BMEdge *e,
 
 static bool bm_vert_is_delimiter(const BMVert *v,
                                  const BMO_Delimit delimit,
-                                 const struct DelimitData *delimit_data)
+                                 const DelimitData *delimit_data)
 {
   BLI_assert(v->e != nullptr);
 
@@ -145,7 +144,7 @@ static bool bm_vert_is_delimiter(const BMVert *v,
 
 static float bm_edge_calc_dissolve_error(const BMEdge *e,
                                          const BMO_Delimit delimit,
-                                         const struct DelimitData *delimit_data)
+                                         const DelimitData *delimit_data)
 {
   if (BM_edge_is_manifold(e) && !bm_edge_is_delimiter(e, delimit, delimit_data)) {
     float angle_cos_neg = dot_v3v3(e->l->f->no, e->l->radial_next->f->no);
@@ -287,7 +286,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
                                   const short oflag_out)
 {
   const float angle_limit_cos_neg = -cosf(angle_limit);
-  struct DelimitData delimit_data = {0};
+  DelimitData delimit_data = {0};
   const int eheap_table_len = do_dissolve_boundaries ? einput_len : max_ii(einput_len, vinput_len);
   void *_heap_table = MEM_mallocN(sizeof(HeapNode *) * eheap_table_len, __func__);
 
@@ -307,7 +306,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
   }
 
   /* --- first edges --- */
-  if (1) {
+  if (true) {
     BMEdge **earray;
     Heap *eheap;
     HeapNode **eheap_table = static_cast<HeapNode **>(_heap_table);

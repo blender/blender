@@ -6,12 +6,12 @@
  * \ingroup edgpencil
  */
 
-#include <float.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -97,7 +97,7 @@ enum eDrawStrokeFlags {
 #endif
 
 /* conversion utility (float --> normalized unsigned byte) */
-#define F2UB(x) (uchar)(255.0f * x)
+#define F2UB(x) uchar(255.0f * x)
 
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
@@ -158,7 +158,7 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   bGPDspoint *points = tgpw->gps->points;
   int totpoints = tgpw->gps->totpoints;
 
-  const float viewport[2] = {(float)tgpw->winx, (float)tgpw->winy};
+  const float viewport[2] = {float(tgpw->winx), float(tgpw->winy)};
   const float min_thickness = 0.05f;
 
   float fpt[3];
@@ -182,11 +182,11 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
                         (tgpw->ob->scale[0] + tgpw->ob->scale[1] + tgpw->ob->scale[2]) / 3.0f :
                         1.0f;
 
-  struct GPencilStrokeData gpencil_stroke_data;
+  GPencilStrokeData gpencil_stroke_data;
   copy_v2_v2(gpencil_stroke_data.viewport, viewport);
   gpencil_stroke_data.pixsize = tgpw->rv3d->pixsize;
   gpencil_stroke_data.objscale = obj_scale;
-  int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
+  int keep_size = int((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
   gpencil_stroke_data.keep_size = keep_size;
   gpencil_stroke_data.pixfactor = tgpw->gpd->pixfactor;
   /* X-ray mode always to 3D space to avoid wrong Z-depth calculation (#60051). */
@@ -196,7 +196,7 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   gpencil_stroke_data.fill_stroke = tgpw->is_fill_stroke;
 
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(
-      sizeof(struct GPencilStrokeData), &gpencil_stroke_data, __func__);
+      sizeof(GPencilStrokeData), &gpencil_stroke_data, __func__);
   immBindUniformBuf("gpencil_stroke_data", ubo);
 
   /* draw stroke curve */
@@ -206,7 +206,7 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   for (int i = 0; i < totpoints; i++, pt++) {
     /* first point for adjacency (not drawn) */
     if (i == 0) {
-      gpencil_set_point_varying_color(points, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+      gpencil_set_point_varying_color(points, ink, attr_id.color, bool(tgpw->is_fill_stroke));
 
       if ((cyclic) && (totpoints > 2)) {
         immAttr1f(attr_id.thickness,
@@ -220,7 +220,7 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
       immVertex3fv(attr_id.pos, fpt);
     }
     /* set point */
-    gpencil_set_point_varying_color(pt, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+    gpencil_set_point_varying_color(pt, ink, attr_id.color, bool(tgpw->is_fill_stroke));
     immAttr1f(attr_id.thickness, max_ff(pt->pressure * thickness, min_thickness));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
     immVertex3fv(attr_id.pos, fpt);
@@ -240,7 +240,7 @@ static void gpencil_draw_stroke_3d(tGPDdraw *tgpw,
   /* last adjacency point (not drawn) */
   else {
     gpencil_set_point_varying_color(
-        points + totpoints - 2, ink, attr_id.color, (bool)tgpw->is_fill_stroke);
+        points + totpoints - 2, ink, attr_id.color, bool(tgpw->is_fill_stroke));
 
     immAttr1f(attr_id.thickness, max_ff((points + totpoints - 2)->pressure * thickness, 1.0f));
     mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 2)->x);
@@ -337,7 +337,7 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
     sthickness = gps->thickness + tgpw->lthick;
 
     if (tgpw->is_fill_stroke) {
-      sthickness = (short)max_ii(1, sthickness / 2);
+      sthickness = short(max_ii(1, sthickness / 2));
     }
 
     if (sthickness <= 0) {

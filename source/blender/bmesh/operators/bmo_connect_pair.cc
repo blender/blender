@@ -94,7 +94,7 @@ struct PathContext {
  * Single linked list where each item contains state and points to previous path item.
  */
 struct PathLink {
-  struct PathLink *next;
+  PathLink *next;
   BMElem *ele;      /* edge or vert */
   BMElem *ele_from; /* edge or face we came from (not 'next->ele') */
 };

@@ -97,7 +97,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     /* calculate the normal from the cross product of vert-edge pairs.
      * Since we don't know winding, just accumulate */
     ScanFillVert *sf_vert;
-    struct SortNormal *nors;
+    SortNormal *nors;
     uint i;
     bool is_degenerate = true;
 

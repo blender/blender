@@ -6,8 +6,8 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
-#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
+#include <cstdio>
+#include <cstring> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -117,7 +117,7 @@ static void deformStroke(GpencilModifierData *md,
 
       /* Custom curve to modulate value. */
       if (use_curve && weight > 0.0f) {
-        float value = (float)i / (gps->totpoints - 1);
+        float value = float(i) / (gps->totpoints - 1);
         weight *= BKE_curvemapping_evaluateF(mmd->curve_intensity, 0, value);
       }
 
@@ -136,7 +136,7 @@ static void deformStroke(GpencilModifierData *md,
   MEM_SAFE_FREE(weights);
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -206,8 +206,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Smooth = {
     /*name*/ N_("Smooth"),
-    /*structName*/ "SmoothGpencilModifierData",
-    /*structSize*/ sizeof(SmoothGpencilModifierData),
+    /*struct_name*/ "SmoothGpencilModifierData",
+    /*struct_size*/ sizeof(SmoothGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

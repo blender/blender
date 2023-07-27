@@ -164,16 +164,16 @@ static void barycentric_weights_v2_grid_cache(const uint xtot,
                                               const uint ytot,
                                               float (*weight_table)[4])
 {
-  float x_step = 1.0f / (float)(xtot - 1);
-  float y_step = 1.0f / (float)(ytot - 1);
+  float x_step = 1.0f / float(xtot - 1);
+  float y_step = 1.0f / float(ytot - 1);
   uint i = 0;
   float xy_fl[2];
 
   uint x, y;
   for (y = 0; y < ytot; y++) {
-    xy_fl[1] = y_step * (float)y;
+    xy_fl[1] = y_step * float(y);
     for (x = 0; x < xtot; x++) {
-      xy_fl[0] = x_step * (float)x;
+      xy_fl[0] = x_step * float(x);
       {
         const float cos[4][2] = {
             {xy_fl[0], 0.0f}, {0.0f, xy_fl[1]}, {xy_fl[0], 1.0f}, {1.0f, xy_fl[1]}};
@@ -234,7 +234,7 @@ static void bm_grid_fill_array(BMesh *bm,
 
   if (use_interp_simple || use_vert_interp || use_loop_interp) {
     weight_table = static_cast<float(*)[4]>(
-        MEM_mallocN(sizeof(*weight_table) * (size_t)(xtot * ytot), __func__));
+        MEM_mallocN(sizeof(*weight_table) * size_t(xtot * ytot), __func__));
     barycentric_weights_v2_grid_cache(xtot, ytot, weight_table);
   }
   else {
@@ -298,7 +298,7 @@ static void bm_grid_fill_array(BMesh *bm,
                                   tri_b[1],
                                   tri_b[2]);
 
-        interp_v3_v3v3(co, co_a, co_b, (float)y / ((float)ytot - 1));
+        interp_v3_v3v3(co, co_a, co_b, float(y) / (float(ytot) - 1));
       }
       else
 #endif
@@ -416,14 +416,14 @@ static void bm_grid_fill_array(BMesh *bm,
               bm_loop_interp_from_grid_boundary_4(bm, l_quad[i++], l_bound, w);
             }
             else if (interp_from == 'X') {
-              const float t = (float)(y + y_side) / (float)(ytot - 1);
+              const float t = float(y + y_side) / float(ytot - 1);
               l_bound[0] = larr_x_a[x][x_side]; /* B */
               l_bound[1] = larr_x_b[x][x_side]; /* T */
 
               bm_loop_interp_from_grid_boundary_2(bm, l_quad[i++], l_bound, t);
             }
             else if (interp_from == 'Y') {
-              const float t = (float)(x + x_side) / (float)(xtot - 1);
+              const float t = float(x + x_side) / float(xtot - 1);
               l_bound[0] = larr_y_a[y][y_side]; /* L */
               l_bound[1] = larr_y_b[y][y_side]; /* R */
 
@@ -460,18 +460,18 @@ static void bm_grid_fill_array(BMesh *bm,
 }
 
 static void bm_grid_fill(BMesh *bm,
-                         struct BMEdgeLoopStore *estore_a,
-                         struct BMEdgeLoopStore *estore_b,
-                         struct BMEdgeLoopStore *estore_rail_a,
-                         struct BMEdgeLoopStore *estore_rail_b,
+                         BMEdgeLoopStore *estore_a,
+                         BMEdgeLoopStore *estore_b,
+                         BMEdgeLoopStore *estore_rail_a,
+                         BMEdgeLoopStore *estore_rail_b,
                          const short mat_nr,
                          const bool use_smooth,
                          const bool use_interp_simple)
 {
 #define USE_FLIP_DETECT
 
-  const uint xtot = (uint)BM_edgeloop_length_get(estore_a);
-  const uint ytot = (uint)BM_edgeloop_length_get(estore_rail_a);
+  const uint xtot = uint(BM_edgeloop_length_get(estore_a));
+  const uint ytot = uint(BM_edgeloop_length_get(estore_rail_a));
   // BMVert *v;
   uint i;
 #ifdef DEBUG
@@ -487,7 +487,7 @@ static void bm_grid_fill(BMesh *bm,
   ListBase *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
   BMVert **v_grid = static_cast<BMVert **>(
-      MEM_callocN(sizeof(BMVert *) * (size_t)(xtot * ytot), __func__));
+      MEM_callocN(sizeof(BMVert *) * size_t(xtot * ytot), __func__));
   /**
    * <pre>
    *           estore_b
@@ -557,7 +557,7 @@ static void bm_grid_fill(BMesh *bm,
 #undef USE_FLIP_DETECT
 }
 
-static void bm_edgeloop_flag_set(struct BMEdgeLoopStore *estore, char hflag, bool set)
+static void bm_edgeloop_flag_set(BMEdgeLoopStore *estore, char hflag, bool set)
 {
   /* only handle closed loops in this case */
   LinkData *link = static_cast<LinkData *>(BM_edgeloop_verts_get(estore)->first);
@@ -591,11 +591,11 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 {
   ListBase eloops = {nullptr, nullptr};
   ListBase eloops_rail = {nullptr, nullptr};
-  struct BMEdgeLoopStore *estore_a, *estore_b;
-  struct BMEdgeLoopStore *estore_rail_a, *estore_rail_b;
+  BMEdgeLoopStore *estore_a, *estore_b;
+  BMEdgeLoopStore *estore_rail_a, *estore_rail_b;
   BMVert *v_a_first, *v_a_last;
   BMVert *v_b_first, *v_b_last;
-  const short mat_nr = (short)BMO_slot_int_get(op->slots_in, "mat_nr");
+  const short mat_nr = short(BMO_slot_int_get(op->slots_in, "mat_nr"));
   const bool use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
   const bool use_interp_simple = BMO_slot_bool_get(op->slots_in, "use_interp_simple");
   GSet *split_edges = nullptr;
@@ -680,7 +680,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
   /* add vertices if needed */
   {
-    struct BMEdgeLoopStore *estore_pairs[2][2] = {
+    BMEdgeLoopStore *estore_pairs[2][2] = {
         {estore_a, estore_b},
         {estore_rail_a, estore_rail_b},
     };

@@ -51,7 +51,7 @@ static float quad_calc_error(const float v1[3],
     normal_tri_v3(n2, v4, v1, v2);
     angle_b = compare_v3v3(n1, n2, FLT_EPSILON) ? 0.0f : angle_normalized_v3v3(n1, n2);
 
-    diff = (angle_a + angle_b) / (float)(M_PI * 2);
+    diff = (angle_a + angle_b) / float(M_PI * 2);
 
     error += diff;
   }
@@ -72,11 +72,11 @@ static float quad_calc_error(const float v1[3],
     normalize_v3(edge_vecs[3]);
 
     /* a completely skinny face is 'pi' after halving */
-    diff = (fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) +
-            fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) +
-            fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) +
-            fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2)) /
-           (float)(M_PI * 2);
+    diff = (fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - float(M_PI_2)) +
+            fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - float(M_PI_2)) +
+            fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - float(M_PI_2)) +
+            fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - float(M_PI_2))) /
+           float(M_PI * 2);
 
     error += diff;
   }
@@ -130,12 +130,11 @@ struct DelimitData {
 
   float angle_shape;
 
-  struct DelimitData_CD cdata[4];
+  DelimitData_CD cdata[4];
   int cdata_len;
 };
 
-static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
-                                              const struct DelimitData_CD *delimit_data)
+static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData_CD *delimit_data)
 {
   int cd_offset;
   for (cd_offset = delimit_data->cd_offset; cd_offset < delimit_data->cd_offset_end;
@@ -151,7 +150,7 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
 
 static bool bm_edge_delimit_cdata(CustomData *ldata,
                                   eCustomDataType type,
-                                  struct DelimitData_CD *r_delim_cd)
+                                  DelimitData_CD *r_delim_cd)
 {
   const int layer_len = CustomData_number_of_layers(ldata, type);
   r_delim_cd->cd_type = type;
@@ -161,7 +160,7 @@ static bool bm_edge_delimit_cdata(CustomData *ldata,
   return (r_delim_cd->cd_offset != -1);
 }
 
-static float bm_edge_is_delimit(const BMEdge *e, const struct DelimitData *delimit_data)
+static float bm_edge_is_delimit(const BMEdge *e, const DelimitData *delimit_data)
 {
   BMFace *f_a = e->l->f, *f_b = e->l->radial_next->f;
 #if 0
@@ -208,13 +207,13 @@ static float bm_edge_is_delimit(const BMEdge *e, const struct DelimitData *delim
       normalize_v3(edge_vecs[2]);
       normalize_v3(edge_vecs[3]);
 
-      if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - (float)M_PI_2) >
+      if ((fabsf(angle_normalized_v3v3(edge_vecs[0], edge_vecs[1]) - float(M_PI_2)) >
            delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - (float)M_PI_2) >
+          (fabsf(angle_normalized_v3v3(edge_vecs[1], edge_vecs[2]) - float(M_PI_2)) >
            delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - (float)M_PI_2) >
+          (fabsf(angle_normalized_v3v3(edge_vecs[2], edge_vecs[3]) - float(M_PI_2)) >
            delimit_data->angle_shape) ||
-          (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - (float)M_PI_2) >
+          (fabsf(angle_normalized_v3v3(edge_vecs[3], edge_vecs[0]) - float(M_PI_2)) >
            delimit_data->angle_shape))
       {
         goto fail;
@@ -251,11 +250,11 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   BMFace *f;
   BMEdge *e;
   /* data: edge-to-join, sort_value: error weight */
-  struct SortPtrByFloat *jedges;
+  SortPtrByFloat *jedges;
   uint i, totedge;
   uint totedge_tag = 0;
 
-  struct DelimitData delimit_data = {0};
+  DelimitData delimit_data = {0};
 
   delimit_data.do_seam = BMO_slot_bool_get(op->slots_in, "cmp_seam");
   delimit_data.do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");

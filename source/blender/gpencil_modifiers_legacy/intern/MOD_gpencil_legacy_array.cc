@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -50,7 +50,7 @@
 #include "MOD_gpencil_legacy_util.h"
 
 struct tmpStrokes {
-  struct tmpStrokes *next, *prev;
+  tmpStrokes *next, *prev;
   bGPDframe *gpf;
   bGPDstroke *gps;
 };
@@ -516,8 +516,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_Array = {
     /*name*/ N_("Array"),
-    /*structName*/ "ArrayGpencilModifierData",
-    /*structSize*/ sizeof(ArrayGpencilModifierData),
+    /*struct_name*/ "ArrayGpencilModifierData",
+    /*struct_size*/ sizeof(ArrayGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 

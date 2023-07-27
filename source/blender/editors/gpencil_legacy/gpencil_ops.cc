@@ -6,9 +6,9 @@
  * \ingroup edgpencil
  */
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_sys_types.h"
 
@@ -176,7 +176,7 @@ static bool gpencil_stroke_sculptmode_poll(bContext *C)
     return GPENCIL_SCULPT_MODE(gpd);
   }
 
-  return 0;
+  return false;
 }
 
 /* Poll callback for stroke weight paint mode */
@@ -189,7 +189,7 @@ static bool gpencil_stroke_weightmode_poll(bContext *C)
     return GPENCIL_WEIGHT_MODE(gpd);
   }
 
-  return 0;
+  return false;
 }
 
 /* Poll callback for stroke vertex paint mode */
@@ -202,7 +202,7 @@ static bool gpencil_stroke_vertexmode_poll(bContext *C)
     return (gpd && (gpd->flag & GP_DATA_STROKE_VERTEXMODE));
   }
 
-  return 0;
+  return false;
 }
 
 /* Poll callback for vertex painting (draw) */
@@ -535,7 +535,7 @@ void ED_keymap_gpencil_legacy(wmKeyConfig *keyconf)
 
 /* ****************************************** */
 
-void ED_operatortypes_gpencil_legacy(void)
+void ED_operatortypes_gpencil_legacy()
 {
   /* Annotations -------------------- */
 
@@ -731,7 +731,7 @@ void ED_operatortypes_gpencil_legacy(void)
   WM_operatortype_append(GPENCIL_OT_generate_weights);
 }
 
-void ED_operatormacros_gpencil(void)
+void ED_operatormacros_gpencil()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

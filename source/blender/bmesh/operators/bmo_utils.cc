@@ -437,7 +437,7 @@ void bmo_smooth_vert_exec(BMesh * /*bm*/, BMOperator *op)
       continue;
     }
 
-    mul_v3_fl(co, 1.0f / (float)j);
+    mul_v3_fl(co, 1.0f / float(j));
     interp_v3_v3v3(co, v->co, co, fac);
 
     if (clipx && fabsf(v->co[0]) <= clip_dist) {

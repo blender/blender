@@ -371,7 +371,7 @@ static void bm_log_assign_ids(BMesh *bm, BMLog *log)
 }
 
 /* Allocate an empty log entry */
-static BMLogEntry *bm_log_entry_create(void)
+static BMLogEntry *bm_log_entry_create()
 {
   BMLogEntry *entry = static_cast<BMLogEntry *>(MEM_callocN(sizeof(BMLogEntry), __func__));
 
@@ -464,9 +464,9 @@ static void bm_log_id_ghash_release(BMLog *log, GHash *id_ghash)
 BMLog *BM_log_create(BMesh *bm)
 {
   BMLog *log = static_cast<BMLog *>(MEM_callocN(sizeof(*log), __func__));
-  const uint reserve_num = (uint)(bm->totvert + bm->totface);
+  const uint reserve_num = uint(bm->totvert + bm->totface);
 
-  log->unused_ids = range_tree_uint_alloc(0, (uint)-1);
+  log->unused_ids = range_tree_uint_alloc(0, uint(-1));
   log->id_to_elem = BLI_ghash_new_ex(logkey_hash, logkey_cmp, __func__, reserve_num);
   log->elem_to_id = BLI_ghash_ptr_new_ex(__func__, reserve_num);
 
@@ -583,19 +583,19 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   uint i;
 
   /* Put all vertex IDs into an array */
-  varr = static_cast<uint *>(MEM_mallocN(sizeof(int) * (size_t)bm->totvert, __func__));
+  varr = static_cast<uint *>(MEM_mallocN(sizeof(int) * size_t(bm->totvert), __func__));
   BM_ITER_MESH_INDEX (v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
     varr[i] = bm_log_vert_id_get(log, v);
   }
 
   /* Put all face IDs into an array */
-  farr = static_cast<uint *>(MEM_mallocN(sizeof(int) * (size_t)bm->totface, __func__));
+  farr = static_cast<uint *>(MEM_mallocN(sizeof(int) * size_t(bm->totface), __func__));
   BM_ITER_MESH_INDEX (f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
     farr[i] = bm_log_face_id_get(log, f);
   }
 
   /* Create BMVert index remap array */
-  id_to_idx = bm_log_compress_ids_to_indices(varr, (uint)bm->totvert);
+  id_to_idx = bm_log_compress_ids_to_indices(varr, uint(bm->totvert));
   BM_ITER_MESH_INDEX (v, &bm_iter, bm, BM_VERTS_OF_MESH, i) {
     const uint id = bm_log_vert_id_get(log, v);
     const void *key = POINTER_FROM_UINT(id);
@@ -605,7 +605,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   BLI_ghash_free(id_to_idx, nullptr, nullptr);
 
   /* Create BMFace index remap array */
-  id_to_idx = bm_log_compress_ids_to_indices(farr, (uint)bm->totface);
+  id_to_idx = bm_log_compress_ids_to_indices(farr, uint(bm->totface));
   BM_ITER_MESH_INDEX (f, &bm_iter, bm, BM_FACES_OF_MESH, i) {
     const uint id = bm_log_face_id_get(log, f);
     const void *key = POINTER_FROM_UINT(id);
@@ -879,11 +879,11 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 
   /* avoid unnecessary resizing on initialization */
   if (BLI_ghash_len(log->current_entry->added_verts) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_verts, (uint)bm->totvert);
+    BLI_ghash_reserve(log->current_entry->added_verts, uint(bm->totvert));
   }
 
   if (BLI_ghash_len(log->current_entry->added_faces) == 0) {
-    BLI_ghash_reserve(log->current_entry->added_faces, (uint)bm->totface);
+    BLI_ghash_reserve(log->current_entry->added_faces, uint(bm->totface));
   }
 
   /* Log all vertices as newly created */
@@ -1024,12 +1024,12 @@ void BM_log_print_entry(BMesh *bm, BMLogEntry *entry)
   }
 
   printf("v | added: %d, removed: %d, modified: %d\n",
-         (int)BLI_ghash_len(entry->added_verts),
-         (int)BLI_ghash_len(entry->deleted_verts),
-         (int)BLI_ghash_len(entry->modified_verts));
+         int(BLI_ghash_len(entry->added_verts)),
+         int(BLI_ghash_len(entry->deleted_verts)),
+         int(BLI_ghash_len(entry->modified_verts)));
   printf("f | added: %d, removed: %d, modified: %d\n",
-         (int)BLI_ghash_len(entry->added_faces),
-         (int)BLI_ghash_len(entry->deleted_faces),
-         (int)BLI_ghash_len(entry->modified_faces));
+         int(BLI_ghash_len(entry->added_faces)),
+         int(BLI_ghash_len(entry->deleted_faces)),
+         int(BLI_ghash_len(entry->modified_faces)));
   printf("}\n");
 }

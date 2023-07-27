@@ -10,7 +10,7 @@
 /* Allow using deprecated functionality. */
 #define DNA_DEPRECATED_ALLOW
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "MEM_guardedalloc.h"
 
@@ -80,7 +80,7 @@ static bool gpencil_convert_old_files_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  return (int)(scene->gpd != nullptr);
+  return int(scene->gpd != nullptr);
 }
 
 static int gpencil_convert_old_files_exec(bContext *C, wmOperator *op)
@@ -195,5 +195,6 @@ void GPENCIL_OT_convert_old_files(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  ot->prop = RNA_def_boolean(ot->srna, "annotation", 0, "Annotation", "Convert to Annotations");
+  ot->prop = RNA_def_boolean(
+      ot->srna, "annotation", false, "Annotation", "Convert to Annotations");
 }

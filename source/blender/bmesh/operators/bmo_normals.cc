@@ -67,7 +67,7 @@ static int recalc_face_normals_find_index(BMesh *bm,
   const float eps = FLT_EPSILON;
   float cent_area_accum = 0.0f;
   float cent[3];
-  const float cent_fac = 1.0f / (float)faces_len;
+  const float cent_fac = 1.0f / float(faces_len);
 
   bool is_flip = false;
   int f_start_index;

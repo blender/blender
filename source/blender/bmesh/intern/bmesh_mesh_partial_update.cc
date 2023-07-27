@@ -134,7 +134,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
       bmpinfo->faces_len_alloc = default_faces_len_alloc;
       bmpinfo->faces = static_cast<BMFace **>(
           MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW((size_t)bm->totface, __func__);
+      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
     }
 
     BMVert *v;
@@ -178,7 +178,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts(BMesh *bm,
       bmpinfo->verts_len_alloc = default_verts_len_alloc;
       bmpinfo->verts = static_cast<BMVert **>(
           MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
+      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
     }
 
     for (int i = 0; i < bmpinfo->faces_len; i++) {
@@ -227,7 +227,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
       bmpinfo->faces_len_alloc = default_faces_len_alloc;
       bmpinfo->faces = static_cast<BMFace **>(
           MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW((size_t)bm->totface, __func__);
+      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
     }
 
     BMFace *f;
@@ -262,7 +262,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
       bmpinfo->verts_len_alloc = default_verts_len_alloc;
       bmpinfo->verts = static_cast<BMVert **>(
           MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
+      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
     }
 
     for (int i = 0; i < bmpinfo->faces_len; i++) {
@@ -326,7 +326,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
       bmpinfo->faces_len_alloc = default_faces_len_alloc;
       bmpinfo->faces = static_cast<BMFace **>(
           MEM_mallocN((sizeof(BMFace *) * bmpinfo->faces_len_alloc), __func__));
-      faces_tag = BLI_BITMAP_NEW((size_t)bm->totface, __func__);
+      faces_tag = BLI_BITMAP_NEW(size_t(bm->totface), __func__);
     }
 
     BMFace *f;
@@ -366,7 +366,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_multi(
       bmpinfo->verts_len_alloc = default_verts_len_alloc;
       bmpinfo->verts = static_cast<BMVert **>(
           MEM_mallocN((sizeof(BMVert *) * bmpinfo->verts_len_alloc), __func__));
-      verts_tag = BLI_BITMAP_NEW((size_t)bm->totvert, __func__);
+      verts_tag = BLI_BITMAP_NEW(size_t(bm->totvert), __func__);
     }
 
     for (int i = 0; i < bmpinfo->faces_len; i++) {

@@ -6,7 +6,7 @@
  * \ingroup modifiers
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -149,7 +149,7 @@ static void deformStroke(GpencilModifierData *md,
   }
 }
 
-static void bakeModifier(struct Main * /*bmain*/,
+static void bakeModifier(Main * /*bmain*/,
                          Depsgraph *depsgraph,
                          GpencilModifierData *md,
                          Object *ob)
@@ -214,8 +214,8 @@ static void panelRegister(ARegionType *region_type)
 
 GpencilModifierTypeInfo modifierType_Gpencil_WeightAngle = {
     /*name*/ N_("Vertex Weight Angle"),
-    /*structName*/ "WeightAngleGpencilModifierData",
-    /*structSize*/ sizeof(WeightAngleGpencilModifierData),
+    /*struct_name*/ "WeightAngleGpencilModifierData",
+    /*struct_size*/ sizeof(WeightAngleGpencilModifierData),
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ GpencilModifierTypeFlag(0),
 

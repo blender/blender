@@ -90,7 +90,7 @@ static int erot_gsetutil_cmp(const void *a, const void *b)
   return 0;
 }
 #endif
-static GSet *erot_gset_new(void)
+static GSet *erot_gset_new()
 {
   return BLI_gset_new(BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, __func__);
 }
@@ -376,7 +376,7 @@ void BM_mesh_beautify_fill(BMesh *bm,
   HeapNode **eheap_table; /* edge index aligned table pointing to the eheap */
 
   GSet **edge_state_arr = static_cast<GSet **>(
-      MEM_callocN((size_t)edge_array_len * sizeof(GSet *), __func__));
+      MEM_callocN(size_t(edge_array_len) * sizeof(GSet *), __func__));
   BLI_mempool *edge_state_pool = BLI_mempool_create(sizeof(EdRotState), 0, 512, BLI_MEMPOOL_NOP);
   int i;
 
@@ -384,9 +384,9 @@ void BM_mesh_beautify_fill(BMesh *bm,
   TIMEIT_START(beautify_fill);
 #endif
 
-  eheap = BLI_heap_new_ex((uint)edge_array_len);
+  eheap = BLI_heap_new_ex(uint(edge_array_len));
   eheap_table = static_cast<HeapNode **>(
-      MEM_mallocN(sizeof(HeapNode *) * (size_t)edge_array_len, __func__));
+      MEM_mallocN(sizeof(HeapNode *) * size_t(edge_array_len), __func__));
 
   /* build heap */
   for (i = 0; i < edge_array_len; i++) {
