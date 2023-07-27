@@ -1234,7 +1234,7 @@ static int imagewraposa_aniso(Tex *tex,
       b *= ff;
     }
     maxd = max_ff(b, 1e-8f);
-    levf = (float(M_LOG2E)) * logf(maxd);
+    levf = float(M_LOG2E) * logf(maxd);
 
     curmap = 0;
     maxlev = 1;

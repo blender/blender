@@ -21,7 +21,7 @@
  */
 static bool initialized = false;
 
-void GPU_init(void)
+void GPU_init()
 {
   /* can't avoid calling this multiple times, see wm_window_ghostwindow_add */
   if (initialized) {
@@ -38,7 +38,7 @@ void GPU_init(void)
   gpu_batch_init();
 }
 
-void GPU_exit(void)
+void GPU_exit()
 {
   gpu_batch_exit();
 
@@ -52,7 +52,7 @@ void GPU_exit(void)
   initialized = false;
 }
 
-bool GPU_is_init(void)
+bool GPU_is_init()
 {
   return initialized;
 }

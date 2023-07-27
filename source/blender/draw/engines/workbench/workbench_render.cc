@@ -56,11 +56,11 @@ static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *deps
   DRW_view_set_active(view);
 }
 
-static bool workbench_render_framebuffers_init(void)
+static bool workbench_render_framebuffers_init()
 {
   /* For image render, allocate own buffers because we don't have a viewport. */
   const float *viewport_size = DRW_viewport_size_get();
-  const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+  const int size[2] = {int(viewport_size[0]), int(viewport_size[1])};
 
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 

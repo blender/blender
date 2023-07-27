@@ -30,7 +30,7 @@ void EEVEE_subsurface_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_TextureList *txl = vedata->txl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   const float *viewport_size = DRW_viewport_size_get();
-  const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+  const int fs_size[2] = {int(viewport_size[0]), int(viewport_size[1])};
 
   if (effects->enabled_effects & EFFECT_SSS) {
     /* NOTE: we need another stencil because the stencil buffer is on the same texture

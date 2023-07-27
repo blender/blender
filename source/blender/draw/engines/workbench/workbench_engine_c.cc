@@ -653,7 +653,7 @@ void workbench_draw_finish(void * /*ved*/)
   DRW_view_set_active(nullptr);
 }
 
-static void workbench_engine_free(void)
+static void workbench_engine_free()
 {
   workbench_shader_free();
 }

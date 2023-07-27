@@ -113,7 +113,7 @@ void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
   }
   const eViewLayerCryptomatteFlags active_layers = eevee_cryptomatte_active_layers(view_layer);
   if (active_layers) {
-    struct CryptomatteSession *session = BKE_cryptomatte_init();
+    CryptomatteSession *session = BKE_cryptomatte_init();
     if ((active_layers & VIEW_LAYER_CRYPTOMATTE_OBJECT) != 0) {
       BKE_cryptomatte_add_layer(session, "CryptoObject");
     }

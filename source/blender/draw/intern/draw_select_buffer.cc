@@ -193,7 +193,7 @@ struct PolyMaskData {
 
 static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
 {
-  struct PolyMaskData *data = static_cast<PolyMaskData *>(user_data);
+  PolyMaskData *data = static_cast<PolyMaskData *>(user_data);
   BLI_bitmap *px = data->px;
   int i = (y * data->width) + x;
   do {
@@ -224,7 +224,7 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
 
   BLI_bitmap *buf_mask = BLI_BITMAP_NEW(buf_len, __func__);
 
-  struct PolyMaskData poly_mask_data;
+  PolyMaskData poly_mask_data;
   poly_mask_data.px = buf_mask;
   poly_mask_data.width = (rect->xmax - rect->xmin) + 1;
 
@@ -303,7 +303,7 @@ struct SelectReadData {
 
 static bool select_buffer_test_fn(const void *__restrict value, void *__restrict userdata)
 {
-  struct SelectReadData *data = static_cast<SelectReadData *>(userdata);
+  SelectReadData *data = static_cast<SelectReadData *>(userdata);
   uint hit_id = *(uint *)value;
   if (hit_id && hit_id >= data->id_min && hit_id < data->id_max) {
     /* Start at 1 to confirm. */
@@ -344,14 +344,14 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
 
   const int shape[2] = {height, width};
   const int center_yx[2] = {(height - 1) / 2, (width - 1) / 2};
-  struct SelectReadData data = {nullptr, id_min, id_max, 0};
+  SelectReadData data = {nullptr, id_min, id_max, 0};
   BLI_array_iter_spiral_square(buf, shape, center_yx, select_buffer_test_fn, &data);
 
   if (data.val_ptr) {
-    size_t offset = ((size_t)data.val_ptr - (size_t)buf) / sizeof(*buf);
+    size_t offset = (size_t(data.val_ptr) - size_t(buf)) / sizeof(*buf);
     int hit_x = offset % width;
     int hit_y = offset / width;
-    *dist = (uint)(abs(hit_y - center_yx[0]) + abs(hit_x - center_yx[1]));
+    *dist = uint(abs(hit_y - center_yx[0]) + abs(hit_x - center_yx[1]));
   }
 
   MEM_freeN((void *)buf);
@@ -376,7 +376,7 @@ bool DRW_select_buffer_elem_get(const uint sel_id,
   uint base_index = 0;
 
   for (; base_index < select_ctx->objects_drawn_len; base_index++) {
-    struct ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
+    ObjectOffsets *base_ofs = &select_ctx->index_offsets[base_index];
 
     if (base_ofs->face > sel_id) {
       elem_id = sel_id - base_ofs->face_start;
@@ -428,7 +428,7 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
     return 0;
   }
 
-  struct ObjectOffsets *base_ofs = &select_ctx->index_offsets[sel_data->drawn_index];
+  ObjectOffsets *base_ofs = &select_ctx->index_offsets[sel_data->drawn_index];
 
   if (elem_type == SCE_SELECT_VERTEX) {
     return base_ofs->vert_start;

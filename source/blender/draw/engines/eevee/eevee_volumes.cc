@@ -57,9 +57,9 @@ void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
 
   BLI_halton_3d(ht_primes, ht_offset, current_sample, ht_point);
 
-  common_data->vol_jitter[0] = (float)ht_point[0];
-  common_data->vol_jitter[1] = (float)ht_point[1];
-  common_data->vol_jitter[2] = (float)ht_point[2];
+  common_data->vol_jitter[0] = float(ht_point[0]);
+  common_data->vol_jitter[1] = float(ht_point[1]);
+  common_data->vol_jitter[2] = float(ht_point[2]);
 }
 
 void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
@@ -80,8 +80,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   /* Find Froxel Texture resolution. */
   int tex_size[3];
 
-  tex_size[0] = (int)ceilf(fmaxf(1.0f, viewport_size[0] / (float)tile_size));
-  tex_size[1] = (int)ceilf(fmaxf(1.0f, viewport_size[1] / (float)tile_size));
+  tex_size[0] = int(ceilf(fmaxf(1.0f, viewport_size[0] / float(tile_size))));
+  tex_size[1] = int(ceilf(fmaxf(1.0f, viewport_size[1] / float(tile_size))));
   tex_size[2] = max_ii(scene_eval->eevee.volumetric_samples, 1);
 
   /* Clamp 3D texture size based on device maximum. */
@@ -91,8 +91,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   tex_size[1] = tex_size[1] > maxSize ? maxSize : tex_size[1];
   tex_size[2] = tex_size[2] > maxSize ? maxSize : tex_size[2];
 
-  common_data->vol_coord_scale[0] = viewport_size[0] / (float)(tile_size * tex_size[0]);
-  common_data->vol_coord_scale[1] = viewport_size[1] / (float)(tile_size * tex_size[1]);
+  common_data->vol_coord_scale[0] = viewport_size[0] / float(tile_size * tex_size[0]);
+  common_data->vol_coord_scale[1] = viewport_size[1] / float(tile_size * tex_size[1]);
   common_data->vol_coord_scale[2] = 1.0f / viewport_size[0];
   common_data->vol_coord_scale[3] = 1.0f / viewport_size[1];
 
@@ -114,9 +114,9 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     GPU_FRAMEBUFFER_FREE_SAFE(fbl->volumetric_integ_fb);
     copy_v3_v3_int(common_data->vol_tex_size, tex_size);
 
-    common_data->vol_inv_tex_size[0] = 1.0f / (float)(tex_size[0]);
-    common_data->vol_inv_tex_size[1] = 1.0f / (float)(tex_size[1]);
-    common_data->vol_inv_tex_size[2] = 1.0f / (float)(tex_size[2]);
+    common_data->vol_inv_tex_size[0] = 1.0f / float(tex_size[0]);
+    common_data->vol_inv_tex_size[1] = 1.0f / float(tex_size[1]);
+    common_data->vol_inv_tex_size[2] = 1.0f / float(tex_size[2]);
   }
 
   /* Like frostbite's paper, 5% blend of the new frame. */
@@ -130,7 +130,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   bool do_taa = ((effects->enabled_effects & EFFECT_TAA) != 0);
 
   if (draw_ctx->evil_C != nullptr) {
-    struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+    wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
     do_taa = do_taa && (ED_screen_animation_no_scrub(wm) == nullptr);
   }
 
@@ -153,7 +153,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   float integration_start = scene_eval->eevee.volumetric_start;
   float integration_end = scene_eval->eevee.volumetric_end;
   effects->volume_light_clamp = scene_eval->eevee.volumetric_light_clamp;
-  common_data->vol_shadow_steps = (float)scene_eval->eevee.volumetric_shadow_samples;
+  common_data->vol_shadow_steps = float(scene_eval->eevee.volumetric_shadow_samples);
   if ((scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_SHADOWS) == 0) {
     common_data->vol_shadow_steps = 0;
   }
@@ -598,7 +598,7 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
   }
 }
 
-void EEVEE_volumes_free(void)
+void EEVEE_volumes_free()
 {
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_scatter);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_transmit);

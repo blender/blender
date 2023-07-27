@@ -102,7 +102,7 @@ static void frustum_min_bounding_sphere(const float corners[8][3],
    * Remember we need a __stable__ solution! */
 
   /* Try to reduce float imprecision leading to shimmering. */
-  *r_radius = (float)round_to_digits(sqrtf(*r_radius), 3);
+  *r_radius = float(round_to_digits(sqrtf(*r_radius), 3));
 #endif
 }
 
@@ -113,10 +113,10 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
                                        float view_far,
                                        int sample_ofs)
 {
-  EEVEE_Shadow *shdw_data = linfo->shadow_data + (int)evli->shadow_id;
-  EEVEE_ShadowCascade *csm_data = linfo->shadow_cascade_data + (int)shdw_data->type_data_id;
+  EEVEE_Shadow *shdw_data = linfo->shadow_data + int(evli->shadow_id);
+  EEVEE_ShadowCascade *csm_data = linfo->shadow_cascade_data + int(shdw_data->type_data_id);
   EEVEE_ShadowCascadeRender *csm_render = linfo->shadow_cascade_render +
-                                          (int)shdw_data->type_data_id;
+                                          int(shdw_data->type_data_id);
   int cascade_count = csm_render->cascade_count;
   float cascade_fade = csm_render->cascade_fade;
   float cascade_max_dist = csm_render->cascade_max_dist;
@@ -235,8 +235,8 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
 
   for (int c = 1; c < cascade_count; c++) {
     /* View Space */
-    float linear_split = interpf(csm_end, csm_start, c / (float)cascade_count);
-    float exp_split = csm_start * powf(csm_end / csm_start, c / (float)cascade_count);
+    float linear_split = interpf(csm_end, csm_start, c / float(cascade_count));
+    float exp_split = csm_start * powf(csm_end / csm_start, c / float(cascade_count));
 
     if (is_persp) {
       csm_data->split_start[c] = interpf(exp_split, linear_split, cascade_exponent);
@@ -394,10 +394,10 @@ void EEVEE_shadows_draw_cascades(EEVEE_ViewLayerData *sldata,
   EEVEE_LightsInfo *linfo = sldata->lights;
 
   EEVEE_Light *evli = linfo->light_data + linfo->shadow_cascade_light_indices[cascade_index];
-  EEVEE_Shadow *shdw_data = linfo->shadow_data + (int)evli->shadow_id;
-  EEVEE_ShadowCascade *csm_data = linfo->shadow_cascade_data + (int)shdw_data->type_data_id;
+  EEVEE_Shadow *shdw_data = linfo->shadow_data + int(evli->shadow_id);
+  EEVEE_ShadowCascade *csm_data = linfo->shadow_cascade_data + int(shdw_data->type_data_id);
   EEVEE_ShadowCascadeRender *csm_render = linfo->shadow_cascade_render +
-                                          (int)shdw_data->type_data_id;
+                                          int(shdw_data->type_data_id);
 
   float near = DRW_view_near_distance_get(view);
   float far = DRW_view_far_distance_get(view);

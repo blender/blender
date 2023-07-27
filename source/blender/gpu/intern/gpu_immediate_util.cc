@@ -149,7 +149,7 @@ static void imm_draw_circle(GPUPrimType prim_type,
 
     immVertex2f(shdr_pos, x + (radius_x * cosf(0.0f)), y + (radius_y * sinf(0.0f)));
     for (int i = 1; i < nsegments; i++) {
-      const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
+      const float angle = float(2 * M_PI) * (float(i) / float(nsegments));
       immVertex2f(shdr_pos, x + (radius_x * cosf(angle)), y + (radius_y * sinf(angle)));
       immVertex2f(shdr_pos, x + (radius_x * cosf(angle)), y + (radius_y * sinf(angle)));
     }
@@ -159,7 +159,7 @@ static void imm_draw_circle(GPUPrimType prim_type,
   else {
     immBegin(prim_type, nsegments);
     for (int i = 0; i < nsegments; i++) {
-      const float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
+      const float angle = float(2 * M_PI) * (float(i) / float(nsegments));
       immVertex2f(shdr_pos, x + (radius_x * cosf(angle)), y + (radius_y * sinf(angle)));
     }
     immEnd();
@@ -198,12 +198,12 @@ static void imm_draw_circle_partial(GPUPrimType prim_type,
                                     float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + float(M_PI_2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
   for (int i = 0; i < nsegments; i++) {
-    const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+    const float angle = interpf(angle_start, angle_end, (float(i) / float(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
     immVertex2f(pos, x + radius * angle_cos, y + radius * angle_sin);
@@ -222,12 +222,12 @@ static void imm_draw_circle_partial_3d(GPUPrimType prim_type,
                                        float sweep)
 {
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -DEG2RADF(start) + (float)(M_PI / 2);
+  const float angle_start = -DEG2RADF(start) + float(M_PI / 2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments);
   for (int i = 0; i < nsegments; i++) {
-    const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+    const float angle = interpf(angle_start, angle_end, (float(i) / float(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
     immVertex3f(pos, x + rad * angle_cos, y + rad * angle_sin, z);
@@ -262,12 +262,12 @@ static void imm_draw_disk_partial(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + float(M_PI_2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);
   for (int i = 0; i < nsegments; i++) {
-    const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+    const float angle = interpf(angle_start, angle_end, (float(i) / float(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
     immVertex2f(pos, x + rad_inner * angle_cos, y + rad_inner * angle_sin);
@@ -292,12 +292,12 @@ static void imm_draw_disk_partial_3d(GPUPrimType prim_type,
   CLAMP(sweep, -max_angle, max_angle);
 
   /* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
-  const float angle_start = -DEG2RADF(start) + (float)M_PI_2;
+  const float angle_start = -DEG2RADF(start) + float(M_PI_2);
   const float angle_end = -(DEG2RADF(sweep) - angle_start);
   nsegments += 1;
   immBegin(prim_type, nsegments * 2);
   for (int i = 0; i < nsegments; i++) {
-    const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+    const float angle = interpf(angle_start, angle_end, (float(i) / float(nsegments - 1)));
     const float angle_sin = sinf(angle);
     const float angle_cos = cosf(angle);
     immVertex3f(pos, x + rad_inner * angle_cos, y + rad_inner * angle_sin, z);
@@ -344,7 +344,7 @@ static void imm_draw_circle_3D(GPUPrimType prim_type,
     /* NOTE(Metal/AMD): For small primitives, line list more efficient than line strip. */
     immBegin(GPU_PRIM_LINES, nsegments * 2);
 
-    const float angle = (float)(2 * M_PI) / (float)nsegments;
+    const float angle = float(2 * M_PI) / float(nsegments);
     float xprev = cosf(-angle) * radius_x;
     float yprev = sinf(-angle) * radius_y;
     const float alpha = 2.0f * cosf(angle);
@@ -372,7 +372,7 @@ static void imm_draw_circle_3D(GPUPrimType prim_type,
   else {
     immBegin(prim_type, nsegments);
     for (int i = 0; i < nsegments; i++) {
-      float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
+      float angle = float(2 * M_PI) * (float(i) / float(nsegments));
       immVertex3f(pos, x + radius_x * cosf(angle), y + radius_y * sinf(angle), 0.0f);
     }
     immEnd();
@@ -545,20 +545,20 @@ void imm_draw_cylinder_fill_normal_3d(
 {
   immBegin(GPU_PRIM_TRIS, 6 * slices * stacks);
   for (int i = 0; i < slices; i++) {
-    const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
-    const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
+    const float angle1 = float(2 * M_PI) * (float(i) / float(slices));
+    const float angle2 = float(2 * M_PI) * (float(i + 1) / float(slices));
     const float cos1 = cosf(angle1);
     const float sin1 = sinf(angle1);
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
     for (int j = 0; j < stacks; j++) {
-      float fac1 = (float)j / (float)stacks;
-      float fac2 = (float)(j + 1) / (float)stacks;
+      float fac1 = float(j) / float(stacks);
+      float fac2 = float(j + 1) / float(stacks);
       float r1 = base * (1.0f - fac1) + top * fac1;
       float r2 = base * (1.0f - fac2) + top * fac2;
-      float h1 = height * ((float)j / (float)stacks);
-      float h2 = height * ((float)(j + 1) / (float)stacks);
+      float h1 = height * (float(j) / float(stacks));
+      float h2 = height * (float(j + 1) / float(stacks));
 
       const float v1[3] = {r1 * cos2, r1 * sin2, h1};
       const float v2[3] = {r2 * cos2, r2 * sin2, h2};
@@ -601,20 +601,20 @@ void imm_draw_cylinder_wire_3d(
 {
   immBegin(GPU_PRIM_LINES, 6 * slices * stacks);
   for (int i = 0; i < slices; i++) {
-    const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
-    const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
+    const float angle1 = float(2 * M_PI) * (float(i) / float(slices));
+    const float angle2 = float(2 * M_PI) * (float(i + 1) / float(slices));
     const float cos1 = cosf(angle1);
     const float sin1 = sinf(angle1);
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
     for (int j = 0; j < stacks; j++) {
-      float fac1 = (float)j / (float)stacks;
-      float fac2 = (float)(j + 1) / (float)stacks;
+      float fac1 = float(j) / float(stacks);
+      float fac2 = float(j + 1) / float(stacks);
       float r1 = base * (1.0f - fac1) + top * fac1;
       float r2 = base * (1.0f - fac2) + top * fac2;
-      float h1 = height * ((float)j / (float)stacks);
-      float h2 = height * ((float)(j + 1) / (float)stacks);
+      float h1 = height * (float(j) / float(stacks));
+      float h2 = height * (float(j + 1) / float(stacks));
 
       const float v1[3] = {r1 * cos2, r1 * sin2, h1};
       const float v2[3] = {r2 * cos2, r2 * sin2, h2};
@@ -639,20 +639,20 @@ void imm_draw_cylinder_fill_3d(
 {
   immBegin(GPU_PRIM_TRIS, 6 * slices * stacks);
   for (int i = 0; i < slices; i++) {
-    const float angle1 = (float)(2 * M_PI) * ((float)i / (float)slices);
-    const float angle2 = (float)(2 * M_PI) * ((float)(i + 1) / (float)slices);
+    const float angle1 = float(2 * M_PI) * (float(i) / float(slices));
+    const float angle2 = float(2 * M_PI) * (float(i + 1) / float(slices));
     const float cos1 = cosf(angle1);
     const float sin1 = sinf(angle1);
     const float cos2 = cosf(angle2);
     const float sin2 = sinf(angle2);
 
     for (int j = 0; j < stacks; j++) {
-      float fac1 = (float)j / (float)stacks;
-      float fac2 = (float)(j + 1) / (float)stacks;
+      float fac1 = float(j) / float(stacks);
+      float fac2 = float(j + 1) / float(stacks);
       float r1 = base * (1.0f - fac1) + top * fac1;
       float r2 = base * (1.0f - fac2) + top * fac2;
-      float h1 = height * ((float)j / (float)stacks);
-      float h2 = height * ((float)(j + 1) / (float)stacks);
+      float h1 = height * (float(j) / float(stacks));
+      float h2 = height * (float(j + 1) / float(stacks));
 
       const float v1[3] = {r1 * cos2, r1 * sin2, h1};
       const float v2[3] = {r2 * cos2, r2 * sin2, h2};

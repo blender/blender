@@ -3006,7 +3006,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   if (ibuf->float_buffer.data) {
 
     float *fp = ibuf->float_buffer.data;
-    for (i = (size_t(ibuf->x)) * ibuf->y; i > 0; i--, fp += 4) {
+    for (i = size_t(ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
       if (r) {
         fp[0] = 1.0f - fp[0];
       }
@@ -3028,7 +3028,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   else if (ibuf->byte_buffer.data) {
 
     uchar *cp = ibuf->byte_buffer.data;
-    for (i = (size_t(ibuf->x)) * ibuf->y; i > 0; i--, cp += 4) {
+    for (i = size_t(ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
       if (r) {
         cp[0] = 255 - cp[0];
       }

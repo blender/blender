@@ -181,7 +181,7 @@ void GPENCIL_cache_init(void *ved)
   DRWShadingGroup *grp;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  pd->cfra = (int)DEG_get_ctime(draw_ctx->depsgraph);
+  pd->cfra = int(DEG_get_ctime(draw_ctx->depsgraph));
   pd->simplify_antialias = GPENCIL_SIMPLIFY_AA(draw_ctx->scene);
   pd->use_layer_fb = false;
   pd->use_object_fb = false;
@@ -539,7 +539,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
   if (show_stroke) {
     int vfirst = gps->runtime.stroke_start * 3;
     bool is_cyclic = ((gps->flag & GP_STROKE_CYCLIC) != 0) && (gps->totpoints > 2);
-    int vcount = (gps->totpoints + (int)is_cyclic) * 2 * 3;
+    int vcount = (gps->totpoints + int(is_cyclic)) * 2 * 3;
     gpencil_drawcall_add(iter, geom, vfirst, vcount);
   }
 
@@ -611,7 +611,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
     /* Special case for rendering onion skin. */
     bGPdata *gpd = (bGPdata *)ob->data;
     bool do_onion = (!pd->is_render) ? pd->do_onion : (gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
-    gpd->runtime.playing = (short)pd->playing;
+    gpd->runtime.playing = short(pd->playing);
 
     /* When render in background the active frame could not be properly set due thread priority,
      * better set again. This is not required in viewport. */
@@ -972,7 +972,7 @@ void GPENCIL_draw_scene(void *ved)
   }
 }
 
-static void GPENCIL_engine_free(void)
+static void GPENCIL_engine_free()
 {
   GPENCIL_shader_free();
 }

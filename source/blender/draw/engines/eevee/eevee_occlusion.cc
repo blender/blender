@@ -47,7 +47,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       stl->g_data->render_passes & EEVEE_RENDER_PASS_AO)
   {
     const float *viewport_size = DRW_viewport_size_get();
-    const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+    const int fs_size[2] = {int(viewport_size[0]), int(viewport_size[1])};
 
     common_data->ao_dist = scene_eval->eevee.gtao_distance;
     common_data->ao_factor = max_ff(1e-4f, scene_eval->eevee.gtao_factor);
@@ -266,7 +266,7 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
   }
 }
 
-void EEVEE_occlusion_free(void)
+void EEVEE_occlusion_free()
 {
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_horizon_tx);
 }

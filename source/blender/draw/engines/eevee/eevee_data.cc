@@ -237,7 +237,7 @@ void EEVEE_view_layer_data_free(void *storage)
   }
 }
 
-EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
+EEVEE_ViewLayerData *EEVEE_view_layer_data_get()
 {
   return (EEVEE_ViewLayerData *)DRW_view_layer_engine_data_get(&draw_engine_eevee_type);
 }
@@ -261,7 +261,7 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(ViewLayer *view_layer)
   return *sldata;
 }
 
-EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)
+EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure()
 {
   EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure(
       &draw_engine_eevee_type, &EEVEE_view_layer_data_free);

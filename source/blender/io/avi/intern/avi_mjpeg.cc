@@ -216,8 +216,8 @@ static void std_huff_tables(j_decompress_ptr dinfo)
 
 static int Decode_JPEG(uchar *inBuffer, uchar *outBuffer, uint width, uint height, size_t bufsize)
 {
-  struct jpeg_decompress_struct dinfo;
-  struct jpeg_error_mgr jerr;
+  jpeg_decompress_struct dinfo;
+  jpeg_error_mgr jerr;
 
   (void)width; /* unused */
 
@@ -270,8 +270,8 @@ static int Decode_JPEG(uchar *inBuffer, uchar *outBuffer, uint width, uint heigh
 static void Compress_JPEG(
     int quality, uchar *outbuffer, const uchar *inBuffer, int width, int height, size_t bufsize)
 {
-  struct jpeg_compress_struct cinfo;
-  struct jpeg_error_mgr jerr;
+  jpeg_compress_struct cinfo;
+  jpeg_error_mgr jerr;
   uchar marker[60];
 
   cinfo.err = jpeg_std_error(&jerr);
@@ -443,8 +443,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, uchar *buffer, size_t 
       numbytes = 0;
       Compress_JPEG(movie->streams[stream].sh.Quality / 100,
                     buf + *size,
-                    buffer +
-                        (size_t)(movie->header->Height / 2) * (size_t)movie->header->Width * 3,
+                    buffer + size_t(movie->header->Height / 2) * size_t(movie->header->Width) * 3,
                     movie->header->Width,
                     movie->header->Height / 2,
                     bufsize / 2);

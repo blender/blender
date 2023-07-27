@@ -66,7 +66,7 @@ static ListBase presets_list = {nullptr, nullptr};
 /** \name 3D Primitives
  * \{ */
 
-static GPUVertFormat *preset_3d_format(void)
+static GPUVertFormat *preset_3d_format()
 {
   if (g_presets_3d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_3d.format;
@@ -78,7 +78,7 @@ static GPUVertFormat *preset_3d_format(void)
   return &g_presets_3d.format;
 }
 
-static GPUVertFormat *preset_2d_format(void)
+static GPUVertFormat *preset_2d_format()
 {
   if (g_presets_2d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_2d.format;
@@ -253,10 +253,10 @@ static GPUBatch *gpu_batch_preset_panel_drag_widget(float pixelsize,
   GPU_vertbuf_attr_get_raw_data(vbo, g_presets_2d.attr_id.pos, &pos_step);
   GPU_vertbuf_attr_get_raw_data(vbo, g_presets_2d.attr_id.col, &col_step);
 
-  const int px = (int)pixelsize;
+  const int px = int(pixelsize);
   const int px_zoom = max_ii(round_fl_to_int(width / 22.0f), 1);
 
-  const int box_margin = max_ii(round_fl_to_int((float)(px_zoom * 2.0f)), px);
+  const int box_margin = max_ii(round_fl_to_int(float(px_zoom * 2.0f)), px);
   const int box_size = max_ii(round_fl_to_int((width / 8.0f) - px), px);
 
   const int y_ofs = max_ii(round_fl_to_int(width / 2.5f), px);
@@ -311,7 +311,7 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
   return g_presets_2d.batch.panel_drag_widget;
 }
 
-GPUBatch *GPU_batch_preset_quad(void)
+GPUBatch *GPU_batch_preset_quad()
 {
   if (!g_presets_2d.batch.quad) {
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
@@ -335,7 +335,7 @@ GPUBatch *GPU_batch_preset_quad(void)
 /** \name Preset Registration Management
  * \{ */
 
-void gpu_batch_presets_init(void)
+void gpu_batch_presets_init()
 {
   BLI_mutex_init(&g_presets_3d.mutex);
 
@@ -378,7 +378,7 @@ bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
   return false;
 }
 
-void gpu_batch_presets_exit(void)
+void gpu_batch_presets_exit()
 {
   LinkData *link;
   while ((link = static_cast<LinkData *>(BLI_pophead(&presets_list)))) {

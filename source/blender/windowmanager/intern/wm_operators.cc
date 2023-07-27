@@ -2681,7 +2681,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &use_secondary_ptr,
                                &use_secondary_prop,
                                0,
-                               RCPropFlags((RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL))))
+                               RCPropFlags(RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL)))
   {
     return 0;
   }

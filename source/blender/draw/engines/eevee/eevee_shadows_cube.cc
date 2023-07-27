@@ -60,11 +60,11 @@ start:
 #else
   int i = sample_ofs;
 #endif
-  switch ((int)evli->light_type) {
+  switch (int(evli->light_type)) {
     case LA_AREA:
       EEVEE_sample_rectangle(i, evli->rightvec, evli->upvec, evli->sizex, evli->sizey, jitter);
       break;
-    case (int)LAMPTYPE_AREA_ELLIPSE:
+    case int(LAMPTYPE_AREA_ELLIPSE):
       EEVEE_sample_ellipse(i, evli->rightvec, evli->upvec, evli->sizex, evli->sizey, jitter);
       break;
     default:
@@ -83,8 +83,8 @@ start:
 
 bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, int sample_ofs)
 {
-  EEVEE_Shadow *shdw_data = linfo->shadow_data + (int)evli->shadow_id;
-  EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + (int)shdw_data->type_data_id;
+  EEVEE_Shadow *shdw_data = linfo->shadow_data + int(evli->shadow_id);
+  EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + int(shdw_data->type_data_id);
 
   eevee_light_matrix_get(evli, cube_data->shadowmat);
 
@@ -111,7 +111,7 @@ bool EEVEE_shadows_cube_setup(EEVEE_LightsInfo *linfo, const EEVEE_Light *evli, 
      */
     /* NOTE: this has implication for spotlight rendering optimization
      * (see EEVEE_shadows_draw_cubemap). */
-    float angular_texel_size = 2.0f * DEG2RADF(90) / (float)linfo->shadow_cube_size;
+    float angular_texel_size = 2.0f * DEG2RADF(90) / float(linfo->shadow_cube_size);
     EEVEE_random_rotation_m4(sample_ofs, angular_texel_size, cube_data->shadowmat);
   }
 
@@ -132,7 +132,7 @@ static void eevee_ensure_cube_views(
     /* This half texel offset is used to ensure correct filtering between faces. */
     /* FIXME: This exhibit float precision issue with lower cube_res.
      * But it seems to be caused by the perspective_m4. */
-    side *= ((float)cube_res + 1.0f) / (float)(cube_res);
+    side *= (float(cube_res) + 1.0f) / float(cube_res);
   }
 
   perspective_m4(winmat, -side, side, -side, side, near, far);
@@ -171,8 +171,8 @@ void EEVEE_shadows_draw_cubemap(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
   EEVEE_LightsInfo *linfo = sldata->lights;
 
   EEVEE_Light *evli = linfo->light_data + linfo->shadow_cube_light_indices[cube_index];
-  EEVEE_Shadow *shdw_data = linfo->shadow_data + (int)evli->shadow_id;
-  EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + (int)shdw_data->type_data_id;
+  EEVEE_Shadow *shdw_data = linfo->shadow_data + int(evli->shadow_id);
+  EEVEE_ShadowCube *cube_data = linfo->shadow_cube_data + int(shdw_data->type_data_id);
 
   eevee_ensure_cube_views(shdw_data->near,
                           shdw_data->far,

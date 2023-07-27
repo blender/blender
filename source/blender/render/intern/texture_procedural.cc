@@ -589,7 +589,7 @@ static int texnoise(const Tex *tex, TexResult *texres, int thread)
     div *= 3.0f;
   }
 
-  texres->tin = (float(val)) / div;
+  texres->tin = float(val) / div;
 
   BRICONT;
   return TEX_INT;

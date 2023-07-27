@@ -58,7 +58,7 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, Depsgraph *depsgra
   }
   EEVEE_PrivateData *g_data = stl->g_data;
   g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
-  g_data->valid_double_buffer = 0;
+  g_data->valid_double_buffer = false;
   copy_v2_v2(g_data->size_orig, size_orig);
 
   float *camtexcofac = g_data->camtexcofac;
@@ -664,7 +664,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
      * flushing of freed GPUBackend resources. */
     GPU_render_step();
 
-    RE_engine_update_progress(engine, (float)(render_samples++) / (float)tot_sample);
+    RE_engine_update_progress(engine, float(render_samples++) / float(tot_sample));
   }
 }
 

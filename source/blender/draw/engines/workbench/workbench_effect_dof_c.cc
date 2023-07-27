@@ -81,8 +81,8 @@ static void workbench_dof_setup_samples(
         if (abs(j) < i && abs(k) < i) {
           continue;
         }
-        float x = ((float)j) / KERNEL_RAD;
-        float y = ((float)k) / KERNEL_RAD;
+        float x = float(j) / KERNEL_RAD;
+        float y = float(k) / KERNEL_RAD;
 
         float r, T;
         square_to_circle(x, y, &r, &T);
@@ -141,7 +141,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
   }
 
   const float *full_size = DRW_viewport_size_get();
-  const int size[2] = {max_ii(1, (int)full_size[0] / 2), max_ii(1, (int)full_size[1] / 2)};
+  const int size[2] = {max_ii(1, int(full_size[0]) / 2), max_ii(1, int(full_size[1]) / 2)};
 #if 0 /* TODO(fclem): finish COC min_max optimization. */
   /* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture. */
   int shrink_h_size[2] = {ceilf(size[0] / 8.0f), size[1]};
@@ -320,7 +320,7 @@ void workbench_dof_cache_init(WORKBENCH_Data *vedata)
     /* We reuse the same noise texture. Ensure it is up to date. */
     workbench_cavity_samples_ubo_ensure(wpd);
 
-    float offset = wpd->taa_sample / (float)max_ii(1, wpd->taa_sample_len);
+    float offset = wpd->taa_sample / float(max_ii(1, wpd->taa_sample_len));
     DRWShadingGroup *grp = DRW_shgroup_create(blur1_sh, psl->dof_blur1_ps);
     DRW_shgroup_uniform_block(grp, "samples", wpd->vldata->dof_sample_ubo);
     DRW_shgroup_uniform_texture(grp, "noiseTex", wpd->vldata->cavity_jitter_tx);

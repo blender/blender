@@ -79,20 +79,20 @@ static float light_shape_radiance_get(const Light *la, const EEVEE_Light *evli)
         area *= M_PI / 4.0f;
       }
       /* Convert radiant flux to radiance. */
-      return (float)M_1_PI / area;
+      return float(M_1_PI) / area;
     }
     case LA_SPOT:
     case LA_LOCAL: {
       /* Sphere area. */
-      float area = 4.0f * (float)M_PI * square_f(evli->radius);
+      float area = 4.0f * float(M_PI) * square_f(evli->radius);
       /* Convert radiant flux to radiance. */
-      return 1.0f / (area * (float)M_PI);
+      return 1.0f / (area * float(M_PI));
     }
     default:
     case LA_SUN: {
       float inv_sin_sq = 1.0f + 1.0f / square_f(evli->radius);
       /* Convert irradiance to radiance. */
-      return (float)M_1_PI * inv_sin_sq;
+      return float(M_1_PI) * inv_sin_sq;
     }
   }
 }
@@ -114,14 +114,14 @@ static float light_volume_radiance_factor_get(const Light *la,
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
       float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
-      power *= (float)M_1_PI * mrp_scaling;
+      power *= float(M_1_PI) * mrp_scaling;
       break;
     }
     case LA_SPOT:
     case LA_LOCAL: {
       /* Convert radiant flux to intensity. */
       /* Inverse of sphere solid angle. */
-      power *= 0.25f * (float)M_1_PI;
+      power *= 0.25f * float(M_1_PI);
       break;
     }
     default:
@@ -186,7 +186,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   light_shape_parameters_set(evli, la, scale);
 
   /* Light Type */
-  evli->light_type = (float)la->type;
+  evli->light_type = float(la->type);
   if ((la->type == LA_AREA) && ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
     evli->light_type = LAMPTYPE_AREA_ELLIPSE;
   }

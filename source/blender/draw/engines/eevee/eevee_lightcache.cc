@@ -76,7 +76,7 @@ struct EEVEE_LightBake {
   ViewLayer *view_layer_input;
   LightCache *lcache;
   Scene *scene;
-  struct Main *bmain;
+  Main *bmain;
   EEVEE_ViewLayerData *sldata;
 
   /** Current probe being rendered. */
@@ -278,7 +278,7 @@ static void irradiance_pool_size_get(int visibility_size, int total_samples, int
   /* The irradiance itself take one layer, hence the +1 */
   int layer_count = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
 
-  int texel_count = (int)ceilf((float)total_samples / (float)(layer_count - 1));
+  int texel_count = int(ceilf(float(total_samples) / float(layer_count - 1)));
   r_size[0] = visibility_size *
               max_ii(1, min_ii(texel_count, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
   r_size[1] = visibility_size *
@@ -759,7 +759,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 
 wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
                                   wmWindow *win,
-                                  struct Main *bmain,
+                                  Main *bmain,
                                   ViewLayer *view_layer,
                                   Scene *scene,
                                   int delay,
@@ -830,7 +830,7 @@ wmJob *EEVEE_lightbake_job_create(wmWindowManager *wm,
 }
 
 void *EEVEE_lightbake_job_data_alloc(
-    struct Main *bmain, ViewLayer *view_layer, Scene *scene, bool run_as_job, int frame)
+    Main *bmain, ViewLayer *view_layer, Scene *scene, bool run_as_job, int frame)
 {
   BLI_assert(BLI_thread_is_main());
 
@@ -1098,7 +1098,7 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
 
   /* Add one for level 0 */
   int max_lvl = (int)floorf(log2f(
-      (float)MAX3(probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z)));
+      float(MAX3(probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z))));
 
   int visited_cells = 0;
   *r_stride = 0;
@@ -1208,7 +1208,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
     egrid->level_bias = 1.0f;
   }
   else if (lbake->bounce_curr == 0) {
-    egrid->level_bias = (float)(stride << 1);
+    egrid->level_bias = float(stride << 1);
   }
 
   /* Only run this for the last sample of a bounce. */
@@ -1395,7 +1395,7 @@ static bool lightbake_do_sample(EEVEE_LightBake *lbake,
   eevee_lightbake_context_enable(lbake);
   DRW_custom_pipeline(&draw_engine_eevee_type, depsgraph, render_callback, lbake);
   lbake->done += 1;
-  *lbake->progress = lbake->done / (float)lbake->total;
+  *lbake->progress = lbake->done / float(lbake->total);
   *lbake->do_update = true;
   eevee_lightbake_context_disable(lbake);
 

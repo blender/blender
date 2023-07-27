@@ -72,10 +72,10 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
              src->ymax >= dst->ymax);
   BLI_assert(x >= 0 && y >= 0);
 
-  r_sub->start = (uint)((src_x * y) + x);
-  r_sub->span = (uint)dst_x;
-  r_sub->span_len = (uint)dst_y;
-  r_sub->skip = (uint)(src_x - dst_x);
+  r_sub->start = uint((src_x * y) + x);
+  r_sub->span = uint(dst_x);
+  r_sub->span_len = uint(dst_y);
+  r_sub->skip = uint(src_x - dst_x);
 }
 
 /**
@@ -98,7 +98,7 @@ BLI_INLINE bool depth_is_filled(const depth_t *prev, const depth_t *curr)
 
 /** Store result of #GPU_framebuffer_read_depth. */
 struct DepthBufCache {
-  struct DepthBufCache *next, *prev;
+  DepthBufCache *next, *prev;
   uint id;
   depth_t buf[0];
 };
@@ -315,7 +315,7 @@ void gpu_select_pick_begin(GPUSelectResult *buffer,
   ps->buffer_len = buffer_len;
   ps->mode = mode;
 
-  const uint rect_len = (uint)(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
+  const uint rect_len = uint(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
   ps->dst.clip_rect = *input;
   ps->dst.rect_len = rect_len;
 
@@ -340,8 +340,8 @@ void gpu_select_pick_begin(GPUSelectResult *buffer,
     ps->src.clip_rect = *input;
     ps->src.rect_len = rect_len;
 
-    ps->gpu.clip_readpixels[0] = (int)viewport[0];
-    ps->gpu.clip_readpixels[1] = (int)viewport[1];
+    ps->gpu.clip_readpixels[0] = int(viewport[0]);
+    ps->gpu.clip_readpixels[1] = int(viewport[1]);
     ps->gpu.clip_readpixels[2] = BLI_rcti_size_x(&ps->src.clip_rect);
     ps->gpu.clip_readpixels[3] = BLI_rcti_size_y(&ps->src.clip_rect);
 
@@ -540,7 +540,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
   return true;
 }
 
-uint gpu_select_pick_end(void)
+uint gpu_select_pick_end()
 {
   GPUPickState *ps = &g_pick_state;
 
@@ -663,7 +663,7 @@ uint gpu_select_pick_end(void)
   uint hits = 0;
 
   if (depth_data_len > maxhits) {
-    hits = (uint)-1;
+    hits = uint(-1);
   }
   else {
     /* Leave sorting up to the caller. */
@@ -708,7 +708,7 @@ uint gpu_select_pick_end(void)
  * Support multiple begin/end's reusing depth buffers.
  * \{ */
 
-void gpu_select_pick_cache_begin(void)
+void gpu_select_pick_cache_begin()
 {
   BLI_assert(g_pick_state.use_cache == false);
 #ifdef DEBUG_PRINT
@@ -718,7 +718,7 @@ void gpu_select_pick_cache_begin(void)
   g_pick_state.is_cached = false;
 }
 
-void gpu_select_pick_cache_end(void)
+void gpu_select_pick_cache_end()
 {
 #ifdef DEBUG_PRINT
   printf("%s: with %d buffers\n", __func__, BLI_listbase_count(&g_pick_state.cache.bufs));
@@ -729,12 +729,12 @@ void gpu_select_pick_cache_end(void)
   BLI_freelistN(&g_pick_state.cache.bufs);
 }
 
-bool gpu_select_pick_is_cached(void)
+bool gpu_select_pick_is_cached()
 {
   return g_pick_state.is_cached;
 }
 
-void gpu_select_pick_cache_load_id(void)
+void gpu_select_pick_cache_load_id()
 {
   BLI_assert(g_pick_state.is_cached == true);
   GPUPickState *ps = &g_pick_state;

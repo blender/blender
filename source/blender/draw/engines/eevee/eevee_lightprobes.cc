@@ -239,7 +239,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call_instances(grp, nullptr, geom, 6);
   }
 
@@ -259,7 +259,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 
@@ -278,7 +278,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 
@@ -290,7 +290,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
 
     DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &light_cache->grid_tx.tex);
 
-    struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 }
@@ -707,7 +707,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
   GPU_uniformbuf_update(sldata->grid_ubo, &sldata->probes->grid_data);
 
   /* For shading, save max level of the octahedron map */
-  sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len;
+  sldata->common_data.prb_lod_cube_max = float(light_cache->mips_len);
   sldata->common_data.prb_irradiance_vis_size = light_cache->vis_res;
   sldata->common_data.prb_irradiance_smooth = square_f(scene_eval->eevee.gi_irradiance_smoothing);
   sldata->common_data.prb_num_render_cube = max_ii(1, light_cache->cube_len);
@@ -996,7 +996,7 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-  float target_size = (float)GPU_texture_width(rt_color);
+  float target_size = float(GPU_texture_width(rt_color));
 
   /* Max lod used from the render target probe */
   pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;
@@ -1007,17 +1007,17 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
 
   /* 2 - Let gpu create Mipmaps for Filtered Importance Sampling. */
   /* Bind next framebuffer to be able to gen. mips for probe_rt. */
-  EEVEE_downsample_cube_buffer(vedata, rt_color, (int)(pinfo->lod_rt_max));
+  EEVEE_downsample_cube_buffer(vedata, rt_color, int(pinfo->lod_rt_max));
 
   /* 3 - Render to probe array to the specified layer, do prefiltering. */
   int mipsize = GPU_texture_width(light_cache->cube_tx.tex);
   for (int i = 0; i < maxlevel + 1; i++) {
     float bias = 0.0f;
-    pinfo->texel_size = 1.0f / (float)mipsize;
-    pinfo->padding_size = (i == maxlevel) ? 0 : (float)(1 << (maxlevel - i - 1));
+    pinfo->texel_size = 1.0f / float(mipsize);
+    pinfo->padding_size = (i == maxlevel) ? 0 : float(1 << (maxlevel - i - 1));
     pinfo->padding_size *= pinfo->texel_size;
     pinfo->layer = probe_idx * 6;
-    pinfo->roughness = i / (float)maxlevel;
+    pinfo->roughness = i / float(maxlevel);
     /* Disney Roughness */
     pinfo->roughness = square_f(pinfo->roughness);
     /* Distribute Roughness across lod more evenly */
@@ -1081,7 +1081,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   EEVEE_LightProbesInfo *pinfo = sldata->probes;
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-  float target_size = (float)GPU_texture_width(rt_color);
+  float target_size = float(GPU_texture_width(rt_color));
 
   pinfo->intensity_fac = intensity;
 
@@ -1112,7 +1112,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   GPU_framebuffer_ensure_config(&fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_NONE});
 
   /* 4 - Compute diffuse irradiance */
-  EEVEE_downsample_cube_buffer(vedata, rt_color, (int)(pinfo->lod_rt_max));
+  EEVEE_downsample_cube_buffer(vedata, rt_color, int(pinfo->lod_rt_max));
 
   GPU_framebuffer_ensure_config(
       &fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE_LAYER(light_cache->grid_tx.tex, 0)});
@@ -1143,7 +1143,7 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   pinfo->visibility_blur = vis_blur;
   pinfo->near_clip = -clipsta;
   pinfo->far_clip = -clipend;
-  pinfo->texel_size = 1.0f / (float)vis_size;
+  pinfo->texel_size = 1.0f / float(vis_size);
 
   int cell_per_col = GPU_texture_height(light_cache->grid_tx.tex) / vis_size;
   int cell_per_row = GPU_texture_width(light_cache->grid_tx.tex) / vis_size;
@@ -1269,7 +1269,7 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 }
 
-void EEVEE_lightprobes_free(void)
+void EEVEE_lightprobes_free()
 {
   MEM_SAFE_FREE(e_data.format_probe_display_planar);
   DRW_TEXTURE_FREE_SAFE(e_data.planar_pool_placeholder);

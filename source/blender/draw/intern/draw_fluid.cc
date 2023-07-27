@@ -68,7 +68,7 @@ static void create_flame_spectrum_texture(float *data)
           spec_pixels[index + 3] = MAX_FIRE_ALPHA *
                                    ((k > FULL_ON_FIRE) ?
                                         1.0f :
-                                        (k - FIRE_THRESH) / ((float)FULL_ON_FIRE - FIRE_THRESH));
+                                        (k - FIRE_THRESH) / (float(FULL_ON_FIRE) - FIRE_THRESH));
         }
         else {
           zero_v4(&spec_pixels[index]);
@@ -89,7 +89,7 @@ static void create_flame_spectrum_texture(float *data)
 static void create_color_ramp(const ColorBand *coba, float *data)
 {
   for (int i = 0; i < TFUNC_WIDTH; i++) {
-    BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
+    BKE_colorband_evaluate(coba, float(i) / TFUNC_WIDTH, &data[i * 4]);
     straight_to_premul_v4(&data[i * 4]);
   }
 }

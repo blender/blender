@@ -37,11 +37,11 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
     effects->source_texel_size[0] = 1.0f / viewport_size[0];
     effects->source_texel_size[1] = 1.0f / viewport_size[1];
 
-    blitsize[0] = (int)viewport_size[0];
-    blitsize[1] = (int)viewport_size[1];
+    blitsize[0] = int(viewport_size[0]);
+    blitsize[1] = int(viewport_size[1]);
 
-    effects->blit_texel_size[0] = 1.0f / (float)blitsize[0];
-    effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
+    effects->blit_texel_size[0] = 1.0f / float(blitsize[0]);
+    effects->blit_texel_size[1] = 1.0f / float(blitsize[1]);
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     effects->bloom_blit = DRW_texture_pool_query_2d_ex(
@@ -59,13 +59,13 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
     effects->bloom_clamp = scene_eval->eevee.bloom_clamp;
 
     /* determine the iteration count */
-    const float minDim = (float)MIN2(blitsize[0], blitsize[1]);
+    const float minDim = float(MIN2(blitsize[0], blitsize[1]));
     const float maxIter = (radius - 8.0f) + log(minDim) / log(2);
-    const int maxIterInt = effects->bloom_iteration_len = (int)maxIter;
+    const int maxIterInt = effects->bloom_iteration_len = int(maxIter);
 
     CLAMP(effects->bloom_iteration_len, 1, MAX_BLOOM_STEP);
 
-    effects->bloom_sample_scale = 0.5f + maxIter - (float)maxIterInt;
+    effects->bloom_sample_scale = 0.5f + maxIter - float(maxIterInt);
     effects->bloom_curve_threshold[0] = threshold - knee;
     effects->bloom_curve_threshold[1] = knee * 2.0f;
     effects->bloom_curve_threshold[2] = 0.25f / max_ff(1e-5f, knee);
@@ -82,8 +82,8 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
       texsize[0] = MAX2(texsize[0], 2);
       texsize[1] = MAX2(texsize[1], 2);
 
-      effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
-      effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
+      effects->downsamp_texel_size[i][0] = 1.0f / float(texsize[0]);
+      effects->downsamp_texel_size[i][1] = 1.0f / float(texsize[1]);
 
       eGPUTextureUsage downsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                           GPU_TEXTURE_USAGE_ATTACHMENT |
@@ -137,7 +137,7 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
                                                 bool resolve,
                                                 bool resolve_add_base)
 {
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
+  GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
   *pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 

@@ -25,7 +25,7 @@
     ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, 1.0)
 #endif
 #define UI_COLOR_RGBA_FROM_U8(r, g, b, a, v4) \
-  ARRAY_SET_ITEMS(v4, (float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f, (float)a / 255.0f)
+  ARRAY_SET_ITEMS(v4, float(r) / 255.0f, float(g) / 255.0f, float(b) / 255.0f, float(a) / 255.0f)
 
 /**
  * Colors & Constant.
@@ -37,7 +37,7 @@ static ColorBand weight_ramp_copy;
 
 static GPUTexture *DRW_create_weight_colorramp_texture(void);
 
-void DRW_globals_update(void)
+void DRW_globals_update()
 {
   GlobalsUboStorage *gb = &G_draw.block;
 
@@ -174,11 +174,11 @@ void DRW_globals_update(void)
 
   /* M_SQRT2 to be at least the same size of the old square */
   gb->size_vertex = U.pixelsize *
-                    max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
+                    max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f);
   gb->size_vertex_gpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->size_face_dot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
   gb->size_edge = U.pixelsize * max_ff(1.0f, UI_GetThemeValuef(TH_EDGE_WIDTH)) / 2.0f;
-  gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (1.0f * (gb->size_edge * (float)M_SQRT1_2)));
+  gb->size_edge_fix = U.pixelsize * (0.5f + 2.0f * (1.0f * (gb->size_edge * float(M_SQRT1_2))));
 
   gb->pixel_fac = *DRW_viewport_pixelsize_get();
 
@@ -246,7 +246,7 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
-void DRW_globals_free(void) {}
+void DRW_globals_free() {}
 
 DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
                                       const RegionView3D *rv3d,
@@ -471,7 +471,7 @@ static void DRW_evaluate_weight_to_color(const float weight, float result[4])
   }
 }
 
-static GPUTexture *DRW_create_weight_colorramp_texture(void)
+static GPUTexture *DRW_create_weight_colorramp_texture()
 {
   float pixels[256][4];
   for (int i = 0; i < 256; i++) {

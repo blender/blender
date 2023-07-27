@@ -84,7 +84,7 @@ static void workbench_taa_jitter_init_order(float (*table)[2], int num)
   }
 }
 
-static void workbench_taa_jitter_init(void)
+static void workbench_taa_jitter_init()
 {
   if (e_data.init == false) {
     e_data.init = true;

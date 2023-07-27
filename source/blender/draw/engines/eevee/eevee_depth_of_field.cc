@@ -121,8 +121,8 @@ bool EEVEE_depth_of_field_jitter_get(EEVEE_EffectsInfo *fx,
     samples_passed += ring_sample_count;
   }
 
-  r_jitter[0] = (float)ring / ring_count;
-  r_jitter[1] = (float)ring_sample / ring_sample_count;
+  r_jitter[0] = float(ring) / ring_count;
+  r_jitter[1] = float(ring_sample) / ring_sample_count;
 
   {
     /* Bokeh shape parameterization. */
@@ -516,8 +516,8 @@ static void dof_dilate_tiles_pass_draw(EEVEE_FramebufferList *fbl,
       /* Do not step over any unvisited tile. */
       int max_multiplier = dilation_radius + 1;
 
-      int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / (float)max_multiplier));
-      int multiplier = min_ii(max_multiplier, floor(remainder / (float)ring_count));
+      int ring_count = min_ii(DOF_DILATE_RING_COUNT, ceilf(remainder / float(max_multiplier)));
+      int multiplier = min_ii(max_multiplier, floor(remainder / float(ring_count)));
 
       dilation_radius += ring_count * multiplier;
 
@@ -681,7 +681,7 @@ static void dof_gather_pass_init(EEVEE_FramebufferList *fbl,
   int res[2] = {int(divide_ceil_u(fullres[0], 2)), int(divide_ceil_u(fullres[1], 2))};
   int input_size[2];
   GPU_texture_get_mipmap_size(txl->dof_reduced_color, 0, input_size);
-  float uv_correction_fac[2] = {res[0] / (float)input_size[0], res[1] / (float)input_size[1]};
+  float uv_correction_fac[2] = {res[0] / float(input_size[0]), res[1] / float(input_size[1])};
   float output_texel_size[2] = {1.0f / res[0], 1.0f / res[1]};
   const bool use_bokeh_tx = (fx->dof_bokeh_gather_lut_tx != nullptr);
 

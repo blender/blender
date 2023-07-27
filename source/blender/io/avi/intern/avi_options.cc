@@ -98,7 +98,7 @@ AviError AVI_set_compress_option(
           break;
 
         case AVI_OPTION_FRAMERATE:
-          useconds = (int)(1000000 / *((double *)opt_data));
+          useconds = int(1000000 / *((double *)opt_data));
           if (useconds) {
             movie->header->MicroSecPerFrame = useconds;
           }

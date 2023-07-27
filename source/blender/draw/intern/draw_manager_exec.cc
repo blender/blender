@@ -266,7 +266,7 @@ void DRW_state_reset_ex(DRWState state)
   drw_state_set(state);
 }
 
-static void drw_state_validate(void)
+static void drw_state_validate()
 {
   /* Cannot write to stencil buffer without stencil test. */
   if (DST.state & DRW_STATE_WRITE_STENCIL_ENABLED) {
@@ -315,7 +315,7 @@ void DRW_state_lock(DRWState state)
   }
 }
 
-void DRW_state_reset(void)
+void DRW_state_reset()
 {
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
@@ -349,7 +349,7 @@ void DRW_view_set_active(const DRWView *view)
   DST.view_active = (view != nullptr) ? ((DRWView *)view) : DST.view_default;
 }
 
-const DRWView *DRW_view_get_active(void)
+const DRWView *DRW_view_get_active()
 {
   return DST.view_active;
 }
@@ -1167,7 +1167,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   }
 }
 
-static void drw_update_view(void)
+static void drw_update_view()
 {
   /* TODO(fclem): update a big UBO and only bind ranges here. */
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);

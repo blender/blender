@@ -40,7 +40,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
     double dphi;
     BLI_hammersley_1d(i, &dphi);
 
-    float phi = (float)dphi * 2.0f * M_PI + it_add;
+    float phi = float(dphi) * 2.0f * M_PI + it_add;
     texels[i][0] = cosf(phi);
     texels[i][1] = sinf(phi);
     /* This deliberately distribute more samples

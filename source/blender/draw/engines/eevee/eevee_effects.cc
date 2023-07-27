@@ -67,7 +67,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const float *viewport_size = DRW_viewport_size_get();
-  const int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+  const int size_fs[2] = {int(viewport_size[0]), int(viewport_size[1])};
 
   if (!stl->effects) {
     stl->effects = static_cast<EEVEE_EffectsInfo *>(
@@ -247,7 +247,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     downsample_write = DRW_STATE_WRITE_COLOR;
   }
 
-  struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
+  GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
   if (effects->enabled_effects & EFFECT_RADIANCE_BUFFER) {
     DRW_PASS_CREATE(psl->color_copy_ps, DRW_STATE_WRITE_COLOR);
@@ -366,7 +366,7 @@ static void max_downsample_cb(void *vedata, int level)
 static void simple_downsample_cube_cb(void *vedata, int level)
 {
   EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-  e_data.texel_size[0] = (float)(1 << level) / (float)GPU_texture_width(e_data.color_src);
+  e_data.texel_size[0] = float(1 << level) / float(GPU_texture_width(e_data.color_src));
   e_data.texel_size[1] = e_data.texel_size[0];
   DRW_draw_pass(psl->color_downsample_cube_ps);
 }

@@ -40,7 +40,7 @@ static struct {
 /** \name Utils
  * \{ */
 
-static void select_engine_framebuffer_setup(void)
+static void select_engine_framebuffer_setup()
 {
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   int size[2];
@@ -234,7 +234,7 @@ static void select_cache_populate(void *vedata, Object *ob)
   if (!e_data.context.is_dirty && sel_data && sel_data->is_drawn) {
     /* The object indices have already been drawn. Fill depth pass.
      * Optimization: Most of the time this depth pass is not used. */
-    struct Mesh *me = static_cast<Mesh *>(ob->data);
+    Mesh *me = static_cast<Mesh *>(ob->data);
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
       GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
@@ -272,8 +272,7 @@ static void select_cache_populate(void *vedata, Object *ob)
     sel_data->drawn_index = e_data.context.objects_drawn_len;
     sel_data->is_drawn = true;
 
-    struct ObjectOffsets *ob_offsets =
-        &e_data.context.index_offsets[e_data.context.objects_drawn_len];
+    ObjectOffsets *ob_offsets = &e_data.context.index_offsets[e_data.context.objects_drawn_len];
 
     uint offset = e_data.context.index_drawn_len;
     select_id_draw_object(vedata,
@@ -331,7 +330,7 @@ static void select_draw_scene(void *vedata)
   }
 }
 
-static void select_engine_free(void)
+static void select_engine_free()
 {
   for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
     SELECTID_Shaders *sh_data = &e_data.sh_data[sh_data_index];
@@ -404,17 +403,17 @@ RenderEngineType DRW_engine_viewport_select_type = {
 /** \name Exposed `select_private.h` functions
  * \{ */
 
-SELECTID_Context *DRW_select_engine_context_get(void)
+SELECTID_Context *DRW_select_engine_context_get()
 {
   return &e_data.context;
 }
 
-GPUFrameBuffer *DRW_engine_select_framebuffer_get(void)
+GPUFrameBuffer *DRW_engine_select_framebuffer_get()
 {
   return e_data.framebuffer_select_id;
 }
 
-GPUTexture *DRW_engine_select_texture_get(void)
+GPUTexture *DRW_engine_select_texture_get()
 {
   return e_data.texture_u32;
 }

@@ -95,7 +95,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, uchar *buffer, con
              movie->header->Width * 3);
     }
 
-    for (size_t y = 0; y < (size_t)movie->header->Height * (size_t)movie->header->Width * 3;
+    for (size_t y = 0; y < size_t(movie->header->Height) * size_t(movie->header->Width) * 3;
          y += 3) {
       int i = buf[y];
       buf[y] = buf[y + 2];

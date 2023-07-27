@@ -48,7 +48,7 @@ static struct {
   GPUShader *fx_transform_sh;
 } g_shaders = {{nullptr}};
 
-void GPENCIL_shader_free(void)
+void GPENCIL_shader_free()
 {
   DRW_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[0]);
   DRW_SHADER_FREE_SAFE(g_shaders.antialiasing_sh[1]);
@@ -80,7 +80,7 @@ GPUShader *GPENCIL_shader_antialiasing(int stage)
   return g_shaders.antialiasing_sh[stage];
 }
 
-GPUShader *GPENCIL_shader_geometry_get(void)
+GPUShader *GPENCIL_shader_geometry_get()
 {
   if (!g_shaders.gpencil_sh) {
     g_shaders.gpencil_sh = GPU_shader_create_from_info_name("gpencil_geometry");
@@ -88,7 +88,7 @@ GPUShader *GPENCIL_shader_geometry_get(void)
   return g_shaders.gpencil_sh;
 }
 
-GPUShader *GPENCIL_shader_layer_blend_get(void)
+GPUShader *GPENCIL_shader_layer_blend_get()
 {
   if (!g_shaders.layer_blend_sh) {
     g_shaders.layer_blend_sh = GPU_shader_create_from_info_name("gpencil_layer_blend");
@@ -96,7 +96,7 @@ GPUShader *GPENCIL_shader_layer_blend_get(void)
   return g_shaders.layer_blend_sh;
 }
 
-GPUShader *GPENCIL_shader_mask_invert_get(void)
+GPUShader *GPENCIL_shader_mask_invert_get()
 {
   if (!g_shaders.mask_invert_sh) {
     g_shaders.mask_invert_sh = GPU_shader_create_from_info_name("gpencil_mask_invert");
@@ -104,7 +104,7 @@ GPUShader *GPENCIL_shader_mask_invert_get(void)
   return g_shaders.mask_invert_sh;
 }
 
-GPUShader *GPENCIL_shader_depth_merge_get(void)
+GPUShader *GPENCIL_shader_depth_merge_get()
 {
   if (!g_shaders.depth_merge_sh) {
     g_shaders.depth_merge_sh = GPU_shader_create_from_info_name("gpencil_depth_merge");
@@ -114,7 +114,7 @@ GPUShader *GPENCIL_shader_depth_merge_get(void)
 
 /* ------- FX Shaders --------- */
 
-GPUShader *GPENCIL_shader_fx_blur_get(void)
+GPUShader *GPENCIL_shader_fx_blur_get()
 {
   if (!g_shaders.fx_blur_sh) {
     g_shaders.fx_blur_sh = GPU_shader_create_from_info_name("gpencil_fx_blur");
@@ -122,7 +122,7 @@ GPUShader *GPENCIL_shader_fx_blur_get(void)
   return g_shaders.fx_blur_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_colorize_get(void)
+GPUShader *GPENCIL_shader_fx_colorize_get()
 {
   if (!g_shaders.fx_colorize_sh) {
     g_shaders.fx_colorize_sh = GPU_shader_create_from_info_name("gpencil_fx_colorize");
@@ -130,7 +130,7 @@ GPUShader *GPENCIL_shader_fx_colorize_get(void)
   return g_shaders.fx_colorize_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_composite_get(void)
+GPUShader *GPENCIL_shader_fx_composite_get()
 {
   if (!g_shaders.fx_composite_sh) {
     g_shaders.fx_composite_sh = GPU_shader_create_from_info_name("gpencil_fx_composite");
@@ -138,7 +138,7 @@ GPUShader *GPENCIL_shader_fx_composite_get(void)
   return g_shaders.fx_composite_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_glow_get(void)
+GPUShader *GPENCIL_shader_fx_glow_get()
 {
   if (!g_shaders.fx_glow_sh) {
     g_shaders.fx_glow_sh = GPU_shader_create_from_info_name("gpencil_fx_glow");
@@ -146,7 +146,7 @@ GPUShader *GPENCIL_shader_fx_glow_get(void)
   return g_shaders.fx_glow_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_pixelize_get(void)
+GPUShader *GPENCIL_shader_fx_pixelize_get()
 {
   if (!g_shaders.fx_pixel_sh) {
     g_shaders.fx_pixel_sh = GPU_shader_create_from_info_name("gpencil_fx_pixelize");
@@ -154,7 +154,7 @@ GPUShader *GPENCIL_shader_fx_pixelize_get(void)
   return g_shaders.fx_pixel_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_rim_get(void)
+GPUShader *GPENCIL_shader_fx_rim_get()
 {
   if (!g_shaders.fx_rim_sh) {
     g_shaders.fx_rim_sh = GPU_shader_create_from_info_name("gpencil_fx_rim");
@@ -162,7 +162,7 @@ GPUShader *GPENCIL_shader_fx_rim_get(void)
   return g_shaders.fx_rim_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_shadow_get(void)
+GPUShader *GPENCIL_shader_fx_shadow_get()
 {
   if (!g_shaders.fx_shadow_sh) {
     g_shaders.fx_shadow_sh = GPU_shader_create_from_info_name("gpencil_fx_shadow");
@@ -170,7 +170,7 @@ GPUShader *GPENCIL_shader_fx_shadow_get(void)
   return g_shaders.fx_shadow_sh;
 }
 
-GPUShader *GPENCIL_shader_fx_transform_get(void)
+GPUShader *GPENCIL_shader_fx_transform_get()
 {
   if (!g_shaders.fx_transform_sh) {
     g_shaders.fx_transform_sh = GPU_shader_create_from_info_name("gpencil_fx_transform");

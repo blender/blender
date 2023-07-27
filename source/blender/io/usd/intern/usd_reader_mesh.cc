@@ -537,7 +537,7 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   }
   else {
     /* Check for situations that allow for a straight-forward copy by index. */
-    if ((ELEM(interp, pxr::UsdGeomTokens->vertex)) ||
+    if (ELEM(interp, pxr::UsdGeomTokens->vertex) ||
         (color_domain == ATTR_DOMAIN_CORNER && !is_left_handed_))
     {
       for (int i = 0; i < usd_colors.size(); i++) {

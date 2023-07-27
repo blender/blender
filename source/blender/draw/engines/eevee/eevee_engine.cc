@@ -635,7 +635,7 @@ static void eevee_store_metadata(void *vedata, RenderResult *render_result)
   }
 }
 
-static void eevee_engine_free(void)
+static void eevee_engine_free()
 {
   EEVEE_shaders_free();
   EEVEE_lightprobes_free();

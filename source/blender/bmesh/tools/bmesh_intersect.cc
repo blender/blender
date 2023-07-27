@@ -305,7 +305,7 @@ static enum ISectType intersect_line_tri(const float p0[3],
             fac = line_point_factor_v3(ix_pair[0], p0, p1);
             if ((fac >= e->eps_margin) && (fac <= 1.0f - e->eps_margin)) {
               copy_v3_v3(r_ix, ix_pair[0]);
-              return ISectType((IX_EDGE_TRI_EDGE0 + (enum ISectType)i_t0));
+              return ISectType(IX_EDGE_TRI_EDGE0 + (enum ISectType)i_t0);
             }
           }
         }

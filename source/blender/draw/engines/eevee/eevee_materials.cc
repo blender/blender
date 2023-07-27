@@ -58,7 +58,7 @@ typedef struct EeveeMaterialCache {
 /* *********** FUNCTIONS *********** */
 
 /* XXX TODO: define all shared resources in a shared place without duplication. */
-GPUTexture *EEVEE_materials_get_util_tex(void)
+GPUTexture *EEVEE_materials_get_util_tex()
 {
   return e_data.util_tex;
 }
@@ -135,7 +135,7 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
   }
 }
 
-static void eevee_init_noise_texture(void)
+static void eevee_init_noise_texture()
 {
   e_data.noise_tex = DRW_texture_create_2d(
       64, 64, GPU_RGBA16F, DRWTextureFlag(0), (float *)blue_noise);
@@ -143,7 +143,7 @@ static void eevee_init_noise_texture(void)
 
 #define RUNTIME_LUT_CREATION 0
 
-static void eevee_init_util_texture(void)
+static void eevee_init_util_texture()
 {
   const int layers = 4 + 16;
   float(*texels)[4] = static_cast<float(*)[4]>(
@@ -255,7 +255,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   else {
     double r;
     BLI_halton_1d(5, 0.0, stl->effects->taa_current_sample - 1, &r);
-    sldata->common_data.alpha_hash_offset = (float)r;
+    sldata->common_data.alpha_hash_offset = float(r);
     sldata->common_data.alpha_hash_scale = 0.01f;
   }
 
@@ -865,7 +865,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
         GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
         MATCACHE_AS_ARRAY(matcache, shading_gpumat, materials_len, gpumat_array);
         /* Get per-material split surface */
-        struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
+        GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
             ob, gpumat_array, materials_len);
 
         if (mat_geom) {
@@ -995,7 +995,7 @@ void EEVEE_materials_cache_finish(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *
   SET_FLAG_FROM_TEST(effects->enabled_effects, effects->sss_surface_count > 0, EFFECT_SSS);
 }
 
-void EEVEE_materials_free(void)
+void EEVEE_materials_free()
 {
   DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
   DRW_TEXTURE_FREE_SAFE(e_data.noise_tex);

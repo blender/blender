@@ -394,7 +394,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
     DRW_shgroup_uniform_vec3_copy(grp, "gpNormal", tgp_ob->plane_normal);
     DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", tgp_ob->is_drawmode3d);
     DRW_shgroup_uniform_float_copy(grp, "gpThicknessScale", tgp_ob->object_scale);
-    DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", (float)gpl->line_change);
+    DRW_shgroup_uniform_float_copy(grp, "gpThicknessOffset", float(gpl->line_change));
     DRW_shgroup_uniform_float_copy(grp, "gpThicknessWorldScale", thickness_scale);
     DRW_shgroup_uniform_float_copy(grp, "gpVertexColorOpacity", vert_col_opacity);
 

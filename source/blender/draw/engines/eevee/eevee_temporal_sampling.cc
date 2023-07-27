@@ -46,7 +46,7 @@ static void compute_cdf(float (*func)(float x), float cdf[FILTER_CDF_TABLE_SIZE]
   cdf[0] = 0.0f;
   /* Actual CDF evaluation. */
   for (int u = 0; u < FILTER_CDF_TABLE_SIZE - 1; u++) {
-    float x = (float)(u + 1) / (float)(FILTER_CDF_TABLE_SIZE - 1);
+    float x = float(u + 1) / float(FILTER_CDF_TABLE_SIZE - 1);
     cdf[u + 1] = cdf[u] + func(x - 0.5f); /* [-0.5..0.5]. We resize later. */
   }
   /* Normalize the CDF. */
@@ -61,7 +61,7 @@ static void invert_cdf(const float cdf[FILTER_CDF_TABLE_SIZE],
                        float invert_cdf[FILTER_CDF_TABLE_SIZE])
 {
   for (int u = 0; u < FILTER_CDF_TABLE_SIZE; u++) {
-    float x = (float)u / (float)(FILTER_CDF_TABLE_SIZE - 1);
+    float x = float(u) / float(FILTER_CDF_TABLE_SIZE - 1);
     for (int i = 0; i < FILTER_CDF_TABLE_SIZE; i++) {
       if (cdf[i] >= x) {
         if (i == FILTER_CDF_TABLE_SIZE - 1) {
@@ -69,7 +69,7 @@ static void invert_cdf(const float cdf[FILTER_CDF_TABLE_SIZE],
         }
         else {
           float t = (x - cdf[i]) / (cdf[i + 1] - cdf[i]);
-          invert_cdf[u] = ((float)i + t) / (float)(FILTER_CDF_TABLE_SIZE - 1);
+          invert_cdf[u] = (float(i) + t) / float(FILTER_CDF_TABLE_SIZE - 1);
         }
         break;
       }
@@ -83,14 +83,14 @@ static float eval_table(const float *table, float x)
   CLAMP(x, 0.0f, 1.0f);
   x = x * (FILTER_CDF_TABLE_SIZE - 1);
 
-  int index = min_ii((int)(x), FILTER_CDF_TABLE_SIZE - 1);
+  int index = min_ii(int(x), FILTER_CDF_TABLE_SIZE - 1);
   int nindex = min_ii(index + 1, FILTER_CDF_TABLE_SIZE - 1);
   float t = x - index;
 
   return (1.0f - t) * table[index] + t * table[nindex];
 }
 
-static void eevee_create_cdf_table_temporal_sampling(void)
+static void eevee_create_cdf_table_temporal_sampling()
 {
   float *cdf_table = static_cast<float *>(
       MEM_mallocN(sizeof(float) * FILTER_CDF_TABLE_SIZE, "Eevee Filter CDF table"));
@@ -118,8 +118,8 @@ void EEVEE_temporal_sampling_offset_calc(const double ht_point[2],
                                          const float filter_size,
                                          float r_offset[2])
 {
-  r_offset[0] = eval_table(e_data.inverted_cdf, (float)(ht_point[0])) * filter_size;
-  r_offset[1] = eval_table(e_data.inverted_cdf, (float)(ht_point[1])) * filter_size;
+  r_offset[0] = eval_table(e_data.inverted_cdf, float(ht_point[0])) * filter_size;
+  r_offset[1] = eval_table(e_data.inverted_cdf, float(ht_point[1])) * filter_size;
 }
 
 void EEVEE_temporal_sampling_matrices_calc(EEVEE_EffectsInfo *effects, const double ht_point[2])
@@ -273,7 +273,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *v
     view_is_valid = view_is_valid && (stl->g_data->view_updated == false);
 
     if (draw_ctx->evil_C != nullptr) {
-      struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+      wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
       view_is_valid = view_is_valid && (ED_screen_animation_no_scrub(wm) == nullptr);
     }
 
@@ -373,10 +373,10 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
     if ((effects->enabled_effects & EFFECT_TAA) != 0 && effects->taa_current_sample != 1) {
       if (DRW_state_is_image_render()) {
         /* See EEVEE_temporal_sampling_init() for more details. */
-        effects->taa_alpha = 1.0f / (float)(effects->taa_render_sample);
+        effects->taa_alpha = 1.0f / float(effects->taa_render_sample);
       }
       else {
-        effects->taa_alpha = 1.0f / (float)(effects->taa_current_sample);
+        effects->taa_alpha = 1.0f / float(effects->taa_current_sample);
       }
 
       GPU_framebuffer_bind(effects->target_buffer);

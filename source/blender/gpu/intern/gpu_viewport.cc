@@ -57,7 +57,7 @@ struct GPUViewport {
   int active_view;
 
   /* Viewport Resources. */
-  struct DRWData *draw_data;
+  DRWData *draw_data;
   /** Color buffers, one for each stereo view. Only one if not stereo viewport. */
   GPUTexture *color_render_tx[2];
   GPUTexture *color_overlay_tx[2];
@@ -76,7 +76,7 @@ struct GPUViewport {
   /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
   bool do_color_management;
-  struct GPUViewportBatch batch;
+  GPUViewportBatch batch;
 };
 
 enum {
@@ -96,7 +96,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport)
   return ret;
 }
 
-GPUViewport *GPU_viewport_create(void)
+GPUViewport *GPU_viewport_create()
 {
   GPUViewport *viewport = static_cast<GPUViewport *>(
       MEM_callocN(sizeof(GPUViewport), "GPUViewport"));
@@ -106,14 +106,14 @@ GPUViewport *GPU_viewport_create(void)
   return viewport;
 }
 
-GPUViewport *GPU_viewport_stereo_create(void)
+GPUViewport *GPU_viewport_stereo_create()
 {
   GPUViewport *viewport = GPU_viewport_create();
   viewport->flag = GPU_VIEWPORT_STEREO;
   return viewport;
 }
 
-struct DRWData **GPU_viewport_data_get(GPUViewport *viewport)
+DRWData **GPU_viewport_data_get(GPUViewport *viewport)
 {
   return &viewport->draw_data;
 }
@@ -355,7 +355,7 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
 /** \name Viewport Batches
  * \{ */
 
-static GPUVertFormat *gpu_viewport_batch_format(void)
+static GPUVertFormat *gpu_viewport_batch_format()
 {
   if (g_viewport.format.attr_len == 0) {
     GPUVertFormat *format = &g_viewport.format;
@@ -492,8 +492,8 @@ void GPU_viewport_draw_to_screen_ex(GPUViewport *viewport,
     return;
   }
 
-  const float w = (float)GPU_texture_width(color);
-  const float h = (float)GPU_texture_height(color);
+  const float w = float(GPU_texture_width(color));
+  const float h = float(GPU_texture_height(color));
 
   /* We allow rects with min/max swapped, but we also need correctly assigned coordinates. */
   rcti sanitized_rect = *rect;

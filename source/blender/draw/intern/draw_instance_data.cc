@@ -308,7 +308,7 @@ DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint 
 /** \name Instance Data List (DRWInstanceDataList)
  * \{ */
 
-DRWInstanceDataList *DRW_instance_data_list_create(void)
+DRWInstanceDataList *DRW_instance_data_list_create()
 {
   DRWInstanceDataList *idatalist = static_cast<DRWInstanceDataList *>(
       MEM_callocN(sizeof(DRWInstanceDataList), "DRWInstanceDataList"));
@@ -570,7 +570,7 @@ struct DRWUniformAttrBuf {
   /* Last handle used to update the buffer, checked for avoiding redundant updates. */
   DRWResourceHandle last_handle;
   /* Linked list pointer used for freeing the empty unneeded buffers. */
-  struct DRWUniformAttrBuf *next_empty;
+  DRWUniformAttrBuf *next_empty;
 };
 
 static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table,
@@ -633,7 +633,7 @@ void drw_uniform_attrs_pool_update(GHash *table,
   }
 }
 
-GPUUniformBuf *drw_ensure_layer_attribute_buffer(void)
+GPUUniformBuf *drw_ensure_layer_attribute_buffer()
 {
   DRWData *data = DST.vmempool;
 
@@ -696,7 +696,7 @@ DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, const GPUUnif
   return buffer ? &buffer->ubos : nullptr;
 }
 
-GHash *DRW_uniform_attrs_pool_new(void)
+GHash *DRW_uniform_attrs_pool_new()
 {
   return GPU_uniform_attr_list_hash_new("obattr_hash");
 }

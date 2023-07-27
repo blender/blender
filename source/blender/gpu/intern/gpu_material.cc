@@ -165,7 +165,7 @@ GPUTexture **gpu_material_sky_texture_layer_set(
   }
 
   int layer = mat->sky_builder->current_layer;
-  *row = (float)layer;
+  *row = float(layer);
 
   if (*row == MAX_GPU_SKIES) {
     printf("Too many sky textures in shader!\n");
@@ -196,7 +196,7 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
   }
 
   int layer = mat->coba_builder->current_layer;
-  *row = (float)layer;
+  *row = float(layer);
 
   if (*row == MAX_COLOR_BAND) {
     printf("Too many color band in shader! Remove some Curve, Black Body or Color Ramp Node.\n");
@@ -385,9 +385,9 @@ BLI_STATIC_ASSERT_ALIGN(GPUSssKernelData, 16)
 
 static void sss_calculate_offsets(GPUSssKernelData *kd, int count, float exponent)
 {
-  float step = 2.0f / (float)(count - 1);
+  float step = 2.0f / float(count - 1);
   for (int i = 0; i < count; i++) {
-    float o = ((float)i) * step - 1.0f;
+    float o = float(i) * step - 1.0f;
     float sign = (o < 0.0f) ? -1.0f : 1.0f;
     float ofs = sign * fabsf(powf(o, exponent));
     kd->kernel[i][3] = ofs;
@@ -418,7 +418,7 @@ static float eval_integral(float x0, float x1, float param)
   float integral = 0.0f;
 
   for (int i = 0; i < INTEGRAL_RESOLUTION; i++) {
-    float x = x0 + range * ((float)i + 0.5f) / (float)INTEGRAL_RESOLUTION;
+    float x = x0 + range * (float(i) + 0.5f) / float(INTEGRAL_RESOLUTION);
     float y = eval_profile(x, param);
     integral += y * step;
   }
@@ -524,7 +524,7 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
   /* Last texel should be black, hence the - 1. */
   for (int i = 0; i < resolution - 1; i++) {
     /* Distance from surface. */
-    float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
+    float d = kd->max_radius * (float(i) + 0.00001f) / float(resolution);
 
     /* For each distance d we compute the radiance incoming from an hypothetical parallel plane. */
     /* Compute radius of the footprint on the hypothetical plane. */
@@ -633,7 +633,7 @@ GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
   return material->sss_profile;
 }
 
-GPUUniformBuf *GPU_material_create_sss_profile_ubo(void)
+GPUUniformBuf *GPU_material_create_sss_profile_ubo()
 {
   return GPU_uniformbuf_create(sizeof(GPUSssKernelData));
 }

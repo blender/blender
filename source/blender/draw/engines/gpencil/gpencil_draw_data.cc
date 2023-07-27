@@ -466,7 +466,7 @@ static void gpencil_view_layer_data_free(void *storage)
   BLI_memblock_destroy(vldata->gp_vfx_pool, nullptr);
 }
 
-GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure(void)
+GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure()
 {
   GPENCIL_ViewLayerData **vldata = (GPENCIL_ViewLayerData **)DRW_view_layer_engine_data_ensure(
       &draw_engine_gpencil_type, gpencil_view_layer_data_free);
