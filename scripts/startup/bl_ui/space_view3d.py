@@ -8274,7 +8274,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
         return bool(context.object and context.object.mode == 'SCULPT')
 
     @classmethod
-    def asset_poll__(cls, asset):
+    def asset_poll_temp_api(cls, asset):
         return asset.file_data.id_type == 'BRUSH'
 
 

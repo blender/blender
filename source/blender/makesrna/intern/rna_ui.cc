@@ -1082,11 +1082,11 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 
 static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
 {
-  extern FunctionRNA rna_AssetShelf_asset_poll___func;
+  extern FunctionRNA rna_AssetShelf_asset_poll_temp_api_func;
 
   PointerRNA ptr;
   RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
-  FunctionRNA *func = &rna_AssetShelf_asset_poll___func;
+  FunctionRNA *func = &rna_AssetShelf_asset_poll_temp_api_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -1206,6 +1206,7 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
 
   SpaceType *space_type = BKE_spacetype_from_id(dummy_shelf_type.space_type);
   if (!space_type) {
+    BLI_assert_unreachable();
     return nullptr;
   }
 
@@ -2130,7 +2131,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "asset_poll__", NULL);
+  func = RNA_def_function(srna, "asset_poll_temp_api", NULL);
   RNA_def_function_ui_description(
       func,
       "TEMPORARY DESIGN; Expect compatibility breakage. Determine if an asset should be visible "
@@ -2158,19 +2159,19 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       prop,
       "Show Names",
       "Show the asset name together with the preview. Otherwise only the preview will be visible");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, NULL);
 
   prop = RNA_def_property(srna, "preview_size", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "settings.preview_size");
   RNA_def_property_range(prop, 32, 256);
   RNA_def_property_ui_text(prop, "Preview Size", "Size of the asset preview thumbnails in pixels");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, NULL);
 
   prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "settings.search_string");
   RNA_def_property_ui_text(prop, "Display Filter", "Filter assets by name");
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, NULL);
 }
 
 void RNA_def_ui(BlenderRNA *brna)

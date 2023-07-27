@@ -1815,11 +1815,11 @@ struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon 
 
 /**
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
- * unscaled_size plus padding.
+ * size_px plus padding.
  */
-int UI_preview_tile_size_x(const int unscaled_size CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y(const int unscaled_size CPP_ARG_DEFAULT(96));
-int UI_preview_tile_size_y_no_label(const int unscaled_size CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_x(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y_no_label(const int size_px CPP_ARG_DEFAULT(96));
 
 /* Autocomplete
  *

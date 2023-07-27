@@ -42,7 +42,7 @@ namespace blender::ed::asset::shelf {
 
 void send_redraw_notifier(const bContext &C)
 {
-  WM_event_add_notifier(&C, NC_SPACE | ND_SPACE_ASSET_SHELF, nullptr);
+  WM_event_add_notifier(&C, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
 }
 
 }  // namespace blender::ed::asset::shelf
@@ -206,7 +206,7 @@ static void asset_shelf_region_listen(const wmRegionListenerParams *params)
 
   switch (wmn->category) {
     case NC_SPACE:
-      if (wmn->data == ND_SPACE_ASSET_SHELF) {
+      if (wmn->data == ND_REGIONS_ASSET_SHELF) {
         ED_region_tag_redraw(region);
       }
       break;

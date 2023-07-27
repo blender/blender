@@ -5013,26 +5013,26 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
 
 #define PREVIEW_TILE_PAD (0.15f * UI_UNIT_X)
 
-int UI_preview_tile_size_x(const int unscaled_size)
+int UI_preview_tile_size_x(const int size_px)
 {
   const float pad = PREVIEW_TILE_PAD;
-  return round_fl_to_int((unscaled_size / 20.0f) * UI_UNIT_X + 2.0f * pad);
+  return round_fl_to_int((size_px / 20.0f) * UI_UNIT_X + 2.0f * pad);
 }
 
-int UI_preview_tile_size_y(const int unscaled_size)
+int UI_preview_tile_size_y(const int size_px)
 {
   const uiStyle *style = UI_style_get();
   const float font_height = style->widget.points * UI_SCALE_FAC;
   /* Add some extra padding to make things less tight vertically. */
   const float pad = PREVIEW_TILE_PAD;
 
-  return round_fl_to_int(UI_preview_tile_size_y_no_label(unscaled_size) + font_height + pad);
+  return round_fl_to_int(UI_preview_tile_size_y_no_label(size_px) + font_height + pad);
 }
 
-int UI_preview_tile_size_y_no_label(const int unscaled_size)
+int UI_preview_tile_size_y_no_label(const int size_px)
 {
   const float pad = PREVIEW_TILE_PAD;
-  return round_fl_to_int((unscaled_size / 20.0f) * UI_UNIT_Y + 2.0f * pad);
+  return round_fl_to_int((size_px / 20.0f) * UI_UNIT_Y + 2.0f * pad);
 }
 
 #undef PREVIEW_TILE_PAD
