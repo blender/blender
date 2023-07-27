@@ -36,7 +36,8 @@ void UI_but_drag_set_asset(uiBut *but,
                            const ImBuf *imb,
                            float scale)
 {
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, import_type, static_cast<bContext *>(but->block->evil_C));
+  wmDragAsset *asset_drag = WM_drag_create_asset_data(
+      asset, import_type, static_cast<bContext *>(but->block->evil_C));
 
   but->dragtype = WM_DRAG_ASSET;
   ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */

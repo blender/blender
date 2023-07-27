@@ -524,13 +524,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           {
             new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
           }
-          if (ARegion *new_settings_region = do_versions_add_region_if_not_found(
+          if (ARegion *new_shelf_header = do_versions_add_region_if_not_found(
                   regionbase,
-                  RGN_TYPE_ASSET_SHELF_SETTINGS,
-                  "asset shelf settings region for view3d (versioning)",
+                  RGN_TYPE_ASSET_SHELF_HEADER,
+                  "asset shelf header for view3d (versioning)",
                   RGN_TYPE_ASSET_SHELF))
           {
-            new_settings_region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+            new_shelf_header->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
           }
         }
       }

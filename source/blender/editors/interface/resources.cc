@@ -166,7 +166,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF) {
             cp = ts->asset_shelf.back;
           }
-          else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF_SETTINGS) {
+          else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF_HEADER) {
             cp = ts->asset_shelf.header_back;
           }
           else {
@@ -197,7 +197,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_SETTINGS))
+                        RGN_TYPE_ASSET_SHELF_HEADER))
           {
             cp = ts->header_text;
           }
@@ -215,7 +215,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_SETTINGS))
+                        RGN_TYPE_ASSET_SHELF_HEADER))
           {
             cp = ts->header_text_hi;
           }
@@ -233,7 +233,7 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (ELEM(g_theme_state.regionid,
                         RGN_TYPE_HEADER,
                         RGN_TYPE_FOOTER,
-                        RGN_TYPE_ASSET_SHELF_SETTINGS))
+                        RGN_TYPE_ASSET_SHELF_HEADER))
           {
             cp = ts->header_title;
           }

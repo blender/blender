@@ -676,9 +676,9 @@ typedef enum eRegion_Type {
    * context (surface, mirror view). Does not represent any real region. */
   RGN_TYPE_XR = 13,
   RGN_TYPE_ASSET_SHELF = 14,
-  RGN_TYPE_ASSET_SHELF_SETTINGS = 15,
+  RGN_TYPE_ASSET_SHELF_HEADER = 15,
 
-#define RGN_TYPE_NUM (RGN_TYPE_ASSET_SHELF_SETTINGS + 1)
+#define RGN_TYPE_NUM (RGN_TYPE_ASSET_SHELF_HEADER + 1)
 } eRegion_Type;
 
 /** Use for function args. */
@@ -690,7 +690,7 @@ typedef enum eRegion_Type {
 /** Check for any kind of header region. */
 #define RGN_TYPE_IS_HEADER_ANY(regiontype) \
   (((1 << (regiontype)) & ((1 << RGN_TYPE_HEADER) | 1 << (RGN_TYPE_TOOL_HEADER) | \
-                           (1 << RGN_TYPE_FOOTER) | (1 << RGN_TYPE_ASSET_SHELF_SETTINGS))) != 0)
+                           (1 << RGN_TYPE_FOOTER) | (1 << RGN_TYPE_ASSET_SHELF_HEADER))) != 0)
 
 /** #ARegion.alignment */
 enum {

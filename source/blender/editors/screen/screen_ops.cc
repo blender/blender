@@ -2688,7 +2688,7 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
                                                               RGN_TYPE_HEADER,
                                                               RGN_TYPE_TOOL_HEADER,
                                                               RGN_TYPE_FOOTER,
-                                                              RGN_TYPE_ASSET_SHELF_SETTINGS)))
+                                                              RGN_TYPE_ASSET_SHELF_HEADER)))
       {
         dist -= region->winy;
       }
@@ -2697,7 +2697,7 @@ static int area_max_regionsize(ScrArea *area, ARegion *scale_region, AZEdge edge
                                                            RGN_TYPE_HEADER,
                                                            RGN_TYPE_TOOL_HEADER,
                                                            RGN_TYPE_FOOTER,
-                                                           RGN_TYPE_ASSET_SHELF_SETTINGS)))
+                                                           RGN_TYPE_ASSET_SHELF_HEADER)))
       {
         dist -= region->winy;
       }

@@ -2127,7 +2127,7 @@ static bool ui_but_drag_init(bContext *C,
                RGN_TYPE_HEADER,
                RGN_TYPE_TOOL_HEADER,
                RGN_TYPE_FOOTER,
-               RGN_TYPE_ASSET_SHELF_SETTINGS))
+               RGN_TYPE_ASSET_SHELF_HEADER))
       {
         const int region_alignment = RGN_ALIGN_ENUM_FROM_MASK(data->region->alignment);
         int lock_axis = -1;

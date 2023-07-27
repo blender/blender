@@ -25,16 +25,16 @@ struct RegionPollParams;
  *
  * Naming conventions:
  * - #ED_asset_shelf_regions_xxx(): Applies to both regions (#RGN_TYPE_ASSET_SHELF and
- *   #RGN_TYPE_ASSET_SHELF_SETTINGS).
+ *   #RGN_TYPE_ASSET_SHELF_HEADER).
  * - #ED_asset_shelf_region_xxx(): Applies to the main shelf region (#RGN_TYPE_ASSET_SHELF).
- * - #ED_asset_shelf_settings_region_xxx(): Applies to the shelf settings region
- *   (#RGN_TYPE_ASSET_SHELF_SETTINGS).
+ * - #ED_asset_shelf_header_region_xxx(): Applies to the shelf header region
+ *   (#RGN_TYPE_ASSET_SHELF_HEADER).
  *
  * \{ */
 
 bool ED_asset_shelf_regions_poll(const struct RegionPollParams *params);
 
-/** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_SETTINGS). */
+/** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_HEADER). */
 void ED_asset_shelf_region_init(struct wmWindowManager *wm, struct ARegion *region);
 int ED_asset_shelf_region_snap(const struct ARegion *region, int size, int axis);
 void ED_asset_shelf_region_listen(const struct wmRegionListenerParams *params);
@@ -44,12 +44,12 @@ void ED_asset_shelf_region_layout(const bContext *C,
 void ED_asset_shelf_region_draw(const bContext *C, struct ARegion *region);
 int ED_asset_shelf_region_prefsizey(void);
 
-void ED_asset_shelf_settings_region_init(struct wmWindowManager *wm, struct ARegion *region);
-void ED_asset_shelf_settings_region(const struct bContext *C, struct ARegion *region);
-void ED_asset_shelf_settings_region_listen(const struct wmRegionListenerParams *params);
-int ED_asset_shelf_settings_region_size(void);
-void ED_asset_shelf_settings_regiontype_register(struct ARegionType *region_type,
-                                                 const int space_type);
+void ED_asset_shelf_header_region_init(struct wmWindowManager *wm, struct ARegion *region);
+void ED_asset_shelf_header_region(const struct bContext *C, struct ARegion *region);
+void ED_asset_shelf_header_region_listen(const struct wmRegionListenerParams *params);
+int ED_asset_shelf_header_region_size(void);
+void ED_asset_shelf_header_regiontype_register(struct ARegionType *region_type,
+                                               const int space_type);
 
 /** \} */
 

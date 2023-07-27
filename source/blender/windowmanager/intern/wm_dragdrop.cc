@@ -755,7 +755,8 @@ void WM_drag_add_asset_list_item(wmDrag *drag,
   }
   else {
     drag_asset->is_external = true;
-    drag_asset->asset_data.external_info = WM_drag_create_asset_data(asset, ASSET_IMPORT_APPEND, evil_C);
+    drag_asset->asset_data.external_info = WM_drag_create_asset_data(
+        asset, ASSET_IMPORT_APPEND, evil_C);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }
