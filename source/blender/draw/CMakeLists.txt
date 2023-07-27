@@ -33,7 +33,7 @@ set(INC
 )
 
 set(SRC
-  intern/draw_cache.c
+  intern/draw_cache.cc
   intern/draw_cache_extract_mesh.cc
   intern/draw_cache_extract_mesh_render_data.cc
   intern/mesh_extractors/extract_mesh.cc
@@ -69,72 +69,72 @@ set(SRC
   intern/draw_cache_impl_curves.cc
   intern/draw_cache_impl_gpencil_legacy.cc
   intern/draw_cache_impl_grease_pencil.cc
-  intern/draw_cache_impl_lattice.c
+  intern/draw_cache_impl_lattice.cc
   intern/draw_cache_impl_mesh.cc
-  intern/draw_cache_impl_particles.c
+  intern/draw_cache_impl_particles.cc
   intern/draw_cache_impl_pointcloud.cc
   intern/draw_cache_impl_subdivision.cc
   intern/draw_cache_impl_volume.cc
   intern/draw_color_management.cc
   intern/draw_command.cc
-  intern/draw_common.c
+  intern/draw_common.cc
   intern/draw_curves.cc
   intern/draw_debug.cc
-  intern/draw_fluid.c
+  intern/draw_fluid.cc
   intern/draw_hair.cc
-  intern/draw_instance_data.c
-  intern/draw_manager.c
+  intern/draw_instance_data.cc
   intern/draw_manager.cc
+  intern/draw_manager_c.cc
   intern/draw_manager_data.cc
-  intern/draw_manager_exec.c
+  intern/draw_manager_exec.cc
   intern/draw_manager_profiling.cc
-  intern/draw_manager_shader.c
+  intern/draw_manager_shader.cc
   intern/draw_manager_text.cc
-  intern/draw_manager_texture.c
+  intern/draw_manager_texture.cc
   intern/draw_pbvh.cc
   intern/draw_pointcloud.cc
   intern/draw_resource.cc
   intern/draw_sculpt.cc
-  intern/draw_select_buffer.c
+  intern/draw_select_buffer.cc
   intern/draw_shader.cc
   intern/draw_texture_pool.cc
-  intern/draw_view.c
   intern/draw_view.cc
+  intern/draw_view_c.cc
   intern/draw_view_data.cc
   intern/draw_volume.cc
-  engines/basic/basic_engine.c
-  engines/basic/basic_shader.c
+  engines/basic/basic_engine.cc
+  engines/basic/basic_shader.cc
   engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
   engines/image/image_shader.cc
-  engines/eevee/eevee_bloom.c
-  engines/eevee/eevee_cryptomatte.c
-  engines/eevee/eevee_data.c
-  engines/eevee/eevee_depth_of_field.c
-  engines/eevee/eevee_effects.c
-  engines/eevee/eevee_engine.c
-  engines/eevee/eevee_lightcache.c
-  engines/eevee/eevee_lightprobes.c
-  engines/eevee/eevee_lights.c
-  engines/eevee/eevee_lookdev.c
-  engines/eevee/eevee_lut.c
-  engines/eevee/eevee_lut_gen.c
-  engines/eevee/eevee_materials.c
-  engines/eevee/eevee_mist.c
-  engines/eevee/eevee_motion_blur.c
-  engines/eevee/eevee_occlusion.c
-  engines/eevee/eevee_render.c
-  engines/eevee/eevee_renderpasses.c
-  engines/eevee/eevee_sampling.c
-  engines/eevee/eevee_screen_raytrace.c
+  engines/eevee/eevee_bloom.cc
+  engines/eevee/eevee_cryptomatte.cc
+  engines/eevee/eevee_data.cc
+  engines/eevee/eevee_depth_of_field.cc
+  engines/eevee/eevee_effects.cc
+  engines/eevee/eevee_engine.cc
+  engines/eevee/eevee_lightcache.cc
+  engines/eevee/eevee_lightprobes.cc
+  engines/eevee/eevee_lights.cc
+  engines/eevee/eevee_lookdev.cc
+  engines/eevee/eevee_lut.cc
+  engines/eevee/eevee_lut_gen.cc
+  engines/eevee/eevee_materials.cc
+  engines/eevee/eevee_mist.cc
+  engines/eevee/eevee_motion_blur.cc
+  engines/eevee/eevee_occlusion.cc
+  engines/eevee/eevee_render.cc
+  engines/eevee/eevee_renderpasses.cc
+  engines/eevee/eevee_sampling.cc
+  engines/eevee/eevee_screen_raytrace.cc
   engines/eevee/eevee_shaders.cc
   engines/eevee/eevee_shaders_extra.cc
-  engines/eevee/eevee_shadows.c
-  engines/eevee/eevee_shadows_cascade.c
-  engines/eevee/eevee_shadows_cube.c
-  engines/eevee/eevee_subsurface.c
-  engines/eevee/eevee_temporal_sampling.c
-  engines/eevee/eevee_volumes.c
+  engines/eevee/eevee_shadows.cc
+  engines/eevee/eevee_shadows_cascade.cc
+  engines/eevee/eevee_shadows_cube.cc
+  engines/eevee/eevee_subsurface.cc
+  engines/eevee/eevee_temporal_sampling.cc
+  engines/eevee/eevee_volumes.cc
   engines/eevee_next/eevee_ambient_occlusion.cc
   engines/eevee_next/eevee_camera.cc
   engines/eevee_next/eevee_cryptomatte.cc
@@ -161,43 +161,43 @@ set(SRC
   engines/eevee_next/eevee_velocity.cc
   engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
-  engines/workbench/workbench_data.c
-  engines/workbench/workbench_effect_antialiasing.c
+  engines/workbench/workbench_data.cc
   engines/workbench/workbench_effect_antialiasing.cc
-  engines/workbench/workbench_effect_cavity.c
+  engines/workbench/workbench_effect_antialiasing_c.cc
   engines/workbench/workbench_effect_cavity.cc
-  engines/workbench/workbench_effect_dof.c
+  engines/workbench/workbench_effect_cavity_c.cc
   engines/workbench/workbench_effect_dof.cc
-  engines/workbench/workbench_effect_outline.c
+  engines/workbench/workbench_effect_dof_c.cc
   engines/workbench/workbench_effect_outline.cc
-  engines/workbench/workbench_engine.c
+  engines/workbench/workbench_effect_outline_c.cc
   engines/workbench/workbench_engine.cc
+  engines/workbench/workbench_engine_c.cc
   engines/workbench/workbench_materials.cc
   engines/workbench/workbench_materials_next.cc
   engines/workbench/workbench_mesh_passes.cc
-  engines/workbench/workbench_opaque.c
-  engines/workbench/workbench_render.c
+  engines/workbench/workbench_opaque.cc
+  engines/workbench/workbench_render.cc
   engines/workbench/workbench_resources.cc
   engines/workbench/workbench_shader.cc
   engines/workbench/workbench_shader_cache.cc
-  engines/workbench/workbench_shadow.c
   engines/workbench/workbench_shadow.cc
+  engines/workbench/workbench_shadow_c.cc
   engines/workbench/workbench_state.cc
-  engines/workbench/workbench_transparent.c
-  engines/workbench/workbench_volume.c
+  engines/workbench/workbench_transparent.cc
+  engines/workbench/workbench_volume.cc
   engines/workbench/workbench_volume_next.cc
   engines/external/external_engine.cc
-  engines/gpencil/gpencil_antialiasing.c
-  engines/gpencil/gpencil_cache_utils.c
-  engines/gpencil/gpencil_draw_data.c
-  engines/gpencil/gpencil_engine.c
+  engines/gpencil/gpencil_antialiasing.cc
+  engines/gpencil/gpencil_cache_utils.cc
+  engines/gpencil/gpencil_draw_data.cc
   engines/gpencil/gpencil_engine.cc
-  engines/gpencil/gpencil_render.c
-  engines/gpencil/gpencil_shader.c
+  engines/gpencil/gpencil_engine_c.cc
+  engines/gpencil/gpencil_render.cc
   engines/gpencil/gpencil_shader.cc
-  engines/gpencil/gpencil_shader_fx.c
-  engines/select/select_draw_utils.c
-  engines/select/select_engine.c
+  engines/gpencil/gpencil_shader_c.cc
+  engines/gpencil/gpencil_shader_fx.cc
+  engines/select/select_draw_utils.cc
+  engines/select/select_engine.cc
   engines/select/select_instance.cc
   engines/overlay/overlay_antialiasing.cc
   engines/overlay/overlay_armature.cc
@@ -837,7 +837,7 @@ list(APPEND INC
 
 if(WITH_DRAW_DEBUG)
   list(APPEND SRC
-    engines/select/select_debug_engine.c
+    engines/select/select_debug_engine.cc
   )
   add_definitions(-DWITH_DRAW_DEBUG)
 endif()

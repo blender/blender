@@ -1270,10 +1270,10 @@ void DRW_sculpt_debug_cb(
 
 #if 0 /* Nodes hierarchy. */
   if (flag & PBVH_Leaf) {
-    DRW_debug_bbox(&bb, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
+    DRW_debug_bbox(&bb, blender::float4{0.0f, 1.0f, 0.0f, 1.0f});
   }
   else {
-    DRW_debug_bbox(&bb, (float[4]){0.5f, 0.5f, 0.5f, 0.6f});
+    DRW_debug_bbox(&bb, blender::float4{0.5f, 0.5f, 0.5f, 0.6f});
   }
 #else /* Color coded leaf bounds. */
   if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
@@ -2008,7 +2008,7 @@ static void draw_frustum_boundbox_calc(const float (*viewinv)[4],
 
 #if 0 /* Equivalent to this but it has accuracy problems. */
   BKE_boundbox_init_from_minmax(
-      &bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
+      &bbox, blender::float3{-1.0f, -1.0f, -1.0f}, blender::float3{1.0f, 1.0f, 1.0f});
   for (int i = 0; i < 8; i++) {
     mul_project_m4_v3(projinv, bbox.vec[i]);
   }
@@ -2311,8 +2311,8 @@ void DRW_view_update(DRWView *view,
 #ifdef DRW_DEBUG_CULLING
   if (G.debug_value != 0) {
     DRW_debug_sphere(
-        view->frustum_bsphere.center, view->frustum_bsphere.radius, (const float[4]){1, 1, 0, 1});
-    DRW_debug_bbox(&view->frustum_corners, (const float[4]){1, 1, 0, 1});
+        view->frustum_bsphere.center, view->frustum_bsphere.radius, blender::float4{1, 1, 0, 1});
+    DRW_debug_bbox(&view->frustum_corners, blender::float4{1, 1, 0, 1});
   }
 #endif
 }
