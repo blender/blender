@@ -454,7 +454,10 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
         !BLI_str_endswith(keymap->idname, " (fallback)") &&
         /* This is an exception which may be empty.
          * Longer term we might want a flag to indicate an empty key-map is intended. */
-        !STREQ(keymap->idname, "Node Tool: Tweak"))
+        !STREQ(keymap->idname, "Node Tool: Tweak") &&
+        /* Another exception: Asset shelf keymap is meant for add-ons to use, it's empty by
+         * default. */
+        !STREQ(keymap->idname, "Asset Shelf"))
     {
       CLOG_WARN(WM_LOG_KEYMAPS, "empty keymap '%s'", keymap->idname);
     }
