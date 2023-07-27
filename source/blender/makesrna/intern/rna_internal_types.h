@@ -196,13 +196,13 @@ typedef struct PropertyRNAOrID {
 } PropertyRNAOrID;
 
 /**
- * If \a override is NULL, merely do comparison between prop_a and prop_b,
+ * If \a liboverride is NULL, merely do comparison between prop_a and prop_b,
  * following comparison mode given.
- * If \a override and \a rna_path are not NULL, it will add a new override operation for
+ * If \a liboverride and \a rna_path are not NULL, it will add a new override operation for
  * overridable properties that differ and have not yet been overridden
  * (and set accordingly \a r_override_changed if given).
  *
- * \note \a override and \a rna_path may be NULL pointers.
+ * \note \a liboverride and \a rna_path may be NULL pointers.
  */
 struct RNAPropertyOverrideDiffContext {
   /** General diffing parameters. */
@@ -219,10 +219,10 @@ struct RNAPropertyOverrideDiffContext {
   eRNACompareMode mode = RNA_EQ_COMPARE;
 
   /** LibOverride specific parameters. */
-  struct IDOverrideLibrary *override = nullptr;
+  struct IDOverrideLibrary *liboverride = nullptr;
   const char *rna_path = nullptr;
   size_t rna_path_len = 0;
-  eRNAOverrideMatch override_flags = eRNAOverrideMatch(0);
+  eRNAOverrideMatch liboverride_flags = eRNAOverrideMatch(0);
 
   /** Results. */
 

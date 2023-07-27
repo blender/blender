@@ -1389,8 +1389,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
   eRNACompareMode mode = ptrdiff_ctx.rnadiff_ctx.mode;
   const bool no_ownership = ptrdiff_ctx.no_ownership;
 
-  IDOverrideLibrary *override = ptrdiff_ctx.rnadiff_ctx.override;
-  const eRNAOverrideMatch override_flags = ptrdiff_ctx.rnadiff_ctx.override_flags;
+  IDOverrideLibrary *liboverride = ptrdiff_ctx.rnadiff_ctx.liboverride;
+  const eRNAOverrideMatch liboverride_flags = ptrdiff_ctx.rnadiff_ctx.liboverride_flags;
   const char *rna_path = ptrdiff_ctx.rnadiff_ctx.rna_path;
   size_t rna_path_len = ptrdiff_ctx.rnadiff_ctx.rna_path_len;
   const PropertyType property_type = ptrdiff_ctx.property_type;
@@ -1402,8 +1402,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
 
   BLI_assert(ELEM(property_type, PROP_POINTER, PROP_COLLECTION));
 
-  const bool do_create = override != nullptr &&
-                         (override_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
+  const bool do_create = liboverride != nullptr &&
+                         (liboverride_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
                          rna_path != nullptr;
 
   rna_property_override_diff_propptr_validate_diffing(ptrdiff_ctx);
@@ -1430,7 +1430,7 @@ static void rna_property_override_diff_propptr(Main *bmain,
     UNUSED_VARS_NDEBUG(id);
   }
 
-  if (override) {
+  if (liboverride) {
     if (no_ownership || is_null || is_type_diff || !is_valid_for_diffing) {
       /* In case this pointer prop does not own its data (or one is nullptr), do not compare
        * structs! This is a quite safe path to infinite loop, among other nasty issues. Instead,
@@ -1440,7 +1440,7 @@ static void rna_property_override_diff_propptr(Main *bmain,
       if (do_create && ptrdiff_ctx.rnadiff_ctx.comparison != 0) {
         bool created = false;
         IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
-            override, rna_path, &created);
+            liboverride, rna_path, &created);
 
         /* If not yet overridden, or if we are handling sub-items (inside a collection)... */
         if (op != nullptr) {
@@ -1500,7 +1500,7 @@ static void rna_property_override_diff_propptr(Main *bmain,
             ID *id_b = static_cast<ID *>(propptr_b->data);
             if (ELEM(nullptr, id_a, id_b)) {
               /* In case one of the pointer is nullptr and not the other, we consider that the
-               * override is not matching its reference anymore. */
+               * liboverride is not matching its reference anymore. */
               opop->flag &= ~LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE;
             }
             else if ((owner_id_a->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) != 0 ||
@@ -1612,8 +1612,8 @@ static void rna_property_override_diff_propptr(Main *bmain,
                                                      propptr_b,
                                                      extended_rna_path,
                                                      extended_rna_path_len,
-                                                     override,
-                                                     override_flags,
+                                                     liboverride,
+                                                     liboverride_flags,
                                                      &ptrdiff_ctx.rnadiff_ctx.report_flag);
       ptrdiff_ctx.rnadiff_ctx.comparison = !match;
 
@@ -1654,17 +1654,17 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
   const uint len_a = prop_a->array_len;
   const uint len_b = prop_b->array_len;
 
-  IDOverrideLibrary *override = rnadiff_ctx.override;
+  IDOverrideLibrary *liboverride = rnadiff_ctx.liboverride;
   const char *rna_path = rnadiff_ctx.rna_path;
-  const int override_flags = rnadiff_ctx.override_flags;
+  const int liboverride_flags = rnadiff_ctx.liboverride_flags;
 
   BLI_assert(len_a == len_b);
 
   /* NOTE: at this point, we are sure that when len_a is zero,
    * we are not handling an (empty) array. */
 
-  const bool do_create = override != nullptr &&
-                         (override_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
+  const bool do_create = liboverride != nullptr &&
+                         (liboverride_flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 &&
                          rna_path != nullptr;
 
   const bool no_ownership = (prop_a->rnaprop->flag & PROP_PTR_NO_OWNERSHIP) != 0;
@@ -1699,7 +1699,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
 
         if (do_create && rnadiff_ctx.comparison != 0) {
           /* XXX TODO: this will have to be refined to handle array items. */
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1724,7 +1724,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         rnadiff_ctx.comparison = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && rnadiff_ctx.comparison != 0) {
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1755,7 +1755,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
 
         if (do_create && rnadiff_ctx.comparison != 0) {
           /* XXX TODO: this will have to be refined to handle array items. */
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1782,7 +1782,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         rnadiff_ctx.comparison = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && rnadiff_ctx.comparison != 0) {
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1813,7 +1813,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
 
         if (do_create && rnadiff_ctx.comparison != 0) {
           /* XXX TODO: this will have to be refined to handle array items. */
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) {
             BKE_lib_override_library_property_operation_get(
@@ -1838,7 +1838,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
         rnadiff_ctx.comparison = (value_a < value_b) ? -1 : (value_a > value_b) ? 1 : 0;
 
         if (do_create && rnadiff_ctx.comparison != 0) {
-          op = BKE_lib_override_library_property_get(override, rna_path, &created);
+          op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
           if (op != nullptr && created) { /* If not yet overridden... */
             BKE_lib_override_library_property_operation_get(
@@ -1856,7 +1856,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
       rnadiff_ctx.comparison = value_a != value_b;
 
       if (do_create && rnadiff_ctx.comparison != 0) {
-        op = BKE_lib_override_library_property_get(override, rna_path, &created);
+        op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
         if (op != nullptr && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
@@ -1885,7 +1885,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
       rnadiff_ctx.comparison = strcmp(value_a, value_b);
 
       if (do_create && rnadiff_ctx.comparison != 0) {
-        op = BKE_lib_override_library_property_get(override, rna_path, &created);
+        op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
         if (op != nullptr && created) { /* If not yet overridden... */
           BKE_lib_override_library_property_operation_get(
@@ -1942,7 +1942,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
       if (use_collection_insertion) {
         /* We need to clean up all possible existing insertion operations, and then re-generate
          * them, otherwise we'd end up with a mess of opop's every time something changes. */
-        op = BKE_lib_override_library_property_find(override, rna_path);
+        op = BKE_lib_override_library_property_find(liboverride, rna_path);
         if (op != nullptr) {
           LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
             if (ELEM(opop->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
@@ -2019,7 +2019,7 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
            * an item in the linked reference data, but it can also be another local-only item added
            * by a previous INSERT operation. */
           if (is_valid_for_insertion && use_collection_insertion) {
-            op = BKE_lib_override_library_property_get(override, rna_path, &created);
+            op = BKE_lib_override_library_property_get(liboverride, rna_path, &created);
 
             BKE_lib_override_library_property_operation_get(
                 op,

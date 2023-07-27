@@ -259,7 +259,7 @@ static int rna_property_override_diff(Main *bmain,
                                       const char *rna_path,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
-                                      IDOverrideLibrary *override,
+                                      IDOverrideLibrary *liboverride,
                                       const eRNAOverrideMatch flags,
                                       eRNAOverrideMatchResult *r_report_flags);
 
@@ -327,7 +327,7 @@ static int rna_property_override_diff(Main *bmain,
                                       const char *rna_path,
                                       const size_t rna_path_len,
                                       eRNACompareMode mode,
-                                      IDOverrideLibrary *override,
+                                      IDOverrideLibrary *liboverride,
                                       const eRNAOverrideMatch flags,
                                       eRNAOverrideMatchResult *r_report_flags)
 {
@@ -426,10 +426,10 @@ static int rna_property_override_diff(Main *bmain,
   rnadiff_ctx.prop_b = prop_b;
   rnadiff_ctx.mode = mode;
 
-  rnadiff_ctx.override = override;
+  rnadiff_ctx.liboverride = liboverride;
   rnadiff_ctx.rna_path = rna_path;
   rnadiff_ctx.rna_path_len = rna_path_len;
-  rnadiff_ctx.override_flags = diff_flags;
+  rnadiff_ctx.liboverride_flags = diff_flags;
   override_diff(bmain, rnadiff_ctx);
 
   if (r_report_flags) {
@@ -635,7 +635,7 @@ bool RNA_struct_override_matches(Main *bmain,
                                  PointerRNA *ptr_reference,
                                  const char *root_path,
                                  const size_t root_path_len,
-                                 IDOverrideLibrary *override,
+                                 IDOverrideLibrary *liboverride,
                                  const eRNAOverrideMatch flags,
                                  eRNAOverrideMatchResult *r_report_flags)
 {
@@ -784,7 +784,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
     CLOG_INFO(&LOG, 5, "Override Checking %s", rna_path);
 
-    IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
+    IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride, rna_path);
     if (ignore_overridden && op != nullptr) {
       BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
 
@@ -807,7 +807,7 @@ bool RNA_struct_override_matches(Main *bmain,
                                                 rna_path,
                                                 rna_path_len,
                                                 RNA_EQ_STRICT,
-                                                override,
+                                                liboverride,
                                                 flags,
                                                 &report_flags);
 
@@ -826,7 +826,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
     if (diff != 0) {
       /* XXX TODO: refine this for per-item overriding of arrays... */
-      op = BKE_lib_override_library_property_find(override, rna_path);
+      op = BKE_lib_override_library_property_find(liboverride, rna_path);
       IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
           op ? op->operations.first : nullptr);
 
@@ -874,7 +874,7 @@ bool RNA_struct_override_matches(Main *bmain,
             else {
               if (op == nullptr) {
                 /* An override property is needed, create a temp one if necessary. */
-                op = BKE_lib_override_library_property_get(override, rna_path, nullptr);
+                op = BKE_lib_override_library_property_get(liboverride, rna_path, nullptr);
                 BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, true);
               }
               IDOverrideLibraryPropertyOperation *opop_restore =
@@ -892,7 +892,7 @@ bool RNA_struct_override_matches(Main *bmain,
                * a NOOP operation to enforce no change on that property, etc.). */
               op->tag |= LIBOVERRIDE_PROP_TAG_NEEDS_RETORE;
               opop_restore->tag |= LIBOVERRIDE_PROP_TAG_NEEDS_RETORE;
-              override->runtime->tag |= LIBOVERRIDE_TAG_NEEDS_RESTORE;
+              liboverride->runtime->tag |= LIBOVERRIDE_TAG_NEEDS_RESTORE;
 
               if (r_report_flags) {
                 *r_report_flags |= RNA_OVERRIDE_MATCH_RESULT_RESTORE_TAGGED;
@@ -964,14 +964,14 @@ bool RNA_struct_override_store(Main *bmain,
                                PointerRNA *ptr_local,
                                PointerRNA *ptr_reference,
                                PointerRNA *ptr_storage,
-                               IDOverrideLibrary *override)
+                               IDOverrideLibrary *liboverride)
 {
   bool changed = false;
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
   TIMEIT_START_AVERAGED(RNA_struct_override_store);
 #endif
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
     /* Simplified for now! */
     PointerRNA data_reference, data_local;
     PropertyRNA *prop_reference, *prop_local;
@@ -1434,7 +1434,7 @@ void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *ptr_dst,
                                PointerRNA *ptr_src,
                                PointerRNA *ptr_storage,
-                               IDOverrideLibrary *override,
+                               IDOverrideLibrary *liboverride,
                                const eRNAOverrideApplyFlag flag)
 {
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -1447,7 +1447,7 @@ void RNA_struct_override_apply(Main *bmain,
    */
   bool do_insert = false;
   for (int i = 0; i < (do_restore_only ? 1 : 2); i++, do_insert = true) {
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
       if (do_restore_only && (op->tag % LIBOVERRIDE_PROP_TAG_NEEDS_RETORE) == 0) {
         continue;
       }

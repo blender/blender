@@ -52,13 +52,13 @@ struct IDOverrideLibrary *BKE_lib_override_library_init(struct ID *local_id,
  */
 void BKE_lib_override_library_copy(struct ID *dst_id, const struct ID *src_id, bool do_full_copy);
 /**
- * Clear any overriding data from given \a override.
+ * Clear any overriding data from given \a liboverride.
  */
-void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, bool do_id_user);
+void BKE_lib_override_library_clear(struct IDOverrideLibrary *liboverride, bool do_id_user);
 /**
- * Free given \a override.
+ * Free given \a liboverride.
  */
-void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_id_user);
+void BKE_lib_override_library_free(struct IDOverrideLibrary **liboverride, bool do_id_user);
 
 /**
  * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the actual ID owning
@@ -89,14 +89,15 @@ bool BKE_lib_override_library_is_system_defined(const struct Main *bmain, const 
  * Check if given Override Property for given ID is animated (through a F-Curve in an Action, or
  * from a driver).
  *
- * \param override_rna_prop: if not NULL, the RNA property matching the given path in the
- * `override_prop`.
+ * \param liboverride_rna_prop: if not NULL, the RNA property matching the given path in the
+ * `liboverride_prop`.
  * \param rnaprop_index: Array in the RNA property, 0 if unknown or irrelevant.
  */
-bool BKE_lib_override_library_property_is_animated(const ID *id,
-                                                   const IDOverrideLibraryProperty *override_prop,
-                                                   const struct PropertyRNA *override_rna_prop,
-                                                   const int rnaprop_index);
+bool BKE_lib_override_library_property_is_animated(
+    const ID *id,
+    const IDOverrideLibraryProperty *liboverride_prop,
+    const struct PropertyRNA *override_rna_prop,
+    const int rnaprop_index);
 
 /**
  * Check if given ID is a leaf in its liboverride hierarchy (i.e. if it does not use any other
@@ -300,16 +301,16 @@ struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
 struct IDOverrideLibraryProperty *BKE_lib_override_library_property_get(
     struct IDOverrideLibrary *override, const char *rna_path, bool *r_created);
 /**
- * Remove and free given \a override_property from given ID \a override.
+ * Remove and free given \a liboverride_property from given ID \a liboverride.
  */
-void BKE_lib_override_library_property_delete(struct IDOverrideLibrary *override,
-                                              struct IDOverrideLibraryProperty *override_property);
+void BKE_lib_override_library_property_delete(
+    struct IDOverrideLibrary *liboverride, struct IDOverrideLibraryProperty *liboverride_property);
 /**
- * Delete a property override from the given ID \a override, if it exists.
+ * Delete a property override from the given ID \a liboverride, if it exists.
  *
  * \return True when the property was found (and thus deleted), false if it wasn't found.
  */
-bool BKE_lib_override_library_property_search_and_delete(struct IDOverrideLibrary *override,
+bool BKE_lib_override_library_property_search_and_delete(struct IDOverrideLibrary *liboverride,
                                                          const char *rna_path);
 
 /**
@@ -346,7 +347,7 @@ bool BKE_lib_override_rna_property_find(struct PointerRNA *idpoin,
  * Find override property operation from given sub-item(s), if it exists.
  */
 struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
-    struct IDOverrideLibraryProperty *override_property,
+    struct IDOverrideLibraryProperty *liboverride_property,
     const char *subitem_refname,
     const char *subitem_locname,
     int subitem_refindex,
@@ -357,7 +358,7 @@ struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_ope
  * Find override property operation from given sub-item(s), or create it if it does not exist.
  */
 struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
-    struct IDOverrideLibraryProperty *override_property,
+    struct IDOverrideLibraryProperty *liboverride_property,
     short operation,
     const char *subitem_refname,
     const char *subitem_locname,
@@ -367,17 +368,17 @@ struct IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_ope
     bool *r_strict,
     bool *r_created);
 /**
- * Remove and free given \a override_property_operation from given ID \a override_property.
+ * Remove and free given \a liboverride_property_operation from given ID \a liboverride_property.
  */
 void BKE_lib_override_library_property_operation_delete(
-    struct IDOverrideLibraryProperty *override_property,
-    struct IDOverrideLibraryPropertyOperation *override_property_operation);
+    struct IDOverrideLibraryProperty *liboverride_property,
+    struct IDOverrideLibraryPropertyOperation *liboverride_property_operation);
 
 /**
  * Validate that required data for a given operation are available.
  */
 bool BKE_lib_override_library_property_operation_operands_validate(
-    struct IDOverrideLibraryPropertyOperation *override_property_operation,
+    struct IDOverrideLibraryPropertyOperation *liboverride_property_operation,
     struct PointerRNA *ptr_dst,
     struct PointerRNA *ptr_src,
     struct PointerRNA *ptr_storage,
@@ -492,13 +493,12 @@ void BKE_lib_override_library_id_hierarchy_reset(struct Main *bmain,
 /**
  * Set or clear given tag in all operations in that override property data.
  */
-void BKE_lib_override_library_operations_tag(struct IDOverrideLibraryProperty *override_property,
-                                             short tag,
-                                             bool do_set);
+void BKE_lib_override_library_operations_tag(
+    struct IDOverrideLibraryProperty *liboverride_property, short tag, bool do_set);
 /**
  * Set or clear given tag in all properties and operations in that override data.
  */
-void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *override,
+void BKE_lib_override_library_properties_tag(struct IDOverrideLibrary *liboverride,
                                              short tag,
                                              bool do_set);
 /**
@@ -532,7 +532,7 @@ bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID
 /**
  * Debugging helper to show content of given liboverride data.
  */
-void BKE_lib_override_debug_print(struct IDOverrideLibrary *override, const char *intro_txt);
+void BKE_lib_override_debug_print(struct IDOverrideLibrary *liboverride, const char *intro_txt);
 
 /* Storage (.blend file writing) part. */
 
@@ -550,14 +550,15 @@ OverrideLibraryStorage *BKE_lib_override_library_operations_store_init(void);
  * all extra data are stored in its temp \a storage_id copy.
  */
 struct ID *BKE_lib_override_library_operations_store_start(
-    struct Main *bmain, OverrideLibraryStorage *override_storage, struct ID *local);
+    struct Main *bmain, OverrideLibraryStorage *liboverride_storage, struct ID *local);
 /**
  * Restore given ID modified by #BKE_lib_override_library_operations_store_start, to its
  * original state.
  */
-void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *override_storage,
+void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *liboverride_storage,
                                                    struct ID *local);
-void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage);
+void BKE_lib_override_library_operations_store_finalize(
+    OverrideLibraryStorage *liboverride_storage);
 
 #ifdef __cplusplus
 }
