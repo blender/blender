@@ -191,8 +191,7 @@ struct PBVHBatches {
 
     switch (args->pbvh_type) {
       case PBVH_FACES: {
-        for (int i = 0; i < args->totprim; i++) {
-          const int looptri_i = args->prim_indices[i];
+        for (const int looptri_i : args->prim_indices) {
           const int face_i = args->looptri_faces[looptri_i];
 
           if (args->hide_poly && args->hide_poly[face_i]) {
@@ -205,8 +204,8 @@ struct PBVHBatches {
       }
       case PBVH_GRIDS: {
         count = BKE_pbvh_count_grid_quads((BLI_bitmap **)args->grid_hidden,
-                                          args->grid_indices,
-                                          args->totprim,
+                                          args->grid_indices.data(),
+                                          args->grid_indices.size(),
                                           args->ccg_key.grid_size,
                                           args->ccg_key.grid_size);
 
@@ -366,7 +365,7 @@ struct PBVHBatches {
           foreach_grids)
   {
     uint vert_per_grid = square_i(args->ccg_key.grid_size - 1) * 4;
-    uint vert_count = args->totprim * vert_per_grid;
+    uint vert_count = args->grid_indices.size() * vert_per_grid;
 
     int existing_num = GPU_vertbuf_get_vertex_len(vbo.vert_buf);
     void *existing_data = GPU_vertbuf_get_data(vbo.vert_buf);
@@ -482,7 +481,7 @@ struct PBVHBatches {
   {
     int gridsize = args->ccg_key.grid_size;
 
-    uint totgrid = args->totprim;
+    uint totgrid = args->grid_indices.size();
 
     auto foreach_solid =
         [&](std::function<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
@@ -550,8 +549,7 @@ struct PBVHBatches {
                 func) {
           int buffer_i = 0;
 
-          for (int i : IndexRange(args->totprim)) {
-            const int looptri_i = args->prim_indices[i];
+          for (const int looptri_i : args->prim_indices) {
             const int face_i = args->looptri_faces[looptri_i];
 
             if (args->hide_poly && args->hide_poly[face_i]) {
@@ -973,7 +971,7 @@ struct PBVHBatches {
     const int *mat_index = static_cast<const int *>(
         CustomData_get_layer_named(args->face_data, CD_PROP_INT32, "material_index"));
 
-    if (mat_index && args->totprim) {
+    if (mat_index && !args->prim_indices.is_empty()) {
       const int looptri_i = args->prim_indices[0];
       const int face_i = args->looptri_faces[looptri_i];
       material_index = mat_index[face_i];
@@ -983,8 +981,7 @@ struct PBVHBatches {
 
     /* Calculate number of edges. */
     int edge_count = 0;
-    for (int i = 0; i < args->totprim; i++) {
-      const int looptri_i = args->prim_indices[i];
+    for (const int looptri_i : args->prim_indices) {
       const int face_i = args->looptri_faces[looptri_i];
       if (args->hide_poly && args->hide_poly[face_i]) {
         continue;
@@ -1010,8 +1007,7 @@ struct PBVHBatches {
     GPU_indexbuf_init(&elb_lines, GPU_PRIM_LINES, edge_count * 2, INT_MAX);
 
     int vertex_i = 0;
-    for (int i = 0; i < args->totprim; i++) {
-      const int looptri_i = args->prim_indices[i];
+    for (const int looptri_i : args->prim_indices) {
       const int face_i = args->looptri_faces[looptri_i];
       if (args->hide_poly && args->hide_poly[face_i]) {
         continue;
@@ -1068,7 +1064,7 @@ struct PBVHBatches {
     const int *mat_index = static_cast<const int *>(
         CustomData_get_layer_named(args->face_data, CD_PROP_INT32, "material_index"));
 
-    if (mat_index && args->totprim) {
+    if (mat_index && !args->grid_indices.is_empty()) {
       int face_i = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg, args->grid_indices[0]);
       material_index = mat_index[face_i];
     }
@@ -1076,7 +1072,7 @@ struct PBVHBatches {
     needs_tri_index = true;
     int gridsize = args->ccg_key.grid_size;
     int display_gridsize = gridsize;
-    int totgrid = args->totprim;
+    int totgrid = args->grid_indices.size();
     int skip = 1;
 
     const int display_level = do_coarse ? coarse_level : args->ccg_key.level;
@@ -1086,8 +1082,7 @@ struct PBVHBatches {
       skip = 1 << (args->ccg_key.level - display_level - 1);
     }
 
-    for (int i : IndexRange(args->totprim)) {
-      int grid_index = args->grid_indices[i];
+    for (const int grid_index : args->grid_indices) {
       bool smooth = !args->grid_flag_mats[grid_index].sharp;
       BLI_bitmap *gh = args->grid_hidden[grid_index];
 
@@ -1114,7 +1109,7 @@ struct PBVHBatches {
     CCGKey *key = &args->ccg_key;
 
     uint visible_quad_len = BKE_pbvh_count_grid_quads((BLI_bitmap **)args->grid_hidden,
-                                                      args->grid_indices,
+                                                      args->grid_indices.data(),
                                                       totgrid,
                                                       key->grid_size,
                                                       display_gridsize);
