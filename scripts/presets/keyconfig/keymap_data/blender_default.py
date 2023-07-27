@@ -3674,8 +3674,6 @@ def _grease_pencil_selection(params, *, use_select_mouse=True):
         # Select linked
         ("gpencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
         ("gpencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        # Select alternate
-        ("gpencil.select_alternate", {"type": 'L', "value": 'PRESS', "shift": True}, None),
         # Select grouped
         ("gpencil.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         # Select more/less
@@ -3855,6 +3853,11 @@ def km_grease_pencil_stroke_paint_mode(params):
         op_menu("VIEW3D_MT_gpencil_animation", {"type": 'I', "value": 'PRESS'}),
         # Draw context menu
         *_template_items_context_panel("VIEW3D_PT_gpencil_draw_context_menu", params.context_menu_event),
+        # Erase Gestures
+        # Box erase
+        ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
+        # Lasso erase
+        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -3892,35 +3895,11 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
         ])
 
     items.extend([
-        # Constrain Guides Speedlines
-        # Freehand
-        ("gpencil.draw", {"type": 'O', "value": 'PRESS'}, None),
-        ("gpencil.draw", {"type": 'J', "value": 'PRESS'}, None),
-        ("gpencil.draw", {"type": 'J', "value": 'PRESS', "alt": True}, None),
-        ("gpencil.draw", {"type": 'J', "value": 'PRESS', "shift": True}, None),
-        ("gpencil.draw", {"type": 'K', "value": 'PRESS'}, None),
-        ("gpencil.draw", {"type": 'K', "value": 'PRESS', "alt": True}, None),
-        ("gpencil.draw", {"type": 'K', "value": 'PRESS', "shift": True}, None),
-        ("gpencil.draw", {"type": 'L', "value": 'PRESS'}, None),
-        ("gpencil.draw", {"type": 'L', "value": 'PRESS', "alt": True}, None),
-        ("gpencil.draw", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
-        ("gpencil.draw", {"type": 'V', "value": 'PRESS'}, None),
-        # Mirror or flip
-        ("gpencil.draw", {"type": 'M', "value": 'PRESS'}, None),
-        # Mode
-        ("gpencil.draw", {"type": 'C', "value": 'PRESS'}, None),
-        # Set reference point
-        ("gpencil.draw", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         # Tablet Mappings for Drawing ------------------ */
         # For now, only support direct drawing using the eraser, as most users using a tablet
         # may still want to use that as their primary pointing device!
         ("gpencil.draw", {"type": 'ERASER', "value": 'PRESS'},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        # Selected (used by eraser)
-        # Box select
-        ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
-        # Lasso select
-        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -3940,10 +3919,6 @@ def km_grease_pencil_stroke_paint_erase(params):
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
         ("gpencil.draw", {"type": 'ERASER', "value": 'PRESS'},
          {"properties": [("mode", 'ERASER'), ("wait_for_input", False)]}),
-        # Box select (used by eraser)
-        ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
-        # Lasso select
-        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True}, None),
     ])
 
     return keymap
@@ -4379,8 +4354,6 @@ def km_grease_pencil_stroke_vertex_mode(params):
          {"properties": [("scalar", 1.0 / 0.9)]}),
         # Display
         *_grease_pencil_display(),
-        # Tools
-        op_tool("builtin_brush.Draw", {"type": 'D', "value": 'PRESS'}),
         # Keyframe menu
         ("gpencil.blank_frame_add", {"type": 'I', "value": 'PRESS', "shift": True}, None),
         ("gpencil.active_frames_delete_all", {"type": 'X', "value": 'PRESS', "shift": True}, None),
@@ -5313,16 +5286,11 @@ def km_sculpt(params):
         ("paint.mask_box_gesture", {"type": 'B', "value": 'PRESS'},
          {"properties": [("mode", 'VALUE'), ("value", 0.0)]}),
         ("paint.mask_lasso_gesture", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
-        ("wm.context_toggle", {"type": 'M', "value": 'PRESS', "ctrl": True},
-         {"properties": [("data_path", 'scene.tool_settings.sculpt.show_mask')]}),
         # Dynamic topology
-        ("sculpt.dynamic_topology_toggle", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
         ("sculpt.dyntopo_detail_size_edit", {"type": 'R', "value": 'PRESS'}, None),
-        ("sculpt.set_detail_size", {"type": 'D', "value": 'PRESS', "shift": True, "alt": True}, None),
         # Remesh
         ("object.voxel_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("object.voxel_size_edit", {"type": 'R', "value": 'PRESS'}, None),
-        ("object.quadriflow_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         # Color
         ("sculpt.sample_color", {"type": 'S', "value": 'PRESS'}, None),
         # Brush properties
@@ -5344,29 +5312,6 @@ def km_sculpt(params):
          {"properties": [("mode", 'SCALE'), ("texmode", 'SECONDARY')]}),
         ("brush.stencil_control", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True, "alt": True},
          {"properties": [("mode", 'ROTATION'), ("texmode", 'SECONDARY')]}),
-        # Tools
-        ("paint.brush_select", {"type": 'X', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'DRAW')]}),
-        ("paint.brush_select", {"type": 'S', "value": 'PRESS', "shift": True},
-         {"properties": [("sculpt_tool", 'SMOOTH')]}),
-        ("paint.brush_select", {"type": 'P', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'PINCH')]}),
-        ("paint.brush_select", {"type": 'I', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'INFLATE')]}),
-        ("paint.brush_select", {"type": 'G', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'GRAB')]}),
-        ("paint.brush_select", {"type": 'L', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'LAYER')]}),
-        ("paint.brush_select", {"type": 'T', "value": 'PRESS', "shift": True},
-         {"properties": [("sculpt_tool", 'FLATTEN')]}),
-        ("paint.brush_select", {"type": 'C', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'CLAY')]}),
-        ("paint.brush_select", {"type": 'C', "value": 'PRESS', "shift": True},
-         {"properties": [("sculpt_tool", 'CREASE')]}),
-        ("paint.brush_select", {"type": 'K', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'SNAKE_HOOK')]}),
-        ("paint.brush_select", {"type": 'M', "value": 'PRESS'},
-         {"properties": [("sculpt_tool", 'MASK'), ("toggle", True), ("create_missing", True)]}),
         # Menus
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.sculpt.brush.stroke_method')]}),
