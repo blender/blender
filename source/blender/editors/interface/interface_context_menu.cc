@@ -1030,6 +1030,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             0,
             0,
             "");
+        item_found = true;
         UI_but_func_set(but2, [um, umi](bContext &) {
           U.runtime.is_dirty = true;
           ED_screen_user_menu_item_remove(&um->items, umi);
