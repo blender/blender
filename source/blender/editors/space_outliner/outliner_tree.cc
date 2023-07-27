@@ -245,6 +245,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_EBONE) {
     id = static_cast<EditBoneElementCreateData *>(idv)->armature_id;
   }
+  else if (type == TSE_DEFGROUP) {
+    id = &static_cast<DeformGroupElementCreateData *>(idv)->object->id;
+  }
   else if (type == TSE_LINKED_PSYS) {
     id = &static_cast<ParticleSystemElementCreateData *>(idv)->object->id;
   }
@@ -306,6 +309,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_BONE, TSE_EBONE)) {
     /* pass */
   }
+  else if (ELEM(type, TSE_DEFGROUP, TSE_DEFGROUP_BASE)) {
+    /* pass */
+  }
   else if (type == TSE_LINKED_PSYS) {
     /* pass */
   }
@@ -358,7 +364,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_SEQUENCE,
                 TSE_SEQ_STRIP,
                 TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL))
+                TSE_GENERIC_LABEL) ||
+           ELEM(type, TSE_DEFGROUP, TSE_DEFGROUP_BASE))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }

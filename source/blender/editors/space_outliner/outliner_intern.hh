@@ -29,6 +29,7 @@ struct TreeStoreElem;
 struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
+struct bDeformGroup;
 struct bPoseChannel;
 struct ParticleSystem;
 struct View2D;
@@ -295,6 +296,11 @@ struct BoneElementCreateData {
 struct EditBoneElementCreateData {
   ID *armature_id;
   EditBone *ebone;
+};
+
+struct DeformGroupElementCreateData {
+  Object *object;
+  bDeformGroup *defgroup;
 };
 
 struct ParticleSystemElementCreateData {

@@ -290,17 +290,8 @@ void TreeElementIDObject::expand_vertex_groups(SpaceOutliner &space_outliner) co
   if (BLI_listbase_is_empty(defbase)) {
     return;
   }
-  TreeElement *tenla = outliner_add_element(
+  outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_DEFGROUP_BASE, 0);
-  tenla->name = IFACE_("Vertex Groups");
-
-  int index;
-  LISTBASE_FOREACH_INDEX (bDeformGroup *, defgroup, defbase, index) {
-    TreeElement *ten = outliner_add_element(
-        &space_outliner, &tenla->subtree, &object_, tenla, TSE_DEFGROUP, index);
-    ten->name = defgroup->name;
-    ten->directdata = defgroup;
-  }
 }
 
 void TreeElementIDObject::expand_duplicated_group(SpaceOutliner &space_outliner) const
