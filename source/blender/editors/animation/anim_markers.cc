@@ -46,6 +46,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 #include "ED_numinput.h"
 #include "ED_object.h"

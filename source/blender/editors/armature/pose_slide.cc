@@ -65,6 +65,7 @@
 #include "UI_resources.h"
 
 #include "ED_armature.h"
+#include "ED_keyframes_edit.h"
 #include "ED_keyframes_keylist.h"
 #include "ED_keyframing.h"
 #include "ED_markers.h"

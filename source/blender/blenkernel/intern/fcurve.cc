@@ -1012,43 +1012,6 @@ bool BKE_fcurve_is_keyframable(const FCurve *fcu)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Keyframe Column Tools
- * \{ */
-
-static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt)
-{
-  CfraElem *ce, *cen;
-
-  for (ce = static_cast<CfraElem *>(lb->first); ce; ce = ce->next) {
-    /* Double key? */
-    if (IS_EQT(ce->cfra, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
-      if (bezt->f2 & SELECT) {
-        ce->sel = bezt->f2;
-      }
-      return;
-    }
-    /* Should key be inserted before this column? */
-    if (ce->cfra > bezt->vec[1][0]) {
-      break;
-    }
-  }
-
-  /* Create a new column */
-  cen = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem"));
-  if (ce) {
-    BLI_insertlinkbefore(lb, ce, cen);
-  }
-  else {
-    BLI_addtail(lb, cen);
-  }
-
-  cen->cfra = bezt->vec[1][0];
-  cen->sel = bezt->f2;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Samples Utilities
  * \{ */
 
