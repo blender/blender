@@ -202,12 +202,11 @@ void TreeElementIDObject::expand_modifiers(SpaceOutliner &space_outliner) const
     }
     else if (md->type == eModifierType_ParticleSystem) {
       ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-      TreeElement *ten_psys;
 
-      ten_psys = outliner_add_element(
-          &space_outliner, &ten->subtree, &object_, &legacy_te_, TSE_LINKED_PSYS, 0);
-      ten_psys->directdata = psys;
-      ten_psys->name = psys->part->id.name + 2;
+      ParticleSystemElementCreateData psys_data = {&object_, psys};
+
+      outliner_add_element(
+          &space_outliner, &ten->subtree, &psys_data, &legacy_te_, TSE_LINKED_PSYS, 0);
     }
   }
 }
