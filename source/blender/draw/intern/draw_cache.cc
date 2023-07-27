@@ -927,7 +927,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
 GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
   Mesh *me = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-  short type = (me != nullptr) ? OB_MESH : ob->type;
+  short type = (me != nullptr) ? short(OB_MESH) : ob->type;
 
   switch (type) {
     case OB_MESH:

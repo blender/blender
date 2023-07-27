@@ -78,9 +78,9 @@ static void basic_cache_init(void *vedata)
   /* Twice for normal and in front objects. */
   for (int i = 0; i < 2; i++) {
     DRWState clip_state = DRWState(
-        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? DRW_STATE_CLIP_PLANES : 0);
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? DRW_STATE_CLIP_PLANES : DRW_STATE_NO_DRAW);
     DRWState infront_state = DRWState(
-        (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT : 0);
+        (DRW_state_is_select() && (i == 1)) ? DRW_STATE_IN_FRONT_SELECT : DRW_STATE_NO_DRAW);
     DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 
     GPUShader *sh = DRW_state_is_select() ?

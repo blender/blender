@@ -187,7 +187,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
                        V3D_SHADING_VERTEX_COLOR :
                        pd->v3d_color_type;
   const eV3DShadingLightingMode lighting_mode = eV3DShadingLightingMode(
-      (pd->v3d != nullptr) ? pd->v3d->shading.light : V3D_LIGHTING_STUDIO);
+      (pd->v3d != nullptr) ? eV3DShadingLightingMode(pd->v3d->shading.light) :
+                             V3D_LIGHTING_STUDIO);
 
   GPENCIL_MaterialPool *pool = matpool;
   for (int i = 0; i < mat_len; i++) {
