@@ -36,14 +36,9 @@ Render::~Render()
   RE_blender_gpu_context_free(this);
   RE_system_gpu_context_free(this);
 
-  BLI_mutex_end(&highlighted_tiles_mutex);
   BLI_mutex_end(&gpu_compositor_mutex);
 
   BKE_curvemapping_free_data(&r.mblur_shutter_curve);
-
-  if (highlighted_tiles != nullptr) {
-    BLI_gset_free(highlighted_tiles, MEM_freeN);
-  }
 
   render_result_free(pushedresult);
 }

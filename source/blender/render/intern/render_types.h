@@ -19,6 +19,8 @@
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"
 
+#include "tile_highlight.h"
+
 struct Depsgraph;
 struct GSet;
 struct Main;
@@ -26,17 +28,14 @@ struct Object;
 struct RenderEngine;
 struct ReportList;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct HighlightedTile {
-  rcti rect;
-};
-
 struct BaseRender {
   BaseRender() = default;
   virtual ~BaseRender();
+
+  /* Get class which manages highlight of tiles.
+   * Note that it might not exist: for example, viewport render does not support the tile
+   * highlight. */
+  virtual blender::render::TilesHighlight *get_tile_highlight() = 0;
 
   /* Result of rendering */
   RenderResult *result = nullptr;
@@ -54,6 +53,10 @@ struct BaseRender {
 };
 
 struct ViewRender : public BaseRender {
+  blender::render::TilesHighlight *get_tile_highlight() override
+  {
+    return nullptr;
+  }
 };
 
 /* Controls state of render, everything that's read-only during render stage */
@@ -62,6 +65,11 @@ struct Render : public BaseRender {
    * Add these now to allow the guarded memory allocator to catch C-specific function calls. */
   Render() = default;
   virtual ~Render();
+
+  blender::render::TilesHighlight *get_tile_highlight() override
+  {
+    return &tile_highlight;
+  }
 
   char name[RE_MAXNAME] = "";
   int slot = 0;
@@ -101,8 +109,7 @@ struct Render : public BaseRender {
   char single_view_layer[MAX_NAME] = "";
   struct Object *camera_override = nullptr;
 
-  ThreadMutex highlighted_tiles_mutex = BLI_MUTEX_INITIALIZER;
-  struct GSet *highlighted_tiles = nullptr;
+  blender::render::TilesHighlight tile_highlight;
 
   /* NOTE: This is a minimal dependency graph and evaluated scene which is enough to access view
    * layer visibility and use for postprocessing (compositor and sequencer). */
@@ -153,7 +160,3 @@ struct Render : public BaseRender {
 
 /** #R.flag */
 #define R_ANIMATION 1
-
-#ifdef __cplusplus
-}
-#endif
