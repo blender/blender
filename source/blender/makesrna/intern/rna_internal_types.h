@@ -202,17 +202,40 @@ typedef struct PropertyRNAOrID {
  * overridable properties that differ and have not yet been overridden
  * (and set accordingly \a r_override_changed if given).
  *
- * \note \a override, \a rna_path and \a r_override_changed may be NULL pointers.
+ * \note \a override and \a rna_path may be NULL pointers.
  */
-typedef int (*RNAPropOverrideDiff)(struct Main *bmain,
-                                   struct PropertyRNAOrID *prop_a,
-                                   struct PropertyRNAOrID *prop_b,
-                                   int mode,
-                                   struct IDOverrideLibrary *override,
-                                   const char *rna_path,
-                                   size_t rna_path_len,
-                                   int flags,
-                                   eRNAOverrideMatchResult *r_report_flag);
+struct RNAPropertyOverrideDiffContext {
+  /** General diffing parameters. */
+
+  /* Using #PropertyRNAOrID for properties info here allows to cover all three cases ('real' RNA
+   * properties, 'runtime' RNA properties created from python and stored in IDPropertoies, and
+   * 'pure' IDProperties).
+   *
+   * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
+   * (unset IDProperties would merely be nullptr then). */
+  struct PropertyRNAOrID *prop_a = nullptr;
+  struct PropertyRNAOrID *prop_b = nullptr;
+
+  eRNACompareMode mode = RNA_EQ_COMPARE;
+
+  /** LibOverride specific parameters. */
+  struct IDOverrideLibrary *override = nullptr;
+  const char *rna_path = nullptr;
+  size_t rna_path_len = 0;
+  eRNAOverrideMatch override_flags = eRNAOverrideMatch(0);
+
+  /** Results. */
+
+  /** `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+   * unquantifiable properties (e.g. pointers or collections), return value should be interpreted
+   * as a boolean (false == matching, true == not matching). */
+  int comparison = 0;
+  /** Additional flags reporting potential actions taken by the function (e.g. resetting forbidden
+   * overrides to their reference value). */
+  eRNAOverrideMatchResult report_flag = eRNAOverrideMatchResult(0);
+};
+typedef void (*RNAPropOverrideDiff)(struct Main *bmain,
+                                    RNAPropertyOverrideDiffContext &rnadiff_ctx);
 
 /**
  * Only used for differential override (add, sub, etc.).

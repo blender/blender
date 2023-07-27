@@ -315,16 +315,11 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
 /**
  * Generic RNA property diff function.
  *
- * \note about \a prop and \a prop_a/prop_b parameters:
- * the former is expected to be an 'un-resolved' one,
- * while the two later are expected to be fully resolved ones
- * (i.e. to be the IDProps when they should be, etc.).
- * When \a prop is given, \a prop_a and \a prop_b should always be nullptr, and vice-versa.
- * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
- * (unset IDProps would merely be nullptr then).
+ * Return value follows comparison functions convention (`0` is equal, `-1` if `prop_a` value is
+ * lesser than `prop_b` one, and `1` otherwise.
  *
- * \note When there is no equality,
- * but we cannot determine an order (greater than/lesser than), we return 1.
+ * \note When there is no equality, but no order can be determined (greater than/lesser than),
+ *       1 is returned.
  */
 static int rna_property_override_diff(Main *bmain,
                                       PropertyRNAOrID *prop_a,
@@ -425,10 +420,22 @@ static int rna_property_override_diff(Main *bmain,
   {
     diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
   }
-  const int diff = override_diff(
-      bmain, prop_a, prop_b, mode, override, rna_path, rna_path_len, diff_flags, r_report_flags);
 
-  return diff;
+  RNAPropertyOverrideDiffContext rnadiff_ctx;
+  rnadiff_ctx.prop_a = prop_a;
+  rnadiff_ctx.prop_b = prop_b;
+  rnadiff_ctx.mode = mode;
+
+  rnadiff_ctx.override = override;
+  rnadiff_ctx.rna_path = rna_path;
+  rnadiff_ctx.rna_path_len = rna_path_len;
+  rnadiff_ctx.override_flags = diff_flags;
+  override_diff(bmain, rnadiff_ctx);
+
+  if (r_report_flags) {
+    *r_report_flags = rnadiff_ctx.report_flag;
+  }
+  return rnadiff_ctx.comparison;
 }
 
 /* Modify local data-block to make it ready for override application
@@ -793,7 +800,7 @@ bool RNA_struct_override_matches(Main *bmain,
     }
 #endif
 
-    eRNAOverrideMatchResult report_flags = RNA_OVERRIDE_MATCH_RESULT_INIT;
+    eRNAOverrideMatchResult report_flags = eRNAOverrideMatchResult(0);
     const int diff = rna_property_override_diff(bmain,
                                                 &prop_local,
                                                 &prop_reference,

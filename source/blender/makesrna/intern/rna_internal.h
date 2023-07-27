@@ -545,15 +545,8 @@ struct PropertyRNA *rna_ensure_property(struct PropertyRNA *prop) ATTR_WARN_UNUS
  *       (like we do for default get/set/etc.)?
  *       Not obvious though, those are fairly more complicated than basic SDNA access.
  */
-int rna_property_override_diff_default(struct Main *bmain,
-                                       struct PropertyRNAOrID *prop_a,
-                                       struct PropertyRNAOrID *prop_b,
-                                       int mode,
-                                       struct IDOverrideLibrary *override,
-                                       const char *rna_path,
-                                       size_t rna_path_len,
-                                       int flags,
-                                       eRNAOverrideMatchResult *r_report_flag);
+void rna_property_override_diff_default(struct Main *bmain,
+                                        RNAPropertyOverrideDiffContext &rnadiff_ctx);
 
 bool rna_property_override_store_default(struct Main *bmain,
                                          struct PointerRNA *ptr_local,
