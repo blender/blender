@@ -142,6 +142,11 @@ class MultiDevice : public Device {
       return BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE;
     }
 
+    const BVHLayoutMask BVH_LAYOUT_HIPRT_EMBREE = (BVH_LAYOUT_HIPRT | BVH_LAYOUT_EMBREE);
+    if ((bvh_layout_mask_all & BVH_LAYOUT_HIPRT_EMBREE) == BVH_LAYOUT_HIPRT_EMBREE) {
+      return BVH_LAYOUT_MULTI_HIPRT_EMBREE;
+    }
+
     return bvh_layout_mask;
   }
 
@@ -214,7 +219,7 @@ class MultiDevice : public Device {
           params.bvh_layout = sub.device->info.type == DEVICE_METAL ? BVH_LAYOUT_METAL :
                                                                       BVH_LAYOUT_EMBREE;
         else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_HIPRT_EMBREE)
-          params.bvh_layout = sub.device->info.type == DEVICE_HIPRT ? BVH_LAYOUT_HIPRT :
+          params.bvh_layout = sub.device->info.type == DEVICE_HIP ? BVH_LAYOUT_HIPRT :
                                                                       BVH_LAYOUT_EMBREE;
         else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE)
           params.bvh_layout = sub.device->info.type == DEVICE_ONEAPI ? BVH_LAYOUT_EMBREEGPU :
