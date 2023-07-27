@@ -259,8 +259,26 @@ void TreeElementIDObject::expand_gpencil_effects(SpaceOutliner &space_outliner) 
   if (BLI_listbase_is_empty(&object_.shader_fx)) {
     return;
   }
-  outliner_add_element(
+  TreeElement *ten_fx = outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_GPENCIL_EFFECT_BASE, 0);
+  ten_fx->name = IFACE_("Effects");
+
+  int index;
+  LISTBASE_FOREACH_INDEX (ShaderFxData *, fx, &object_.shader_fx, index) {
+    TreeElement *ten = outliner_add_element(
+        &space_outliner, &ten_fx->subtree, &object_, ten_fx, TSE_GPENCIL_EFFECT, index);
+    ten->name = fx->name;
+    ten->directdata = fx;
+
+    if (fx->type == eShaderFxType_Swirl) {
+      outliner_add_element(&space_outliner,
+                           &ten->subtree,
+                           ((SwirlShaderFxData *)fx)->object,
+                           ten,
+                           TSE_LINKED_OB,
+                           0);
+    }
+  }
 }
 
 void TreeElementIDObject::expand_vertex_groups(SpaceOutliner &space_outliner) const

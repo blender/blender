@@ -23,7 +23,6 @@
 #include "tree_element_defgroup.hh"
 #include "tree_element_driver.hh"
 #include "tree_element_edit_bone.hh"
-#include "tree_element_gpencil_effect.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
@@ -117,14 +116,6 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementEditBone>(
           legacy_te, *ebone_data->armature_id, *ebone_data->ebone);
     }
-    case TSE_GPENCIL_EFFECT: {
-      GPencilEffectElementCreateData *gp_effect_data =
-          static_cast<GPencilEffectElementCreateData *>(idv);
-      return std::make_unique<TreeElementGPencilEffect>(
-          legacy_te, *gp_effect_data->object, *gp_effect_data->fx);
-    }
-    case TSE_GPENCIL_EFFECT_BASE:
-      return std::make_unique<TreeElementGPencilEffectBase>(legacy_te, static_cast<Object *>(idv));
     case TSE_DEFGROUP_BASE:
       return std::make_unique<TreeElementDeformGroupBase>(legacy_te, *static_cast<Object *>(idv));
     case TSE_DEFGROUP: {
