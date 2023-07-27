@@ -849,14 +849,6 @@ static bool rna_TextCurve_is_select_bold_get(PointerRNA *ptr)
   return false;
 }
 
-static void rna_TextCurve_is_select_bold_set(PointerRNA *ptr, const bool value)
-{
-  Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  if (cu->editfont != nullptr) {
-    cu->editfont->select_char_info_flag |= CU_CHINFO_BOLD;
-  }
-}
-
 static bool rna_TextCurve_is_select_italic_get(PointerRNA *ptr)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
@@ -864,14 +856,6 @@ static bool rna_TextCurve_is_select_italic_get(PointerRNA *ptr)
     return (cu->editfont->select_char_info_flag & CU_CHINFO_ITALIC);
   }
   return false;
-}
-
-static void rna_TextCurve_is_select_italic_set(PointerRNA *ptr, const bool value)
-{
-  Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  if (cu->editfont != nullptr) {
-    cu->editfont->select_char_info_flag |= CU_CHINFO_ITALIC;
-  }
 }
 
 static bool rna_TextCurve_is_select_underline_get(PointerRNA *ptr)
@@ -883,14 +867,6 @@ static bool rna_TextCurve_is_select_underline_get(PointerRNA *ptr)
   return false;
 }
 
-static void rna_TextCurve_is_select_underline_set(PointerRNA *ptr, const bool value)
-{
-  Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  if (cu->editfont != nullptr) {
-    cu->editfont->select_char_info_flag |= CU_CHINFO_UNDERLINE;
-  }
-}
-
 static bool rna_TextCurve_is_select_smallcaps_get(PointerRNA *ptr)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
@@ -898,14 +874,6 @@ static bool rna_TextCurve_is_select_smallcaps_get(PointerRNA *ptr)
     return (cu->editfont->select_char_info_flag & CU_CHINFO_SMALLCAPS);
   }
   return false;
-}
-
-static void rna_TextCurve_is_select_smallcap_set(PointerRNA *ptr, const bool value)
-{
-  Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  if (cu->editfont != nullptr) {
-    cu->editfont->select_char_info_flag |= CU_CHINFO_SMALLCAPS;
-  }
 }
 
 static bool rna_TextCurve_has_selection_get(PointerRNA *ptr)
@@ -1354,26 +1322,22 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "is_select_bold", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_TextCurve_is_select_bold_get", "rna_TextCurve_is_select_bold_set");
+  RNA_def_property_boolean_funcs(prop, "rna_TextCurve_is_select_bold_get", nullptr);
   RNA_def_property_ui_text(prop, "Selected Bold", "Whether the selected text is bold");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_select_italic", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_TextCurve_is_select_italic_get", "rna_TextCurve_is_select_italic_set");
+  RNA_def_property_boolean_funcs(prop, "rna_TextCurve_is_select_italic_get", nullptr);
   RNA_def_property_ui_text(prop, "Selected Italic", "Whether the selected text is italics");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_select_underline", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_TextCurve_is_select_underline_get", "rna_TextCurve_is_select_underline_set");
+  RNA_def_property_boolean_funcs(prop, "rna_TextCurve_is_select_underline_get", nullptr);
   RNA_def_property_ui_text(prop, "Selected Underline", "Whether the selected text is underlined");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "is_select_smallcaps", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_funcs(
-      prop, "rna_TextCurve_is_select_smallcaps_get", "rna_TextCurve_is_select_smallcaps_set");
+  RNA_def_property_boolean_funcs(prop, "rna_TextCurve_is_select_smallcaps_get", nullptr);
   RNA_def_property_ui_text(prop, "Selected Small Caps", "Whether the selected text is small caps");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
