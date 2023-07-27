@@ -11,6 +11,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
@@ -501,9 +502,16 @@ struct EraseOperationExecutor {
     Object *obact = CTX_data_active_object(&C);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, obact);
 
+    Paint *paint = &scene->toolsettings->gp_paint->paint;
+    Brush *brush = BKE_paint_brush(paint);
+
     /* Get the tool's data. */
     this->mouse_position = extension_sample.mouse_position;
-    this->eraser_radius = extension_sample.pressure * self.radius;
+    this->eraser_radius = self.radius;
+    if (BKE_brush_use_size_pressure(brush)) {
+      this->eraser_radius *= BKE_curvemapping_evaluateF(
+          brush->gpencil_settings->curve_strength, 0, extension_sample.pressure);
+    }
 
     /* Get the grease pencil drawing. */
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
@@ -580,12 +588,14 @@ void EraseOperation::on_stroke_begin(const bContext &C, const InputSample & /*st
   Paint *paint = BKE_paint_get_active_from_context(&C);
   Brush *brush = BKE_paint_brush(paint);
 
+  BLI_assert(brush->gpencil_settings != nullptr);
+
+  BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
+
   this->radius = BKE_brush_size_get(scene, brush);
-  if (brush->gpencil_settings) {
-    this->eraser_mode = eGP_BrushEraserMode(brush->gpencil_settings->eraser_mode);
-    this->keep_caps = ((brush->gpencil_settings->flag & GP_BRUSH_ERASER_KEEP_CAPS) != 0);
-    this->active_layer_only = ((brush->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0);
-  }
+  this->eraser_mode = eGP_BrushEraserMode(brush->gpencil_settings->eraser_mode);
+  this->keep_caps = ((brush->gpencil_settings->flag & GP_BRUSH_ERASER_KEEP_CAPS) != 0);
+  this->active_layer_only = ((brush->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0);
 }
 
 void EraseOperation::on_stroke_extended(const bContext &C, const InputSample &extension_sample)
