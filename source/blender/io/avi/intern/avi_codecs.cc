@@ -38,26 +38,28 @@ void *avi_format_convert(
     case AVI_FORMAT_RGB24:
       switch (from) {
         case AVI_FORMAT_AVI_RGB:
-          buffer = avi_converter_from_avi_rgb(movie, stream, buffer, size);
+          buffer = avi_converter_from_avi_rgb(
+              movie, stream, static_cast<unsigned char *>(buffer), size);
           break;
         case AVI_FORMAT_MJPEG:
-          buffer = avi_converter_from_mjpeg(movie, stream, buffer, size);
+          buffer = avi_converter_from_mjpeg(movie, stream, static_cast<uchar *>(buffer), size);
           break;
         case AVI_FORMAT_RGB32:
-          buffer = avi_converter_from_rgb32(movie, stream, buffer, size);
+          buffer = avi_converter_from_rgb32(
+              movie, stream, static_cast<unsigned char *>(buffer), size);
           break;
         default:
           break;
       }
       break;
     case AVI_FORMAT_AVI_RGB:
-      buffer = avi_converter_to_avi_rgb(movie, stream, buffer, size);
+      buffer = avi_converter_to_avi_rgb(movie, stream, static_cast<unsigned char *>(buffer), size);
       break;
     case AVI_FORMAT_MJPEG:
-      buffer = avi_converter_to_mjpeg(movie, stream, buffer, size);
+      buffer = avi_converter_to_mjpeg(movie, stream, static_cast<uchar *>(buffer), size);
       break;
     case AVI_FORMAT_RGB32:
-      buffer = avi_converter_to_rgb32(movie, stream, buffer, size);
+      buffer = avi_converter_to_rgb32(movie, stream, static_cast<unsigned char *>(buffer), size);
       break;
     default:
       break;

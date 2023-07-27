@@ -92,7 +92,7 @@ int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num)
 {
   int cur_stream;
 
-  if (movie == NULL) {
+  if (movie == nullptr) {
     return -AVI_ERROR_OPTION;
   }
 
@@ -188,7 +188,7 @@ AviError AVI_print_error(AviError in_error)
 bool AVI_is_avi(const char *filepath)
 {
   int temp, fcca, j;
-  AviMovie movie = {NULL};
+  AviMovie movie = {nullptr};
   AviMainHeader header;
   AviBitmapInfoHeader bheader;
   int movie_tracks = 0;
@@ -197,9 +197,9 @@ bool AVI_is_avi(const char *filepath)
 
   movie.type = AVI_MOVIE_READ;
   movie.fp = BLI_fopen(filepath, "rb");
-  movie.offset_table = NULL;
+  movie.offset_table = nullptr;
 
-  if (movie.fp == NULL) {
+  if (movie.fp == nullptr) {
     return 0;
   }
 
@@ -390,9 +390,9 @@ AviError AVI_open_movie(const char *filepath, AviMovie *movie)
 
   movie->type = AVI_MOVIE_READ;
   movie->fp = BLI_fopen(filepath, "rb");
-  movie->offset_table = NULL;
+  movie->offset_table = nullptr;
 
-  if (movie->fp == NULL) {
+  if (movie->fp == nullptr) {
     return AVI_ERROR_OPEN;
   }
 
@@ -657,7 +657,7 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
   }
 
   if (cur_frame != frame) {
-    return NULL;
+    return nullptr;
   }
 
   BLI_fseek(movie->fp, movie->read_offset + movie->entries[i - 1].Offset, SEEK_SET);
@@ -668,7 +668,7 @@ void *AVI_read_frame(AviMovie *movie, AviFormat format, int frame, int stream)
   if (fread(buffer, 1, size, movie->fp) != size) {
     MEM_freeN(buffer);
 
-    return NULL;
+    return nullptr;
   }
 
   buffer = avi_format_convert(movie, stream, buffer, movie->streams[stream].format, format, &size);
@@ -683,7 +683,7 @@ AviError AVI_close(AviMovie *movie)
   fclose(movie->fp);
 
   for (i = 0; i < movie->header->Streams; i++) {
-    if (movie->streams[i].sf != NULL) {
+    if (movie->streams[i].sf != nullptr) {
       MEM_freeN(movie->streams[i].sf);
     }
   }
@@ -691,10 +691,10 @@ AviError AVI_close(AviMovie *movie)
   MEM_freeN(movie->header);
   MEM_freeN(movie->streams);
 
-  if (movie->entries != NULL) {
+  if (movie->entries != nullptr) {
     MEM_freeN(movie->entries);
   }
-  if (movie->offset_table != NULL) {
+  if (movie->offset_table != nullptr) {
     MEM_freeN(movie->offset_table);
   }
 
@@ -716,7 +716,7 @@ AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...)
 
   movie->index_entries = 0;
 
-  if (movie->fp == NULL) {
+  if (movie->fp == nullptr) {
     return AVI_ERROR_OPEN;
   }
 
@@ -726,7 +726,7 @@ AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...)
     movie->offset_table[i] = -1L;
   }
 
-  movie->entries = NULL;
+  movie->entries = nullptr;
 
   movie->header = (AviMainHeader *)MEM_mallocN(sizeof(AviMainHeader), "movieheader");
 
@@ -760,7 +760,7 @@ AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...)
   va_start(ap, streams);
 
   for (i = 0; i < movie->header->Streams; i++) {
-    movie->streams[i].format = va_arg(ap, AviFormat);
+    movie->streams[i].format = AviFormat(va_arg(ap, int));
 
     movie->streams[i].sh.fcc = FCC("strh");
     movie->streams[i].sh.size = 56;
@@ -928,7 +928,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
   for (stream = 0; stream < movie->header->Streams; stream++) {
     uint tbuf = 0;
 
-    format = va_arg(ap, AviFormat);
+    format = AviFormat(va_arg(ap, int));
     buffer = va_arg(ap, void *);
     size_t size = va_arg(ap, int);
 
@@ -999,7 +999,7 @@ AviError AVI_close_compress(AviMovie *movie)
 {
   int temp, movi_size, i;
 
-  if (movie->fp == NULL) {
+  if (movie->fp == nullptr) {
     /* none of the allocations below were done if the file failed to open */
     return AVI_ERROR_FOUND;
   }
@@ -1027,20 +1027,20 @@ AviError AVI_close_compress(AviMovie *movie)
   fclose(movie->fp);
 
   for (i = 0; i < movie->header->Streams; i++) {
-    if (movie->streams && (movie->streams[i].sf != NULL)) {
+    if (movie->streams && (movie->streams[i].sf != nullptr)) {
       MEM_freeN(movie->streams[i].sf);
     }
   }
 
   MEM_freeN(movie->header);
 
-  if (movie->entries != NULL) {
+  if (movie->entries != nullptr) {
     MEM_freeN(movie->entries);
   }
-  if (movie->streams != NULL) {
+  if (movie->streams != nullptr) {
     MEM_freeN(movie->streams);
   }
-  if (movie->offset_table != NULL) {
+  if (movie->offset_table != nullptr) {
     MEM_freeN(movie->offset_table);
   }
   return AVI_ERROR_NONE;
