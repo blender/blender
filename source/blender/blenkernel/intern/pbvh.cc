@@ -884,14 +884,14 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
         BB current = init;
         for (const int i : range) {
           const MLoopTri &lt = pbvh->looptri[i];
-    BBC *bbc = &prim_bbc[i];
-    BB_reset((BB *)bbc);
+          BBC *bbc = &prim_bbc[i];
+          BB_reset((BB *)bbc);
           for (int j = 0; j < 3; j++) {
             BB_expand((BB *)bbc, vert_positions[pbvh->corner_verts[lt.tri[j]]]);
-    }
-    BBC_update_centroid(bbc);
+          }
+          BBC_update_centroid(bbc);
           BB_expand(&current, bbc->bcentroid);
-  }
+        }
         return current;
       },
       [](const BB &a, const BB &b) {
