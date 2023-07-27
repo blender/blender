@@ -10,6 +10,8 @@
 
 #include "tree_element.hh"
 
+struct ParticleSystem;
+
 namespace blender::ed::outliner {
 
 class TreeElementParticleSystem final : public AbstractTreeElement {

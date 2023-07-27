@@ -30,6 +30,7 @@ struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
 struct bPoseChannel;
+struct ParticleSystem;
 struct View2D;
 struct wmKeyConfig;
 struct wmOperatorType;
