@@ -82,7 +82,7 @@ typedef struct bConstraintTypeInfo {
   /** name of constraint in interface */
   char name[32];
   /** name of struct for SDNA */
-  char structName[32];
+  char struct_name[32];
 
   /* data management function pointers - special handling */
   /** free any data that is allocated separately (optional) */

@@ -221,11 +221,6 @@ int BKE_mesh_runtime_looptri_len(const Mesh *mesh)
   return poly_to_tri_count(mesh->faces_num, mesh->totloop);
 }
 
-const MLoopTri *BKE_mesh_runtime_looptri_ensure(const Mesh *mesh)
-{
-  return mesh->looptris().data();
-}
-
 const int *BKE_mesh_runtime_looptri_faces_ensure(const Mesh *mesh)
 {
   return mesh->looptri_faces().data();
@@ -250,14 +245,6 @@ bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
   }
   mesh->runtime->edit_data = MEM_new<blender::bke::EditMeshData>(__func__);
   return true;
-}
-
-void BKE_mesh_runtime_reset_edit_data(Mesh *mesh)
-{
-  using namespace blender::bke;
-  if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data) {
-    *edit_data = {};
-  }
 }
 
 void BKE_mesh_runtime_clear_cache(Mesh *mesh)
@@ -407,13 +394,13 @@ bool BKE_mesh_runtime_is_valid(Mesh *me_eval)
   MutableSpan<int> corner_edges = me_eval->corner_edges_for_write();
 
   is_valid &= BKE_mesh_validate_all_customdata(
-      &me_eval->vdata,
+      &me_eval->vert_data,
       me_eval->totvert,
-      &me_eval->edata,
+      &me_eval->edge_data,
       me_eval->totedge,
-      &me_eval->ldata,
+      &me_eval->loop_data,
       me_eval->totloop,
-      &me_eval->pdata,
+      &me_eval->face_data,
       me_eval->faces_num,
       false, /* setting mask here isn't useful, gives false positives */
       do_verbose,

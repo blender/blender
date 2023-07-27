@@ -13,6 +13,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 class TimeStamp {

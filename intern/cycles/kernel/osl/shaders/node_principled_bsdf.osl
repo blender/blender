@@ -19,7 +19,8 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
                             float Anisotropic = 0.0,
                             float AnisotropicRotation = 0.0,
                             float Sheen = 0.0,
-                            float SheenTint = 0.5,
+                            float SheenRoughness = 0.5,
+                            color SheenTint = 0.5,
                             float Clearcoat = 0.0,
                             float ClearcoatRoughness = 0.03,
                             float IOR = 1.45,
@@ -64,9 +65,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
     }
 
     if (Sheen > 1e-5) {
-      color sheen_color = mix(color(1.0), m_ctint, SheenTint);
-
-      BSDF += sheen_color * Sheen * principled_sheen(Normal);
+      BSDF += SheenTint * Sheen * sheen(Normal, SheenRoughness);
     }
 
     BSDF *= diffuse_weight;

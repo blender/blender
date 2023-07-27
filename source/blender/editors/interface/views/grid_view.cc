@@ -37,6 +37,14 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
   return added_item;
 }
 
+/* Implementation for the base class virtual function. More specialized iterators below. */
+void AbstractGridView::foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
+{
+  for (const auto &item_ptr : items_) {
+    iter_fn(*item_ptr);
+  }
+}
+
 void AbstractGridView::foreach_item(ItemIterFn iter_fn) const
 {
   for (const auto &item_ptr : items_) {
@@ -61,28 +69,6 @@ AbstractGridViewItem *AbstractGridView::find_matching_item(
   BLI_assert(!match || item_to_match.matches(**match));
 
   return match ? *match : nullptr;
-}
-
-void AbstractGridView::change_state_delayed()
-{
-  BLI_assert_msg(
-      is_reconstructed(),
-      "These state changes are supposed to be delayed until reconstruction is completed");
-
-/* Debug-only sanity check: Ensure only one item requests to be active. */
-#ifndef NDEBUG
-  bool has_active = false;
-  foreach_item([&has_active](AbstractGridViewItem &item) {
-    if (item.should_be_active().value_or(false)) {
-      BLI_assert_msg(
-          !has_active,
-          "Only one view item should ever return true for its `should_be_active()` method");
-      has_active = true;
-    }
-  });
-#endif
-
-  foreach_item([](AbstractGridViewItem &item) { item.change_state_delayed(); });
 }
 
 void AbstractGridView::update_children_from_old(const AbstractView &old_view)
@@ -141,13 +127,13 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::grid_tile_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
+void AbstractGridViewItem::grid_tile_click_fn(bContext *C, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
       *view_item_but->view_item);
 
-  grid_item.activate();
+  grid_item.activate(*C);
 }
 
 void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
@@ -170,49 +156,6 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
 
   view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
   UI_but_func_set(view_item_but_, grid_tile_click_fn, view_item_but_, nullptr);
-}
-
-void AbstractGridViewItem::on_activate()
-{
-  /* Do nothing by default. */
-}
-
-std::optional<bool> AbstractGridViewItem::should_be_active() const
-{
-  return std::nullopt;
-}
-
-void AbstractGridViewItem::change_state_delayed()
-{
-  const std::optional<bool> should_be_active = this->should_be_active();
-  if (should_be_active.has_value() && *should_be_active) {
-    activate();
-  }
-}
-
-void AbstractGridViewItem::activate()
-{
-  BLI_assert_msg(get_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
-
-  if (!is_activatable_) {
-    return;
-  }
-  if (is_active()) {
-    return;
-  }
-
-  /* Deactivate other items in the tree. */
-  get_view().foreach_item([](auto &item) { item.deactivate(); });
-
-  on_activate();
-
-  is_active_ = true;
-}
-
-void AbstractGridViewItem::deactivate()
-{
-  is_active_ = false;
 }
 
 AbstractGridView &AbstractGridViewItem::get_view() const
@@ -504,10 +447,10 @@ void PreviewGridItem::hide_label()
   hide_label_ = true;
 }
 
-void PreviewGridItem::on_activate()
+void PreviewGridItem::on_activate(bContext &C)
 {
   if (activate_fn_) {
-    activate_fn_(*this);
+    activate_fn_(C, *this);
   }
 }
 

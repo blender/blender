@@ -863,6 +863,10 @@ static void insert_action_keys(bAnimContext *ac, short mode)
         insert_gpencil_key(ac, ale, add_frame_mode, &gpd_old);
         break;
 
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+        /* GPv3: To be implemented. */
+        break;
+
       case ANIMTYPE_FCURVE:
         insert_fcurve_key(ac, ale, anim_eval_context, flag, &nla_cache);
         break;
@@ -956,6 +960,9 @@ static bool duplicate_action_keys(bAnimContext *ac)
       ED_gpencil_layer_frames_duplicate((bGPDlayer *)ale->data);
       changed |= ED_gpencil_layer_frame_select_check((bGPDlayer *)ale->data);
     }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      /* GPv3: To be implemented. */
+    }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
     }
@@ -1033,6 +1040,9 @@ static bool delete_action_keys(bAnimContext *ac)
 
     if (ale->type == ANIMTYPE_GPLAYER) {
       changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale->data);
+    }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      /* GPv3: To be implemented. */
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
@@ -1618,6 +1628,10 @@ static void setkeytype_action_keys(bAnimContext *ac, short mode)
         ale->update |= ANIM_UPDATE_DEPS;
         break;
 
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+        /* GPv3: To be implemented. */
+        break;
+
       case ANIMTYPE_FCURVE:
         ANIM_fcurve_keyframes_loop(
             nullptr, static_cast<FCurve *>(ale->key_data), nullptr, set_cb, nullptr);
@@ -1853,6 +1867,9 @@ static void snap_action_keys(bAnimContext *ac, short mode)
     if (ale->type == ANIMTYPE_GPLAYER) {
       ED_gpencil_layer_snap_frames(static_cast<bGPDlayer *>(ale->data), ac->scene, mode);
     }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      /* GPv3: To be implemented. */
+    }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       ED_masklayer_snap_frames(static_cast<MaskLayer *>(ale->data), ac->scene, mode);
     }
@@ -1986,6 +2003,9 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 
     if (ale->type == ANIMTYPE_GPLAYER) {
       ED_gpencil_layer_mirror_frames(static_cast<bGPDlayer *>(ale->data), ac->scene, mode);
+    }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      /* GPv3: To be implemented. */
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       /* TODO */

@@ -19,10 +19,10 @@ namespace blender::geometry {
 static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
 {
   /* These types aren't supported for interpolation below. */
-  CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
-  CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
-  CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
-  CustomData_realloc(&mesh.vdata, mesh.totvert, mesh.totvert + new_to_old_verts_map.size());
+  CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
+  CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
+  CustomData_realloc(&mesh.vert_data, mesh.totvert, mesh.totvert + new_to_old_verts_map.size());
   mesh.totvert += new_to_old_verts_map.size();
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -42,14 +42,14 @@ static void add_new_vertices(Mesh &mesh, const Span<int> new_to_old_verts_map)
     attribute.finish();
   }
   if (float3 *orco = static_cast<float3 *>(
-          CustomData_get_layer_for_write(&mesh.vdata, CD_ORCO, mesh.totvert)))
+          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORCO, mesh.totvert)))
   {
     array_utils::gather(Span(orco, mesh.totvert),
                         new_to_old_verts_map,
                         MutableSpan(orco, mesh.totvert).take_back(new_to_old_verts_map.size()));
   }
   if (int *orig_indices = static_cast<int *>(
-          CustomData_get_layer_for_write(&mesh.vdata, CD_ORIGINDEX, mesh.totvert)))
+          CustomData_get_layer_for_write(&mesh.vert_data, CD_ORIGINDEX, mesh.totvert)))
   {
     array_utils::gather(
         Span(orig_indices, mesh.totvert),
@@ -122,7 +122,7 @@ static void add_new_edges(Mesh &mesh,
 
   int *new_orig_indices = nullptr;
   if (const int *orig_indices = static_cast<const int *>(
-          CustomData_get_layer(&mesh.edata, CD_ORIGINDEX)))
+          CustomData_get_layer(&mesh.edge_data, CD_ORIGINDEX)))
   {
     new_orig_indices = static_cast<int *>(
         MEM_malloc_arrayN(new_edges.size(), sizeof(int), __func__));
@@ -131,15 +131,15 @@ static void add_new_edges(Mesh &mesh,
                         {new_orig_indices, new_edges.size()});
   }
 
-  CustomData_free(&mesh.edata, mesh.totedge);
+  CustomData_free(&mesh.edge_data, mesh.totedge);
   mesh.totedge = new_edges.size();
   CustomData_add_layer_named(
-      &mesh.edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
+      &mesh.edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.totedge, ".edge_verts");
   mesh.edges_for_write().copy_from(new_edges);
 
   if (new_orig_indices != nullptr) {
     CustomData_add_layer_with_data(
-        &mesh.edata, CD_ORIGINDEX, new_orig_indices, mesh.totedge, nullptr);
+        &mesh.edge_data, CD_ORIGINDEX, new_orig_indices, mesh.totedge, nullptr);
   }
 
   for (NewAttributeData &new_data : dst_attributes) {

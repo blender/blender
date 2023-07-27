@@ -1005,5 +1005,9 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
+  PropertyRNA *prop;
+
+  prop = RNA_def_enum(
+      ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
 }

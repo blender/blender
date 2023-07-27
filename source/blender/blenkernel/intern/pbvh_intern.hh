@@ -170,9 +170,9 @@ struct PBVH {
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   const MLoopTri *looptri;
   const int *looptri_faces;
-  CustomData *vdata;
-  CustomData *ldata;
-  CustomData *pdata;
+  CustomData *vert_data;
+  CustomData *loop_data;
+  CustomData *face_data;
 
   int face_sets_color_seed;
   int face_sets_color_default;

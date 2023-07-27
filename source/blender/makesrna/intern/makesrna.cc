@@ -1985,6 +1985,26 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     case PROP_BOOLEAN: {
       BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
+      if (!(prop->flag & PROP_EDITABLE) &&
+          (bprop->set || bprop->set_ex || bprop->setarray || bprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
+      if (!prop->arraydimension &&
+          (bprop->getarray || bprop->getarray_ex || bprop->setarray || bprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is not an array but defines an array callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
       if (!prop->arraydimension) {
         if (!bprop->get && !bprop->set && !dp->booleanbit) {
           rna_set_raw_property(dp, prop);
@@ -2005,6 +2025,26 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     }
     case PROP_INT: {
       IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+
+      if (!(prop->flag & PROP_EDITABLE) &&
+          (iprop->set || iprop->set_ex || iprop->setarray || iprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
+      if (!prop->arraydimension &&
+          (iprop->getarray || iprop->getarray_ex || iprop->setarray || iprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is not an array but defines an array callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
 
       if (!prop->arraydimension) {
         if (!iprop->get && !iprop->set) {
@@ -2031,6 +2071,26 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     case PROP_FLOAT: {
       FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
+      if (!(prop->flag & PROP_EDITABLE) &&
+          (fprop->set || fprop->set_ex || fprop->setarray || fprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
+      if (!prop->arraydimension &&
+          (fprop->getarray || fprop->getarray_ex || fprop->setarray || fprop->setarray_ex))
+      {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is not an array but defines an array callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
       if (!prop->arraydimension) {
         if (!fprop->get && !fprop->set) {
           rna_set_raw_property(dp, prop);
@@ -2056,6 +2116,14 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     case PROP_ENUM: {
       EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
+      if (!(prop->flag & PROP_EDITABLE) && (eprop->set || eprop->set_ex)) {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
       if (!eprop->get && !eprop->set) {
         rna_set_raw_property(dp, prop);
       }
@@ -2069,6 +2137,14 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 
+      if (!(prop->flag & PROP_EDITABLE) && (sprop->set || sprop->set_ex)) {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
+
       sprop->get = reinterpret_cast<PropStringGetFunc>(
           rna_def_property_get_func(f, srna, prop, dp, (const char *)sprop->get));
       sprop->length = reinterpret_cast<PropStringLengthFunc>(
@@ -2081,6 +2157,14 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
     }
     case PROP_POINTER: {
       PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
+
+      if (!(prop->flag & PROP_EDITABLE) && pprop->set) {
+        CLOG_ERROR(&LOG,
+                   "%s.%s, is read-only but has defines a \"set\" callback.",
+                   srna->identifier,
+                   prop->identifier);
+        DefRNA.error = true;
+      }
 
       pprop->get = reinterpret_cast<PropPointerGetFunc>(
           rna_def_property_get_func(f, srna, prop, dp, (const char *)pprop->get));
@@ -4662,7 +4746,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_sequencer.cc", "rna_sequencer_api.cc", RNA_def_sequencer},
     {"rna_space.cc", "rna_space_api.cc", RNA_def_space},
     {"rna_speaker.cc", nullptr, RNA_def_speaker},
-    {"rna_test.c", nullptr, RNA_def_test},
+    {"rna_test.cc", nullptr, RNA_def_test},
     {"rna_text.cc", "rna_text_api.cc", RNA_def_text},
     {"rna_timeline.cc", nullptr, RNA_def_timeline_marker},
     {"rna_sound.cc", "rna_sound_api.cc", RNA_def_sound},

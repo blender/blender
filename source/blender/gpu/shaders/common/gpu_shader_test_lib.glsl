@@ -142,11 +142,18 @@ TestOutputRawData as_raw_data(mat4x4 v) { WRITE_MATRIX(v); }
 
 int g_test_id = 0;
 
+#ifdef GPU_METAL
+/* Vector comparison in MSL return a bvec. Collapse it like in GLSL. */
+#  define COLLAPSE_BOOL(OP) bool(all(OP))
+#else
+#  define COLLAPSE_BOOL(OP) (OP)
+#endif
+
 #ifdef GPU_COMPUTE_SHADER
 
 #  define EXPECT_OP(OP, val1, val2) \
     out_test[g_test_id++] = test_output( \
-        as_raw_data(val1), as_raw_data(val2), bool(all(OP)), int(__LINE__), to_type(val1))
+        as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1))
 #else
 
 /** WORKAROUND: Fragment shader variant for older platform. */
@@ -158,7 +165,7 @@ int g_test_id = 0;
     } \
     if (int(gl_FragCoord.y) == g_test_id - 1) { \
       TestOutput to = test_output( \
-          as_raw_data(val1), as_raw_data(val2), bool(all(OP)), int(__LINE__), to_type(val1)); \
+          as_raw_data(val1), as_raw_data(val2), COLLAPSE_BOOL(OP), int(__LINE__), to_type(val1)); \
       switch (int(gl_FragCoord.x)) { \
         case 0: \
           out_test = uvec4( \

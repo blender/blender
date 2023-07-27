@@ -51,7 +51,7 @@ EHash *ccg_ehash_new(int estimatedNumEntries,
   return eh;
 }
 
-void ccg_ehash_free(EHash *eh, EHEntryFreeFP freeEntry, void *userData)
+void ccg_ehash_free(EHash *eh, EHEntryFreeFP freeEntry, void *user_data)
 {
   int numBuckets = eh->curSize;
 
@@ -61,7 +61,7 @@ void ccg_ehash_free(EHash *eh, EHEntryFreeFP freeEntry, void *userData)
     while (entry) {
       EHEntry *next = entry->next;
 
-      freeEntry(entry, userData);
+      freeEntry(entry, user_data);
 
       entry = next;
     }

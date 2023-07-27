@@ -14,12 +14,14 @@
 
 #include <stdlib.h>
 
-#if defined(__GNUC__) || defined(__clang__)
-#  if defined(__cplusplus) && (__cplusplus > 199711L)
-#    define BLI_array_alloca(arr, realsize) (decltype(arr))alloca(sizeof(*arr) * (realsize))
-#  else
-#    define BLI_array_alloca(arr, realsize) (typeof(arr))alloca(sizeof(*arr) * (realsize))
-#  endif
+#if defined(__cplusplus)
+#  include <type_traits>
+#  define BLI_array_alloca(arr, realsize) \
+    (std::remove_reference_t<decltype(arr)>)alloca(sizeof(*arr) * (realsize))
 #else
-#  define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
+#  if defined(__GNUC__) || defined(__clang__)
+#    define BLI_array_alloca(arr, realsize) (typeof(arr))alloca(sizeof(*arr) * (realsize))
+#  else
+#    define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
+#  endif
 #endif

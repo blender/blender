@@ -120,7 +120,7 @@ static void recalcData_lattice(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Lattice = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransLatticeVerts,
-    /*recalcData*/ recalcData_lattice,
+    /*create_trans_data*/ createTransLatticeVerts,
+    /*recalc_data*/ recalcData_lattice,
     /*special_aftertrans_update*/ nullptr,
 };

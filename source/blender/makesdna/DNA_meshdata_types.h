@@ -52,11 +52,11 @@ enum {
  * any changes to the underlying mesh invalidate the #MLoopTri array,
  * which will need to be re-calculated.
  *
- * Users normally access this via #BKE_mesh_runtime_looptri_ensure.
- * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
+ * Users normally access this via #Mesh::looptris().
+ * In rare cases its calculated directly, with #bke::mesh::looptris_calc.
  *
  * Typical usage includes:
- * - OpenGL drawing.
+ * - Viewport drawing.
  * - #BVHTree creation.
  * - Physics/collision detection.
  *
@@ -329,8 +329,8 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-/** Number of tri's that make up this polygon once tessellated. */
-#define ME_FACE_TRI_TOT(size) (size - 2)
+/** Number of triangles that make up this face once tessellated. */
+#define ME_FACE_TRI_TOT(face_loop_num) ((face_loop_num)-2)
 
 /** \} */
 

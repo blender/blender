@@ -839,7 +839,7 @@ static void draw_subdiv_invalidate_evaluator_for_orco(Subdiv *subdiv, Mesh *mesh
     return;
   }
 
-  const bool has_orco = CustomData_has_layer(&mesh->vdata, CD_ORCO);
+  const bool has_orco = CustomData_has_layer(&mesh->vert_data, CD_ORCO);
   if (has_orco && !subdiv->evaluator->hasVertexData(subdiv->evaluator)) {
     /* If we suddenly have/need original coordinates, recreate the evaluator if the extra
      * source was not created yet. The refiner also has to be recreated as refinement for source
@@ -969,10 +969,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_face_index = cache->subdiv_loop_face_index;
 
   ctx->v_origindex = static_cast<const int *>(
-      CustomData_get_layer(&ctx->coarse_mesh->vdata, CD_ORIGINDEX));
+      CustomData_get_layer(&ctx->coarse_mesh->vert_data, CD_ORIGINDEX));
 
   ctx->e_origindex = static_cast<const int *>(
-      CustomData_get_layer(&ctx->coarse_mesh->edata, CD_ORIGINDEX));
+      CustomData_get_layer(&ctx->coarse_mesh->edge_data, CD_ORIGINDEX));
 
   if (cache->num_subdiv_verts) {
     ctx->vert_origindex_map = static_cast<int *>(
@@ -2154,7 +2154,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
 
   draw_cache->use_custom_loop_normals = (runtime_data->use_loop_normals) &&
                                         (mesh_eval->flag & ME_AUTOSMOOTH) &&
-                                        CustomData_has_layer(&mesh_eval->ldata,
+                                        CustomData_has_layer(&mesh_eval->loop_data,
                                                              CD_CUSTOMLOOPNORMAL);
 
   if (DRW_ibo_requested(mbc->buff.ibo.tris)) {

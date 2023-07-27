@@ -422,14 +422,14 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *me, int id)
   BKE_mesh_calc_normals_split(me);
   const float(*lnors)[3] = nullptr;
 
-  if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
-    lnors = (const float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
+  if (CustomData_has_layer(&me->loop_data, CD_NORMAL)) {
+    lnors = (const float(*)[3])CustomData_get_layer(&me->loop_data, CD_NORMAL);
   }
 
   // Get other mesh data
-  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edata,
+  const FreestyleEdge *fed = (const FreestyleEdge *)CustomData_get_layer(&me->edge_data,
                                                                          CD_FREESTYLE_EDGE);
-  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->pdata,
+  const FreestyleFace *ffa = (const FreestyleFace *)CustomData_get_layer(&me->face_data,
                                                                          CD_FREESTYLE_FACE);
 
   // Compute view matrix

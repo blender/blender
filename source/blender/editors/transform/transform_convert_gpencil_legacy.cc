@@ -773,7 +773,7 @@ static void recalcData_gpencil_strokes(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_GPencil = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransGPencil,
-    /*recalcData*/ recalcData_gpencil_strokes,
+    /*create_trans_data*/ createTransGPencil,
+    /*recalc_data*/ recalcData_gpencil_strokes,
     /*special_aftertrans_update*/ nullptr,
 };

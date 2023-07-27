@@ -1167,7 +1167,9 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
   /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
+  blender::MutableSpan<blender::float3> positions =
+      trim_operation->mesh->vert_positions_for_write();
+
   float depth_point[3];
 
   /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
@@ -1421,7 +1423,7 @@ static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   Mesh *trim_mesh = trim_operation->mesh;
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_mesh);
+  blender::MutableSpan<blender::float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->totvert; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], sgcontext->symmpass);
   }
@@ -1436,7 +1438,7 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, SculptGestureContext *sgco
   Mesh *mesh = (Mesh *)object->data;
 
   ss->face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
+      &mesh->face_data, CD_PROP_INT32, ".sculpt_face_set", mesh->faces_num));
   if (ss->face_sets) {
     /* Assign a new Face Set ID to the new faces created by the trim operation. */
     const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);

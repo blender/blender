@@ -10,6 +10,10 @@
  * BMesh walker API.
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern BMWalker *bm_walker_types[];
 extern const int bm_totwalkers;
 
@@ -88,3 +92,7 @@ typedef struct BMwConnectedVertexWalker {
   BMwGenericWalker header;
   BMVert *curvert;
 } BMwConnectedVertexWalker;
+
+#ifdef __cplusplus
+}
+#endif

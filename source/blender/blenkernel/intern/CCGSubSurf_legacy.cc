@@ -1230,20 +1230,20 @@ void ccgSubSurf__sync_legacy(CCGSubSurf *ss)
   if (ss->useAgeCounts) {
     for (i = 0; i < numEffectedV; i++) {
       CCGVert *v = effectedV[i];
-      byte *userData = static_cast<byte *>(ccgSubSurf_getVertUserData(ss, v));
-      *((int *)&userData[ss->vertUserAgeOffset]) = ss->currentAge;
+      byte *user_data = static_cast<byte *>(ccgSubSurf_getVertUserData(ss, v));
+      *((int *)&user_data[ss->vertUserAgeOffset]) = ss->currentAge;
     }
 
     for (i = 0; i < numEffectedE; i++) {
       CCGEdge *e = effectedE[i];
-      byte *userData = static_cast<byte *>(ccgSubSurf_getEdgeUserData(ss, e));
-      *((int *)&userData[ss->edgeUserAgeOffset]) = ss->currentAge;
+      byte *user_data = static_cast<byte *>(ccgSubSurf_getEdgeUserData(ss, e));
+      *((int *)&user_data[ss->edgeUserAgeOffset]) = ss->currentAge;
     }
 
     for (i = 0; i < numEffectedF; i++) {
       CCGFace *f = effectedF[i];
-      byte *userData = static_cast<byte *>(ccgSubSurf_getFaceUserData(ss, f));
-      *((int *)&userData[ss->faceUserAgeOffset]) = ss->currentAge;
+      byte *user_data = static_cast<byte *>(ccgSubSurf_getFaceUserData(ss, f));
+      *((int *)&user_data[ss->faceUserAgeOffset]) = ss->currentAge;
     }
   }
 

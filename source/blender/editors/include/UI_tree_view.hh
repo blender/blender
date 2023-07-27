@@ -15,8 +15,6 @@
 #include <memory>
 #include <string>
 
-#include "DNA_defs.h"
-
 #include "BLI_function_ref.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
@@ -119,7 +117,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   friend class TreeViewItemDropTarget;
 
  public:
-  virtual ~AbstractTreeView() = default;
+  /* virtual */ ~AbstractTreeView() override = default;
 
   void draw_overlays(const ARegion &region) const override;
 
@@ -140,18 +138,13 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   virtual void build_tree() = 0;
 
  private:
+  void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const final;
   void update_children_from_old(const AbstractView &old_view) override;
   static void update_children_from_old_recursive(const TreeViewOrItem &new_items,
                                                  const TreeViewOrItem &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,
                                                    const TreeViewOrItem &items);
 
-  /**
-   * Items may want to do additional work when state changes. But these state changes can only be
-   * reliably detected after the tree has completed reconstruction (see #is_reconstructed()). So
-   * the actual state changes are done in a delayed manner through this function.
-   */
-  void change_state_delayed();
   void draw_hierarchy_lines(const ARegion &region) const;
   void draw_hierarchy_lines_recursive(const ARegion &region,
                                       const TreeViewOrItem &parent,
@@ -186,11 +179,11 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   std::string label_{};
 
  public:
-  virtual ~AbstractTreeViewItem() = default;
+  /* virtual */ ~AbstractTreeViewItem() override = default;
 
   virtual void build_row(uiLayout &row) = 0;
 
-  virtual std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
+  std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
   virtual std::unique_ptr<TreeViewItemDropTarget> create_drop_target();
 
   AbstractTreeView &get_tree_view() const;
@@ -211,20 +204,10 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   bool is_collapsible() const;
 
  protected:
-  /**
-   * Called when the items state changes from inactive to active.
-   */
-  virtual void on_activate();
-  /**
-   * If the result is not empty, it controls whether the item should be active or not,
-   * usually depending on the data that the view represents.
-   */
-  virtual std::optional<bool> should_be_active() const;
-
   /** See AbstractViewItem::get_rename_string(). */
-  virtual StringRef get_rename_string() const override;
+  /* virtual */ StringRef get_rename_string() const override;
   /** See AbstractViewItem::rename(). */
-  virtual bool rename(StringRefNull new_name) override;
+  /* virtual */ bool rename(StringRefNull new_name) override;
 
   /**
    * Return whether the item can be collapsed. Used to disable collapsing for items with children.
@@ -233,10 +216,10 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   virtual bool supports_collapsing() const;
 
   /** See #AbstractViewItem::matches(). */
-  virtual bool matches(const AbstractViewItem &other) const override;
+  /* virtual */ bool matches(const AbstractViewItem &other) const override;
 
   /** See #AbstractViewItem::update_from_old(). */
-  virtual void update_from_old(const AbstractViewItem &old) override;
+  /* virtual */ void update_from_old(const AbstractViewItem &old) override;
 
   /**
    * Compare this item to \a other to check if they represent the same data.
@@ -249,15 +232,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    * the item itself, not the parents. Item matching is expected to change quite a bit anyway.
    */
   virtual bool matches_single(const AbstractTreeViewItem &other) const;
-
-  /**
-   * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
-   * function and ensures this item's parents are not collapsed (so the item is visible).
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
-   */
-  void activate();
-  void deactivate();
 
   /**
    * Can be called from the #AbstractTreeViewItem::build_row() implementation, but not earlier. The
@@ -273,8 +247,11 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
   static bool is_collapse_chevron_but(const uiBut *but);
 
-  /** See #AbstractTreeView::change_state_delayed() */
-  void change_state_delayed();
+  /**
+   * Override of #AbstractViewItem::set_state_active() that also ensures the parents of this
+   * element are uncollapsed so that the item is visible.
+   */
+  bool set_state_active() final;
 
   void add_treerow_button(uiBlock &block);
   int indent_width() const;
@@ -300,7 +277,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 class BasicTreeViewItem : public AbstractTreeViewItem {
  public:
   using IsActiveFn = std::function<bool()>;
-  using ActivateFn = std::function<void(BasicTreeViewItem &new_active)>;
+  using ActivateFn = std::function<void(bContext &C, BasicTreeViewItem &new_active)>;
   BIFIconID icon;
 
   explicit BasicTreeViewItem(StringRef label, BIFIconID icon = ICON_NONE);
@@ -327,7 +304,7 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
 
   std::optional<bool> should_be_active() const override;
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 };
 
 /** \} */
@@ -354,7 +331,7 @@ class TreeViewItemDropTarget : public DropTargetInterface {
   TreeViewItemDropTarget(AbstractTreeView &view, DropBehavior behavior = DropBehavior::Insert);
 
   std::optional<DropLocation> choose_drop_location(const ARegion &region,
-                                                   const wmEvent &event) const;
+                                                   const wmEvent &event) const override;
 
   /** Request the view the item is registered for as type #ViewType. Throws a `std::bad_cast`
    * exception if the view is not of the requested type. */

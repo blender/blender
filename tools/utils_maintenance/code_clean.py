@@ -183,6 +183,81 @@ def text_matching_bracket_backward(
     return -1
 
 
+def text_prev_bol(data: str, pos: int, limit: int) -> int:
+    if pos == 0:
+        return pos
+    # Already at the bounds.
+    if data[pos - 1] == "\n":
+        return pos
+    pos_next = data.rfind("\n", limit, pos)
+    if pos_next == -1:
+        return limit
+    # We don't want to include the newline.
+    return pos_next + 1
+
+
+def text_next_eol(data: str, pos: int, limit: int, step_over: bool) -> int:
+    """
+    Extend ``pos`` to just before the next EOL, otherwise EOF.
+    As this is intended for use as a range, ``data[pos]``
+    will either be ``\n`` or equal to out of range (equal to ``len(data)``).
+    """
+    if pos + 1 >= len(data):
+        return pos
+    # Already at the bounds.
+    if data[pos] == "\n":
+        return pos + (1 if step_over else 0)
+    pos_next = data.find("\n", pos, limit)
+    if pos_next == -1:
+        return limit
+    return pos_next + (1 if step_over else 0)
+
+
+def text_prev_eol_nonblank(data: str, pos: int, limit: int) -> int:
+    """
+    Return the character immediately before the previous lines new-line,
+    stepping backwards over any trailing tab or space characters.
+    """
+    if pos == 0:
+        return pos
+    # Already at the bounds.
+    pos_next = data.rfind("\n", limit, pos)
+    if pos_next == -1:
+        return limit
+    # Step over the newline.
+    pos_next -= 1
+    if pos_next <= limit:
+        return pos_next
+    while pos_next > limit and data[pos_next] in " \t":
+        pos_next -= 1
+    return pos_next
+
+
+# -----------------------------------------------------------------------------
+# General C/C++ Source Code Checks
+
+RE_DEFINE = re.compile(r"\s*#\s*define\b")
+
+
+def text_cxx_in_macro_definition(data: str, pos: int) -> bool:
+    """
+    Return true when ``pos`` is inside a macro (including multi-line macros).
+    """
+    pos_bol = text_prev_bol(data, pos, 0)
+    pos_eol = text_next_eol(data, pos, len(data), False)
+    if RE_DEFINE.match(data[pos_bol:pos_eol]):
+        return True
+    while (pos_eol_prev := text_prev_eol_nonblank(data, pos_bol, 0)) != pos_bol:
+        if data[pos_eol_prev] != "\\":
+            break
+        pos_bol = text_prev_bol(data, pos_eol_prev + 1, 0)
+        # Otherwise keep checking if this is part of a macro.
+        if RE_DEFINE.match(data[pos_bol:pos_eol_prev]):
+            return True
+
+    return False
+
+
 # -----------------------------------------------------------------------------
 # Execution Wrappers
 
@@ -1101,6 +1176,9 @@ class edit_generators:
 
         Note that the `CFLAGS` should be set so missing parentheses that contain assignments - error instead of warn:
         With GCC: `-Werror=parentheses`
+
+        Note that this does not make any edits inside macros because it can be important to keep parenthesis
+        around macro arguments.
         """
 
         # Non-default because this edit can be applied to macros in situations where removing the parentheses
@@ -1129,6 +1207,9 @@ class edit_generators:
                 outer_beg = inner_beg - 1
                 outer_end = text_matching_bracket_forward(data, outer_beg, inner_end + 1, "(", ")")
                 if outer_end != inner_end + 1:
+                    continue
+
+                if text_cxx_in_macro_definition(data, outer_beg):
                     continue
 
                 text = data[inner_beg:inner_end + 1]
@@ -1187,6 +1268,9 @@ class edit_generators:
                     # While correct it reads badly.
                     if data[outer_beg - 1] == "*":
                         continue
+
+                if text_cxx_in_macro_definition(data, outer_beg):
+                    continue
 
                 text_no_parens = data[outer_beg + 1: outer_end]
 

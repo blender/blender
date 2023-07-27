@@ -103,7 +103,7 @@ static void applySeqSlide(TransInfo *t, const int[2] /*mval*/)
   headerSeqSlide(t, t->values_final, str);
   applySeqSlideValue(t, t->values_final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

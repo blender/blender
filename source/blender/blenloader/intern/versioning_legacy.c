@@ -272,16 +272,16 @@ static void customdata_version_242(Mesh *me)
   TFace *tf;
   int a, mtfacen, mcoln;
 
-  if (!me->vdata.totlayer) {
-    CustomData_add_layer_with_data(&me->vdata, CD_MVERT, me->mvert, me->totvert, NULL);
+  if (!me->vert_data.totlayer) {
+    CustomData_add_layer_with_data(&me->vert_data, CD_MVERT, me->mvert, me->totvert, NULL);
 
     if (me->dvert) {
-      CustomData_add_layer_with_data(&me->vdata, CD_MDEFORMVERT, me->dvert, me->totvert, NULL);
+      CustomData_add_layer_with_data(&me->vert_data, CD_MDEFORMVERT, me->dvert, me->totvert, NULL);
     }
   }
 
-  if (!me->edata.totlayer) {
-    CustomData_add_layer_with_data(&me->edata, CD_MEDGE, me->medge, me->totedge, NULL);
+  if (!me->edge_data.totlayer) {
+    CustomData_add_layer_with_data(&me->edge_data, CD_MEDGE, me->medge, me->totedge, NULL);
   }
 
   if (!me->fdata_legacy.totlayer) {

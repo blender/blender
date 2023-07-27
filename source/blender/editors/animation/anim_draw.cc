@@ -293,6 +293,9 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 
 void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, bool restore, bool only_keys)
 {
+  if (adt == nullptr || BLI_listbase_is_empty(&adt->nla_tracks)) {
+    return;
+  }
   KeyframeEditData ked = {{nullptr}};
   KeyframeEditFunc map_cb;
 

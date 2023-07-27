@@ -134,10 +134,15 @@ namespace blender::dna {
  *
  * From the implementation detail go via copy constructor/assign operator defined in the structure.
  */
-template<class T>
+template<typename T>
 [[nodiscard]] inline internal::ShallowDataConstRef<T> shallow_copy(const T &other)
 {
   return internal::ShallowDataConstRef(other);
+}
+
+template<typename T> inline void shallow_copy_array(T *dst, const T *src, const int64_t size)
+{
+  _DNA_internal_memcpy(dst, src, sizeof(T) * size_t(size));
 }
 
 /* DNA object initializer which leads to an object which underlying memory is filled with zeroes.

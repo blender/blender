@@ -236,7 +236,7 @@ static void write_mcol(const OCompoundProperty &prop,
 void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &config)
 {
   Mesh *mesh = config.mesh;
-  const void *customdata = CustomData_get_layer(&mesh->vdata, CD_ORCO);
+  const void *customdata = CustomData_get_layer(&mesh->vert_data, CD_ORCO);
   if (customdata == nullptr) {
     /* Data not available, so don't even bother creating an Alembic property for it. */
     return;
@@ -534,11 +534,11 @@ void read_generated_coordinates(const ICompoundProperty &prop,
   }
 
   void *cd_data;
-  if (CustomData_has_layer(&mesh->vdata, CD_ORCO)) {
-    cd_data = CustomData_get_layer_for_write(&mesh->vdata, CD_ORCO, mesh->totvert);
+  if (CustomData_has_layer(&mesh->vert_data, CD_ORCO)) {
+    cd_data = CustomData_get_layer_for_write(&mesh->vert_data, CD_ORCO, mesh->totvert);
   }
   else {
-    cd_data = CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_CONSTRUCT, totvert);
+    cd_data = CustomData_add_layer(&mesh->vert_data, CD_ORCO, CD_CONSTRUCT, totvert);
   }
 
   float(*orcodata)[3] = static_cast<float(*)[3]>(cd_data);

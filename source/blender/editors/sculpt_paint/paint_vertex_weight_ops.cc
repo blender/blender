@@ -348,13 +348,9 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C,
         }
         else {
           if (ED_mesh_pick_face(C, vc.obact, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
-            const blender::IndexRange face = faces[index];
-            int fidx = face.size() - 1;
-
-            do {
-              const MDeformVert *dvert = &dverts[corner_verts[face[fidx]]];
-              found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
-            } while (fidx--);
+            for (const int vert : corner_verts.slice(faces[index])) {
+              found |= weight_paint_sample_enum_itemf__helper(&dverts[vert], defbase_tot, groups);
+            }
           }
         }
 
@@ -469,35 +465,30 @@ static bool weight_paint_set(Object *ob, float paintweight)
   wpaint_prev_create(&wpp, dvert, me->totvert);
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".select_vert");
+      &me->vert_data, CD_PROP_BOOL, ".select_vert");
   const bool *select_poly = (const bool *)CustomData_get_layer_named(
-      &me->pdata, CD_PROP_BOOL, ".select_poly");
+      &me->face_data, CD_PROP_BOOL, ".select_poly");
 
   for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
-    uint fidx = face.size() - 1;
-
     if ((paint_selmode == SCE_SELECT_FACE) && !(select_poly && select_poly[i])) {
       continue;
     }
 
-    do {
-      const int vidx = corner_verts[face[fidx]];
-
-      if (!dvert[vidx].flag) {
-        if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vidx])) {
+    for (const int vert : corner_verts.slice(faces[i])) {
+      if (!dvert[vert].flag) {
+        if ((paint_selmode == SCE_SELECT_VERTEX) && !(select_vert && select_vert[vert])) {
           continue;
         }
 
-        dw = BKE_defvert_ensure_index(&dvert[vidx], vgroup_active);
+        dw = BKE_defvert_ensure_index(&dvert[vert], vgroup_active);
         if (dw) {
-          dw_prev = BKE_defvert_ensure_index(wpp.wpaint_prev + vidx, vgroup_active);
+          dw_prev = BKE_defvert_ensure_index(wpp.wpaint_prev + vert, vgroup_active);
           dw_prev->weight = dw->weight; /* set the undo weight */
           dw->weight = paintweight;
 
           if (me->symmetry & ME_SYMMETRY_X) {
             /* x mirror painting */
-            int j = mesh_get_x_mirror_vert(ob, nullptr, vidx, topology);
+            int j = mesh_get_x_mirror_vert(ob, nullptr, vert, topology);
             if (j >= 0) {
               /* copy, not paint again */
               if (vgroup_mirror != -1) {
@@ -513,10 +504,9 @@ static bool weight_paint_set(Object *ob, float paintweight)
             }
           }
         }
-        dvert[vidx].flag = 1;
+        dvert[vert].flag = 1;
       }
-
-    } while (fidx--);
+    }
   }
 
   {
@@ -673,12 +663,12 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
   }
 }
 
-static void gradientVertUpdate__mapFunc(void *userData,
+static void gradientVertUpdate__mapFunc(void *user_data,
                                         int index,
                                         const float /*co*/[3],
                                         const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(user_data);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (vs->sco[0] == FLT_MAX) {
@@ -692,12 +682,12 @@ static void gradientVertUpdate__mapFunc(void *userData,
   gradientVert_update(grad_data, index);
 }
 
-static void gradientVertInit__mapFunc(void *userData,
+static void gradientVertInit__mapFunc(void *user_data,
                                       int index,
                                       const float co[3],
                                       const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(user_data);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {
@@ -834,7 +824,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
   data.me = me;
   data.dvert = dverts;
   data.select_vert = (const bool *)CustomData_get_layer_named(
-      &me->vdata, CD_PROP_BOOL, ".select_vert");
+      &me->vert_data, CD_PROP_BOOL, ".select_vert");
   data.hide_vert = *attributes.lookup_or_default<bool>(".hide_vert", ATTR_DOMAIN_POINT, false);
   data.sco_start = sco_start;
   data.sco_end = sco_end;

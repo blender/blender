@@ -51,6 +51,8 @@ GeometryComponentPtr GeometryComponent::create(Type component_type)
       return new CurveComponent();
     case Type::Edit:
       return new GeometryComponentEditData();
+    case Type::GreasePencil:
+      return new GreasePencilComponent();
   }
   BLI_assert_unreachable();
   return {};
@@ -344,6 +346,12 @@ const CurvesEditHints *GeometrySet::get_curve_edit_hints_for_read() const
   return (component == nullptr) ? nullptr : component->curves_edit_hints_.get();
 }
 
+const GreasePencil *GeometrySet::get_grease_pencil_for_read() const
+{
+  const GreasePencilComponent *component = this->get_component_for_read<GreasePencilComponent>();
+  return (component == nullptr) ? nullptr : component->get_for_read();
+}
+
 bool GeometrySet::has_pointcloud() const
 {
   const PointCloudComponent *component = this->get_component_for_read<PointCloudComponent>();
@@ -381,10 +389,16 @@ bool GeometrySet::has_realized_data() const
   return false;
 }
 
+bool GeometrySet::has_grease_pencil() const
+{
+  const GreasePencilComponent *component = this->get_component_for_read<GreasePencilComponent>();
+  return component != nullptr && component->has_grease_pencil();
+}
+
 bool GeometrySet::is_empty() const
 {
   return !(this->has_mesh() || this->has_curves() || this->has_pointcloud() ||
-           this->has_volume() || this->has_instances());
+           this->has_volume() || this->has_instances() || this->has_grease_pencil());
 }
 
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
@@ -421,6 +435,14 @@ GeometrySet GeometrySet::create_with_instances(Instances *instances,
 {
   GeometrySet geometry_set;
   geometry_set.replace_instances(instances, ownership);
+  return geometry_set;
+}
+
+GeometrySet GeometrySet::create_with_grease_pencil(GreasePencil *grease_pencil,
+                                                   GeometryOwnershipType ownership)
+{
+  GeometrySet geometry_set;
+  geometry_set.replace_grease_pencil(grease_pencil, ownership);
   return geometry_set;
 }
 
@@ -494,6 +516,21 @@ void GeometrySet::replace_volume(Volume *volume, GeometryOwnershipType ownership
   component.replace(volume, ownership);
 }
 
+void GeometrySet::replace_grease_pencil(GreasePencil *grease_pencil,
+                                        GeometryOwnershipType ownership)
+{
+  if (grease_pencil == nullptr) {
+    this->remove<GreasePencilComponent>();
+    return;
+  }
+  if (grease_pencil == this->get_grease_pencil_for_read()) {
+    return;
+  }
+  this->remove<GreasePencilComponent>();
+  GreasePencilComponent &component = this->get_component_for_write<GreasePencilComponent>();
+  component.replace(grease_pencil, ownership);
+}
+
 Mesh *GeometrySet::get_mesh_for_write()
 {
   MeshComponent *component = this->get_component_ptr<MeshComponent>();
@@ -532,6 +569,12 @@ CurvesEditHints *GeometrySet::get_curve_edit_hints_for_write()
   GeometryComponentEditData &component =
       this->get_component_for_write<GeometryComponentEditData>();
   return component.curves_edit_hints_.get();
+}
+
+GreasePencil *GeometrySet::get_grease_pencil_for_write()
+{
+  GreasePencilComponent *component = this->get_component_ptr<GreasePencilComponent>();
+  return component == nullptr ? nullptr : component->get_for_write();
 }
 
 void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> component_types,
@@ -708,6 +751,9 @@ bool object_has_geometry_set_instances(const Object &object)
         is_instance = !ELEM(object.type, OB_CURVES_LEGACY, OB_FONT);
         break;
       case GeometryComponent::Type::Edit:
+        break;
+      case GeometryComponent::Type::GreasePencil:
+        is_instance = object.type != OB_GREASE_PENCIL;
         break;
     }
     if (is_instance) {

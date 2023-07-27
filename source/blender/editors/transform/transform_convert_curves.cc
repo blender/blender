@@ -192,7 +192,7 @@ static void recalcData_curves(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Curves = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ blender::ed::transform::curves::createTransCurvesVerts,
-    /*recalcData*/ blender::ed::transform::curves::recalcData_curves,
+    /*create_trans_data*/ blender::ed::transform::curves::createTransCurvesVerts,
+    /*recalc_data*/ blender::ed::transform::curves::recalcData_curves,
     /*special_aftertrans_update*/ nullptr,
 };

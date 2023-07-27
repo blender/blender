@@ -526,6 +526,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
                ShaderInput *specular_tint,
                ShaderInput *anisotropic,
                ShaderInput *sheen,
+               ShaderInput *sheen_roughness,
                ShaderInput *sheen_tint,
                ShaderInput *clearcoat,
                ShaderInput *clearcoat_roughness,
@@ -545,7 +546,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, specular_tint)
   NODE_SOCKET_API(float, anisotropic)
   NODE_SOCKET_API(float, sheen)
-  NODE_SOCKET_API(float, sheen_tint)
+  NODE_SOCKET_API(float, sheen_roughness)
+  NODE_SOCKET_API(float3, sheen_tint)
   NODE_SOCKET_API(float, clearcoat)
   NODE_SOCKET_API(float, clearcoat_roughness)
   NODE_SOCKET_API(float, ior)

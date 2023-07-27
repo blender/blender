@@ -1483,7 +1483,7 @@ static void applyEdgeSlide(TransInfo *t, const int[2] /*mval*/)
   /* do stuff here */
   doEdgeSlide(t, final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

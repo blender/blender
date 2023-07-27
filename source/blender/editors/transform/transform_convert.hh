@@ -27,12 +27,12 @@ struct TransConvertTypeInfo {
   /**
    * Allocate and initialize `t->data`.
    */
-  void (*createTransData)(bContext *C, TransInfo *t);
+  void (*create_trans_data)(bContext *C, TransInfo *t);
 
   /**
    * Force recalculation of data during transformation.
    */
-  void (*recalcData)(TransInfo *t);
+  void (*recalc_data)(TransInfo *t);
 
   /**
    * Called when the operation is finished.
@@ -52,13 +52,13 @@ int special_transform_moving(TransInfo *t);
  */
 void special_aftertrans_update(bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
-void createTransData(bContext *C, TransInfo *t);
+void create_trans_data(bContext *C, TransInfo *t);
 void clipUVData(TransInfo *t);
 void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, float y_fac);
 /**
  * Called for updating while transform acts, once per redraw.
  */
-void recalcData(TransInfo *t);
+void recalc_data(TransInfo *t);
 
 /* transform_convert_mesh.c */
 

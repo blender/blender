@@ -501,7 +501,7 @@ static bool bake_object_check(const Scene *scene,
     }
   }
   else if (target == R_BAKE_TARGET_IMAGE_TEXTURES) {
-    if (CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2) == -1) {
+    if (CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2) == -1) {
       BKE_reportf(
           reports, RPT_ERROR, "No active UV layer found in the object \"%s\"", ob->id.name + 2);
       return false;
@@ -717,7 +717,7 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
 
   if (me->flag & ME_AUTOSMOOTH) {
     ED_mesh_split_faces(me);
-    CustomData_free_layers(&me->ldata, CD_NORMAL, me->totloop);
+    CustomData_free_layers(&me->loop_data, CD_NORMAL, me->totloop);
   }
 
   return me;
@@ -1089,9 +1089,9 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX));
+      CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX));
   const int *poly_origindex = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
   const blender::OffsetIndices orig_faces = me->faces();
   const blender::Span<int> orig_corner_verts = me->corner_verts();
 
@@ -1437,7 +1437,7 @@ static int bake(const BakeAPIRender *bkr,
 
   if (bkr->uv_layer[0] != '\0') {
     Mesh *me = (Mesh *)ob_low->data;
-    if (CustomData_get_named_layer(&me->ldata, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
+    if (CustomData_get_named_layer(&me->loop_data, CD_PROP_FLOAT2, bkr->uv_layer) == -1) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV layer named \"%s\" found in the object \"%s\"",

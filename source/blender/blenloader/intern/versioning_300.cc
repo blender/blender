@@ -3540,19 +3540,19 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         int vact1, vact2;
 
         if (step) {
-          vact1 = CustomData_get_render_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_render_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+          vact1 = CustomData_get_render_layer_index(&me->vert_data, CD_PROP_COLOR);
+          vact2 = CustomData_get_render_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
         }
         else {
-          vact1 = CustomData_get_active_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_active_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+          vact1 = CustomData_get_active_layer_index(&me->vert_data, CD_PROP_COLOR);
+          vact2 = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
         }
 
         if (vact1 != -1) {
-          actlayer = me->vdata.layers + vact1;
+          actlayer = me->vert_data.layers + vact1;
         }
         else if (vact2 != -1) {
-          actlayer = me->ldata.layers + vact2;
+          actlayer = me->loop_data.layers + vact2;
         }
 
         if (actlayer) {
@@ -3705,19 +3705,19 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         int vact1, vact2;
 
         if (step) {
-          vact1 = CustomData_get_render_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_render_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+          vact1 = CustomData_get_render_layer_index(&me->vert_data, CD_PROP_COLOR);
+          vact2 = CustomData_get_render_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
         }
         else {
-          vact1 = CustomData_get_active_layer_index(&me->vdata, CD_PROP_COLOR);
-          vact2 = CustomData_get_active_layer_index(&me->ldata, CD_PROP_BYTE_COLOR);
+          vact1 = CustomData_get_active_layer_index(&me->vert_data, CD_PROP_COLOR);
+          vact2 = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_BYTE_COLOR);
         }
 
         if (vact1 != -1) {
-          actlayer = me->vdata.layers + vact1;
+          actlayer = me->vert_data.layers + vact1;
         }
         else if (vact2 != -1) {
-          actlayer = me->ldata.layers + vact2;
+          actlayer = me->loop_data.layers + vact2;
         }
 
         if (actlayer) {
@@ -4026,7 +4026,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Face sets no longer store whether the corresponding face is hidden. */
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-      int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+      int *face_sets = (int *)CustomData_get_layer(&mesh->face_data, CD_SCULPT_FACE_SETS);
       if (face_sets) {
         for (int i = 0; i < mesh->faces_num; i++) {
           face_sets[i] = abs(face_sets[i]);

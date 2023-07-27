@@ -419,7 +419,7 @@ void RNA_def_main(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_string_funcs(
-      prop, "rna_Main_filepath_get", "rna_Main_filepath_length", "rna_Main_filepath_set");
+      prop, "rna_Main_filepath_get", "rna_Main_filepath_length", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file");
 

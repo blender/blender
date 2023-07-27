@@ -638,11 +638,11 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->vert_data, CD_ORIGINDEX));
   const int *origEdgeIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->edge_data, CD_ORIGINDEX));
   const int *origPolyIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->face_data, CD_ORIGINDEX));
 
   faceMap = static_cast<BMFace **>(
       MEM_mallocN(subdiv_mesh->faces_num * sizeof(BMFace *), "unwrap_edit_face_map"));

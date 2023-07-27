@@ -3,9 +3,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  PUBLIC .
+  .
   ../asset_system
+  ../blenfont
   ../blenloader
+  ../blentranslation
+  ../bmesh
+  ../depsgraph
   ../draw
   ../functions
   ../gpencil_modifiers_legacy
@@ -22,6 +26,7 @@ set(INC
   ../../../intern/eigen
   ../../../intern/ghost
   ../../../intern/iksolver/extern
+  ../../../intern/clog
   ../../../intern/libmv
   ../../../intern/mantaflow/extern
   ../../../intern/memutil
@@ -128,6 +133,7 @@ set(SRC
   intern/freestyle.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_edit_data.cc
+  intern/geometry_component_grease_pencil.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
@@ -521,12 +527,12 @@ set(SRC
 
 set(LIB
   bf_asset_system
-  PRIVATE bf::blenfont
+  bf_blenfont
   PRIVATE bf::blenlib
   bf_blenloader
-  PRIVATE bf::blentranslation
-  PRIVATE bf::bmesh
-  PRIVATE bf::depsgraph
+  bf_blentranslation
+  bf_bmesh
+  bf_depsgraph
   PRIVATE bf::dna
   bf_draw
   bf_functions
@@ -534,7 +540,7 @@ set(LIB
   bf_gpu
   bf_ikplugin
   bf_imbuf
-  PRIVATE bf::intern::clog
+  bf_intern_clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc
   bf_intern_libmv  # Uses stub when disabled.
@@ -807,7 +813,6 @@ endif()
 # endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::blenkernel ALIAS bf_blenkernel)
 
 # RNA_prototypes.h
 add_dependencies(bf_blenkernel bf_rna)

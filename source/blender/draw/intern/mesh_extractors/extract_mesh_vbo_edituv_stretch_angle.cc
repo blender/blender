@@ -101,7 +101,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    data->uv = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
+    data->uv = (const float2 *)CustomData_get_layer(&mr->me->loop_data, CD_PROP_FLOAT2);
   }
 }
 
@@ -243,7 +243,8 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active
    * UV layer. */
-  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_MESH) ? &mr->me->ldata : &mr->bm->ldata;
+  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_MESH) ? &mr->me->loop_data :
+                                                                 &mr->bm->ldata;
 
   uint32_t uv_layers = cache->cd_used.uv;
   /* HACK to fix #68857 */

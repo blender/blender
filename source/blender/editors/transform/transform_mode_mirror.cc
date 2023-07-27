@@ -189,7 +189,7 @@ static void applyMirror(TransInfo *t, const int[2] /*mval*/)
       }
     }
 
-    recalcData(t);
+    recalc_data(t);
 
     ED_area_status_text(t->area, str);
   }
@@ -205,7 +205,7 @@ static void applyMirror(TransInfo *t, const int[2] /*mval*/)
       }
     }
 
-    recalcData(t);
+    recalc_data(t);
 
     if (t->flag & T_2D_EDIT) {
       ED_area_status_text(t->area, TIP_("Select a mirror axis (X, Y)"));

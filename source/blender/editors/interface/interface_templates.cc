@@ -2307,7 +2307,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
     UI_panels_free_instanced(C, region);
     for (ModifierData *md = static_cast<ModifierData *>(modifiers->first); md; md = md->next) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-      if (mti->panelRegister == nullptr) {
+      if (mti->panel_register == nullptr) {
         continue;
       }
 
@@ -2326,7 +2326,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
     Panel *panel = static_cast<Panel *>(region->panels.first);
     LISTBASE_FOREACH (ModifierData *, md, modifiers) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-      if (mti->panelRegister == nullptr) {
+      if (mti->panel_register == nullptr) {
         continue;
       }
 
@@ -2424,7 +2424,7 @@ static void object_constraint_panel_id(void *md_link, char *r_idname)
   if (cti == nullptr) {
     return;
   }
-  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_TYPE_PANEL_PREFIX, cti->structName);
+  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_TYPE_PANEL_PREFIX, cti->struct_name);
 }
 
 static void bone_constraint_panel_id(void *md_link, char *r_idname)
@@ -2436,7 +2436,7 @@ static void bone_constraint_panel_id(void *md_link, char *r_idname)
   if (cti == nullptr) {
     return;
   }
-  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_BONE_TYPE_PANEL_PREFIX, cti->structName);
+  BLI_string_join(r_idname, BKE_ST_MAXNAME, CONSTRAINT_BONE_TYPE_PANEL_PREFIX, cti->struct_name);
 }
 
 void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_constraints)
@@ -2559,7 +2559,7 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
     {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           GpencilModifierType(md->type));
-      if (mti->panelRegister == nullptr) {
+      if (mti->panel_register == nullptr) {
         continue;
       }
 
@@ -2579,7 +2579,7 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
     LISTBASE_FOREACH (ModifierData *, md, modifiers) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           GpencilModifierType(md->type));
-      if (mti->panelRegister == nullptr) {
+      if (mti->panel_register == nullptr) {
         continue;
       }
 
@@ -2645,7 +2645,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
     Panel *panel = static_cast<Panel *>(region->panels.first);
     LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
       const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(ShaderFxType(fx->type));
-      if (fxi->panelRegister == nullptr) {
+      if (fxi->panel_register == nullptr) {
         continue;
       }
 

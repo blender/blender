@@ -452,7 +452,7 @@ static void recalcData_curve(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Curve = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransCurveVerts,
-    /*recalcData*/ recalcData_curve,
+    /*create_trans_data*/ createTransCurveVerts,
+    /*recalc_data*/ recalcData_curve,
     /*special_aftertrans_update*/ nullptr,
 };

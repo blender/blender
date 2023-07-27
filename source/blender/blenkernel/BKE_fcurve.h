@@ -68,7 +68,7 @@ typedef struct FModifierTypeInfo {
   /** name of modifier in interface. */
   char name[64];
   /** name of struct for SDNA. */
-  char structName[64];
+  char struct_name[64];
   /** Size of buffer that can be reused between time and value evaluation. */
   uint storage_size;
 

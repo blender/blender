@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include "BKE_mesh.hh"
+
 #include "extract_mesh.hh"
 
 #include "draw_cache_impl.h"
@@ -94,8 +96,7 @@ static void extract_edituv_data_iter_face_mesh(const MeshRenderData *mr,
         if (eed == nullptr) {
           /* Find if the loop's vert is not part of an edit edge.
            * For this, we check if the previous loop was on an edge. */
-          const int ml_index_last = face.start() + face.size() - 1;
-          const int l_prev = (ml_index == face.start()) ? ml_index_last : (ml_index - 1);
+          const int l_prev = bke::mesh::face_corner_prev(face, ml_index);
           eed = bm_original_edge_get(mr, mr->corner_edges[l_prev]);
         }
         if (eed) {

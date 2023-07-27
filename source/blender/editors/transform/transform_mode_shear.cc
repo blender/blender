@@ -302,7 +302,7 @@ static void apply_shear(TransInfo *t, const int[2] /*mval*/)
     }
   }
 
-  recalcData(t);
+  recalc_data(t);
 
   char str[UI_MAX_DRAW_STR];
   /* header print for NumInput */

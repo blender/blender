@@ -3301,6 +3301,119 @@ class WM_MT_splash_about(Menu):
         col.operator("wm.url_open_preset", text="Development Fund", icon='FUND').type = 'FUND'
 
 
+class WM_MT_region_toggle_pie(Menu):
+    bl_label = "Region Toggle"
+
+    # Map the `region.type` to the `space_data` attribute & text label.
+    # The order of items defines priority, so in the sequencer for e.g.
+    # when there is both a toolbar and channels, the toolbar gets the
+    # axis-aligned pie, and the channels don't.
+    _region_info = {
+        'TOOLS': "show_region_toolbar",
+        'UI': "show_region_ui",
+        # Note that the tool header is enabled/disabled along with the header,
+        # no need to include both in this list.
+        'HEADER': "show_region_header",
+        'FOOTER': "show_region_footer",
+        'CHANNELS': "show_region_channels",
+    }
+    # Map the `region.alignment` to the axis-aligned pie position.
+    _region_align_pie = {
+        'LEFT': 0,
+        'RIGHT': 1,
+        'BOTTOM': 2,
+        'TOP': 3,
+    }
+    # Map the axis-aligned pie to alternative directions, see `ui_radial_dir_order` in C++ source.
+    # The value is the preferred direction in order of priority, two diagonals, then the flipped direction.
+    _region_dir_pie_alternatives = {
+        0: (4, 6, 1),
+        1: (5, 7, 0),
+        2: (6, 7, 3),
+        3: (4, 5, 2),
+    }
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data is not None
+
+    @classmethod
+    def _draw_pie_regions_from_alignment(cls, context, pie):
+        space_data = context.space_data
+        # Store each region by it's type.
+        region_by_type = {}
+
+        for region in context.area.regions:
+            region_type = region.type
+            attr = cls._region_info.get(region_type, None)
+            if attr is None:
+                continue
+            # In some cases channels exists but can't be toggled.
+            assert hasattr(space_data, attr)
+            # Technically possible these double-up, in practice this should never happen.
+            if region_type in region_by_type:
+                print("%s: Unexpected double-up of region types %r" % (cls.__name__, region_type))
+            region_by_type[region_type] = region
+
+        # Axis aligned pie menu items to populate.
+        items = [[], [], [], [], [], [], [], []]
+
+        # Use predictable ordering.
+        for region_type in cls._region_info.keys():
+            region = region_by_type.get(region_type)
+            if region is None:
+                continue
+            index = cls._region_align_pie[region.alignment]
+            items[index].append(region_type)
+
+        # Handle any overflow (two or more regions with the same alignment).
+        # This happens in the sequencer (channels + toolbar),
+        # otherwise it should not be that common.
+        items_overflow = []
+        for index in range(4):
+            if len(items[index]) <= 1:
+                continue
+            for index_other in cls._region_dir_pie_alternatives[index]:
+                if not items[index_other]:
+                    items[index_other].append(items[index].pop(1))
+                    if len(items[index]) <= 1:
+                        break
+            del index_other
+
+        for index in range(4):
+            if len(items[index]) <= 1:
+                continue
+            for index_other in range(4, 8):
+                if not items[index_other]:
+                    items[index_other].append(items[index].pop(1))
+                    if len(items[index]) <= 1:
+                        break
+        # Only happens when there are more than 8 regions - practically never!
+        for index in range(4):
+            while len(items[index]) > 1:
+                items_overflow.append([items[index].pop(1)])
+
+        # Use to access the labels.
+        enum_items = bpy.types.Region.bl_rna.properties["type"].enum_items_static_ui
+
+        for region_type_list in (items + items_overflow):
+            if not region_type_list:
+                pie.separator()
+                continue
+            assert len(region_type_list) == 1
+            region_type = region_type_list[0]
+            text = enum_items[region_type].name
+            attr = cls._region_info[region_type]
+            value = getattr(space_data, attr)
+            props = pie.operator("wm.context_toggle", text=text, icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
+            props.data_path = "space_data." + attr
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        self._draw_pie_regions_from_alignment(context, pie)
+
+
 class WM_OT_drop_blend_file(Operator):
     bl_idname = "wm.drop_blend_file"
     bl_label = "Handle dropped .blend file"
@@ -3376,4 +3489,5 @@ classes = (
     WM_MT_splash_quick_setup,
     WM_MT_splash,
     WM_MT_splash_about,
+    WM_MT_region_toggle_pie
 )

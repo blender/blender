@@ -158,11 +158,11 @@ static const CustomData *get_cdata(eAttrDomain domain, const PBVH_GPU_Args *args
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      return args->vdata;
+      return args->vert_data;
     case ATTR_DOMAIN_CORNER:
-      return args->ldata;
+      return args->loop_data;
     case ATTR_DOMAIN_FACE:
-      return args->pdata;
+      return args->face_data;
     default:
       return nullptr;
   }
@@ -333,7 +333,7 @@ struct PBVHBatches {
       GPUVertBufRaw *access)
   {
     const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(args->pdata, CD_PROP_BOOL, "sharp_face"));
+        CustomData_get_layer_named(args->face_data, CD_PROP_BOOL, "sharp_face"));
     short no[3];
     int last_face = -1;
     bool flat = false;
@@ -590,7 +590,7 @@ struct PBVHBatches {
         break;
       case CD_PBVH_MASK_TYPE: {
         const float *mask = static_cast<const float *>(
-            CustomData_get_layer(args->vdata, CD_PAINT_MASK));
+            CustomData_get_layer(args->vert_data, CD_PAINT_MASK));
 
         if (mask) {
           foreach_faces(
@@ -609,7 +609,7 @@ struct PBVHBatches {
       }
       case CD_PBVH_FSET_TYPE: {
         const int *face_sets = static_cast<const int *>(
-            CustomData_get_layer_named(args->pdata, CD_PROP_INT32, ".sculpt_face_set"));
+            CustomData_get_layer_named(args->face_data, CD_PROP_INT32, ".sculpt_face_set"));
 
         if (face_sets) {
           int last_face = -1;
@@ -650,7 +650,7 @@ struct PBVHBatches {
       case CD_PROP_COLOR:
         if (vbo.domain == ATTR_DOMAIN_POINT) {
           const MPropCol *mpropcol = static_cast<const MPropCol *>(
-              CustomData_get_layer_named(args->vdata, CD_PROP_COLOR, vbo.name.c_str()));
+              CustomData_get_layer_named(args->vert_data, CD_PROP_COLOR, vbo.name.c_str()));
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const int /*looptri_i*/) {
@@ -667,7 +667,7 @@ struct PBVHBatches {
         }
         else if (vbo.domain == ATTR_DOMAIN_CORNER) {
           const MPropCol *mpropcol = static_cast<const MPropCol *>(
-              CustomData_get_layer_named(args->ldata, CD_PROP_COLOR, vbo.name.c_str()));
+              CustomData_get_layer_named(args->loop_data, CD_PROP_COLOR, vbo.name.c_str()));
 
           foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const int looptri_i) {
             ushort color[4];
@@ -685,7 +685,7 @@ struct PBVHBatches {
       case CD_PROP_BYTE_COLOR:
         if (vbo.domain == ATTR_DOMAIN_POINT) {
           const MLoopCol *mbytecol = static_cast<const MLoopCol *>(
-              CustomData_get_layer_named(args->vdata, CD_PROP_BYTE_COLOR, vbo.name.c_str()));
+              CustomData_get_layer_named(args->vert_data, CD_PROP_BYTE_COLOR, vbo.name.c_str()));
 
           foreach_faces(
               [&](int /*buffer_i*/, int /*tri_i*/, int vertex_i, const int /*looptri_i*/) {
@@ -702,7 +702,7 @@ struct PBVHBatches {
         }
         else if (vbo.domain == ATTR_DOMAIN_CORNER) {
           const MLoopCol *mbytecol = static_cast<const MLoopCol *>(
-              CustomData_get_layer_named(args->ldata, CD_PROP_BYTE_COLOR, vbo.name.c_str()));
+              CustomData_get_layer_named(args->loop_data, CD_PROP_BYTE_COLOR, vbo.name.c_str()));
 
           foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const int looptri_i) {
             ushort color[4];
@@ -719,7 +719,7 @@ struct PBVHBatches {
         break;
       case CD_PROP_FLOAT2: {
         const float2 *mloopuv = static_cast<const float2 *>(
-            CustomData_get_layer_named(args->ldata, CD_PROP_FLOAT2, vbo.name.c_str()));
+            CustomData_get_layer_named(args->loop_data, CD_PROP_FLOAT2, vbo.name.c_str()));
 
         foreach_faces([&](int /*buffer_i*/, int tri_i, int /*vertex_i*/, const int looptri_i) {
           *static_cast<float2 *>(
@@ -971,7 +971,7 @@ struct PBVHBatches {
   void create_index_faces(PBVH_GPU_Args *args)
   {
     const int *mat_index = static_cast<const int *>(
-        CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(args->face_data, CD_PROP_INT32, "material_index"));
 
     if (mat_index && args->totprim) {
       const int looptri_i = args->prim_indices[0];
@@ -1066,7 +1066,7 @@ struct PBVHBatches {
   void create_index_grids(PBVH_GPU_Args *args, bool do_coarse)
   {
     const int *mat_index = static_cast<const int *>(
-        CustomData_get_layer_named(args->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(args->face_data, CD_PROP_INT32, "material_index"));
 
     if (mat_index && args->totprim) {
       int face_i = BKE_subdiv_ccg_grid_to_face_index(args->subdiv_ccg, args->grid_indices[0]);

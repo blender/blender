@@ -166,7 +166,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
     else {
       if (BKE_mesh_deform_verts(me)) {
         const bool *select_vert = (const bool *)CustomData_get_layer_named(
-            &me->vdata, CD_PROP_BOOL, ".select_vert");
+            &me->vert_data, CD_PROP_BOOL, ".select_vert");
         int i;
 
         dv = BKE_mesh_deform_verts_for_write(me);
@@ -263,7 +263,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
   if (BLI_listbase_is_empty(defbase)) {
     if (ob->type == OB_MESH) {
       Mesh *me = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+      CustomData_free_layer_active(&me->vert_data, CD_MDEFORMVERT, me->totvert);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -410,7 +410,7 @@ void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
     /* Remove all deform-verts. */
     if (ob->type == OB_MESH) {
       Mesh *me = static_cast<Mesh *>(ob->data);
-      CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+      CustomData_free_layer_active(&me->vert_data, CD_MDEFORMVERT, me->totvert);
     }
     else if (ob->type == OB_LATTICE) {
       Lattice *lt = object_defgroup_lattice_get((ID *)(ob->data));
@@ -555,7 +555,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   GHash *gh;
   int i, step1 = 1;
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  VirtualModifierData virtualModifierData;
+  VirtualModifierData virtual_modifier_data;
 
   if (BLI_listbase_is_empty(defbase)) {
     return nullptr;
@@ -573,7 +573,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   /* now loop through the armature modifiers and identify deform bones */
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md;
        md = !md->next && step1 ? (step1 = 0),
-      BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+      BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
        md->next)
   {
     if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual))) {

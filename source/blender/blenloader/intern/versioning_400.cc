@@ -27,6 +27,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
@@ -298,6 +299,48 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
   }
 }
 
+/* Convert sheen inputs on the Principled BSDF. */
+static void version_principled_bsdf_sheen(bNodeTree *ntree)
+{
+  auto check_node = [](const bNode *node) {
+    return (node->type == SH_NODE_BSDF_PRINCIPLED) &&
+           (nodeFindSocket(node, SOCK_IN, "Sheen Roughness") == nullptr);
+  };
+  auto update_input = [ntree](bNode *node, bNodeSocket *input) {
+    /* Change socket type to Color. */
+    nodeModifySocketTypeStatic(ntree, node, input, SOCK_RGBA, 0);
+
+    /* Account for the change in intensity between the old and new model.
+     * If the Sheen input is set to a fixed value, adjust it and set the tint to white.
+     * Otherwise, if it's connected, keep it as-is but set the tint to 0.2 instead. */
+    bNodeSocket *sheen = nodeFindSocket(node, SOCK_IN, "Sheen");
+    if (sheen != nullptr && sheen->link == nullptr) {
+      *version_cycles_node_socket_float_value(sheen) *= 0.2f;
+
+      static float default_value[] = {1.0f, 1.0f, 1.0f, 1.0f};
+      copy_v4_v4(version_cycles_node_socket_rgba_value(input), default_value);
+    }
+    else {
+      static float default_value[] = {0.2f, 0.2f, 0.2f, 1.0f};
+      copy_v4_v4(version_cycles_node_socket_rgba_value(input), default_value);
+    }
+  };
+  auto update_input_link = [](bNode *, bNodeSocket *, bNode *, bNodeSocket *) {
+    /* Don't replace the link here, tint works differently enough now to make conversion
+     * impractical. */
+  };
+
+  version_update_node_input(ntree, check_node, "Sheen Tint", update_input, update_input_link);
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (check_node(node)) {
+      bNodeSocket *input = nodeAddStaticSocket(
+          ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Sheen Roughness", "Sheen Roughness");
+      *version_cycles_node_socket_float_value(input) = 0.5f;
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -452,6 +495,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         version_principled_transmission_roughness(ntree);
         /* Convert legacy Velvet BSDF nodes into the new Sheen BSDF node. */
         version_replace_velvet_sheen_node(ntree);
+        /* Convert sheen inputs on the Principled BSDF. */
+        version_principled_bsdf_sheen(ntree);
       }
     }
     FOREACH_NODETREE_END;

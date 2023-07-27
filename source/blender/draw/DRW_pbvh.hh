@@ -40,9 +40,9 @@ struct PBVH_GPU_Args {
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   int mesh_grids_num;
-  const CustomData *vdata;
-  const CustomData *ldata;
-  const CustomData *pdata;
+  const CustomData *vert_data;
+  const CustomData *loop_data;
+  const CustomData *face_data;
   blender::Span<blender::float3> vert_normals;
 
   const char *active_color;

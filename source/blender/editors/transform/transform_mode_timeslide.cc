@@ -143,7 +143,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   headerTimeSlide(t, sval[0], str);
   applyTimeSlideValue(t, sval[0], t->values_final[0]);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

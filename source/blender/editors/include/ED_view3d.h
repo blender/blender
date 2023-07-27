@@ -362,23 +362,23 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
 /* foreach iterators */
 
 void meshobject_foreachScreenVert(struct ViewContext *vc,
-                                  void (*func)(void *userData,
+                                  void (*func)(void *user_data,
                                                const float screen_co[2],
                                                int index),
-                                  void *userData,
+                                  void *user_data,
                                   eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
     struct ViewContext *vc,
-    void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),
-    void *userData,
+    void (*func)(void *user_data, struct BMVert *eve, const float screen_co[2], int index),
+    void *user_data,
     eV3DProjTest clip_flag);
 void mesh_foreachScreenEdge(struct ViewContext *vc,
-                            void (*func)(void *userData,
+                            void (*func)(void *user_data,
                                          struct BMEdge *eed,
                                          const float screen_co_a[2],
                                          const float screen_co_b[2],
                                          int index),
-                            void *userData,
+                            void *user_data,
                             eV3DProjTest clip_flag);
 
 /**
@@ -386,64 +386,64 @@ void mesh_foreachScreenEdge(struct ViewContext *vc,
  * there is a clipping bounding box.
  */
 void mesh_foreachScreenEdge_clip_bb_segment(struct ViewContext *vc,
-                                            void (*func)(void *userData,
+                                            void (*func)(void *user_data,
                                                          struct BMEdge *eed,
                                                          const float screen_co_a[2],
                                                          const float screen_co_b[2],
                                                          int index),
-                                            void *userData,
+                                            void *user_data,
                                             eV3DProjTest clip_flag);
 
 void mesh_foreachScreenFace(
     struct ViewContext *vc,
-    void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index),
-    void *userData,
+    void (*func)(void *user_data, struct BMFace *efa, const float screen_co[2], int index),
+    void *user_data,
     eV3DProjTest clip_flag);
 void nurbs_foreachScreenVert(struct ViewContext *vc,
-                             void (*func)(void *userData,
+                             void (*func)(void *user_data,
                                           struct Nurb *nu,
                                           struct BPoint *bp,
                                           struct BezTriple *bezt,
                                           int beztindex,
                                           bool handle_visible,
                                           const float screen_co[2]),
-                             void *userData,
+                             void *user_data,
                              eV3DProjTest clip_flag);
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
 void mball_foreachScreenElem(struct ViewContext *vc,
-                             void (*func)(void *userData,
+                             void (*func)(void *user_data,
                                           struct MetaElem *ml,
                                           const float screen_co[2]),
-                             void *userData,
+                             void *user_data,
                              eV3DProjTest clip_flag);
 void lattice_foreachScreenVert(struct ViewContext *vc,
-                               void (*func)(void *userData,
+                               void (*func)(void *user_data,
                                             struct BPoint *bp,
                                             const float screen_co[2]),
-                               void *userData,
+                               void *user_data,
                                eV3DProjTest clip_flag);
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
 void armature_foreachScreenBone(struct ViewContext *vc,
-                                void (*func)(void *userData,
+                                void (*func)(void *user_data,
                                              struct EditBone *ebone,
                                              const float screen_co_a[2],
                                              const float screen_co_b[2]),
-                                void *userData,
+                                void *user_data,
                                 eV3DProjTest clip_flag);
 
 /**
  * ED_view3d_init_mats_rv3d must be called first.
  */
 void pose_foreachScreenBone(struct ViewContext *vc,
-                            void (*func)(void *userData,
+                            void (*func)(void *user_data,
                                          struct bPoseChannel *pchan,
                                          const float screen_co_a[2],
                                          const float screen_co_b[2]),
-                            void *userData,
+                            void *user_data,
                             eV3DProjTest clip_flag);
 /* *** end iterators *** */
 

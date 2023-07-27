@@ -630,9 +630,9 @@ int view3d_opengl_select_ex(ViewContext *vc,
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = nullptr;
       if (obact->type == OB_GPENCIL_LEGACY) {
-        GpencilVirtualModifierData virtualModifierData;
+        GpencilVirtualModifierData virtual_modifier_data;
         const GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
-            obact, &virtualModifierData);
+            obact, &virtual_modifier_data);
         for (; md; md = md->next) {
           if (md->type == eGpencilModifierType_Armature) {
             ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
@@ -643,9 +643,9 @@ int view3d_opengl_select_ex(ViewContext *vc,
         }
       }
       else {
-        VirtualModifierData virtualModifierData;
+        VirtualModifierData virtual_modifier_data;
         const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
-                                                                        &virtualModifierData);
+                                                                        &virtual_modifier_data);
         for (; md; md = md->next) {
           if (md->type == eModifierType_Armature) {
             ArmatureModifierData *amd = (ArmatureModifierData *)md;

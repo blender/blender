@@ -653,7 +653,7 @@ static void applyTranslation(TransInfo *t, const int[2] /*mval*/)
   mul_v3_m3v3(t->values_final, t->spacemtx_inv, global_dir);
   headerTranslation(t, (t->con.mode & CON_APPLY) ? t->values_final : global_dir, str);
 
-  recalcData(t);
+  recalc_data(t);
   ED_area_status_text(t->area, str);
 }
 

@@ -1258,10 +1258,6 @@ static void test_eevee_surfel_list()
   list_start_buf.read();
   surfel_buf.read();
 
-  /* NOTE: All of these are unstable by definition (atomic + multi-thread).
-   * But should be consistent since we only dispatch one thread-group. */
-  /* Expect last added surfel index. It is the list start index before sorting. */
-  Vector<int> expect_list_start = {-1, 3, 5, 4};
   /* Expect surfel list. */
   Vector<int> expect_link_next = {-1, +2, +3, +0, -1, -1};
   Vector<int> expect_link_prev = {+3, -1, +1, +2, -1, -1};
@@ -1273,12 +1269,15 @@ static void test_eevee_surfel_list()
   }
 
 #if 0 /* Useful for debugging */
+  /* NOTE: All of these are unstable by definition (atomic + multi-thread).
+   * But should be consistent since we only dispatch one thread-group. */
+  /* Expect last added surfel index. It is the list start index before sorting. */
+  Vector<int> expect_list_start = {-1, 3, 5, 4};
   // Span<int>(list_start_buf.data(), expect_list_start.size()).print_as_lines("list_start");
   // link_next.as_span().print_as_lines("link_next");
   // link_prev.as_span().print_as_lines("link_prev");
-#endif
-
   EXPECT_EQ_ARRAY(list_start_buf.data(), expect_list_start.data(), expect_list_start.size());
+#endif
   EXPECT_EQ_ARRAY(link_next.data(), expect_link_next.data(), expect_link_next.size());
   EXPECT_EQ_ARRAY(link_prev.data(), expect_link_prev.data(), expect_link_prev.size());
 

@@ -285,7 +285,6 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 void BKE_mesh_count_selected_items(const struct Mesh *mesh, int r_count[3]);
 
 float (*BKE_mesh_vert_coords_alloc(const struct Mesh *mesh, int *r_vert_len))[3];
-void BKE_mesh_vert_coords_get(const struct Mesh *mesh, float (*vert_coords)[3]);
 
 void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float (*vert_coords)[3],
@@ -295,7 +294,7 @@ void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]
 /* *** mesh_tessellate.cc *** */
 
 /**
- * Calculate tessellation into #MLoopTri which exist only for this purpose.
+ * See #bke::mesh::looptris_calc
  */
 void BKE_mesh_recalc_looptri(const int *corner_verts,
                              const int *face_offsets,
@@ -544,13 +543,13 @@ void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
  *
  * \param face: the face to flip.
  * \param mloop: the full loops array.
- * \param ldata: the loops custom data.
+ * \param loop_data: the loops custom data.
  */
 void BKE_mesh_face_flip_ex(int face_offset,
                            int face_size,
                            int *corner_verts,
                            int *corner_edges,
-                           struct CustomData *ldata,
+                           struct CustomData *loop_data,
                            float (*lnors)[3],
                            struct MDisps *mdisp,
                            bool use_loop_mdisp_flip);
@@ -558,7 +557,7 @@ void BKE_mesh_face_flip(int face_offset,
                         int face_size,
                         int *corner_verts,
                         int *corner_edges,
-                        struct CustomData *ldata,
+                        struct CustomData *loop_data,
                         int totloop);
 
 /**
@@ -569,7 +568,7 @@ void BKE_mesh_face_flip(int face_offset,
 void BKE_mesh_faces_flip(const int *face_offsets,
                          int *corner_verts,
                          int *corner_edges,
-                         struct CustomData *ldata,
+                         struct CustomData *loop_data,
                          int faces_num);
 
 /**
@@ -672,11 +671,11 @@ bool BKE_mesh_validate_arrays(struct Mesh *me,
 /**
  * \returns is_valid.
  */
-bool BKE_mesh_validate_all_customdata(struct CustomData *vdata,
+bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
                                       uint totvert,
-                                      struct CustomData *edata,
+                                      struct CustomData *edge_data,
                                       uint totedge,
-                                      struct CustomData *ldata,
+                                      struct CustomData *loop_data,
                                       uint totloop,
                                       struct CustomData *pdata,
                                       uint faces_num,
@@ -731,7 +730,8 @@ void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
  */
 BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
 {
-  return (const int *)CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index");
+  return (const int *)CustomData_get_layer_named(
+      &mesh->face_data, CD_PROP_INT32, "material_index");
 }
 
 /**
@@ -741,22 +741,18 @@ BLI_INLINE const int *BKE_mesh_material_indices(const Mesh *mesh)
 BLI_INLINE int *BKE_mesh_material_indices_for_write(Mesh *mesh)
 {
   int *indices = (int *)CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_INT32, "material_index", mesh->faces_num);
+      &mesh->face_data, CD_PROP_INT32, "material_index", mesh->faces_num);
   if (indices) {
     return indices;
   }
   return (int *)CustomData_add_layer_named(
-      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
+      &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
 }
 
 BLI_INLINE const float (*BKE_mesh_vert_positions(const Mesh *mesh))[3]
 {
-  return (const float(*)[3])CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT3, "position");
-}
-BLI_INLINE float (*BKE_mesh_vert_positions_for_write(Mesh *mesh))[3]
-{
-  return (float(*)[3])CustomData_get_layer_named_for_write(
-      &mesh->vdata, CD_PROP_FLOAT3, "position", mesh->totvert);
+  return (const float(*)[3])CustomData_get_layer_named(
+      &mesh->vert_data, CD_PROP_FLOAT3, "position");
 }
 
 BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)
@@ -766,22 +762,22 @@ BLI_INLINE const int *BKE_mesh_face_offsets(const Mesh *mesh)
 
 BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
 {
-  return (const int *)CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert");
+  return (const int *)CustomData_get_layer_named(&mesh->loop_data, CD_PROP_INT32, ".corner_vert");
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)
 {
-  return (const MDeformVert *)CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+  return (const MDeformVert *)CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT);
 }
 BLI_INLINE MDeformVert *BKE_mesh_deform_verts_for_write(Mesh *mesh)
 {
   MDeformVert *dvert = (MDeformVert *)CustomData_get_layer_for_write(
-      &mesh->vdata, CD_MDEFORMVERT, mesh->totvert);
+      &mesh->vert_data, CD_MDEFORMVERT, mesh->totvert);
   if (dvert) {
     return dvert;
   }
   return (MDeformVert *)CustomData_add_layer(
-      &mesh->vdata, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->totvert);
+      &mesh->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, mesh->totvert);
 }
 
 #ifdef __cplusplus

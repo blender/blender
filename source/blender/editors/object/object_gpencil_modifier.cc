@@ -232,7 +232,7 @@ static bool gpencil_modifier_apply_obdata(
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       GpencilModifierType(md->type));
 
-  if (mti->isDisabled && mti->isDisabled(md, 0)) {
+  if (mti->is_disabled && mti->is_disabled(md, 0)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
     return false;
   }
@@ -241,11 +241,11 @@ static bool gpencil_modifier_apply_obdata(
     if (ELEM(nullptr, ob, ob->data)) {
       return false;
     }
-    if (mti->bakeModifier == nullptr) {
+    if (mti->bake_modifier == nullptr) {
       BKE_report(reports, RPT_ERROR, "Not implemented");
       return false;
     }
-    mti->bakeModifier(bmain, depsgraph, md, ob);
+    mti->bake_modifier(bmain, depsgraph, md, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else {

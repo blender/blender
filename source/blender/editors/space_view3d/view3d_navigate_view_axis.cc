@@ -193,10 +193,10 @@ void VIEW3D_OT_view_axis(wmOperatorType *ot)
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
 
   prop = RNA_def_boolean(
-      ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
+      ot->srna, "align_active", false, "Align Active", "Align to the active object's axis");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
-      ot->srna, "relative", 0, "Relative", "Rotate relative to the current orientation");
+      ot->srna, "relative", false, "Relative", "Rotate relative to the current orientation");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -188,14 +188,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       *r_free = true;
       return item;
     }
-    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
+    int num_data = CustomData_number_of_layers(&me_eval->loop_data, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (int i = 0; i < num_data; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->ldata, CD_PROP_FLOAT2, i);
+          &me_eval->loop_data, CD_PROP_FLOAT2, i);
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
@@ -225,10 +225,10 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
-      dt_add_vcol_layers(&me_eval->vdata, cddata_masks.vmask, &item, &totitem);
+      dt_add_vcol_layers(&me_eval->vert_data, cddata_masks.vmask, &item, &totitem);
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
-      dt_add_vcol_layers(&me_eval->ldata, cddata_masks.lmask, &item, &totitem);
+      dt_add_vcol_layers(&me_eval->loop_data, cddata_masks.lmask, &item, &totitem);
     }
   }
 

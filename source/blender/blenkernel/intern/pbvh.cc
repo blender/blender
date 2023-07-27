@@ -714,16 +714,16 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   args->mlooptri = pbvh->looptri;
 
   if (ELEM(pbvh->header.type, PBVH_FACES, PBVH_GRIDS)) {
-    args->hide_poly = pbvh->pdata ? static_cast<const bool *>(CustomData_get_layer_named(
-                                        pbvh->pdata, CD_PROP_BOOL, ".hide_poly")) :
-                                    nullptr;
+    args->hide_poly = pbvh->face_data ? static_cast<const bool *>(CustomData_get_layer_named(
+                                            pbvh->face_data, CD_PROP_BOOL, ".hide_poly")) :
+                                        nullptr;
   }
 
   switch (pbvh->header.type) {
     case PBVH_FACES:
-      args->vdata = pbvh->vdata;
-      args->ldata = pbvh->ldata;
-      args->pdata = pbvh->pdata;
+      args->vert_data = pbvh->vert_data;
+      args->loop_data = pbvh->loop_data;
+      args->face_data = pbvh->face_data;
       args->totprim = node->totprim;
       args->me = pbvh->mesh;
       args->faces = pbvh->faces;
@@ -737,9 +737,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->looptri_faces = pbvh->looptri_faces;
       break;
     case PBVH_GRIDS:
-      args->vdata = pbvh->vdata;
-      args->ldata = pbvh->ldata;
-      args->pdata = pbvh->pdata;
+      args->vert_data = pbvh->vert_data;
+      args->loop_data = pbvh->loop_data;
+      args->face_data = pbvh->face_data;
       args->ccg_key = pbvh->gridkey;
       args->me = pbvh->mesh;
       args->totprim = node->totprim;
@@ -762,9 +762,9 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       break;
     case PBVH_BMESH:
       args->bm = pbvh->header.bm;
-      args->vdata = &args->bm->vdata;
-      args->ldata = &args->bm->ldata;
-      args->pdata = &args->bm->pdata;
+      args->vert_data = &args->bm->vdata;
+      args->loop_data = &args->bm->ldata;
+      args->face_data = &args->bm->pdata;
       args->bm_faces = node->bm_faces;
       args->bm_other_verts = node->bm_other_verts;
       args->bm_unique_vert = node->bm_unique_verts;
@@ -857,9 +857,9 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   }
 
   pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
+      &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
   pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->vdata, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
+      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
 
   /* Make sure cached normals start out calculated. */
   mesh->vert_normals();
@@ -868,9 +868,9 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   pbvh->vert_normals = mesh->runtime->vert_normals;
   pbvh->face_normals = mesh->runtime->face_normals;
 
-  pbvh->vdata = &mesh->vdata;
-  pbvh->ldata = &mesh->ldata;
-  pbvh->pdata = &mesh->pdata;
+  pbvh->vert_data = &mesh->vert_data;
+  pbvh->loop_data = &mesh->loop_data;
+  pbvh->face_data = &mesh->face_data;
 }
 
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
@@ -937,9 +937,9 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 
   if (looptri_num) {
     const int *material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, "material_index"));
     const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-        &mesh->pdata, CD_PROP_BOOL, "sharp_face");
+        &mesh->face_data, CD_PROP_BOOL, "sharp_face");
     pbvh_build(pbvh, material_indices, sharp_faces, &cb, prim_bbc, looptri_num);
 
 #ifdef TEST_PBVH_FACE_SPLIT
@@ -995,9 +995,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   pbvh->leaf_limit = max_ii(LEAF_LIMIT / (gridsize * gridsize), max_grids);
 
   /* We need the base mesh attribute layout for PBVH draw. */
-  pbvh->vdata = &me->vdata;
-  pbvh->ldata = &me->ldata;
-  pbvh->pdata = &me->pdata;
+  pbvh->vert_data = &me->vert_data;
+  pbvh->loop_data = &me->loop_data;
+  pbvh->face_data = &me->face_data;
 
   pbvh->faces = faces;
   pbvh->corner_verts = me->corner_verts().data();
@@ -1028,9 +1028,9 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 
   if (totgrid) {
     const int *material_indices = static_cast<const int *>(
-        CustomData_get_layer_named(&me->pdata, CD_PROP_INT32, "material_index"));
+        CustomData_get_layer_named(&me->face_data, CD_PROP_INT32, "material_index"));
     const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
-        &me->pdata, CD_PROP_BOOL, "sharp_face");
+        &me->face_data, CD_PROP_BOOL, "sharp_face");
     pbvh_build(pbvh, material_indices, sharp_faces, &cb, prim_bbc, totgrid);
 
 #ifdef TEST_PBVH_FACE_SPLIT
@@ -1612,7 +1612,7 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, Span<PBVHNode *> nodes, int upd
       vdata = &pbvh->header.bm->vdata;
       break;
     case PBVH_FACES:
-      vdata = pbvh->vdata;
+      vdata = pbvh->vert_data;
       break;
     case PBVH_GRIDS:
       vdata = nullptr;
@@ -3314,7 +3314,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->hide_vert = pbvh->hide_vert;
 
     vi->vmask = static_cast<float *>(
-        CustomData_get_layer_for_write(pbvh->vdata, CD_PAINT_MASK, pbvh->mesh->totvert));
+        CustomData_get_layer_for_write(pbvh->vert_data, CD_PAINT_MASK, pbvh->mesh->totvert));
   }
 }
 
@@ -3324,7 +3324,7 @@ bool pbvh_has_mask(const PBVH *pbvh)
     case PBVH_GRIDS:
       return (pbvh->gridkey.has_mask != 0);
     case PBVH_FACES:
-      return (pbvh->vdata && CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK));
+      return (pbvh->vert_data && CustomData_get_layer(pbvh->vert_data, CD_PAINT_MASK));
     case PBVH_BMESH:
       return (pbvh->header.bm &&
               (CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK) != -1));
@@ -3338,8 +3338,8 @@ bool pbvh_has_face_sets(PBVH *pbvh)
   switch (pbvh->header.type) {
     case PBVH_GRIDS:
     case PBVH_FACES:
-      return pbvh->pdata &&
-             CustomData_get_layer_named(pbvh->pdata, CD_PROP_INT32, ".sculpt_face_set") != nullptr;
+      return pbvh->face_data && CustomData_get_layer_named(
+                                    pbvh->face_data, CD_PROP_INT32, ".sculpt_face_set") != nullptr;
     case PBVH_BMESH:
       return false;
   }
@@ -3402,12 +3402,12 @@ bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh)
     return pbvh->hide_vert;
   }
   pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &pbvh->mesh->vdata, CD_PROP_BOOL, ".hide_vert", pbvh->mesh->totvert));
+      &pbvh->mesh->vert_data, CD_PROP_BOOL, ".hide_vert", pbvh->mesh->totvert));
   if (pbvh->hide_vert) {
     return pbvh->hide_vert;
   }
   pbvh->hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-      &pbvh->mesh->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, pbvh->mesh->totvert, ".hide_vert"));
+      &pbvh->mesh->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, pbvh->mesh->totvert, ".hide_vert"));
   return pbvh->hide_vert;
 }
 
@@ -3425,9 +3425,9 @@ void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh)
 {
   if (pbvh->header.type == PBVH_FACES) {
     pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-        &pbvh->mesh->vdata, CD_PROP_BOOL, ".hide_vert", pbvh->mesh->totvert));
+        &pbvh->mesh->vert_data, CD_PROP_BOOL, ".hide_vert", pbvh->mesh->totvert));
     pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-        &pbvh->mesh->pdata, CD_PROP_BOOL, ".hide_poly", pbvh->mesh->faces_num));
+        &pbvh->mesh->face_data, CD_PROP_BOOL, ".hide_poly", pbvh->mesh->faces_num));
   }
 }
 
@@ -3746,7 +3746,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       CCGKey key = pbvh->gridkey;
 
       bool *hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-          &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
+          &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
 
       bool delete_hide_poly = true;
       for (const int face_i : faces.index_range()) {
@@ -3767,11 +3767,11 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
 
         if (hidden && !hide_poly) {
           hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-              &mesh->pdata, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
+              &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
 
           if (!hide_poly) {
             hide_poly = static_cast<bool *>(CustomData_add_layer_named(
-                &mesh->pdata, CD_PROP_BOOL, CD_CONSTRUCT, mesh->faces_num, ".hide_poly"));
+                &mesh->face_data, CD_PROP_BOOL, CD_CONSTRUCT, mesh->faces_num, ".hide_poly"));
           }
         }
 
@@ -3782,7 +3782,7 @@ void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh)
       }
 
       if (delete_hide_poly) {
-        CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->faces_num);
+        CustomData_free_layer_named(&mesh->face_data, ".hide_poly", mesh->faces_num);
       }
 
       BKE_mesh_flush_hidden_from_faces(mesh);

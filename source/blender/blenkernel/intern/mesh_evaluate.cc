@@ -502,17 +502,17 @@ void BKE_mesh_face_flip_ex(const int face_offset,
                            const int face_size,
                            int *corner_verts,
                            int *corner_edges,
-                           CustomData *ldata,
+                           CustomData *loop_data,
                            float (*lnors)[3],
                            MDisps *mdisp,
                            const bool use_loop_mdisp_flip)
 {
   int loopstart = face_offset;
   int loopend = loopstart + face_size - 1;
-  const bool corner_verts_in_data = (CustomData_get_layer_named(
-                                         ldata, CD_PROP_INT32, ".corner_vert") == corner_verts);
-  const bool corner_edges_in_data = (CustomData_get_layer_named(
-                                         ldata, CD_PROP_INT32, ".corner_edge") == corner_edges);
+  const bool corner_verts_in_data =
+      (CustomData_get_layer_named(loop_data, CD_PROP_INT32, ".corner_vert") == corner_verts);
+  const bool corner_edges_in_data =
+      (CustomData_get_layer_named(loop_data, CD_PROP_INT32, ".corner_edge") == corner_edges);
 
   if (mdisp) {
     for (int i = loopstart; i <= loopend; i++) {
@@ -541,7 +541,7 @@ void BKE_mesh_face_flip_ex(const int face_offset,
     if (lnors) {
       swap_v3_v3(lnors[loopstart], lnors[loopend]);
     }
-    CustomData_swap(ldata, loopstart, loopend);
+    CustomData_swap(loop_data, loopstart, loopend);
   }
   /* Even if we did not swap the other 'pivot' loop, we need to set its swapped edge. */
   if (loopstart == loopend) {
@@ -553,28 +553,28 @@ void BKE_mesh_face_flip(const int face_offset,
                         const int face_size,
                         int *corner_verts,
                         int *corner_edges,
-                        CustomData *ldata,
+                        CustomData *loop_data,
                         const int totloop)
 {
-  MDisps *mdisp = (MDisps *)CustomData_get_layer_for_write(ldata, CD_MDISPS, totloop);
+  MDisps *mdisp = (MDisps *)CustomData_get_layer_for_write(loop_data, CD_MDISPS, totloop);
   BKE_mesh_face_flip_ex(
-      face_offset, face_size, corner_verts, corner_edges, ldata, nullptr, mdisp, true);
+      face_offset, face_size, corner_verts, corner_edges, loop_data, nullptr, mdisp, true);
 }
 
 void BKE_mesh_faces_flip(const int *face_offsets,
                          int *corner_verts,
                          int *corner_edges,
-                         CustomData *ldata,
+                         CustomData *loop_data,
                          int faces_num)
 {
   const blender::OffsetIndices faces(blender::Span(face_offsets, faces_num + 1));
-  MDisps *mdisp = (MDisps *)CustomData_get_layer_for_write(ldata, CD_MDISPS, faces_num);
+  MDisps *mdisp = (MDisps *)CustomData_get_layer_for_write(loop_data, CD_MDISPS, faces_num);
   for (const int i : faces.index_range()) {
     BKE_mesh_face_flip_ex(faces[i].start(),
                           faces[i].size(),
                           corner_verts,
                           corner_edges,
-                          ldata,
+                          loop_data,
                           nullptr,
                           mdisp,
                           true);

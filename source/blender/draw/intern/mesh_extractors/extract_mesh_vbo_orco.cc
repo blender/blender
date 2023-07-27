@@ -37,7 +37,7 @@ static void extract_orco_init(const MeshRenderData *mr,
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, mr->loop_len);
 
-  CustomData *cd_vdata = &mr->me->vdata;
+  CustomData *cd_vdata = &mr->me->vert_data;
 
   MeshExtract_Orco_Data *data = static_cast<MeshExtract_Orco_Data *>(tls_data);
   data->vbo_data = (float(*)[4])GPU_vertbuf_get_data(vbo);

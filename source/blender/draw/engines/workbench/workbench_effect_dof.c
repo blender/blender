@@ -344,9 +344,9 @@ void workbench_dof_cache_init(WORKBENCH_Data *vedata)
   }
 }
 
-static void workbench_dof_downsample_level(void *userData, int UNUSED(level))
+static void workbench_dof_downsample_level(void *user_data, int UNUSED(level))
 {
-  WORKBENCH_PassList *psl = (WORKBENCH_PassList *)userData;
+  WORKBENCH_PassList *psl = (WORKBENCH_PassList *)user_data;
   DRW_draw_pass(psl->dof_down2_ps);
 }
 

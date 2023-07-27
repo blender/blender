@@ -201,12 +201,12 @@ static void buttons_texture_modifier_geonodes_users_add(
   }
 }
 
-static void buttons_texture_modifier_foreach(void *userData,
+static void buttons_texture_modifier_foreach(void *user_data,
                                              Object *ob,
                                              ModifierData *md,
                                              const char *propname)
 {
-  ListBase *users = static_cast<ListBase *>(userData);
+  ListBase *users = static_cast<ListBase *>(user_data);
 
   if (md->type == eModifierType_Nodes) {
     NodesModifierData *nmd = (NodesModifierData *)md;
@@ -227,14 +227,14 @@ static void buttons_texture_modifier_foreach(void *userData,
   }
 }
 
-static void buttons_texture_modifier_gpencil_foreach(void *userData,
+static void buttons_texture_modifier_gpencil_foreach(void *user_data,
                                                      Object *ob,
                                                      GpencilModifierData *md,
                                                      const char *propname)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
-  ListBase *users = static_cast<ListBase *>(userData);
+  ListBase *users = static_cast<ListBase *>(user_data);
 
   RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
   prop = RNA_struct_find_property(&ptr, propname);

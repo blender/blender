@@ -88,11 +88,11 @@ struct SubdivMeshContext {
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
 {
   Mesh *subdiv_mesh = ctx->subdiv_mesh;
-  ctx->num_uv_layers = std::min(CustomData_number_of_layers(&subdiv_mesh->ldata, CD_PROP_FLOAT2),
-                                MAX_MTFACE);
+  ctx->num_uv_layers = std::min(
+      CustomData_number_of_layers(&subdiv_mesh->loop_data, CD_PROP_FLOAT2), MAX_MTFACE);
   for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
     ctx->uv_layers[layer_index] = static_cast<float2 *>(CustomData_get_layer_n_for_write(
-        &subdiv_mesh->ldata, CD_PROP_FLOAT2, layer_index, subdiv_mesh->totloop));
+        &subdiv_mesh->loop_data, CD_PROP_FLOAT2, layer_index, subdiv_mesh->totloop));
   }
 }
 
@@ -106,20 +106,20 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->subdiv_corner_edges = subdiv_mesh->corner_edges_for_write();
   /* Pointers to original indices layers. */
   ctx->vert_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORIGINDEX, subdiv_mesh->totvert));
+      CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORIGINDEX, subdiv_mesh->totvert));
   ctx->edge_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->edata, CD_ORIGINDEX, subdiv_mesh->totedge));
+      CustomData_get_layer_for_write(&subdiv_mesh->edge_data, CD_ORIGINDEX, subdiv_mesh->totedge));
   ctx->loop_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->ldata, CD_ORIGINDEX, subdiv_mesh->totloop));
-  ctx->face_origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&subdiv_mesh->pdata, CD_ORIGINDEX, subdiv_mesh->faces_num));
+      CustomData_get_layer_for_write(&subdiv_mesh->loop_data, CD_ORIGINDEX, subdiv_mesh->totloop));
+  ctx->face_origindex = static_cast<int *>(CustomData_get_layer_for_write(
+      &subdiv_mesh->face_data, CD_ORIGINDEX, subdiv_mesh->faces_num));
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
   /* Orco interpolation. */
   ctx->orco = static_cast<float(*)[3]>(
-      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_ORCO, subdiv_mesh->totvert));
-  ctx->cloth_orco = static_cast<float(*)[3]>(
-      CustomData_get_layer_for_write(&subdiv_mesh->vdata, CD_CLOTH_ORCO, subdiv_mesh->totvert));
+      CustomData_get_layer_for_write(&subdiv_mesh->vert_data, CD_ORCO, subdiv_mesh->totvert));
+  ctx->cloth_orco = static_cast<float(*)[3]>(CustomData_get_layer_for_write(
+      &subdiv_mesh->vert_data, CD_CLOTH_ORCO, subdiv_mesh->totvert));
 }
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
@@ -212,7 +212,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   if (coarse_face.size() == 4) {
-    vertex_interpolation->vertex_data = &coarse_mesh->vdata;
+    vertex_interpolation->vertex_data = &coarse_mesh->vert_data;
     vertex_interpolation->vertex_indices[0] = ctx->coarse_corner_verts[coarse_face.start() + 0];
     vertex_interpolation->vertex_indices[1] = ctx->coarse_corner_verts[coarse_face.start() + 1];
     vertex_interpolation->vertex_indices[2] = ctx->coarse_corner_verts[coarse_face.start() + 2];
@@ -222,7 +222,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
   else {
     vertex_interpolation->vertex_data = &vertex_interpolation->vertex_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy_layout(&ctx->coarse_mesh->vdata,
+    CustomData_copy_layout(&ctx->coarse_mesh->vert_data,
                            &vertex_interpolation->vertex_data_storage,
                            CD_MASK_EVERYTHING.vmask,
                            CD_SET_DEFAULT,
@@ -242,7 +242,7 @@ static void vertex_interpolation_init(const SubdivMeshContext *ctx,
       weights[i] = weight;
       indices[i] = ctx->coarse_corner_verts[coarse_face.start() + i];
     }
-    CustomData_interp(&coarse_mesh->vdata,
+    CustomData_interp(&coarse_mesh->vert_data,
                       &vertex_interpolation->vertex_data_storage,
                       indices.data(),
                       weights.data(),
@@ -261,7 +261,7 @@ static void vertex_interpolation_from_corner(const SubdivMeshContext *ctx,
     /* Nothing to do, all indices and data is already assigned. */
   }
   else {
-    const CustomData *vertex_data = &ctx->coarse_mesh->vdata;
+    const CustomData *vertex_data = &ctx->coarse_mesh->vert_data;
     LoopsOfPtex loops_of_ptex;
     loops_of_ptex_get(&loops_of_ptex, coarse_face, corner);
     /* PTEX face corner corresponds to a face loop with same index. */
@@ -342,7 +342,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   if (coarse_face.size() == 4) {
-    loop_interpolation->loop_data = &coarse_mesh->ldata;
+    loop_interpolation->loop_data = &coarse_mesh->loop_data;
     loop_interpolation->loop_indices[0] = coarse_face.start() + 0;
     loop_interpolation->loop_indices[1] = coarse_face.start() + 1;
     loop_interpolation->loop_indices[2] = coarse_face.start() + 2;
@@ -352,7 +352,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
   else {
     loop_interpolation->loop_data = &loop_interpolation->loop_data_storage;
     /* Allocate storage for loops corresponding to ptex corners. */
-    CustomData_copy_layout(&ctx->coarse_mesh->ldata,
+    CustomData_copy_layout(&ctx->coarse_mesh->loop_data,
                            &loop_interpolation->loop_data_storage,
                            CD_MASK_EVERYTHING.lmask,
                            CD_SET_DEFAULT,
@@ -372,7 +372,7 @@ static void loop_interpolation_init(const SubdivMeshContext *ctx,
       weights[i] = weight;
       indices[i] = coarse_face.start() + i;
     }
-    CustomData_interp(&coarse_mesh->ldata,
+    CustomData_interp(&coarse_mesh->loop_data,
                       &loop_interpolation->loop_data_storage,
                       indices.data(),
                       weights.data(),
@@ -391,7 +391,7 @@ static void loop_interpolation_from_corner(const SubdivMeshContext *ctx,
     /* Nothing to do, all indices and data is already assigned. */
   }
   else {
-    const CustomData *loop_data = &ctx->coarse_mesh->ldata;
+    const CustomData *loop_data = &ctx->coarse_mesh->loop_data;
     LoopsOfPtex loops_of_ptex;
     loops_of_ptex_get(&loops_of_ptex, coarse_face, corner);
     /* PTEX face corner corresponds to a face loop with same index. */
@@ -550,8 +550,11 @@ static void subdiv_vertex_data_copy(const SubdivMeshContext *ctx,
                                     const int subdiv_vertex_index)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
-  CustomData_copy_data(
-      &coarse_mesh->vdata, &ctx->subdiv_mesh->vdata, coarse_vertex_index, subdiv_vertex_index, 1);
+  CustomData_copy_data(&coarse_mesh->vert_data,
+                       &ctx->subdiv_mesh->vert_data,
+                       coarse_vertex_index,
+                       subdiv_vertex_index,
+                       1);
 }
 
 static void subdiv_vertex_data_interpolate(const SubdivMeshContext *ctx,
@@ -562,7 +565,7 @@ static void subdiv_vertex_data_interpolate(const SubdivMeshContext *ctx,
 {
   const float weights[4] = {(1.0f - u) * (1.0f - v), u * (1.0f - v), u * v, (1.0f - u) * v};
   CustomData_interp(vertex_interpolation->vertex_data,
-                    &ctx->subdiv_mesh->vdata,
+                    &ctx->subdiv_mesh->vert_data,
                     vertex_interpolation->vertex_indices,
                     weights,
                     nullptr,
@@ -797,8 +800,11 @@ static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
     }
     return;
   }
-  CustomData_copy_data(
-      &ctx->coarse_mesh->edata, &ctx->subdiv_mesh->edata, coarse_edge_index, subdiv_edge_index, 1);
+  CustomData_copy_data(&ctx->coarse_mesh->edge_data,
+                       &ctx->subdiv_mesh->edge_data,
+                       coarse_edge_index,
+                       subdiv_edge_index,
+                       1);
   if (ctx->settings->use_optimal_display) {
     ctx->subdiv_display_edges[subdiv_edge_index] = true;
   }
@@ -832,7 +838,7 @@ static void subdiv_interpolate_loop_data(const SubdivMeshContext *ctx,
 {
   const float weights[4] = {(1.0f - u) * (1.0f - v), u * (1.0f - v), u * v, (1.0f - u) * v};
   CustomData_interp(loop_interpolation->loop_data,
-                    &ctx->subdiv_mesh->ldata,
+                    &ctx->subdiv_mesh->loop_data,
                     loop_interpolation->loop_indices,
                     weights,
                     nullptr,
@@ -923,8 +929,11 @@ static void subdiv_mesh_face(const SubdivForeachContext *foreach_context,
 {
   BLI_assert(coarse_face_index != ORIGINDEX_NONE);
   SubdivMeshContext *ctx = static_cast<SubdivMeshContext *>(foreach_context->user_data);
-  CustomData_copy_data(
-      &ctx->coarse_mesh->pdata, &ctx->subdiv_mesh->pdata, coarse_face_index, subdiv_face_index, 1);
+  CustomData_copy_data(&ctx->coarse_mesh->face_data,
+                       &ctx->subdiv_mesh->face_data,
+                       coarse_face_index,
+                       subdiv_face_index,
+                       1);
   ctx->subdiv_face_offsets[subdiv_face_index] = start_loop_index;
 }
 
@@ -1056,8 +1065,8 @@ static void subdiv_mesh_vertex_of_loose_edge_interpolate(SubdivMeshContext *ctx,
   BLI_assert(u < 1.0f);
   const float interpolation_weights[2] = {1.0f - u, u};
   const int coarse_vertex_indices[2] = {coarse_edge[0], coarse_edge[1]};
-  CustomData_interp(&coarse_mesh->vdata,
-                    &subdiv_mesh->vdata,
+  CustomData_interp(&coarse_mesh->vert_data,
+                    &subdiv_mesh->vert_data,
                     coarse_vertex_indices,
                     interpolation_weights,
                     nullptr,

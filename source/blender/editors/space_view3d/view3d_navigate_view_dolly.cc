@@ -331,10 +331,9 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 /** \} */
 
 ViewOpsType ViewOpsType_dolly = {
-    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE |
-              VIEWOPS_FLAG_USE_MOUSE_INIT),
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE),
     /*idname*/ "VIEW3D_OT_dolly",
+    /*poll_fn*/ nullptr,
     /*init_fn*/ nullptr,
     /*apply_fn*/ nullptr,
-    /*cancel_fn*/ nullptr,
 };

@@ -11,10 +11,6 @@
  * These can be used by both Modifiers and BMesh-Operators.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "tools/bmesh_beautify.h"
 #include "tools/bmesh_bevel.h"
 #include "tools/bmesh_bisect_plane.h"
@@ -29,7 +25,3 @@ extern "C" {
 #include "tools/bmesh_region_match.h"
 #include "tools/bmesh_separate.h"
 #include "tools/bmesh_triangulate.h"
-
-#ifdef __cplusplus
-}
-#endif

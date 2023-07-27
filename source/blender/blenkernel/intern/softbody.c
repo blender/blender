@@ -2674,7 +2674,7 @@ static void mesh_to_softbody(Object *ob)
 {
   SoftBody *sb;
   Mesh *me = ob->data;
-  const vec2i *edge = CustomData_get_layer_named(&me->edata, CD_PROP_INT32_2D, ".edge_verts");
+  const vec2i *edge = CustomData_get_layer_named(&me->edge_data, CD_PROP_INT32_2D, ".edge_verts");
   BodyPoint *bp;
   BodySpring *bs;
   int a, totedge;

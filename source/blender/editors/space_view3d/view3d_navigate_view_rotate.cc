@@ -390,8 +390,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 /** \} */
 
 const ViewOpsType ViewOpsType_rotate = {
-    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT |
-              VIEWOPS_FLAG_PERSP_ENSURE | VIEWOPS_FLAG_ORBIT_SELECT),
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_PERSP_ENSURE | VIEWOPS_FLAG_ORBIT_SELECT),
     /*idname*/ "VIEW3D_OT_rotate",
     /*poll_fn*/ view3d_rotation_poll,
     /*init_fn*/ viewrotate_invoke_impl,

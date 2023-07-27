@@ -4,8 +4,13 @@
 
 set(INC
   ../include
+  ../../blenkernel
+  ../../blentranslation
+  ../../depsgraph
   ../../gpu
   ../../makesrna
+  ../../windowmanager
+  ../../../../intern/clog
   ../../../../intern/mantaflow/extern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -32,14 +37,10 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
-  PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
 )
 
 if(WITH_MOD_FLUID)

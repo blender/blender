@@ -243,6 +243,8 @@ class Layer : public ::GreasePencilLayer {
   bool is_visible() const;
   bool is_locked() const;
   bool is_editable() const;
+  bool is_empty() const;
+  bool is_selected() const;
 
   /**
    * Adds a new frame into the layer frames map.
@@ -497,6 +499,11 @@ inline bool GreasePencilFrame::is_implicit_hold() const
   return (this->flag & GP_FRAME_IMPLICIT_HOLD) != 0;
 }
 
+inline bool GreasePencilFrame::is_selected() const
+{
+  return (this->flag & GP_FRAME_SELECTED) != 0;
+}
+
 inline blender::bke::greasepencil::TreeNode &GreasePencilLayerTreeNode::wrap()
 {
   return *reinterpret_cast<blender::bke::greasepencil::TreeNode *>(this);
@@ -540,6 +547,7 @@ inline bool GreasePencil::has_active_layer() const
 
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
+GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
 void BKE_grease_pencil_data_update(struct Depsgraph *depsgraph,
                                    struct Scene *scene,

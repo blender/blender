@@ -134,7 +134,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 /** \} */
 
 const ViewOpsType ViewOpsType_move = {
-    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT | VIEWOPS_FLAG_INIT_ZFAC),
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_INIT_ZFAC),
     /*idname*/ "VIEW3D_OT_move",
     /*poll_fn*/ view3d_location_poll,
     /*init_fn*/ viewmove_invoke_impl,

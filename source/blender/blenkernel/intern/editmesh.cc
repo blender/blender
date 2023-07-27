@@ -176,12 +176,12 @@ struct CageUserData {
   BLI_bitmap *visit_bitmap;
 };
 
-static void cage_mapped_verts_callback(void *userData,
+static void cage_mapped_verts_callback(void *user_data,
                                        int index,
                                        const float co[3],
                                        const float /*no*/[3])
 {
-  CageUserData *data = static_cast<CageUserData *>(userData);
+  CageUserData *data = static_cast<CageUserData *>(user_data);
 
   if ((index >= 0 && index < data->totvert) && !BLI_BITMAP_TEST(data->visit_bitmap, index)) {
     BLI_BITMAP_ENABLE(data->visit_bitmap, index);

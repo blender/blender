@@ -246,7 +246,7 @@ static const CustomData *workbench_mesh_get_loop_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != NULL);
     return &mesh->edit_mesh->bm->ldata;
   }
-  return &mesh->ldata;
+  return &mesh->loop_data;
 }
 
 static const CustomData *workbench_mesh_get_vert_custom_data(const Mesh *mesh)
@@ -256,7 +256,7 @@ static const CustomData *workbench_mesh_get_vert_custom_data(const Mesh *mesh)
     BLI_assert(mesh->edit_mesh->bm != NULL);
     return &mesh->edit_mesh->bm->vdata;
   }
-  return &mesh->vdata;
+  return &mesh->vert_data;
 }
 
 /**

@@ -33,6 +33,69 @@ void AbstractViewItem::update_from_old(const AbstractViewItem &old)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Active Item State
+ * \{ */
+
+void AbstractViewItem::on_activate(bContext & /*C*/)
+{
+  /* Do nothing by default. */
+}
+
+std::optional<bool> AbstractViewItem::should_be_active() const
+{
+  return std::nullopt;
+}
+
+bool AbstractViewItem::set_state_active()
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "Item activation can't be done until reconstruction is completed");
+
+  if (!is_activatable_) {
+    return false;
+  }
+  if (is_active()) {
+    return false;
+  }
+
+  /* Deactivate other items in the view. */
+  get_view().foreach_view_item([](auto &item) { item.deactivate(); });
+
+  is_active_ = true;
+  return true;
+}
+
+void AbstractViewItem::activate(bContext &C)
+{
+  if (set_state_active()) {
+    on_activate(C);
+  }
+}
+
+void AbstractViewItem::deactivate()
+{
+  is_active_ = false;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name General State Management
+ * \{ */
+
+void AbstractViewItem::change_state_delayed()
+{
+  const std::optional<bool> should_be_active = this->should_be_active();
+  if (should_be_active.has_value() && *should_be_active) {
+    /* Don't call #activate() here, since this reflects an external state change and therefore
+     * shouldn't call #on_activate(). */
+    set_state_active();
+  }
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Renaming
  * \{ */
 

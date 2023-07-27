@@ -156,6 +156,7 @@ typedef struct GreasePencilFrame {
   static GreasePencilFrame null();
   bool is_null() const;
   bool is_implicit_hold() const;
+  bool is_selected() const;
 #endif
 } GreasePencilFrame;
 

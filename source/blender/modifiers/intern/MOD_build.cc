@@ -40,7 +40,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   BuildModifierData *bmd = (BuildModifierData *)md;
 
@@ -49,12 +49,12 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BuildModifierData), modifier);
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   BuildModifierData *bmd = (BuildModifierData *)md;
@@ -201,7 +201,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   GHASH_ITER (gh_iter, vertHash) {
     int oldIndex = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
     int newIndex = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
-    CustomData_copy_data(&mesh->vdata, &result->vdata, oldIndex, newIndex, 1);
+    CustomData_copy_data(&mesh->vert_data, &result->vert_data, oldIndex, newIndex, 1);
   }
 
   /* copy the edges across, remapping indices */
@@ -216,7 +216,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     source[0] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[0])));
     source[1] = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source[1])));
 
-    CustomData_copy_data(&mesh->edata, &result->edata, oldIndex, i, 1);
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, oldIndex, i, 1);
     *dest = source;
   }
 
@@ -226,9 +226,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     const blender::IndexRange src_face = faces_src[faceMap[i]];
     result_face_offsets[i] = k;
 
-    CustomData_copy_data(&mesh->pdata, &result->pdata, faceMap[i], i, 1);
+    CustomData_copy_data(&mesh->face_data, &result->face_data, faceMap[i], i, 1);
 
-    CustomData_copy_data(&mesh->ldata, &result->ldata, src_face.start(), k, src_face.size());
+    CustomData_copy_data(
+        &mesh->loop_data, &result->loop_data, src_face.start(), k, src_face.size());
 
     for (j = 0; j < src_face.size(); j++, k++) {
       const int vert_src = corner_verts_src[src_face[j]];
@@ -288,7 +289,7 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "seed", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Build, panel_draw);
   modifier_subpanel_register(
@@ -296,34 +297,35 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Build = {
+    /*idname*/ "Build",
     /*name*/ N_("Build"),
-    /*structName*/ "BuildModifierData",
-    /*structSize*/ sizeof(BuildModifierData),
+    /*struct_name*/ "BuildModifierData",
+    /*struct_size*/ sizeof(BuildModifierData),
     /*srna*/ &RNA_BuildModifier,
     /*type*/ eModifierTypeType_Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_BUILD,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

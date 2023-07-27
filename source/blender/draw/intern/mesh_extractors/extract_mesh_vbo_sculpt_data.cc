@@ -40,8 +40,10 @@ static void extract_sculpt_data_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat *format = get_sculpt_data_format();
 
-  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
-  CustomData *cd_pdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->pdata;
+  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata :
+                                                                  &mr->me->vert_data;
+  CustomData *cd_pdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata :
+                                                                  &mr->me->face_data;
 
   const float *cd_mask = (const float *)CustomData_get_layer(cd_vdata, CD_PAINT_MASK);
   const int *cd_face_set = (const int *)CustomData_get_layer_named(
@@ -118,8 +120,8 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
 
   Mesh *coarse_mesh = mr->me;
-  CustomData *cd_vdata = &coarse_mesh->vdata;
-  CustomData *cd_pdata = &coarse_mesh->pdata;
+  CustomData *cd_vdata = &coarse_mesh->vert_data;
+  CustomData *cd_pdata = &coarse_mesh->face_data;
 
   /* First, interpolate mask if available. */
   GPUVertBuf *mask_vbo = nullptr;

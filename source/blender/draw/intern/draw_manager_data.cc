@@ -1432,9 +1432,9 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   }
 
   if (use_uv) {
-    int layer_i = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
+    int layer_i = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
     if (layer_i != -1) {
-      CustomDataLayer *layer = me->ldata.layers + layer_i;
+      CustomDataLayer *layer = me->loop_data.layers + layer_i;
 
       attrs[attrs_num].type = CD_PROP_FLOAT2;
       attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
@@ -1493,8 +1493,8 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? me->ldata.layers + layer_i : nullptr;
+      int layer_i = CustomData_get_layer_index_n(&me->loop_data, CD_PROP_FLOAT2, i);
+      CustomDataLayer *layer = layer_i != -1 ? me->loop_data.layers + layer_i : nullptr;
 
       if (layer) {
         attrs[attrs_i].type = CD_PROP_FLOAT2;
@@ -2459,11 +2459,11 @@ bool DRW_pass_is_empty(DRWPass *pass)
 }
 
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgrp),
-                              void *userData)
+                              void (*callback)(void *user_data, DRWShadingGroup *shgrp),
+                              void *user_data)
 {
   LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
-    callback(userData, shgroup);
+    callback(user_data, shgroup);
   }
 }
 

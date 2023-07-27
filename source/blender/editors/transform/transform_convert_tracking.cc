@@ -622,7 +622,7 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Tracking = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransTrackingData,
-    /*recalcData*/ recalcData_tracking,
+    /*create_trans_data*/ createTransTrackingData,
+    /*recalc_data*/ recalcData_tracking,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip,
 };

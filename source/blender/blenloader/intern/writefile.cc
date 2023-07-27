@@ -1020,7 +1020,7 @@ static void write_libraries(WriteData *wd, Main *main)
 }
 
 #ifdef WITH_BUILDINFO
-extern "C" unsigned long build_commit_timestamp;
+extern "C" ulong build_commit_timestamp;
 extern "C" char build_hash[];
 #endif
 

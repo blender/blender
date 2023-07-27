@@ -166,7 +166,7 @@ static void applyTrackball(TransInfo *t, const int[2] /*mval*/)
   applyTrackballValue_calc_axis_angle(t, phi, axis_final, &angle_final);
   applyTrackballValue(t, axis_final, angle_final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

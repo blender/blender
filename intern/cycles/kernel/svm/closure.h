@@ -95,7 +95,8 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       float specular_tint = stack_load_float(stack, specular_tint_offset);
       float anisotropic = stack_load_float(stack, anisotropic_offset);
       float sheen = stack_load_float(stack, sheen_offset);
-      float sheen_tint = stack_load_float(stack, sheen_tint_offset);
+      float3 sheen_tint = stack_load_float3(stack, sheen_tint_offset);
+      float sheen_roughness = stack_load_float(stack, data_node2.w);
       float clearcoat = stack_load_float(stack, clearcoat_offset);
       float clearcoat_roughness = stack_load_float(stack, clearcoat_roughness_offset);
       float transmission = stack_load_float(stack, transmission_offset);
@@ -221,23 +222,17 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
       /* sheen */
       if (diffuse_weight > CLOSURE_WEIGHT_CUTOFF && sheen > CLOSURE_WEIGHT_CUTOFF) {
-        float m_cdlum = linear_rgb_to_gray(kg, base_color);
-        float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum :
-                                          one_float3();  // normalize lum. to isolate hue+sat
+        Spectrum sheen_weight = weight * sheen * rgb_to_spectrum(sheen_tint) * diffuse_weight;
 
-        /* color of the sheen component */
-        float3 sheen_color = make_float3(1.0f - sheen_tint) + m_ctint * sheen_tint;
-
-        Spectrum sheen_weight = weight * sheen * rgb_to_spectrum(sheen_color) * diffuse_weight;
-
-        ccl_private PrincipledSheenBsdf *bsdf = (ccl_private PrincipledSheenBsdf *)bsdf_alloc(
-            sd, sizeof(PrincipledSheenBsdf), sheen_weight);
+        ccl_private SheenBsdf *bsdf = (ccl_private SheenBsdf *)bsdf_alloc(
+            sd, sizeof(SheenBsdf), sheen_weight);
 
         if (bsdf) {
           bsdf->N = N;
+          bsdf->roughness = sheen_roughness;
 
           /* setup bsdf */
-          sd->flag |= bsdf_principled_sheen_setup(sd, bsdf);
+          sd->flag |= bsdf_sheen_setup(kg, sd, bsdf);
         }
       }
 

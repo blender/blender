@@ -81,7 +81,7 @@ void GeometryExporter::operator()(Object *ob)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
+  bool has_uvs = bool(CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -165,7 +165,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
   /* writes <source> for normal coords */
   createNormalsSource(geom_id, me, nor);
 
-  bool has_uvs = bool(CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2));
+  bool has_uvs = bool(CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2));
 
   /* writes <source> for uv coords if mesh has uv coords */
   if (has_uvs) {
@@ -369,8 +369,8 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   til.push_back(normals_input);
 
   /* if mesh has uv coords writes <input> for TEXCOORD */
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
-  int active_uv = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2);
+  int num_layers = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
+  int active_uv = CustomData_get_active_layer(&me->loop_data, CD_PROP_FLOAT2);
   for (int i = 0; i < num_layers; i++) {
     if (!this->export_settings.get_active_uv_only() || i == active_uv) {
 
@@ -385,12 +385,12 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
     }
   }
 
-  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
+  int totlayer_mcol = CustomData_number_of_layers(&me->loop_data, CD_PROP_BYTE_COLOR);
   if (totlayer_mcol > 0) {
     int map_index = 0;
 
     for (int a = 0; a < totlayer_mcol; a++) {
-      const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+      const char *layer_name = bc_CustomData_get_layer_name(&me->loop_data, CD_PROP_BYTE_COLOR, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
                               (has_uvs) ? 3 : 2, /* all color layers have same index order */
@@ -475,7 +475,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
   /* Find number of vertex color layers */
-  int totlayer_mcol = CustomData_number_of_layers(&me->ldata, CD_PROP_BYTE_COLOR);
+  int totlayer_mcol = CustomData_number_of_layers(&me->loop_data, CD_PROP_BYTE_COLOR);
   if (totlayer_mcol == 0) {
     return;
   }
@@ -485,11 +485,11 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
     map_index++;
     const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
-        &me->ldata, CD_PROP_BYTE_COLOR, a);
+        &me->loop_data, CD_PROP_BYTE_COLOR, a);
 
     COLLADASW::FloatSourceF source(mSW);
 
-    const char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_PROP_BYTE_COLOR, a);
+    const char *layer_name = bc_CustomData_get_layer_name(&me->loop_data, CD_PROP_BYTE_COLOR, a);
     std::string layer_id = makeVertexColorSourceId(geom_id, layer_name);
     source.setId(layer_id);
 
@@ -538,16 +538,16 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
   int totuv = me->totloop;
   const blender::OffsetIndices faces = me->faces();
 
-  int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
+  int num_layers = CustomData_number_of_layers(&me->loop_data, CD_PROP_FLOAT2);
 
   /* write <source> for each layer
    * each <source> will get id like meshName + "map-channel-1" */
-  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
+  int active_uv_index = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
   for (int a = 0; a < num_layers; a++) {
-    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, a);
+    int layer_index = CustomData_get_layer_index_n(&me->loop_data, CD_PROP_FLOAT2, a);
     if (!this->export_settings.get_active_uv_only() || layer_index == active_uv_index) {
       const blender::float2 *uv_map = static_cast<const blender::float2 *>(
-          CustomData_get_layer_n(&me->ldata, CD_PROP_FLOAT2, a));
+          CustomData_get_layer_n(&me->loop_data, CD_PROP_FLOAT2, a));
 
       COLLADASW::FloatSourceF source(mSW);
       std::string layer_id = makeTexcoordSourceId(
@@ -628,8 +628,8 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
       "sharp_face", ATTR_DOMAIN_FACE, false);
 
   BKE_mesh_calc_normals_split(me);
-  if (CustomData_has_layer(&me->ldata, CD_NORMAL)) {
-    lnors = (float(*)[3])CustomData_get_layer(&me->ldata, CD_NORMAL);
+  if (CustomData_has_layer(&me->loop_data, CD_NORMAL)) {
+    lnors = (float(*)[3])CustomData_get_layer(&me->loop_data, CD_NORMAL);
     use_custom_normals = true;
   }
 

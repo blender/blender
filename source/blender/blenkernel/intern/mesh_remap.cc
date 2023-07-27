@@ -1343,8 +1343,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         face_normals_dst = mesh_dst->face_normals();
       }
       if (need_lnors_dst) {
-        blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
-            CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, numloops_dst));
+        const blender::short2 *custom_nors_dst = static_cast<const blender::short2 *>(
+            CustomData_get_layer(ldata_dst, CD_CUSTOMLOOPNORMAL));
 
         /* Cache loop normals into a temporary custom data layer. */
         loop_normals_dst = static_cast<blender::float3 *>(
@@ -1358,9 +1358,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
         if (dirty_nors_dst || do_loop_normals_dst) {
           const bool *sharp_edges = static_cast<const bool *>(
-              CustomData_get_layer_named(&mesh_dst->edata, CD_PROP_BOOL, "sharp_edge"));
+              CustomData_get_layer_named(&mesh_dst->edge_data, CD_PROP_BOOL, "sharp_edge"));
           const bool *sharp_faces = static_cast<const bool *>(
-              CustomData_get_layer_named(&mesh_dst->pdata, CD_PROP_BOOL, "sharp_face"));
+              CustomData_get_layer_named(&mesh_dst->face_data, CD_PROP_BOOL, "sharp_face"));
           blender::bke::mesh::normals_calc_loop(
               {reinterpret_cast<const blender::float3 *>(vert_positions_dst), numverts_dst},
               {edges_dst, numedges_dst},
@@ -1372,9 +1372,9 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               mesh_dst->face_normals(),
               sharp_edges,
               sharp_faces,
+              custom_nors_dst,
               use_split_nors_dst,
               split_angle_dst,
-              custom_nors_dst,
               nullptr,
               {loop_normals_dst, numloops_dst});
         }
@@ -1385,7 +1385,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
         }
         if (need_lnors_src) {
           loop_normals_src = {static_cast<const blender::float3 *>(
-                                  CustomData_get_layer(&me_src->ldata, CD_NORMAL)),
+                                  CustomData_get_layer(&me_src->loop_data, CD_NORMAL)),
                               me_src->totloop};
           BLI_assert(loop_normals_src.data() != nullptr);
         }
@@ -1431,7 +1431,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     /* First, generate the islands, if possible. */
     if (gen_islands_src) {
       const bool *uv_seams = static_cast<const bool *>(
-          CustomData_get_layer_named(&me_src->edata, CD_PROP_BOOL, ".uv_seam"));
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, ".uv_seam"));
       use_islands = gen_islands_src(reinterpret_cast<const float(*)[3]>(positions_src.data()),
                                     num_verts_src,
                                     edges_src.data(),

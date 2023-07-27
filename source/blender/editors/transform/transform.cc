@@ -1419,7 +1419,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   /* avoid doing connectivity lookups (when V3D_AROUND_LOCAL_ORIGINS is set) */
   t->around = V3D_AROUND_CENTER_BOUNDS;
 
-  createTransData(C, t); /* make TransData structs from selection */
+  create_trans_data(C, t); /* make TransData structs from selection */
 
   t->around = centerMode; /* override user-defined mode. */
 
@@ -1911,7 +1911,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         SPACE_TYPE_ANY, RGN_TYPE_ANY, transform_draw_cursor_poll, transform_draw_cursor_draw, t);
   }
 
-  createTransData(C, t); /* Make #TransData structs from selection. */
+  create_trans_data(C, t); /* Make #TransData structs from selection. */
 
   if (t->data_len_all == 0) {
     postTrans(C, t);
@@ -2109,7 +2109,7 @@ void transformApply(bContext *C, TransInfo *t)
   if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
     if (t->mode_info) {
-      t->mode_info->transform_fn(t, t->mval); /* calls recalcData() */
+      t->mode_info->transform_fn(t, t->mval); /* calls recalc_data() */
     }
   }
 
@@ -2137,7 +2137,7 @@ int transformEnd(bContext *C, TransInfo *t)
     /* handle restoring objects */
     if (t->state == TRANS_CANCEL) {
       exit_code = OPERATOR_CANCELLED;
-      restoreTransObjects(t); /* calls recalcData() */
+      restoreTransObjects(t); /* calls recalc_data() */
     }
     else {
       if (t->flag & T_CLNOR_REBUILD) {

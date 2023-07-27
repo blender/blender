@@ -67,7 +67,7 @@ static FModifierTypeInfo FMI_MODNAME = {
     /*acttype*/ FMI_TYPE_SOME_ACTION,
     /*requires_flag*/ FMI_REQUIRES_SOME_REQUIREMENT,
     /*name*/ "Modifier Name",
-    /*structName*/ "FMod_ModName",
+    /*struct_name*/ "FMod_ModName",
     /*storage_size*/ 0,
     /*free_data*/ fcm_modname_free,
     /*copy_data*/ fcm_modname_copy,
@@ -235,7 +235,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
     /*acttype*/ FMI_TYPE_GENERATE_CURVE,
     /*requires_flag*/ FMI_REQUIRES_NOTHING,
     /*name*/ N_("Generator"),
-    /*structName*/ "FMod_Generator",
+    /*struct_name*/ "FMod_Generator",
     /*storage_size*/ 0,
     /*free_data*/ fcm_generator_free,
     /*copy_data*/ fcm_generator_copy,
@@ -365,7 +365,7 @@ static FModifierTypeInfo FMI_FN_GENERATOR = {
     /*acttype*/ FMI_TYPE_GENERATE_CURVE,
     /*requires_flag*/ FMI_REQUIRES_NOTHING,
     /*name*/ N_("Built-In Function"),
-    /*structName*/ "FMod_FunctionGenerator",
+    /*struct_name*/ "FMod_FunctionGenerator",
     /*storage_size*/ 0,
     /*free_data*/ nullptr,
     /*copy_data*/ nullptr,
@@ -478,7 +478,7 @@ static FModifierTypeInfo FMI_ENVELOPE = {
     /*acttype*/ FMI_TYPE_REPLACE_VALUES,
     /*requires_flag*/ 0,
     /*name*/ N_("Envelope"),
-    /*structName*/ "FMod_Envelope",
+    /*struct_name*/ "FMod_Envelope",
     /*storage_size*/ 0,
     /*free_data*/ fcm_envelope_free,
     /*copy_data*/ fcm_envelope_copy,
@@ -774,7 +774,7 @@ static FModifierTypeInfo FMI_CYCLES = {
     /*acttype*/ FMI_TYPE_EXTRAPOLATION,
     /*requires_flag*/ FMI_REQUIRES_ORIGINAL_DATA,
     /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_ACTION, "Cycles"),
-    /*structName*/ "FMod_Cycles",
+    /*struct_name*/ "FMod_Cycles",
     /*storage_size*/ sizeof(tFCMED_Cycles),
     /*free_data*/ nullptr,
     /*copy_data*/ nullptr,
@@ -836,7 +836,7 @@ static FModifierTypeInfo FMI_NOISE = {
     /*acttype*/ FMI_TYPE_REPLACE_VALUES,
     /*requires_flag*/ 0,
     /*name*/ N_("Noise"),
-    /*structName*/ "FMod_Noise",
+    /*struct_name*/ "FMod_Noise",
     /*storage_size*/ 0,
     /*free_data*/ nullptr,
     /*copy_data*/ nullptr,
@@ -894,7 +894,7 @@ static FModifierTypeInfo FMI_PYTHON = {
     /*acttype*/ FMI_TYPE_GENERATE_CURVE,
     /*requires_flag*/ FMI_REQUIRES_RUNTIME_CHECK,
     /*name*/ N_("Python"),
-    /*structName*/ "FMod_Python",
+    /*struct_name*/ "FMod_Python",
     /*storage_size*/ 0,
     /*free_data*/ fcm_python_free,
     /*copy_data*/ fcm_python_copy,
@@ -943,7 +943,7 @@ static FModifierTypeInfo FMI_LIMITS = {
     /*acttype*/ FMI_TYPE_GENERATE_CURVE,
     /*requires_flag*/ FMI_REQUIRES_RUNTIME_CHECK, /* XXX... err... */
     /*name*/ N_("Limits"),
-    /*structName*/ "FMod_Limits",
+    /*struct_name*/ "FMod_Limits",
     /*storage_size*/ 0,
     /*free_data*/ nullptr,
     /*copy_data*/ nullptr,
@@ -1000,7 +1000,7 @@ static FModifierTypeInfo FMI_STEPPED = {
     /*acttype*/ FMI_TYPE_GENERATE_CURVE,
     /*requires_flag*/ FMI_REQUIRES_RUNTIME_CHECK, /* XXX... err... */
     /*name*/ N_("Stepped"),
-    /*structName*/ "FMod_Stepped",
+    /*struct_name*/ "FMod_Stepped",
     /*storage_size*/ 0,
     /*free_data*/ nullptr,
     /*copy_data*/ nullptr,
@@ -1111,7 +1111,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   }
 
   /* add modifier's data */
-  fcm->data = MEM_callocN(fmi->size, fmi->structName);
+  fcm->data = MEM_callocN(fmi->size, fmi->struct_name);
 
   /* init custom settings if necessary */
   if (fmi->new_data) {

@@ -122,7 +122,7 @@ static void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Sculpt = {
     /*flags*/ 0,
-    /*createTransData*/ createTransSculpt,
-    /*recalcData*/ recalcData_sculpt,
+    /*create_trans_data*/ createTransSculpt,
+    /*recalc_data*/ recalcData_sculpt,
     /*special_aftertrans_update*/ special_aftertrans_update__sculpt,
 };

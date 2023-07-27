@@ -44,7 +44,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -53,7 +53,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const DynamicPaintModifierData *pmd = (const DynamicPaintModifierData *)md;
   DynamicPaintModifierData *tpmd = (DynamicPaintModifierData *)target;
@@ -61,7 +61,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   dynamicPaint_Modifier_copy(pmd, tpmd, flag);
 }
 
-static void freeRuntimeData(void *runtime_data_v)
+static void free_runtime_data(void *runtime_data_v)
 {
   if (runtime_data_v == nullptr) {
     return;
@@ -70,13 +70,13 @@ static void freeRuntimeData(void *runtime_data_v)
   dynamicPaint_Modifier_free_runtime(runtime_data);
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
   dynamicPaint_Modifier_free(pmd);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -103,7 +103,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -121,7 +121,7 @@ static bool is_brush_cb(Object * /*ob*/, ModifierData *md)
   return (pmd->brush != nullptr && pmd->type == MOD_DYNAMICPAINT_TYPE_BRUSH);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
   /* Add relation from canvases to all brush objects. */
@@ -144,12 +144,12 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
@@ -157,21 +157,21 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(pmd->canvas->surfaces.first);
 
     for (; surface; surface = surface->next) {
-      walk(userData, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
-      walk(userData, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
+      walk(user_data, ob, (ID **)&surface->brush_group, IDWALK_CB_NOP);
+      walk(user_data, ob, (ID **)&surface->init_texture, IDWALK_CB_USER);
       if (surface->effector_weights) {
-        walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
+        walk(user_data, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_USER);
       }
     }
   }
 }
 
-static void foreachTexLink(ModifierData * /*md*/,
-                           Object * /*ob*/,
-                           TexWalkFunc /*walk*/,
-                           void * /*userData*/)
+static void foreach_tex_link(ModifierData * /*md*/,
+                             Object * /*ob*/,
+                             TexWalkFunc /*walk*/,
+                             void * /*user_data*/)
 {
-  // walk(userData, ob, md, ""); /* re-enable when possible */
+  // walk(user_data, ob, md, ""); /* re-enable when possible */
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -185,15 +185,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_DynamicPaint, panel_draw);
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {
+    /*idname*/ "Dynamic Paint",
     /*name*/ N_("Dynamic Paint"),
-    /*structName*/ "DynamicPaintModifierData",
-    /*structSize*/ sizeof(DynamicPaintModifierData),
+    /*struct_name*/ "DynamicPaintModifierData",
+    /*struct_size*/ sizeof(DynamicPaintModifierData),
     /*srna*/ &RNA_DynamicPaintModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
@@ -201,26 +202,26 @@ ModifierTypeInfo modifierType_DynamicPaint = {
         eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_DYNAMICPAINT,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ foreachTexLink,
-    /*freeRuntimeData*/ freeRuntimeData,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ foreach_tex_link,
+    /*free_runtime_data*/ free_runtime_data,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

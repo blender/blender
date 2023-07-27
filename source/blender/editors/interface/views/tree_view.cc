@@ -73,6 +73,12 @@ void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptio
 
 /* ---------------------------------------------------------------------- */
 
+/* Implementation for the base class virtual function. More specialized iterators below. */
+void AbstractTreeView::foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const
+{
+  foreach_item_recursive(iter_fn);
+}
+
 void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) const
 {
   foreach_item_recursive(iter_fn, options);
@@ -224,28 +230,6 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
   return nullptr;
 }
 
-void AbstractTreeView::change_state_delayed()
-{
-  BLI_assert_msg(
-      is_reconstructed(),
-      "These state changes are supposed to be delayed until reconstruction is completed");
-
-/* Debug-only sanity check: Ensure only one item requests to be active. */
-#ifndef NDEBUG
-  bool has_active = false;
-  foreach_item([&has_active](AbstractTreeViewItem &item) {
-    if (item.should_be_active().value_or(false)) {
-      BLI_assert_msg(
-          !has_active,
-          "Only one view item should ever return true for its `should_be_active()` method");
-      has_active = true;
-    }
-  });
-#endif
-
-  foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
-}
-
 /* ---------------------------------------------------------------------- */
 
 TreeViewItemDropTarget::TreeViewItemDropTarget(AbstractTreeView &view, DropBehavior behavior)
@@ -298,12 +282,12 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeViewItem::tree_row_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
+void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *item_but = (uiButViewItem *)but_arg1;
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
-  tree_item.activate();
+  tree_item.activate(*C);
   /* Not only activate the item, also show its children. Maybe this should be optional, or
    * controlled by the specific tree-view. */
   tree_item.set_collapsed(false);
@@ -362,7 +346,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   /* When collapsing an item with an active child, make this collapsed item active instead so the
    * active item stays visible. */
   if (hovered_item->has_active_child()) {
-    hovered_item->activate();
+    hovered_item->activate(*C);
   }
 }
 
@@ -414,16 +398,6 @@ bool AbstractTreeViewItem::has_active_child() const
   });
 
   return found;
-}
-
-void AbstractTreeViewItem::on_activate()
-{
-  /* Do nothing by default. */
-}
-
-std::optional<bool> AbstractTreeViewItem::should_be_active() const
-{
-  return std::nullopt;
 }
 
 bool AbstractTreeViewItem::supports_collapsing() const
@@ -494,31 +468,15 @@ int AbstractTreeViewItem::count_parents() const
   return i;
 }
 
-void AbstractTreeViewItem::activate()
+bool AbstractTreeViewItem::set_state_active()
 {
-  BLI_assert_msg(get_tree_view().is_reconstructed(),
-                 "Item activation can't be done until reconstruction is completed");
-
-  if (!is_activatable_) {
-    return;
-  }
-  if (is_active()) {
-    return;
+  if (AbstractViewItem::set_state_active()) {
+    /* Make sure the active item is always visible. */
+    ensure_parents_uncollapsed();
+    return true;
   }
 
-  /* Deactivate other items in the tree. */
-  get_tree_view().foreach_item([](auto &item) { item.deactivate(); });
-
-  on_activate();
-  /* Make sure the active item is always visible. */
-  ensure_parents_uncollapsed();
-
-  is_active_ = true;
-}
-
-void AbstractTreeViewItem::deactivate()
-{
-  is_active_ = false;
+  return false;
 }
 
 bool AbstractTreeViewItem::is_hovered() const
@@ -589,14 +547,6 @@ bool AbstractTreeViewItem::matches(const AbstractViewItem &other) const
   }
 
   return true;
-}
-
-void AbstractTreeViewItem::change_state_delayed()
-{
-  const std::optional<bool> should_be_active = this->should_be_active();
-  if (should_be_active.has_value() && *should_be_active) {
-    activate();
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -761,10 +711,10 @@ void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override
   uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 
-void BasicTreeViewItem::on_activate()
+void BasicTreeViewItem::on_activate(bContext &C)
 {
   if (activate_fn_) {
-    activate_fn_(*this);
+    activate_fn_(C, *this);
   }
 }
 

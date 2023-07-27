@@ -50,7 +50,7 @@
 
 using namespace blender;
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
 
@@ -192,7 +192,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
   return result;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
   using namespace blender;
   const Mesh *mesh = meshData;
@@ -229,7 +229,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   uint *vert_loop_map = nullptr; /* orig vert to orig loop */
 
   /* UV Coords */
-  const uint mloopuv_layers_tot = uint(CustomData_number_of_layers(&mesh->ldata, CD_PROP_FLOAT2));
+  const uint mloopuv_layers_tot = uint(
+      CustomData_number_of_layers(&mesh->loop_data, CD_PROP_FLOAT2));
   blender::Array<blender::float2 *> mloopuv_layers(mloopuv_layers_tot);
   float uv_u_scale;
   float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
@@ -396,8 +397,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       mesh, int(maxVerts), int(maxEdges), int(maxPolys), int(maxPolys) * 4);
   /* The modifier doesn't support original index mapping on the edge or face domains. Remove
    * original index layers, since otherwise edges aren't displayed at all in wireframe view. */
-  CustomData_free_layers(&result->edata, CD_ORIGINDEX, result->totedge);
-  CustomData_free_layers(&result->pdata, CD_ORIGINDEX, result->totedge);
+  CustomData_free_layers(&result->edge_data, CD_ORIGINDEX, result->totedge);
+  CustomData_free_layers(&result->face_data, CD_ORIGINDEX, result->totedge);
 
   const blender::Span<float3> vert_positions_orig = mesh->vert_positions();
   const blender::Span<int2> edges_orig = mesh->edges();
@@ -414,14 +415,14 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_face", ATTR_DOMAIN_FACE);
 
-  if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
-    CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_SET_DEFAULT, int(maxPolys));
+  if (!CustomData_has_layer(&result->face_data, CD_ORIGINDEX)) {
+    CustomData_add_layer(&result->face_data, CD_ORIGINDEX, CD_SET_DEFAULT, int(maxPolys));
   }
 
   int *origindex = static_cast<int *>(
-      CustomData_get_layer_for_write(&result->pdata, CD_ORIGINDEX, result->faces_num));
+      CustomData_get_layer_for_write(&result->face_data, CD_ORIGINDEX, result->faces_num));
 
-  CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, int(totvert));
+  CustomData_copy_data(&mesh->vert_data, &result->vert_data, 0, 0, int(totvert));
 
   if (mloopuv_layers_tot) {
     const float zero_co[3] = {0};
@@ -432,7 +433,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     uint uv_lay;
     for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
       mloopuv_layers[uv_lay] = static_cast<blender::float2 *>(CustomData_get_layer_n_for_write(
-          &result->ldata, CD_PROP_FLOAT2, int(uv_lay), result->totloop));
+          &result->loop_data, CD_PROP_FLOAT2, int(uv_lay), result->totloop));
     }
 
     if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -779,7 +780,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     /* copy a slice */
-    CustomData_copy_data(&mesh->vdata, &result->vdata, 0, int(varray_stride), int(totvert));
+    CustomData_copy_data(
+        &mesh->vert_data, &result->vert_data, 0, int(varray_stride), int(totvert));
 
     /* set location */
     for (j = 0; j < totvert; j++) {
@@ -874,7 +876,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* Polygon */
       if (has_mpoly_orig) {
         CustomData_copy_data(
-            &mesh->pdata, &result->pdata, int(face_index_orig), int(face_index), 1);
+            &mesh->face_data, &result->face_data, int(face_index_orig), int(face_index), 1);
         origindex[face_index] = int(face_index_orig);
       }
       else {
@@ -888,13 +890,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       if (has_mloop_orig) {
 
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, int(mloop_index_orig[0]), new_loop_index + 0, 1);
+            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 0, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, int(mloop_index_orig[1]), new_loop_index + 1, 1);
+            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 1, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, int(mloop_index_orig[1]), new_loop_index + 2, 1);
+            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[1]), new_loop_index + 2, 1);
         CustomData_copy_data(
-            &mesh->ldata, &result->ldata, int(mloop_index_orig[0]), new_loop_index + 3, 1);
+            &mesh->loop_data, &result->loop_data, int(mloop_index_orig[0]), new_loop_index + 3, 1);
 
         if (mloopuv_layers_tot) {
           uint uv_lay;
@@ -1024,7 +1026,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
   if (ltmd->ob_axis != nullptr) {
@@ -1033,11 +1035,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
 
-  walk(userData, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -1108,7 +1110,7 @@ static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_normal_flip", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Screw, panel_draw);
   modifier_subpanel_register(
@@ -1116,9 +1118,10 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Screw = {
+    /*idname*/ "Screw",
     /*name*/ N_("Screw"),
-    /*structName*/ "ScrewModifierData",
-    /*structSize*/ sizeof(ScrewModifierData),
+    /*struct_name*/ "ScrewModifierData",
+    /*struct_size*/ sizeof(ScrewModifierData),
     /*srna*/ &RNA_ScrewModifier,
     /*type*/ eModifierTypeType_Constructive,
 
@@ -1126,26 +1129,26 @@ ModifierTypeInfo modifierType_Screw = {
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_SCREW,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

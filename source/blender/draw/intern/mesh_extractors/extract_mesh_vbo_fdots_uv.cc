@@ -50,7 +50,7 @@ static void extract_fdots_uv_init(const MeshRenderData *mr,
     data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_PROP_FLOAT2);
   }
   else {
-    data->uv_data = (const float(*)[2])CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
+    data->uv_data = (const float(*)[2])CustomData_get_layer(&mr->me->loop_data, CD_PROP_FLOAT2);
   }
 }
 

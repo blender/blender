@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
   /** Vertices tags must match (special case). */
   VERT_RESTRICT_TAG = (1 << 0),
@@ -38,3 +42,7 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
                                   const BMVert *v4,
                                   short flag,
                                   short method);
+
+#ifdef __cplusplus
+}
+#endif

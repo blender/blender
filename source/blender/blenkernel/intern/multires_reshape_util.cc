@@ -108,9 +108,9 @@ static void context_init_grid_pointers(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
   reshape_context->mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&base_mesh->ldata, CD_MDISPS, base_mesh->totloop));
-  reshape_context->grid_paint_masks = static_cast<GridPaintMask *>(
-      CustomData_get_layer_for_write(&base_mesh->ldata, CD_GRID_PAINT_MASK, base_mesh->totloop));
+      CustomData_get_layer_for_write(&base_mesh->loop_data, CD_MDISPS, base_mesh->totloop));
+  reshape_context->grid_paint_masks = static_cast<GridPaintMask *>(CustomData_get_layer_for_write(
+      &base_mesh->loop_data, CD_GRID_PAINT_MASK, base_mesh->totloop));
 }
 
 static void context_init_commoon(MultiresReshapeContext *reshape_context)
@@ -574,7 +574,7 @@ static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 {
   const int num_grids = mesh->totloop;
   MDisps *mdisps = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(&mesh->ldata, CD_MDISPS, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_MDISPS, mesh->totloop));
   for (int grid_index = 0; grid_index < num_grids; grid_index++) {
     ensure_displacement_grid(&mdisps[grid_index], grid_level);
   }
@@ -583,7 +583,7 @@ static void ensure_displacement_grids(Mesh *mesh, const int grid_level)
 static void ensure_mask_grids(Mesh *mesh, const int level)
 {
   GridPaintMask *grid_paint_masks = static_cast<GridPaintMask *>(
-      CustomData_get_layer_for_write(&mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop));
+      CustomData_get_layer_for_write(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop));
   if (grid_paint_masks == nullptr) {
     return;
   }

@@ -1964,7 +1964,7 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
   index_mf_to_mpoly = static_cast<const int *>(
       CustomData_get_layer(&mesh_final->fdata_legacy, CD_ORIGINDEX));
   index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&mesh_final->face_data, CD_ORIGINDEX));
   BLI_assert(index_mf_to_mpoly);
 
   if (mesh_original) {
@@ -2162,7 +2162,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     return;
   }
 
-  orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_final->vdata, CD_ORCO));
+  orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_final->vert_data, CD_ORCO));
   const blender::Span<blender::float3> vert_normals = mesh_final->vert_normals();
 
   if (from == PART_FROM_VERT) {
@@ -3911,7 +3911,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
       CustomData_get_for_write(&mesh->fdata_legacy, i, CD_ORIGSPACE, mesh->totface_legacy));
 
   if (orco &&
-      (orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vdata, CD_ORCO))))
+      (orcodata = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->vert_data, CD_ORCO))))
   {
     copy_v3_v3(v[0], orcodata[mface->v1]);
     copy_v3_v3(v[1], orcodata[mface->v2]);
@@ -3919,7 +3919,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
 
     /* ugly hack to use non-transformed orcos, since only those
      * give symmetric results for mirroring in particle mode */
-    if (CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX)) {
+    if (CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX)) {
       BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), v, 3, 1);
     }
   }

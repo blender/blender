@@ -6,11 +6,15 @@ set(INC
   ../asset
   ../include
   ../../asset_system
+  ../../blenfont
+  ../../blenkernel
   ../../blenloader
+  ../../blentranslation
   ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
+  ../../windowmanager
   ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -40,13 +44,10 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenfont
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
   extern_fmtlib
   PRIVATE bf::intern::atomic
 )

@@ -55,7 +55,7 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
       if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
         continue;
       }
-      if ((con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) == 0 && (con->enforce != 0.0f)) {
+      if ((con->flag & CONSTRAINT_DISABLE) == 0) {
         break;
       }
     }
@@ -446,7 +446,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
        * instead of the target position, otherwise we can't get
        * a smooth transition */
       resultblend = 1;
-      resultinf = target->con->enforce;
+      resultinf = (target->con->flag & CONSTRAINT_OFF) ? 0.0f : target->con->enforce;
 
       if (data->flag & CONSTRAINT_IK_GETANGLE) {
         poleangledata = data;
@@ -455,9 +455,9 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
     }
 
     /* do we need blending? */
-    if (!resultblend && target->con->enforce != 1.0f) {
+    if (!resultblend && ((target->con->flag & CONSTRAINT_OFF) || target->con->enforce != 1.0f)) {
       float q1[4], q2[4], q[4];
-      float fac = target->con->enforce;
+      float fac = (target->con->flag & CONSTRAINT_OFF) ? 0.0f : target->con->enforce;
       float mfac = 1.0f - fac;
 
       pchan = tree->pchan[target->tip];
@@ -599,6 +599,15 @@ void iksolver_execute_tree(
       return;
     }
 
+    /* Test if this IK tree has any influence, so we can skip computations. */
+    bool has_influence = false;
+    LISTBASE_FOREACH (PoseTarget *, target, &tree->targets) {
+      if (!(target->con->flag & CONSTRAINT_OFF) && target->con->enforce != 0.0f) {
+        has_influence = true;
+        break;
+      }
+    }
+
     /* 4. walk over the tree for regular solving */
     for (a = 0; a < tree->totchannel; a++) {
       if (!(tree->pchan[a]->flag & POSE_DONE)) { /* successive trees can set the flag */
@@ -607,20 +616,27 @@ void iksolver_execute_tree(
       /* Tell blender that this channel was controlled by IK,
        * it's cleared on each BKE_pose_where_is(). */
       tree->pchan[a]->flag |= POSE_CHAIN;
+
+      /* Immediately done if IK solving gets skipped. */
+      if (!has_influence) {
+        tree->pchan[a]->flag |= POSE_DONE;
+      }
     }
 
-    /* 5. execute the IK solver */
-    execute_posetree(depsgraph, scene, ob, tree);
+    if (has_influence) {
+      /* 5. execute the IK solver */
+      execute_posetree(depsgraph, scene, ob, tree);
 
-    /* 6. apply the differences to the channels,
-     *    we need to calculate the original differences first */
-    for (a = 0; a < tree->totchannel; a++) {
-      make_dmats(tree->pchan[a]);
-    }
+      /* 6. apply the differences to the channels,
+       *    we need to calculate the original differences first */
+      for (a = 0; a < tree->totchannel; a++) {
+        make_dmats(tree->pchan[a]);
+      }
 
-    for (a = 0; a < tree->totchannel; a++) {
-      /* sets POSE_DONE */
-      where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
+      for (a = 0; a < tree->totchannel; a++) {
+        /* sets POSE_DONE */
+        where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
+      }
     }
 
     /* 7. and free */

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -317,6 +319,7 @@ typedef enum eGP_Sculpt_Flag {
   /* temporary invert action */
   GP_SCULPT_FLAG_TMP_INVERT = (1 << 3),
 } eGP_Sculpt_Flag;
+ENUM_OPERATORS(eGP_Sculpt_Flag, GP_SCULPT_FLAG_TMP_INVERT)
 
 /* sculpt_mode_flag */
 typedef enum eGP_Sculpt_Mode_Flag {

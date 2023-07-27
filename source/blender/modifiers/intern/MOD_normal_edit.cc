@@ -328,12 +328,12 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
 
   if (do_facenors_fix &&
       faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, faces, mesh->face_normals()))
+          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
   {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   blender::bke::mesh::normals_loop_custom_set(vert_positions,
                                               edges,
                                               faces,
@@ -436,12 +436,12 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
 
   if (do_facenors_fix &&
       faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->ldata, faces, mesh->face_normals()))
+          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
   {
     BKE_mesh_tag_face_winding_changed(mesh);
   }
   const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
   blender::bke::mesh::normals_loop_custom_set(positions,
                                               edges,
                                               faces,
@@ -529,7 +529,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   blender::Array<blender::float3> loop_normals;
 
-  CustomData *ldata = &result->ldata;
+  CustomData *ldata = &result->loop_data;
 
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
@@ -542,7 +542,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
         CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     loop_normals.reinitialize(corner_verts.size());
     const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&result->pdata, CD_PROP_BOOL, "sharp_face"));
+        CustomData_get_layer_named(&result->face_data, CD_PROP_BOOL, "sharp_face"));
     blender::bke::mesh::normals_calc_loop(positions,
                                           edges,
                                           faces,
@@ -553,9 +553,9 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                           result->face_normals(),
                                           sharp_edges.span.data(),
                                           sharp_faces,
+                                          clnors,
                                           true,
                                           result->smoothresh,
-                                          clnors,
                                           nullptr,
                                           loop_normals);
   }
@@ -615,7 +615,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   return result;
 }
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
@@ -624,7 +624,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(enmd, DNA_struct_default_get(NormalEditModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
@@ -636,26 +636,26 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData * /*md*/)
+static bool depends_on_normals(ModifierData * /*md*/)
 {
   return true;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
-  walk(userData, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
   return !is_valid_target(enmd);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
   if (enmd->target) {
@@ -664,7 +664,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
 }
@@ -737,7 +737,7 @@ static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_NormalEdit, panel_draw);
@@ -747,35 +747,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
+    /*idname*/ "NormalEdit",
     /*name*/ N_("NormalEdit"),
-    /*structName*/ "NormalEditModifierData",
-    /*structSize*/ sizeof(NormalEditModifierData),
+    /*struct_name*/ "NormalEditModifierData",
+    /*struct_size*/ sizeof(NormalEditModifierData),
     /*srna*/ &RNA_NormalEditModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_NORMALEDIT,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

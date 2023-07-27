@@ -1457,9 +1457,9 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 }
 
 /* Dialogs are popups that require user verification (click OK) before exec */
-static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userData)
+static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_data)
 {
-  wmOpPopUp *data = static_cast<wmOpPopUp *>(userData);
+  wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
   const uiStyle *style = UI_style_get_dpi();
 
@@ -1498,9 +1498,9 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
   return block;
 }
 
-static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userData)
+static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_data)
 {
-  wmOpPopUp *data = static_cast<wmOpPopUp *>(userData);
+  wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
   const uiStyle *style = UI_style_get_dpi();
 
@@ -1522,9 +1522,9 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
   return block;
 }
 
-static void wm_operator_ui_popup_cancel(bContext *C, void *userData)
+static void wm_operator_ui_popup_cancel(bContext *C, void *user_data)
 {
-  wmOpPopUp *data = static_cast<wmOpPopUp *>(userData);
+  wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
   wmOperator *op = data->op;
 
   if (op) {

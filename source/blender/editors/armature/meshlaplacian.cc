@@ -668,7 +668,7 @@ void heat_bone_weighting(Object *ob,
     /*  (added selectedVerts content for vertex mask, they used to just equal 1) */
     if (use_vert_sel) {
       const bool *select_vert = (const bool *)CustomData_get_layer_named(
-          &me->vdata, CD_PROP_BOOL, ".select_vert");
+          &me->vert_data, CD_PROP_BOOL, ".select_vert");
       if (select_vert) {
         for (const int i : faces.index_range()) {
           for (const int vert : corner_verts.slice(faces[i])) {
@@ -679,7 +679,7 @@ void heat_bone_weighting(Object *ob,
     }
     else if (use_face_sel) {
       const bool *select_poly = (const bool *)CustomData_get_layer_named(
-          &me->pdata, CD_PROP_BOOL, ".select_poly");
+          &me->face_data, CD_PROP_BOOL, ".select_poly");
       if (select_poly) {
         for (const int i : faces.index_range()) {
           if (select_poly[i]) {

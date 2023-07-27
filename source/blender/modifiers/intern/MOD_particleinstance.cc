@@ -44,7 +44,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
@@ -53,7 +53,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
@@ -62,7 +62,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
+static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
   ParticleSystem *psys;
@@ -92,7 +92,7 @@ static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParam
       if (psmd->psys == psys) {
         int required_mode;
 
-        if (useRenderParams) {
+        if (use_render_params) {
           required_mode = eModifierMode_Render;
         }
         else {
@@ -111,7 +111,7 @@ static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParam
   return false;
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
   if (pimd->ob != nullptr) {
@@ -122,11 +122,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
-  walk(userData, ob, (ID **)&pimd->ob, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&pimd->ob, IDWALK_CB_NOP);
 }
 
 static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
@@ -190,7 +190,7 @@ static void store_float_in_vcol(MLoopCol *vcol, float float_value)
   vcol->a = 1.0f;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
@@ -324,9 +324,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
+      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
   MLoopCol *mloopcols_value = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
-      &result->ldata, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop));
+      &result->loop_data, CD_PROP_BYTE_COLOR, pimd->value_layer_name, result->totloop));
   int *vert_part_index = nullptr;
   float *vert_part_value = nullptr;
   if (mloopcols_index != nullptr) {
@@ -351,7 +351,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       ParticleKey state;
       int vindex = p_skip * totvert + k;
 
-      CustomData_copy_data(&mesh->vdata, &result->vdata, k, vindex, 1);
+      CustomData_copy_data(&mesh->vert_data, &result->vert_data, k, vindex, 1);
 
       if (vert_part_index != nullptr) {
         vert_part_index[vindex] = p;
@@ -470,7 +470,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     /* Create edges and adjust edge vertex indices. */
-    CustomData_copy_data(&mesh->edata, &result->edata, 0, p_skip * totedge, totedge);
+    CustomData_copy_data(&mesh->edge_data, &result->edge_data, 0, p_skip * totedge, totedge);
     blender::int2 *edge = &edges[p_skip * totedge];
     for (k = 0; k < totedge; k++, edge++) {
       (*edge)[0] += p_skip * totvert;
@@ -481,7 +481,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (k = 0; k < faces_num; k++) {
       const blender::IndexRange in_face = orig_faces[k];
 
-      CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * faces_num + k, 1);
+      CustomData_copy_data(&mesh->face_data, &result->face_data, k, p_skip * faces_num + k, 1);
       const int dst_face_start = in_face.start() + p_skip * totloop;
       face_offsets[p_skip * faces_num + k] = dst_face_start;
 
@@ -490,7 +490,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         int dst_corner_i = dst_face_start;
         int j = in_face.size();
 
-        CustomData_copy_data(&mesh->ldata, &result->ldata, in_face.start(), dst_face_start, j);
+        CustomData_copy_data(
+            &mesh->loop_data, &result->loop_data, in_face.start(), dst_face_start, j);
         for (; j; j--, orig_corner_i++, dst_corner_i++) {
           corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
           corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);
@@ -623,7 +624,7 @@ static void layers_panel_draw(const bContext * /*C*/, Panel *panel)
       col, ptr, "value_layer_name", &obj_data_ptr, "vertex_colors", IFACE_("Value"), ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_ParticleInstance, panel_draw);
@@ -634,35 +635,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_ParticleInstance = {
+    /*idname*/ "ParticleInstance",
     /*name*/ N_("ParticleInstance"),
-    /*structName*/ "ParticleInstanceModifierData",
-    /*structSize*/ sizeof(ParticleInstanceModifierData),
+    /*struct_name*/ "ParticleInstanceModifierData",
+    /*struct_size*/ sizeof(ParticleInstanceModifierData),
     /*srna*/ &RNA_ParticleInstanceModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_PARTICLE_INSTANCE,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

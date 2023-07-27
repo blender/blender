@@ -159,7 +159,7 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type
     return nullptr;
   }
 
-  loopdata = &mesh->ldata;
+  loopdata = &mesh->loop_data;
   cd_ptr = CustomData_get_layer_named_for_write(loopdata, cd_data_type, name, mesh->totloop);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
@@ -303,7 +303,7 @@ void USDMeshReader::read_uvs(Mesh *mesh, const double motionSampleTime, const bo
   uint rev_loop_index = 0;
   uint uv_index = 0;
 
-  const CustomData *ldata = &mesh->ldata;
+  const CustomData *ldata = &mesh->loop_data;
 
   struct UVSample {
     pxr::VtVec2fArray uvs;

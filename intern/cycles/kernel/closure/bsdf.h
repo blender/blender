@@ -18,7 +18,6 @@
 #include "kernel/closure/bsdf_hair.h"
 #include "kernel/closure/bsdf_hair_principled.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
-#include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/bssrdf.h"
 #include "kernel/closure/volume.h"
 // clang-format on
@@ -210,11 +209,6 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
       *sampled_roughness = one_float2();
       *eta = 1.0f;
       break;
-    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-      label = bsdf_principled_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
-      *sampled_roughness = one_float2();
-      *eta = 1.0f;
-      break;
     case CLOSURE_BSDF_SHEEN_ID:
       label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
       *sampled_roughness = one_float2();
@@ -351,10 +345,6 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
       *roughness = one_float2();
       *eta = 1.0f;
       break;
-    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-      *roughness = one_float2();
-      *eta = 1.0f;
-      break;
     case CLOSURE_BSDF_SHEEN_ID:
       alpha = ((ccl_private SheenBsdf *)sc)->roughness;
       *roughness = make_float2(alpha, alpha);
@@ -439,7 +429,6 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
     case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
-    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
     case CLOSURE_BSDF_SHEEN_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
       break;
@@ -534,9 +523,6 @@ ccl_device_inline
     case CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID:
       eval = bsdf_principled_diffuse_eval(sc, sd->wi, wo, pdf);
       break;
-    case CLOSURE_BSDF_PRINCIPLED_SHEEN_ID:
-      eval = bsdf_principled_sheen_eval(sc, sd->wi, wo, pdf);
-      break;
     case CLOSURE_BSDF_SHEEN_ID:
       eval = bsdf_sheen_eval(sc, sd->wi, wo, pdf);
       break;
@@ -614,10 +600,6 @@ ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
   if (CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
     albedo *= bsdf_microfacet_estimate_fresnel(
         sd, (ccl_private const MicrofacetBsdf *)sc, reflection, transmission);
-  }
-  else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
-    kernel_assert(reflection);
-    albedo *= ((ccl_private const PrincipledSheenBsdf *)sc)->avg_value;
   }
   else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
     /* TODO(lukas): Principled Hair could also be split into a glossy and a transmission component,

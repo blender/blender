@@ -160,49 +160,53 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   ViewLayer *view_layer = draw_ctx->view_layer;
+  if ((view_layer->passflag & SCE_PASS_Z) == 0) {
+    return;
+  }
+  RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+  if (rp == NULL) {
+    return;
+  }
 
-  if ((view_layer->passflag & SCE_PASS_Z) != 0) {
-    RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
-    float *ro_buffer_data = rp->ibuf->float_buffer.data;
+  float *ro_buffer_data = rp->ibuf->float_buffer.data;
 
-    GPU_framebuffer_read_depth(vedata->fbl->render_fb,
-                               rect->xmin,
-                               rect->ymin,
-                               BLI_rcti_size_x(rect),
-                               BLI_rcti_size_y(rect),
-                               GPU_DATA_FLOAT,
-                               ro_buffer_data);
+  GPU_framebuffer_read_depth(vedata->fbl->render_fb,
+                             rect->xmin,
+                             rect->ymin,
+                             BLI_rcti_size_x(rect),
+                             BLI_rcti_size_y(rect),
+                             GPU_DATA_FLOAT,
+                             ro_buffer_data);
 
-    float winmat[4][4];
-    DRW_view_winmat_get(NULL, winmat, false);
+  float winmat[4][4];
+  DRW_view_winmat_get(NULL, winmat, false);
 
-    int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
+  int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
-    /* Convert GPU depth [0..1] to view Z [near..far] */
-    if (DRW_view_is_persp_get(NULL)) {
-      for (int i = 0; i < pix_num; i++) {
-        if (ro_buffer_data[i] == 1.0f) {
-          ro_buffer_data[i] = 1e10f; /* Background */
-        }
-        else {
-          ro_buffer_data[i] = ro_buffer_data[i] * 2.0f - 1.0f;
-          ro_buffer_data[i] = winmat[3][2] / (ro_buffer_data[i] + winmat[2][2]);
-        }
+  /* Convert GPU depth [0..1] to view Z [near..far] */
+  if (DRW_view_is_persp_get(NULL)) {
+    for (int i = 0; i < pix_num; i++) {
+      if (ro_buffer_data[i] == 1.0f) {
+        ro_buffer_data[i] = 1e10f; /* Background */
+      }
+      else {
+        ro_buffer_data[i] = ro_buffer_data[i] * 2.0f - 1.0f;
+        ro_buffer_data[i] = winmat[3][2] / (ro_buffer_data[i] + winmat[2][2]);
       }
     }
-    else {
-      /* Keep in mind, near and far distance are negatives. */
-      float near = DRW_view_near_distance_get(NULL);
-      float far = DRW_view_far_distance_get(NULL);
-      float range = fabsf(far - near);
+  }
+  else {
+    /* Keep in mind, near and far distance are negatives. */
+    float near = DRW_view_near_distance_get(NULL);
+    float far = DRW_view_far_distance_get(NULL);
+    float range = fabsf(far - near);
 
-      for (int i = 0; i < pix_num; i++) {
-        if (ro_buffer_data[i] == 1.0f) {
-          ro_buffer_data[i] = 1e10f; /* Background */
-        }
-        else {
-          ro_buffer_data[i] = ro_buffer_data[i] * range - near;
-        }
+    for (int i = 0; i < pix_num; i++) {
+      if (ro_buffer_data[i] == 1.0f) {
+        ro_buffer_data[i] = 1e10f; /* Background */
+      }
+      else {
+        ro_buffer_data[i] = ro_buffer_data[i] * range - near;
       }
     }
   }

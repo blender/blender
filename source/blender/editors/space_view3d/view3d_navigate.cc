@@ -220,8 +220,7 @@ void ViewOpsData::init_navigation(bContext *C,
   eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
 
   if (!use_cursor_init) {
-    viewops_flag &= ~(VIEWOPS_FLAG_USE_MOUSE_INIT | VIEWOPS_FLAG_DEPTH_NAVIGATE |
-                      VIEWOPS_FLAG_ZOOM_TO_MOUSE);
+    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE);
   }
 
   bool calc_rv3d_dist = true;
@@ -318,7 +317,7 @@ void ViewOpsData::init_navigation(bContext *C,
     copy_v2_v2_int(this->init.event_xy, event->xy);
     copy_v2_v2_int(this->prev.event_xy, event->xy);
 
-    if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
+    if (use_cursor_init) {
       zero_v2_int(this->init.event_xy_offset);
     }
     else {

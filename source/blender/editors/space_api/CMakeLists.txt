@@ -6,8 +6,10 @@ set(INC
   ../include
   ../io
   ../../asset_system
+  ../../blenkernel
   ../../gpu
   ../../makesrna
+  ../../windowmanager
 )
 
 set(INC_SYS
@@ -19,7 +21,6 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_geometry
@@ -43,7 +44,6 @@ set(LIB
   bf_editor_space_userpref
   bf_editor_space_view3d
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_space_api "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
