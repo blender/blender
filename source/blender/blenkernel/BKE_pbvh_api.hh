@@ -393,7 +393,7 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
-                             int **grid_indices,
+                             const int **grid_indices,
                              int *totgrid,
                              int *maxgrid,
                              int *gridsize,
@@ -494,7 +494,7 @@ struct PBVHVertexIter {
   CCGElem **grids;
   CCGElem *grid;
   BLI_bitmap **grid_hidden, *gh;
-  int *grid_indices;
+  const int *grid_indices;
   int totgrid;
   int gridsize;
 

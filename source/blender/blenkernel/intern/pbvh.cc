@@ -1753,7 +1753,8 @@ static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
 {
   CCGElem **grids;
   BLI_bitmap **grid_hidden;
-  int *grid_indices, totgrid, i;
+  const int *grid_indices;
+  int totgrid, i;
 
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, nullptr, &grids);
   grid_hidden = BKE_pbvh_grid_hidden(pbvh);
@@ -2164,7 +2165,7 @@ void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int 
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
-                             int **r_grid_indices,
+                             const int **r_grid_indices,
                              int *r_totgrid,
                              int *r_maxgrid,
                              int *r_gridsize,
@@ -3267,7 +3268,7 @@ void BKE_pbvh_node_color_buffer_free(PBVH *pbvh)
 void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int mode)
 {
   CCGElem **grids;
-  int *grid_indices;
+  const int *grid_indices;
   int totgrid, gridsize, uniq_verts, totvert;
 
   vi->grid = nullptr;

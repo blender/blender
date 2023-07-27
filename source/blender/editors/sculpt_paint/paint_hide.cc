@@ -122,7 +122,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 {
   CCGElem **grids;
   BLI_bitmap **grid_hidden;
-  int *grid_indices, totgrid;
+  const int *grid_indices;
+  int totgrid;
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */
