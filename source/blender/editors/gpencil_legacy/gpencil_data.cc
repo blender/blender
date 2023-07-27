@@ -2063,7 +2063,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
     }
 
     short preset = (brush->gpencil_settings) ? brush->gpencil_settings->preset_type :
-                                               GP_BRUSH_PRESET_UNKNOWN;
+                                               short(GP_BRUSH_PRESET_UNKNOWN);
 
     if (preset != GP_BRUSH_PRESET_UNKNOWN) {
       /* Verify to delete only the brushes of the current mode. */

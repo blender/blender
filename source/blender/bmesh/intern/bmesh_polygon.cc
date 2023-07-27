@@ -429,7 +429,7 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
     BMLoop *l_iter_other = l_iter->next;
     BMLoop *l_iter_last = l_iter->prev;
     do {
-      BLI_assert(!ELEM(l_iter->v->co, l_iter_other->v->co, l_iter_other->next->v->co));
+      BLI_assert(!ELEM(l_iter->v, l_iter_other->v, l_iter_other->next->v));
       float co_other[3], vec[3];
       closest_to_line_segment_v3(
           co_other, l_iter->v->co, l_iter_other->v->co, l_iter_other->next->v->co);

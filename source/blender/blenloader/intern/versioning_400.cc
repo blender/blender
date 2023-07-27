@@ -308,10 +308,9 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
     /* Change socket type to Color. */
     nodeModifySocketTypeStatic(ntree, node, input, SOCK_RGBA, 0);
 
-   /* Account for the change in intensity between the old and new model.
-    * If the Sheen input is set to a fixed value, adjust it and set the tint to white.
-    * Otherwise, if it's connected, keep it as-is but set the tint to 0.2 instead. */
-    static float default_value_dim[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    /* Account for the change in intensity between the old and new model.
+     * If the Sheen input is set to a fixed value, adjust it and set the tint to white.
+     * Otherwise, if it's connected, keep it as-is but set the tint to 0.2 instead. */
     bNodeSocket *sheen = nodeFindSocket(node, SOCK_IN, "Sheen");
     if (sheen != nullptr && sheen->link == nullptr) {
       *version_cycles_node_socket_float_value(sheen) *= 0.2f;
