@@ -30,10 +30,10 @@ extern "C" {
  * - hash mappings.
  *
  * each slot is identified by a slot code, as are each operator.
- * operators, and their slots, are defined in bmesh_opdefines.c (with their
+ * operators, and their slots, are defined in bmesh_opdefines.cc (with their
  * execution functions prototyped in bmesh_operators_private.h), with all their
  * operator code and slot codes defined in bmesh_operators.h.  see
- * bmesh_opdefines.c and the BMOpDefine struct for how to define new operators.
+ * bmesh_opdefines.cc and the BMOpDefine struct for how to define new operators.
  *
  * in general, operators are fed arrays of elements, created using either
  * #BMO_slot_buffer_from_hflag or #BMO_slot_buffer_from_flag
