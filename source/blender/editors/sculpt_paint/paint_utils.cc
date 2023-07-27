@@ -549,15 +549,16 @@ void paint_sample_color(
 
   /* No sample found; sample directly from the GPU front buffer. */
   {
-    float rgba_f[4];
-    GPU_frontbuffer_read_color(
-        x + region->winrct.xmin, y + region->winrct.ymin, 1, 1, 4, GPU_DATA_FLOAT, &rgba_f);
-
+    float rgb_fl[3];
+    WM_window_pixels_read_sample(C,
+                                 CTX_wm_window(C),
+                                 blender::int2(x + region->winrct.xmin, y + region->winrct.ymin),
+                                 rgb_fl);
     if (use_palette) {
-      copy_v3_v3(color->rgb, rgba_f);
+      copy_v3_v3(color->rgb, rgb_fl);
     }
     else {
-      BKE_brush_color_set(scene, br, rgba_f);
+      BKE_brush_color_set(scene, br, rgb_fl);
     }
   }
 }
