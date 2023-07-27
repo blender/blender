@@ -196,12 +196,13 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
   prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 
-  RNA_def_enum(ot->srna,
-               "mode",
-               stroke_mode_items,
-               BRUSH_STROKE_NORMAL,
-               "Stroke Mode",
-               "Action taken when a paint stroke is made");
+  prop = RNA_def_enum(ot->srna,
+                      "mode",
+                      stroke_mode_items,
+                      BRUSH_STROKE_NORMAL,
+                      "Stroke Mode",
+                      "Action taken when a paint stroke is made");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
 }
 
 /* 3D Paint */
