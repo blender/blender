@@ -6458,22 +6458,33 @@ static void sculpt_stroke_update_step(bContext *C,
                   ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t > dyntopo_spacing);
   }
 
+  /* Running dyntopo before layer brush causes artifacts. */
+  bool run_dyntopo_after = brush->sculpt_tool == SCULPT_TOOL_LAYER;
+
   if (do_dyntopo) {
     ss->cache->last_dyntopo_t = ss->cache->stroke_distance_t;
 
-    /* Note: dyntopo repeats happen after the dab. */
-    do_symmetrical_brush_actions(sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
+    if (!run_dyntopo_after) {
+      /* Note: dyntopo repeats happen after the dab. */
+      do_symmetrical_brush_actions(
+          sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
+    }
   }
 
   do_symmetrical_brush_actions(sd, ob, do_brush_action, ups, &tool_settings->paint_mode);
   sculpt_combine_proxies(sd, ob);
 
-  if (do_dyntopo && ss->cached_dyntopo.repeat) {
+  int dyntopo_repeat = ss->cached_dyntopo.repeat;
+  if (run_dyntopo_after) {
+    dyntopo_repeat++;
+  }
+
+  if (do_dyntopo && dyntopo_repeat) {
     float3 location = ss->cache->true_location;
 
     add_v3_v3(cache->true_location, cache->grab_delta);
 
-    for (int i = 0; i < ss->cached_dyntopo.repeat; i++) {
+    for (int i = 0; i < dyntopo_repeat; i++) {
       do_symmetrical_brush_actions(
           sd, ob, sculpt_topology_update, ups, &tool_settings->paint_mode);
     }
