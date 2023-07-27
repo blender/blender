@@ -137,10 +137,6 @@ OSL_CLOSURE_STRUCT_BEGIN(PrincipledDiffuse, principled_diffuse)
   OSL_CLOSURE_STRUCT_MEMBER(PrincipledDiffuse, FLOAT, float, roughness, NULL)
 OSL_CLOSURE_STRUCT_END(PrincipledDiffuse, principled_diffuse)
 
-OSL_CLOSURE_STRUCT_BEGIN(PrincipledSheen, principled_sheen)
-  OSL_CLOSURE_STRUCT_MEMBER(PrincipledSheen, VECTOR, packed_float3, N, NULL)
-OSL_CLOSURE_STRUCT_END(PrincipledSheen, principled_sheen)
-
 OSL_CLOSURE_STRUCT_BEGIN(GenericEmissive, emission)
 OSL_CLOSURE_STRUCT_END(GenericEmissive, emission)
 

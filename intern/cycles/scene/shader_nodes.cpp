@@ -2661,7 +2661,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(specular_tint, "Specular Tint", 0.0f);
   SOCKET_IN_FLOAT(anisotropic, "Anisotropic", 0.0f);
   SOCKET_IN_FLOAT(sheen, "Sheen", 0.0f);
-  SOCKET_IN_FLOAT(sheen_tint, "Sheen Tint", 0.0f);
+  SOCKET_IN_FLOAT(sheen_roughness, "Sheen Roughness", 0.5f);
+  SOCKET_IN_COLOR(sheen_tint, "Sheen Tint", one_float3());
   SOCKET_IN_FLOAT(clearcoat, "Clearcoat", 0.0f);
   SOCKET_IN_FLOAT(clearcoat_roughness, "Clearcoat Roughness", 0.03f);
   SOCKET_IN_FLOAT(ior, "IOR", 0.0f);
@@ -2771,6 +2772,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
                                  ShaderInput *p_specular_tint,
                                  ShaderInput *p_anisotropic,
                                  ShaderInput *p_sheen,
+                                 ShaderInput *p_sheen_roughness,
                                  ShaderInput *p_sheen_tint,
                                  ShaderInput *p_clearcoat,
                                  ShaderInput *p_clearcoat_roughness,
@@ -2796,6 +2798,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
   int specular_tint_offset = compiler.stack_assign(p_specular_tint);
   int anisotropic_offset = compiler.stack_assign(p_anisotropic);
   int sheen_offset = compiler.stack_assign(p_sheen);
+  int sheen_roughness_offset = compiler.stack_assign(p_sheen_roughness);
   int sheen_tint_offset = compiler.stack_assign(p_sheen_tint);
   int clearcoat_offset = compiler.stack_assign(p_clearcoat);
   int clearcoat_roughness_offset = compiler.stack_assign(p_clearcoat_roughness);
@@ -2827,7 +2830,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler,
           ior_offset, transmission_offset, anisotropic_rotation_offset, SVM_STACK_INVALID),
       distribution,
       subsurface_method,
-      SVM_STACK_INVALID);
+      sheen_roughness_offset);
 
   float3 bc_default = get_float3(base_color_in->socket_type);
 
@@ -2864,6 +2867,7 @@ void PrincipledBsdfNode::compile(SVMCompiler &compiler)
           input("Specular Tint"),
           input("Anisotropic"),
           input("Sheen"),
+          input("Sheen Roughness"),
           input("Sheen Tint"),
           input("Clearcoat"),
           input("Clearcoat Roughness"),

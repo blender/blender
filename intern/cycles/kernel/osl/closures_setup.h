@@ -21,7 +21,6 @@
 #include "kernel/closure/bsdf_hair.h"
 #include "kernel/closure/bsdf_hair_principled.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
-#include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/volume.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
 #include "kernel/closure/bsdf_phong_ramp.h"
@@ -649,29 +648,6 @@ ccl_device void osl_closure_principled_diffuse_setup(
   bsdf->roughness = closure->roughness;
 
   sd->flag |= bsdf_principled_diffuse_setup(bsdf);
-}
-
-ccl_device void osl_closure_principled_sheen_setup(
-    KernelGlobals kg,
-    ccl_private ShaderData *sd,
-    uint32_t path_flag,
-    float3 weight,
-    ccl_private const PrincipledSheenClosure *closure)
-{
-  if (osl_closure_skip(kg, sd, path_flag, LABEL_DIFFUSE)) {
-    return;
-  }
-
-  ccl_private PrincipledSheenBsdf *bsdf = (ccl_private PrincipledSheenBsdf *)bsdf_alloc(
-      sd, sizeof(PrincipledSheenBsdf), rgb_to_spectrum(weight));
-  if (!bsdf) {
-    return;
-  }
-
-  bsdf->N = closure->N;
-  bsdf->avg_value = 0.0f;
-
-  sd->flag |= bsdf_principled_sheen_setup(sd, bsdf);
 }
 
 /* Variable cone emissive closure
