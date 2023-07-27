@@ -814,6 +814,7 @@ endforeach()
 blender_add_lib(bf_draw_shaders "${GLSL_C}" "" "" "")
 
 list(APPEND LIB
+  PRIVATE bf::animrig
   bf_draw_shaders
 )
 

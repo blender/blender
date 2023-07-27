@@ -114,6 +114,7 @@ set(LIB
   ${OPENCOLLADA_LIBRARIES}
   ${PCRE_LIBRARIES}
   ${XML2_LIBRARIES}
+  PRIVATE bf::animrig
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

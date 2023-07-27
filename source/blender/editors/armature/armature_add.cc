@@ -43,6 +43,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "DEG_depsgraph.h"
 
 #include "armature_intern.h"
@@ -66,7 +68,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->rad_head = 0.10f;
   bone->rad_tail = 0.05f;
   bone->segments = 1;
-  bone->layer = arm->layer;
+  ANIM_bone_set_ebone_layer_from_armature(bone, arm);
 
   /* Bendy-Bone parameters */
   bone->roll1 = 0.0f;

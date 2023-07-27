@@ -57,6 +57,8 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -2436,7 +2438,7 @@ static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
             bArmature *arm = (bArmature *)ob->data;
 
             /* skipping - not visible on currently visible layers */
-            if ((arm->layer & pchan->bone->layer) == 0) {
+            if (!ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
               continue;
             }
             /* skipping - is currently hidden */

@@ -20,6 +20,8 @@
 #include "BLI_string.h"
 #include "ED_armature.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "DEG_depsgraph.h"
 
 #include "ArmatureImporter.h"
@@ -139,9 +141,10 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
   BoneExtended &be = add_bone_extended(bone, node, totchild, layer_labels, extended_bones);
   int layer = be.get_bone_layers();
   if (layer) {
-    bone->layer = layer;
+    ANIM_bone_set_layer_ebone(bone, layer);
   }
-  arm->layer |= layer; /* ensure that all populated bone layers are visible after import */
+  /* Ensure that all populated bone layers are visible after import. */
+  ANIM_armature_enable_layers(arm, layer);
 
   float *tail = be.get_tail();
   int use_connect = be.get_use_connect();
@@ -486,7 +489,8 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
     }
 
     ED_armature_to_edit(armature);
-    armature->layer = 0; /* layer is set according to imported bone set in create_bone() */
+    /* Layers are enabled according to imported bone set in create_bone(). */
+    ANIM_armature_disable_all_layers(armature);
 
     create_bone(
         nullptr, node, nullptr, node->getChildNodes().getCount(), nullptr, armature, layer_labels);

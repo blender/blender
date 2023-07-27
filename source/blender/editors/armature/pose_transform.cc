@@ -46,6 +46,8 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -605,7 +607,7 @@ static void set_pose_keys(Object *ob)
   if (ob->pose) {
     for (chan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); chan; chan = chan->next) {
       Bone *bone = chan->bone;
-      if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer)) {
+      if ((bone) && (bone->flag & BONE_SELECTED) && ANIM_bonecoll_is_visible(arm, bone)) {
         chan->flag |= POSE_KEY;
       }
       else {

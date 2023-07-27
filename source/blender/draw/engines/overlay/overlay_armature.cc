@@ -35,6 +35,8 @@
 #include "ED_armature.h"
 #include "ED_view3d.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "UI_resources.h"
 
 #include "draw_common.h"
@@ -2560,7 +2562,7 @@ static void draw_armature_edit(const ArmatureDrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if ((eBone->layer & arm->layer) == 0) {
+    if (!ANIM_bonecoll_is_visible_editbone(arm, eBone)) {
       continue;
     }
     if (eBone->flag & BONE_HIDDEN_A) {

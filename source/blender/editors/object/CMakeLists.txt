@@ -61,6 +61,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::animrig
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna

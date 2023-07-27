@@ -41,6 +41,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "DEG_depsgraph.h"
 
 #include "armature_intern.h"
@@ -1221,7 +1223,7 @@ static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
   EditBone *ebone;
 
   ebone = ED_armature_ebone_find_name(arm->edbo, bone_name);
-  return (ebone && (ebone->flag & BONE_SELECTED) && (arm->layer & ebone->layer));
+  return (ebone && (ebone->flag & BONE_SELECTED) && ANIM_bonecoll_is_visible_editbone(arm, ebone));
 }
 
 /* previously delete_armature */
@@ -1252,7 +1254,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
 
     for (curBone = static_cast<EditBone *>(arm->edbo->first); curBone; curBone = ebone_next) {
       ebone_next = curBone->next;
-      if (arm->layer & curBone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
         if (curBone->flag & BONE_SELECTED) {
           if (curBone == arm->act_edbone) {
             arm->act_edbone = nullptr;
@@ -1384,13 +1386,13 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
 
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
       /* break connections for unseen bones */
-      if (((arm->layer & ebone->layer) &&
+      if ((ANIM_bonecoll_is_visible_editbone(arm, ebone) &&
            (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0)
       {
         ebone->temp.ebone = nullptr;
       }
 
-      if (((arm->layer & ebone->layer) &&
+      if ((ANIM_bonecoll_is_visible_editbone(arm, ebone) &&
            (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0)
       {
         if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
@@ -1565,7 +1567,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (arm->layer & ebone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
         if (ebone->flag & BONE_HIDDEN_A) {
           if (!(ebone->flag & BONE_UNSELECTABLE)) {
             SET_FLAG_FROM_TEST(ebone->flag, select, (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL));

@@ -107,6 +107,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::animrig
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

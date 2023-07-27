@@ -41,6 +41,8 @@
 #include "ED_screen.h"
 #include "ED_transverts.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "view3d_intern.h"
 
 static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_cursor[3]);
@@ -125,7 +127,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
            pchan_eval = pchan_eval->next)
       {
         if (pchan_eval->bone->flag & BONE_SELECTED) {
-          if (pchan_eval->bone->layer & arm_eval->layer) {
+          if (ANIM_bonecoll_is_visible_pchan(arm_eval, pchan_eval)) {
             if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
               float nLoc[3];
 
@@ -843,7 +845,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       for (pchan = static_cast<bPoseChannel *>(obact_eval->pose->chanbase.first); pchan;
            pchan = pchan->next)
       {
-        if (arm->layer & pchan->bone->layer) {
+        if (ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
           if (pchan->bone->flag & BONE_SELECTED) {
             copy_v3_v3(vec, pchan->pose_head);
             mul_m4_v3(obact_eval->object_to_world, vec);

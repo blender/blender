@@ -28,6 +28,8 @@
 #include "ED_armature.h"
 #include "ED_util.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 /* -------------------------------------------------------------------- */
@@ -297,7 +299,7 @@ void armature_select_mirrored_ex(bArmature *arm, const int flag)
     EditBone *curBone, *ebone_mirr;
 
     for (curBone = static_cast<EditBone *>(arm->edbo->first); curBone; curBone = curBone->next) {
-      if (arm->layer & curBone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
         if (curBone->flag & flag) {
           ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, curBone);
           if (ebone_mirr) {
@@ -326,7 +328,7 @@ void armature_tag_select_mirrored(bArmature *arm)
   /* Select mirrored bones */
   if (arm->flag & ARM_MIRROR_EDIT) {
     for (curBone = static_cast<EditBone *>(arm->edbo->first); curBone; curBone = curBone->next) {
-      if (arm->layer & curBone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
         if (curBone->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL)) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, curBone);
           if (ebone_mirr && (ebone_mirr->flag & BONE_SELECTED) == 0) {
