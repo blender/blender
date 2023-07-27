@@ -4611,6 +4611,7 @@ def km_pose(params):
 
     items.extend([
         # Transform Actions.
+        # NOTE: pose mode transform should match the "Weight Paint" key-map.
         *_template_items_transform_actions(params, use_mirror=True),
 
         ("object.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -5177,7 +5178,8 @@ def km_weight_paint(params):
 
     items.extend([
         # Transform Actions.
-        *_template_items_transform_actions(params),
+        # NOTE: this should follow "Pose" key-map (unless there is a good reason not to).
+        *_template_items_transform_actions(params, use_mirror=True),
 
         ("paint.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("paint.weight_sample", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True}, None),
