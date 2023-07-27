@@ -6,9 +6,9 @@
  * \ingroup datatoc
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* #define VERBOSE */
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
   printf("Making C file <%s>\n", argv[2]);
 #endif
 
-  argv_len = (int)strlen(argv[1]);
+  argv_len = int(strlen(argv[1]));
   for (i = 0; i < argv_len; i++) {
     if (argv[1][i] == '.') {
       argv[1][i] = '_';
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   fprintf(fpout, "extern const int datatoc_%s_size;\n", argv[1]);
   fprintf(fpout, "extern const char datatoc_%s[];\n\n", argv[1]);
 
-  fprintf(fpout, "const int datatoc_%s_size = %d;\n", argv[1], (int)size);
+  fprintf(fpout, "const int datatoc_%s_size = %d;\n", argv[1], int(size));
   fprintf(fpout, "const char datatoc_%s[] = {\n", argv[1]);
   while (size--) {
     /* Even though this file is generated and doesn't need new-lines,

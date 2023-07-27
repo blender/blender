@@ -75,7 +75,7 @@
 
 #include "versioning_common.h"
 
-#include <errno.h>
+#include <cerrno>
 
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
@@ -305,7 +305,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         SpaceNla *snla = (SpaceNla *)sl;
         memcpy(&region->v2d, &snla->v2d, sizeof(View2D));
 
-        region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
+        region->v2d.tot.ymin = float(-area->winy) / 3.0f;
         region->v2d.tot.ymax = 0.0f;
 
         region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
@@ -320,8 +320,8 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         /* We totally reinit the view for the Action Editor,
          * as some old instances had some weird cruft set. */
         region->v2d.tot.xmin = -20.0f;
-        region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
-        region->v2d.tot.xmax = (float)((area->winx > 120) ? (area->winx) : 120);
+        region->v2d.tot.ymin = float(-area->winy) / 3.0f;
+        region->v2d.tot.xmax = float((area->winx > 120) ? (area->winx) : 120);
         region->v2d.tot.ymax = 0.0f;
 
         region->v2d.cur = region->v2d.tot;
@@ -521,17 +521,17 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
-      data->poleangle *= (float)(M_PI / 180.0);
+      data->poleangle *= float(M_PI / 180.0);
     }
     else if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
       bRotLimitConstraint *data = static_cast<bRotLimitConstraint *>(con->data);
 
-      data->xmin *= (float)(M_PI / 180.0);
-      data->xmax *= (float)(M_PI / 180.0);
-      data->ymin *= (float)(M_PI / 180.0);
-      data->ymax *= (float)(M_PI / 180.0);
-      data->zmin *= (float)(M_PI / 180.0);
-      data->zmax *= (float)(M_PI / 180.0);
+      data->xmin *= float(M_PI / 180.0);
+      data->xmax *= float(M_PI / 180.0);
+      data->ymin *= float(M_PI / 180.0);
+      data->ymax *= float(M_PI / 180.0);
+      data->zmin *= float(M_PI / 180.0);
+      data->zmax *= float(M_PI / 180.0);
     }
   }
 }
@@ -1303,12 +1303,12 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
       if (ob->pose) {
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-          pchan->limitmin[0] *= (float)(M_PI / 180.0);
-          pchan->limitmin[1] *= (float)(M_PI / 180.0);
-          pchan->limitmin[2] *= (float)(M_PI / 180.0);
-          pchan->limitmax[0] *= (float)(M_PI / 180.0);
-          pchan->limitmax[1] *= (float)(M_PI / 180.0);
-          pchan->limitmax[2] *= (float)(M_PI / 180.0);
+          pchan->limitmin[0] *= float(M_PI / 180.0);
+          pchan->limitmin[1] *= float(M_PI / 180.0);
+          pchan->limitmin[2] *= float(M_PI / 180.0);
+          pchan->limitmax[0] *= float(M_PI / 180.0);
+          pchan->limitmax[1] *= float(M_PI / 180.0);
+          pchan->limitmax[2] *= float(M_PI / 180.0);
 
           do_version_constraints_radians_degrees_250(&pchan->constraints);
         }
@@ -1334,7 +1334,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (ARegion *, region, regionbase) {
               if (region->regiontype == RGN_TYPE_WINDOW) {
                 region->v2d.cur.ymax = region->v2d.tot.ymax = 0.0f;
-                region->v2d.cur.ymin = region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
+                region->v2d.cur.ymin = region->v2d.tot.ymin = float(-area->winy) / 3.0f;
               }
             }
           }
@@ -1660,7 +1660,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         /* spacing was originally in pixels, convert it to percentage for new version
          * size should not be zero due to sanity check above
          */
-        brush->spacing = (int)(100 * ((float)brush->spacing) / ((float)brush->size));
+        brush->spacing = int(100 * float(brush->spacing) / float(brush->size));
 
         if (brush->add_col[0] == 0 && brush->add_col[1] == 0 && brush->add_col[2] == 0) {
           brush->add_col[0] = 1.00f;
@@ -1958,7 +1958,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (0) {
+  if (false) {
     if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 6)) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         /* Vertex normal calculation from legacy 'MFace' has been removed.

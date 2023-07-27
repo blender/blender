@@ -6,9 +6,9 @@
  * \ingroup render
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -225,7 +225,7 @@ static void pointdensity_cache_psys(
       /* emitter particles */
       state.time = cfra;
 
-      if (!psys_get_particle_state(&sim, i, &state, 0)) {
+      if (!psys_get_particle_state(&sim, i, &state, false)) {
         continue;
       }
 
@@ -645,7 +645,7 @@ static int pointdensity(PointDensity *pd,
                                         texvec[1] + vec[1],
                                         texvec[2] + vec[2],
                                         pd->noise_depth,
-                                        0,
+                                        false,
                                         pd->noise_basis);
 
     turb -= 0.5f; /* re-center 0.0-1.0 range around 0 to prevent offsetting result */
@@ -797,7 +797,7 @@ static void particle_system_minmax(Depsgraph *depsgraph,
     float co_object[3], co_min[3], co_max[3];
     ParticleKey state;
     state.time = cfra;
-    if (!psys_get_particle_state(&sim, i, &state, 0)) {
+    if (!psys_get_particle_state(&sim, i, &state, false)) {
       continue;
     }
     mul_v3_m4v3(co_object, imat, state.co);
@@ -891,7 +891,7 @@ static void point_density_sample_func(void *__restrict data_v,
     return;
   }
 
-  size_t z = (size_t)iter;
+  size_t z = size_t(iter);
   for (size_t y = 0; y < resolution; y++) {
     for (size_t x = 0; x < resolution; x++) {
       size_t index = z * resolution2 + y * resolution + x;
@@ -900,9 +900,9 @@ static void point_density_sample_func(void *__restrict data_v,
       TexResult texres;
 
       copy_v3_v3(texvec, min);
-      texvec[0] += dim[0] * (float)x / (float)resolution;
-      texvec[1] += dim[1] * (float)y / (float)resolution;
-      texvec[2] += dim[2] * (float)z / (float)resolution;
+      texvec[0] += dim[0] * float(x) / float(resolution);
+      texvec[1] += dim[1] * float(y) / float(resolution);
+      texvec[2] += dim[2] * float(z) / float(resolution);
 
       pointdensity(pd, texvec, &texres, vec, &age, col);
       pointdensity_color(pd, &texres, age, vec, col);
@@ -958,4 +958,4 @@ void RE_point_density_free(PointDensity *pd)
   free_pointdensity(pd);
 }
 
-void RE_point_density_fix_linking(void) {}
+void RE_point_density_fix_linking() {}

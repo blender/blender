@@ -6,7 +6,7 @@
  * \ingroup blenloader
  */
 
-#include <limits.h>
+#include <climits>
 
 #ifndef WIN32
 #  include <unistd.h> /* for read close */
@@ -75,7 +75,7 @@
 
 #include "PIL_time.h"
 
-#include <errno.h>
+#include <cerrno>
 
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
@@ -2592,8 +2592,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          * use it for the number of divisions per segment
          */
         if (nu->pntsv > 1) {
-          nu->resolu = MAX2(1, (int)(((float)nu->resolu / (float)nu->pntsu) + 0.5f));
-          nu->resolv = MAX2(1, (int)(((float)nu->resolv / (float)nu->pntsv) + 0.5f));
+          nu->resolu = MAX2(1, int((float(nu->resolu) / float(nu->pntsu)) + 0.5f));
+          nu->resolv = MAX2(1, int((float(nu->resolv) / float(nu->pntsv)) + 0.5f));
         }
       }
     }
@@ -2654,7 +2654,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
       if (ob->pd) {
-        ob->pd->seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
+        ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
       }
     }
   }

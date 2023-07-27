@@ -7,10 +7,10 @@
  */
 
 #include <fcntl.h>
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -69,10 +69,10 @@ static void ibuf_get_color(float col[4], ImBuf *ibuf, int x, int y)
   else {
     const uchar *rect = ibuf->byte_buffer.data + 4 * ofs;
 
-    col[0] = ((float)rect[0]) * (1.0f / 255.0f);
-    col[1] = ((float)rect[1]) * (1.0f / 255.0f);
-    col[2] = ((float)rect[2]) * (1.0f / 255.0f);
-    col[3] = ((float)rect[3]) * (1.0f / 255.0f);
+    col[0] = float(rect[0]) * (1.0f / 255.0f);
+    col[1] = float(rect[1]) * (1.0f / 255.0f);
+    col[2] = float(rect[2]) * (1.0f / 255.0f);
+    col[3] = float(rect[3]) * (1.0f / 255.0f);
 
     /* bytes are internally straight, however render pipeline seems to expect premul */
     col[0] *= col[3];
@@ -85,7 +85,7 @@ int imagewrap(Tex *tex,
               Image *ima,
               const float texvec[3],
               TexResult *texres,
-              struct ImagePool *pool,
+              ImagePool *pool,
               const bool skip_load_image)
 {
   float fx, fy;
@@ -141,8 +141,8 @@ int imagewrap(Tex *tex,
   if (tex->extend == TEX_CHECKER) {
     int xs, ys;
 
-    xs = (int)floor(fx);
-    ys = (int)floor(fy);
+    xs = int(floor(fx));
+    ys = int(floor(fy));
     fx -= xs;
     fy -= ys;
 
@@ -172,8 +172,8 @@ int imagewrap(Tex *tex,
     }
   }
 
-  x = xi = (int)floorf(fx * ibuf->x);
-  y = yi = (int)floorf(fy * ibuf->y);
+  x = xi = int(floorf(fx * ibuf->x));
+  y = yi = int(floorf(fy * ibuf->y));
 
   if (tex->extend == TEX_CLIPCUBE) {
     if (x < 0 || y < 0 || x >= ibuf->x || y >= ibuf->y || texvec[2] < -1.0f || texvec[2] > 1.0f) {
@@ -240,8 +240,8 @@ int imagewrap(Tex *tex,
     /* Important that this value is wrapped #27782.
      * this applies the modifications made by the checks above,
      * back to the floating point values */
-    fx -= (float)(xi - x) / (float)ibuf->x;
-    fy -= (float)(yi - y) / (float)ibuf->y;
+    fx -= float(xi - x) / float(ibuf->x);
+    fy -= float(yi - y) / float(ibuf->y);
 
     boxsample(ibuf,
               fx - filterx,
@@ -470,10 +470,10 @@ static void boxsampleclip(ImBuf *ibuf, const rctf *rf, TexResult *texres)
   float muly, mulx, div, col[4];
   int x, y, startx, endx, starty, endy;
 
-  startx = (int)floor(rf->xmin);
-  endx = (int)floor(rf->xmax);
-  starty = (int)floor(rf->ymin);
-  endy = (int)floor(rf->ymax);
+  startx = int(floor(rf->xmin));
+  endx = int(floor(rf->xmax));
+  starty = int(floor(rf->ymin));
+  endy = int(floor(rf->ymax));
 
   if (startx < 0) {
     startx = 0;
@@ -588,10 +588,10 @@ static void boxsample(ImBuf *ibuf,
     CLAMP(rf->xmax, 0.0f, ibuf->x - 1);
   }
   else if (imaprepeat) {
-    clipx_rctf_swap(stack, &count, 0.0, (float)(ibuf->x));
+    clipx_rctf_swap(stack, &count, 0.0, float(ibuf->x));
   }
   else {
-    alphaclip = clipx_rctf(rf, 0.0, (float)(ibuf->x));
+    alphaclip = clipx_rctf(rf, 0.0, float(ibuf->x));
 
     if (alphaclip <= 0.0f) {
       texres->trgba[0] = texres->trgba[2] = texres->trgba[1] = texres->trgba[3] = 0.0;
@@ -604,10 +604,10 @@ static void boxsample(ImBuf *ibuf,
     CLAMP(rf->ymax, 0.0f, ibuf->y - 1);
   }
   else if (imaprepeat) {
-    clipy_rctf_swap(stack, &count, 0.0, (float)(ibuf->y));
+    clipy_rctf_swap(stack, &count, 0.0, float(ibuf->y));
   }
   else {
-    alphaclip *= clipy_rctf(rf, 0.0, (float)(ibuf->y));
+    alphaclip *= clipy_rctf(rf, 0.0, float(ibuf->y));
 
     if (alphaclip <= 0.0f) {
       texres->trgba[0] = texres->trgba[2] = texres->trgba[1] = texres->trgba[3] = 0.0;
@@ -754,7 +754,7 @@ static int ibuf_get_color_clip_bilerp(
     const float uf = u - ufl, vf = v - vfl;
     const float w00 = (1.0f - uf) * (1.0f - vf), w10 = uf * (1.0f - vf), w01 = (1.0f - uf) * vf,
                 w11 = uf * vf;
-    const int x1 = (int)ufl, y1 = (int)vfl, x2 = x1 + 1, y2 = y1 + 1;
+    const int x1 = int(ufl), y1 = int(vfl), x2 = x1 + 1, y2 = y1 + 1;
     int clip = ibuf_get_color_clip(c00, ibuf, x1, y1, extflag);
     clip |= ibuf_get_color_clip(c10, ibuf, x2, y1, extflag);
     clip |= ibuf_get_color_clip(c01, ibuf, x1, y2, extflag);
@@ -765,7 +765,7 @@ static int ibuf_get_color_clip_bilerp(
     col[3] = clip ? 0.0f : w00 * c00[3] + w10 * c10[3] + w01 * c01[3] + w11 * c11[3];
     return clip;
   }
-  return ibuf_get_color_clip(col, ibuf, (int)u, (int)v, extflag);
+  return ibuf_get_color_clip(col, ibuf, int(u), int(v), extflag);
 }
 
 static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
@@ -774,8 +774,8 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   float tc[4], xsd, ysd, cw = 0.0f;
   const float ux = ibuf->x * AFD->dxt[0], uy = ibuf->y * AFD->dxt[1];
   const float vx = ibuf->x * AFD->dyt[0], vy = ibuf->y * AFD->dyt[1];
-  int xsam = (int)(0.5f * sqrtf(ux * ux + uy * uy) + 0.5f);
-  int ysam = (int)(0.5f * sqrtf(vx * vx + vy * vy) + 0.5f);
+  int xsam = int(0.5f * sqrtf(ux * ux + uy * uy) + 0.5f);
+  int ysam = int(0.5f * sqrtf(vx * vx + vy * vy) + 0.5f);
   const int minsam = AFD->intpol ? 2 : 4;
   xsam = CLAMPIS(xsam, minsam, ibuf->x * 2);
   ysam = CLAMPIS(ysam, minsam, ibuf->y * 2);
@@ -840,7 +840,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   const int maxn = AFD->iProbes - 1;
   const float ll = ((AFD->majrad == AFD->minrad) ? 2.0f * AFD->majrad :
                                                    2.0f * (AFD->majrad - AFD->minrad)) /
-                   (maxn ? (float)maxn : 1.0f);
+                   (maxn ? float(maxn) : 1.0f);
   float du = maxn ? cosf(AFD->theta) * ll : 0.0f;
   float dv = maxn ? sinf(AFD->theta) * ll : 0.0f;
   // const float D = -0.5f*(du*du + dv*dv) / (AFD->majrad*AFD->majrad);
@@ -859,7 +859,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 #if 0
     const float wt = expf(n * n * D);
 #else
-    const float wt = EWA_WTS[(int)(n * n * D)];
+    const float wt = EWA_WTS[int(n * n * D)];
 #endif
     /* `const int out =` */ ibuf_get_color_clip_bilerp(
         tc, ibuf, ibuf->x * u, ibuf->y * v, AFD->intpol, AFD->extflag);
@@ -902,8 +902,8 @@ static void alpha_clip_aniso(const ImBuf *ibuf,
     rf.ymin = miny * (ibuf->y);
     rf.ymax = maxy * (ibuf->y);
 
-    alphaclip = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
-    alphaclip *= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
+    alphaclip = clipx_rctf(&rf, 0.0, float(ibuf->x));
+    alphaclip *= clipy_rctf(&rf, 0.0, float(ibuf->y));
     alphaclip = max_ff(alphaclip, 0.0f);
 
     if (alphaclip != 1.0f) {
@@ -948,7 +948,7 @@ static int imagewraposa_aniso(Tex *tex,
                               float dxt[2],
                               float dyt[2],
                               TexResult *texres,
-                              struct ImagePool *pool,
+                              ImagePool *pool,
                               const bool skip_load_image)
 {
   TexResult texr;
@@ -1033,7 +1033,7 @@ static int imagewraposa_aniso(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    const float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
+    const float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
     if (addval > minx) {
       minx = addval;
     }
@@ -1090,7 +1090,7 @@ static int imagewraposa_aniso(Tex *tex,
   }
 
   if (tex->extend == TEX_CHECKER) {
-    int xs = (int)floorf(fx), ys = (int)floorf(fy);
+    int xs = int(floorf(fx)), ys = int(floorf(fy));
     /* both checkers available, no boundary exceptions, checkerdist will eat aliasing */
     if ((tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN)) {
       fx -= xs;
@@ -1103,10 +1103,10 @@ static int imagewraposa_aniso(Tex *tex,
       return retval;
     }
     else {
-      int xs1 = (int)floorf(fx - minx);
-      int ys1 = (int)floorf(fy - miny);
-      int xs2 = (int)floorf(fx + minx);
-      int ys2 = (int)floorf(fy + miny);
+      int xs1 = int(floorf(fx - minx));
+      int ys1 = int(floorf(fy - miny));
+      int xs2 = int(floorf(fx + minx));
+      int ys2 = int(floorf(fy + miny));
       if ((xs1 != xs2) || (ys1 != ys2)) {
         if (tex->flag & TEX_CHECKER_ODD) {
           fx -= ((xs1 + ys) & 1) ? xs2 : xs1;
@@ -1219,22 +1219,22 @@ static int imagewraposa_aniso(Tex *tex,
       AFD.iProbes = round_fl_to_int(fProbes);
       AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
       if (AFD.iProbes < fProbes) {
-        b = 2.0f * a / (float)(AFD.iProbes + 1);
+        b = 2.0f * a / float(AFD.iProbes + 1);
       }
       AFD.majrad = a / ff;
       AFD.minrad = b / ff;
       AFD.theta = th;
       AFD.dusc = 1.0f / ff;
-      AFD.dvsc = ff / (float)ibuf->y;
+      AFD.dvsc = ff / float(ibuf->y);
     }
     else { /* EWA & area */
-      if (ecc > (float)tex->afmax) {
-        b = a / (float)tex->afmax;
+      if (ecc > float(tex->afmax)) {
+        b = a / float(tex->afmax);
       }
       b *= ff;
     }
     maxd = max_ff(b, 1e-8f);
-    levf = ((float)M_LOG2E) * logf(maxd);
+    levf = (float(M_LOG2E)) * logf(maxd);
 
     curmap = 0;
     maxlev = 1;
@@ -1260,7 +1260,7 @@ static int imagewraposa_aniso(Tex *tex,
       }
     }
     else {
-      const int lev = isnan(levf) ? 0 : (int)levf;
+      const int lev = isnan(levf) ? 0 : int(levf);
       curibuf = mipmaps[lev];
       previbuf = mipmaps[lev + 1];
       levf -= floorf(levf);
@@ -1299,13 +1299,13 @@ static int imagewraposa_aniso(Tex *tex,
       /* no limit to number of Probes here */
       AFD.iProbes = round_fl_to_int(fProbes);
       if (AFD.iProbes < fProbes) {
-        b = 2.0f * a / (float)(AFD.iProbes + 1);
+        b = 2.0f * a / float(AFD.iProbes + 1);
       }
       AFD.majrad = a / ff;
       AFD.minrad = b / ff;
       AFD.theta = th;
       AFD.dusc = 1.0f / ff;
-      AFD.dvsc = ff / (float)ibuf->y;
+      AFD.dvsc = ff / float(ibuf->y);
     }
     filterfunc(texres, ibuf, fx, fy, &AFD);
     if (tex->texfilter != TXF_EWA) {
@@ -1355,7 +1355,7 @@ int imagewraposa(Tex *tex,
                  const float DXT[2],
                  const float DYT[2],
                  TexResult *texres,
-                 struct ImagePool *pool,
+                 ImagePool *pool,
                  const bool skip_load_image)
 {
   TexResult texr;
@@ -1436,7 +1436,7 @@ int imagewraposa(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    float addval = (0.5f * tex->filtersize) / (float)MIN2(ibuf->x, ibuf->y);
+    float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
 
     if (addval > minx) {
       minx = addval;
@@ -1486,8 +1486,8 @@ int imagewraposa(Tex *tex,
   if (tex->extend == TEX_CHECKER) {
     int xs, ys, xs1, ys1, xs2, ys2, boundary;
 
-    xs = (int)floor(fx);
-    ys = (int)floor(fy);
+    xs = int(floor(fx));
+    ys = int(floor(fy));
 
     /* both checkers available, no boundary exceptions, checkerdist will eat aliasing */
     if ((tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN)) {
@@ -1502,10 +1502,10 @@ int imagewraposa(Tex *tex,
     }
     else {
 
-      xs1 = (int)floor(fx - minx);
-      ys1 = (int)floor(fy - miny);
-      xs2 = (int)floor(fx + minx);
-      ys2 = (int)floor(fy + miny);
+      xs1 = int(floor(fx - minx));
+      ys1 = int(floor(fy - miny));
+      xs2 = int(floor(fx + minx));
+      ys2 = int(floor(fy + miny));
       boundary = (xs1 != xs2) || (ys1 != ys2);
 
       if (boundary == 0) {
@@ -1603,10 +1603,10 @@ int imagewraposa(Tex *tex,
     }
     else {
       if (fx > 1.0f) {
-        fx -= (int)(fx);
+        fx -= int(fx);
       }
       else if (fx < 0.0f) {
-        fx += 1 - (int)(fx);
+        fx += 1 - int(fx);
       }
     }
 
@@ -1620,10 +1620,10 @@ int imagewraposa(Tex *tex,
     }
     else {
       if (fy > 1.0f) {
-        fy -= (int)(fy);
+        fy -= int(fy);
       }
       else if (fy < 0.0f) {
-        fy += 1 - (int)(fy);
+        fy += 1 - int(fy);
       }
     }
   }
@@ -1639,7 +1639,7 @@ int imagewraposa(Tex *tex,
       maxd = 0.5f;
     }
 
-    pixsize = 1.0f / (float)MIN2(ibuf->x, ibuf->y);
+    pixsize = 1.0f / float(MIN2(ibuf->x, ibuf->y));
 
     curmap = 0;
     previbuf = curibuf = ibuf;
@@ -1649,7 +1649,7 @@ int imagewraposa(Tex *tex,
       }
       previbuf = curibuf;
       curibuf = ibuf->mipmap[curmap];
-      pixsize = 1.0f / (float)MIN2(curibuf->x, curibuf->y);
+      pixsize = 1.0f / float(MIN2(curibuf->x, curibuf->y));
       curmap++;
     }
 
@@ -1733,7 +1733,7 @@ int imagewraposa(Tex *tex,
 }
 
 void image_sample(
-    Image *ima, float fx, float fy, float dx, float dy, float result[4], struct ImagePool *pool)
+    Image *ima, float fx, float fy, float dx, float dy, float result[4], ImagePool *pool)
 {
   TexResult texres;
   ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, nullptr, pool);

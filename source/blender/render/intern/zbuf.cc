@@ -13,7 +13,7 @@
 /* Common includes                                                           */
 /*---------------------------------------------------------------------------*/
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -208,9 +208,9 @@ void zspan_scanconvert(ZSpan *zspan,
   }
 
   xx1 = (x0 * v1[0] + y0 * v1[1]) / z0 + 1.0f;
-  uxd = -(double)x0 / (double)z0;
-  uyd = -(double)y0 / (double)z0;
-  uy0 = ((double)my2) * uyd + (double)xx1;
+  uxd = -double(x0) / double(z0);
+  uyd = -double(y0) / double(z0);
+  uy0 = double(my2) * uyd + double(xx1);
 
   z1 = -1.0f; /* (v1 - v2) */
   z2 = 1.0f;  /* (v2 - v3) */
@@ -219,9 +219,9 @@ void zspan_scanconvert(ZSpan *zspan,
   y0 = z1 * x2 - x1 * z2;
 
   xx1 = (x0 * v1[0] + y0 * v1[1]) / z0;
-  vxd = -(double)x0 / (double)z0;
-  vyd = -(double)y0 / (double)z0;
-  vy0 = ((double)my2) * vyd + (double)xx1;
+  vxd = -double(x0) / double(z0);
+  vyd = -double(y0) / double(z0);
+  vy0 = double(my2) * vyd + double(xx1);
 
   /* correct span */
   span1 = zspan->span1 + my2;
@@ -240,8 +240,8 @@ void zspan_scanconvert(ZSpan *zspan,
       sn1 = 0;
     }
 
-    u = (((double)sn1 * uxd) + uy0) - (i * uyd);
-    v = (((double)sn1 * vxd) + vy0) - (i * vyd);
+    u = ((double(sn1) * uxd) + uy0) - (i * uyd);
+    v = ((double(sn1) * vxd) + vy0) - (i * vyd);
 
     for (j = 0, x = sn1; x <= sn2; j++, x++) {
       func(handle, x, y, u + (j * uxd), v + (j * vxd));

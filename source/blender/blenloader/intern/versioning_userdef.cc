@@ -8,7 +8,7 @@
  * Version patch user preferences.
  */
 #define DNA_DEPRECATED_ALLOW
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"

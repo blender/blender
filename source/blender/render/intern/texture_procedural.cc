@@ -6,10 +6,10 @@
  * \ingroup render
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_math.h"
 #include "BLI_noise.h"
@@ -45,12 +45,12 @@
 
 static RNG_THREAD_ARRAY *random_tex_array;
 
-void RE_texture_rng_init(void)
+void RE_texture_rng_init()
 {
   random_tex_array = BLI_rng_threaded_new();
 }
 
-void RE_texture_rng_exit(void)
+void RE_texture_rng_exit()
 {
   if (random_tex_array == nullptr) {
     return;
@@ -103,7 +103,7 @@ static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
     texres->tin = (2.0f + x + y) / 4.0f;
   }
   else if (tex->stype == TEX_RAD) { /* Radial. */
-    texres->tin = (atan2f(y, x) / (float)(2 * M_PI) + 0.5f);
+    texres->tin = (atan2f(y, x) / float(2 * M_PI) + 0.5f);
   }
   else { /* sphere TEX_SPHERE */
     texres->tin = 1.0f - sqrtf(x * x + y * y + texvec[2] * texvec[2]);
@@ -176,7 +176,7 @@ static float tex_saw(float a)
 {
   const float b = 2 * M_PI;
 
-  int n = (int)(a / b);
+  int n = int(a / b);
   a -= n * b;
   if (a < 0) {
     a += b;
@@ -589,7 +589,7 @@ static int texnoise(const Tex *tex, TexResult *texres, int thread)
     div *= 3.0f;
   }
 
-  texres->tin = ((float)val) / div;
+  texres->tin = (float(val)) / div;
 
   BRICONT;
   return TEX_INT;
@@ -668,14 +668,14 @@ static void do_2d_mapping(
         float origf = fx *= tex->xrepeat;
 
         if (fx > 1.0f) {
-          fx -= (int)(fx);
+          fx -= int(fx);
         }
         else if (fx < 0.0f) {
-          fx += 1 - (int)(fx);
+          fx += 1 - int(fx);
         }
 
         if (tex->flag & TEX_REPEAT_XMIR) {
-          int orig = (int)floor(origf);
+          int orig = int(floor(origf));
           if (orig & 1) {
             fx = 1.0f - fx;
           }
@@ -685,14 +685,14 @@ static void do_2d_mapping(
         float origf = fy *= tex->yrepeat;
 
         if (fy > 1.0f) {
-          fy -= (int)(fy);
+          fy -= int(fy);
         }
         else if (fy < 0.0f) {
-          fy += 1 - (int)(fy);
+          fy += 1 - int(fy);
         }
 
         if (tex->flag & TEX_REPEAT_YMIR) {
-          int orig = (int)floor(origf);
+          int orig = int(floor(origf));
           if (orig & 1) {
             fy = 1.0f - fy;
           }
@@ -817,14 +817,14 @@ static void do_2d_mapping(
         /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
         if (tex->texfilter == TXF_BOX) {
           if (fx > 1.0f) {
-            fx -= (int)(fx);
+            fx -= int(fx);
           }
           else if (fx < 0.0f) {
-            fx += 1 - (int)(fx);
+            fx += 1 - int(fx);
           }
 
           if (tex->flag & TEX_REPEAT_XMIR) {
-            int orig = (int)floor(origf);
+            int orig = int(floor(origf));
             if (orig & 1) {
               fx = 1.0f - fx;
             }
@@ -842,14 +842,14 @@ static void do_2d_mapping(
         /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
         if (tex->texfilter == TXF_BOX) {
           if (fy > 1.0f) {
-            fy -= (int)(fy);
+            fy -= int(fy);
           }
           else if (fy < 0.0f) {
-            fy += 1 - (int)(fy);
+            fy += 1 - int(fy);
           }
 
           if (tex->flag & TEX_REPEAT_YMIR) {
-            int orig = (int)floor(origf);
+            int orig = int(floor(origf));
             if (orig & 1) {
               fy = 1.0f - fy;
             }
@@ -897,7 +897,7 @@ static int multitex(Tex *tex,
                     TexResult *texres,
                     const short thread,
                     const short which_output,
-                    struct ImagePool *pool,
+                    ImagePool *pool,
                     const bool skip_load_image,
                     const bool texnode_preview,
                     const bool use_nodes)
@@ -1022,7 +1022,7 @@ static int multitex_nodes_intern(Tex *tex,
                                  const short thread,
                                  short which_output,
                                  MTex *mtex,
-                                 struct ImagePool *pool,
+                                 ImagePool *pool,
                                  const bool scene_color_manage,
                                  const bool skip_load_image,
                                  const bool texnode_preview,
@@ -1147,7 +1147,7 @@ int multitex_nodes(Tex *tex,
                    const short thread,
                    short which_output,
                    MTex *mtex,
-                   struct ImagePool *pool)
+                   ImagePool *pool)
 {
   return multitex_nodes_intern(tex,
                                texvec,
@@ -1172,7 +1172,7 @@ int multitex_ext(Tex *tex,
                  int osatex,
                  TexResult *texres,
                  const short thread,
-                 struct ImagePool *pool,
+                 ImagePool *pool,
                  bool scene_color_manage,
                  const bool skip_load_image)
 {
@@ -1195,7 +1195,7 @@ int multitex_ext(Tex *tex,
 int multitex_ext_safe(Tex *tex,
                       const float texvec[3],
                       TexResult *texres,
-                      struct ImagePool *pool,
+                      ImagePool *pool,
                       bool scene_color_manage,
                       const bool skip_load_image)
 {
@@ -1309,7 +1309,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 bool RE_texture_evaluate(const MTex *mtex,
                          const float vec[3],
                          const int thread,
-                         struct ImagePool *pool,
+                         ImagePool *pool,
                          const bool skip_load_image,
                          const bool texnode_preview,
                          /* Return arguments. */
@@ -1323,7 +1323,7 @@ bool RE_texture_evaluate(const MTex *mtex,
 
   tex = mtex->tex;
   if (tex == nullptr) {
-    return 0;
+    return false;
   }
 
   /* placement */
