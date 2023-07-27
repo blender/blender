@@ -96,7 +96,7 @@ static bool write_png(const char *filepath, const uint *pixels, const int width,
 {
   png_structp png_ptr;
   png_infop info_ptr;
-  png_bytepp row_pointers = NULL;
+  png_bytepp row_pointers = nullptr;
 
   FILE *fp;
 
@@ -105,21 +105,21 @@ static bool write_png(const char *filepath, const uint *pixels, const int width,
   int i;
 
   fp = fopen(filepath, "wb");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     printf("%s: Cannot open file for writing '%s'\n", __func__, filepath);
     return false;
   }
 
-  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-  if (png_ptr == NULL) {
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+  if (png_ptr == nullptr) {
     printf("%s: Cannot png_create_write_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
 
   info_ptr = png_create_info_struct(png_ptr);
-  if (info_ptr == NULL) {
-    png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+  if (info_ptr == nullptr) {
+    png_destroy_write_struct(&png_ptr, (png_infopp) nullptr);
     printf("%s: Cannot png_create_info_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
@@ -157,7 +157,7 @@ static bool write_png(const char *filepath, const uint *pixels, const int width,
 
   /* allocate memory for an array of row-pointers */
   row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep));
-  if (row_pointers == NULL) {
+  if (row_pointers == nullptr) {
     printf("%s: Cannot allocate row-pointers array for file '%s'\n", __func__, filepath);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     if (fp) {
@@ -213,7 +213,7 @@ struct IconMergeContext {
 static void icon_merge_context_init(struct IconMergeContext *context)
 {
   context->num_read_icons = 0;
-  context->read_icons = NULL;
+  context->read_icons = nullptr;
 }
 
 /* Get icon information from the context which matches given icon head.
@@ -222,8 +222,8 @@ static void icon_merge_context_init(struct IconMergeContext *context)
 static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeContext *context,
                                                               struct IconHead *icon_head)
 {
-  if (context->read_icons == NULL) {
-    return NULL;
+  if (context->read_icons == nullptr) {
+    return nullptr;
   }
 
   for (int i = 0; i < context->num_read_icons; i++) {
@@ -235,15 +235,15 @@ static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeCo
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static void icon_merge_context_register_icon(struct IconMergeContext *context,
                                              const char *file_name,
                                              const struct IconHead *icon_head)
 {
-  context->read_icons = realloc(context->read_icons,
-                                sizeof(struct IconInfo) * (context->num_read_icons + 1));
+  context->read_icons = static_cast<IconInfo *>(
+      realloc(context->read_icons, sizeof(struct IconInfo) * (context->num_read_icons + 1)));
 
   struct IconInfo *icon_info = &context->read_icons[context->num_read_icons];
   icon_info->head = *icon_head;
@@ -254,7 +254,7 @@ static void icon_merge_context_register_icon(struct IconMergeContext *context,
 
 static void icon_merge_context_free(struct IconMergeContext *context)
 {
-  if (context->read_icons != NULL) {
+  if (context->read_icons != nullptr) {
     for (int i = 0; i < context->num_read_icons; i++) {
       free(context->read_icons[i].file_name);
     }
@@ -293,8 +293,8 @@ static bool icon_decode(FILE *f_src, struct IconHead *r_head, uint **r_pixels)
   }
 
   pixels_size = sizeof(char[4]) * r_head->icon_w * r_head->icon_h;
-  pixels = malloc(pixels_size);
-  if (pixels == NULL) {
+  pixels = static_cast<uint *>(malloc(pixels_size));
+  if (pixels == nullptr) {
     printf("%s: failed to allocate pixels\n", __func__);
     return false;
   }
@@ -315,7 +315,7 @@ static bool icon_read(const char *file_src, struct IconHead *r_head, uint **r_pi
   bool success;
 
   f_src = fopen(file_src, "rb");
-  if (f_src == NULL) {
+  if (f_src == nullptr) {
     printf("%s: failed to open '%s'\n", __func__, file_src);
     return false;
   }
@@ -346,7 +346,7 @@ static bool icon_merge(struct IconMergeContext *context,
   }
 
   const struct IconInfo *read_icon_info = icon_merge_context_info_for_icon_head(context, &head);
-  if (read_icon_info != NULL) {
+  if (read_icon_info != nullptr) {
     printf(
         "Conflicting icon files %s and %s\n", path_basename(file_src), read_icon_info->file_name);
     free(pixels);
@@ -358,7 +358,8 @@ static bool icon_merge(struct IconMergeContext *context,
     /* init once */
     *r_canvas_w = head.canvas_w;
     *r_canvas_h = head.canvas_h;
-    *r_pixels_canvas = calloc(1, (head.canvas_w * head.canvas_h) * sizeof(uint32_t));
+    *r_pixels_canvas = static_cast<uint32_t *>(
+        calloc(1, (head.canvas_w * head.canvas_h) * sizeof(uint32_t)));
   }
 
   canvas_w = *r_canvas_w;
@@ -404,20 +405,20 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
 
   struct IconMergeContext context;
 
-  uint32_t *pixels_canvas = NULL;
+  uint32_t *pixels_canvas = nullptr;
   uint canvas_w = 0, canvas_h = 0;
 
   icon_merge_context_init(&context);
 
   errno = 0;
   dir = opendir(path_src);
-  if (dir == NULL) {
+  if (dir == nullptr) {
     printf(
         "%s: failed to dir '%s', (%s)\n", __func__, path_src, errno ? strerror(errno) : "unknown");
     return false;
   }
 
-  while ((fname = readdir(dir)) != NULL) {
+  while ((fname = readdir(dir)) != nullptr) {
     if (path_test_extension(fname->d_name, ".dat")) {
       if (!path_join(filepath, sizeof(filepath), path_src, fname->d_name)) {
         printf("%s: path is too long (%s, %s)\n", __func__, path_src, fname->d_name);

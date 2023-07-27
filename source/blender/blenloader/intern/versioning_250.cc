@@ -83,7 +83,8 @@
 /* 2.50 patch */
 static void area_add_header_region(ScrArea *area, ListBase *lb)
 {
-  ARegion *region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+  ARegion *region = static_cast<ARegion *>(
+      MEM_callocN(sizeof(ARegion), "area region from do_versions"));
 
   BLI_addtail(lb, region);
   region->regiontype = RGN_TYPE_HEADER;
@@ -134,14 +135,16 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
     /* first channels for ipo action nla... */
     switch (sl->spacetype) {
       case SPACE_GRAPH:
-        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "area region from do_versions"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_CHANNELS;
         region->alignment = RGN_ALIGN_LEFT;
         region->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 
         /* for some reason, this doesn't seem to go auto like for NLA... */
-        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "area region from do_versions"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_UI;
         region->alignment = RGN_ALIGN_RIGHT;
@@ -150,7 +153,8 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         break;
 
       case SPACE_ACTION:
-        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "area region from do_versions"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_CHANNELS;
         region->alignment = RGN_ALIGN_LEFT;
@@ -159,7 +163,8 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         break;
 
       case SPACE_NLA:
-        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "area region from do_versions"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_CHANNELS;
         region->alignment = RGN_ALIGN_LEFT;
@@ -167,7 +172,8 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
         /* for some reason, some files still don't get this auto */
-        region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "area region from do_versions"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_UI;
         region->alignment = RGN_ALIGN_RIGHT;
@@ -176,7 +182,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         break;
 
       case SPACE_NODE:
-        region = MEM_callocN(sizeof(ARegion), "nodetree area for node");
+        region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "nodetree area for node"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_UI;
         region->alignment = RGN_ALIGN_LEFT;
@@ -186,32 +192,33 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->flag = RGN_FLAG_HIDDEN;
         break;
       case SPACE_FILE:
-        region = MEM_callocN(sizeof(ARegion), "nodetree area for node");
+        region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "nodetree area for node"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_CHANNELS;
         region->alignment = RGN_ALIGN_LEFT;
 
-        region = MEM_callocN(sizeof(ARegion), "ui area for file");
+        region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "ui area for file"));
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_UI;
         region->alignment = RGN_ALIGN_TOP;
         break;
       case SPACE_SEQ: {
-        ARegion *region_main = NULL;
+        ARegion *region_main = nullptr;
         LISTBASE_FOREACH (ARegion *, region_iter, lb) {
           if (region_iter->regiontype == RGN_TYPE_WINDOW) {
             region_main = region_iter;
             break;
           }
         }
-        region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "preview area for sequencer"));
         BLI_insertlinkbefore(lb, region_main, region);
         sequencer_init_preview_region(region);
         break;
       }
       case SPACE_VIEW3D:
         /* toolbar */
-        region = MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+        region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "toolbar for view3d"));
 
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_TOOLS;
@@ -219,7 +226,8 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->flag = RGN_FLAG_HIDDEN;
 
         /* tool properties */
-        region = MEM_callocN(sizeof(ARegion), "tool properties for view3d");
+        region = static_cast<ARegion *>(
+            MEM_callocN(sizeof(ARegion), "tool properties for view3d"));
 
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_TOOL_PROPS;
@@ -227,7 +235,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         region->flag = RGN_FLAG_HIDDEN;
 
         /* buttons/list view */
-        region = MEM_callocN(sizeof(ARegion), "buttons for view3d");
+        region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "buttons for view3d"));
 
         BLI_addtail(lb, region);
         region->regiontype = RGN_TYPE_UI;
@@ -247,7 +255,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
   }
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "area region from do_versions");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "area region from do_versions"));
 
   BLI_addtail(lb, region);
   region->winrct = area->totrct;
@@ -337,7 +345,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
          * only shows ShapeKey-rooted actions only)
          */
         if (saction->mode == SACTCONT_SHAPEKEY) {
-          saction->action = NULL;
+          saction->action = nullptr;
         }
         break;
       }
@@ -398,7 +406,8 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
       area_add_header_region(area, &area->regionbase);
     }
 
-    area_add_window_regions(area, area->spacedata.first, &area->regionbase);
+    area_add_window_regions(
+        area, static_cast<SpaceLink *>(area->spacedata.first), &area->regionbase);
 
     /* Space image-select is deprecated. */
     LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
@@ -416,7 +425,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 
     /* pushed back spaces also need regions! */
     if (area->spacedata.first) {
-      SpaceLink *sl = area->spacedata.first;
+      SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
       for (sl = sl->next; sl; sl = sl->next) {
         if (area->headertype) {
           area_add_header_region(area, &sl->regionbase);
@@ -455,21 +464,21 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
         View3D *v3d = (View3D *)sl;
         if (v3d->gpd) {
           versions_gpencil_add_main(main, &main->gpencils, (ID *)v3d->gpd, "GPencil View3D");
-          v3d->gpd = NULL;
+          v3d->gpd = nullptr;
         }
       }
       else if (sl->spacetype == SPACE_NODE) {
         SpaceNode *snode = (SpaceNode *)sl;
         if (snode->gpd) {
           versions_gpencil_add_main(main, &main->gpencils, (ID *)snode->gpd, "GPencil Node");
-          snode->gpd = NULL;
+          snode->gpd = nullptr;
         }
       }
       else if (sl->spacetype == SPACE_SEQ) {
         SpaceSeq *sseq = (SpaceSeq *)sl;
         if (sseq->gpd) {
           versions_gpencil_add_main(main, &main->gpencils, (ID *)sseq->gpd, "GPencil Node");
-          sseq->gpd = NULL;
+          sseq->gpd = nullptr;
         }
       }
       else if (sl->spacetype == SPACE_IMAGE) {
@@ -477,10 +486,10 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 #if 0 /* see comment on r28002 */
         if (sima->gpd) {
           versions_gpencil_add_main(main, &main->gpencil, (ID *)sima->gpd, "GPencil Image");
-          sima->gpd = NULL;
+          sima->gpd = nullptr;
         }
 #else
-        sima->gpd = NULL;
+        sima->gpd = nullptr;
 #endif
       }
     }
@@ -495,10 +504,10 @@ static void do_version_mdef_250(Main *main)
         MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
         if (mmd->bindcos) {
-          /* make bindcos NULL in order to trick older versions
+          /* make bindcos nullptr in order to trick older versions
            * into thinking that the mesh was not bound yet */
           mmd->bindcagecos = mmd->bindcos;
-          mmd->bindcos = NULL;
+          mmd->bindcos = nullptr;
 
           BKE_modifier_mdef_compact_influences(md);
         }
@@ -511,11 +520,11 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 {
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-      bKinematicConstraint *data = con->data;
+      bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
       data->poleangle *= (float)(M_PI / 180.0);
     }
     else if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
-      bRotLimitConstraint *data = con->data;
+      bRotLimitConstraint *data = static_cast<bRotLimitConstraint *>(con->data);
 
       data->xmin *= (float)(M_PI / 180.0);
       data->xmax *= (float)(M_PI / 180.0);
@@ -532,7 +541,7 @@ static void do_version_bone_roll_256(Bone *bone)
   float submat[3][3];
 
   copy_m3_m4(submat, bone->arm_mat);
-  mat3_to_vec_roll(submat, NULL, &bone->arm_roll);
+  mat3_to_vec_roll(submat, nullptr, &bone->arm_roll);
 
   LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     do_version_bone_roll_256(child);
@@ -552,13 +561,13 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
                                                              int in_out)
 {
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
-  bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
+  bNodeSocket *gsock = static_cast<bNodeSocket *>(MEM_callocN(sizeof(bNodeSocket), "bNodeSocket"));
 
   STRNCPY(gsock->name, name);
   gsock->type = type;
 
-  gsock->next = gsock->prev = NULL;
-  gsock->link = NULL;
+  gsock->next = gsock->prev = nullptr;
+  gsock->link = nullptr;
   /* assign new unique index */
   gsock->own_index = ngroup->cur_index++;
   gsock->limit = (in_out == SOCK_IN ? 0xFFF : 1);
@@ -593,24 +602,26 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 
   switch (sock->type) {
     case SOCK_FLOAT:
-      valfloat = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueFloat),
-                                                   "default socket value");
+      valfloat = static_cast<bNodeSocketValueFloat *>(
+          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueFloat),
+                                            "default socket value"));
       valfloat->value = sock->ns.vec[0];
       valfloat->min = sock->ns.min;
       valfloat->max = sock->ns.max;
       valfloat->subtype = PROP_NONE;
       break;
     case SOCK_VECTOR:
-      valvector = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueVector),
-                                                    "default socket value");
+      valvector = static_cast<bNodeSocketValueVector *>(
+          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueVector),
+                                            "default socket value"));
       copy_v3_v3(valvector->value, sock->ns.vec);
       valvector->min = sock->ns.min;
       valvector->max = sock->ns.max;
       valvector->subtype = PROP_NONE;
       break;
     case SOCK_RGBA:
-      valrgba = sock->default_value = MEM_callocN(sizeof(bNodeSocketValueRGBA),
-                                                  "default socket value");
+      valrgba = static_cast<bNodeSocketValueRGBA *>(
+          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueRGBA), "default socket value"));
       copy_v4_v4(valrgba->value, sock->ns.vec);
       break;
   }
@@ -637,13 +648,13 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
   return true;
 }
 
-static bool seq_set_volume_cb(Sequence *seq, void *UNUSED(user_data))
+static bool seq_set_volume_cb(Sequence *seq, void * /*user_data*/)
 {
   seq->volume = 1.0f;
   return true;
 }
 
-static bool seq_set_sat_cb(Sequence *seq, void *UNUSED(user_data))
+static bool seq_set_sat_cb(Sequence *seq, void * /*user_data*/)
 {
   if (seq->sat == 0.0f) {
     seq->sat = 1.0f;
@@ -651,14 +662,14 @@ static bool seq_set_sat_cb(Sequence *seq, void *UNUSED(user_data))
   return true;
 }
 
-static bool seq_set_pitch_cb(Sequence *seq, void *UNUSED(user_data))
+static bool seq_set_pitch_cb(Sequence *seq, void * /*user_data*/)
 {
   seq->pitch = 1.0f;
   return true;
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
+void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */
 
@@ -670,7 +681,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bSound *, sound, &bmain->sounds) {
       if (sound->newpackedfile) {
         sound->packedfile = sound->newpackedfile;
-        sound->newpackedfile = NULL;
+        sound->newpackedfile = nullptr;
       }
     }
 
@@ -704,9 +715,11 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
       /* move to cameras */
       if (sce->r.mode & R_PANORAMA) {
         LISTBASE_FOREACH (Base *, base, &sce->base) {
-          Object *ob = blo_do_versions_newlibadr(fd, &sce->id, ID_IS_LINKED(sce), base->object);
+          Object *ob = static_cast<Object *>(
+              blo_do_versions_newlibadr(fd, &sce->id, ID_IS_LINKED(sce), base->object));
           if (ob->type == OB_CAMERA && !ob->id.lib) {
-            Camera *cam = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
+            Camera *cam = static_cast<Camera *>(
+                blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data));
             cam->flag |= CAM_PANORAMA;
           }
         }
@@ -756,8 +769,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #if 0
       BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      LISTBASE_FOREACH(PTCacheID *, pid, &pidlist) {
-       pid->cache->flag |= PTCACHE_DISK_CACHE;
+      LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
+        pid->cache->flag |= PTCACHE_DISK_CACHE;
       }
 
       BLI_freelistN(&pidlist);
@@ -781,7 +794,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 #if 0
       BKE_ptcache_ids_from_object(&pidlist, ob);
 
-      LISTBASE_FOREACH(PTCacheID *, pid, &pidlist) {
+      LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
         if (BLI_listbase_is_empty(pid->ptcaches)) {
           pid->ptcaches->first = pid->ptcaches->last = pid->cache;
         }
@@ -790,10 +803,11 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
       BLI_freelistN(&pidlist);
 #endif
 
-      if (ob->totcol && ob->matbits == NULL) {
+      if (ob->totcol && ob->matbits == nullptr) {
         int a;
 
-        ob->matbits = MEM_calloc_arrayN(ob->totcol, sizeof(char), "ob->matbits");
+        ob->matbits = static_cast<char *>(
+            MEM_calloc_arrayN(ob->totcol, sizeof(char), "ob->matbits"));
         for (a = 0; a < ob->totcol; a++) {
           ob->matbits[a] = (ob->colbits & (1 << a)) != 0;
         }
@@ -948,9 +962,11 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) && key->refkey)
+      if ((key = static_cast<Key *>(
+               blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key))) &&
+          key->refkey)
       {
-        data = key->refkey->data;
+        data = static_cast<const float *>(key->refkey->data);
         tot = MIN2(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(
             &me->vert_data, CD_MVERT, me->totvert);
@@ -961,9 +977,11 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Lattice *, lt, &bmain->lattices) {
-      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) && key->refkey)
+      if ((key = static_cast<Key *>(
+               blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key))) &&
+          key->refkey)
       {
-        data = key->refkey->data;
+        data = static_cast<const float *>(key->refkey->data);
         tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
         for (a = 0; a < tot; a++, data += 3) {
@@ -973,9 +991,11 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
 
     LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) && key->refkey)
+      if ((key = static_cast<Key *>(
+               blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key))) &&
+          key->refkey)
       {
-        data = key->refkey->data;
+        data = static_cast<const float *>(key->refkey->data);
 
         LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
           if (nu->bezt) {
@@ -1009,39 +1029,39 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 8)) {
     {
-      Scene *sce = bmain->scenes.first;
+      Scene *sce = static_cast<Scene *>(bmain->scenes.first);
       while (sce) {
         if (sce->r.frame_step == 0) {
           sce->r.frame_step = 1;
         }
 
-        sce = sce->id.next;
+        sce = static_cast<Scene *>(sce->id.next);
       }
     }
 
     {
       /* ensure all nodes have unique names */
-      bNodeTree *ntree = bmain->nodetrees.first;
+      bNodeTree *ntree = static_cast<bNodeTree *>(bmain->nodetrees.first);
       while (ntree) {
-        bNode *node = ntree->nodes.first;
+        bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
         while (node) {
           nodeUniqueName(ntree, node);
           node = node->next;
         }
 
-        ntree = ntree->id.next;
+        ntree = static_cast<bNodeTree *>(ntree->id.next);
       }
     }
 
     {
-      Object *ob = bmain->objects.first;
+      Object *ob = static_cast<Object *>(bmain->objects.first);
       while (ob) {
         /* shaded mode disabled for now */
         if (ob->dt == OB_MATERIAL) {
           ob->dt = OB_TEXTURE;
         }
-        ob = ob->id.next;
+        ob = static_cast<Object *>(ob->id.next);
       }
     }
 
@@ -1062,9 +1082,9 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* only convert old 2.50 files with color management */
     if (bmain->versionfile == 250) {
-      Scene *sce = bmain->scenes.first;
-      Material *ma = bmain->materials.first;
-      Tex *tex = bmain->textures.first;
+      Scene *sce = static_cast<Scene *>(bmain->scenes.first);
+      Material *ma = static_cast<Material *>(bmain->materials.first);
+      Tex *tex = static_cast<Tex *>(bmain->textures.first);
       int i, convert = 0;
 
       /* convert to new color management system:
@@ -1077,14 +1097,14 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (sce->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
           convert = 1;
         }
-        sce = sce->id.next;
+        sce = static_cast<Scene *>(sce->id.next);
       }
 
       if (convert) {
         while (ma) {
           srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
           srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
-          ma = ma->id.next;
+          ma = static_cast<Material *>(ma->id.next);
         }
 
         while (tex) {
@@ -1095,7 +1115,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
               srgb_to_linearrgb_v3_v3(&data->r, &data->r);
             }
           }
-          tex = tex->id.next;
+          tex = static_cast<Tex *>(tex->id.next);
         }
       }
     }
@@ -1196,14 +1216,15 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
                 sseq->mainb = SEQ_DRAW_IMG_IMBUF;
               }
 
-              ARegion *region_main = NULL;
+              ARegion *region_main = nullptr;
               LISTBASE_FOREACH (ARegion *, region, regionbase) {
                 if (region->regiontype == RGN_TYPE_WINDOW) {
                   region_main = region;
                   break;
                 }
               }
-              ARegion *region = MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+              ARegion *region = static_cast<ARegion *>(
+                  MEM_callocN(sizeof(ARegion), "preview area for sequencer"));
               BLI_insertlinkbefore(regionbase, region_main, region);
               sequencer_init_preview_region(region);
             }
@@ -1223,7 +1244,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
        * performing initialization where appropriate
        */
       if (ob->pose && ob->data) {
-        bArmature *arm = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
+        bArmature *arm = static_cast<bArmature *>(
+            blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data));
         if (arm) { /* XXX: why does this fail in some cases? */
           bAnimVizSettings *avs = &ob->pose->avs;
 
@@ -1337,7 +1359,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
         sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
       if (sce->ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_volume_cb, NULL);
+        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_volume_cb, nullptr);
       }
     }
 
@@ -1419,7 +1441,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* adjustment to color balance node values */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
-        bNode *node = scene->nodetree->nodes.first;
+        bNode *node = static_cast<bNode *>(scene->nodetree->nodes.first);
 
         while (node) {
           if (node->type == CMP_NODE_COLORBALANCE) {
@@ -1434,7 +1456,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
     /* check inside node groups too */
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      bNode *node = ntree->nodes.first;
+      bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
       while (node) {
         if (node->type == CMP_NODE_COLORBALANCE) {
@@ -1572,7 +1594,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_sat_cb, NULL);
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_sat_cb, nullptr);
       }
     }
 
@@ -1759,7 +1781,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if (md->type == eModifierType_Ocean) {
           OceanModifierData *omd = (OceanModifierData *)md;
           omd->resolution = 7;
-          omd->oceancache = NULL;
+          omd->oceancache = nullptr;
         }
       }
     }
@@ -1770,7 +1792,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* Fix for sample line scope initializing with no height */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-      area = screen->areabase.first;
+      area = static_cast<ScrArea *>(screen->areabase.first);
       while (area) {
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_IMAGE) {
@@ -1849,14 +1871,14 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
             /* initialize the default socket value */
             copy_v4_v4(gsock->ns.vec, sock->ns.vec);
 
-            /* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
+            /* XXX nodeAddLink does not work with incomplete (node==nullptr) links any longer,
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_callocN(sizeof(bNodeLink), "link");
+            bNodeLink *link = static_cast<bNodeLink *>(MEM_callocN(sizeof(bNodeLink), "link"));
             BLI_addtail(&ntree->links, link);
             nodeUniqueID(ntree, node);
-            link->fromnode = NULL;
+            link->fromnode = nullptr;
             link->fromsock = gsock;
             link->tonode = node;
             link->tosock = sock;
@@ -1874,16 +1896,16 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
             /* initialize the default socket value */
             copy_v4_v4(gsock->ns.vec, sock->ns.vec);
 
-            /* XXX nodeAddLink does not work with incomplete (node==NULL) links any longer,
+            /* XXX nodeAddLink does not work with incomplete (node==nullptr) links any longer,
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = MEM_callocN(sizeof(bNodeLink), "link");
+            bNodeLink *link = static_cast<bNodeLink *>(MEM_callocN(sizeof(bNodeLink), "link"));
             BLI_addtail(&ntree->links, link);
             nodeUniqueID(ntree, node);
             link->fromnode = node;
             link->fromsock = sock;
-            link->tonode = NULL;
+            link->tonode = nullptr;
             link->tosock = gsock;
             BKE_ntree_update_tag_link_added(ntree, link);
 
@@ -1951,7 +1973,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
           if (node->type == CMP_NODE_BLUR) {
-            NodeBlurData *nbd = node->storage;
+            NodeBlurData *nbd = static_cast<NodeBlurData *>(node->storage);
             nbd->percentx *= 100.0f;
             nbd->percenty *= 100.0f;
           }
@@ -1968,7 +1990,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       /* add regions */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl_first = area->spacedata.first;
+        SpaceLink *sl_first = static_cast<SpaceLink *>(area->spacedata.first);
         if (sl_first->spacetype == SPACE_IMAGE) {
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
@@ -2004,14 +2026,14 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
       scene->r.ffcodecdata.audio_channels = 2;
       scene->audio.volume = 1.0f;
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_pitch_cb, NULL);
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_pitch_cb, nullptr);
       }
     }
 
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       /* add regions */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl_first = area->spacedata.first;
+        SpaceLink *sl_first = static_cast<SpaceLink *>(area->spacedata.first);
         if (sl_first->spacetype == SPACE_SEQ) {
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
@@ -2051,7 +2073,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
         if ((fcu->flag & FCURVE_AUTO_HANDLES) == 0) {
           continue;
         }
-        if ((fcu->totvert == 0) || (fcu->bezt == NULL)) {
+        if ((fcu->totvert == 0) || (fcu->bezt == nullptr)) {
           continue;
         }
 
@@ -2118,7 +2140,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
     int old_index = sock->to_index;
 
     LISTBASE_FOREACH (bNodeLink *, link, &ngroup->links) {
-      if (link->tonode == NULL && link->fromsock->own_index == old_index) {
+      if (link->tonode == nullptr && link->fromsock->own_index == old_index) {
         STRNCPY(sock->identifier, link->fromsock->identifier);
         /* deprecated */
         sock->own_index = link->fromsock->own_index;
@@ -2130,7 +2152,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
     int old_index = sock->to_index;
 
     LISTBASE_FOREACH (bNodeLink *, link, &ngroup->links) {
-      if (link->fromnode == NULL && link->tosock->own_index == old_index) {
+      if (link->fromnode == nullptr && link->tosock->own_index == old_index) {
         STRNCPY(sock->identifier, link->tosock->identifier);
         /* deprecated */
         sock->own_index = link->tosock->own_index;
@@ -2164,7 +2186,7 @@ void do_versions_after_linking_250(Main *bmain)
     ID *id;
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       AnimData *adt = BKE_animdata_from_id(id);
-      if (adt != NULL) {
+      if (adt != nullptr) {
         /* Fix actions' id-roots (i.e. if they come from a pre 2.57 .blend file). */
         if ((adt->action) && (adt->action->idroot == 0)) {
           adt->action->idroot = GS(id->name);

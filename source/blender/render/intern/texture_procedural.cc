@@ -52,11 +52,11 @@ void RE_texture_rng_init(void)
 
 void RE_texture_rng_exit(void)
 {
-  if (random_tex_array == NULL) {
+  if (random_tex_array == nullptr) {
     return;
   }
   BLI_rng_threaded_free(random_tex_array);
-  random_tex_array = NULL;
+  random_tex_array = nullptr;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -602,7 +602,7 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
   float x1, y1, z1, nor[3];
   int ret;
 
-  if (n == NULL) {
+  if (n == nullptr) {
     nor[0] = x;
     nor[1] = y;
     nor[2] = z; /* use local render coord */
@@ -920,7 +920,7 @@ static int multitex(Tex *tex,
                               which_output,
                               cfra,
                               texnode_preview,
-                              NULL);
+                              nullptr);
   }
   else {
     switch (tex->type) {
@@ -951,7 +951,7 @@ static int multitex(Tex *tex,
       case TEX_IMAGE:
         if (osatex) {
           retval = imagewraposa(
-              tex, tex->ima, NULL, texvec, dxt, dyt, texres, pool, skip_load_image);
+              tex, tex->ima, nullptr, texvec, dxt, dyt, texres, pool, skip_load_image);
         }
         else {
           retval = imagewrap(tex, tex->ima, texvec, texres, pool, skip_load_image);
@@ -1028,7 +1028,7 @@ static int multitex_nodes_intern(Tex *tex,
                                  const bool texnode_preview,
                                  const bool use_nodes)
 {
-  if (tex == NULL) {
+  if (tex == nullptr) {
     memset(texres, 0, sizeof(TexResult));
     return 0;
   }
@@ -1044,7 +1044,7 @@ static int multitex_nodes_intern(Tex *tex,
       float texvec_l[3];
       copy_v3_v3(texvec_l, texvec);
       /* we have mtex, use it for 2d mapping images only */
-      do_2d_mapping(mtex, texvec_l, NULL, dxt, dyt);
+      do_2d_mapping(mtex, texvec_l, nullptr, dxt, dyt);
       retval = multitex(tex,
                         texvec_l,
                         dxt,
@@ -1062,8 +1062,9 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
-            scene_color_manage) {
+        if (ibuf != nullptr && ibuf->float_buffer.data == nullptr && (retval & TEX_RGB) &&
+            scene_color_manage)
+        {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba,
                                                             ibuf->byte_buffer.colorspace);
         }
@@ -1078,7 +1079,7 @@ static int multitex_nodes_intern(Tex *tex,
 
       localmtex.mapping = MTEX_FLAT;
       localmtex.tex = tex;
-      localmtex.object = NULL;
+      localmtex.object = nullptr;
       localmtex.texco = TEXCO_ORCO;
 
       copy_v3_v3(texvec_l, texvec);
@@ -1091,7 +1092,7 @@ static int multitex_nodes_intern(Tex *tex,
         zero_v3(dyt_l);
       }
 
-      do_2d_mapping(&localmtex, texvec_l, NULL, dxt_l, dyt_l);
+      do_2d_mapping(&localmtex, texvec_l, nullptr, dxt_l, dyt_l);
       retval = multitex(tex,
                         texvec_l,
                         dxt_l,
@@ -1109,8 +1110,9 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
-            scene_color_manage) {
+        if (ibuf != nullptr && ibuf->float_buffer.data == nullptr && (retval & TEX_RGB) &&
+            scene_color_manage)
+        {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba,
                                                             ibuf->byte_buffer.colorspace);
         }
@@ -1182,7 +1184,7 @@ int multitex_ext(Tex *tex,
                                texres,
                                thread,
                                0,
-                               NULL,
+                               nullptr,
                                pool,
                                scene_color_manage,
                                skip_load_image,
@@ -1199,13 +1201,13 @@ int multitex_ext_safe(Tex *tex,
 {
   return multitex_nodes_intern(tex,
                                texvec,
-                               NULL,
-                               NULL,
+                               nullptr,
+                               nullptr,
                                0,
                                texres,
                                0,
                                0,
-                               NULL,
+                               nullptr,
                                pool,
                                scene_color_manage,
                                skip_load_image,
@@ -1320,7 +1322,7 @@ bool RE_texture_evaluate(const MTex *mtex,
   int rgb;
 
   tex = mtex->tex;
-  if (tex == NULL) {
+  if (tex == nullptr) {
     return 0;
   }
 
@@ -1348,7 +1350,7 @@ bool RE_texture_evaluate(const MTex *mtex,
 
   /* texture */
   if (tex->type == TEX_IMAGE) {
-    do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+    do_2d_mapping(mtex, texvec, nullptr, dxt, dyt);
   }
 
   rgb = multitex(tex,

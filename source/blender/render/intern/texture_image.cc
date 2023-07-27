@@ -97,7 +97,7 @@ int imagewrap(Tex *tex,
   retval = TEX_RGB;
 
   /* quick tests */
-  if (ima == NULL) {
+  if (ima == nullptr) {
     return retval;
   }
 
@@ -114,7 +114,7 @@ int imagewrap(Tex *tex,
     iuser = &local_iuser;
 
     float new_uv[2];
-    iuser->tile = BKE_image_get_tile_from_pos(ima, texvec, new_uv, NULL);
+    iuser->tile = BKE_image_get_tile_from_pos(ima, texvec, new_uv, nullptr);
     fx = new_uv[0];
     fy = new_uv[1];
   }
@@ -127,7 +127,8 @@ int imagewrap(Tex *tex,
 
   ima->flag |= IMA_USED_FOR_RENDER;
 
-  if (ibuf == NULL || (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     BKE_image_pool_release_ibuf(ima, ibuf, pool);
     return retval;
   }
@@ -660,14 +661,14 @@ static void boxsample(ImBuf *ibuf,
 /* from here, some functions only used for the new filtering */
 
 /* anisotropic filters, data struct used instead of long line of (possibly unused) func args */
-typedef struct afdata_t {
+struct afdata_t {
   float dxt[2], dyt[2];
   int intpol, extflag;
   /* feline only */
   float majrad, minrad, theta;
   int iProbes;
   float dusc, dvsc;
-} afdata_t;
+};
 
 /* this only used here to make it easier to pass extend flags as single int */
 enum { TXC_XMIR = 1, TXC_YMIR, TXC_REPT, TXC_EXTD };
@@ -805,10 +806,10 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   texr->trgba[3] = texr->talpha ? texr->trgba[3] * xsd : (clip ? cw * xsd : 1.0f);
 }
 
-typedef struct ReadEWAData {
+struct ReadEWAData {
   ImBuf *ibuf;
   afdata_t *AFD;
-} ReadEWAData;
+};
 
 static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
 {
@@ -854,7 +855,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
     float tc[4];
     const float hn = n * 0.5f;
     const float u = fx + hn * du, v = fy + hn * dv;
-    /* Can use ewa table here too. */
+/* Can use ewa table here too. */
 #if 0
     const float wt = expf(n * n * D);
 #else
@@ -926,15 +927,15 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
       }
       BLI_thread_unlock(LOCK_IMAGE);
     }
-    if (ibuf->mipmap[0] == NULL) {
+    if (ibuf->mipmap[0] == nullptr) {
       BLI_thread_lock(LOCK_IMAGE);
-      if (ibuf->mipmap[0] == NULL) {
+      if (ibuf->mipmap[0] == nullptr) {
         IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
       }
       BLI_thread_unlock(LOCK_IMAGE);
     }
     /* if no mipmap could be made, fall back on non-mipmap render */
-    if (ibuf->mipmap[0] == NULL) {
+    if (ibuf->mipmap[0] == nullptr) {
       tex->imaflag &= ~TEX_MIPMAP;
     }
   }
@@ -974,7 +975,7 @@ static int imagewraposa_aniso(Tex *tex,
   retval = TEX_RGB;
 
   /* quick tests */
-  if (ibuf == NULL && ima == NULL) {
+  if (ibuf == nullptr && ima == nullptr) {
     return retval;
   }
 
@@ -985,7 +986,9 @@ static int imagewraposa_aniso(Tex *tex,
     ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
   }
 
-  if ((ibuf == NULL) || ((ibuf->byte_buffer.data == NULL) && (ibuf->float_buffer.data == NULL))) {
+  if ((ibuf == nullptr) ||
+      ((ibuf->byte_buffer.data == nullptr) && (ibuf->float_buffer.data == nullptr)))
+  {
     if (ima) {
       BKE_image_pool_release_ibuf(ima, ibuf, pool);
     }
@@ -1375,7 +1378,7 @@ int imagewraposa(Tex *tex,
   retval = TEX_RGB;
 
   /* quick tests */
-  if (ibuf == NULL && ima == NULL) {
+  if (ibuf == nullptr && ima == nullptr) {
     return retval;
   }
   if (ima) {
@@ -1389,7 +1392,8 @@ int imagewraposa(Tex *tex,
 
     ima->flag |= IMA_USED_FOR_RENDER;
   }
-  if (ibuf == NULL || (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     if (ima) {
       BKE_image_pool_release_ibuf(ima, ibuf, pool);
     }
@@ -1732,9 +1736,9 @@ void image_sample(
     Image *ima, float fx, float fy, float dx, float dy, float result[4], struct ImagePool *pool)
 {
   TexResult texres;
-  ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, NULL, pool);
+  ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, nullptr, pool);
 
-  if (UNLIKELY(ibuf == NULL)) {
+  if (UNLIKELY(ibuf == nullptr)) {
     zero_v4(result);
     return;
   }

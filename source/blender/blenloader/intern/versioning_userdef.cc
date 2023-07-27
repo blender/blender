@@ -158,12 +158,13 @@ static void do_version_select_mouse(UserDef *userdef, wmKeyMapItem *kmi)
   }
 }
 
-static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
-                                                         void *UNUSED(user_data))
+static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi, void * /*user_data*/)
 {
   if (STRPREFIX(kmi->idname, "WM_OT_context_") && kmi->properties) {
     IDProperty *idprop = IDP_GetPropertyFromGroup(kmi->properties, "data_path");
-    if (idprop && (idprop->type == IDP_STRING) && STRPREFIX(idprop->data.pointer, "(null)")) {
+    if (idprop && (idprop->type == IDP_STRING) &&
+        STRPREFIX(static_cast<const char *>(idprop->data.pointer), "(null)"))
+    {
       return true;
     }
   }
@@ -171,7 +172,7 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
 }
 
 /** Tweak event types have been removed, replace with click-drag. */
-static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void *UNUSED(user_data))
+static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void * /*user_data*/)
 {
   /* Tweak events for L M R mouse-buttons. */
   enum {
@@ -206,7 +207,7 @@ static bool keymap_item_update_tweak_event(wmKeyMapItem *kmi, void *UNUSED(user_
 
 void blo_do_versions_userdef(UserDef *userdef)
 {
-  /* #UserDef & #Main happen to have the same struct member. */
+/* #UserDef & #Main happen to have the same struct member. */
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_FILE_ATLEAST(userdef, ver, subver)
 
   /* the UserDef struct is not corrected with do_versions() .... ugh! */
@@ -311,7 +312,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   if (!USER_VERSION_ATLEAST(250, 8)) {
     wmKeyMap *km;
 
-    for (km = userdef->user_keymaps.first; km; km = km->next) {
+    for (km = static_cast<wmKeyMap *>(userdef->user_keymaps.first); km; km = km->next) {
       if (STREQ(km->idname, "Armature_Sketch")) {
         STRNCPY(km->idname, "Armature Sketch");
       }
@@ -642,13 +643,11 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(281, 16)) {
-    BKE_keyconfig_pref_filter_items(userdef,
-                                    &((struct wmKeyConfigFilterItemParams){
-                                        .check_item = true,
-                                        .check_diff_item_add = true,
-                                    }),
-                                    keymap_item_has_invalid_wm_context_data_path,
-                                    NULL);
+    wmKeyConfigFilterItemParams params{};
+    params.check_item = true;
+    params.check_diff_item_add = true;
+    BKE_keyconfig_pref_filter_items(
+        userdef, &params, keymap_item_has_invalid_wm_context_data_path, nullptr);
   }
 
   if (!USER_VERSION_ATLEAST(282, 1)) {
@@ -772,13 +771,10 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(302, 5)) {
-    BKE_keyconfig_pref_filter_items(userdef,
-                                    &((struct wmKeyConfigFilterItemParams){
-                                        .check_item = true,
-                                        .check_diff_item_add = true,
-                                    }),
-                                    keymap_item_update_tweak_event,
-                                    NULL);
+    wmKeyConfigFilterItemParams params{};
+    params.check_item = true;
+    params.check_diff_item_add = true;
+    BKE_keyconfig_pref_filter_items(userdef, &params, keymap_item_update_tweak_event, nullptr);
   }
 
   if (!USER_VERSION_ATLEAST(302, 11)) {
@@ -813,8 +809,8 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(306, 5)) {
     if (userdef->pythondir_legacy[0]) {
-      bUserScriptDirectory *script_dir = MEM_callocN(sizeof(*script_dir),
-                                                     "Versioning user script path");
+      bUserScriptDirectory *script_dir = static_cast<bUserScriptDirectory *>(
+          MEM_callocN(sizeof(*script_dir), "Versioning user script path"));
 
       STRNCPY(script_dir->dir_path, userdef->pythondir_legacy);
       STRNCPY_UTF8(script_dir->name, DATA_("Untitled"));

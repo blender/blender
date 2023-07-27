@@ -99,7 +99,7 @@ static void point_data_pointers(PointDensity *pd,
   }
   else {
     if (r_data_velocity) {
-      *r_data_velocity = NULL;
+      *r_data_velocity = nullptr;
     }
   }
 
@@ -111,7 +111,7 @@ static void point_data_pointers(PointDensity *pd,
   }
   else {
     if (r_data_life) {
-      *r_data_life = NULL;
+      *r_data_life = nullptr;
     }
   }
 
@@ -123,7 +123,7 @@ static void point_data_pointers(PointDensity *pd,
   }
   else {
     if (r_data_color) {
-      *r_data_color = NULL;
+      *r_data_color = nullptr;
     }
   }
 }
@@ -151,7 +151,8 @@ static void alloc_point_data(PointDensity *pd)
   }
 
   if (data_size) {
-    pd->point_data = MEM_callocN(sizeof(float) * data_size * totpoints, "particle point data");
+    pd->point_data = static_cast<float *>(
+        MEM_callocN(sizeof(float) * data_size * totpoints, "particle point data"));
   }
 }
 
@@ -160,8 +161,8 @@ static void pointdensity_cache_psys(
 {
   ParticleKey state;
   ParticleCacheKey *cache;
-  ParticleSimulationData sim = {NULL};
-  ParticleData *pa = NULL;
+  ParticleSimulationData sim = {nullptr};
+  ParticleData *pa = nullptr;
   float cfra = BKE_scene_ctime_get(scene);
   int i;
   // int childexists = 0; /* UNUSED */
@@ -192,7 +193,7 @@ static void pointdensity_cache_psys(
   pd->point_tree = BLI_bvhtree_new(total_particles, 0.0, 4, 6);
   pd->totpoints = total_particles;
   alloc_point_data(pd);
-  point_data_pointers(pd, &data_vel, &data_life, NULL);
+  point_data_pointers(pd, &data_vel, &data_life, nullptr);
 
 #if 0 /* UNUSED */
   if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT)) {
@@ -253,7 +254,7 @@ static void pointdensity_cache_psys(
       /* TEX_PD_WORLDSPACE */
     }
 
-    BLI_bvhtree_insert(pd->point_tree, i, partco, 1);
+    BLI_bvhtree_insert(static_cast<BVHTree *>(pd->point_tree), i, partco, 1);
 
     if (data_vel) {
       data_vel[i * 3 + 0] = state.vel[0];
@@ -265,13 +266,13 @@ static void pointdensity_cache_psys(
     }
   }
 
-  BLI_bvhtree_balance(pd->point_tree);
+  BLI_bvhtree_balance(static_cast<BVHTree *>(pd->point_tree));
 
   psys_sim_data_free(&sim);
 }
 
 static void pointdensity_cache_vertex_color(PointDensity *pd,
-                                            Object *UNUSED(ob),
+                                            Object * /*ob*/,
                                             Mesh *mesh,
                                             float *data_color)
 {
@@ -287,14 +288,15 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   }
   CustomData_validate_layer_name(
       &mesh->loop_data, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
-  const MLoopCol *mcol = CustomData_get_layer_named(
-      &mesh->loop_data, CD_PROP_BYTE_COLOR, layername);
+  const MLoopCol *mcol = static_cast<const MLoopCol *>(
+      CustomData_get_layer_named(&mesh->loop_data, CD_PROP_BYTE_COLOR, layername));
   if (!mcol) {
     return;
   }
 
   /* Stores the number of MLoops using the same vertex, so we can normalize colors. */
-  int *mcorners = MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count");
+  int *mcorners = static_cast<int *>(
+      MEM_callocN(sizeof(int) * pd->totpoints, "point density corner count"));
 
   for (i = 0; i < totloop; i++) {
     int v = corner_verts[i];
@@ -334,7 +336,8 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
 
   BLI_assert(data_color);
 
-  const MDeformVert *mdef = CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT);
+  const MDeformVert *mdef = static_cast<const MDeformVert *>(
+      CustomData_get_layer(&mesh->vert_data, CD_MDEFORMVERT));
   if (!mdef) {
     return;
   }
@@ -371,7 +374,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
 {
   float *data_color;
   int i;
-  Mesh *mesh = ob->data;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
 
 #if 0 /* UNUSED */
   CustomData_MeshMasks mask = CD_MASK_BAREMESH;
@@ -394,7 +397,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
 
   pd->point_tree = BLI_bvhtree_new(pd->totpoints, 0.0, 4, 6);
   alloc_point_data(pd);
-  point_data_pointers(pd, NULL, NULL, &data_color);
+  point_data_pointers(pd, nullptr, nullptr, &data_color);
 
   for (i = 0; i < pd->totpoints; i++) {
     float co[3];
@@ -414,7 +417,7 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
         break;
     }
 
-    BLI_bvhtree_insert(pd->point_tree, i, co, 1);
+    BLI_bvhtree_insert(static_cast<BVHTree *>(pd->point_tree), i, co, 1);
   }
 
   switch (pd->ob_color_source) {
@@ -429,18 +432,18 @@ static void pointdensity_cache_object(PointDensity *pd, Object *ob)
       break;
   }
 
-  BLI_bvhtree_balance(pd->point_tree);
+  BLI_bvhtree_balance(static_cast<BVHTree *>(pd->point_tree));
 }
 
 static void cache_pointdensity(Depsgraph *depsgraph, Scene *scene, PointDensity *pd)
 {
-  if (pd == NULL) {
+  if (pd == nullptr) {
     return;
   }
 
   if (pd->point_tree) {
-    BLI_bvhtree_free(pd->point_tree);
-    pd->point_tree = NULL;
+    BLI_bvhtree_free(static_cast<BVHTree *>(pd->point_tree));
+    pd->point_tree = nullptr;
   }
 
   if (pd->source == TEX_PD_PSYS) {
@@ -451,7 +454,7 @@ static void cache_pointdensity(Depsgraph *depsgraph, Scene *scene, PointDensity 
       return;
     }
 
-    psys = BLI_findlink(&ob->particlesystem, pd->psys - 1);
+    psys = static_cast<ParticleSystem *>(BLI_findlink(&ob->particlesystem, pd->psys - 1));
     if (!psys) {
       return;
     }
@@ -468,20 +471,20 @@ static void cache_pointdensity(Depsgraph *depsgraph, Scene *scene, PointDensity 
 
 static void free_pointdensity(PointDensity *pd)
 {
-  if (pd == NULL) {
+  if (pd == nullptr) {
     return;
   }
 
   if (pd->point_tree) {
-    BLI_bvhtree_free(pd->point_tree);
-    pd->point_tree = NULL;
+    BLI_bvhtree_free(static_cast<BVHTree *>(pd->point_tree));
+    pd->point_tree = nullptr;
   }
 
   MEM_SAFE_FREE(pd->point_data);
   pd->totpoints = 0;
 }
 
-typedef struct PointDensityRangeData {
+struct PointDensityRangeData {
   float *density;
   float squared_radius;
   float *point_data_life;
@@ -495,7 +498,7 @@ typedef struct PointDensityRangeData {
   float *age;
   CurveMapping *density_curve;
   float velscale;
-} PointDensityRangeData;
+};
 
 static float density_falloff(PointDensityRangeData *pdr, int index, float squared_dist)
 {
@@ -613,7 +616,7 @@ static int pointdensity(PointDensity *pd,
                              vec,
                              &age,
                              col,
-                             (pd->flag & TEX_PD_FALLOFF_CURVE ? pd->falloff_curve : NULL),
+                             (pd->flag & TEX_PD_FALLOFF_CURVE ? pd->falloff_curve : nullptr),
                              pd->falloff_speed_scale * 0.001f);
   noise_fac = pd->noise_fac * 0.5f; /* better default */
 
@@ -622,7 +625,8 @@ static int pointdensity(PointDensity *pd,
   if (point_data_used(pd)) {
     /* does a BVH lookup to find accumulated density and additional point data *
      * stores particle velocity vector in 'vec', and particle lifetime in 'time' */
-    num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+    num = BLI_bvhtree_range_query(
+        static_cast<const BVHTree *>(pd->point_tree), co, pd->radius, accum_density, &pdr);
     if (num > 0) {
       age /= num;
       mul_v3_fl(vec, 1.0f / num);
@@ -653,7 +657,8 @@ static int pointdensity(PointDensity *pd,
   }
 
   /* BVH query with the potentially perturbed coordinates */
-  num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+  num = BLI_bvhtree_range_query(
+      static_cast<const BVHTree *>(pd->point_tree), co, pd->radius, accum_density, &pdr);
   if (num > 0) {
     age /= num;
     mul_v3_fl(vec, 1.0f / num);
@@ -661,13 +666,13 @@ static int pointdensity(PointDensity *pd,
   }
 
   texres->tin = density;
-  if (r_age != NULL) {
+  if (r_age != nullptr) {
     *r_age = age;
   }
-  if (r_vec != NULL) {
+  if (r_vec != nullptr) {
     copy_v3_v3(r_vec, vec);
   }
-  if (r_col != NULL) {
+  if (r_col != nullptr) {
     copy_v3_v3(r_col, col);
   }
 
@@ -764,8 +769,8 @@ static void particle_system_minmax(Depsgraph *depsgraph,
   const float size[3] = {radius, radius, radius};
   const float cfra = BKE_scene_ctime_get(scene);
   ParticleSettings *part = psys->part;
-  ParticleSimulationData sim = {NULL};
-  ParticleData *pa = NULL;
+  ParticleSimulationData sim = {nullptr};
+  ParticleData *pa = nullptr;
   int i;
   int total_particles;
   float mat[4][4], imat[4][4];
@@ -822,7 +827,7 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   Object *object = pd->object;
-  if (object == NULL) {
+  if (object == nullptr) {
     zero_v3(r_min);
     zero_v3(r_max);
     return;
@@ -835,8 +840,8 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
       zero_v3(r_max);
       return;
     }
-    psys = BLI_findlink(&object->particlesystem, pd->psys - 1);
-    if (psys == NULL) {
+    psys = static_cast<ParticleSystem *>(BLI_findlink(&object->particlesystem, pd->psys - 1));
+    if (psys == nullptr) {
       zero_v3(r_min);
       zero_v3(r_max);
       return;
@@ -848,7 +853,7 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
     const float radius[3] = {pd->radius, pd->radius, pd->radius};
     const BoundBox *bb = BKE_object_boundbox_get(object);
 
-    if (bb != NULL) {
+    if (bb != nullptr) {
       BLI_assert((bb->flag & BOUNDBOX_DIRTY) == 0);
       copy_v3_v3(r_min, bb->vec[0]);
       copy_v3_v3(r_max, bb->vec[6]);
@@ -863,16 +868,16 @@ void RE_point_density_minmax(Depsgraph *depsgraph,
   }
 }
 
-typedef struct SampleCallbackData {
+struct SampleCallbackData {
   PointDensity *pd;
   int resolution;
   float *min, *dim;
   float *values;
-} SampleCallbackData;
+};
 
 static void point_density_sample_func(void *__restrict data_v,
                                       const int iter,
-                                      const TaskParallelTLS *__restrict UNUSED(tls))
+                                      const TaskParallelTLS *__restrict /*tls*/)
 {
   SampleCallbackData *data = (SampleCallbackData *)data_v;
 
@@ -920,7 +925,7 @@ void RE_point_density_sample(Depsgraph *depsgraph,
    * was cached already.
    */
 
-  if (object == NULL) {
+  if (object == nullptr) {
     sample_dummy_point_density(resolution, values);
     return;
   }

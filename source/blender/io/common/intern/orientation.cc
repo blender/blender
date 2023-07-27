@@ -16,9 +16,9 @@ const EnumPropertyItem io_transform_axis[] = {
     {IO_AXIS_NEGATIVE_X, "NEGATIVE_X", 0, "-X", "Negative X axis"},
     {IO_AXIS_NEGATIVE_Y, "NEGATIVE_Y", 0, "-Y", "Negative Y axis"},
     {IO_AXIS_NEGATIVE_Z, "NEGATIVE_Z", 0, "-Z", "Negative Z axis"},
-    {0, NULL, 0, NULL, NULL}};
+    {0, nullptr, 0, nullptr, nullptr}};
 
-void io_ui_forward_axis_update(Main *UNUSED(main), Scene *UNUSED(scene), PointerRNA *ptr)
+void io_ui_forward_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   /* Both forward and up axes cannot be along the same direction. */
 
@@ -29,7 +29,7 @@ void io_ui_forward_axis_update(Main *UNUSED(main), Scene *UNUSED(scene), Pointer
   }
 }
 
-void io_ui_up_axis_update(Main *UNUSED(main), Scene *UNUSED(scene), PointerRNA *ptr)
+void io_ui_up_axis_update(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   int forward = RNA_enum_get(ptr, "forward_axis");
   int up = RNA_enum_get(ptr, "up_axis");

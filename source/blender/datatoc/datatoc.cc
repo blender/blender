@@ -15,7 +15,7 @@
 #define MAX2(x, y) ((x) > (y) ? (x) : (y))
 #define MAX3(x, y, z) MAX2(MAX2((x), (y)), (z))
 
-static char *basename(char *string)
+static char *arg_basename(char *string)
 {
   char *lfslash, *lbslash;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  argv[1] = basename(argv[1]);
+  argv[1] = arg_basename(argv[1]);
 
   fseek(fpin, 0L, SEEK_END);
   size = ftell(fpin);
@@ -96,9 +96,9 @@ int main(int argc, char **argv)
     fprintf(fpout, "%3d,", getc(fpin));
   }
 
-  /* Trailing NULL terminator, this isn't needed in some cases and
+  /* Trailing nullptr terminator, this isn't needed in some cases and
    * won't be taken into account by the size variable, but its useful when dealing with
-   * NULL terminated string data */
+   * nullptr terminated string data */
   fprintf(fpout, "0\n};\n\n");
 
   fclose(fpin);

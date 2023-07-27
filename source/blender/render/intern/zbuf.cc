@@ -36,8 +36,8 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
   zspan->rectx = rectx;
   zspan->recty = recty;
 
-  zspan->span1 = MEM_mallocN(recty * sizeof(float), "zspan");
-  zspan->span2 = MEM_mallocN(recty * sizeof(float), "zspan");
+  zspan->span1 = static_cast<float *>(MEM_mallocN(recty * sizeof(float), "zspan"));
+  zspan->span2 = static_cast<float *>(MEM_mallocN(recty * sizeof(float), "zspan"));
 }
 
 void zbuf_free_span(ZSpan *zspan)
@@ -53,7 +53,7 @@ static void zbuf_init_span(ZSpan *zspan)
 {
   zspan->miny1 = zspan->miny2 = zspan->recty + 1;
   zspan->maxy1 = zspan->maxy2 = -1;
-  zspan->minp1 = zspan->maxp1 = zspan->minp2 = zspan->maxp2 = NULL;
+  zspan->minp1 = zspan->maxp1 = zspan->minp2 = zspan->maxp2 = nullptr;
 }
 
 static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
@@ -104,7 +104,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   }
 
   /* empty span */
-  if (zspan->maxp1 == NULL) {
+  if (zspan->maxp1 == nullptr) {
     span = zspan->span1;
   }
   else { /* does it complete left span? */
@@ -118,10 +118,10 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
 
   if (span == zspan->span1) {
     //      printf("left span my0 %d my2 %d\n", my0, my2);
-    if (zspan->minp1 == NULL || zspan->minp1[1] > minv[1]) {
+    if (zspan->minp1 == nullptr || zspan->minp1[1] > minv[1]) {
       zspan->minp1 = minv;
     }
-    if (zspan->maxp1 == NULL || zspan->maxp1[1] < maxv[1]) {
+    if (zspan->maxp1 == nullptr || zspan->maxp1[1] < maxv[1]) {
       zspan->maxp1 = maxv;
     }
     if (my0 < zspan->miny1) {
@@ -133,10 +133,10 @@ static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
   }
   else {
     //      printf("right span my0 %d my2 %d\n", my0, my2);
-    if (zspan->minp2 == NULL || zspan->minp2[1] > minv[1]) {
+    if (zspan->minp2 == nullptr || zspan->minp2[1] > minv[1]) {
       zspan->minp2 = minv;
     }
-    if (zspan->maxp2 == NULL || zspan->maxp2[1] < maxv[1]) {
+    if (zspan->maxp2 == nullptr || zspan->maxp2[1] < maxv[1]) {
       zspan->maxp2 = maxv;
     }
     if (my0 < zspan->miny2) {
@@ -178,7 +178,7 @@ void zspan_scanconvert(ZSpan *zspan,
   zbuf_add_to_span(zspan, v3, v1);
 
   /* clipped */
-  if (zspan->minp2 == NULL || zspan->maxp2 == NULL) {
+  if (zspan->minp2 == nullptr || zspan->maxp2 == nullptr) {
     return;
   }
 
