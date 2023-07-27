@@ -40,7 +40,9 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
 
   next = prev = nullptr;
 
-  active_catalog_path = BLI_strdup(other.active_catalog_path);
+  if (active_catalog_path) {
+    active_catalog_path = BLI_strdup(other.active_catalog_path);
+  }
   BLI_listbase_clear(&enabled_catalog_paths);
 
   LISTBASE_FOREACH (LinkData *, catalog_path_item, &other.enabled_catalog_paths) {
