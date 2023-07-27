@@ -186,7 +186,7 @@ static void bake_modifier(Main * /*bmain*/,
   BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
-static bool is_disabled(GpencilModifierData * /*md*/, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData * /*md*/, bool /*use_render_params*/)
 {
   // MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
 

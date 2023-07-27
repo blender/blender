@@ -203,7 +203,7 @@ static void bake_modifier(Main * /*bmain*/,
   MOD_lineart_clear_cache(&gpd->runtime.lineart_cache);
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   return isModifierDisabled(md);
 }

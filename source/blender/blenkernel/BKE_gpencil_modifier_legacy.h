@@ -186,7 +186,7 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional (assumes never disabled if not present).
    */
-  bool (*is_disabled)(struct GpencilModifierData *md, int user_render_params);
+  bool (*is_disabled)(struct GpencilModifierData *md, bool use_render_params);
 
   /**
    * Add the appropriate relations to the dependency graph.
