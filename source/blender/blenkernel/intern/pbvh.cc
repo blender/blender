@@ -847,8 +847,6 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
 
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 {
-  BB cb;
-
   const int totvert = mesh->totvert;
   const int looptri_num = poly_to_tri_count(mesh->faces_num, mesh->totloop);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
@@ -882,26 +880,34 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
   pbvh->face_sets_color_seed = mesh->face_sets_color_seed;
   pbvh->face_sets_color_default = mesh->face_sets_color_default;
 
-  BB_reset(&cb);
-
   /* For each face, store the AABB and the AABB centroid */
   blender::Array<BBC> prim_bbc(looptri_num);
 
-  for (int i = 0; i < looptri_num; i++) {
-    const MLoopTri *lt = &pbvh->looptri[i];
-    const int sides = 3;
+  BB cb;
+  BB_reset(&cb);
+  cb = blender::threading::parallel_reduce(
+      pbvh->looptri.index_range(),
+      1024,
+      cb,
+      [&](const blender::IndexRange range, const BB &init) {
+        BB current = init;
+        for (const int i : range) {
+          const MLoopTri &lt = pbvh->looptri[i];
     BBC *bbc = &prim_bbc[i];
-
     BB_reset((BB *)bbc);
-
-    for (int j = 0; j < sides; j++) {
-      BB_expand((BB *)bbc, vert_positions[pbvh->corner_verts[lt->tri[j]]]);
+          for (int j = 0; j < 3; j++) {
+            BB_expand((BB *)bbc, vert_positions[pbvh->corner_verts[lt.tri[j]]]);
     }
-
     BBC_update_centroid(bbc);
-
-    BB_expand(&cb, bbc->bcentroid);
+          BB_expand(&current, bbc->bcentroid);
   }
+        return current;
+      },
+      [](const BB &a, const BB &b) {
+        BB current = a;
+        BB_expand_with_bb(&current, &b);
+        return current;
+      });
 
   if (looptri_num) {
     const int *material_indices = static_cast<const int *>(
