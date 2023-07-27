@@ -6,11 +6,11 @@
  * \ingroup render
  */
 
-#include <fcntl.h>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <fcntl.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else

@@ -220,7 +220,7 @@ class MultiDevice : public Device {
                                                                       BVH_LAYOUT_EMBREE;
         else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_HIPRT_EMBREE)
           params.bvh_layout = sub.device->info.type == DEVICE_HIP ? BVH_LAYOUT_HIPRT :
-                                                                      BVH_LAYOUT_EMBREE;
+                                                                    BVH_LAYOUT_EMBREE;
         else if (bvh->params.bvh_layout == BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE)
           params.bvh_layout = sub.device->info.type == DEVICE_ONEAPI ? BVH_LAYOUT_EMBREEGPU :
                                                                        BVH_LAYOUT_EMBREE;
