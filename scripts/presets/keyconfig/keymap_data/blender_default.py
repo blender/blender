@@ -135,7 +135,7 @@ class Params:
             use_alt_navigation=True,
     ):
         from sys import platform
-        self.apple = (platform == 'darwin')
+        self.apple = platform == 'darwin'
         self.legacy = legacy
 
         if use_mouse_emulate_3_button:
@@ -241,7 +241,7 @@ class Params:
 # Constants
 
 from math import pi
-pi_2 = pi / 2.0
+PI_2 = pi / 2.0
 
 # Physical layout.
 NUMBERS_1 = ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO')
@@ -1614,9 +1614,9 @@ def km_view3d(params):
         ("view3d.view_selected", {"type": 'NDOF_BUTTON_FIT', "value": 'PRESS'},
          {"properties": [("use_all_regions", False)]}),
         ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CW', "value": 'PRESS'},
-         {"properties": [("angle", pi_2)]}),
+         {"properties": [("angle", PI_2)]}),
         ("view3d.view_roll", {"type": 'NDOF_BUTTON_ROLL_CCW', "value": 'PRESS'},
-         {"properties": [("angle", -pi_2)]}),
+         {"properties": [("angle", -PI_2)]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_FRONT', "value": 'PRESS'},
          {"properties": [("type", 'FRONT')]}),
         ("view3d.view_axis", {"type": 'NDOF_BUTTON_BACK', "value": 'PRESS'},
@@ -3905,7 +3905,7 @@ def km_grease_pencil_stroke_paint_draw_brush(params):
     return keymap
 
 
-def km_grease_pencil_stroke_paint_erase(params):
+def km_grease_pencil_stroke_paint_erase(_params):
     items = []
     keymap = (
         "Grease Pencil Stroke Paint (Erase)",
@@ -3989,7 +3989,7 @@ def km_grease_pencil_stroke_sculpt_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=(not params.use_fallback_tool_select_mouse)),
+        *_grease_pencil_selection(params, use_select_mouse=not params.use_fallback_tool_select_mouse),
 
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
@@ -4338,7 +4338,7 @@ def km_grease_pencil_stroke_vertex_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=(not params.use_fallback_tool_select_mouse)),
+        *_grease_pencil_selection(params, use_select_mouse=not params.use_fallback_tool_select_mouse),
         # Brush strength
         ("wm.radial_control", {"type": 'F', "value": 'PRESS', "shift": True},
          {"properties": [
@@ -4495,7 +4495,7 @@ def km_grease_pencil_stroke_vertex_replace(_params):
     return keymap
 
 
-def km_grease_pencil_paint(params):
+def km_grease_pencil_paint(_params):
     items = []
     keymap = (
         "Grease Pencil Paint Mode",
@@ -6952,7 +6952,7 @@ def km_3d_view_tool_cursor(params):
     )
 
 
-def km_3d_view_tool_text_select(params):
+def km_3d_view_tool_text_select(_params):
     return (
         "3D View Tool: Edit Text, Select Text",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
@@ -8514,4 +8514,4 @@ def generate_keymaps(params=None):
 #
 #    pylint \
 #        scripts/presets/keyconfig/keymap_data/blender_default.py \
-#        --disable=C0111,C0301,C0302,C0415,R1705,R0902,R0903,R0913
+#        --disable=C0111,C0209,C0301,C0302,C0413,C0415,R1705,R0902,R0903,R0913,R0914,R0915,W0511,W0622
