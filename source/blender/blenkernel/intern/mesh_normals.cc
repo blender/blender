@@ -138,34 +138,33 @@ static float3 normal_calc_ngon(const Span<float3> vert_positions, const Span<int
     v_prev = v_curr;
   }
 
-  if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
-    normal[2] = 1.0f; /* other axis set to 0.0 */
-  }
-
   return normal;
 }
 
 float3 face_normal_calc(const Span<float3> vert_positions, const Span<int> face_verts)
 {
-  if (face_verts.size() > 4) {
-    return normal_calc_ngon(vert_positions, face_verts);
-  }
-  if (face_verts.size() == 3) {
-    return math::normal_tri(vert_positions[face_verts[0]],
-                            vert_positions[face_verts[1]],
-                            vert_positions[face_verts[2]]);
-  }
+  float3 normal;
   if (face_verts.size() == 4) {
-    float3 normal;
     normal_quad_v3(normal,
                    vert_positions[face_verts[0]],
                    vert_positions[face_verts[1]],
                    vert_positions[face_verts[2]],
                    vert_positions[face_verts[3]]);
-    return normal;
   }
-  /* horrible, two sided face! */
-  return float3(0);
+  else if (face_verts.size() == 3) {
+    normal = math::normal_tri(vert_positions[face_verts[0]],
+                              vert_positions[face_verts[1]],
+                              vert_positions[face_verts[2]]);
+  }
+  else {
+    BLI_assert(face_verts.size() > 4);
+    normal = normal_calc_ngon(vert_positions, face_verts);
+  }
+
+  if (UNLIKELY(math::is_zero(normal))) {
+    normal.z = 1.0f;
+  }
+  return normal;
 }
 
 /** \} */
