@@ -5139,7 +5139,6 @@ def km_weight_paint(params):
         *_template_items_transform_actions(params, use_mirror=True),
 
         ("paint.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
-        ("paint.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("paint.weight_sample", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True}, None),
         ("paint.weight_sample_group", {"type": params.action_mouse, "value": 'PRESS', "shift": True}, None),
         ("paint.weight_gradient", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "alt": True},
