@@ -25,14 +25,14 @@
 #  include "blf_internal.h"
 
 /* internal freetype defines */
-#  define STREAM_FILE(stream) ((FILE *)stream->descriptor.pointer)
+#  define STREAM_FILE(stream) static_cast<FILE *>(stream->descriptor.pointer)
 #  define FT_THROW(e) -1
 
 static void ft_ansi_stream_close(FT_Stream stream)
 {
   fclose(STREAM_FILE(stream));
 
-  stream->descriptor.pointer = NULL;
+  stream->descriptor.pointer = nullptr;
   stream->size = 0;
   stream->base = 0;
 
@@ -43,12 +43,12 @@ static void ft_ansi_stream_close(FT_Stream stream)
 
 static ulong ft_ansi_stream_io(FT_Stream stream, ulong offset, uchar *buffer, ulong count)
 {
-  FILE *file;
+  
   if (!count && offset > stream->size) {
     return 1;
   }
 
-  file = STREAM_FILE(stream);
+  FILE *file = STREAM_FILE(stream);
 
   if (stream->pos != offset) {
     BLI_fseek(file, offset, SEEK_SET);
@@ -59,17 +59,16 @@ static ulong ft_ansi_stream_io(FT_Stream stream, ulong offset, uchar *buffer, ul
 
 static FT_Error FT_Stream_Open__win32_compat(FT_Stream stream, const char *filepathname)
 {
-  FILE *file;
   BLI_assert(stream);
 
-  stream->descriptor.pointer = NULL;
+  stream->descriptor.pointer = nullptr;
   stream->pathname.pointer = (char *)filepathname;
   stream->base = 0;
   stream->pos = 0;
-  stream->read = NULL;
-  stream->close = NULL;
+  stream->read = nullptr;
+  stream->close = nullptr;
 
-  file = BLI_fopen(filepathname, "rb");
+  FILE *file = BLI_fopen(filepathname, "rb");
   if (!file) {
     fprintf(stderr,
             "FT_Stream_Open: "
@@ -105,12 +104,12 @@ FT_Error FT_New_Face__win32_compat(FT_Library library,
 {
   FT_Error err;
   FT_Open_Args open;
-  FT_Stream stream = NULL;
-  stream = MEM_callocN(sizeof(*stream), __func__);
+  FT_Stream stream = static_cast<FT_Stream>(MEM_callocN(sizeof(*stream), __func__));
 
   open.flags = FT_OPEN_STREAM;
   open.stream = stream;
-  stream->pathname.pointer = (char *)pathname;
+
+  stream->pathname.pointer = (void *)pathname;
 
   err = FT_Stream_Open__win32_compat(stream, pathname);
   if (err) {
