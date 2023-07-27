@@ -501,32 +501,8 @@ void ED_region_do_layout(bContext *C, ARegion *region)
 
   region->do_draw |= RGN_DRAWING;
 
-  const int prev_area_flag = area ? area->flag : 0;
-
   UI_SetTheme(area ? area->spacetype : 0, at->regionid);
   at->layout(C, region);
-
-  /* Was the area just tagged for a size update? */
-  if (area && ((prev_area_flag & AREA_FLAG_REGION_SIZE_UPDATE) !=
-               (area->flag & AREA_FLAG_REGION_SIZE_UPDATE)))
-  {
-    /* Tag the following regions for redraw, since the size change of this region may affect the
-     * available space for them. */
-    for (ARegion *following_region = region->next; following_region;
-         following_region = following_region->next)
-    {
-      /* Overlapping and non-overlapping regions don't affect each others space. So layout changes
-       * of one don't require redrawing the other. */
-      if (region->overlap != following_region->overlap) {
-        continue;
-      }
-      /* Floating regions don't affect space of other regions. */
-      if (following_region->alignment == RGN_ALIGN_FLOAT) {
-        continue;
-      }
-      ED_region_tag_redraw(following_region);
-    }
-  }
 
   /* Clear temporary update flag. */
   region->flag &= ~RGN_FLAG_SEARCH_FILTER_UPDATE;
