@@ -2459,11 +2459,11 @@ bool DRW_pass_is_empty(DRWPass *pass)
 }
 
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgrp),
-                              void *userData)
+                              void (*callback)(void *user_data, DRWShadingGroup *shgrp),
+                              void *user_data)
 {
   LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
-    callback(userData, shgroup);
+    callback(user_data, shgroup);
   }
 }
 

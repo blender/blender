@@ -165,8 +165,8 @@ uint FrameBuffer::get_bits_per_pixel()
 }
 
 void FrameBuffer::recursive_downsample(int max_lvl,
-                                       void (*callback)(void *userData, int level),
-                                       void *userData)
+                                       void (*callback)(void *user_data, int level),
+                                       void *user_data)
 {
   /* Bind to make sure the frame-buffer is up to date. */
   this->bind(true);
@@ -204,7 +204,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
       ++type;
     }
 
-    callback(userData, mip_lvl);
+    callback(user_data, mip_lvl);
   }
 
   for (GPUAttachment &attachment : attachments_) {
@@ -536,10 +536,10 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
 
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
                                           int max_lvl,
-                                          void (*callback)(void *userData, int level),
-                                          void *userData)
+                                          void (*callback)(void *user_data, int level),
+                                          void *user_data)
 {
-  unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, userData);
+  unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, user_data);
 }
 
 #ifndef GPU_NO_USE_PY_REFERENCES

@@ -43,7 +43,7 @@
 
 #include "MEM_guardedalloc.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
 
@@ -55,7 +55,7 @@ static void initData(GpencilModifierData *md)
   BKE_curvemapping_init(gpmd->curve_intensity);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   SmoothGpencilModifierData *gmd = (SmoothGpencilModifierData *)md;
   SmoothGpencilModifierData *tgmd = (SmoothGpencilModifierData *)target;
@@ -73,12 +73,12 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 /**
  * Apply smooth effect based on stroke direction.
  */
-static void deformStroke(GpencilModifierData *md,
-                         Depsgraph * /*depsgraph*/,
-                         Object *ob,
-                         bGPDlayer *gpl,
-                         bGPDframe * /*gpf*/,
-                         bGPDstroke *gps)
+static void deform_stroke(GpencilModifierData *md,
+                          Depsgraph * /*depsgraph*/,
+                          Object *ob,
+                          bGPDlayer *gpl,
+                          bGPDframe * /*gpf*/,
+                          bGPDstroke *gps)
 {
   SmoothGpencilModifierData *mmd = (SmoothGpencilModifierData *)md;
   const int def_nr = BKE_object_defgroup_name_index(ob, mmd->vgname);
@@ -136,15 +136,15 @@ static void deformStroke(GpencilModifierData *md,
   MEM_SAFE_FREE(weights);
 }
 
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph *depsgraph,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph *depsgraph,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
-  generic_bake_deform_stroke(depsgraph, md, ob, false, deformStroke);
+  generic_bake_deform_stroke(depsgraph, md, ob, false, deform_stroke);
 }
 
-static void freeData(GpencilModifierData *md)
+static void free_data(GpencilModifierData *md)
 {
   SmoothGpencilModifierData *gpmd = (SmoothGpencilModifierData *)md;
 
@@ -153,11 +153,11 @@ static void freeData(GpencilModifierData *md)
   }
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   SmoothGpencilModifierData *mmd = (SmoothGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -190,7 +190,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, true, true);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Smooth, panel_draw);
@@ -211,19 +211,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Smooth = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ deformStroke,
-    /*generateStrokes*/ nullptr,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ deform_stroke,
+    /*generate_strokes*/ nullptr,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

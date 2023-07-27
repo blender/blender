@@ -2148,7 +2148,7 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Mesh = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransEditVerts,
-    /*recalcData*/ recalcData_mesh,
+    /*create_trans_data*/ createTransEditVerts,
+    /*recalc_data*/ recalcData_mesh,
     /*special_aftertrans_update*/ special_aftertrans_update__mesh,
 };

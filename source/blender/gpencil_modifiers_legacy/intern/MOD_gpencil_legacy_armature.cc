@@ -48,7 +48,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   ArmatureGpencilModifierData *gpmd = (ArmatureGpencilModifierData *)md;
 
@@ -57,7 +57,7 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(ArmatureGpencilModifierData), modifier);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
@@ -97,12 +97,12 @@ static void gpencil_deform_verts(ArmatureGpencilModifierData *mmd, Object *targe
 }
 
 /* deform stroke */
-static void deformStroke(GpencilModifierData *md,
-                         Depsgraph * /*depsgraph*/,
-                         Object *ob,
-                         bGPDlayer * /*gpl*/,
-                         bGPDframe * /*gpf*/,
-                         bGPDstroke *gps)
+static void deform_stroke(GpencilModifierData *md,
+                          Depsgraph * /*depsgraph*/,
+                          Object *ob,
+                          bGPDlayer * /*gpl*/,
+                          bGPDframe * /*gpf*/,
+                          bGPDstroke *gps)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
   if (!mmd->object) {
@@ -115,20 +115,20 @@ static void deformStroke(GpencilModifierData *md,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph *depsgraph,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph *depsgraph,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
   if (mmd->object == nullptr) {
     return;
   }
-  generic_bake_deform_stroke(depsgraph, md, ob, true, deformStroke);
+  generic_bake_deform_stroke(depsgraph, md, ob, true, deform_stroke);
 }
 
-static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
+static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
@@ -139,9 +139,9 @@ static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
   return !mmd->object || mmd->object->type != OB_ARMATURE;
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int /*mode*/)
+static void update_depsgraph(GpencilModifierData *md,
+                             const ModifierUpdateDepsgraphContext *ctx,
+                             const int /*mode*/)
 {
   ArmatureGpencilModifierData *lmd = (ArmatureGpencilModifierData *)md;
   if (lmd->object != nullptr) {
@@ -151,11 +151,11 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -185,7 +185,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   gpencil_modifier_panel_register(region_type, eGpencilModifierType_Armature, panel_draw);
 }
@@ -197,18 +197,18 @@ GpencilModifierTypeInfo modifierType_Gpencil_Armature = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ deformStroke,
-    /*generateStrokes*/ nullptr,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
-    /*initData*/ initData,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*deform_stroke*/ deform_stroke,
+    /*generate_strokes*/ nullptr,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
+    /*init_data*/ init_data,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

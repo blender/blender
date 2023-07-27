@@ -5037,12 +5037,12 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
   if (psys->clmd != nullptr) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(psys->clmd->modifier.type));
 
-    if (mti->foreachIDLink != nullptr) {
+    if (mti->foreach_ID_link != nullptr) {
       ParticleSystemIDLoopForModifier data{};
       data.psys = psys;
       data.func = func;
       data.userdata = userdata;
-      mti->foreachIDLink(
+      mti->foreach_ID_link(
           &psys->clmd->modifier, nullptr, particlesystem_modifiersForeachIDLink, &data);
     }
   }

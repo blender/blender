@@ -555,7 +555,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   GHash *gh;
   int i, step1 = 1;
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  VirtualModifierData virtualModifierData;
+  VirtualModifierData virtual_modifier_data;
 
   if (BLI_listbase_is_empty(defbase)) {
     return nullptr;
@@ -573,7 +573,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   /* now loop through the armature modifiers and identify deform bones */
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md;
        md = !md->next && step1 ? (step1 = 0),
-      BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+      BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
        md->next)
   {
     if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual))) {

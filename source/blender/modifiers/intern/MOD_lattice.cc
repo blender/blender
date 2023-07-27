@@ -39,7 +39,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
@@ -48,7 +48,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(lmd, DNA_struct_default_get(LatticeModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
@@ -68,20 +68,20 @@ static bool is_disabled(LatticeModifierData *lmd)
   return !lmd->object || lmd->object->type != OB_LATTICE;
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
   return is_disabled(lmd);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
-  walk(userData, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
   if (is_disabled(lmd)) {
@@ -93,11 +93,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_depends_on_transform_relation(ctx->node, "Lattice Modifier");
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
@@ -107,15 +107,15 @@ static void deformVerts(ModifierData *md,
       lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, mesh);
 }
 
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
+static void deform_verts_EM(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            BMEditMesh *em,
+                            Mesh *mesh,
+                            float (*vertexCos)[3],
+                            int verts_num)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    deformVerts(md, ctx, mesh, vertexCos, verts_num);
+    deform_verts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
 
@@ -145,7 +145,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Lattice, panel_draw);
 }
@@ -153,34 +153,34 @@ static void panelRegister(ARegionType *region_type)
 ModifierTypeInfo modifierType_Lattice = {
     /*idname*/ "Lattice",
     /*name*/ N_("Lattice"),
-    /*structName*/ "LatticeModifierData",
-    /*structSize*/ sizeof(LatticeModifierData),
+    /*struct_name*/ "LatticeModifierData",
+    /*struct_size*/ sizeof(LatticeModifierData),
     /*srna*/ &RNA_LatticeModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_LATTICE,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ deform_verts_EM,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

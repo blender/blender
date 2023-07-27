@@ -739,7 +739,7 @@ void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2])
 
 TransConvertTypeInfo TransConvertType_Sequencer = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransSeqData,
-    /*recalcData*/ recalcData_sequencer,
+    /*create_trans_data*/ createTransSeqData,
+    /*recalc_data*/ recalcData_sequencer,
     /*special_aftertrans_update*/ special_aftertrans_update__sequencer,
 };

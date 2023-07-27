@@ -46,7 +46,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -55,7 +55,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArmatureModifierData), modifier);
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const ArmatureModifierData *amd = (const ArmatureModifierData *)md;
@@ -66,13 +66,13 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tamd->vert_coords_prev = nullptr;
 }
 
-static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* Ask for vertex-groups. */
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -84,14 +84,14 @@ static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRend
   return !amd->object || amd->object->type != OB_ARMATURE;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  walk(userData, ob, (ID **)&amd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&amd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   if (amd->object != nullptr) {
@@ -123,11 +123,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_depends_on_transform_relation(ctx->node, "Armature Modifier");
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -147,15 +147,15 @@ static void deformVerts(ModifierData *md,
   MEM_SAFE_FREE(amd->vert_coords_prev);
 }
 
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
+static void deform_verts_EM(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            BMEditMesh *em,
+                            Mesh *mesh,
+                            float (*vertexCos)[3],
+                            int verts_num)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
-    deformVerts(md, ctx, mesh, vertexCos, verts_num);
+    deform_verts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
 
@@ -177,13 +177,13 @@ static void deformVertsEM(ModifierData *md,
   MEM_SAFE_FREE(amd->vert_coords_prev);
 }
 
-static void deformMatricesEM(ModifierData *md,
-                             const ModifierEvalContext *ctx,
-                             BMEditMesh *em,
-                             Mesh * /*mesh*/,
-                             float (*vertexCos)[3],
-                             float (*defMats)[3][3],
-                             int verts_num)
+static void deform_matrices_EM(ModifierData *md,
+                               const ModifierEvalContext *ctx,
+                               BMEditMesh *em,
+                               Mesh * /*mesh*/,
+                               float (*vertexCos)[3],
+                               float (*defMats)[3][3],
+                               int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -198,12 +198,12 @@ static void deformMatricesEM(ModifierData *md,
                                            em);
 }
 
-static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh,
-                           float (*vertexCos)[3],
-                           float (*defMats)[3][3],
-                           int verts_num)
+static void deform_matrices(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            float (*vertexCos)[3],
+                            float (*defMats)[3][3],
+                            int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   BKE_armature_deform_coords_with_mesh(amd->object,
@@ -241,12 +241,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Armature, panel_draw);
 }
 
-static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
@@ -256,34 +256,34 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 ModifierTypeInfo modifierType_Armature = {
     /*idname*/ "Armature",
     /*name*/ N_("Armature"),
-    /*structName*/ "ArmatureModifierData",
-    /*structSize*/ sizeof(ArmatureModifierData),
+    /*struct_name*/ "ArmatureModifierData",
+    /*struct_size*/ sizeof(ArmatureModifierData),
     /*srna*/ &RNA_ArmatureModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_ARMATURE,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ deformMatrices,
-    /*deformVertsEM*/ deformVertsEM,
-    /*deformMatricesEM*/ deformMatricesEM,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ deform_matrices,
+    /*deform_verts_EM*/ deform_verts_EM,
+    /*deform_matrices_EM*/ deform_matrices_EM,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

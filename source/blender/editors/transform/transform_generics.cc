@@ -805,7 +805,7 @@ void applyTransObjects(TransInfo *t)
       copy_v3_v3(td->ext->isize, td->ext->size);
     }
   }
-  recalcData(t);
+  recalc_data(t);
 }
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
@@ -881,7 +881,7 @@ void restoreTransObjects(TransInfo *t)
     unit_m3(t->mat);
   }
 
-  recalcData(t);
+  recalc_data(t);
 }
 
 void calculateCenter2D(TransInfo *t)

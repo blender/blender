@@ -102,7 +102,7 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 namespace blender {
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
 
@@ -248,7 +248,7 @@ static void add_object_relation(const ModifierUpdateDepsgraphContext *ctx, Objec
   }
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   if (nmd->node_group == nullptr) {
@@ -323,7 +323,7 @@ static bool check_tree_for_time_node(const bNodeTree &tree, Set<const bNodeTree 
   return false;
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
+static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
@@ -334,16 +334,16 @@ static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
   return check_tree_for_time_node(*tree, checked_groups);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  walk(userData, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
 
   struct ForeachSettingData {
     IDWalkFunc walk;
-    void *userData;
+    void *user_data;
     Object *ob;
-  } settings = {walk, userData, ob};
+  } settings = {walk, user_data, ob};
 
   IDP_foreach_property(
       nmd->settings.properties,
@@ -351,17 +351,17 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
       [](IDProperty *id_prop, void *user_data) {
         ForeachSettingData *settings = (ForeachSettingData *)user_data;
         settings->walk(
-            settings->userData, settings->ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+            settings->user_data, settings->ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
       },
       &settings);
 }
 
-static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  walk(userData, ob, md, "texture");
+  walk(user_data, ob, md, "texture");
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
@@ -903,7 +903,7 @@ static void modifyGeometry(ModifierData *md,
   }
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   bke::GeometrySet geometry_set = bke::GeometrySet::create_with_mesh(
       mesh, bke::GeometryOwnershipType::Editable);
@@ -917,9 +917,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return new_mesh;
 }
 
-static void modifyGeometrySet(ModifierData *md,
-                              const ModifierEvalContext *ctx,
-                              bke::GeometrySet *geometry_set)
+static void modify_geometry_set(ModifierData *md,
+                                const ModifierEvalContext *ctx,
+                                bke::GeometrySet *geometry_set)
 {
   modifyGeometry(md, ctx, *geometry_set);
 }
@@ -1402,7 +1402,7 @@ static void internal_dependencies_panel_draw(const bContext * /*C*/, Panel *pane
   }
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   using namespace blender;
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Nodes, panel_draw);
@@ -1420,7 +1420,7 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
+static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
 
@@ -1463,7 +1463,7 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   }
 }
 
-static void blendRead(BlendDataReader *reader, ModifierData *md)
+static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   BLO_read_data_address(reader, &nmd->simulation_bake_directory);
@@ -1478,7 +1478,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   nmd->runtime->simulation_cache = std::make_shared<bke::sim::ModifierSimulationCache>();
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
   NodesModifierData *tnmd = reinterpret_cast<NodesModifierData *>(target);
@@ -1506,7 +1506,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   }
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   if (nmd->settings.properties != nullptr) {
@@ -1518,7 +1518,7 @@ static void freeData(ModifierData *md)
   MEM_delete(nmd->runtime);
 }
 
-static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)
 {
   /* We don't know what the node tree will need. If there are vertex groups, it is likely that the
    * node tree wants to access them. */
@@ -1531,8 +1531,8 @@ static void requiredDataMask(ModifierData * /*md*/, CustomData_MeshMasks *r_cdda
 ModifierTypeInfo modifierType_Nodes = {
     /*idname*/ "GeometryNodes",
     /*name*/ N_("GeometryNodes"),
-    /*structName*/ "NodesModifierData",
-    /*structSize*/ sizeof(NodesModifierData),
+    /*struct_name*/ "NodesModifierData",
+    /*struct_size*/ sizeof(NodesModifierData),
     /*srna*/ &RNA_NodesModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/
@@ -1542,26 +1542,26 @@ ModifierTypeInfo modifierType_Nodes = {
                                   eModifierTypeFlag_SupportsMapping),
     /*icon*/ ICON_GEOMETRY_NODES,
 
-    /*copyData*/ blender::copyData,
+    /*copy_data*/ blender::copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ blender::modifyMesh,
-    /*modifyGeometrySet*/ blender::modifyGeometrySet,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ blender::modify_mesh,
+    /*modify_geometry_set*/ blender::modify_geometry_set,
 
-    /*initData*/ blender::initData,
-    /*requiredDataMask*/ blender::requiredDataMask,
-    /*freeData*/ blender::freeData,
-    /*isDisabled*/ blender::isDisabled,
-    /*updateDepsgraph*/ blender::updateDepsgraph,
-    /*dependsOnTime*/ blender::dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ blender::foreachIDLink,
-    /*foreachTexLink*/ blender::foreachTexLink,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ blender::panelRegister,
-    /*blendWrite*/ blender::blendWrite,
-    /*blendRead*/ blender::blendRead,
+    /*init_data*/ blender::init_data,
+    /*required_data_mask*/ blender::required_data_mask,
+    /*free_data*/ blender::free_data,
+    /*is_disabled*/ blender::is_disabled,
+    /*update_depsgraph*/ blender::update_depsgraph,
+    /*depends_on_time*/ blender::depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ blender::foreach_ID_link,
+    /*foreach_tex_link*/ blender::foreach_tex_link,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ blender::panel_register,
+    /*blend_write*/ blender::blend_write,
+    /*blend_read*/ blender::blend_read,
 };

@@ -46,7 +46,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   LatticeGpencilModifierData *gpmd = (LatticeGpencilModifierData *)md;
 
@@ -55,17 +55,17 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(LatticeGpencilModifierData), modifier);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
-static void deformStroke(GpencilModifierData *md,
-                         Depsgraph * /*depsgraph*/,
-                         Object *ob,
-                         bGPDlayer *gpl,
-                         bGPDframe * /*gpf*/,
-                         bGPDstroke *gps)
+static void deform_stroke(GpencilModifierData *md,
+                          Depsgraph * /*depsgraph*/,
+                          Object *ob,
+                          bGPDlayer *gpl,
+                          bGPDframe * /*gpf*/,
+                          bGPDstroke *gps)
 {
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
@@ -111,10 +111,10 @@ static void deformStroke(GpencilModifierData *md,
 /* FIXME: Ideally we be doing this on a copy of the main depsgraph
  * (i.e. one where we don't have to worry about restoring state)
  */
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph *depsgraph,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph *depsgraph,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -142,7 +142,7 @@ static void bakeModifier(Main * /*bmain*/,
 
       /* Compute lattice effects on this frame. */
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        deformStroke(md, depsgraph, ob, gpl, gpf, gps);
+        deform_stroke(md, depsgraph, ob, gpl, gpf, gps);
       }
     }
   }
@@ -159,7 +159,7 @@ static void bakeModifier(Main * /*bmain*/,
   BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
-static void freeData(GpencilModifierData *md)
+static void free_data(GpencilModifierData *md)
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
   LatticeDeformData *ldata = (LatticeDeformData *)mmd->cache_data;
@@ -169,7 +169,7 @@ static void freeData(GpencilModifierData *md)
   }
 }
 
-static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
+static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
 
@@ -181,9 +181,9 @@ static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
   return !mmd->object || mmd->object->type != OB_LATTICE;
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int /*mode*/)
+static void update_depsgraph(GpencilModifierData *md,
+                             const ModifierUpdateDepsgraphContext *ctx,
+                             const int /*mode*/)
 {
   LatticeGpencilModifierData *lmd = (LatticeGpencilModifierData *)md;
   if (lmd->object != nullptr) {
@@ -193,12 +193,12 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
-  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -241,7 +241,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, true, false);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Lattice, panel_draw);
@@ -256,19 +256,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Lattice = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ deformStroke,
-    /*generateStrokes*/ nullptr,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ deform_stroke,
+    /*generate_strokes*/ nullptr,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

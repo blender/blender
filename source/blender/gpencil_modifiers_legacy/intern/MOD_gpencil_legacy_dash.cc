@@ -49,7 +49,7 @@
 
 #include "WM_api.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)md;
 
@@ -64,7 +64,7 @@ static void initData(GpencilModifierData *md)
   dmd->segments = ds;
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)target;
   const DashGpencilModifierData *dmd_src = (const DashGpencilModifierData *)md;
@@ -74,7 +74,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   dmd->segments = static_cast<DashGpencilModifierSegment *>(MEM_dupallocN(dmd_src->segments));
 }
 
-static void freeData(GpencilModifierData *md)
+static void free_data(GpencilModifierData *md)
 {
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)md;
 
@@ -228,10 +228,10 @@ static void apply_dash_for_frame(
   }
 }
 
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph * /*depsgraph*/,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph * /*depsgraph*/,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
 
@@ -244,7 +244,7 @@ static void bakeModifier(Main * /*bmain*/,
 
 /* -------------------------------- */
 
-static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
+static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
 {
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)md;
 
@@ -256,8 +256,8 @@ static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
   return sequence_length < 1;
 }
 
-/* Generic "generateStrokes" callback */
-static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
+/* Generic "generate_strokes" callback */
+static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
@@ -271,11 +271,11 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   DashGpencilModifierData *mmd = (DashGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
 static void segment_list_item(uiList * /*ui_list*/,
@@ -358,7 +358,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, true, false);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Dash, panel_draw);
@@ -379,19 +379,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Dash = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ nullptr,
-    /*generateStrokes*/ generateStrokes,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ nullptr,
+    /*generate_strokes*/ generate_strokes,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

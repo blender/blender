@@ -368,9 +368,9 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
                                              const bool is_mode_set)
 {
   if (ob->type == OB_GPENCIL_LEGACY) {
-    GpencilVirtualModifierData virtualModifierData;
-    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob,
-                                                                             &virtualModifierData);
+    GpencilVirtualModifierData virtual_modifier_data;
+    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
+        ob, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eGpencilModifierType_Armature) {
         ArmatureGpencilModifierData *amd = (ArmatureGpencilModifierData *)md;
@@ -380,8 +380,8 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
     }
   }
   else {
-    VirtualModifierData virtualModifierData;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    VirtualModifierData virtual_modifier_data;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eModifierType_Armature) {
         ArmatureModifierData *amd = (ArmatureModifierData *)md;

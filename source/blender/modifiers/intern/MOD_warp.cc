@@ -51,7 +51,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
   wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const WarpModifierData *wmd = (const WarpModifierData *)md;
   WarpModifierData *twmd = (WarpModifierData *)target;
@@ -72,7 +72,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   twmd->curfalloff = BKE_curvemapping_copy(wmd->curfalloff);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -103,7 +103,7 @@ static void matrix_from_obj_pchan(float mat[4][4],
   }
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
+static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -114,35 +114,35 @@ static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
   return false;
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   BKE_curvemapping_free(wmd->curfalloff);
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
   return !(wmd->object_from && wmd->object_to);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
-  walk(userData, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-  walk(userData, ob, (ID **)&wmd->object_from, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&wmd->object_to, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&wmd->object_from, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&wmd->object_to, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
 }
 
-static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
 {
-  walk(userData, ob, md, "texture");
+  walk(user_data, ob, md, "texture");
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   bool need_transform_relation = false;
@@ -335,11 +335,11 @@ static void warpModifier_do(WarpModifierData *wmd,
   }
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
   warpModifier_do(wmd, ctx, mesh, vertexCos, verts_num);
@@ -440,7 +440,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Warp, panel_draw);
   modifier_subpanel_register(
@@ -449,7 +449,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "texture", "Texture", nullptr, texture_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
+static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const ModifierData *md)
 {
   const WarpModifierData *wmd = (const WarpModifierData *)md;
 
@@ -460,7 +460,7 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
   }
 }
 
-static void blendRead(BlendDataReader *reader, ModifierData *md)
+static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
@@ -473,33 +473,33 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 ModifierTypeInfo modifierType_Warp = {
     /*idname*/ "Warp",
     /*name*/ N_("Warp"),
-    /*structName*/ "WarpModifierData",
-    /*structSize*/ sizeof(WarpModifierData),
+    /*struct_name*/ "WarpModifierData",
+    /*struct_size*/ sizeof(WarpModifierData),
     /*srna*/ &RNA_WarpModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_WARP,
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ foreachTexLink,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ blendWrite,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ foreach_tex_link,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };

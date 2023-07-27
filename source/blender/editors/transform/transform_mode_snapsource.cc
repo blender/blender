@@ -212,7 +212,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 
 #ifdef RESET_TRANSFORMATION
   /* Temporarily disable snapping.
-   * We don't want #SCE_SNAP_PROJECT to affect `recalcData` for example. */
+   * We don't want #SCE_SNAP_PROJECT to affect `recalc_data` for example. */
   t->tsnap.flag &= ~SCE_SNAP;
 
   restoreTransObjects(t);

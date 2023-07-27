@@ -282,7 +282,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
 
 TransConvertTypeInfo TransConvertType_SequencerImage = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransSeqImageData,
-    /*recalcData*/ recalcData_sequencer_image,
+    /*create_trans_data*/ createTransSeqImageData,
+    /*recalc_data*/ recalcData_sequencer_image,
     /*special_aftertrans_update*/ special_aftertrans_update__sequencer_image,
 };

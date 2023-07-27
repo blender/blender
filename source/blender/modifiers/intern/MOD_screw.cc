@@ -50,7 +50,7 @@
 
 using namespace blender;
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
 
@@ -192,7 +192,7 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
   return result;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
   using namespace blender;
   const Mesh *mesh = meshData;
@@ -1026,7 +1026,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
   if (ltmd->ob_axis != nullptr) {
@@ -1035,11 +1035,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
 
-  walk(userData, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&ltmd->ob_axis, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -1110,7 +1110,7 @@ static void normals_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_normal_flip", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Screw, panel_draw);
   modifier_subpanel_register(
@@ -1120,8 +1120,8 @@ static void panelRegister(ARegionType *region_type)
 ModifierTypeInfo modifierType_Screw = {
     /*idname*/ "Screw",
     /*name*/ N_("Screw"),
-    /*structName*/ "ScrewModifierData",
-    /*structSize*/ sizeof(ScrewModifierData),
+    /*struct_name*/ "ScrewModifierData",
+    /*struct_size*/ sizeof(ScrewModifierData),
     /*srna*/ &RNA_ScrewModifier,
     /*type*/ eModifierTypeType_Constructive,
 
@@ -1129,26 +1129,26 @@ ModifierTypeInfo modifierType_Screw = {
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_SCREW,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

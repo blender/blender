@@ -210,7 +210,7 @@ static void flushTransPaintCurve(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_PaintCurve = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransPaintCurveVerts,
-    /*recalcData*/ flushTransPaintCurve,
+    /*create_trans_data*/ createTransPaintCurveVerts,
+    /*recalc_data*/ flushTransPaintCurve,
     /*special_aftertrans_update*/ nullptr,
 };

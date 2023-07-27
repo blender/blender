@@ -2912,8 +2912,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         LISTBASE_FOREACH (GpencilModifierData *, md, &ob_iter->greasepencil_modifiers) {
           const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
               GpencilModifierType(md->type));
-          if (mti->bakeModifier) {
-            mti->bakeModifier(bmain, depsgraph, md, ob_iter);
+          if (mti->bake_modifier) {
+            mti->bake_modifier(bmain, depsgraph, md, ob_iter);
           }
         }
 

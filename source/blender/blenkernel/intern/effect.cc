@@ -459,7 +459,7 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
 /************************************************/
 
 // triangle - ray callback function
-static void eff_tri_ray_hit(void * /*userData*/,
+static void eff_tri_ray_hit(void * /*user_data*/,
                             int /*index*/,
                             const BVHTreeRay * /*ray*/,
                             BVHTreeRayHit *hit)

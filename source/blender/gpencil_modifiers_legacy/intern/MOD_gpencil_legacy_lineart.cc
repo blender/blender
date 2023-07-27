@@ -45,7 +45,7 @@
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "lineart/MOD_lineart.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   LineartGpencilModifierData *gpmd = (LineartGpencilModifierData *)md;
 
@@ -54,7 +54,7 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(LineartGpencilModifierData), modifier);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
@@ -117,7 +117,7 @@ static bool isModifierDisabled(GpencilModifierData *md)
 
   return false;
 }
-static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
+static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
@@ -169,10 +169,10 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph *depsgraph,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph *depsgraph,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
@@ -203,7 +203,7 @@ static void bakeModifier(Main * /*bmain*/,
   MOD_lineart_clear_cache(&gpd->runtime.lineart_cache);
 }
 
-static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
+static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
 {
   return isModifierDisabled(md);
 }
@@ -239,9 +239,9 @@ static void add_this_collection(Collection *c,
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int mode)
+static void update_depsgraph(GpencilModifierData *md,
+                             const ModifierUpdateDepsgraphContext *ctx,
+                             const int mode)
 {
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
 
@@ -269,16 +269,16 @@ static void updateDepsgraph(GpencilModifierData *md,
   }
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&lmd->target_material, IDWALK_CB_USER);
-  walk(userData, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&lmd->target_material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&lmd->source_collection, IDWALK_CB_NOP);
 
-  walk(userData, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&lmd->source_camera, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&lmd->light_contour_object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&lmd->source_camera, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&lmd->light_contour_object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -785,7 +785,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
       col, ptr, "use_offset_towards_custom_camera", 0, IFACE_("Towards Custom Camera"), ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Lineart, panel_draw);
@@ -829,19 +829,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Lineart = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ nullptr,
-    /*generateStrokes*/ generateStrokes,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ nullptr,
+    /*generate_strokes*/ generate_strokes,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

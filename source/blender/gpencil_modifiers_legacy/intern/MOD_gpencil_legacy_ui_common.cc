@@ -308,7 +308,7 @@ static void gpencil_modifier_panel_header(const bContext * /*C*/, Panel *panel)
 
   /* Modifier Icon. */
   row = uiLayoutRow(layout, false);
-  if (mti->isDisabled && mti->isDisabled(md, 0)) {
+  if (mti->is_disabled && mti->is_disabled(md, 0)) {
     uiLayoutSetRedAlert(row, true);
   }
   uiItemL(row, "", RNA_struct_ui_icon(ptr->type));

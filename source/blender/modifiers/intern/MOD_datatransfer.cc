@@ -46,7 +46,7 @@
 /**************************************
  * Modifiers functions.               *
  **************************************/
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
   int i;
@@ -74,7 +74,7 @@ static void initData(ModifierData *md)
   dtmd->flags = MOD_DATATRANSFER_OBSRC_TRANSFORM;
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
 
@@ -86,7 +86,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, r_cddata_masks);
 }
 
-static bool dependsOnNormals(ModifierData *md)
+static bool depends_on_normals(ModifierData *md)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
   int item_types = BKE_object_data_transfer_get_dttypes_item_types(dtmd->data_types);
@@ -107,13 +107,13 @@ static bool dependsOnNormals(ModifierData *md)
   return false;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
-  walk(userData, ob, (ID **)&dtmd->ob_source, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&dtmd->ob_source, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
   if (dtmd->ob_source != nullptr) {
@@ -134,7 +134,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   /* If no source object, bypass. */
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
@@ -150,7 +150,7 @@ static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRend
   (DT_TYPE_BWEIGHT_VERT | DT_TYPE_BWEIGHT_EDGE | DT_TYPE_CREASE | DT_TYPE_SHARP_EDGE | \
    DT_TYPE_LNOR | DT_TYPE_SHARP_FACE)
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me_mod)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me_mod)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
   Mesh *result = me_mod;
@@ -440,7 +440,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "ray_radius", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_DataTransfer, panel_draw);
@@ -485,34 +485,34 @@ static void panelRegister(ARegionType *region_type)
 ModifierTypeInfo modifierType_DataTransfer = {
     /*idname*/ "DataTransfer",
     /*name*/ N_("DataTransfer"),
-    /*structName*/ "DataTransferModifierData",
-    /*structSize*/ sizeof(DataTransferModifierData),
+    /*struct_name*/ "DataTransferModifierData",
+    /*struct_size*/ sizeof(DataTransferModifierData),
     /*srna*/ &RNA_DataTransferModifier,
     /*type*/ eModifierTypeType_NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
     /*icon*/ ICON_MOD_DATA_TRANSFER,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

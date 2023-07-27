@@ -311,7 +311,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   /* Modifier Icon. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
-  if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
+  if (mti->is_disabled && mti->is_disabled(scene, md, false)) {
     uiLayoutSetRedAlert(sub, true);
   }
   uiItemStringO(sub,

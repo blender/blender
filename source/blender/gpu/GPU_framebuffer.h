@@ -569,8 +569,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
  */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *framebuffer,
                                           int max_level,
-                                          void (*per_level_callback)(void *userData, int level),
-                                          void *userData);
+                                          void (*per_level_callback)(void *user_data, int level),
+                                          void *user_data);
 
 /** \} */
 

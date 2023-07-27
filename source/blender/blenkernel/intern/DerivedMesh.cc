@@ -536,7 +536,7 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
 {
   Mesh *mesh_output = nullptr;
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
-  if (mti->modifyGeometrySet == nullptr) {
+  if (mti->modify_geometry_set == nullptr) {
     mesh_output = BKE_modifier_modify_mesh(md, &mectx, input_mesh);
   }
   else {
@@ -550,7 +550,7 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
     geometry_set.replace_mesh(input_mesh, GeometryOwnershipType::Editable);
 
     /* Let the modifier change the geometry set. */
-    mti->modifyGeometrySet(md, &mectx, &geometry_set);
+    mti->modify_geometry_set(md, &mectx, &geometry_set);
 
     /* Release the mesh from the geometry set again. */
     if (geometry_set.has<MeshComponent>()) {
@@ -642,8 +642,8 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
-  VirtualModifierData virtualModifierData;
-  ModifierData *firstmd = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *firstmd = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   ModifierData *md = firstmd;
 
   /* Preview colors by modifiers such as dynamic paint, to show the results
@@ -774,9 +774,9 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     /* Add orco mesh as layer if needed by this modifier. */
-    if (mesh_final && mesh_orco && mti->requiredDataMask) {
+    if (mesh_final && mesh_orco && mti->required_data_mask) {
       CustomData_MeshMasks mask = {0};
-      mti->requiredDataMask(md, &mask);
+      mti->required_data_mask(md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
         add_orco_mesh(ob, nullptr, mesh_final, mesh_orco, CD_ORCO);
       }
@@ -901,8 +901,8 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         temp_cddata_masks.fmask = CD_MASK_ORIGINDEX;
         temp_cddata_masks.pmask = CD_MASK_ORIGINDEX;
 
-        if (mti->requiredDataMask != nullptr) {
-          mti->requiredDataMask(md, &temp_cddata_masks);
+        if (mti->required_data_mask != nullptr) {
+          mti->required_data_mask(md, &temp_cddata_masks);
         }
         CustomData_MeshMasks_update(&temp_cddata_masks, &nextmask);
         mesh_set_only_copy(mesh_orco, &temp_cddata_masks);
@@ -1175,8 +1175,8 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
   /* Compute accumulated datamasks needed by each modifier. It helps to do
    * this fine grained so that for example vertex groups are preserved up to
@@ -1219,9 +1219,9 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
     /* Add an orco mesh as layer if needed by this modifier. */
-    if (mesh_orco && mti->requiredDataMask) {
+    if (mesh_orco && mti->required_data_mask) {
       CustomData_MeshMasks mask = {0};
-      mti->requiredDataMask(md, &mask);
+      mti->required_data_mask(md, &mask);
       if (mask.vmask & CD_MASK_ORCO) {
         add_orco_mesh(ob, em_input, mesh_final, mesh_orco, CD_ORCO);
       }
@@ -1241,7 +1241,7 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
     }
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      if (mti->deformVertsEM) {
+      if (mti->deform_verts_EM) {
         BKE_modifier_deform_vertsEM(
             md,
             &mectx,
@@ -1689,12 +1689,12 @@ struct MappedUserData {
   BLI_bitmap *vertex_visit;
 };
 
-static void make_vertexcos__mapFunc(void *userData,
+static void make_vertexcos__mapFunc(void *user_data,
                                     int index,
                                     const float co[3],
                                     const float /*no*/[3])
 {
-  MappedUserData *mappedData = (MappedUserData *)userData;
+  MappedUserData *mappedData = (MappedUserData *)user_data;
 
   if (BLI_BITMAP_TEST(mappedData->vertex_visit, index) == 0) {
     /* we need coord from prototype vertex, not from copies,
@@ -1708,12 +1708,12 @@ static void make_vertexcos__mapFunc(void *userData,
 void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], const int totcos)
 {
   if (me_eval->runtime->deformed_only == false) {
-    MappedUserData userData;
+    MappedUserData user_data;
     memset(r_cos, 0, sizeof(*r_cos) * totcos);
-    userData.vertexcos = r_cos;
-    userData.vertex_visit = BLI_BITMAP_NEW(totcos, "vertexcos flags");
-    BKE_mesh_foreach_mapped_vert(me_eval, make_vertexcos__mapFunc, &userData, MESH_FOREACH_NOP);
-    MEM_freeN(userData.vertex_visit);
+    user_data.vertexcos = r_cos;
+    user_data.vertex_visit = BLI_BITMAP_NEW(totcos, "vertexcos flags");
+    BKE_mesh_foreach_mapped_vert(me_eval, make_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
+    MEM_freeN(user_data.vertex_visit);
   }
   else {
     const Span<float3> positions = me_eval->vert_positions();

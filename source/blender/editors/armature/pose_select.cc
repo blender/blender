@@ -285,9 +285,9 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
   if (ob_active->type == OB_GPENCIL_LEGACY) {
-    GpencilVirtualModifierData virtualModifierData;
-    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob_active,
-                                                                             &virtualModifierData);
+    GpencilVirtualModifierData virtual_modifier_data;
+    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
+        ob_active, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eGpencilModifierType_Armature) {
         ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
@@ -303,8 +303,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
     }
   }
   else {
-    VirtualModifierData virtualModifierData;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob_active, &virtualModifierData);
+    VirtualModifierData virtual_modifier_data;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob_active, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eModifierType_Armature) {
         ArmatureModifierData *amd = (ArmatureModifierData *)md;

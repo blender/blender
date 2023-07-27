@@ -155,7 +155,7 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
                                  const char *description);
 
 /**
- * Special function which is used from modifiers' #updateDepsgraph() callback
+ * Special function which is used from modifiers' #update_depsgraph() callback
  * to indicate that the modifier needs to know transformation of the object
  * which that modifier belongs to.
  * This function will take care of checking which operation is required to

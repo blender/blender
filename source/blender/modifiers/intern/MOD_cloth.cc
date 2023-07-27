@@ -49,7 +49,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
@@ -75,18 +75,18 @@ static void initData(ModifierData *md)
   }
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
   /* check for alloc failing */
   if (!clmd->sim_parms || !clmd->coll_parms) {
-    initData(md);
+    init_data(md);
 
     if (!clmd->sim_parms || !clmd->coll_parms) {
       return;
@@ -120,7 +120,7 @@ static void deformVerts(ModifierData *md,
   clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh, vertexCos);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
   if (clmd != nullptr) {
@@ -138,7 +138,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_depends_on_transform_relation(ctx->node, "Cloth Modifier");
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
@@ -151,7 +151,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const ClothModifierData *clmd = (const ClothModifierData *)md;
   ClothModifierData *tclmd = (ClothModifierData *)target;
@@ -192,12 +192,12 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tclmd->solver_result = nullptr;
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
@@ -236,16 +236,16 @@ static void freeData(ModifierData *md)
   }
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
   if (clmd->coll_parms) {
-    walk(userData, ob, (ID **)&clmd->coll_parms->group, IDWALK_CB_NOP);
+    walk(user_data, ob, (ID **)&clmd->coll_parms->group, IDWALK_CB_NOP);
   }
 
   if (clmd->sim_parms && clmd->sim_parms->effector_weights) {
-    walk(userData, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_USER);
+    walk(user_data, ob, (ID **)&clmd->sim_parms->effector_weights->group, IDWALK_CB_USER);
   }
 }
 
@@ -260,7 +260,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Cloth, panel_draw);
 }
@@ -268,34 +268,34 @@ static void panelRegister(ARegionType *region_type)
 ModifierTypeInfo modifierType_Cloth = {
     /*idname*/ "Cloth",
     /*name*/ N_("Cloth"),
-    /*structName*/ "ClothModifierData",
-    /*structSize*/ sizeof(ClothModifierData),
+    /*struct_name*/ "ClothModifierData",
+    /*struct_size*/ sizeof(ClothModifierData),
     /*srna*/ &RNA_ClothModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_UsesPointCache |
         eModifierTypeFlag_Single,
     /*icon*/ ICON_MOD_CLOTH,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

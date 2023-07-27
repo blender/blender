@@ -34,7 +34,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-static void initData(ShaderFxData *md)
+static void init_data(ShaderFxData *md)
 {
   ShadowShaderFxData *gpfx = (ShadowShaderFxData *)md;
   gpfx->rotation = 0.0f;
@@ -53,12 +53,12 @@ static void initData(ShaderFxData *md)
   gpfx->object = nullptr;
 }
 
-static void copyData(const ShaderFxData *md, ShaderFxData *target)
+static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 {
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
   ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
   if (fxd->object != nullptr) {
@@ -67,18 +67,18 @@ static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphConte
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
 }
 
-static bool isDisabled(ShaderFxData *fx, int /*userRenderParams*/)
+static bool is_disabled(ShaderFxData *fx, int /*user_render_params*/)
 {
   ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 
   return (!fxd->object) && (fxd->flag & FX_SHADOW_USE_OBJECT);
 }
 
-static void foreachIDLink(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 
-  walk(userData, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -151,7 +151,7 @@ static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "phase", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = shaderfx_panel_register(region_type, eShaderFxType_Shadow, panel_draw);
   shaderfx_subpanel_register(region_type, "blur", "Blur", nullptr, blur_panel_draw, panel_type);
@@ -166,13 +166,13 @@ ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*initData*/ initData,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*panel_register*/ panel_register,
 };

@@ -55,7 +55,7 @@
 /* The time for geometric strokes */
 #define GP_BUILD_TIME_GEOSTROKES 1.0
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   BuildGpencilModifierData *gpmd = (BuildGpencilModifierData *)md;
 
@@ -64,12 +64,12 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(BuildGpencilModifierData), modifier);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
-static bool dependsOnTime(GpencilModifierData * /*md*/)
+static bool depends_on_time(GpencilModifierData * /*md*/)
 {
   return true;
 }
@@ -869,7 +869,7 @@ static void generate_geometry(GpencilModifierData *md,
 }
 
 /* Entry-point for Build Modifier */
-static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
+static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = (bGPdata *)ob->data;
@@ -1011,7 +1011,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, false, false);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Build, panel_draw);
@@ -1023,16 +1023,16 @@ static void panelRegister(ARegionType *region_type)
       region_type, "_mask", "Influence", nullptr, mask_panel_draw, panel_type);
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   BuildGpencilModifierData *mmd = (BuildGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int /*mode*/)
+static void update_depsgraph(GpencilModifierData *md,
+                             const ModifierUpdateDepsgraphContext *ctx,
+                             const int /*mode*/)
 {
   BuildGpencilModifierData *lmd = (BuildGpencilModifierData *)md;
   if (lmd->object != nullptr) {
@@ -1051,19 +1051,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Build = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_NoApply,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ nullptr,
-    /*generateStrokes*/ generateStrokes,
-    /*bakeModifier*/ nullptr,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ nullptr,
+    /*generate_strokes*/ generate_strokes,
+    /*bake_modifier*/ nullptr,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ dependsOnTime,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

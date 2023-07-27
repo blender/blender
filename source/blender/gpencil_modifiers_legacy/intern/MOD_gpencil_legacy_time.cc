@@ -51,7 +51,7 @@
 
 #include "DEG_depsgraph.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
 
@@ -65,7 +65,7 @@ static void initData(GpencilModifierData *md)
   gpmd->segments = ds;
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)target;
   const TimeGpencilModifierData *gpmd_src = (const TimeGpencilModifierData *)md;
@@ -73,19 +73,19 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   gpmd->segments = static_cast<TimeGpencilModifierSegment *>(MEM_dupallocN(gpmd_src->segments));
 }
 
-static void freeData(GpencilModifierData *md)
+static void free_data(GpencilModifierData *md)
 {
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
 
   MEM_SAFE_FREE(gpmd->segments);
 }
 
-static int remapTime(GpencilModifierData *md,
-                     Depsgraph * /*depsgraph*/,
-                     Scene *scene,
-                     Object * /*ob*/,
-                     bGPDlayer *gpl,
-                     int cfra)
+static int remap_time(GpencilModifierData *md,
+                      Depsgraph * /*depsgraph*/,
+                      Scene *scene,
+                      Object * /*ob*/,
+                      bGPDlayer *gpl,
+                      int cfra)
 {
   TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
   const bool custom = mmd->flag & GP_TIME_CUSTOM_RANGE;
@@ -282,11 +282,11 @@ static void segment_list_item(uiList * /*ui_list*/,
   uiLayout *row = uiLayoutRow(layout, true);
   uiItemR(row, itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 static void panel_draw(const bContext *C, Panel *panel)
 {
@@ -404,7 +404,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, false, false);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Time, panel_draw);
@@ -431,19 +431,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Time = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_NoApply,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ nullptr,
-    /*generateStrokes*/ nullptr,
-    /*bakeModifier*/ nullptr,
-    /*remapTime*/ remapTime,
+    /*deform_stroke*/ nullptr,
+    /*generate_strokes*/ nullptr,
+    /*bake_modifier*/ nullptr,
+    /*remap_time*/ remap_time,
 
-    /*initData*/ initData,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

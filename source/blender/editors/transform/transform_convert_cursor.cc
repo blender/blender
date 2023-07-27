@@ -191,21 +191,21 @@ static void recalcData_cursor_view3d(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_CursorImage = {
     /*flags*/ T_2D_EDIT,
-    /*createTransData*/ createTransCursor_image,
-    /*recalcData*/ recalcData_cursor_image,
+    /*create_trans_data*/ createTransCursor_image,
+    /*recalc_data*/ recalcData_cursor_image,
     /*special_aftertrans_update*/ nullptr,
 };
 
 TransConvertTypeInfo TransConvertType_CursorSequencer = {
     /*flags*/ T_2D_EDIT,
-    /*createTransData*/ createTransCursor_sequencer,
-    /*recalcData*/ recalcData_cursor_sequencer,
+    /*create_trans_data*/ createTransCursor_sequencer,
+    /*recalc_data*/ recalcData_cursor_sequencer,
     /*special_aftertrans_update*/ nullptr,
 };
 
 TransConvertTypeInfo TransConvertType_Cursor3D = {
     /*flags*/ 0,
-    /*createTransData*/ createTransCursor_view3d,
-    /*recalcData*/ recalcData_cursor_view3d,
+    /*create_trans_data*/ createTransCursor_view3d,
+    /*recalc_data*/ recalcData_cursor_view3d,
     /*special_aftertrans_update*/ nullptr,
 };

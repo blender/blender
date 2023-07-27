@@ -51,7 +51,7 @@ static void uv_warp_from_mat4_pair(float uv_dst[2],
   copy_v2_v2(uv_dst, tuv);
 }
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
@@ -60,7 +60,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVWarpModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
@@ -129,7 +129,7 @@ static void uv_warp_compute(void *__restrict userdata,
   }
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
   const MDeformVert *dvert;
@@ -220,15 +220,15 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
-  walk(userData, ob, (ID **)&umd->object_dst, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&umd->object_src, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&umd->object_dst, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&umd->object_src, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
@@ -295,7 +295,7 @@ static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_UVWarp, panel_draw);
   modifier_subpanel_register(
@@ -305,34 +305,34 @@ static void panelRegister(ARegionType *region_type)
 ModifierTypeInfo modifierType_UVWarp = {
     /*idname*/ "UVWarp",
     /*name*/ N_("UVWarp"),
-    /*structName*/ "UVWarpModifierData",
-    /*structSize*/ sizeof(UVWarpModifierData),
+    /*struct_name*/ "UVWarpModifierData",
+    /*struct_size*/ sizeof(UVWarpModifierData),
     /*srna*/ &RNA_UVWarpModifier,
     /*type*/ eModifierTypeType_NonGeometrical,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
     /*icon*/ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

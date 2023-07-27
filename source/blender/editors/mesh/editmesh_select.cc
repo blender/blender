@@ -224,12 +224,12 @@ struct NearestVertUserData {
   NearestVertUserData_Hit hit_cycle;
 };
 
-static void findnearestvert__doClosest(void *userData,
+static void findnearestvert__doClosest(void *user_data,
                                        BMVert *eve,
                                        const float screen_co[2],
                                        int index)
 {
-  NearestVertUserData *data = static_cast<NearestVertUserData *>(userData);
+  NearestVertUserData *data = static_cast<NearestVertUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);
@@ -374,13 +374,13 @@ struct NearestEdgeUserData_ZBuf {
   const BMEdge *edge_test;
 };
 
-static void find_nearest_edge_center__doZBuf(void *userData,
+static void find_nearest_edge_center__doZBuf(void *user_data,
                                              BMEdge *eed,
                                              const float screen_co_a[2],
                                              const float screen_co_b[2],
                                              int /*index*/)
 {
-  NearestEdgeUserData_ZBuf *data = static_cast<NearestEdgeUserData_ZBuf *>(userData);
+  NearestEdgeUserData_ZBuf *data = static_cast<NearestEdgeUserData_ZBuf *>(user_data);
 
   if (eed == data->edge_test) {
     float dist_test;
@@ -418,10 +418,13 @@ struct NearestEdgeUserData {
 };
 
 /* NOTE: uses v3d, so needs active 3d window. */
-static void find_nearest_edge__doClosest(
-    void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
+static void find_nearest_edge__doClosest(void *user_data,
+                                         BMEdge *eed,
+                                         const float screen_co_a[2],
+                                         const float screen_co_b[2],
+                                         int index)
 {
-  NearestEdgeUserData *data = static_cast<NearestEdgeUserData *>(userData);
+  NearestEdgeUserData *data = static_cast<NearestEdgeUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   float fac = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
@@ -632,12 +635,12 @@ struct NearestFaceUserData_ZBuf {
   const BMFace *face_test;
 };
 
-static void find_nearest_face_center__doZBuf(void *userData,
+static void find_nearest_face_center__doZBuf(void *user_data,
                                              BMFace *efa,
                                              const float screen_co[2],
                                              int /*index*/)
 {
-  NearestFaceUserData_ZBuf *data = static_cast<NearestFaceUserData_ZBuf *>(userData);
+  NearestFaceUserData_ZBuf *data = static_cast<NearestFaceUserData_ZBuf *>(user_data);
 
   if (efa == data->face_test) {
     const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
@@ -665,12 +668,12 @@ struct NearestFaceUserData {
   NearestFaceUserData_Hit hit_cycle;
 };
 
-static void findnearestface__doClosest(void *userData,
+static void findnearestface__doClosest(void *user_data,
                                        BMFace *efa,
                                        const float screen_co[2],
                                        int index)
 {
-  NearestFaceUserData *data = static_cast<NearestFaceUserData *>(userData);
+  NearestFaceUserData *data = static_cast<NearestFaceUserData *>(user_data);
   float dist_test, dist_test_bias;
 
   dist_test = dist_test_bias = len_manhattan_v2v2(data->mval_fl, screen_co);

@@ -972,7 +972,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Action = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransActionData,
-    /*recalcData*/ recalcData_actedit,
+    /*create_trans_data*/ createTransActionData,
+    /*recalc_data*/ recalcData_actedit,
     /*special_aftertrans_update*/ special_aftertrans_update__actedit,
 };

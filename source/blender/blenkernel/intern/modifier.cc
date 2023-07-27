@@ -136,7 +136,7 @@ void BKE_modifier_panel_expand(ModifierData *md)
 static ModifierData *modifier_allocate_and_init(ModifierType type)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
-  ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->structSize, mti->structName));
+  ModifierData *md = static_cast<ModifierData *>(MEM_callocN(mti->struct_size, mti->struct_name));
 
   /* NOTE: this name must be made unique later. */
   STRNCPY_UTF8(md->name, DATA_(mti->name));
@@ -151,8 +151,8 @@ static ModifierData *modifier_allocate_and_init(ModifierType type)
     md->mode |= eModifierMode_Editmode;
   }
 
-  if (mti->initData) {
-    mti->initData(md);
+  if (mti->init_data) {
+    mti->init_data(md);
   }
 
   return md;
@@ -167,7 +167,7 @@ ModifierData *BKE_modifier_new(int type)
   return md;
 }
 
-static void modifier_free_data_id_us_cb(void * /*userData*/,
+static void modifier_free_data_id_us_cb(void * /*user_data*/,
                                         Object * /*ob*/,
                                         ID **idpoin,
                                         int cb_flag)
@@ -183,13 +183,13 @@ void BKE_modifier_free_ex(ModifierData *md, const int flag)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    if (mti->foreachIDLink) {
-      mti->foreachIDLink(md, nullptr, modifier_free_data_id_us_cb, nullptr);
+    if (mti->foreach_ID_link) {
+      mti->foreach_ID_link(md, nullptr, modifier_free_data_id_us_cb, nullptr);
     }
   }
 
-  if (mti->freeData) {
-    mti->freeData(md);
+  if (mti->free_data) {
+    mti->free_data(md);
   }
   if (md->error) {
     MEM_freeN(md->error);
@@ -240,7 +240,7 @@ bool BKE_modifier_depends_ontime(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  return mti->dependsOnTime && mti->dependsOnTime(scene, md);
+  return mti->depends_on_time && mti->depends_on_time(scene, md);
 }
 
 bool BKE_modifier_supports_mapping(ModifierData *md)
@@ -305,24 +305,24 @@ void BKE_modifiers_clear_errors(Object *ob)
   }
 }
 
-void BKE_modifiers_foreach_ID_link(Object *ob, IDWalkFunc walk, void *userData)
+void BKE_modifiers_foreach_ID_link(Object *ob, IDWalkFunc walk, void *user_data)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    if (mti->foreachIDLink) {
-      mti->foreachIDLink(md, ob, walk, userData);
+    if (mti->foreach_ID_link) {
+      mti->foreach_ID_link(md, ob, walk, user_data);
     }
   }
 }
 
-void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *userData)
+void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_data)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    if (mti->foreachTexLink) {
-      mti->foreachTexLink(md, ob, walk, userData);
+    if (mti->foreach_tex_link) {
+      mti->foreach_tex_link(md, ob, walk, user_data);
     }
   }
 }
@@ -345,21 +345,21 @@ void BKE_modifier_copydata_generic(const ModifierData *md_src,
 
   /* `md_dst` may have already be fully initialized with some extra allocated data,
    * we need to free it now to avoid a memory leak. */
-  if (mti->freeData) {
-    mti->freeData(md_dst);
+  if (mti->free_data) {
+    mti->free_data(md_dst);
   }
 
   const size_t data_size = sizeof(ModifierData);
   const char *md_src_data = ((const char *)md_src) + data_size;
   char *md_dst_data = ((char *)md_dst) + data_size;
-  BLI_assert(data_size <= size_t(mti->structSize));
-  memcpy(md_dst_data, md_src_data, size_t(mti->structSize) - data_size);
+  BLI_assert(data_size <= size_t(mti->struct_size));
+  memcpy(md_dst_data, md_src_data, size_t(mti->struct_size) - data_size);
 
   /* Runtime fields are never to be preserved. */
   md_dst->runtime = nullptr;
 }
 
-static void modifier_copy_data_id_us_cb(void * /*userData*/,
+static void modifier_copy_data_id_us_cb(void * /*user_data*/,
                                         Object * /*ob*/,
                                         ID **idpoin,
                                         int cb_flag)
@@ -378,24 +378,24 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, cons
   target->flag = md->flag;
   target->ui_expand_flag = md->ui_expand_flag;
 
-  if (mti->copyData) {
-    mti->copyData(md, target, flag);
+  if (mti->copy_data) {
+    mti->copy_data(md, target, flag);
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    if (mti->foreachIDLink) {
-      mti->foreachIDLink(target, nullptr, modifier_copy_data_id_us_cb, nullptr);
+    if (mti->foreach_ID_link) {
+      mti->foreach_ID_link(target, nullptr, modifier_copy_data_id_us_cb, nullptr);
     }
   }
 
   if (flag & LIB_ID_CREATE_NO_MAIN) {
     /* Make sure UUID is the same between the source and the target.
-     * This is needed in the cases when UUID is to be preserved and when there is no copyData
-     * callback, or the copyData does not do full byte copy of the modifier data. */
+     * This is needed in the cases when UUID is to be preserved and when there is no copy_data
+     * callback, or the copy_data does not do full byte copy of the modifier data. */
     target->session_uuid = md->session_uuid;
   }
   else {
-    /* In the case copyData made full byte copy force UUID to be re-generated. */
+    /* In the case copy_data made full byte copy force UUID to be re-generated. */
     BKE_modifier_session_uuid_generate(target);
   }
 }
@@ -409,7 +409,7 @@ bool BKE_modifier_supports_cage(Scene *scene, ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-  return ((!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
+  return ((!mti->is_disabled || !mti->is_disabled(scene, md, false)) &&
           (mti->flags & eModifierTypeFlag_SupportsEditmode) && BKE_modifier_supports_mapping(md));
 }
 
@@ -418,7 +418,7 @@ bool BKE_modifier_couldbe_cage(Scene *scene, ModifierData *md)
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
   return ((md->mode & eModifierMode_Realtime) && (md->mode & eModifierMode_Editmode) &&
-          (!mti->isDisabled || !mti->isDisabled(scene, md, false)) &&
+          (!mti->is_disabled || !mti->is_disabled(scene, md, false)) &&
           BKE_modifier_supports_mapping(md));
 }
 
@@ -497,9 +497,9 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
                                  int *r_lastPossibleCageIndex,
                                  bool is_virtual)
 {
-  VirtualModifierData virtualModifierData;
+  VirtualModifierData virtual_modifier_data;
   ModifierData *md = (is_virtual) ?
-                         BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+                         BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
                          static_cast<ModifierData *>(ob->modifiers.first);
 
   if (r_lastPossibleCageIndex) {
@@ -513,7 +513,7 @@ int BKE_modifiers_get_cage_index(const Scene *scene,
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
     bool supports_mapping;
 
-    if (mti->isDisabled && mti->isDisabled(scene, md, false)) {
+    if (mti->is_disabled && mti->is_disabled(scene, md, false)) {
       continue;
     }
     if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) {
@@ -582,8 +582,8 @@ bool BKE_modifier_is_enabled(const Scene *scene, ModifierData *md, int required_
   if ((md->mode & required_mode) != required_mode) {
     return false;
   }
-  if (scene != nullptr && mti->isDisabled &&
-      mti->isDisabled(scene, md, required_mode == eModifierMode_Render))
+  if (scene != nullptr && mti->is_disabled &&
+      mti->is_disabled(scene, md, required_mode == eModifierMode_Render))
   {
     return false;
   }
@@ -626,8 +626,8 @@ CDMaskLink *BKE_modifier_calc_data_masks(const Scene *scene,
         have_deform_modifier = true;
       }
 
-      if (mti->requiredDataMask) {
-        mti->requiredDataMask(md, &curr->mask);
+      if (mti->required_data_mask) {
+        mti->required_data_mask(md, &curr->mask);
       }
 
       if (previewmd == md && previewmask != nullptr) {
@@ -691,43 +691,43 @@ ModifierData *BKE_modifier_get_last_preview(const Scene *scene,
 }
 
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
-                                                     VirtualModifierData *virtualModifierData)
+                                                     VirtualModifierData *virtual_modifier_data)
 {
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
 
-  *virtualModifierData = virtualModifierCommonData;
+  *virtual_modifier_data = virtualModifierCommonData;
 
   if (ob->parent) {
     if (ob->parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
-      virtualModifierData->amd.object = ob->parent;
-      virtualModifierData->amd.modifier.next = md;
-      virtualModifierData->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
-      md = &virtualModifierData->amd.modifier;
+      virtual_modifier_data->amd.object = ob->parent;
+      virtual_modifier_data->amd.modifier.next = md;
+      virtual_modifier_data->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
+      md = &virtual_modifier_data->amd.modifier;
     }
     else if (ob->parent->type == OB_CURVES_LEGACY && ob->partype == PARSKEL) {
-      virtualModifierData->cmd.object = ob->parent;
-      virtualModifierData->cmd.defaxis = ob->trackflag + 1;
-      virtualModifierData->cmd.modifier.next = md;
-      md = &virtualModifierData->cmd.modifier;
+      virtual_modifier_data->cmd.object = ob->parent;
+      virtual_modifier_data->cmd.defaxis = ob->trackflag + 1;
+      virtual_modifier_data->cmd.modifier.next = md;
+      md = &virtual_modifier_data->cmd.modifier;
     }
     else if (ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
-      virtualModifierData->lmd.object = ob->parent;
-      virtualModifierData->lmd.modifier.next = md;
-      md = &virtualModifierData->lmd.modifier;
+      virtual_modifier_data->lmd.object = ob->parent;
+      virtual_modifier_data->lmd.modifier.next = md;
+      md = &virtual_modifier_data->lmd.modifier;
     }
   }
 
   /* shape key modifier, not yet for curves */
   if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object((Object *)ob)) {
     if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE)) {
-      virtualModifierData->smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
+      virtual_modifier_data->smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
     }
     else {
-      virtualModifierData->smd.modifier.mode &= ~eModifierMode_Editmode | eModifierMode_OnCage;
+      virtual_modifier_data->smd.modifier.mode &= ~eModifierMode_Editmode | eModifierMode_OnCage;
     }
 
-    virtualModifierData->smd.modifier.next = md;
-    md = &virtualModifierData->smd.modifier;
+    virtual_modifier_data->smd.modifier.next = md;
+    md = &virtual_modifier_data->smd.modifier;
   }
 
   return md;
@@ -756,9 +756,9 @@ Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
     }
   }
   else {
-    VirtualModifierData virtualModifierData;
+    VirtualModifierData virtual_modifier_data;
     ArmatureModifierData *amd = nullptr;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
     /* return the first selected armature, this lets us use multiple armatures */
     for (; md; md = md->next) {
@@ -780,8 +780,8 @@ Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 
 Object *BKE_modifiers_is_deformed_by_meshdeform(Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   MeshDeformModifierData *mdmd = nullptr;
 
   /* return the first selected armature, this lets us use multiple armatures */
@@ -803,8 +803,8 @@ Object *BKE_modifiers_is_deformed_by_meshdeform(Object *ob)
 
 Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   LatticeModifierData *lmd = nullptr;
 
   /* return the first selected lattice, this lets us use multiple lattices */
@@ -826,8 +826,8 @@ Object *BKE_modifiers_is_deformed_by_lattice(Object *ob)
 
 Object *BKE_modifiers_is_deformed_by_curve(Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   CurveModifierData *cmd = nullptr;
 
   /* return the first selected curve, this lets us use multiple curves */
@@ -849,8 +849,8 @@ Object *BKE_modifiers_is_deformed_by_curve(Object *ob)
 
 bool BKE_modifiers_uses_multires(Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   MultiresModifierData *mmd = nullptr;
 
   for (; md; md = md->next) {
@@ -866,8 +866,8 @@ bool BKE_modifiers_uses_multires(Object *ob)
 
 bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
   for (; md; md = md->next) {
     if (md->type == eModifierType_Armature) {
@@ -884,13 +884,13 @@ bool BKE_modifiers_uses_armature(Object *ob, bArmature *arm)
 bool BKE_modifier_is_correctable_deformed(ModifierData *md)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  return mti->deformMatricesEM != nullptr;
+  return mti->deform_matrices_EM != nullptr;
 }
 
 bool BKE_modifiers_is_correctable_deformed(const Scene *scene, Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
   int required_mode = eModifierMode_Realtime;
 
   if (ob->mode == OB_MODE_EDIT) {
@@ -960,7 +960,7 @@ void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
 }
 
 /**
- * Call when #ModifierTypeInfo.dependsOnNormals callback requests normals.
+ * Call when #ModifierTypeInfo.depends_on_normals callback requests normals.
  */
 static void modwrap_dependsOnNormals(Mesh *me)
 {
@@ -986,7 +986,7 @@ static void modwrap_dependsOnNormals(Mesh *me)
   }
 }
 
-/* wrapper around ModifierTypeInfo.modifyMesh that ensures valid normals */
+/* wrapper around ModifierTypeInfo.modify_mesh that ensures valid normals */
 
 Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *me)
 {
@@ -998,10 +998,10 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
     }
   }
 
-  if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+  if (mti->depends_on_normals && mti->depends_on_normals(md)) {
     modwrap_dependsOnNormals(me);
   }
-  return mti->modifyMesh(md, ctx, me);
+  return mti->modify_mesh(md, ctx, me);
 }
 
 void BKE_modifier_deform_verts(ModifierData *md,
@@ -1011,10 +1011,10 @@ void BKE_modifier_deform_verts(ModifierData *md,
                                int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+  if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
     modwrap_dependsOnNormals(me);
   }
-  mti->deformVerts(md, ctx, me, vertexCos, numVerts);
+  mti->deform_verts(md, ctx, me, vertexCos, numVerts);
   if (me) {
     BKE_mesh_tag_positions_changed(me);
   }
@@ -1028,10 +1028,10 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
                                  int numVerts)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+  if (me && mti->depends_on_normals && mti->depends_on_normals(md)) {
     modwrap_dependsOnNormals(me);
   }
-  mti->deformVertsEM(md, ctx, em, me, vertexCos, numVerts);
+  mti->deform_verts_EM(md, ctx, em, me, vertexCos, numVerts);
 }
 
 /* end modifier callback wrappers */
@@ -1105,13 +1105,13 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
       continue;
     }
 
-    /* If the blendWrite callback is defined, it should handle the whole writing process. */
-    if (mti->blendWrite != nullptr) {
-      mti->blendWrite(writer, id_owner, md);
+    /* If the blend_write callback is defined, it should handle the whole writing process. */
+    if (mti->blend_write != nullptr) {
+      mti->blend_write(writer, id_owner, md);
       continue;
     }
 
-    BLO_write_struct_by_name(writer, mti->structName, md);
+    BLO_write_struct_by_name(writer, mti->struct_name, md);
 
     if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
@@ -1497,8 +1497,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       }
     }
 
-    if ((mti != nullptr) && (mti->blendRead != nullptr)) {
-      mti->blendRead(reader, md);
+    if ((mti != nullptr) && (mti->blend_read != nullptr)) {
+      mti->blend_read(reader, md);
     }
   }
 }

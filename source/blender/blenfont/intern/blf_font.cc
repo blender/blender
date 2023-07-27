@@ -92,7 +92,7 @@ static void blf_face_finalizer(void *object)
  */
 static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
                                          FT_Library lib,
-                                         FT_Pointer /*reqData*/,
+                                         FT_Pointer /*req_data*/,
                                          FT_Face *face)
 {
   FontBLF *font = (FontBLF *)faceID;

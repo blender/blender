@@ -663,12 +663,12 @@ static void gradientVert_update(WPGradient_userData *grad_data, int index)
   }
 }
 
-static void gradientVertUpdate__mapFunc(void *userData,
+static void gradientVertUpdate__mapFunc(void *user_data,
                                         int index,
                                         const float /*co*/[3],
                                         const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(user_data);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (vs->sco[0] == FLT_MAX) {
@@ -682,12 +682,12 @@ static void gradientVertUpdate__mapFunc(void *userData,
   gradientVert_update(grad_data, index);
 }
 
-static void gradientVertInit__mapFunc(void *userData,
+static void gradientVertInit__mapFunc(void *user_data,
                                       int index,
                                       const float co[3],
                                       const float /*no*/[3])
 {
-  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(userData);
+  WPGradient_userData *grad_data = static_cast<WPGradient_userData *>(user_data);
   WPGradient_vertStore *vs = &grad_data->vert_cache->elem[index];
 
   if (grad_data->use_select && (grad_data->select_vert && !grad_data->select_vert[index])) {

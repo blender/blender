@@ -53,7 +53,7 @@
 
 #include "intern/CCGSubSurf.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SubsurfModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
@@ -71,7 +71,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
   }
 }
 
-static bool dependsOnNormals(ModifierData *md)
+static bool depends_on_normals(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
   if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
@@ -80,7 +80,7 @@ static bool dependsOnNormals(ModifierData *md)
   return false;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
   const SubsurfModifierData *smd = (const SubsurfModifierData *)md;
@@ -92,7 +92,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   tsmd->emCache = tsmd->mCache = nullptr;
 }
 
-static void freeRuntimeData(void *runtime_data_v)
+static void free_runtime_data(void *runtime_data_v)
 {
   if (runtime_data_v == nullptr) {
     return;
@@ -107,7 +107,7 @@ static void freeRuntimeData(void *runtime_data_v)
   MEM_freeN(runtime_data);
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -119,15 +119,15 @@ static void freeData(ModifierData *md)
     ccgSubSurf_free(static_cast<CCGSubSurf *>(smd->emCache));
     smd->emCache = nullptr;
   }
-  freeRuntimeData(smd->modifier.runtime);
+  free_runtime_data(smd->modifier.runtime);
 }
 
-static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParams)
+static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_params)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
-  int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
+  int levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
-  return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
+  return get_render_subsurf_level(&scene->r, levels, use_render_params != 0) == 0;
 }
 
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
@@ -214,7 +214,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
 
 /* Modifier itself. */
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
@@ -289,12 +289,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return result;
 }
 
-static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh,
-                           float (*vertex_cos)[3],
-                           float (*deform_matrices)[3][3],
-                           int verts_num)
+static void deform_matrices(ModifierData *md,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            float (*vertex_cos)[3],
+                            float (*deform_matrices)[3][3],
+                            int verts_num)
 {
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -476,14 +476,14 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "use_custom_normals", 0, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Subsurf, panel_draw);
   modifier_subpanel_register(
       region_type, "advanced", "Advanced", nullptr, advanced_panel_draw, panel_type);
 }
 
-static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
+static void blend_read(BlendDataReader * /*reader*/, ModifierData *md)
 {
   SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -493,8 +493,8 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 ModifierTypeInfo modifierType_Subsurf = {
     /*idname*/ "Subdivision",
     /*name*/ N_("Subdivision"),
-    /*structName*/ "SubsurfModifierData",
-    /*structSize*/ sizeof(SubsurfModifierData),
+    /*struct_name*/ "SubsurfModifierData",
+    /*struct_size*/ sizeof(SubsurfModifierData),
     /*srna*/ &RNA_SubsurfModifier,
     /*type*/ eModifierTypeType_Constructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
@@ -502,26 +502,26 @@ ModifierTypeInfo modifierType_Subsurf = {
         eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_SUBSURF,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ deformMatrices,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ deform_matrices,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ dependsOnNormals,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ freeRuntimeData,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ depends_on_normals,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ free_runtime_data,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ blend_read,
 };

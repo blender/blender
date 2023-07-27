@@ -98,7 +98,7 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
     }
   }
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

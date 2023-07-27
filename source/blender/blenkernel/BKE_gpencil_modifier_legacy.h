@@ -26,7 +26,7 @@ struct Main;
 struct ModifierUpdateDepsgraphContext;
 struct Object;
 struct Scene;
-/* NOTE: bakeModifier() called from UI:
+/* NOTE: bake_modifier() called from UI:
  * needs to create new data-blocks, hence the need for this. */
 struct bGPDframe;
 struct bGPDlayer;
@@ -73,11 +73,11 @@ typedef enum {
   eGpencilModifierTypeFlag_NoApply = (1 << 6),
 } GpencilModifierTypeFlag;
 
-typedef void (*GreasePencilIDWalkFunc)(void *userData,
+typedef void (*GreasePencilIDWalkFunc)(void *user_data,
                                        struct Object *ob,
                                        struct ID **idpoin,
                                        int cb_flag);
-typedef void (*GreasePencilTexWalkFunc)(void *userData,
+typedef void (*GreasePencilTexWalkFunc)(void *user_data,
                                         struct Object *ob,
                                         struct GpencilModifierData *md,
                                         const char *propname);
@@ -104,7 +104,7 @@ typedef struct GpencilModifierTypeInfo {
    * Copy instance data for this modifier type. Should copy all user
    * level settings to the target modifier.
    */
-  void (*copyData)(const struct GpencilModifierData *md, struct GpencilModifierData *target);
+  void (*copy_data)(const struct GpencilModifierData *md, struct GpencilModifierData *target);
 
   /**
    * Callback for GP "stroke" modifiers that operate on the
@@ -118,20 +118,20 @@ typedef struct GpencilModifierTypeInfo {
    * The gps parameter contains the GP stroke to operate on. This is usually a copy
    * of the original (unmodified and saved to files) stroke data.
    */
-  void (*deformStroke)(struct GpencilModifierData *md,
-                       struct Depsgraph *depsgraph,
-                       struct Object *ob,
-                       struct bGPDlayer *gpl,
-                       struct bGPDframe *gpf,
-                       struct bGPDstroke *gps);
+  void (*deform_stroke)(struct GpencilModifierData *md,
+                        struct Depsgraph *depsgraph,
+                        struct Object *ob,
+                        struct bGPDlayer *gpl,
+                        struct bGPDframe *gpf,
+                        struct bGPDstroke *gps);
 
   /**
    * Callback for GP "geometry" modifiers that create extra geometry
    * in the frame (e.g. Array)
    */
-  void (*generateStrokes)(struct GpencilModifierData *md,
-                          struct Depsgraph *depsgraph,
-                          struct Object *ob);
+  void (*generate_strokes)(struct GpencilModifierData *md,
+                           struct Depsgraph *depsgraph,
+                           struct Object *ob);
 
   /**
    * Bake-down GP modifier's effects into the GP data-block.
@@ -140,10 +140,10 @@ typedef struct GpencilModifierTypeInfo {
    * As such, this callback needs to go through all layers/frames in the
    * data-block, mutating the geometry and/or creating new data-blocks/objects
    */
-  void (*bakeModifier)(struct Main *bmain,
-                       struct Depsgraph *depsgraph,
-                       struct GpencilModifierData *md,
-                       struct Object *ob);
+  void (*bake_modifier)(struct Main *bmain,
+                        struct Depsgraph *depsgraph,
+                        struct GpencilModifierData *md,
+                        struct Object *ob);
 
   /********************* Optional functions *********************/
 
@@ -154,12 +154,12 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional.
    */
-  int (*remapTime)(struct GpencilModifierData *md,
-                   struct Depsgraph *depsgraph,
-                   struct Scene *scene,
-                   struct Object *ob,
-                   struct bGPDlayer *gpl,
-                   int cfra);
+  int (*remap_time)(struct GpencilModifierData *md,
+                    struct Depsgraph *depsgraph,
+                    struct Scene *scene,
+                    struct Object *ob,
+                    struct bGPDlayer *gpl,
+                    int cfra);
 
   /**
    * Initialize new instance data for this modifier type, this function
@@ -167,7 +167,7 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional.
    */
-  void (*initData)(struct GpencilModifierData *md);
+  void (*init_data)(struct GpencilModifierData *md);
 
   /**
    * Free internal modifier data variables, this function should
@@ -175,7 +175,7 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional.
    */
-  void (*freeData)(struct GpencilModifierData *md);
+  void (*free_data)(struct GpencilModifierData *md);
 
   /**
    * Return a boolean value indicating if this modifier is able to be
@@ -186,16 +186,16 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional (assumes never disabled if not present).
    */
-  bool (*isDisabled)(struct GpencilModifierData *md, int userRenderParams);
+  bool (*is_disabled)(struct GpencilModifierData *md, int user_render_params);
 
   /**
    * Add the appropriate relations to the dependency graph.
    *
    * This function is optional.
    */
-  void (*updateDepsgraph)(struct GpencilModifierData *md,
-                          const struct ModifierUpdateDepsgraphContext *ctx,
-                          int mode);
+  void (*update_depsgraph)(struct GpencilModifierData *md,
+                           const struct ModifierUpdateDepsgraphContext *ctx,
+                           int mode);
 
   /**
    * Should return true if the modifier needs to be recalculated on time
@@ -203,7 +203,7 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional (assumes false if not present).
    */
-  bool (*dependsOnTime)(struct GpencilModifierData *md);
+  bool (*depends_on_time)(struct GpencilModifierData *md);
 
   /**
    * Should call the given walk function with a pointer to each ID
@@ -213,10 +213,10 @@ typedef struct GpencilModifierTypeInfo {
    *
    * This function is optional.
    */
-  void (*foreachIDLink)(struct GpencilModifierData *md,
-                        struct Object *ob,
-                        GreasePencilIDWalkFunc walk,
-                        void *userData);
+  void (*foreach_ID_link)(struct GpencilModifierData *md,
+                          struct Object *ob,
+                          GreasePencilIDWalkFunc walk,
+                          void *user_data);
 
   /**
    * Should call the given walk function for each texture that the
@@ -226,13 +226,13 @@ typedef struct GpencilModifierTypeInfo {
    * This function is optional. If it is not present, it will be
    * assumed the modifier has no textures.
    */
-  void (*foreachTexLink)(struct GpencilModifierData *md,
-                         struct Object *ob,
-                         GreasePencilTexWalkFunc walk,
-                         void *userData);
+  void (*foreach_tex_link)(struct GpencilModifierData *md,
+                           struct Object *ob,
+                           GreasePencilTexWalkFunc walk,
+                           void *user_data);
 
   /* Register the panel types for the modifier's UI. */
-  void (*panelRegister)(struct ARegionType *region_type);
+  void (*panel_register)(struct ARegionType *region_type);
 } GpencilModifierTypeInfo;
 
 #define GPENCIL_MODIFIER_TYPE_PANEL_PREFIX "MOD_PT_gpencil_"
@@ -243,7 +243,7 @@ typedef struct GpencilModifierTypeInfo {
 void BKE_gpencil_modifier_init(void);
 
 /**
- * Get the idname of the modifier type's panel, which was defined in the #panelRegister callback.
+ * Get the idname of the modifier type's panel, which was defined in the #panel_register callback.
  *
  * \param type: Type of modifier.
  * \param r_idname: ID name.
@@ -324,20 +324,20 @@ void BKE_gpencil_modifier_set_error(struct GpencilModifierData *md, const char *
  * Link grease pencil modifier related IDs.
  * \param ob: Grease pencil object.
  * \param walk: Walk option.
- * \param userData: User data.
+ * \param user_data: User data.
  */
 void BKE_gpencil_modifiers_foreach_ID_link(struct Object *ob,
                                            GreasePencilIDWalkFunc walk,
-                                           void *userData);
+                                           void *user_data);
 /**
  * Link grease pencil modifier related Texts.
  * \param ob: Grease pencil object.
  * \param walk: Walk option.
- * \param userData: User data.
+ * \param user_data: User data.
  */
 void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                             GreasePencilTexWalkFunc walk,
-                                            void *userData);
+                                            void *user_data);
 
 /**
  * Check whether given modifier is not local (i.e. from linked data) when the object is a library

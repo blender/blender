@@ -28,13 +28,13 @@
 #include "FX_shader_types.h"
 #include "FX_ui_common.h"
 
-static void initData(ShaderFxData *fx)
+static void init_data(ShaderFxData *fx)
 {
   FlipShaderFxData *gpfx = (FlipShaderFxData *)fx;
   gpfx->flag |= FX_FLIP_HORIZONTAL;
 }
 
-static void copyData(const ShaderFxData *md, ShaderFxData *target)
+static void copy_data(const ShaderFxData *md, ShaderFxData *target)
 {
   BKE_shaderfx_copydata_generic(md, target);
 }
@@ -56,7 +56,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   shaderfx_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   shaderfx_panel_register(region_type, eShaderFxType_Flip, panel_draw);
 }
@@ -68,13 +68,13 @@ ShaderFxTypeInfo shaderfx_Type_Flip = {
     /*type*/ eShaderFxType_GpencilType,
     /*flags*/ ShaderFxTypeFlag(0),
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*initData*/ initData,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };

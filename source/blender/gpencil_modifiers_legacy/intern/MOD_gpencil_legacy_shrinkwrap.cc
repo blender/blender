@@ -49,7 +49,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-static void initData(GpencilModifierData *md)
+static void init_data(GpencilModifierData *md)
 {
   ShrinkwrapGpencilModifierData *gpmd = (ShrinkwrapGpencilModifierData *)md;
 
@@ -58,17 +58,17 @@ static void initData(GpencilModifierData *md)
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(ShrinkwrapGpencilModifierData), modifier);
 }
 
-static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
+static void copy_data(const GpencilModifierData *md, GpencilModifierData *target)
 {
   BKE_gpencil_modifier_copydata_generic(md, target);
 }
 
-static void deformStroke(GpencilModifierData *md,
-                         Depsgraph * /*depsgraph*/,
-                         Object *ob,
-                         bGPDlayer *gpl,
-                         bGPDframe * /*gpf*/,
-                         bGPDstroke *gps)
+static void deform_stroke(GpencilModifierData *md,
+                          Depsgraph * /*depsgraph*/,
+                          Object *ob,
+                          bGPDlayer *gpl,
+                          bGPDframe * /*gpf*/,
+                          bGPDstroke *gps)
 {
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
@@ -121,10 +121,10 @@ static void deformStroke(GpencilModifierData *md,
   BKE_gpencil_stroke_geometry_update(gpd, gps);
 }
 
-static void bakeModifier(Main * /*bmain*/,
-                         Depsgraph *depsgraph,
-                         GpencilModifierData *md,
-                         Object *ob)
+static void bake_modifier(Main * /*bmain*/,
+                          Depsgraph *depsgraph,
+                          GpencilModifierData *md,
+                          Object *ob)
 {
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
@@ -155,7 +155,7 @@ static void bakeModifier(Main * /*bmain*/,
 
         /* Compute shrinkwrap effects on this frame. */
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          deformStroke(md, depsgraph, ob, gpl, gpf, gps);
+          deform_stroke(md, depsgraph, ob, gpl, gpf, gps);
         }
       }
       /* Free data. */
@@ -171,7 +171,7 @@ static void bakeModifier(Main * /*bmain*/,
   BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
-static void freeData(GpencilModifierData *md)
+static void free_data(GpencilModifierData *md)
 {
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
   if (mmd->cache_data) {
@@ -180,7 +180,7 @@ static void freeData(GpencilModifierData *md)
   }
 }
 
-static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
+static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
 {
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
 
@@ -198,9 +198,9 @@ static bool isDisabled(GpencilModifierData *md, int /*userRenderParams*/)
   return false;
 }
 
-static void updateDepsgraph(GpencilModifierData *md,
-                            const ModifierUpdateDepsgraphContext *ctx,
-                            const int /*mode*/)
+static void update_depsgraph(GpencilModifierData *md,
+                             const ModifierUpdateDepsgraphContext *ctx,
+                             const int /*mode*/)
 {
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
   CustomData_MeshMasks mask = {0};
@@ -231,13 +231,13 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_depends_on_transform_relation(ctx->node, "Shrinkwrap Modifier");
 }
 
-static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
 
-  walk(userData, ob, (ID **)&mmd->target, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&mmd->aux_target, IDWALK_CB_NOP);
-  walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
+  walk(user_data, ob, (ID **)&mmd->target, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&mmd->aux_target, IDWALK_CB_NOP);
+  walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -302,7 +302,7 @@ static void mask_panel_draw(const bContext * /*C*/, Panel *panel)
   gpencil_modifier_masking_panel_draw(panel, true, true);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = gpencil_modifier_panel_register(
       region_type, eGpencilModifierType_Shrinkwrap, panel_draw);
@@ -317,19 +317,19 @@ GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap = {
     /*type*/ eGpencilModifierTypeType_Gpencil,
     /*flags*/ eGpencilModifierTypeFlag_SupportsEditmode,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformStroke*/ deformStroke,
-    /*generateStrokes*/ nullptr,
-    /*bakeModifier*/ bakeModifier,
-    /*remapTime*/ nullptr,
+    /*deform_stroke*/ deform_stroke,
+    /*generate_strokes*/ nullptr,
+    /*bake_modifier*/ bake_modifier,
+    /*remap_time*/ nullptr,
 
-    /*initData*/ initData,
-    /*freeData*/ freeData,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ nullptr,
-    /*foreachIDLink*/ foreachIDLink,
-    /*foreachTexLink*/ nullptr,
-    /*panelRegister*/ panelRegister,
+    /*init_data*/ init_data,
+    /*free_data*/ free_data,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ nullptr,
+    /*foreach_ID_link*/ foreach_ID_link,
+    /*foreach_tex_link*/ nullptr,
+    /*panel_register*/ panel_register,
 };
