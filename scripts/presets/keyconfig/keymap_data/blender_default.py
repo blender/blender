@@ -5099,6 +5099,9 @@ def km_vertex_paint(params):
 
 
 def km_weight_paint(params):
+    # NOTE: This keymap falls through to "Pose" when an armature modifying the mesh
+    # is selected in weight paint mode. When editing the key-map take care that pose operations
+    # (such as transforming bones) is not impacted.
     items = []
     keymap = (
         "Weight Paint",
@@ -5107,10 +5110,6 @@ def km_weight_paint(params):
     )
 
     items.extend([
-        # Transform Actions.
-        # NOTE: this should follow "Pose" key-map (unless there is a good reason not to).
-        *_template_items_transform_actions(params, use_mirror=True),
-
         ("paint.weight_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("paint.weight_sample", {"type": params.action_mouse, "value": 'PRESS', "ctrl": True}, None),
         ("paint.weight_sample_group", {"type": params.action_mouse, "value": 'PRESS', "shift": True}, None),
