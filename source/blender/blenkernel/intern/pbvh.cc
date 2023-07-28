@@ -968,26 +968,33 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
   /* We also need the base mesh for PBVH draw. */
   pbvh->mesh = me;
 
-  BB cb;
-  BB_reset(&cb);
-
   /* For each grid, store the AABB and the AABB centroid */
   blender::Array<BBC> prim_bbc(totgrid);
-
-  for (int i = 0; i < totgrid; i++) {
+  BB cb;
+  BB_reset(&cb);
+  cb = blender::threading::parallel_reduce(
+      blender::IndexRange(totgrid),
+      1024,
+      cb,
+      [&](const blender::IndexRange range, const BB &init) {
+        BB current = init;
+        for (const int i : range) {
     CCGElem *grid = grids[i];
     BBC *bbc = &prim_bbc[i];
-
     BB_reset((BB *)bbc);
-
     for (int j = 0; j < gridsize * gridsize; j++) {
       BB_expand((BB *)bbc, CCG_elem_offset_co(key, grid, j));
     }
-
     BBC_update_centroid(bbc);
-
-    BB_expand(&cb, bbc->bcentroid);
+          BB_expand(&current, bbc->bcentroid);
   }
+        return current;
+      },
+      [](const BB &a, const BB &b) {
+        BB current = a;
+        BB_expand_with_bb(&current, &b);
+        return current;
+      });
 
   if (totgrid) {
     const int *material_indices = static_cast<const int *>(
