@@ -124,7 +124,8 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
           legacy_te, *gp_effect_data->object, *gp_effect_data->fx);
     }
     case TSE_GPENCIL_EFFECT_BASE:
-      return std::make_unique<TreeElementGPencilEffectBase>(legacy_te, *static_cast<Object *>(idv));
+      return std::make_unique<TreeElementGPencilEffectBase>(legacy_te,
+                                                            *static_cast<Object *>(idv));
     case TSE_DEFGROUP_BASE:
       return std::make_unique<TreeElementDeformGroupBase>(legacy_te, *static_cast<Object *>(idv));
     case TSE_DEFGROUP: {

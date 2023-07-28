@@ -9,12 +9,14 @@
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 
 #include "BLI_bounds.hh"
@@ -39,6 +41,10 @@
 #include "DNA_ID_enums.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1072,20 +1078,65 @@ BoundBox *BKE_grease_pencil_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-void BKE_grease_pencil_data_update(Depsgraph * /*depsgraph*/, Scene * /*scene*/, Object *object)
+static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
+                                             Scene *scene,
+                                             Object *object,
+                                             blender::bke::GeometrySet &geometry_set)
 {
+  /* Modifier evaluation modes. */
+  const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
+  ModifierMode required_mode = use_render ? eModifierMode_Render : eModifierMode_Realtime;
+  if (BKE_object_is_in_editmode(object)) {
+    required_mode |= eModifierMode_Editmode;
+  }
+  ModifierApplyFlag apply_flag = use_render ? MOD_APPLY_RENDER : MOD_APPLY_USECACHE;
+  const ModifierEvalContext mectx = {depsgraph, object, apply_flag};
+
+  BKE_modifiers_clear_errors(object);
+
+  /* Get effective list of modifiers to execute. Some effects like shape keys
+   * are added as virtual modifiers before the user created modifiers. */
+  VirtualModifierData virtualModifierData;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData);
+
+  /* Evaluate modifiers. */
+  for (; md; md = md->next) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
+
+    if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
+      continue;
+    }
+
+    if (mti->modify_geometry_set != nullptr) {
+      mti->modify_geometry_set(md, &mectx, &geometry_set);
+    }
+  }
+}
+
+void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
+{
+  using namespace blender::bke;
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
 
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(object->data);
   /* Evaluate modifiers. */
-  /* TODO: evaluate modifiers. */
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+  GeometrySet geometry_set = GeometrySet::create_with_grease_pencil(
+      grease_pencil, GeometryOwnershipType::ReadOnly);
+  grease_pencil_evaluate_modifiers(depsgraph, scene, object, geometry_set);
+
+  if (!geometry_set.has_grease_pencil()) {
+    geometry_set.replace_grease_pencil(BKE_grease_pencil_new_nomain());
+  }
+
+  /* For now the evaluated data is not const. We could use #get_grease_pencil_for_write, but that
+   * would result in a copy when it's shared. So for now, we use a const_cast here. */
+  GreasePencil *grease_pencil_eval = const_cast<GreasePencil *>(
+      geometry_set.get_grease_pencil_for_read());
 
   /* Assign evaluated object. */
-  /* TODO: Get eval from modifiers geometry set. */
-  GreasePencil *grease_pencil_eval = reinterpret_cast<GreasePencil *>(
-      BKE_id_copy_ex(nullptr, &grease_pencil->id, nullptr, LIB_ID_COPY_LOCALIZE));
-  BKE_object_eval_assign_data(object, &grease_pencil_eval->id, true);
+  BKE_object_eval_assign_data(object, &grease_pencil_eval->id, false);
+  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
 }
 
 /** \} */

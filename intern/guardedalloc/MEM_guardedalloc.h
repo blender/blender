@@ -173,14 +173,26 @@ extern void (*MEM_reset_peak_memory)(void);
 /** Get the peak memory usage in bytes, including `mmap` allocations. */
 extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
-#define MEM_SAFE_FREE(v) \
-  do { \
-    void **_v = (void **)&(v); \
-    if (*_v) { \
-      MEM_freeN(*_v); \
-      *_v = NULL; \
-    } \
-  } while (0)
+#ifdef __cplusplus
+#  define MEM_SAFE_FREE(v) \
+    do { \
+      static_assert(std::is_pointer_v<std::decay_t<decltype(v)>>); \
+      void **_v = (void **)&(v); \
+      if (*_v) { \
+        MEM_freeN(*_v); \
+        *_v = NULL; \
+      } \
+    } while (0)
+#else
+#  define MEM_SAFE_FREE(v) \
+    do { \
+      void **_v = (void **)&(v); \
+      if (*_v) { \
+        MEM_freeN(*_v); \
+        *_v = NULL; \
+      } \
+    } while (0)
+#endif
 
 /* overhead for lockfree allocator (use to avoid slop-space) */
 #define MEM_SIZE_OVERHEAD sizeof(size_t)

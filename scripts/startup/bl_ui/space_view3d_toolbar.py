@@ -900,8 +900,6 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
-        col.prop(sculpt, "use_smooth_shading")
-
 
 class VIEW3D_PT_sculpt_voxel_remesh(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)

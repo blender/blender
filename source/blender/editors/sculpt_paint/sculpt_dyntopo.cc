@@ -85,9 +85,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
 
   SCULPT_pbvh_clear(ob);
 
-  ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags & SCULPT_DYNTOPO_SMOOTH_SHADING) !=
-                          0;
-
   /* Dynamic topology doesn't ensure selection state is valid, so remove #36280. */
   BKE_mesh_mselect_clear(me);
 

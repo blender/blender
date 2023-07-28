@@ -47,7 +47,7 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 #  endif
 #endif
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(GPU_SHADER)
 extern "C" {
 #endif
 
@@ -385,6 +385,6 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 
 /** \} */
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && !defined(GPU_SHADER)
 }
 #endif

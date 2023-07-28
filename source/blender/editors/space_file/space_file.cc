@@ -79,14 +79,14 @@ static SpaceLink *file_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag = RGN_FLAG_DYNAMIC_SIZE;
+  region->flag = RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* execute region */
   region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "execute region for file"));
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM;
-  region->flag = RGN_FLAG_DYNAMIC_SIZE;
+  region->flag = RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* tools props region */
   region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "tool props for file"));

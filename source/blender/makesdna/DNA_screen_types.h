@@ -717,16 +717,13 @@ enum {
 enum {
   RGN_FLAG_HIDDEN = (1 << 0),
   RGN_FLAG_TOO_SMALL = (1 << 1),
-  /**
-   * Force delayed re-initialization of region size data, so that region size is calculated
-   * just big enough to show all its content (if enough space is available).
-   * Note that only ED_region_header supports this right now.
-   */
+  /** Enable dynamically changing the region size in the #ARegionType::layout() callback. */
   RGN_FLAG_DYNAMIC_SIZE = (1 << 2),
   /** Region data is NULL'd on read, never written. */
   RGN_FLAG_TEMP_REGIONDATA = (1 << 3),
-  /** The region must either use its prefsizex/y or be hidden. */
-  RGN_FLAG_PREFSIZE_OR_HIDDEN = (1 << 4),
+  /** Region resizing by the user is disabled, but the region edge can still be dragged to
+   * hide/unhide the region. */
+  RGN_FLAG_NO_USER_RESIZE = (1 << 4),
   /** Size has been clamped (floating regions only). */
   RGN_FLAG_SIZE_CLAMP_X = (1 << 5),
   RGN_FLAG_SIZE_CLAMP_Y = (1 << 6),
