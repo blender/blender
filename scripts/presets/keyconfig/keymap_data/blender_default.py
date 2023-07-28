@@ -6439,6 +6439,8 @@ def km_view3d_walk_modal(_params):
         ("ACCELERATE", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "any": True}, None),
         ("DECELERATE", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "any": True}, None),
         ("AXIS_LOCK_Z", {"type": 'Z', "value": 'PRESS'}, None),
+        ("INCREASE_JUMP", {"type": 'PERIOD', "value": 'PRESS', "any": True}, None),
+        ("DECREASE_JUMP", {"type": 'COMMA', "value": 'PRESS', "any": True}, None),
     ])
 
     return keymap
