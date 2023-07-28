@@ -1540,6 +1540,11 @@ bool weight_paint_mode_poll(bContext *C)
   return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((const Mesh *)ob->data)->faces_num;
 }
 
+bool weight_paint_mode_region_view3d_poll(bContext *C)
+{
+  return weight_paint_mode_poll(C) && ED_operator_region_view3d_active(C);
+}
+
 static bool weight_paint_poll_ex(bContext *C, bool check_tool)
 {
   const Object *ob = CTX_data_active_object(C);
