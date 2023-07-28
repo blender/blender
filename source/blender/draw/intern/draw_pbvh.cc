@@ -20,6 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_function_ref.hh"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
@@ -58,6 +59,7 @@ using blender::char3;
 using blender::float2;
 using blender::float3;
 using blender::float4;
+using blender::FunctionRef;
 using blender::IndexRange;
 using blender::Map;
 using blender::short3;
@@ -328,7 +330,7 @@ struct PBVHBatches {
   void fill_vbo_normal_faces(
       PBVHVbo & /*vbo*/,
       const PBVH_GPU_Args &args,
-      std::function<void(std::function<void(int, int, int, const int)> callback)> foreach_faces,
+      FunctionRef<void(FunctionRef<void(int, int, int, const int)> callback)> foreach_faces,
       GPUVertBufRaw *access)
   {
     const bool *sharp_faces = static_cast<const bool *>(
@@ -360,9 +362,8 @@ struct PBVHBatches {
   void fill_vbo_grids_intern(
       PBVHVbo &vbo,
       const PBVH_GPU_Args &args,
-      std::function<
-          void(std::function<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func)>
-          foreach_grids)
+      FunctionRef<void(FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)>
+                           func)> foreach_grids)
   {
     uint vert_per_grid = square_i(args.ccg_key.grid_size - 1) * 4;
     uint vert_count = args.grid_indices.size() * vert_per_grid;
@@ -484,7 +485,7 @@ struct PBVHBatches {
     uint totgrid = args.grid_indices.size();
 
     auto foreach_solid =
-        [&](std::function<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
+        [&](FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
           for (int i = 0; i < totgrid; i++) {
             const int grid_index = args.grid_indices[i];
 
@@ -509,7 +510,7 @@ struct PBVHBatches {
         };
 
     auto foreach_indexed =
-        [&](std::function<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
+        [&](FunctionRef<void(int x, int y, int grid_index, CCGElem *elems[4], int i)> func) {
           for (int i = 0; i < totgrid; i++) {
             const int grid_index = args.grid_indices[i];
 
@@ -545,7 +546,7 @@ struct PBVHBatches {
   {
     const blender::Span<int> corner_verts = args.corner_verts;
     auto foreach_faces =
-        [&](std::function<void(int buffer_i, int tri_i, int vertex_i, const int /*looptri_i*/)>
+        [&](FunctionRef<void(int buffer_i, int tri_i, int vertex_i, const int /*looptri_i*/)>
                 func) {
           int buffer_i = 0;
 
@@ -748,7 +749,7 @@ struct PBVHBatches {
 
   void fill_vbo_bmesh(PBVHVbo &vbo, const PBVH_GPU_Args &args)
   {
-    auto foreach_bmesh = [&](std::function<void(BMLoop * l)> callback) {
+    auto foreach_bmesh = [&](FunctionRef<void(BMLoop * l)> callback) {
       GSET_FOREACH_BEGIN (BMFace *, f, args.bm_faces) {
         if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
           continue;
