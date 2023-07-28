@@ -908,13 +908,14 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
       if (region->flag & RGN_FLAG_POLL_FAILED) {
         continue;
       }
-      /* The region size may be set dynamically through #ARegionType.layout(). So if the region is
-       * only hidden because it's too small, still run the layout in case that leads to a different
-       * region size. */
-      const bool hidden_because_too_small = (region->flag & RGN_FLAG_TOO_SMALL) &&
-                                            !(region->flag & RGN_FLAG_HIDDEN);
+      /* Dynamic region may have been flagged as too small because their size on init is 0.
+       * ARegion.visible is false then, as expected. The layout should still be created then, so
+       * the region size can be updated (it may turn out to be not too small then). */
+      const bool ignore_visibility = (region->flag & RGN_FLAG_DYNAMIC_SIZE) &&
+                                     (region->flag & RGN_FLAG_TOO_SMALL) &&
+                                     !(region->flag & RGN_FLAG_HIDDEN);
 
-      if ((region->visible || hidden_because_too_small) && region->do_draw && region->type &&
+      if ((region->visible || ignore_visibility) && region->do_draw && region->type &&
           region->type->layout)
       {
         CTX_wm_region_set(C, region);
