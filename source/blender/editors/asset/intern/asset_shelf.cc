@@ -286,8 +286,8 @@ static int main_region_padding_y()
 
 static int main_region_padding_x()
 {
-  const uiStyle *style = UI_style_get_dpi();
-  return style->buttonspacex;
+  /* Use the same as the height, equal padding looks nice. */
+  return main_region_padding_y();
 }
 
 int ED_asset_shelf_region_snap(const ARegion *region, const int size, const int axis)
