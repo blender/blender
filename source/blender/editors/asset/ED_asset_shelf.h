@@ -60,9 +60,6 @@ void ED_asset_shelf_header_regiontype_register(struct ARegionType *region_type,
 int ED_asset_shelf_tile_width(const struct AssetShelfSettings &settings);
 int ED_asset_shelf_tile_height(const struct AssetShelfSettings &settings);
 
-/**
- * Creates an `"asset_shelf"` context member, pointing to the active shelf in \a #shelf_hook.
- */
 int ED_asset_shelf_context(const struct bContext *C,
                            const char *member,
                            struct bContextDataResult *result);

@@ -807,22 +807,22 @@ typedef struct AssetShelf {
 } AssetShelf;
 
 /**
- * Helper for asset shelf integration into spaces. See #ED_asset_shelf.h for a corresponding API.
+ * Region-data for the main asset shelf region (#RGN_TYPE_ASSET_SHELF). Managed by the asset shelf
+ * internals.
  *
- * A space can keep multiple shelf instances in storage, only one is active at a time.
- *
- * Allocate with #MEM_cnew().
+ * Contains storage for all previously activated asset shelf instances plus info on the currently
+ * active one (only one can be active at any time).
  */
-typedef struct AssetShelfHook {
+typedef struct RegionAssetShelf {
   /** Owning list of previously activated asset shelves. */
   ListBase shelves;
   /** The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
    */
   AssetShelf *active_shelf; /* Non-owning. */
 #ifdef __cplusplus
-  static AssetShelfHook *get_from_asset_shelf_region(const ARegion &region);
+  static RegionAssetShelf *get_from_asset_shelf_region(const ARegion &region);
 #endif
-} AssetShelfHook;
+} RegionAssetShelf;
 
 /* #AssetShelfSettings.display_flag */
 typedef enum AssetShelfSettings_DisplayFlag {
