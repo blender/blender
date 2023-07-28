@@ -55,6 +55,8 @@ eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
 #  include "BLI_generic_span.hh"
 #  include "BLI_math_matrix_types.hh"
 
+#  include "ED_keyframes_edit.h"
+
 namespace blender::ed::greasepencil {
 
 void select_layer_channel(GreasePencil *grease_pencil, bke::greasepencil::Layer *layer);
@@ -73,6 +75,9 @@ void select_all_frames(bke::greasepencil::Layer *layer, const short select_mode)
  * Returns true if any frame of the \a layer is selected.
  */
 bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer);
+
+void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
+                                                    const bke::greasepencil::Layer *layer);
 
 bool active_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);

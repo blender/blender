@@ -1080,7 +1080,19 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
         for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
-          ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+          switch (ale->type) {
+            case ANIMTYPE_GPLAYER:
+              ED_gpencil_layer_make_cfra_list(
+                  static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+              break;
+            case ANIMTYPE_GREASE_PENCIL_LAYER:
+              blender::ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
+                  &ked, static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+              break;
+            default:
+              /* Invalid channel type. */
+              BLI_assert_unreachable();
+          }
         }
       }
       else {
@@ -1144,6 +1156,11 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
       /* select elements with frame number matching cfraelem */
       if (ale->type == ANIMTYPE_GPLAYER) {
         ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale->data), ce->cfra, SELECT_ADD);
+        ale->update |= ANIM_UPDATE_DEPS;
+      }
+      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+        blender::ed::greasepencil::select_frame_at(
+            static_cast<blender::bke::greasepencil::Layer *>(ale->data), ce->cfra, SELECT_ADD);
         ale->update |= ANIM_UPDATE_DEPS;
       }
       else if (ale->type == ANIMTYPE_MASKLAYER) {
