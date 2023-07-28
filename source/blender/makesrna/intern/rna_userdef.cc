@@ -1951,7 +1951,7 @@ static void rna_def_userdef_theme_asset_shelf(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "ThemeAssetShelf", NULL);
+  srna = RNA_def_struct(brna, "ThemeAssetShelf", nullptr);
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Theme Asset Shelf Color", "Theme settings for asset shelves");
 
