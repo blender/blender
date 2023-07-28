@@ -1398,10 +1398,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   scd.use_mats = false;
   scd.use_mask = use_mask;
 
-  PBVHAttrReq attrs[16];
+  PBVHAttrReq attrs[16] = {};
   int attrs_num = 0;
-
-  memset(attrs, 0, sizeof(attrs));
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
   attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
@@ -1426,7 +1424,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
       attrs[attrs_num].type = eCustomDataType(layer->type);
       attrs[attrs_num].domain = domain;
 
-      STRNCPY(attrs[attrs_num].name, layer->name);
+      attrs[attrs_num].name = layer->name;
       attrs_num++;
     }
   }
@@ -1438,7 +1436,7 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
 
       attrs[attrs_num].type = CD_PROP_FLOAT2;
       attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-      STRNCPY(attrs[attrs_num].name, layer->name);
+      attrs[attrs_num].name = layer->name;
 
       attrs_num++;
     }
@@ -1484,7 +1482,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
     attrs[attrs_i].type = req->cd_type;
     attrs[attrs_i].domain = req->domain;
-    STRNCPY(attrs[attrs_i].name, req->attribute_name);
+    attrs[attrs_i].name = req->attribute_name;
     attrs_i++;
   }
 
@@ -1499,7 +1497,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
       if (layer) {
         attrs[attrs_i].type = CD_PROP_FLOAT2;
         attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
-        STRNCPY(attrs[attrs_i].name, layer->name);
+        attrs[attrs_i].name = layer->name;
         attrs_i++;
       }
     }

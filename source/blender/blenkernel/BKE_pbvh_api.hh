@@ -9,6 +9,8 @@
  * \brief A BVH for high poly meshes.
  */
 
+#include <string>
+
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
@@ -87,7 +89,7 @@ struct PBVHPixelsNode {
 };
 
 struct PBVHAttrReq {
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  std::string name;
   eAttrDomain domain;
   eCustomDataType type;
 };
