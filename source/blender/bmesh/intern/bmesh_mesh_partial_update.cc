@@ -240,7 +240,7 @@ BMPartialUpdate *BM_mesh_partial_create_from_verts_group_single(
       l_iter = l_first = BM_FACE_FIRST_LOOP(f);
       do {
         const int j = BM_elem_index_get(l_iter->v);
-        side_flag = side_flag | BLI_BITMAP_TEST(verts_mask, j) ? SIDE_A : SIDE_B;
+        side_flag = Side(side_flag | (BLI_BITMAP_TEST(verts_mask, j) ? SIDE_A : SIDE_B));
         if (UNLIKELY(side_flag == (SIDE_A | SIDE_B))) {
           partial_elem_face_ensure(bmpinfo, faces_tag, f);
           face_tag_loop_len += f->len;
