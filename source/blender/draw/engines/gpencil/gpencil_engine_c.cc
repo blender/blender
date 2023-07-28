@@ -986,7 +986,7 @@ DrawEngineType draw_engine_gpencil_type = {
     /*vedata_size*/ &GPENCIL_data_size,
     /*engine_init*/ &GPENCIL_engine_init,
     /*engine_free*/ &GPENCIL_engine_free,
-    /*instance_free*/ /*instance_free*/ nullptr,
+    /*instance_free*/ nullptr,
     /*cache_init*/ &GPENCIL_cache_init,
     /*cache_populate*/ &GPENCIL_cache_populate,
     /*cache_finish*/ &GPENCIL_cache_finish,

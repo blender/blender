@@ -270,7 +270,7 @@ DrawEngineType draw_engine_basic_type = {
     /*vedata_size*/ &basic_data_size,
     /*engine_init*/ nullptr,
     /*engine_free*/ &basic_engine_free,
-    /*instance_free*/ /*instance_free*/ nullptr,
+    /*instance_free*/ nullptr,
     /*cache_init*/ &basic_cache_init,
     /*cache_populate*/ &basic_cache_populate,
     /*cache_finish*/ &basic_cache_finish,

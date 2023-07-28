@@ -106,7 +106,7 @@ DrawEngineType draw_engine_debug_select_type = {
     /*vedata_size*/ &select_debug_data_size,
     /*engine_init*/ &select_debug_engine_init,
     /*engine_free*/ &select_debug_engine_free,
-    /*instance_free*/ /*instance_free*/ nullptr,
+    /*instance_free*/ nullptr,
     /*cache_init*/ nullptr,
     /*cache_populate*/ nullptr,
     /*cache_finish*/ nullptr,

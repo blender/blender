@@ -360,7 +360,7 @@ DrawEngineType draw_engine_select_type = {
     /*vedata_size*/ &select_data_size,
     /*engine_init*/ &select_engine_init,
     /*engine_free*/ &select_engine_free,
-    /*instance_free*/ /*instance_free*/ nullptr,
+    /*instance_free*/ nullptr,
     /*cache_init*/ &select_cache_init,
     /*cache_populate*/ &select_cache_populate,
     /*cache_finish*/ nullptr,
