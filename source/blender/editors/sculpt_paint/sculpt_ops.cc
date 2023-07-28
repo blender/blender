@@ -671,7 +671,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
   ot->invoke = sculpt_sample_color_invoke;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
 /**
