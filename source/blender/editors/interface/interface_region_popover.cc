@@ -117,7 +117,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
   /* Create UI block and layout now if it wasn't done between begin/end. */
   if (!pup->layout) {
-    ui_popover_create_block(C, nullptr, pup, WM_OP_INVOKE_REGION_WIN);
+    ui_popover_create_block(C, handle->region, pup, WM_OP_INVOKE_REGION_WIN);
 
     if (pup->menu_func) {
       pup->block->handle = handle;
