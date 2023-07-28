@@ -1661,7 +1661,6 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  DST.draw_ctx.evil_C = evil_C;
   DST.draw_ctx = {};
   DST.draw_ctx.region = region;
   DST.draw_ctx.rv3d = rv3d;
@@ -1673,7 +1672,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   DST.draw_ctx.depsgraph = depsgraph;
 
   /* reuse if caller sets */
-  DST.draw_ctx.evil_C = DST.draw_ctx.evil_C;
+  DST.draw_ctx.evil_C = evil_C;
 
   drw_task_graph_init();
   drw_context_state_init();
@@ -2196,7 +2195,6 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
-  DST.draw_ctx.evil_C = evil_C;
   DST.draw_ctx = {};
   DST.draw_ctx.region = region;
   DST.draw_ctx.scene = scene;
@@ -2206,7 +2204,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
   DST.draw_ctx.space_data = CTX_wm_space_data(evil_C);
 
   /* reuse if caller sets */
-  DST.draw_ctx.evil_C = DST.draw_ctx.evil_C;
+  DST.draw_ctx.evil_C = evil_C;
 
   drw_context_state_init();
   drw_manager_init(&DST, viewport, nullptr);
