@@ -611,7 +611,7 @@ AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
   return nullptr;
 }
 
-ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
+ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const int flag_extra)
 {
   /* Only support passing in limited flags. */
   BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
@@ -626,10 +626,10 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
 
-  Main *bmain = CTX_data_main(asset_drag->evil_C);
-  Scene *scene = CTX_data_scene(asset_drag->evil_C);
-  ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
-  View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *view3d = CTX_wm_view3d(C);
 
   switch (eAssetImportMethod(asset_drag->import_method)) {
     case ASSET_IMPORT_LINK:
@@ -678,7 +678,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   return asset_drag->import_method == ASSET_IMPORT_LINK;
 }
 
-ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
+ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *drag, int idcode)
 {
   if (!ELEM(drag->type, WM_DRAG_ASSET, WM_DRAG_ID)) {
     return nullptr;
@@ -694,7 +694,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
   }
 
   /* Link/append the asset. */
-  return WM_drag_asset_id_import(asset_drag, 0);
+  return WM_drag_asset_id_import(C, asset_drag, 0);
 }
 
 void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
