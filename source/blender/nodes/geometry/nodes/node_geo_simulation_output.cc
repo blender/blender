@@ -7,6 +7,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_bake_items_socket.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
@@ -138,145 +139,40 @@ const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item)
   return get_simulation_item_cpp_type(eNodeSocketDatatype(item.socket_type));
 }
 
-static void remove_materials(Material ***materials, short *materials_num)
+static bke::BakeSocketConfig make_bake_socket_config(
+    const Span<NodeSimulationItem> node_simulation_items)
 {
-  MEM_SAFE_FREE(*materials);
-  *materials_num = 0;
-}
+  bke::BakeSocketConfig config;
+  const int items_num = node_simulation_items.size();
+  config.domains.resize(items_num);
+  config.types.resize(items_num);
+  config.geometries_by_attribute.resize(items_num);
 
-/**
- * Removes parts of the geometry that can't be stored in the simulation state:
- * - Anonymous attributes can't be stored because it is not known which of them will or will not be
- *   used in the future.
- * - Materials can't be stored directly, because they are linked ID data blocks that can't be
- *   restored from baked data currently.
- */
-static void cleanup_geometry_for_simulation_state(GeometrySet &main_geometry)
-{
-  main_geometry.modify_geometry_sets([&](GeometrySet &geometry) {
-    if (Mesh *mesh = geometry.get_mesh_for_write()) {
-      mesh->attributes_for_write().remove_anonymous();
-      remove_materials(&mesh->mat, &mesh->totcol);
+  int last_geometry_index = -1;
+  for (const int item_i : node_simulation_items.index_range()) {
+    const NodeSimulationItem &item = node_simulation_items[item_i];
+    config.types[item_i] = eNodeSocketDatatype(item.socket_type);
+    config.domains[item_i] = eAttrDomain(item.attribute_domain);
+    if (item.socket_type == SOCK_GEOMETRY) {
+      last_geometry_index = item_i;
     }
-    if (Curves *curves = geometry.get_curves_for_write()) {
-      curves->geometry.wrap().attributes_for_write().remove_anonymous();
-      remove_materials(&curves->mat, &curves->totcol);
-    }
-    if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
-      pointcloud->attributes_for_write().remove_anonymous();
-      remove_materials(&pointcloud->mat, &pointcloud->totcol);
-    }
-    if (bke::Instances *instances = geometry.get_instances_for_write()) {
-      instances->attributes_for_write().remove_anonymous();
-    }
-    geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
-                                      GeometryComponent::Type::Curve,
-                                      GeometryComponent::Type::PointCloud,
-                                      GeometryComponent::Type::Instance});
-  });
-}
-
-/**
- * Some attributes stored in the simulation state become anonymous attributes in geometry nodes.
- * This maps attribute names to their corresponding anonymous attribute ids.
- */
-static void rename_attributes(const Span<GeometrySet *> geometries,
-                              const Map<std::string, AnonymousAttributeIDPtr> &attribute_map)
-{
-  for (GeometrySet *geometry : geometries) {
-    for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
-                                               GeometryComponent::Type::Curve,
-                                               GeometryComponent::Type::PointCloud,
-                                               GeometryComponent::Type::Instance})
-    {
-      if (!geometry->has(type)) {
-        continue;
-      }
-      /* Avoid write access on the geometry when unnecessary to avoid copying data-blocks. */
-      const AttributeAccessor attributes_read_only =
-          *geometry->get_component_for_read(type)->attributes();
-      if (std::none_of(attribute_map.keys().begin(),
-                       attribute_map.keys().end(),
-                       [&](const StringRef name) { return attributes_read_only.contains(name); }))
-      {
-        continue;
-      }
-
-      GeometryComponent &component = geometry->get_component_for_write(type);
-      MutableAttributeAccessor attributes = *component.attributes_for_write();
-      for (const MapItem<std::string, AnonymousAttributeIDPtr> &attribute_item :
-           attribute_map.items()) {
-        attributes.rename(attribute_item.key, *attribute_item.value);
-      }
+    else if (last_geometry_index != -1) {
+      config.geometries_by_attribute[item_i].append(last_geometry_index);
     }
   }
+  return config;
 }
 
-static bool copy_value_or_field_simulation_state_to_value(
+static std::shared_ptr<AnonymousAttributeFieldInput> make_attribute_field(
     const Object &self_object,
     const ComputeContext &compute_context,
     const bNode &node,
-    const NodeSimulationItem &sim_item,
-    const CPPType &cpp_type,
-    const bke::sim::SimulationStateItem &state_item,
-    Vector<GeometrySet *> &r_geometries,
-    Map<std::string, AnonymousAttributeIDPtr> &r_attribute_map,
-    void *r_output_value)
+    const NodeSimulationItem &item,
+    const CPPType &type)
 {
-  switch (eNodeSocketDatatype(sim_item.socket_type)) {
-    case SOCK_GEOMETRY: {
-      if (const auto *item = dynamic_cast<const bke::sim::GeometrySimulationStateItem *>(
-              &state_item)) {
-        GeometrySet *geometry = new (r_output_value) GeometrySet(item->geometry);
-        r_geometries.append(geometry);
-        return true;
-      }
-      break;
-    }
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_INT:
-    case SOCK_BOOLEAN:
-    case SOCK_ROTATION:
-    case SOCK_RGBA: {
-      const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
-          cpp_type);
-      if (const auto *item = dynamic_cast<const bke::sim::PrimitiveSimulationStateItem *>(
-              &state_item)) {
-        if (item->type() == value_or_field_type.value) {
-          value_or_field_type.construct_from_value(r_output_value, item->value());
-          return true;
-        }
-      }
-      if (const auto *item = dynamic_cast<const bke::sim::AttributeSimulationStateItem *>(
-              &state_item)) {
-        AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
-            __func__,
-            self_object,
-            compute_context,
-            node,
-            std::to_string(sim_item.identifier),
-            sim_item.name);
-        GField field{std::make_shared<AnonymousAttributeFieldInput>(
-            attribute_id, value_or_field_type.value, node.label_or_name())};
-        value_or_field_type.construct_from_field(r_output_value, std::move(field));
-        r_attribute_map.add(item->name(), std::move(attribute_id));
-        return true;
-      }
-      break;
-    }
-    case SOCK_STRING: {
-      if (const auto *item = dynamic_cast<const bke::sim::StringSimulationStateItem *>(
-              &state_item)) {
-        new (r_output_value) ValueOrField<std::string>(item->value());
-        return true;
-      }
-      break;
-    }
-    default:
-      break;
-  }
-  return false;
+  AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
+      __func__, self_object, compute_context, node, std::to_string(item.identifier), item.name);
+  return std::make_shared<AnonymousAttributeFieldInput>(attribute_id, type, node.label_or_name());
 }
 
 void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
@@ -286,46 +182,21 @@ void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
                                      const bNode &node,
                                      Span<void *> r_output_values)
 {
-  Map<std::string, AnonymousAttributeIDPtr> attribute_map;
-  Vector<GeometrySet *> geometries;
-
-  for (const int i : node_simulation_items.index_range()) {
-    const NodeSimulationItem &sim_item = node_simulation_items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(sim_item.socket_type);
-    const CPPType &cpp_type = get_simulation_item_cpp_type(socket_type);
-    const std::unique_ptr<bke::sim::SimulationStateItem> *state_item =
-        zone_state.item_by_identifier.lookup_ptr(sim_item.identifier);
-    if (!state_item) {
-      cpp_type.value_initialize(r_output_values[i]);
-      continue;
-    }
-
-    if (socket_type == SOCK_GEOMETRY) {
-      if (auto *item = dynamic_cast<bke::sim::GeometrySimulationStateItem *>(state_item->get())) {
-        GeometrySet *geometry = new (r_output_values[i]) GeometrySet(std::move(item->geometry));
-        geometries.append(geometry);
-      }
-      else {
-        cpp_type.value_initialize(r_output_values[i]);
-      }
-    }
-    else {
-      if (!copy_value_or_field_simulation_state_to_value(self_object,
-                                                         compute_context,
-                                                         node,
-                                                         sim_item,
-                                                         cpp_type,
-                                                         *state_item->get(),
-                                                         geometries,
-                                                         attribute_map,
-                                                         r_output_values[i]))
-      {
-        cpp_type.value_initialize(r_output_values[i]);
-      }
-    }
+  const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
+  Vector<bke::BakeItem *> bake_items;
+  for (const NodeSimulationItem &item : node_simulation_items) {
+    auto *bake_item = zone_state.item_by_identifier.lookup_ptr(item.identifier);
+    bake_items.append(bake_item ? bake_item->get() : nullptr);
   }
 
-  rename_attributes(geometries, attribute_map);
+  bke::move_bake_items_to_socket_values(
+      bake_items,
+      config,
+      [&](const int i, const CPPType &type) {
+        return make_attribute_field(
+            self_object, compute_context, node, node_simulation_items[i], type);
+      },
+      r_output_values);
 }
 
 void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
@@ -335,136 +206,38 @@ void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulat
                                      const bNode &node,
                                      Span<void *> r_output_values)
 {
-  Map<std::string, AnonymousAttributeIDPtr> attribute_map;
-  Vector<GeometrySet *> geometries;
-
-  for (const int i : node_simulation_items.index_range()) {
-    const NodeSimulationItem &sim_item = node_simulation_items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(sim_item.socket_type);
-    const CPPType &cpp_type = get_simulation_item_cpp_type(socket_type);
-    const std::unique_ptr<bke::sim::SimulationStateItem> *state_item =
-        zone_state.item_by_identifier.lookup_ptr(sim_item.identifier);
-    if (!state_item) {
-      cpp_type.value_initialize(r_output_values[i]);
-      continue;
-    }
-    if (!copy_value_or_field_simulation_state_to_value(self_object,
-                                                       compute_context,
-                                                       node,
-                                                       sim_item,
-                                                       cpp_type,
-                                                       *state_item->get(),
-                                                       geometries,
-                                                       attribute_map,
-                                                       r_output_values[i]))
-    {
-      cpp_type.value_initialize(r_output_values[i]);
-    }
+  const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
+  Vector<bke::BakeItem *> bake_items;
+  for (const NodeSimulationItem &item : node_simulation_items) {
+    auto *bake_item = zone_state.item_by_identifier.lookup_ptr(item.identifier);
+    bake_items.append(bake_item ? bake_item->get() : nullptr);
   }
 
-  rename_attributes(geometries, attribute_map);
+  bke::copy_bake_items_to_socket_values(
+      bake_items,
+      config,
+      [&](const int i, const CPPType &type) {
+        return make_attribute_field(
+            self_object, compute_context, node, node_simulation_items[i], type);
+      },
+      r_output_values);
 }
 
 void move_values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_items,
                                      const Span<void *> input_values,
                                      bke::sim::SimulationZoneState &r_zone_state)
 {
-  Vector<GeometrySet *> stored_geometries;
+  const bke::BakeSocketConfig config = make_bake_socket_config(node_simulation_items);
+
+  Array<std::unique_ptr<bke::BakeItem>> bake_items = bke::move_socket_values_to_bake_items(
+      input_values, config);
 
   for (const int i : node_simulation_items.index_range()) {
     const NodeSimulationItem &item = node_simulation_items[i];
-    const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
-    void *input_value = input_values[i];
-
-    std::unique_ptr<bke::sim::SimulationStateItem> state_item;
-    switch (socket_type) {
-      case SOCK_GEOMETRY: {
-        GeometrySet &geometry = *static_cast<GeometrySet *>(input_value);
-        auto geometry_state_item = std::make_unique<bke::sim::GeometrySimulationStateItem>(
-            std::move(geometry));
-        stored_geometries.append(&geometry_state_item->geometry);
-        state_item = std::move(geometry_state_item);
-        break;
-      }
-      case SOCK_FLOAT:
-      case SOCK_VECTOR:
-      case SOCK_INT:
-      case SOCK_BOOLEAN:
-      case SOCK_ROTATION:
-      case SOCK_RGBA: {
-        const CPPType &type = get_simulation_item_cpp_type(item);
-        const fn::ValueOrFieldCPPType &value_or_field_type =
-            *fn::ValueOrFieldCPPType::get_from_self(type);
-
-        if (!value_or_field_type.is_field(input_value)) {
-          const void *value = value_or_field_type.get_value_ptr(input_value);
-          state_item = std::make_unique<bke::sim::PrimitiveSimulationStateItem>(
-              value_or_field_type.value, value);
-          break;
-        }
-
-        const GField &field = *value_or_field_type.get_field_ptr(input_value);
-
-        if (!field.node().depends_on_input()) {
-          BUFFER_FOR_CPP_TYPE_VALUE(value_or_field_type.value, value);
-          fn::evaluate_constant_field(field, value);
-          state_item = std::make_unique<bke::sim::PrimitiveSimulationStateItem>(
-              value_or_field_type.value, value);
-          value_or_field_type.value.destruct(value);
-          break;
-        }
-
-        /* Fields are evaluated and stored as attributes only on geometry. */
-        if (stored_geometries.is_empty()) {
-          break;
-        }
-
-        /* Possible things to consider:
-         * - Store attributes on multiple/all geometries.
-         * - If the attribute is an anonymous attribute, just rename it for the simulation
-         *   state, without considering the domain. This would allow e.g. having the attribute
-         *   only on some parts of the geometry set.
-         */
-        GeometrySet &geometry = *stored_geometries.last();
-        const eAttrDomain domain = eAttrDomain(item.attribute_domain);
-        const std::string attribute_name = ".sim_" + std::to_string(item.identifier);
-        if (geometry.has_pointcloud()) {
-          PointCloudComponent &component = geometry.get_component_for_write<PointCloudComponent>();
-          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-        }
-        if (geometry.has_mesh()) {
-          MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
-          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-        }
-        if (geometry.has_curves()) {
-          CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
-          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-        }
-        if (geometry.has_instances()) {
-          InstancesComponent &component = geometry.get_component_for_write<InstancesComponent>();
-          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-        }
-        state_item = std::make_unique<bke::sim::AttributeSimulationStateItem>(attribute_name);
-        break;
-      }
-      case SOCK_STRING: {
-        const ValueOrField<std::string> &value = *static_cast<const ValueOrField<std::string> *>(
-            input_value);
-        state_item = std::make_unique<bke::sim::StringSimulationStateItem>(value.as_value());
-        break;
-      }
-      default:
-        break;
+    std::unique_ptr<bke::BakeItem> &bake_item = bake_items[i];
+    if (bake_item) {
+      r_zone_state.item_by_identifier.add_new(item.identifier, std::move(bake_item));
     }
-
-    if (state_item) {
-      r_zone_state.item_by_identifier.add_new(item.identifier, std::move(state_item));
-    }
-  }
-
-  for (GeometrySet *geometry : stored_geometries) {
-    cleanup_geometry_for_simulation_state(*geometry);
-    geometry->ensure_owns_all_data();
   }
 }
 

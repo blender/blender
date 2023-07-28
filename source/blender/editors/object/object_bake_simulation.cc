@@ -217,7 +217,7 @@ static bool bake_simulation_poll(bContext *C)
 struct ModifierBakeData {
   NodesModifierData *nmd;
   std::string absolute_bake_dir;
-  std::unique_ptr<bke::sim::BDataSharing> bdata_sharing;
+  std::unique_ptr<bke::BDataSharing> bdata_sharing;
 };
 
 struct ObjectBakeData {
@@ -262,7 +262,8 @@ static void bake_simulation_job_startjob(void *customdata,
         char absolute_bake_dir[FILE_MAX];
         STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
         BLI_path_abs(absolute_bake_dir, base_path);
-        bake_data.modifiers.append({nmd, absolute_bake_dir, std::make_unique<BDataSharing>()});
+        bake_data.modifiers.append(
+            {nmd, absolute_bake_dir, std::make_unique<bke::BDataSharing>()});
       }
     }
     objects_to_bake.append(std::move(bake_data));
@@ -324,7 +325,7 @@ static void bake_simulation_job_startjob(void *customdata,
 
         BLI_file_ensure_parent_dir_exists(bdata_path);
         fstream bdata_file{bdata_path, std::ios::out | std::ios::binary};
-        bke::sim::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
+        bke::DiskBDataWriter bdata_writer{bdata_file_name, bdata_file, 0};
 
         io::serialize::DictionaryValue io_root;
         bke::sim::serialize_modifier_simulation_state(
