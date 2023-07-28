@@ -310,7 +310,7 @@ typedef enum PropertyFlag {
    **/
   PROP_PATH_OUTPUT = (1 << 2),
 } PropertyFlag;
-ENUM_OPERATORS(PropertyFlag, PROP_NO_DEG_UPDATE)
+ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE)
 
 /**
  * Flags related to comparing and overriding RNA properties.
