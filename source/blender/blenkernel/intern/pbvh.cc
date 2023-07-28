@@ -873,7 +873,6 @@ void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh)
 
   /* For each face, store the AABB and the AABB centroid */
   blender::Array<BBC> prim_bbc(looptri_num);
-
   BB cb;
   BB_reset(&cb);
   cb = blender::threading::parallel_reduce(
@@ -979,15 +978,15 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
       [&](const blender::IndexRange range, const BB &init) {
         BB current = init;
         for (const int i : range) {
-    CCGElem *grid = grids[i];
-    BBC *bbc = &prim_bbc[i];
-    BB_reset((BB *)bbc);
-    for (int j = 0; j < gridsize * gridsize; j++) {
-      BB_expand((BB *)bbc, CCG_elem_offset_co(key, grid, j));
-    }
-    BBC_update_centroid(bbc);
+          CCGElem *grid = grids[i];
+          BBC *bbc = &prim_bbc[i];
+          BB_reset((BB *)bbc);
+          for (int j = 0; j < gridsize * gridsize; j++) {
+            BB_expand((BB *)bbc, CCG_elem_offset_co(key, grid, j));
+          }
+          BBC_update_centroid(bbc);
           BB_expand(&current, bbc->bcentroid);
-  }
+        }
         return current;
       },
       [](const BB &a, const BB &b) {
