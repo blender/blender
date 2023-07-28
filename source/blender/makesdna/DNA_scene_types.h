@@ -2541,7 +2541,7 @@ typedef enum eSculptFlags {
   // SCULPT_SHOW_DIFFUSE = (1 << 9), /* deprecated */
 
   /** If set, the mesh will be drawn with smooth-shading in dynamic-topology mode. */
-  SCULPT_DYNTOPO_SMOOTH_SHADING = (1 << 10),
+  SCULPT_FLAG_UNUSED_8 = (1 << 10), /* deprecated */
 
   /** If set, dynamic-topology brushes will subdivide short edges. */
   SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12),

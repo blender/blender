@@ -131,16 +131,10 @@ struct PBVHNode {
   int debug_draw_gen = 0;
 };
 
-enum PBVHFlags {
-  PBVH_DYNTOPO_SMOOTH_SHADING = 1,
-};
-ENUM_OPERATORS(PBVHFlags, PBVH_DYNTOPO_SMOOTH_SHADING);
-
 typedef struct PBVHBMeshLog PBVHBMeshLog;
 
 struct PBVH {
   PBVHPublic header;
-  PBVHFlags flags;
 
   blender::Vector<PBVHNode> nodes;
 

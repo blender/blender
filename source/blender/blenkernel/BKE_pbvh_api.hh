@@ -216,12 +216,8 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
 /**
  * Build a PBVH from a BMesh.
  */
-void BKE_pbvh_build_bmesh(PBVH *pbvh,
-                          BMesh *bm,
-                          bool smooth_shading,
-                          BMLog *log,
-                          int cd_vert_node_offset,
-                          int cd_face_node_offset);
+void BKE_pbvh_build_bmesh(
+    PBVH *pbvh, BMesh *bm, BMLog *log, int cd_vert_node_offset, int cd_face_node_offset);
 
 void BKE_pbvh_update_bmesh_offsets(PBVH *pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
