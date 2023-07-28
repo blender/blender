@@ -1209,6 +1209,11 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
       return;
     }
 
+    if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+      ED_asset_shelf_region_blend_write(writer, region);
+      return;
+    }
+
     switch (spacetype) {
       case SPACE_VIEW3D:
         if (region->regiontype == RGN_TYPE_WINDOW) {
@@ -1221,9 +1226,6 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
           if (rv3d->clipbb) {
             BLO_write_struct(writer, BoundBox, rv3d->clipbb);
           }
-        }
-        else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-          ED_asset_shelf_region_blend_write(writer, region);
         }
         else {
           printf("regiondata write missing!\n");
@@ -1361,9 +1363,9 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
         rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
         rv3d->runtime_viewlock = 0;
       }
-      else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-        ED_asset_shelf_region_blend_read_data(reader, region);
-      }
+    }
+    if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+      ED_asset_shelf_region_blend_read_data(reader, region);
     }
   }
 
