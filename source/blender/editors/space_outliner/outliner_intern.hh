@@ -25,6 +25,7 @@ struct ListBase;
 struct Main;
 struct Object;
 struct Scene;
+struct ShaderFxData;
 struct TreeStoreElem;
 struct ViewLayer;
 struct bContext;
@@ -301,6 +302,11 @@ struct EditBoneElementCreateData {
 struct DeformGroupElementCreateData {
   Object *object;
   bDeformGroup *defgroup;
+};
+
+struct GPencilEffectElementCreateData {
+  Object *object;
+  ShaderFxData *fx;
 };
 
 struct ParticleSystemElementCreateData {
