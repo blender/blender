@@ -46,7 +46,7 @@ struct SculptCallbackData {
 
 static void sculpt_draw_cb(SculptCallbackData *data,
                            PBVHBatches *batches,
-                           PBVH_GPU_Args *pbvh_draw_args)
+                           const PBVH_GPU_Args &pbvh_draw_args)
 {
   if (!batches) {
     return;
@@ -141,7 +141,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, PBVH_GPU_Args *))sculpt_draw_cb,
+                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
                    &data,
                    use_materials,
                    attrs,

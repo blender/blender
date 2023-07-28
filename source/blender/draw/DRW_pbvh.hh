@@ -17,6 +17,10 @@
 
 #include "BKE_ccg.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct PBVHAttrReq;
 struct GPUBatch;
 struct PBVHNode;
@@ -53,19 +57,18 @@ struct PBVH_GPU_Args {
 
   SubdivCCG *subdiv_ccg;
   const DMFlagMat *grid_flag_mats;
-  const int *grid_indices;
+  blender::Span<int> grid_indices;
   CCGKey ccg_key;
   CCGElem **grids;
   void **gridfaces;
   BLI_bitmap **grid_hidden;
 
-  const int *prim_indices;
-  int totprim;
+  blender::Span<int> prim_indices;
 
   const bool *hide_poly;
 
-  const MLoopTri *mlooptri;
-  const int *looptri_faces;
+  blender::Span<MLoopTri> mlooptri;
+  blender::Span<int> looptri_faces;
   PBVHNode *node;
 
   /* BMesh. */
@@ -73,21 +76,25 @@ struct PBVH_GPU_Args {
   int cd_mask_layer;
 };
 
-void DRW_pbvh_node_update(PBVHBatches *batches, PBVH_GPU_Args *args);
-void DRW_pbvh_update_pre(PBVHBatches *batches, PBVH_GPU_Args *args);
+void DRW_pbvh_node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
+void DRW_pbvh_update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
 
 void DRW_pbvh_node_gpu_flush(PBVHBatches *batches);
-PBVHBatches *DRW_pbvh_node_create(PBVH_GPU_Args *args);
+PBVHBatches *DRW_pbvh_node_create(const PBVH_GPU_Args &args);
 void DRW_pbvh_node_free(PBVHBatches *batches);
 GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                             PBVHAttrReq *attrs,
                             int attrs_num,
-                            PBVH_GPU_Args *args,
+                            const PBVH_GPU_Args &args,
                             int *r_prim_count,
                             bool do_coarse_grids);
 GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              PBVHAttrReq *attrs,
                              int attrs_num,
-                             PBVH_GPU_Args *args,
+                             const PBVH_GPU_Args &args,
                              int *r_prim_count,
                              bool do_coarse_grids);
+
+#ifdef __cplusplus
+}
+#endif

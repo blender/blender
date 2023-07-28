@@ -47,8 +47,8 @@ set(INC_SYS
 
 set(SRC
   intern/gpu_batch.cc
-  intern/gpu_batch_presets.c
-  intern/gpu_batch_utils.c
+  intern/gpu_batch_presets.cc
+  intern/gpu_batch_utils.cc
   intern/gpu_capabilities.cc
   intern/gpu_codegen.cc
   intern/gpu_compute.cc
@@ -57,17 +57,17 @@ set(SRC
   intern/gpu_drawlist.cc
   intern/gpu_framebuffer.cc
   intern/gpu_immediate.cc
-  intern/gpu_immediate_util.c
+  intern/gpu_immediate_util.cc
   intern/gpu_index_buffer.cc
-  intern/gpu_init_exit.c
-  intern/gpu_material.c
+  intern/gpu_init_exit.cc
+  intern/gpu_material.cc
   intern/gpu_matrix.cc
   intern/gpu_node_graph.cc
   intern/gpu_platform.cc
   intern/gpu_query.cc
-  intern/gpu_select.c
+  intern/gpu_select.cc
   intern/gpu_select_next.cc
-  intern/gpu_select_pick.c
+  intern/gpu_select_pick.cc
   intern/gpu_select_sample_query.cc
   intern/gpu_shader.cc
   intern/gpu_shader_builtin.cc
@@ -81,7 +81,7 @@ set(SRC
   intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
-  intern/gpu_viewport.c
+  intern/gpu_viewport.cc
 
   GPU_batch.h
   GPU_batch_presets.h

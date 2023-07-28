@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
+
+#include "DNA_meshdata_types.h"
 
 /** \file
  * \ingroup bke
@@ -29,15 +32,15 @@ struct BBC {
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  PBVHBatches *draw_batches;
+  PBVHBatches *draw_batches = nullptr;
 
   /* Voxel bounds */
-  BB vb;
-  BB orig_vb;
+  BB vb = {};
+  BB orig_vb = {};
 
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
-  int children_offset;
+  int children_offset = 0;
 
   /* List of primitives for this node. Semantics depends on
    * PBVH type:
@@ -49,8 +52,7 @@ struct PBVHNode {
    * NOTE: This is a pointer inside of PBVH.prim_indices; it
    * is not allocated separately per node.
    */
-  int *prim_indices;
-  unsigned int totprim; /* Number of primitives inside prim_indices. */
+  blender::Span<int> prim_indices;
 
   /* Array of indices into the mesh's vertex array. Contains the
    * indices of all vertices used by faces that are within this
@@ -71,14 +73,14 @@ struct PBVHNode {
    *
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
-  const int *vert_indices;
-  unsigned int uniq_verts, face_verts;
+  blender::Array<int, 0> vert_indices;
+  int uniq_verts = 0;
+  int face_verts = 0;
 
   /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
-  int *loop_indices;
-  unsigned int loop_indices_num;
+  blender::Array<int, 0> loop_indices;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of
@@ -88,20 +90,20 @@ struct PBVHNode {
    *
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
-  const int (*face_vert_indices)[3];
+  blender::Array<blender::int3, 0> face_vert_indices;
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag;
+  PBVHNodeFlags flag = PBVHNodeFlags(0);
 
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
-  float tmin;
+  float tmin = 0.0f;
 
   /* Scalar displacements for sculpt mode's layer brush. */
-  float *layer_disp;
+  float *layer_disp = nullptr;
 
-  int proxy_count;
-  PBVHProxyNode *proxies;
+  int proxy_count = 0;
+  PBVHProxyNode *proxies = nullptr;
 
   /* Dyntopo */
 
@@ -109,15 +111,15 @@ struct PBVHNode {
    * NOTE: PBVH_BMESH only. Faces are always triangles
    * (dynamic topology forcibly triangulates the mesh).
    */
-  GSet *bm_faces;
-  GSet *bm_unique_verts;
-  GSet *bm_other_verts;
+  GSet *bm_faces = nullptr;
+  GSet *bm_unique_verts = nullptr;
+  GSet *bm_other_verts = nullptr;
 
   /* Deprecated. Stores original coordinates of triangles. */
-  float (*bm_orco)[3];
-  int (*bm_ortri)[3];
-  BMVert **bm_orvert;
-  int bm_tot_ortri;
+  float (*bm_orco)[3] = nullptr;
+  int (*bm_ortri)[3] = nullptr;
+  BMVert **bm_orvert = nullptr;
+  int bm_tot_ortri = 0;
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
@@ -126,7 +128,7 @@ struct PBVHNode {
   /* Used to flash colors of updated node bounding boxes in
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
    */
-  int debug_draw_gen;
+  int debug_draw_gen = 0;
 };
 
 enum PBVHFlags {
@@ -140,11 +142,10 @@ struct PBVH {
   PBVHPublic header;
   PBVHFlags flags;
 
-  PBVHNode *nodes;
-  int node_mem_count, totnode;
+  blender::Vector<PBVHNode> nodes;
 
   /* Memory backing for PBVHNode.prim_indices. */
-  int *prim_indices;
+  blender::Array<int> prim_indices;
   int totprim;
   int totvert;
   int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
@@ -166,10 +167,10 @@ struct PBVH {
   blender::OffsetIndices<int> faces;
   bool *hide_poly;
   /** Only valid for polygon meshes. */
-  const int *corner_verts;
+  blender::Span<int> corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
-  const MLoopTri *looptri;
-  const int *looptri_faces;
+  blender::Array<MLoopTri> looptri;
+  blender::Span<int> looptri_faces;
   CustomData *vert_data;
   CustomData *loop_data;
   CustomData *face_data;
@@ -188,7 +189,7 @@ struct PBVH {
 
   /* Used during BVH build and later to mark that a vertex needs to update
    * (its normal must be recalculated). */
-  bool *vert_bitmap;
+  blender::Array<bool> vert_bitmap;
 
 #ifdef PERFCNTRS
   int perf_modified;
@@ -234,7 +235,7 @@ void BB_expand(BB *bb, const float co[3]);
 /**
  * Expand the bounding box to include another bounding box.
  */
-void BB_expand_with_bb(BB *bb, BB *bb2);
+void BB_expand_with_bb(BB *bb, const BB *bb2);
 void BBC_update_centroid(BBC *bbc);
 /**
  * Return 0, 1, or 2 to indicate the widest axis of the bounding box.

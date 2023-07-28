@@ -103,7 +103,7 @@ typedef struct ShaderFxTypeInfo {
    *
    * This function is optional (assumes never disabled if not present).
    */
-  bool (*is_disabled)(struct ShaderFxData *fx, int user_render_params);
+  bool (*is_disabled)(struct ShaderFxData *fx, bool use_render_params);
 
   /* Add the appropriate relations to the dependency graph.
    *

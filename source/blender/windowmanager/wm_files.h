@@ -89,6 +89,13 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
  * Check if there is data that would be lost when closing the current file without saving.
  */
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm);
+/**
+ * Confirmation dialog when user is about to save the current blend file, and it was prviously
+ * created by a newer version of Blender.
+ *
+ * Important to ask confirmation, as this is a very common scenario of data loss.
+ */
+void wm_save_file_forwardcompat_dialog(bContext *C, wmOperator *op);
 
 void WM_OT_save_homefile(struct wmOperatorType *ot);
 void WM_OT_save_userpref(struct wmOperatorType *ot);

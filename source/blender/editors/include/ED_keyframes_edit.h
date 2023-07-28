@@ -160,6 +160,16 @@ ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
 /** \name Generic Properties for Keyframe Edit Tools
  * \{ */
 
+/**
+ * Temporary struct used to store frame time and selection status.
+ * Used for example by `columnselect_action_keys` to select all keyframes in a column.
+ */
+typedef struct CfraElem {
+  struct CfraElem *next, *prev;
+  float cfra;
+  int sel;
+} CfraElem;
+
 typedef struct KeyframeEditData {
   /* generic properties/data access */
   /** temp list for storing custom list of data to check */

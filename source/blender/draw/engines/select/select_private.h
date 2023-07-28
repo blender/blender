@@ -12,6 +12,10 @@
 
 #include "DRW_render.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* GPUViewport.storage
  * Is freed every time the viewport engine changes. */
 typedef struct SELECTID_StorageList {
@@ -65,3 +69,7 @@ void select_id_draw_object(void *vedata,
                            uint *r_vert_offset,
                            uint *r_edge_offset,
                            uint *r_face_offset);
+
+#ifdef __cplusplus
+}
+#endif

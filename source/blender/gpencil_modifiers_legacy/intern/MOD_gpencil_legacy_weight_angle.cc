@@ -164,7 +164,7 @@ static void foreach_ID_link(GpencilModifierData *md, Object *ob, IDWalkFunc walk
   walk(user_data, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   WeightAngleGpencilModifierData *mmd = (WeightAngleGpencilModifierData *)md;
 

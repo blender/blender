@@ -112,6 +112,7 @@ void paint_cursor_delete_textures(void);
 bool weight_paint_poll(bContext *C);
 bool weight_paint_poll_ignore_tool(bContext *C);
 bool weight_paint_mode_poll(bContext *C);
+bool weight_paint_mode_region_view3d_poll(bContext *C);
 bool vertex_paint_poll(bContext *C);
 bool vertex_paint_poll_ignore_tool(bContext *C);
 /**

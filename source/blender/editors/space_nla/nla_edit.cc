@@ -1220,8 +1220,7 @@ void NLA_OT_duplicate(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Duplicate Strips";
   ot->idname = "NLA_OT_duplicate";
-  ot->description =
-      "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals";
+  ot->description = "Duplicate selected NLA-Strips, adding the new strips to new track(s)";
 
   /* api callbacks */
   ot->invoke = nlaedit_duplicate_invoke;

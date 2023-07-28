@@ -933,7 +933,7 @@ static void gpencil_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
   /* compute midpoint of strokes on clipboard */
   for (gps = static_cast<bGPDstroke *>(gpencil_strokes_copypastebuf.first); gps; gps = gps->next) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
-      const float dfac = 1.0f / (float(gps->totpoints));
+      const float dfac = 1.0f / float(gps->totpoints);
       float mid[3] = {0.0f};
 
       bGPDspoint *pt;

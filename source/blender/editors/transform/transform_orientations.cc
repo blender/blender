@@ -41,6 +41,8 @@
 
 #include "ED_armature.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "SEQ_select.h"
 
 #include "transform.hh"
@@ -551,7 +553,7 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
     bone->flag &= ~BONE_TRANSFORM;
     do_next = do_it;
     if (do_it) {
-      if (bone->layer & arm->layer) {
+      if (ANIM_bonecoll_is_visible(arm, bone)) {
         if (bone->flag & BONE_SELECTED) {
           bone->flag |= BONE_TRANSFORM;
           total++;
@@ -1302,7 +1304,7 @@ int getTransformOrientation_ex(const Scene *scene,
         zero_v3(fallback_plane);
 
         for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
-          if (arm->layer & ebone->layer) {
+          if (ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
             if (ebone->flag & BONE_SELECTED) {
               ED_armature_ebone_to_mat3(ebone, tmat);
               add_v3_v3(normal, tmat[2]);

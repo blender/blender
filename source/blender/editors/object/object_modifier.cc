@@ -89,6 +89,8 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "UI_interface.h"
 
 #include "WM_api.h"
@@ -2957,7 +2959,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   Object *arm_ob = BKE_object_add(bmain, scene, view_layer, OB_ARMATURE, nullptr);
   BKE_object_transform_copy(arm_ob, skin_ob);
   bArmature *arm = static_cast<bArmature *>(arm_ob->data);
-  arm->layer = 1;
+  ANIM_armature_ensure_first_layer_enabled(arm);
   arm_ob->dtx |= OB_DRAW_IN_FRONT;
   arm->drawtype = ARM_LINE;
   arm->edbo = MEM_cnew<ListBase>("edbo armature");

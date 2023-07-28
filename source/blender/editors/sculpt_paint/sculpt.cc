@@ -2704,7 +2704,7 @@ void SCULPT_brush_strength_color(SculptSession *ss,
 void SCULPT_calc_vertex_displacement(SculptSession *ss,
                                      const Brush *brush,
                                      float rgba[3],
-                                     float out_offset[3])
+                                     float r_offset[3])
 {
   mul_v3_fl(rgba, ss->cache->bstrength);
   /* Handle brush inversion */
@@ -2725,7 +2725,7 @@ void SCULPT_calc_vertex_displacement(SculptSession *ss,
   if (ss->cache->radial_symmetry_pass) {
     mul_m4_v3(ss->cache->symm_rot_mat, rgba);
   }
-  flip_v3_v3(out_offset, rgba, ss->cache->mirror_symmetry_pass);
+  flip_v3_v3(r_offset, rgba, ss->cache->mirror_symmetry_pass);
 }
 
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)

@@ -281,7 +281,7 @@ static void build_sequential(Object *ob,
   size_t i;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   /* Frame-rate of scene. */
-  const float fps = ((float(scene->r.frs_sec)) / scene->r.frs_sec_base);
+  const float fps = (float(scene->r.frs_sec) / scene->r.frs_sec_base);
 
   /* 1) Determine which strokes to start with (& adapt total number of strokes to build). */
   if (mmd->mode == GP_BUILD_MODE_ADDITIVE) {

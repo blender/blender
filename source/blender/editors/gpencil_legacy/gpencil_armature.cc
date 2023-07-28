@@ -46,6 +46,8 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
@@ -203,7 +205,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
         segments = 1;
       }
 
-      if (arm->layer & bone->layer) {
+      if (ANIM_bonecoll_is_visible(arm, bone)) {
         if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }

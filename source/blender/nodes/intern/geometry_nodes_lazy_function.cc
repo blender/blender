@@ -923,7 +923,6 @@ class LazyFunctionForGroupNode : public LazyFunction {
           group_lf_graph_info.mapping.group_output_used_sockets[i]);
       inputs_.append_as("Output is Used", CPPType::get<bool>(), lf::ValueUsage::Maybe);
     }
-    graph_inputs.extend(group_lf_graph_info.mapping.group_output_used_sockets);
 
     /* Add an attribute set input for every output geometry socket that can propagate attributes
      * from inputs. */

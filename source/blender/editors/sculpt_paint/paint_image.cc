@@ -774,7 +774,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
   ot->poll = sample_color_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   /* properties */
   PropertyRNA *prop;

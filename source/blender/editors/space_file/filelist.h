@@ -206,6 +206,10 @@ struct BlendHandle *filelist_lib(struct FileList *filelist);
 bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group);
 void filelist_freelib(struct FileList *filelist);
 
+/** Return the total raw number of entries listed in the given `filelist`, whether they are
+ * filtered out or not. */
+int filelist_files_num_entries(struct FileList *filelist);
+
 void filelist_readjob_start(struct FileList *filelist,
                             int space_notifier,
                             const struct bContext *C);

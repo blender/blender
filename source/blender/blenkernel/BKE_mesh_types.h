@@ -20,6 +20,7 @@
 #  include "BLI_shared_cache.hh"
 #  include "BLI_vector.hh"
 
+#  include "DNA_customdata_types.h"
 #  include "DNA_meshdata_types.h"
 
 struct BVHCache;
@@ -102,7 +103,7 @@ struct MeshRuntime {
   std::mutex render_mutex;
 
   /** Implicit sharing user count for #Mesh::face_offset_indices. */
-  const ImplicitSharingInfoHandle *face_offsets_sharing_info;
+  const ImplicitSharingInfo *face_offsets_sharing_info;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions

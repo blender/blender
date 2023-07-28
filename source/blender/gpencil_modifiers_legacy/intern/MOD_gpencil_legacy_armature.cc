@@ -128,7 +128,7 @@ static void bake_modifier(Main * /*bmain*/,
   generic_bake_deform_stroke(depsgraph, md, ob, true, deform_stroke);
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)md;
 

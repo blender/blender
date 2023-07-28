@@ -173,26 +173,14 @@ extern void (*MEM_reset_peak_memory)(void);
 /** Get the peak memory usage in bytes, including `mmap` allocations. */
 extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
 
-#ifdef __GNUC__
-#  define MEM_SAFE_FREE(v) \
-    do { \
-      typeof(&(v)) _v = &(v); \
-      if (*_v) { \
-        /* Cast so we can free constant arrays. */ \
-        MEM_freeN((void *)*_v); \
-        *_v = NULL; \
-      } \
-    } while (0)
-#else
-#  define MEM_SAFE_FREE(v) \
-    do { \
-      void **_v = (void **)&(v); \
-      if (*_v) { \
-        MEM_freeN(*_v); \
-        *_v = NULL; \
-      } \
-    } while (0)
-#endif
+#define MEM_SAFE_FREE(v) \
+  do { \
+    void **_v = (void **)&(v); \
+    if (*_v) { \
+      MEM_freeN(*_v); \
+      *_v = NULL; \
+    } \
+  } while (0)
 
 /* overhead for lockfree allocator (use to avoid slop-space) */
 #define MEM_SIZE_OVERHEAD sizeof(size_t)

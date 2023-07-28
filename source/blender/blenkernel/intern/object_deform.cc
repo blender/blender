@@ -679,6 +679,14 @@ bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
   return true;
 }
 
+bool BKE_object_defgroup_active_is_locked(const Object *ob)
+{
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  bDeformGroup *dg = static_cast<bDeformGroup *>(
+      BLI_findlink(&me->vertex_group_names, me->vertex_group_active_index - 1));
+  return dg->flag & DG_LOCK_WEIGHT;
+}
+
 void BKE_object_defgroup_split_locked_validmap(
     int defbase_tot, const bool *locked, const bool *deform, bool *r_locked, bool *r_unlocked)
 {

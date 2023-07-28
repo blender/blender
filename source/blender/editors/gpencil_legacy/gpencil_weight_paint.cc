@@ -1679,5 +1679,5 @@ void GPENCIL_OT_weight_sample(wmOperatorType *ot)
   ot->poll = gpencil_weightpaint_brush_poll;
 
   /* flags */
-  ot->flag = OPTYPE_UNDO;
+  ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 }

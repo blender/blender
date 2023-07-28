@@ -175,7 +175,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   {
     reserve(count_nodes(pbvh, image_tile));
 
-    for (PBVHNode &node : MutableSpan(pbvh.nodes, pbvh.totnode)) {
+    for (PBVHNode &node : pbvh.nodes) {
       if (should_add_node(node, image_tile)) {
         NodeData &node_data = *static_cast<NodeData *>(node.pixels.node_data);
         UDIMTilePixels &tile_pixels = *node_data.find_tile_data(image_tile);
@@ -203,7 +203,7 @@ class PixelNodesTileData : public Vector<std::reference_wrapper<UDIMTilePixels>>
   static int64_t count_nodes(PBVH &pbvh, const image::ImageTileWrapper &image_tile)
   {
     int64_t result = 0;
-    for (PBVHNode &node : MutableSpan(pbvh.nodes, pbvh.totnode)) {
+    for (PBVHNode &node : pbvh.nodes) {
       if (should_add_node(node, image_tile)) {
         result++;
       }

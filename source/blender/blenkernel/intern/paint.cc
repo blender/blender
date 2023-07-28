@@ -594,6 +594,8 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
           return PAINT_MODE_SCULPT_UV;
         case OB_MODE_SCULPT_CURVES:
           return PAINT_MODE_SCULPT_CURVES;
+        case OB_MODE_PAINT_GREASE_PENCIL:
+          return PAINT_MODE_GPENCIL;
         default:
           return PAINT_MODE_TEXTURE_2D;
       }

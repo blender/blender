@@ -1302,7 +1302,7 @@ void SCULPT_brush_strength_color(SculptSession *ss,
 void SCULPT_calc_vertex_displacement(SculptSession *ss,
                                      const Brush *brush,
                                      float rgba[3],
-                                     float out_offset[3]);
+                                     float r_offset[3]);
 
 /**
  * Tilts a normal by the x and y tilt values using the view axis.

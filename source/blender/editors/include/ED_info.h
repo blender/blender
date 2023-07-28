@@ -18,6 +18,10 @@ struct wmWindowManager;
 /* info_stats.c */
 
 void ED_info_stats_clear(struct wmWindowManager *wm, struct ViewLayer *view_layer);
+const char *ED_info_statusbar_string_ex(struct Main *bmain,
+                                        struct Scene *scene,
+                                        struct ViewLayer *view_layer,
+                                        const char statusbar_flag);
 const char *ED_info_statusbar_string(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer);

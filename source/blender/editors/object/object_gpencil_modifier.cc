@@ -232,7 +232,7 @@ static bool gpencil_modifier_apply_obdata(
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       GpencilModifierType(md->type));
 
-  if (mti->is_disabled && mti->is_disabled(md, 0)) {
+  if (mti->is_disabled && mti->is_disabled(md, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
     return false;
   }

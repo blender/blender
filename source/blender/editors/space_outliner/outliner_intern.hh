@@ -25,11 +25,14 @@ struct ListBase;
 struct Main;
 struct Object;
 struct Scene;
+struct ShaderFxData;
 struct TreeStoreElem;
 struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
+struct bDeformGroup;
 struct bPoseChannel;
+struct ParticleSystem;
 struct View2D;
 struct wmKeyConfig;
 struct wmOperatorType;
@@ -294,6 +297,21 @@ struct BoneElementCreateData {
 struct EditBoneElementCreateData {
   ID *armature_id;
   EditBone *ebone;
+};
+
+struct DeformGroupElementCreateData {
+  Object *object;
+  bDeformGroup *defgroup;
+};
+
+struct GPencilEffectElementCreateData {
+  Object *object;
+  ShaderFxData *fx;
+};
+
+struct ParticleSystemElementCreateData {
+  Object *object;
+  ParticleSystem *psys;
 };
 
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);

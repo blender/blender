@@ -282,7 +282,7 @@ static void free_data(GpencilModifierData *md)
   }
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   TintGpencilModifierData *mmd = (TintGpencilModifierData *)md;
   if (mmd->type == GP_TINT_UNIFORM) {

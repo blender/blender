@@ -143,6 +143,12 @@ bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
                                                    const bool *lock_flags,
                                                    const bool *selected,
                                                    int sel_tot);
+
+/**
+ * Return lock status of active vertex group.
+ */
+bool BKE_object_defgroup_active_is_locked(const struct Object *ob);
+
 /**
  * Takes a pair of boolean masks of all locked and all deform groups, and computes
  * a pair of masks for locked deform and unlocked deform groups. Output buffers may

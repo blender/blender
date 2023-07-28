@@ -96,7 +96,7 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
     for (const int i_face : pbvh.pmap[index]) {
       const IndexRange face = pbvh.faces[i_face];
       Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + face.start(), face.size()};
-      Span<int> face_verts{pbvh.corner_verts + face.start(), face.size()};
+      Span<int> face_verts = pbvh.corner_verts.slice(face);
 
       for (const int i : IndexRange(face.size())) {
         if (face_verts[i] == index) {
@@ -127,7 +127,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
     for (const int i_face : pbvh.pmap[index]) {
       const IndexRange face = pbvh.faces[i_face];
       MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + face.start(), face.size()};
-      Span<int> face_verts{pbvh.corner_verts + face.start(), face.size()};
+      Span<int> face_verts = pbvh.corner_verts.slice(face);
 
       for (const int i : IndexRange(face.size())) {
         if (face_verts[i] == index) {

@@ -46,7 +46,7 @@ static bool lineart_mod_is_disabled(GpencilModifierData *md)
    * it. We can assume that the guard function has already toggled this on for all modifiers that
    * are sent here. */
   lmd->flags &= (~LRT_GPENCIL_IS_BAKED);
-  bool disabled = info->is_disabled(md, 0);
+  bool disabled = info->is_disabled(md, false);
   lmd->flags |= LRT_GPENCIL_IS_BAKED;
 
   return disabled;

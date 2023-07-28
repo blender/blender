@@ -288,7 +288,7 @@ static void free_data(GpencilModifierData *md)
   }
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   HookGpencilModifierData *mmd = (HookGpencilModifierData *)md;
 

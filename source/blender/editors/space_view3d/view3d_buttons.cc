@@ -55,6 +55,8 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -1630,7 +1632,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 
   ebone = arm->act_edbone;
 
-  if (!ebone || (ebone->layer & arm->layer) == 0) {
+  if (!ebone || !ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
     uiItemL(layout, IFACE_("Nothing selected"), ICON_NONE);
     return;
   }

@@ -179,7 +179,7 @@ static void update_depsgraph(GpencilModifierData *md,
       ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "GPencil Weight Modifier");
 }
 
-static bool is_disabled(GpencilModifierData *md, int /*user_render_params*/)
+static bool is_disabled(GpencilModifierData *md, bool /*use_render_params*/)
 {
   WeightProxGpencilModifierData *mmd = (WeightProxGpencilModifierData *)md;
 
