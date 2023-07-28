@@ -2871,7 +2871,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         else if (rmd->region->flag & RGN_FLAG_HIDDEN) {
           region_scale_toggle_hidden(C, rmd);
         }
-        else if (rmd->region->flag & RGN_FLAG_DYNAMIC_SIZE) {
+        else if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizex = rmd->origval;
         }
       }
@@ -2913,7 +2913,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
         else if (rmd->region->flag & RGN_FLAG_HIDDEN) {
           region_scale_toggle_hidden(C, rmd);
         }
-        else if (rmd->region->flag & RGN_FLAG_DYNAMIC_SIZE) {
+        else if (rmd->region->flag & RGN_FLAG_NO_USER_RESIZE) {
           rmd->region->sizey = rmd->origval;
         }
       }

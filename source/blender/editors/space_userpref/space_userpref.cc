@@ -66,7 +66,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* main region */
   region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for userpref"));
