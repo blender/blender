@@ -76,22 +76,22 @@ struct PBVH_GPU_Args {
   int cd_mask_layer;
 };
 
-void DRW_pbvh_node_update(PBVHBatches *batches, PBVH_GPU_Args *args);
-void DRW_pbvh_update_pre(PBVHBatches *batches, PBVH_GPU_Args *args);
+void DRW_pbvh_node_update(PBVHBatches *batches, const PBVH_GPU_Args &args);
+void DRW_pbvh_update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
 
 void DRW_pbvh_node_gpu_flush(PBVHBatches *batches);
-PBVHBatches *DRW_pbvh_node_create(PBVH_GPU_Args *args);
+PBVHBatches *DRW_pbvh_node_create(const PBVH_GPU_Args &args);
 void DRW_pbvh_node_free(PBVHBatches *batches);
 GPUBatch *DRW_pbvh_tris_get(PBVHBatches *batches,
                             PBVHAttrReq *attrs,
                             int attrs_num,
-                            PBVH_GPU_Args *args,
+                            const PBVH_GPU_Args &args,
                             int *r_prim_count,
                             bool do_coarse_grids);
 GPUBatch *DRW_pbvh_lines_get(PBVHBatches *batches,
                              PBVHAttrReq *attrs,
                              int attrs_num,
-                             PBVH_GPU_Args *args,
+                             const PBVH_GPU_Args &args,
                              int *r_prim_count,
                              bool do_coarse_grids);
 

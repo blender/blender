@@ -1221,7 +1221,7 @@ static float sculpt_debug_colors[9][4] = {
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd,
                            PBVHBatches *batches,
-                           PBVH_GPU_Args *pbvh_draw_args)
+                           const PBVH_GPU_Args &pbvh_draw_args)
 {
   if (!batches) {
     return;
@@ -1365,7 +1365,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, PBVH_GPU_Args *))sculpt_draw_cb,
+                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
                    scd,
                    scd->use_mats,
                    scd->attrs,

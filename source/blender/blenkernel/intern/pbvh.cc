@@ -1513,7 +1513,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
     PBVH_GPU_Args args;
     pbvh_draw_args_init(pbvh, &args, node);
 
-    node->draw_batches = DRW_pbvh_node_create(&args);
+    node->draw_batches = DRW_pbvh_node_create(args);
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
@@ -1523,7 +1523,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       PBVH_GPU_Args args;
 
       pbvh_draw_args_init(pbvh, &args, node);
-      DRW_pbvh_node_update(node->draw_batches, &args);
+      DRW_pbvh_node_update(node->draw_batches, args);
     }
   }
 }
@@ -1568,7 +1568,7 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, Span<PBVHNode *> nodes, int upd
         PBVH_GPU_Args args;
 
         pbvh_draw_args_init(pbvh, &args, node);
-        DRW_pbvh_update_pre(node->draw_batches, &args);
+        DRW_pbvh_update_pre(node->draw_batches, args);
       }
     }
   }
@@ -2972,7 +2972,9 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, PBVHBatches *batches, PBVH_GPU_Args *args),
+                      void (*draw_fn)(void *user_data,
+                                      PBVHBatches *batches,
+                                      const PBVH_GPU_Args &args),
                       void *user_data,
                       bool /*full_render*/,
                       PBVHAttrReq *attrs,
@@ -3018,8 +3020,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   for (PBVHNode *node : nodes) {
     if (!(node->flag & PBVH_FullyHidden)) {
       pbvh_draw_args_init(pbvh, &args, node);
-
-      draw_fn(user_data, node->draw_batches, &args);
+      draw_fn(user_data, node->draw_batches, args);
     }
   }
 }
