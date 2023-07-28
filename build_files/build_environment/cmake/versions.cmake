@@ -16,7 +16,7 @@ set(ZLIB_HASH 9b8aa094c4e5765dabf4da391f00d15c)
 set(ZLIB_HASH_TYPE MD5)
 set(ZLIB_FILE zlib-${ZLIB_VERSION}.tar.gz)
 set(ZLIB_CPE "cpe:2.3:a:zlib:zlib:${ZLIB_VERSION}:*:*:*:*:*:*:*")
-#set(ZLIB_HOMEPAGE https://zlib.net)
+set(ZLIB_HOMEPAGE https://zlib.net)
 
 set(OPENAL_VERSION 1.21.1)
 set(OPENAL_URI http://openal-soft.org/openal-releases/openal-soft-${OPENAL_VERSION}.tar.bz2)
