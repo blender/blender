@@ -1494,6 +1494,9 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 
     return true;
   }
+  if (ob->type == OB_GREASE_PENCIL && (mti->flags & eModifierTypeFlag_AcceptsGreasePencil)) {
+    return true;
+  }
 
   return false;
 }
