@@ -90,7 +90,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   int index_orig = active_layer_orig.drawing_index_at(scene->r.cfra);
 
   bke::greasepencil::Drawing &drawing_orig =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings()[index_orig])->wrap();
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings(index_orig))->wrap();
 
   const Span<bke::greasepencil::StrokePoint> stroke_points =
       grease_pencil_eval.runtime->stroke_buffer();

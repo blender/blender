@@ -531,6 +531,15 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
+inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index) const
+{
+  return this->drawings()[index];
+}
+inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index)
+{
+  return this->drawings()[index];
+}
+
 inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const
 {
   return this->root_group_ptr->wrap();
