@@ -81,7 +81,7 @@ class AssetDragController : public ui::AbstractViewItemDragController {
   AssetDragController(ui::AbstractGridView &view, asset_system::AssetRepresentation &asset);
 
   eWM_DragDataType get_drag_type() const override;
-  void *create_drag_data(bContext &C) const override;
+  void *create_drag_data() const override;
 };
 
 AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf &shelf)
@@ -281,7 +281,7 @@ eWM_DragDataType AssetDragController::get_drag_type() const
   return asset_.is_local_id() ? WM_DRAG_ID : WM_DRAG_ASSET;
 }
 
-void *AssetDragController::create_drag_data(bContext &C) const
+void *AssetDragController::create_drag_data() const
 {
   ID *local_id = asset_.local_id();
   if (local_id) {
@@ -291,7 +291,7 @@ void *AssetDragController::create_drag_data(bContext &C) const
   const eAssetImportMethod import_method = asset_.get_import_method().value_or(
       ASSET_IMPORT_APPEND_REUSE);
 
-  return WM_drag_create_asset_data(&asset_, import_method, &C);
+  return WM_drag_create_asset_data(&asset_, import_method);
 }
 
 }  // namespace blender::ed::asset::shelf

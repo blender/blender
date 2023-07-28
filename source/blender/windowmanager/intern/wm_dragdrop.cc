@@ -215,7 +215,7 @@ wmDrag *WM_drag_data_create(
       LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_file_links) {
         const FileDirEntry *asset_file = static_cast<const FileDirEntry *>(link->ptr.data);
         const AssetHandle asset_handle = {asset_file};
-        WM_drag_add_asset_list_item(drag, ED_asset_handle_get_representation(&asset_handle), C);
+        WM_drag_add_asset_list_item(drag, ED_asset_handle_get_representation(&asset_handle));
       }
       BLI_freelistN(&asset_file_links);
       break;
@@ -570,19 +570,12 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
 }
 
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int import_type,
-                                       bContext *evil_C)
+                                       int import_type)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   asset_drag->asset = asset;
   asset_drag->import_method = import_type;
-  /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
-   * #wmDropBox.
-   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
-   * copy callback.
-   * */
-  asset_drag->evil_C = static_cast<bContext *>(evil_C);
 
   return asset_drag;
 }
@@ -739,8 +732,7 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
 }
 
 void WM_drag_add_asset_list_item(wmDrag *drag,
-                                 const blender::asset_system::AssetRepresentation *asset,
-                                 bContext *evil_C)
+                                 const blender::asset_system::AssetRepresentation *asset)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
@@ -755,8 +747,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag,
   }
   else {
     drag_asset->is_external = true;
-    drag_asset->asset_data.external_info = WM_drag_create_asset_data(
-        asset, ASSET_IMPORT_APPEND, evil_C);
+    drag_asset->asset_data.external_info = WM_drag_create_asset_data(asset, ASSET_IMPORT_APPEND);
   }
   BLI_addtail(&drag->asset_items, drag_asset);
 }
