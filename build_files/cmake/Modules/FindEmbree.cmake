@@ -12,9 +12,13 @@
 #                        This can also be an environment variable.
 #  EMBREEFOUND, If false, do not try to use Embree.
 
-# If EMBREE_ROOT_DIR was defined in the environment, use it.
-IF(NOT EMBREE_ROOT_DIR AND NOT $ENV{EMBREE_ROOT_DIR} STREQUAL "")
+# If `EMBREE_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED EMBREE_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{EMBREE_ROOT_DIR})
   SET(EMBREE_ROOT_DIR $ENV{EMBREE_ROOT_DIR})
+ELSE()
+  SET(EMBREE_ROOT_DIR "")
 ENDIF()
 
 SET(_embree_SEARCH_DIRS

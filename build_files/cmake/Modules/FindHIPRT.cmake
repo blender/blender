@@ -7,9 +7,13 @@
 #   HIPRT_BITCODE, bitcode file with ray-tracing functionality
 #   HIPRT_FOUND, if SDK found
 
-# If HIPRT_ROOT_DIR was defined in the environment, use it.
-if(NOT HIPRT_ROOT_DIR AND NOT $ENV{HIPRT_ROOT_DIR} STREQUAL "")
+# If `HIPRT_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED HIPRT_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{HIPRT_ROOT_DIR})
   set(HIPRT_ROOT_DIR $ENV{HIPRT_ROOT_DIR})
+else()
+  set(HIPRT_ROOT_DIR "")
 endif()
 
 set(_hiprt_SEARCH_DIRS

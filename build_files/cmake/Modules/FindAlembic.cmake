@@ -13,9 +13,13 @@
 #  ALEMBIC_FOUND, If false, do not try to use Alembic.
 #
 
-# If ALEMBIC_ROOT_DIR was defined in the environment, use it.
-IF(NOT ALEMBIC_ROOT_DIR AND NOT $ENV{ALEMBIC_ROOT_DIR} STREQUAL "")
+# If `ALEMBIC_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED ALEMBIC_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{ALEMBIC_ROOT_DIR})
   SET(ALEMBIC_ROOT_DIR $ENV{ALEMBIC_ROOT_DIR})
+ELSE()
+  SET(ALEMBIC_ROOT_DIR "")
 ENDIF()
 
 SET(_alembic_SEARCH_DIRS

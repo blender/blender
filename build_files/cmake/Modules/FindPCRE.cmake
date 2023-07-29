@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  PCRE_LIBRARY, where to find the PCRE library.
 
-# If PCRE_ROOT_DIR was defined in the environment, use it.
-IF(NOT PCRE_ROOT_DIR AND NOT $ENV{PCRE_ROOT_DIR} STREQUAL "")
+# If `PCRE_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED PCRE_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{PCRE_ROOT_DIR})
   SET(PCRE_ROOT_DIR $ENV{PCRE_ROOT_DIR})
+ELSE()
+  SET(PCRE_ROOT_DIR "")
 ENDIF()
 
 SET(_pcre_SEARCH_DIRS

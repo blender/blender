@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  OPENVDB_LIBRARY, where to find the OPENVDB library.
 
-# If OPENVDB_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENVDB_ROOT_DIR AND NOT $ENV{OPENVDB_ROOT_DIR} STREQUAL "")
+# If `OPENVDB_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OPENVDB_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OPENVDB_ROOT_DIR})
   SET(OPENVDB_ROOT_DIR $ENV{OPENVDB_ROOT_DIR})
+ELSE()
+  SET(OPENVDB_ROOT_DIR "")
 ENDIF()
 
 SET(_openvdb_SEARCH_DIRS

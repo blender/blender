@@ -15,9 +15,13 @@
 #  OSL_LIBRARY_VERSION_MAJOR, OSL_LIBRARY_VERSION_MINOR,  the major
 #                and minor versions of OSL library if found.
 
-# If OSL_ROOT_DIR was defined in the environment, use it.
-IF(NOT OSL_ROOT_DIR AND NOT $ENV{OSL_ROOT_DIR} STREQUAL "")
+# If `OSL_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OSL_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OSL_ROOT_DIR})
   SET(OSL_ROOT_DIR $ENV{OSL_ROOT_DIR})
+ELSE()
+  SET(OSL_ROOT_DIR "")
 ENDIF()
 
 SET(_osl_FIND_COMPONENTS

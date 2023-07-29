@@ -13,9 +13,13 @@
 #  FFMPEG_FOUND, If false, do not try to use FFmpeg.
 #  FFMPEG_<COMPONENT>_LIBRARY, the given individual component libraries.
 
-# If FFMPEG_ROOT_DIR was defined in the environment, use it.
-if(NOT FFMPEG_ROOT_DIR AND NOT $ENV{FFMPEG_ROOT_DIR} STREQUAL "")
+# If `FFMPEG_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED FFMPEG_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{FFMPEG_ROOT_DIR})
   set(FFMPEG_ROOT_DIR $ENV{FFMPEG_ROOT_DIR})
+else()
+  set(FFMPEG_ROOT_DIR "")
 endif()
 
 set(_ffmpeg_SEARCH_DIRS
