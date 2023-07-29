@@ -2269,7 +2269,7 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
-  if (ob == nullptr || ob->sculpt == nullptr) {
+  if (ob->sculpt == nullptr) {
     return nullptr;
   }
 
