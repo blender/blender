@@ -406,7 +406,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       if (has_undo) {
         SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
       }
-      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
         SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
         SCULPT_undo_push_end(ob);

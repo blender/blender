@@ -77,7 +77,7 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = static_cast<Mesh *>(ob->data);
@@ -226,10 +226,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
   }
 }
 
-static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
-                                                     Depsgraph *depsgraph,
-                                                     Scene *scene,
-                                                     Object *ob)
+static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   if (ss->bm == nullptr) {
@@ -238,7 +235,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     if (use_undo) {
       SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
     }
-    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
       SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
       SCULPT_undo_push_end(ob);
@@ -260,7 +257,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
     sculpt_dynamic_topology_disable_with_undo(bmain, depsgraph, scene, ob);
   }
   else {
-    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, scene, ob);
+    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, ob);
   }
 
   WM_cursor_wait(false);
