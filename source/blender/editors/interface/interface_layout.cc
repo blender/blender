@@ -111,13 +111,7 @@ enum uiItemType {
 #endif
 };
 
-struct uiItem {
-  uiItem *next, *prev;
-  uiItemType type;
-  int flag;
-};
-
-enum {
+typedef enum uiItemInternalFlag {
   UI_ITEM_AUTO_FIXED_SIZE = 1 << 0,
   UI_ITEM_FIXED_SIZE = 1 << 1,
 
@@ -128,6 +122,13 @@ enum {
    * Enabled by default, depends on 'UI_ITEM_PROP_SEP'. */
   UI_ITEM_PROP_DECORATE = 1 << 5,
   UI_ITEM_PROP_DECORATE_NO_PAD = 1 << 6,
+} uiItemInternalFlag;
+ENUM_OPERATORS(uiItemInternalFlag, UI_ITEM_PROP_DECORATE_NO_PAD)
+
+struct uiItem {
+  uiItem *next, *prev;
+  uiItemType type;
+  uiItemInternalFlag flag;
 };
 
 struct uiButtonItem {
