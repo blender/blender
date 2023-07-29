@@ -4559,6 +4559,23 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
+/** Check if the animation channel name should be underlined in red due to fatal errors. */
+static bool achannel_is_broken(const bAnimListElem *ale)
+{
+  switch (ale->type) {
+    case ANIMTYPE_FCURVE:
+    case ANIMTYPE_NLACURVE: {
+      const FCurve *fcu = static_cast<const FCurve *>(ale->data);
+
+      /* The channel is disabled (has a bad rna path), or it's a driver that failed to evaluate. */
+      return (ale->flag & FCURVE_DISABLED) ||
+             (fcu->driver != nullptr && (fcu->driver->flag & DRIVER_FLAG_INVALID));
+    }
+    default:
+      return false;
+  }
+}
+
 float ANIM_UI_get_keyframe_scale_factor()
 {
   bTheme *btheme = UI_GetTheme();
@@ -4742,7 +4759,7 @@ void ANIM_channel_draw(
     UI_fontstyle_draw_simple(fstyle, offset, ytext, name, col);
 
     /* draw red underline if channel is disabled */
-    if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE) && (ale->flag & FCURVE_DISABLED)) {
+    if (achannel_is_broken(ale)) {
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
