@@ -312,7 +312,7 @@ struct PieMenuLevelData {
   const char *propname;
   IDProperty *properties;
   wmOperatorCallContext context;
-  int flag;
+  eUI_Item_Flag flag;
 };
 
 /**
@@ -360,8 +360,8 @@ void ui_pie_menu_level_create(uiBlock *block,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,
-                              wmOperatorCallContext context,
-                              int flag)
+                              const wmOperatorCallContext context,
+                              const eUI_Item_Flag flag)
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
   const int totitem_remain = totitem - totitem_parent;

@@ -683,11 +683,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "target", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
-  uiItemR(col, ptr, "use_direction_parallel", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_direction_parallel", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -703,17 +703,17 @@ static void mix_mode_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mix_mode", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "mix_factor", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "mix_limit", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "mix_limit", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(row,
           ptr,
           "no_polynors_fix",
-          0,
+          UI_ITEM_NONE,
           "",
           (RNA_boolean_get(ptr, "no_polynors_fix") ? ICON_LOCKED : ICON_UNLOCKED));
 }
@@ -734,7 +734,7 @@ static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, needs_object_offset);
-  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

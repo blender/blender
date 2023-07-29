@@ -6899,17 +6899,17 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
     uiItemR(layout, op->ptr, "slot_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   switch (slot_type) {
     case PAINT_CANVAS_SOURCE_IMAGE: {
       uiLayout *col = uiLayoutColumn(layout, true);
-      uiItemR(col, op->ptr, "width", 0, nullptr, ICON_NONE);
-      uiItemR(col, op->ptr, "height", 0, nullptr, ICON_NONE);
+      uiItemR(col, op->ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, op->ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-      uiItemR(layout, op->ptr, "alpha", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "generated_type", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "float", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     }
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
@@ -6921,7 +6921,7 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
       break;
   }
 
-  uiItemR(layout, op->ptr, "color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 #define IMA_DEF_NAME N_("Untitled")

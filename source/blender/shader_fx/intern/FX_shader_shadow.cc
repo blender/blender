@@ -90,20 +90,20 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "shadow_color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "shadow_color", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "offset");
-  uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Offset X"), ICON_NONE);
-  uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Offset X"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Object Pivot"));
-  uiItemR(row, ptr, "use_object", 0, "", ICON_NONE);
-  uiItemR(row, ptr, "object", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_object", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(row, ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -120,10 +120,10 @@ static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "blur");
-  uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
-  uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Blur X"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "samples", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "samples", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void wave_header_draw(const bContext * /*C*/, Panel *panel)
@@ -132,7 +132,7 @@ static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_wave", 0, IFACE_("Wave Effect"), ICON_NONE);
+  uiItemR(layout, ptr, "use_wave", UI_ITEM_NONE, IFACE_("Wave Effect"), ICON_NONE);
 }
 
 static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -146,9 +146,9 @@ static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_wave"));
 
   uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "amplitude", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "period", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "phase", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "phase", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

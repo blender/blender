@@ -140,12 +140,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Edge Angle"));
-  uiItemR(row, ptr, "use_edge_angle", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_edge_angle", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_edge_angle"));
-  uiItemR(sub, ptr, "split_angle", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "split_angle", UI_ITEM_NONE, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "use_edge_sharp", 0, IFACE_("Sharp Edges"), ICON_NONE);
+  uiItemR(layout, ptr, "use_edge_sharp", UI_ITEM_NONE, IFACE_("Sharp Edges"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

@@ -217,7 +217,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
@@ -228,7 +228,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(row, ptr, "use_axis_y", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "use_axis_z", toggles_flag, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }

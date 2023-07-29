@@ -97,7 +97,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_VERTEXSEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
   uiItemFullO_ptr(row,
@@ -106,7 +106,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_EDGESEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
   uiItemFullO_ptr(row,
@@ -115,7 +115,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_FACESEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }

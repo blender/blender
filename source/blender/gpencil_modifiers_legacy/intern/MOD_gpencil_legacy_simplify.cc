@@ -128,20 +128,20 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (mode == GP_SIMPLIFY_FIXED) {
-    uiItemR(layout, ptr, "step", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (mode == GP_SIMPLIFY_ADAPTIVE) {
-    uiItemR(layout, ptr, "factor", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (mode == GP_SIMPLIFY_SAMPLE) {
-    uiItemR(layout, ptr, "length", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "sharp_threshold", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "length", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "sharp_threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (mode == GP_SIMPLIFY_MERGE) {
-    uiItemR(layout, ptr, "distance", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "distance", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);

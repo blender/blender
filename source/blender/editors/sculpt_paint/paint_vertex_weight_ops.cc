@@ -372,7 +372,8 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
       continue;
     }
     PointerRNA op_ptr;
-    uiItemFullO_ptr(layout, ot, dg->name, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &op_ptr);
+    uiItemFullO_ptr(
+        layout, ot, dg->name, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &op_ptr);
     RNA_property_enum_set(&op_ptr, ot->prop, i);
   }
   UI_popup_menu_end(C, pup);

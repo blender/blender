@@ -59,9 +59,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_all_curves", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_all_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

@@ -304,7 +304,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = uiLayoutRow(col, true);
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
-  uiItemR(sub, ptr, "use_add", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "use_add", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
@@ -315,14 +315,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = uiLayoutRow(col, true);
   uiLayoutSetPropDecorate(row, false);
   sub = uiLayoutRow(row, true);
-  uiItemR(sub, ptr, "use_remove", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "use_remove", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(sub, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
   uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "remove_threshold", 0);
 
-  uiItemR(layout, ptr, "normalize", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "normalize", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -338,10 +338,10 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "falloff_type", 0, IFACE_("Type"), ICON_NONE);
+  uiItemR(row, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetPropSep(sub, false);
-  uiItemR(row, ptr, "invert_falloff", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(row, ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
     uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false);
   }

@@ -258,7 +258,7 @@ static void random_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_random", 0, IFACE_("Randomize"), ICON_NONE);
+  uiItemR(layout, ptr, "use_random", UI_ITEM_NONE, IFACE_("Randomize"), ICON_NONE);
 }
 
 static void random_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -271,7 +271,7 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random"));
 
-  uiItemR(layout, ptr, "step", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -279,10 +279,11 @@ static void offset_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
   uiLayoutSetPropSep(layout, true);
-  uiItemR(layout, ptr, "random_start_factor", 0, IFACE_("Random Offset Start"), ICON_NONE);
-  uiItemR(layout, ptr, "random_end_factor", 0, IFACE_("Random Offset End"), ICON_NONE);
-  uiItemR(layout, ptr, "random_offset", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "seed", 0, nullptr, ICON_NONE);
+  uiItemR(
+      layout, ptr, "random_start_factor", UI_ITEM_NONE, IFACE_("Random Offset Start"), ICON_NONE);
+  uiItemR(layout, ptr, "random_end_factor", UI_ITEM_NONE, IFACE_("Random Offset End"), ICON_NONE);
+  uiItemR(layout, ptr, "random_offset", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -292,17 +293,17 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
   if (RNA_enum_get(ptr, "mode") == GP_LENGTH_RELATIVE) {
-    uiItemR(col, ptr, "start_factor", 0, IFACE_("Start"), ICON_NONE);
-    uiItemR(col, ptr, "end_factor", 0, IFACE_("End"), ICON_NONE);
+    uiItemR(col, ptr, "start_factor", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+    uiItemR(col, ptr, "end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "start_length", 0, IFACE_("Start"), ICON_NONE);
-    uiItemR(col, ptr, "end_length", 0, IFACE_("End"), ICON_NONE);
+    uiItemR(col, ptr, "start_length", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+    uiItemR(col, ptr, "end_length", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
   uiItemR(layout, ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
@@ -321,7 +322,7 @@ static void curvature_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_curvature", 0, IFACE_("Curvature"), ICON_NONE);
+  uiItemR(layout, ptr, "use_curvature", UI_ITEM_NONE, IFACE_("Curvature"), ICON_NONE);
 }
 
 static void curvature_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -336,10 +337,10 @@ static void curvature_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_curvature"));
 
-  uiItemR(col, ptr, "point_density", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "segment_influence", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "max_angle", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "invert_curvature", 0, IFACE_("Invert"), ICON_NONE);
+  uiItemR(col, ptr, "point_density", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "segment_influence", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "max_angle", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "invert_curvature", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

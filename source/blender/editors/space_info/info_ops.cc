@@ -360,7 +360,7 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
                    "method",
                    static_cast<IDProperty *>(op->ptr->data),
                    WM_OP_EXEC_REGION_WIN,
-                   0);
+                   UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 

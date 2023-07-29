@@ -455,7 +455,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
                     ICON_NONE,
                     nullptr,
                     WM_OP_INVOKE_DEFAULT,
-                    0,
+                    UI_ITEM_NONE,
                     &props_ptr);
     RNA_string_set(&props_ptr, "filepath", filepath);
   }
@@ -466,7 +466,7 @@ static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
                   ICON_NONE,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  0,
+                  UI_ITEM_NONE,
                   &props_ptr);
   RNA_string_set(&props_ptr, "filepath", dir);
 }
@@ -824,7 +824,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                           ICON_NONE,
                           nullptr,
                           WM_OP_INVOKE_DEFAULT,
-                          0,
+                          UI_ITEM_NONE,
                           &op_ptr);
           RNA_boolean_set(&op_ptr, "all", true);
           uiItemFullO_ptr(layout,
@@ -833,7 +833,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                           ICON_NONE,
                           nullptr,
                           WM_OP_INVOKE_DEFAULT,
-                          0,
+                          UI_ITEM_NONE,
                           &op_ptr);
           RNA_boolean_set(&op_ptr, "all", false);
         }
@@ -844,7 +844,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                       ICON_NONE,
                       nullptr,
                       WM_OP_INVOKE_DEFAULT,
-                      0,
+                      UI_ITEM_NONE,
                       &op_ptr);
           RNA_boolean_set(&op_ptr, "all", false);
         }
@@ -1201,7 +1201,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                     ICON_NONE,
                     nullptr,
                     WM_OP_EXEC_DEFAULT,
-                    0,
+                    UI_ITEM_NONE,
                     &ptr_props);
         RNA_string_set(&ptr_props, "doc_id", buf);
       }
@@ -1221,7 +1221,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                   ICON_NONE,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
     }
   }
@@ -1233,7 +1233,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                 ICON_NONE,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,
-                0,
+                UI_ITEM_NONE,
                 nullptr);
   }
 
@@ -1317,7 +1317,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   if (has_panel_category) {
     char tmpstr[80];
     SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
-    uiItemR(layout, &ptr, "use_pin", 0, tmpstr, ICON_NONE);
+    uiItemR(layout, &ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */
     {

@@ -128,7 +128,7 @@ static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, 
   uiLayout *row = uiLayoutRow(layout, false);
 
   uiLayout *subrow = uiLayoutRow(row, true);
-  uiItemR(subrow, &listptr, "filter_name", 0, "", ICON_NONE);
+  uiItemR(subrow, &listptr, "filter_name", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(subrow,
           &listptr,
           "use_filter_invert",

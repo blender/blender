@@ -879,7 +879,7 @@ static void ui_node_draw_input(
         case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
-          uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+          uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
@@ -892,7 +892,7 @@ static void ui_node_draw_input(
             node_geometry_add_attribute_search_button(C, node, inputptr, *sub);
           }
           else {
-            uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
+            uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           }
           uiItemDecoratorR(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);

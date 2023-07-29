@@ -465,13 +465,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
-    uiItemR(layout, ptr, "factor", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "angle", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "angle", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "origin", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "origin", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
@@ -481,7 +481,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);

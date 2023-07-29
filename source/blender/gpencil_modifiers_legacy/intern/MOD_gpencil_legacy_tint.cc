@@ -323,28 +323,28 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "vertex_mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "vertex_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const bool is_weighted = !RNA_boolean_get(ptr, "use_weight_factor");
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, is_weighted);
-  uiItemR(row, ptr, "factor", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiLayout *sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, true);
-  uiItemR(row, ptr, "use_weight_factor", 0, "", ICON_MOD_VERTEX_WEIGHT);
+  uiItemR(row, ptr, "use_weight_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
 
   uiItemR(layout, ptr, "tint_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   if (tint_type == GP_TINT_UNIFORM) {
-    uiItemR(layout, ptr, "color", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
     col = uiLayoutColumn(layout, false);
     uiLayoutSetPropSep(col, false);
     uiTemplateColorRamp(col, ptr, "colors", true);
     uiItemS(layout);
-    uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "radius", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "radius", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);

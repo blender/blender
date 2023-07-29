@@ -179,7 +179,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "modify_color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "modify_color", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "hue", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "saturation", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "value", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);

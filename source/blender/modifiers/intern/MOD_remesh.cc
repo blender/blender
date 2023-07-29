@@ -227,23 +227,23 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   if (mode == MOD_REMESH_VOXEL) {
-    uiItemR(col, ptr, "voxel_size", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "adaptivity", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "voxel_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "adaptivity", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "octree_depth", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "scale", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "octree_depth", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     if (mode == MOD_REMESH_SHARP_FEATURES) {
-      uiItemR(col, ptr, "sharpness", 0, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "sharpness", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
 
-    uiItemR(layout, ptr, "use_remove_disconnected", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_remove_disconnected", UI_ITEM_NONE, nullptr, ICON_NONE);
     row = uiLayoutRow(layout, false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_remove_disconnected"));
-    uiItemR(layout, ptr, "threshold", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
-  uiItemR(layout, ptr, "use_smooth_shade", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_smooth_shade", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 

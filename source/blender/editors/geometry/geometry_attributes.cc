@@ -305,10 +305,10 @@ static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
@@ -532,14 +532,14 @@ static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
       RNA_enum_get(op->ptr, "mode"));
 
   if (mode == ConvertAttributeMode::Generic) {
-    uiItemR(layout, op->ptr, "domain", 0, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "data_type", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "data_type", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

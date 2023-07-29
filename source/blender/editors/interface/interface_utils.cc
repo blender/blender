@@ -444,7 +444,8 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
       uiLayoutSetActivateInit(col, true);
     }
 
-    uiItemFullR(col, ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : 0, name, ICON_NONE);
+    uiItemFullR(
+        col, ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : UI_ITEM_NONE, name, ICON_NONE);
     return_info &= ~UI_PROP_BUTS_NONE_ADDED;
 
     if (use_activate_init) {

@@ -1051,7 +1051,7 @@ static void add_attribute_search_button(const bContext &C,
                                         const bool is_output)
 {
   if (!nmd.runtime->eval_log) {
-    uiItemR(layout, md_ptr, rna_path_attribute_name.c_str(), 0, "", ICON_NONE);
+    uiItemR(layout, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
     return;
   }
 
@@ -1147,7 +1147,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   }
   else {
     const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), 0, name, ICON_NONE);
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
     uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 
@@ -1158,7 +1158,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
               ICON_SPREADSHEET,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "modifier_name", nmd.modifier.name);
   RNA_string_set(&props, "prop_path", rna_path_use_attribute.c_str());
@@ -1223,7 +1223,7 @@ static void draw_property_for_socket(const bContext &C,
         add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
       }
       else {
-        uiItemR(row, md_ptr, rna_path, 0, socket.name, ICON_NONE);
+        uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, socket.name, ICON_NONE);
       }
     }
   }
@@ -1336,7 +1336,7 @@ static void internal_dependencies_panel_draw(const bContext * /*C*/, Panel *pane
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
-  uiItemR(col, ptr, "simulation_bake_directory", 0, "Bake", ICON_NONE);
+  uiItemR(col, ptr, "simulation_bake_directory", UI_ITEM_NONE, "Bake", ICON_NONE);
 
   geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
   if (tree_log == nullptr) {

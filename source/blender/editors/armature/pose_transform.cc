@@ -476,7 +476,7 @@ static void apply_armature_pose2bones_ui(bContext *C, wmOperator *op)
 
   RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
-  uiItemR(layout, &ptr, "selected", 0, nullptr, ICON_NONE);
+  uiItemR(layout, &ptr, "selected", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void POSE_OT_armature_apply(wmOperatorType *ot)

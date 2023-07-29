@@ -948,7 +948,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                               const EnumPropertyItem *items,
                               int totitem,
                               wmOperatorCallContext context,
-                              int flag);
+                              eUI_Item_Flag flag);
 
 /* interface_region_popup.c */
 

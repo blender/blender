@@ -109,7 +109,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
           col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
     }
     else {
-      uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
+      uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
     }
   }
 

@@ -2944,7 +2944,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
-  uiItemR(layout, op->ptr, "load_ui", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   if (file_info->is_untrusted) {
@@ -2956,7 +2956,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
     autoexec_text = IFACE_("Trusted Source");
   }
 
-  uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
+  uiItemR(col, op->ptr, "use_scripts", UI_ITEM_NONE, autoexec_text, ICON_NONE);
 }
 
 static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
@@ -3580,7 +3580,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiItemR(layout,
           &pref_ptr,
           "use_scripts_auto_execute",
-          0,
+          UI_ITEM_NONE,
           TIP_("Permanently allow execution of scripts"),
           ICON_NONE);
 

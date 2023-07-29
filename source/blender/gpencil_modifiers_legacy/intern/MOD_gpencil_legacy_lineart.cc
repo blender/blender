@@ -299,18 +299,18 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   if (!BKE_gpencil_is_first_lineart_in_stack(static_cast<const Object *>(ob_ptr.data),
                                              static_cast<const GpencilModifierData *>(ptr->data)))
   {
-    uiItemR(layout, ptr, "use_cache", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_cache", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "source_type", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "source_type", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (source_type == LRT_SOURCE_OBJECT) {
-    uiItemR(layout, ptr, "source_object", 0, nullptr, ICON_OBJECT_DATA);
+    uiItemR(layout, ptr, "source_object", UI_ITEM_NONE, nullptr, ICON_OBJECT_DATA);
   }
   else if (source_type == LRT_SOURCE_COLLECTION) {
     uiLayout *sub = uiLayoutRow(layout, true);
-    uiItemR(sub, ptr, "source_collection", 0, nullptr, ICON_OUTLINER_COLLECTION);
-    uiItemR(sub, ptr, "use_invert_collection", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "source_collection", UI_ITEM_NONE, nullptr, ICON_OUTLINER_COLLECTION);
+    uiItemR(sub, ptr, "use_invert_collection", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else {
     /* Source is Scene. */
@@ -357,28 +357,33 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *sub = uiLayoutRow(layout, false);
   uiLayoutSetActive(sub, has_light);
-  uiItemR(sub, ptr, "shadow_region_filtering", 0, IFACE_("Illumination Filtering"), ICON_NONE);
+  uiItemR(sub,
+          ptr,
+          "shadow_region_filtering",
+          UI_ITEM_NONE,
+          IFACE_("Illumination Filtering"),
+          ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
   sub = uiLayoutRowWithHeading(col, false, IFACE_("Create"));
-  uiItemR(sub, ptr, "use_contour", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "use_contour", UI_ITEM_NONE, "", ICON_NONE);
 
   uiLayout *entry = uiLayoutRow(sub, true);
   uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_contour"));
-  uiItemR(entry, ptr, "silhouette_filtering", 0, "", ICON_NONE);
+  uiItemR(entry, ptr, "silhouette_filtering", UI_ITEM_NONE, "", ICON_NONE);
 
   const int silhouette_filtering = RNA_enum_get(ptr, "silhouette_filtering");
   if (silhouette_filtering != LRT_SILHOUETTE_FILTER_NONE) {
-    uiItemR(entry, ptr, "use_invert_silhouette", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(entry, ptr, "use_invert_silhouette", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 
   sub = uiLayoutRow(col, false);
   if (use_cache && !is_first) {
-    uiItemR(sub, ptr, "use_crease", 0, IFACE_("Crease (Angle Cached)"), ICON_NONE);
+    uiItemR(sub, ptr, "use_crease", UI_ITEM_NONE, IFACE_("Crease (Angle Cached)"), ICON_NONE);
   }
   else {
-    uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
+    uiItemR(sub, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
     uiItemR(sub,
             ptr,
             "crease_threshold",
@@ -387,21 +392,21 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
             ICON_NONE);
   }
 
-  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
-  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
+  uiItemR(col, ptr, "use_intersection", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
+  uiItemR(col, ptr, "use_material", UI_ITEM_NONE, IFACE_("Material Borders"), ICON_NONE);
+  uiItemR(col, ptr, "use_edge_mark", UI_ITEM_NONE, IFACE_("Edge Marks"), ICON_NONE);
+  uiItemR(col, ptr, "use_loose", UI_ITEM_NONE, IFACE_("Loose"), ICON_NONE);
 
   entry = uiLayoutColumn(col, false);
   uiLayoutSetActive(entry, has_light);
 
   sub = uiLayoutRow(entry, false);
-  uiItemR(sub, ptr, "use_light_contour", 0, IFACE_("Light Contour"), ICON_NONE);
+  uiItemR(sub, ptr, "use_light_contour", UI_ITEM_NONE, IFACE_("Light Contour"), ICON_NONE);
 
   uiItemR(entry,
           ptr,
           "use_shadow",
-          0,
+          UI_ITEM_NONE,
           CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
           ICON_NONE);
 
@@ -415,7 +420,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemR(sub,
             ptr,
             "use_overlap_edge_type_support",
-            0,
+            UI_ITEM_NONE,
             IFACE_("Allow Overlapping Types"),
             ICON_NONE);
   }
@@ -442,16 +447,16 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  uiItemR(layout, ptr, "light_contour_object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "light_contour_object", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *remaining = uiLayoutColumn(layout, false);
   uiLayoutSetActive(remaining, has_light);
 
-  uiItemR(remaining, ptr, "shadow_camera_size", 0, nullptr, ICON_NONE);
+  uiItemR(remaining, ptr, "shadow_camera_size", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(remaining, true);
-  uiItemR(col, ptr, "shadow_camera_near", 0, IFACE_("Near"), ICON_NONE);
-  uiItemR(col, ptr, "shadow_camera_far", 0, IFACE_("Far"), ICON_NONE);
+  uiItemR(col, ptr, "shadow_camera_near", UI_ITEM_NONE, IFACE_("Near"), ICON_NONE);
+  uiItemR(col, ptr, "shadow_camera_far", UI_ITEM_NONE, IFACE_("Far"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -475,20 +480,30 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *row = uiLayoutRowWithHeading(layout, false, IFACE_("Custom Camera"));
-  uiItemR(row, ptr, "use_custom_camera", 0, "", 0);
+  uiItemR(row, ptr, "use_custom_camera", UI_ITEM_NONE, "", 0);
   uiLayout *subrow = uiLayoutRow(row, true);
   uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "use_custom_camera"));
   uiLayoutSetPropSep(subrow, true);
-  uiItemR(subrow, ptr, "source_camera", 0, "", ICON_OBJECT_DATA);
+  uiItemR(subrow, ptr, "source_camera", UI_ITEM_NONE, "", ICON_OBJECT_DATA);
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_object_instances", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_clip_plane_boundaries", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_crease_on_smooth", 0, IFACE_("Crease On Smooth"), ICON_NONE);
-  uiItemR(col, ptr, "use_crease_on_sharp", 0, IFACE_("Crease On Sharp"), ICON_NONE);
-  uiItemR(col, ptr, "use_back_face_culling", 0, IFACE_("Force Backface Culling"), ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "use_edge_overlap",
+          UI_ITEM_NONE,
+          IFACE_("Overlapping Edges As Contour"),
+          ICON_NONE);
+  uiItemR(col, ptr, "use_object_instances", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_clip_plane_boundaries", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_crease_on_smooth", UI_ITEM_NONE, IFACE_("Crease On Smooth"), ICON_NONE);
+  uiItemR(col, ptr, "use_crease_on_sharp", UI_ITEM_NONE, IFACE_("Crease On Sharp"), ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "use_back_face_culling",
+          UI_ITEM_NONE,
+          IFACE_("Force Backface Culling"),
+          ICON_NONE);
 }
 
 static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -512,15 +527,15 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   layout = uiLayoutColumn(layout, false);
   uiLayoutSetActive(layout, show_in_front);
 
-  uiItemR(layout, ptr, "use_multiple_levels", 0, IFACE_("Range"), ICON_NONE);
+  uiItemR(layout, ptr, "use_multiple_levels", UI_ITEM_NONE, IFACE_("Range"), ICON_NONE);
 
   if (use_multiple_levels) {
     uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "level_start", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "level_end", 0, IFACE_("End"), ICON_NONE);
+    uiItemR(col, ptr, "level_start", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "level_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "level_start", 0, IFACE_("Level"), ICON_NONE);
+    uiItemR(layout, ptr, "level_start", UI_ITEM_NONE, IFACE_("Level"), ICON_NONE);
   }
 }
 
@@ -547,7 +562,7 @@ static void material_mask_panel_draw_header(const bContext * /*C*/, Panel *panel
   uiLayoutSetEnabled(layout, !is_baked);
   uiLayoutSetActive(layout, show_in_front && anything_showing_through(ptr));
 
-  uiItemR(layout, ptr, "use_material_mask", 0, IFACE_("Material Mask"), ICON_NONE);
+  uiItemR(layout, ptr, "use_material_mask", UI_ITEM_NONE, IFACE_("Material Mask"), ICON_NONE);
 }
 
 static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -574,7 +589,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
     }
   }
 
-  uiItemR(layout, ptr, "use_material_mask_match", 0, IFACE_("Exact Match"), ICON_NONE);
+  uiItemR(layout, ptr, "use_material_mask_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
 }
 
 static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -600,7 +615,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
     }
   }
 
-  uiItemR(layout, ptr, "use_intersection_match", 0, IFACE_("Exact Match"), ICON_NONE);
+  uiItemR(layout, ptr, "use_intersection_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
 }
 
 static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -617,7 +632,7 @@ static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   if (!use_cache || is_first) {
     uiLayoutSetEnabled(layout, !is_baked);
-    uiItemR(layout, ptr, "use_face_mark", 0, IFACE_("Face Mark Filtering"), ICON_NONE);
+    uiItemR(layout, ptr, "use_face_mark", UI_ITEM_NONE, IFACE_("Face Mark Filtering"), ICON_NONE);
   }
   else {
     uiItemL(layout, IFACE_("Face Mark Filtering"), ICON_NONE);
@@ -648,9 +663,9 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, use_mark);
 
-  uiItemR(layout, ptr, "use_face_mark_invert", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_face_mark_boundaries", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_face_mark_keep_contour", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_face_mark_invert", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_face_mark_boundaries", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_face_mark_keep_contour", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -676,17 +691,18 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Chain"));
-  uiItemR(col, ptr, "use_fuzzy_intersections", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_fuzzy_all", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_loose_edge_chain", 0, IFACE_("Loose Edges"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose_as_contour", 0, IFACE_("Loose Edges As Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_detail_preserve", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_geometry_space_chain", 0, IFACE_("Geometry Space"), ICON_NONE);
+  uiItemR(col, ptr, "use_fuzzy_intersections", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_fuzzy_all", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_loose_edge_chain", UI_ITEM_NONE, IFACE_("Loose Edges"), ICON_NONE);
+  uiItemR(
+      col, ptr, "use_loose_as_contour", UI_ITEM_NONE, IFACE_("Loose Edges As Contour"), ICON_NONE);
+  uiItemR(col, ptr, "use_detail_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_geometry_space_chain", UI_ITEM_NONE, IFACE_("Geometry Space"), ICON_NONE);
 
   uiItemR(layout,
           ptr,
           "chaining_image_threshold",
-          0,
+          UI_ITEM_NONE,
           is_geom ? IFACE_("Geometry Threshold") : nullptr,
           ICON_NONE);
 
@@ -719,10 +735,11 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *row = uiLayoutRow(col, true);
 
-  uiItemR(row, ptr, "source_vertex_group", 0, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
+  uiItemR(
+      row, ptr, "source_vertex_group", UI_ITEM_NONE, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
   uiItemR(row, ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(col, ptr, "use_output_vertex_group_match_by_name", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_output_vertex_group_match_by_name", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const bool match_output = RNA_boolean_get(ptr, "use_output_vertex_group_match_by_name");
   if (!match_output) {
@@ -770,8 +787,8 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "overscan", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_image_boundary_trimming", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "overscan", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_image_boundary_trimming", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (show_in_front) {
     uiItemL(layout, TIP_("Object is shown in front"), ICON_ERROR);
@@ -781,8 +798,12 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(col, !show_in_front);
 
   uiItemR(col, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
-  uiItemR(
-      col, ptr, "use_offset_towards_custom_camera", 0, IFACE_("Towards Custom Camera"), ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "use_offset_towards_custom_camera",
+          UI_ITEM_NONE,
+          IFACE_("Towards Custom Camera"),
+          ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

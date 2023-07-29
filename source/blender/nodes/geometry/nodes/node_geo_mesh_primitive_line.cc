@@ -47,9 +47,9 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   if (RNA_enum_get(ptr, "mode") == GEO_NODE_MESH_LINE_MODE_END_POINTS) {
-    uiItemR(layout, ptr, "count_mode", 0, "", ICON_NONE);
+    uiItemR(layout, ptr, "count_mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 

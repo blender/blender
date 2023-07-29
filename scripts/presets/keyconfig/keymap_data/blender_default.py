@@ -5188,6 +5188,9 @@ def km_weight_paint(params):
             ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
             ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
              {"properties": [("toggle", True)]}),
+            # Ctrl-Shift-LMB is needed for MMB emulation (which conflicts with Alt).
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
+
         ])
 
     if params.legacy:

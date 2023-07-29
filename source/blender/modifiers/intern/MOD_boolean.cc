@@ -616,12 +616,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "operand_type", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "operand_type", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object) {
-    uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "collection", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "collection", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   uiItemR(layout, ptr, "solver", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
@@ -640,19 +640,19 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, true);
   if (use_exact) {
-    uiItemR(col, ptr, "material_mode", 0, IFACE_("Materials"), ICON_NONE);
+    uiItemR(col, ptr, "material_mode", UI_ITEM_NONE, IFACE_("Materials"), ICON_NONE);
     /* When operand is collection, we always use_self. */
     if (RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object) {
-      uiItemR(col, ptr, "use_self", 0, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "use_self", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
-    uiItemR(col, ptr, "use_hole_tolerant", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_hole_tolerant", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "double_threshold", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "double_threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   if (G.debug) {
-    uiItemR(col, ptr, "debug_options", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "debug_options", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

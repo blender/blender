@@ -395,9 +395,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, has_texture);
-  uiItemR(col, ptr, "texture_coords", 0, IFACE_("Coordinates"), ICON_NONE);
+  uiItemR(col, ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
-    uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
+    uiItemR(col, ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
         (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
@@ -419,21 +419,21 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "direction", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "direction", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (ELEM(RNA_enum_get(ptr, "direction"),
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,
            MOD_DISP_DIR_Z,
            MOD_DISP_DIR_RGB_XYZ))
   {
-    uiItemR(col, ptr, "space", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "space", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "strength", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "mid_level", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "mid_level", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

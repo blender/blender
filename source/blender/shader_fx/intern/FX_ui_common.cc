@@ -138,7 +138,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
               ICON_TRIA_UP,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
   if (!fx->prev) {
@@ -153,7 +153,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
               ICON_TRIA_DOWN,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->shader_fx) - 1);
   if (!fx->next) {
@@ -184,17 +184,17 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   /* Effect name. */
   row = uiLayoutRow(layout, true);
   if (!narrow_panel) {
-    uiItemR(row, ptr, "name", 0, "", ICON_NONE);
+    uiItemR(row, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
 
   /* Mode enabling buttons. */
   if (fxti->flags & eShaderFxTypeFlag_SupportsEditmode) {
     uiLayout *sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, false);
-    uiItemR(sub, ptr, "show_in_editmode", 0, "", ICON_NONE);
+    uiItemR(sub, ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
   }
-  uiItemR(row, ptr, "show_viewport", 0, "", ICON_NONE);
-  uiItemR(row, ptr, "show_render", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(row, ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);

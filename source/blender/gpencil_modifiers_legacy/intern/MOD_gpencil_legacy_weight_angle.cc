@@ -186,14 +186,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
   uiLayoutSetPropDecorate(sub, false);
   uiLayoutSetActive(sub, has_output);
-  uiItemR(sub, ptr, "use_invert_output", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(layout, ptr, "angle", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "axis", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "space", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "angle", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "axis", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "space", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "minimum_weight", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_multiply", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "minimum_weight", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_multiply", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }

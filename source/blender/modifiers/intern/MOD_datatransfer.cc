@@ -243,12 +243,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "object", 0, IFACE_("Source"), ICON_NONE);
+  uiItemR(row, ptr, "object", UI_ITEM_NONE, IFACE_("Source"), ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, ptr, "use_object_transform", 0, "", ICON_ORIENTATION_GLOBAL);
+  uiItemR(sub, ptr, "use_object_transform", UI_ITEM_NONE, "", ICON_ORIENTATION_GLOBAL);
 
-  uiItemR(layout, ptr, "mix_mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row,
@@ -256,7 +256,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
                           CDT_MIX_NOMIX,
                           CDT_MIX_REPLACE_ABOVE_THRESHOLD,
                           CDT_MIX_REPLACE_BELOW_THRESHOLD));
-  uiItemR(row, ptr, "mix_factor", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
@@ -270,7 +270,7 @@ static void vertex_panel_draw_header(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
   uiLayout *layout = panel->layout;
 
-  uiItemR(layout, ptr, "use_vert_data", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_vert_data", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -286,7 +286,7 @@ static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "vert_mapping", 0, IFACE_("Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "vert_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -299,8 +299,10 @@ static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "layers_vgroup_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_vgroup_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(
+      layout, ptr, "layers_vgroup_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
+  uiItemR(
+      layout, ptr, "layers_vgroup_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
 }
 
 static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -309,7 +311,7 @@ static void edge_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_edge_data", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_edge_data", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -324,7 +326,7 @@ static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "edge_mapping", 0, IFACE_("Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "edge_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -333,7 +335,7 @@ static void face_corner_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_loop_data", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_loop_data", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -348,7 +350,7 @@ static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "loop_mapping", 0, IFACE_("Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "loop_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -363,8 +365,18 @@ static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
                     RNA_enum_get(ptr, "data_types_verts") &
                         (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
 
-  uiItemR(layout, ptr, "layers_vcol_vert_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_vcol_vert_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "layers_vcol_vert_select_src",
+          UI_ITEM_NONE,
+          IFACE_("Layer Selection"),
+          ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "layers_vcol_vert_select_dst",
+          UI_ITEM_NONE,
+          IFACE_("Layer Mapping"),
+          ICON_NONE);
 }
 
 static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -379,8 +391,18 @@ static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
                     RNA_enum_get(ptr, "data_types_loops") &
                         (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
 
-  uiItemR(layout, ptr, "layers_vcol_loop_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_vcol_loop_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "layers_vcol_loop_select_src",
+          UI_ITEM_NONE,
+          IFACE_("Layer Selection"),
+          ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "layers_vcol_loop_select_dst",
+          UI_ITEM_NONE,
+          IFACE_("Layer Mapping"),
+          ICON_NONE);
 }
 
 static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -393,9 +415,9 @@ static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
 
-  uiItemR(layout, ptr, "layers_uv_select_src", 0, IFACE_("Layer Selection"), ICON_NONE);
-  uiItemR(layout, ptr, "layers_uv_select_dst", 0, IFACE_("Layer Mapping"), ICON_NONE);
-  uiItemR(layout, ptr, "islands_precision", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "layers_uv_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
+  uiItemR(layout, ptr, "layers_uv_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "islands_precision", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -404,7 +426,7 @@ static void face_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_poly_data", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_poly_data", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void face_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -415,11 +437,11 @@ static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_poly_data"));
 
-  uiItemR(layout, ptr, "data_types_polys", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "data_types_polys", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "poly_mapping", 0, IFACE_("Mapping"), ICON_NONE);
+  uiItemR(layout, ptr, "poly_mapping", UI_ITEM_NONE, IFACE_("Mapping"), ICON_NONE);
 }
 
 static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -432,12 +454,12 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Max Distance"));
-  uiItemR(row, ptr, "use_max_distance", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_distance"));
-  uiItemR(sub, ptr, "max_distance", 0, "", ICON_NONE);
+  uiItemR(sub, ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "ray_radius", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "ray_radius", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

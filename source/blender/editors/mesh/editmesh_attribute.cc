@@ -363,7 +363,7 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
   const eCustomDataType active_type = eCustomDataType(active_attribute->type);
   const StringRefNull prop_name = rna_property_name_for_type(active_type);
   const char *name = active_attribute->name;
-  uiItemR(layout, op->ptr, prop_name.c_str(), 0, name, ICON_NONE);
+  uiItemR(layout, op->ptr, prop_name.c_str(), UI_ITEM_NONE, name, ICON_NONE);
 }
 
 }  // namespace set_attribute

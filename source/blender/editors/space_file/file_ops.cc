@@ -1906,7 +1906,8 @@ static void file_os_operations_menu_item(uiLayout *layout,
   RNA_enum_name(file_external_operation, operation, &title);
 
   PointerRNA props_ptr;
-  uiItemFullO_ptr(layout, ot, title, ICON_NONE, nullptr, WM_OP_INVOKE_DEFAULT, 0, &props_ptr);
+  uiItemFullO_ptr(
+      layout, ot, title, ICON_NONE, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &props_ptr);
   RNA_string_set(&props_ptr, "filepath", path);
   if (operation) {
     RNA_enum_set(&props_ptr, "operation", operation);

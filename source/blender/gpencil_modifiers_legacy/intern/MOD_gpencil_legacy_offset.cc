@@ -241,9 +241,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "location", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "location", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
   uiLayoutSetActive(layout, true);
@@ -268,29 +268,29 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
   int mode = RNA_enum_get(ptr, "mode");
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "random_offset", 0, IFACE_("Offset"), ICON_NONE);
-  uiItemR(layout, ptr, "random_rotation", 0, IFACE_("Rotation"), ICON_NONE);
-  uiItemR(layout, ptr, "random_scale", 0, IFACE_("Scale"), ICON_NONE);
+  uiItemR(layout, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
+  uiItemR(layout, ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   switch (mode) {
     case GP_OFFSET_RANDOM:
-      uiItemR(layout, ptr, "use_uniform_random_scale", 0, nullptr, ICON_NONE);
-      uiItemR(layout, ptr, "seed", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "use_uniform_random_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     case GP_OFFSET_STROKE:
-      uiItemR(col, ptr, "stroke_step", 0, IFACE_("Stroke Step"), ICON_NONE);
-      uiItemR(col, ptr, "stroke_start_offset", 0, IFACE_("Offset"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
       break;
     case GP_OFFSET_MATERIAL:
-      uiItemR(col, ptr, "stroke_step", 0, IFACE_("Material Step"), ICON_NONE);
-      uiItemR(col, ptr, "stroke_start_offset", 0, IFACE_("Offset"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Material Step"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
       break;
     case GP_OFFSET_LAYER:
-      uiItemR(col, ptr, "stroke_step", 0, IFACE_("Layer Step"), ICON_NONE);
-      uiItemR(col, ptr, "stroke_start_offset", 0, IFACE_("Offset"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Layer Step"), ICON_NONE);
+      uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
       break;
   }
   gpencil_modifier_panel_end(layout, ptr);

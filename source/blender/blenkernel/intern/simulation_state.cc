@@ -21,7 +21,6 @@
 
 namespace blender::bke::sim {
 
-
 void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bake_dir)
 {
   if (failed_finding_bake_) {

@@ -297,7 +297,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
@@ -309,7 +309,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
   uiItemO(&column, "Rename", ICON_NONE, "UI_OT_view_item_rename");

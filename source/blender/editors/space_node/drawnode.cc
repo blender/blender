@@ -800,7 +800,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
   }
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "layer_name", 0, "", ICON_NONE);
+  uiItemR(col, ptr, "layer_name", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(col, IFACE_("Matte ID:"), ICON_NONE);
 
   row = uiLayoutRow(col, true);

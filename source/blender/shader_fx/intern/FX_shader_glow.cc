@@ -56,23 +56,23 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "threshold", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (mode == eShaderFxGlowMode_Color) {
-    uiItemR(layout, ptr, "select_color", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "select_color", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "glow_color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "glow_color", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "blend_mode", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "opacity", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "size", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "samples", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_glow_under", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "blend_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "opacity", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "size", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "samples", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_glow_under", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

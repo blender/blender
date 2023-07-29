@@ -210,25 +210,25 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int modify_color = RNA_enum_get(ptr, "modify_color");
 
-  uiItemR(layout, ptr, "modify_color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "modify_color", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (modify_color == GP_MODIFY_COLOR_HARDNESS) {
-    uiItemR(layout, ptr, "hardness", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "hardness", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
     const bool is_normalized = RNA_boolean_get(ptr, "use_normalized_opacity");
     const bool is_weighted = RNA_boolean_get(ptr, "use_weight_factor");
 
-    uiItemR(layout, ptr, "use_normalized_opacity", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_normalized_opacity", UI_ITEM_NONE, nullptr, ICON_NONE);
     const char *text = (is_normalized) ? IFACE_("Strength") : IFACE_("Opacity Factor");
 
     uiLayout *row = uiLayoutRow(layout, true);
     uiLayoutSetActive(row, !is_weighted || is_normalized);
-    uiItemR(row, ptr, "factor", 0, text, ICON_NONE);
+    uiItemR(row, ptr, "factor", UI_ITEM_NONE, text, ICON_NONE);
     if (!is_normalized) {
       uiLayout *sub = uiLayoutRow(row, true);
       uiLayoutSetActive(sub, true);
-      uiItemR(row, ptr, "use_weight_factor", 0, "", ICON_MOD_VERTEX_WEIGHT);
+      uiItemR(row, ptr, "use_weight_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
     }
   }
 

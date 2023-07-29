@@ -169,8 +169,16 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
       {WALK_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "Z Axis Correction", "Z axis correction"},
 
-      {WALK_MODAL_INCREASE_JUMP, "INCREASE_JUMP", 0, "Increase Jump Height", "Increase jump height"},
-      {WALK_MODAL_DECREASE_JUMP, "DECREASE_JUMP", 0, "Decrease Jump Height", "Decrease jump height"},
+      {WALK_MODAL_INCREASE_JUMP,
+       "INCREASE_JUMP",
+       0,
+       "Increase Jump Height",
+       "Increase jump height"},
+      {WALK_MODAL_DECREASE_JUMP,
+       "DECREASE_JUMP",
+       0,
+       "Decrease Jump Height",
+       "Decrease jump height"},
 
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -1000,8 +1008,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
     }
 
     /* update jump height */
-    if(walk->gravity_state != WALK_GRAVITY_STATE_JUMP) {
-        walk->jump_height = WALK_JUMP_HEIGHT;
+    if (walk->gravity_state != WALK_GRAVITY_STATE_JUMP) {
+      walk->jump_height = WALK_JUMP_HEIGHT;
     }
 
     /* Should we redraw? */
