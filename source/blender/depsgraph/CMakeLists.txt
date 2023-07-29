@@ -171,6 +171,8 @@ blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_dependencies(bf_depsgraph bf_rna)
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     intern/builder/deg_builder_rna_test.cc
   )
