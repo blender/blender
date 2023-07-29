@@ -349,8 +349,8 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = uiLayoutColumn(box, false);
-    uiItemR(col, imfptr, "use_object_instantiation", 1, nullptr, ICON_NONE);
-    uiItemR(col, imfptr, "use_blender_profile", 1, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_object_instantiation", 0, nullptr, ICON_NONE);
+    uiItemR(col, imfptr, "use_blender_profile", 0, nullptr, ICON_NONE);
     uiItemR(col, imfptr, "sort_by_name", 0, nullptr, ICON_NONE);
     uiItemR(col, imfptr, "keep_bind_info", 0, nullptr, ICON_NONE);
     uiItemR(col, imfptr, "limit_precision", 0, nullptr, ICON_NONE);

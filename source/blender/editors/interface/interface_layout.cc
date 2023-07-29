@@ -1532,14 +1532,8 @@ void uiItemsFullEnumO_items(uiLayout *layout,
         }
 
         if (tmp->identifier) { /* only true if loop above found item and did early-exit */
-          ui_pie_menu_level_create(block,
-                                   ot,
-                                   propname,
-                                   properties,
-                                   item_array,
-                                   totitem,
-                                   context,
-                                   wmOperatorCallContext(flag));
+          ui_pie_menu_level_create(
+              block, ot, propname, properties, item_array, totitem, context, flag);
           /* break since rest of items is handled in new pie level */
           break;
         }
