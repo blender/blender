@@ -54,6 +54,95 @@ def paths():
     return addon_paths
 
 
+def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
+    global error_encoding
+    import os
+
+    if _bpy.app.debug_python:
+        print("fake_module", mod_path, mod_name)
+    import ast
+    ModuleType = type(ast)
+    try:
+        file_mod = open(mod_path, "r", encoding='UTF-8')
+    except OSError as ex:
+        print("Error opening file:", mod_path, ex)
+        return None
+
+    with file_mod:
+        if speedy:
+            lines = []
+            line_iter = iter(file_mod)
+            l = ""
+            while not l.startswith("bl_info"):
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as ex:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, ex)
+                    return None
+
+                if len(l) == 0:
+                    break
+            while l.rstrip():
+                lines.append(l)
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as ex:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, ex)
+                    return None
+
+            data = "".join(lines)
+
+        else:
+            data = file_mod.read()
+    del file_mod
+
+    try:
+        ast_data = ast.parse(data, filename=mod_path)
+    except:
+        print("Syntax error 'ast.parse' can't read:", repr(mod_path))
+        import traceback
+        traceback.print_exc()
+        ast_data = None
+
+    body_info = None
+
+    if ast_data:
+        for body in ast_data.body:
+            if body.__class__ == ast.Assign:
+                if len(body.targets) == 1:
+                    if getattr(body.targets[0], "id", "") == "bl_info":
+                        body_info = body
+                        break
+
+    if body_info:
+        try:
+            mod = ModuleType(mod_name)
+            mod.bl_info = ast.literal_eval(body.value)
+            mod.__file__ = mod_path
+            mod.__time__ = os.path.getmtime(mod_path)
+        except:
+            print("AST error parsing bl_info for:", repr(mod_path))
+            import traceback
+            traceback.print_exc()
+            return None
+
+        if force_support is not None:
+            mod.bl_info["support"] = force_support
+
+        return mod
+    else:
+        print(
+            "fake_module: addon missing 'bl_info' "
+            "gives bad performance!:",
+            repr(mod_path),
+        )
+        return None
+
+
 def modules_refresh(*, module_cache=addons_fake_modules):
     global error_encoding
     import os
@@ -62,94 +151,6 @@ def modules_refresh(*, module_cache=addons_fake_modules):
     error_duplicates.clear()
 
     path_list = paths()
-
-    # fake module importing
-    def fake_module(mod_name, mod_path, speedy=True, force_support=None):
-        global error_encoding
-
-        if _bpy.app.debug_python:
-            print("fake_module", mod_path, mod_name)
-        import ast
-        ModuleType = type(ast)
-        try:
-            file_mod = open(mod_path, "r", encoding='UTF-8')
-        except OSError as ex:
-            print("Error opening file:", mod_path, ex)
-            return None
-
-        with file_mod:
-            if speedy:
-                lines = []
-                line_iter = iter(file_mod)
-                l = ""
-                while not l.startswith("bl_info"):
-                    try:
-                        l = line_iter.readline()
-                    except UnicodeDecodeError as ex:
-                        if not error_encoding:
-                            error_encoding = True
-                            print("Error reading file as UTF-8:", mod_path, ex)
-                        return None
-
-                    if len(l) == 0:
-                        break
-                while l.rstrip():
-                    lines.append(l)
-                    try:
-                        l = line_iter.readline()
-                    except UnicodeDecodeError as ex:
-                        if not error_encoding:
-                            error_encoding = True
-                            print("Error reading file as UTF-8:", mod_path, ex)
-                        return None
-
-                data = "".join(lines)
-
-            else:
-                data = file_mod.read()
-        del file_mod
-
-        try:
-            ast_data = ast.parse(data, filename=mod_path)
-        except:
-            print("Syntax error 'ast.parse' can't read:", repr(mod_path))
-            import traceback
-            traceback.print_exc()
-            ast_data = None
-
-        body_info = None
-
-        if ast_data:
-            for body in ast_data.body:
-                if body.__class__ == ast.Assign:
-                    if len(body.targets) == 1:
-                        if getattr(body.targets[0], "id", "") == "bl_info":
-                            body_info = body
-                            break
-
-        if body_info:
-            try:
-                mod = ModuleType(mod_name)
-                mod.bl_info = ast.literal_eval(body.value)
-                mod.__file__ = mod_path
-                mod.__time__ = os.path.getmtime(mod_path)
-            except:
-                print("AST error parsing bl_info for:", repr(mod_path))
-                import traceback
-                traceback.print_exc()
-                return None
-
-            if force_support is not None:
-                mod.bl_info["support"] = force_support
-
-            return mod
-        else:
-            print(
-                "fake_module: addon missing 'bl_info' "
-                "gives bad performance!:",
-                repr(mod_path),
-            )
-            return None
 
     modules_stale = set(module_cache.keys())
 
@@ -185,7 +186,7 @@ def modules_refresh(*, module_cache=addons_fake_modules):
                     mod = None
 
             if mod is None:
-                mod = fake_module(
+                mod = _fake_module(
                     mod_name,
                     mod_path,
                     force_support=force_support,
