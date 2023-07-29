@@ -27,8 +27,20 @@ def _initialize():
     path_list = paths()
     for path in path_list:
         _bpy.utils._sys_path_ensure_append(path)
+    # Original code:
+    # for addon in _preferences.addons:
+    #     enable(addon.module)
+
+    # NOTE(@ideasman42): package support, may be implemented add-on (temporary for extension development).
+    addon_submodules = []
     for addon in _preferences.addons:
-        enable(addon.module)
+        module = addon.module
+        if "." in module:
+            addon_submodules.append(module)
+            continue
+        enable(module)
+    for module in addon_submodules:
+        enable(module)
 
 
 def paths():
@@ -276,6 +288,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
     import os
     import sys
+    import importlib
     from bpy_restrict_state import RestrictBlend
 
     if handle_error is None:
@@ -307,7 +320,6 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         mtime_orig = getattr(mod, "__time__", 0)
         mtime_new = os.path.getmtime(mod.__file__)
         if mtime_orig != mtime_new:
-            import importlib
             print("module changed on disk:", repr(mod.__file__), "reloading...")
 
             try:
@@ -332,7 +344,9 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
         # 1) try import
         try:
-            mod = __import__(module_name)
+            # Use instead of `__import__` so that sub-modules can eventually be supported.
+            # This is also documented to be the preferred way to import modules.
+            mod = importlib.import_module(module_name)
             if mod.__file__ is None:
                 # This can happen when the addon has been removed but there are
                 # residual `.pyc` files left behind.
