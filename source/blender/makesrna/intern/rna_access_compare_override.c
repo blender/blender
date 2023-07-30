@@ -1255,8 +1255,8 @@ void RNA_struct_override_apply(Main *bmain,
 
                 PointerRNA *ptr_item_dst, *ptr_item_src;
                 PointerRNA private_ptr_item_dst, private_ptr_item_src;
-                rna_porperty_override_collection_subitem_lookup(ptr_dst,
-                                                                ptr_src,
+                rna_porperty_override_collection_subitem_lookup(&data_dst,
+                                                                &data_src,
                                                                 NULL,
                                                                 prop_dst,
                                                                 prop_src,
