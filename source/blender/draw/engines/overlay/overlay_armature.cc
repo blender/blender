@@ -50,11 +50,11 @@
 
 using namespace blender;
 
-typedef enum eArmatureDrawMode {
+enum eArmatureDrawMode {
   ARM_DRAW_MODE_OBJECT,
   ARM_DRAW_MODE_POSE,
   ARM_DRAW_MODE_EDIT,
-} eArmatureDrawMode;
+};
 
 struct ArmatureDrawContext {
   /* Current armature object */

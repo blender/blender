@@ -43,7 +43,7 @@ static struct {
   float noise_offsets[3];
 } e_data = {nullptr}; /* Engine data */
 
-typedef struct EeveeMaterialCache {
+struct EeveeMaterialCache {
   DRWShadingGroup *depth_grp;
   DRWShadingGroup *shading_grp;
   DRWShadingGroup *shadow_grp;
@@ -53,7 +53,7 @@ typedef struct EeveeMaterialCache {
   DRWShadingGroup **depth_grp_p;
   DRWShadingGroup **shading_grp_p;
   DRWShadingGroup **shadow_grp_p;
-} EeveeMaterialCache;
+};
 
 /* *********** FUNCTIONS *********** */
 

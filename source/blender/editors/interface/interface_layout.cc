@@ -111,7 +111,7 @@ enum uiItemType {
 #endif
 };
 
-typedef enum uiItemInternalFlag {
+enum uiItemInternalFlag {
   UI_ITEM_AUTO_FIXED_SIZE = 1 << 0,
   UI_ITEM_FIXED_SIZE = 1 << 1,
 
@@ -122,7 +122,7 @@ typedef enum uiItemInternalFlag {
    * Enabled by default, depends on 'UI_ITEM_PROP_SEP'. */
   UI_ITEM_PROP_DECORATE = 1 << 5,
   UI_ITEM_PROP_DECORATE_NO_PAD = 1 << 6,
-} uiItemInternalFlag;
+};
 ENUM_OPERATORS(uiItemInternalFlag, UI_ITEM_PROP_DECORATE_NO_PAD)
 
 struct uiItem {
