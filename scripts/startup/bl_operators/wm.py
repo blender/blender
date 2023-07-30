@@ -546,12 +546,14 @@ class WM_OT_context_toggle_enum(Operator):
         # failing silently is not ideal, but we don't want errors for shortcut
         # keys that some values that are only available in a particular context
         try:
-            exec("context.%s = ('%s', '%s')[context.%s != '%s']" %
-                 (data_path, self.value_1,
-                  self.value_2, data_path,
-                  self.value_2,
-                  ))
-        except:
+            exec(
+                "context.%s = ('%s', '%s')[context.%s != '%s']" % (
+                    data_path, self.value_1,
+                    self.value_2, data_path,
+                    self.value_2,
+                )
+            )
+        except BaseException:
             return {'PASS_THROUGH'}
 
         return operator_path_undo_return(context, data_path)
@@ -868,7 +870,7 @@ class WM_OT_context_collection_boolean_set(Operator):
         for item in items:
             try:
                 value_orig = eval("item." + data_path_item)
-            except:
+            except BaseException:
                 continue
 
             if value_orig is True:
@@ -934,13 +936,13 @@ class WM_OT_context_modal_mouse(Operator):
         for item in getattr(context, data_path_iter):
             try:
                 value_orig = eval("item." + data_path_item)
-            except:
+            except BaseException:
                 continue
 
             # check this can be set, maybe this is library data.
             try:
                 exec("item.%s = %s" % (data_path_item, value_orig))
-            except:
+            except BaseException:
                 continue
 
             values[item] = value_orig
@@ -1178,7 +1180,7 @@ class WM_OT_path_open(Operator):
         else:
             try:
                 subprocess.check_call(["xdg-open", filepath])
-            except:
+            except BaseException:
                 # xdg-open *should* be supported by recent Gnome, KDE, Xfce
                 import traceback
                 traceback.print_exc()

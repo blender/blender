@@ -140,7 +140,7 @@ class AddPresetBase:
                             # to simple lists to repr()
                             try:
                                 value = value[:]
-                            except:
+                            except BaseException:
                                 pass
 
                             file_preset.write("%s = %r\n" % (rna_path_step, value))

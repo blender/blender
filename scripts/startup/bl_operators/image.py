@@ -63,7 +63,7 @@ class EditExternally(Operator):
 
         try:
             subprocess.Popen(cmd)
-        except:
+        except BaseException:
             import traceback
             traceback.print_exc()
             self.report({'ERROR'},
