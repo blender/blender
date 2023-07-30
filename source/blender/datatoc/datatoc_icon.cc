@@ -34,7 +34,8 @@
 #endif
 
 /* -------------------------------------------------------------------- */
-/* Utility functions */
+/** \name Utility Functions
+ * \{ */
 
 static bool path_test_extension(const char *filepath, const char *ext)
 {
@@ -89,8 +90,11 @@ static bool path_join(char *filepath,
   return true;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Write a PNG from RGBA pixels */
+/** \name Write a PNG from RGBA Pixels
+ * \{ */
 
 static bool write_png(const char *filepath, const uint *pixels, const int width, const int height)
 {
@@ -188,8 +192,11 @@ static bool write_png(const char *filepath, const uint *pixels, const int width,
   return true;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Merge icon-data from files */
+/** \name Merge Icon-Data from Files
+ * \{ */
 
 struct IconHead {
   uint icon_w, icon_h;
@@ -453,8 +460,11 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
   return (fail == 0);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Main and parse args */
+/** \name Main & Parse Arguments
+ * \{ */
 
 int main(int argc, char **argv)
 {
@@ -471,3 +481,5 @@ int main(int argc, char **argv)
 
   return (icondir_to_png(path_src, file_dst) == true) ? 0 : 1;
 }
+
+/** \} */
