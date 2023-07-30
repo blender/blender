@@ -547,10 +547,12 @@ class WM_OT_context_toggle_enum(Operator):
         # keys that some values that are only available in a particular context
         try:
             exec(
-                "context.%s = ('%s', '%s')[context.%s != '%s']" % (
-                    data_path, self.value_1,
-                    self.value_2, data_path,
+                "context.%s = %r if (context.%s != %r) else %r" % (
+                    data_path,
                     self.value_2,
+                    data_path,
+                    self.value_2,
+                    self.value_1,
                 )
             )
         except BaseException:
