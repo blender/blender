@@ -34,6 +34,20 @@
 #endif
 
 /* -------------------------------------------------------------------- */
+/** \name Endian Defines
+ * \{ */
+
+#define L_ENDIAN 1
+#define B_ENDIAN 0
+#ifdef __BIG_ENDIAN__
+#  define ENDIAN_ORDER B_ENDIAN
+#else
+#  define ENDIAN_ORDER L_ENDIAN
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
 
@@ -155,9 +169,9 @@ static bool write_png(const char *filepath, const uint *pixels, const int width,
   /* write the file header information */
   png_write_info(png_ptr, info_ptr);
 
-#ifdef __LITTLE_ENDIAN__
-  png_set_swap(png_ptr);
-#endif
+  if (ENDIAN_ORDER == L_ENDIAN) {
+    png_set_swap(png_ptr);
+  }
 
   /* allocate memory for an array of row-pointers */
   row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep));
@@ -272,19 +286,16 @@ static void icon_merge_context_free(IconMergeContext *context)
 static bool icon_decode_head(FILE *f_src, IconHead *r_head)
 {
   if (fread(r_head, 1, sizeof(*r_head), f_src) == sizeof(*r_head)) {
-#ifndef __LITTLE_ENDIAN__
-    endian_switch_uint32(&r_head->icon_w);
-    endian_switch_uint32(&r_head->icon_h);
-    endian_switch_uint32(&r_head->orig_x);
-    endian_switch_uint32(&r_head->orig_y);
-    endian_switch_uint32(&r_head->canvas_w);
-    endian_switch_uint32(&r_head->canvas_h);
-#endif
+    if (ENDIAN_ORDER == B_ENDIAN) {
+      endian_switch_uint32(&r_head->icon_w);
+      endian_switch_uint32(&r_head->icon_h);
+      endian_switch_uint32(&r_head->orig_x);
+      endian_switch_uint32(&r_head->orig_y);
+      endian_switch_uint32(&r_head->canvas_w);
+      endian_switch_uint32(&r_head->canvas_h);
+    }
     return true;
   }
-
-  /* quiet warning */
-  (void)endian_switch_uint32;
 
   return false;
 }
