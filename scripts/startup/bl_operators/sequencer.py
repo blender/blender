@@ -299,7 +299,7 @@ class SequencerFadesAdd(Operator):
                 try:
                     if fade.start.x < keyframe.co[0] <= fade.end.x:
                         keyframe_points.remove(keyframe, fast=True)
-                except Exception:
+                except BaseException:
                     pass
             fade_fcurve.update()
 

@@ -74,8 +74,8 @@ class NodeAddOperator:
 
         try:
             node = tree.nodes.new(type=node_type)
-        except RuntimeError as e:
-            self.report({'ERROR'}, str(e))
+        except RuntimeError as ex:
+            self.report({'ERROR'}, str(ex))
             return None
 
         for setting in self.settings:
@@ -91,11 +91,11 @@ class NodeAddOperator:
 
             try:
                 setattr(node_data, node_attr_name, value)
-            except AttributeError as e:
+            except AttributeError as ex:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
                     tip_("Node has no attribute %s") % setting.name)
-                print(str(e))
+                print(str(ex))
                 # Continue despite invalid attribute
 
         node.select = True

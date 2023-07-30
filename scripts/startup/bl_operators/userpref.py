@@ -228,7 +228,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
                 shutil.copy(self.filepath, path)
             else:
                 shutil.move(self.filepath, path)
-        except Exception as ex:
+        except BaseException as ex:
             self.report({'ERROR'}, tip_("Installing keymap failed: %s") % ex)
             return {'CANCELLED'}
 

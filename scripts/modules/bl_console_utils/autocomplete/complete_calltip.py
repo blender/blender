@@ -158,7 +158,7 @@ def complete(line, cursor, namespace):
         func_word = match.group(2)
         try:
             func = eval(func_word, namespace)
-        except Exception:
+        except BaseException:
             func = None
 
         if func:

@@ -1825,12 +1825,12 @@ class WM_OT_properties_edit(Operator):
         if prop_type_new == 'PYTHON':
             try:
                 new_value = eval(self.eval_string)
-            except Exception as ex:
+            except BaseException as ex:
                 self.report({'WARNING'}, "Python evaluation failed: " + str(ex))
                 return {'CANCELLED'}
             try:
                 item[name] = new_value
-            except Exception as ex:
+            except BaseException as ex:
                 self.report({'ERROR'}, "Failed to assign value: " + str(ex))
                 return {'CANCELLED'}
             if name_old != name:
@@ -2023,7 +2023,7 @@ class WM_OT_properties_edit_value(Operator):
             rna_item = eval("context.%s" % self.data_path)
             try:
                 new_value = eval(self.eval_string)
-            except Exception as ex:
+            except BaseException as ex:
                 self.report({'WARNING'}, "Python evaluation failed: " + str(ex))
                 return {'CANCELLED'}
             rna_item[self.property_name] = new_value
@@ -2992,7 +2992,7 @@ class WM_OT_batch_rename(Operator):
                 if action.use_replace_regex_src:
                     try:
                         re.compile(action.replace_src)
-                    except Exception as ex:
+                    except BaseException as ex:
                         re_error_src = str(ex)
                         row.alert = True
 
@@ -3018,7 +3018,7 @@ class WM_OT_batch_rename(Operator):
                         if re_error_src is None:
                             try:
                                 re.sub(action.replace_src, action.replace_dst, "")
-                            except Exception as ex:
+                            except BaseException as ex:
                                 re_error_dst = str(ex)
                                 row.alert = True
 
@@ -3094,14 +3094,14 @@ class WM_OT_batch_rename(Operator):
             if action.use_replace_regex_src:
                 try:
                     re.compile(action.replace_src)
-                except Exception as ex:
+                except BaseException as ex:
                     self.report({'ERROR'}, "Invalid regular expression (find): " + str(ex))
                     return {'CANCELLED'}
 
                 if action.use_replace_regex_dst:
                     try:
                         re.sub(action.replace_src, action.replace_dst, "")
-                    except Exception as ex:
+                    except BaseException as ex:
                         self.report({'ERROR'}, "Invalid regular expression (replace): " + str(ex))
                         return {'CANCELLED'}
 

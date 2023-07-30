@@ -309,7 +309,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # in most cases the caller should 'check()' first.
             try:
                 mod.unregister()
-            except Exception as ex:
+            except BaseException as ex:
                 print(
                     "Exception in module unregister():",
                     repr(getattr(mod, "__file__", module_name)),
@@ -325,7 +325,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
             try:
                 importlib.reload(mod)
-            except Exception as ex:
+            except BaseException as ex:
                 handle_error(ex)
                 del sys.modules[module_name]
                 return None
@@ -354,7 +354,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                 raise ImportError(name=module_name)
             mod.__time__ = os.path.getmtime(mod.__file__)
             mod.__addon_enabled__ = False
-        except Exception as ex:
+        except BaseException as ex:
             # if the addon doesn't exist, don't print full traceback
             if type(ex) is ImportError and ex.name == module_name:
                 print("addon not loaded:", repr(module_name))
@@ -384,7 +384,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         # 3) Try run the modules register function.
         try:
             mod.register()
-        except Exception as ex:
+        except BaseException as ex:
             print(
                 "Exception in module register():",
                 getattr(mod, "__file__", module_name),
@@ -436,7 +436,7 @@ def disable(module_name, *, default_set=False, handle_error=None):
 
         try:
             mod.unregister()
-        except Exception as ex:
+        except BaseException as ex:
             mod_path = getattr(mod, "__file__", module_name)
             print("Exception in module unregister():", repr(mod_path))
             del mod_path

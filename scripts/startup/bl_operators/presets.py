@@ -190,8 +190,8 @@ class AddPresetBase:
                     self.remove(context, filepath)
                 else:
                     os.remove(filepath)
-            except Exception as e:
-                self.report({'ERROR'}, tip_("Unable to remove preset: %r") % e)
+            except BaseException as ex:
+                self.report({'ERROR'}, tip_("Unable to remove preset: %r") % ex)
                 import traceback
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -250,7 +250,7 @@ class ExecutePreset(Operator):
         if ext == ".py":
             try:
                 bpy.utils.execfile(filepath)
-            except Exception as ex:
+            except BaseException as ex:
                 self.report({'ERROR'}, "Failed to execute the preset: " + repr(ex))
 
         elif ext == ".xml":
