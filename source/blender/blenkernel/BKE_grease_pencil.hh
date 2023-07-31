@@ -266,9 +266,15 @@ class Layer : public ::GreasePencilLayer {
   Span<int> sorted_keys() const;
 
   /**
-   * \returns the index of the drawing at frame \a frame or -1 if there is no drawing.
+   * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
+   * drawing. */
+  int drawing_index_at(const int frame_number) const;
+
+  /**
+   * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
    */
-  int drawing_index_at(const int frame) const;
+  const GreasePencilFrame *frame_at(const int frame_number) const;
+  GreasePencilFrame *frame_at(const int frame_number);
 
   void tag_frames_map_changed();
 
@@ -280,6 +286,7 @@ class Layer : public ::GreasePencilLayer {
 
  private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
+  int frame_index_at(int frame_number) const;
 };
 
 class LayerGroupRuntime {
