@@ -2012,10 +2012,10 @@ static bool pchan_culling_test_with_radius_scale(const DRWView *view,
 /** \name Bone Drawing Strategies
  *
  * Bone drawing uses a strategy pattern for the different armature drawing modes.
- *
  * \{ */
 
-/** Bone drawing strategy for unknown draw types.
+/**
+ * Bone drawing strategy for unknown draw types.
  * This doesn't do anything, except call the default matrix update function.
  */
 class ArmatureBoneDrawStrategyEmpty : public ArmatureBoneDrawStrategy {
@@ -2491,7 +2491,8 @@ class ArmatureBoneDrawStrategyWire : public ArmatureBoneDrawStrategy {
 };
 
 namespace {
-/** Armature drawing strategies.
+/**
+ * Armature drawing strategies.
  *
  * Declared statically here because they cost almost no memory (no fields in any
  * of the structs, so just the virtual function table), and this makes it very

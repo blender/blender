@@ -645,7 +645,7 @@ void IMB_buffer_float_premultiply(float *buf, int width, int height);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
- * rgba to abgr. size * 4 color bytes are reordered.
+ * RGBA to ABGR. size * 4 color bytes are reordered.
  *
  * \attention Defined in imageprocess.c
  *

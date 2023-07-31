@@ -530,7 +530,7 @@ static void initSystem(
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
     int *index_anchors = static_cast<int *>(
-        MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* over-alloc */
+        MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* Over-allocate. */
 
     STACK_DECLARE(index_anchors);
 

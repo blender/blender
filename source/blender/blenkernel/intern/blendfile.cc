@@ -548,7 +548,8 @@ static int reuse_bmain_data_invalid_local_usages_fix_cb(LibraryIDLinkCallbackDat
   return IDWALK_RET_NOP;
 }
 
-/** Detect and fix invalid usages of locale IDs by linked ones (or as reference of liboverrides).
+/**
+ * Detect and fix invalid usages of locale IDs by linked ones (or as reference of liboverrides).
  */
 static void reuse_bmain_data_invalid_local_usages_fix(ReuseOldBMainData *reuse_data)
 {

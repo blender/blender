@@ -570,7 +570,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 
 void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
 {
-  /* Tag given bmain, and 'root 'local' main one (in case given one is a library one) as invalid.
+  /* Tag given `bmain`, and 'root 'local' main one (in case given one is a library one) as invalid.
    */
   bmain->is_read_invalid = true;
   for (; bmain->prev != nullptr; bmain = bmain->prev)
@@ -727,7 +727,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0);
           }
           else {
-            /* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+            /* MIN2 is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
             memcpy(&bhead, &bhead8, MIN2(sizeof(bhead), sizeof(bhead8)));
           }
@@ -1081,8 +1081,11 @@ static FileData *filedata_new(BlendFileReadReport *reports)
   return fd;
 }
 
-/** Check if minversion of the file is older than current Blender, return false if it is not.
- * Should only be called after #read_file_dna was successfuly executed. */
+/**
+ * Check if #FileGlobal::minversion of the file is older than current Blender,
+ * return false if it is not.
+ * Should only be called after #read_file_dna was successfully executed.
+ */
 static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
 {
   BLI_assert(fd->filesdna != nullptr);
@@ -1188,7 +1191,7 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
     /* Try opening the file with memory-mapped IO. */
     file = BLI_filereader_new_mmap(filedes);
     if (file == nullptr) {
-      /* mmap failed, so just keep using rawfile. */
+      /* `mmap` failed, so just keep using `rawfile`. */
       file = rawfile;
       rawfile = nullptr;
     }

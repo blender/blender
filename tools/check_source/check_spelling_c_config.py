@@ -76,6 +76,8 @@ dict_custom = {
     "criterium",
     "crosshair",
     "crosstalk",
+    "cumulate",
+    "cumulated",
     "customizable",
     "deallocate",
     "deallocated",

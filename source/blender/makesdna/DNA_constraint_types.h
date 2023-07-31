@@ -1111,7 +1111,8 @@ typedef enum eChildOf_Flags {
   CHILDOF_SET_INVERSE = (1 << 9),
 } eChildOf_Flags;
 
-/** Pivot Constraint
+/**
+ * Pivot Constraint
  *
  * Restrictions for Pivot Constraint axis to consider for enabling constraint.
  */

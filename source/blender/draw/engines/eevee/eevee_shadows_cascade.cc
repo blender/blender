@@ -154,7 +154,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
 
   copy_v3_v3(csm_data->shadow_vec, csm_render->viewinv[2]);
 
-  /* Compute near and far value based on all shadow casters cumulated AABBs. */
+  /* Compute near and far value based on all shadow casters accumulated AABBs. */
   float sh_near = -1.0e30f, sh_far = 1.0e30f;
   BoundBox shcaster_bounds;
   BKE_boundbox_init_from_minmax(

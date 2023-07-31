@@ -1237,8 +1237,10 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
 
 /* Default override (and compare) callbacks. */
 
-/* Ensures it makes sense to go inside the pointers to compare their content
- * (if they are IDs, or have different names or RNA type, then this would be meaningless). */
+/**
+ * Ensures it makes sense to go inside the pointers to compare their content
+ * (if they are IDs, or have different names or RNA type, then this would be meaningless).
+ */
 struct RNACompareOverrideDiffPropPtrContext {
   /** General RNA diffing context. */
   RNAPropertyOverrideDiffContext &rnadiff_ctx;
@@ -1250,11 +1252,15 @@ struct RNACompareOverrideDiffPropPtrContext {
   PointerRNA propptr_b = {0};
   PropertyType property_type = PROP_BOOLEAN;
 
-  /** Indicates the RNA structure cintaining that RNA pointer does not own the data it points to.
-   *  See also #PROP_PTR_NO_OWNERSHIP documentation. */
+  /**
+   * Indicates the RNA structure containing that RNA pointer does not own the data it points to.
+   * See also #PROP_PTR_NO_OWNERSHIP documentation.
+   */
   bool no_ownership = false;
-  /** RNA collection items: do not attempt to get the item property name (i.e. only uses its
-   *  index). */
+  /**
+   * RNA collection items: do not attempt to get the item property name
+   * (i.e. only uses its index).
+   */
   bool no_prop_name = false;
   /** RNA collection items: forcefully get an item property name, even if one of the items is
    *  null/doesn't have one. Mutually exclusive with `no_prop_name`. */
@@ -1269,7 +1275,8 @@ struct RNACompareOverrideDiffPropPtrContext {
   int rna_itemindex_a = -1;
   int rna_itemindex_b = -1;
 
-  /** Status info, usually set by a call to #rna_property_override_diff_propptr_validate_diffing.
+  /**
+   * Status info, usually set by a call to #rna_property_override_diff_propptr_validate_diffing.
    */
   /** Indicate whether the two given RNA pointers can be considered 'matching data', i.e. the
    * pointers themselves should not be compared, but rather the content of the RNA structs they

@@ -90,7 +90,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
  */
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm);
 /**
- * Confirmation dialog when user is about to save the current blend file, and it was prviously
+ * Confirmation dialog when user is about to save the current blend file, and it was previously
  * created by a newer version of Blender.
  *
  * Important to ask confirmation, as this is a very common scenario of data loss.

@@ -2792,7 +2792,8 @@ static void nlastrip_evaluate_transition(const int evaluation_mode,
                               anim_eval_context,
                               flush_to_original);
 
-      /** Replace \a snapshot2 nullptr channels with base or default values so all channels blend.
+      /**
+       * Replace \a snapshot2 nullptr channels with base or default values so all channels blend.
        */
       nlasnapshot_ensure_channels(channels, &snapshot2);
       /** Mark all \a snapshot2 channel's values to blend. */

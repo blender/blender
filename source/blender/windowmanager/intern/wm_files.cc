@@ -3988,7 +3988,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   if (file_has_been_saved_before) {
     if (bmain->has_forward_compatibility_issues) {
-      /* Need to invoke to get the filebrowser and choose where to save the new file.
+      /* Need to invoke to get the file-browser and choose where to save the new file.
        * This also makes it impossible to keep on going with current operation, which is why
        * callback cannot be executed anymore.
        *

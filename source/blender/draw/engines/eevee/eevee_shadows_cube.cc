@@ -150,7 +150,7 @@ static void eevee_ensure_cube_views(
   }
 }
 
-/* Does a spot angle fits a single cubeface. */
+/* Does a spot angle fits a single cube-face. */
 static bool spot_angle_fit_single_face(const EEVEE_Light *evli)
 {
   /* alpha = spot/cone half angle. */

@@ -28,7 +28,7 @@
  */
 
 #include <cstdlib>
-#include <cstring> /* for memcpy */
+#include <cstring> /* For `memcpy`. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"

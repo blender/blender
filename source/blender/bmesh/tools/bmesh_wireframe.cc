@@ -191,7 +191,7 @@ void BM_mesh_wireframe(BMesh *bm,
           MEM_mallocN(sizeof(float) * totvert_orig, __func__) :
           nullptr);
 
-  /* may over-alloc if not all faces have wire */
+  /* May over-allocate if not all faces have wire. */
   BMVert **verts_loop;
   int verts_loop_tot = 0;
 

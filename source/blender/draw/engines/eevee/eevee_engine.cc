@@ -458,7 +458,7 @@ void eevee_id_update(void *vedata, ID *id)
 
 static void eevee_render_reset_passes(EEVEE_Data *vedata)
 {
-  /* Reset passlist. This is safe as they are stored into managed memory chunks. */
+  /* Reset pass-list. This is safe as they are stored into managed memory chunks. */
   memset(vedata->psl, 0, sizeof(*vedata->psl));
 }
 

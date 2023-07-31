@@ -1099,7 +1099,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   int y = size[1] * (grid_offset / cell_per_row);
 
 #ifndef IRRADIANCE_SH_L2
-  /* Tweaking parameters to balance perf. vs precision */
+  /* Tweaking parameters to balance performance vs precision. */
   const float bias = 0.0f;
   pinfo->lodfactor = bias + 0.5f * log(square_f(target_size) / pinfo->samples_len) / log(2);
   pinfo->lod_rt_max = log2_floor_u(target_size) - 2.0f;

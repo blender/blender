@@ -230,12 +230,12 @@ static std::ostream &operator<<(std::ostream &stream, const GPUConstant *input)
 {
   stream << input->type << "(";
   for (int i = 0; i < input->type; i++) {
-    char formated_float[32];
+    char formatted_float[32];
     /* Use uint representation to allow exact same bit pattern even if NaN. This is because we can
      * pass UINTs as floats for constants. */
     const uint32_t *uint_vec = reinterpret_cast<const uint32_t *>(input->vec);
-    SNPRINTF(formated_float, "uintBitsToFloat(%uu)", uint_vec[i]);
-    stream << formated_float;
+    SNPRINTF(formatted_float, "uintBitsToFloat(%uu)", uint_vec[i]);
+    stream << formatted_float;
     if (i < input->type - 1) {
       stream << ", ";
     }
