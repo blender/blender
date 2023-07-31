@@ -7,6 +7,7 @@
  */
 
 #include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
@@ -68,6 +69,33 @@ bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer)
     }
   }
   return false;
+}
+
+void select_frames_region(struct KeyframeEditData *ked,
+                          bke::greasepencil::Layer *layer,
+                          const short tool,
+                          const short select_mode)
+{
+  if (layer == nullptr) {
+    return;
+  }
+  for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+    /* Construct a dummy point coordinate to do this testing with. */
+    const float2 pt(float(frame_number), ked->channel_y);
+
+    /* Check the necessary regions. */
+    if (tool == BEZT_OK_CHANNEL_LASSO) {
+      if (keyframe_region_lasso_test(static_cast<const KeyframeEdit_LassoData *>(ked->data), pt)) {
+        select_frame(frame, select_mode);
+      }
+    }
+    else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
+      if (keyframe_region_circle_test(static_cast<const KeyframeEdit_CircleData *>(ked->data), pt))
+      {
+        select_frame(frame, select_mode);
+      }
+    }
+  }
 }
 
 static void append_frame_to_key_edit_data(KeyframeEditData *ked,

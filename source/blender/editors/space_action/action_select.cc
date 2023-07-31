@@ -693,6 +693,15 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       ale->update |= ANIM_UPDATE_DEPS;
       break;
     }
+    case ANIMTYPE_GREASE_PENCIL_LAYER: {
+      blender::ed::greasepencil::select_frames_region(
+          &sel_data->ked,
+          static_cast<blender::bke::greasepencil::Layer *>(ale->data),
+          sel_data->mode,
+          sel_data->selectmode);
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
     case ANIMTYPE_MASKDATABLOCK: {
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
