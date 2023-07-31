@@ -70,10 +70,10 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **liboverride, bool 
  * \param owner_id_hint: If not NULL, a potential owner for the given override-embedded `id`.
  * \param r_owner_id: If given, will be set with the actual ID owning the return liboverride data.
  */
-IDOverrideLibrary *BKE_lib_override_library_get(struct Main *bmain,
-                                                struct ID *id,
-                                                struct ID *owner_id_hint,
-                                                struct ID **r_owner_id);
+struct IDOverrideLibrary *BKE_lib_override_library_get(struct Main *bmain,
+                                                       struct ID *id,
+                                                       struct ID *owner_id_hint,
+                                                       struct ID **r_owner_id);
 
 /**
  * Check if given ID has some override rules that actually indicate the user edited it.
@@ -94,8 +94,8 @@ bool BKE_lib_override_library_is_system_defined(const struct Main *bmain, const 
  * \param rnaprop_index: Array in the RNA property, 0 if unknown or irrelevant.
  */
 bool BKE_lib_override_library_property_is_animated(
-    const ID *id,
-    const IDOverrideLibraryProperty *liboverride_prop,
+    const struct ID *id,
+    const struct IDOverrideLibraryProperty *liboverride_prop,
     const struct PropertyRNA *override_rna_prop,
     const int rnaprop_index);
 
@@ -324,7 +324,7 @@ bool BKE_lib_override_library_property_search_and_delete(struct IDOverrideLibrar
  * the caller will retain ownership of the passed pointer.
  * \return True if the property was found (and thus changed), false if it wasn't found.
  */
-bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *liboverride,
+bool BKE_lib_override_library_property_rna_path_change(struct IDOverrideLibrary *liboverride,
                                                        const char *old_rna_path,
                                                        const char *new_rna_path);
 
