@@ -151,7 +151,7 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     float3 strength = lamp->get_strength();
 
     centroid = lamp->get_co();
-    measure.bcone.axis = normalize(lamp->get_dir());
+    measure.bcone.axis = safe_normalize(lamp->get_dir());
 
     if (type == LIGHT_AREA) {
       measure.bcone.theta_o = 0;
