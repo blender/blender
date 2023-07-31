@@ -39,6 +39,7 @@ shader node_normal_map(float Strength = 1.0,
       /* apply strength */
       mcolor[0] *= Strength;
       mcolor[1] *= Strength;
+      mcolor[2] = mix(1.0, mcolor[2], clamp(Strength, 0.0, 1.0));
 
       Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
 
