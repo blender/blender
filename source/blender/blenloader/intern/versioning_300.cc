@@ -4516,6 +4516,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        version_node_socket_name(ntree, CMP_NODE_LENSDIST, "Distort", "Distortion");
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

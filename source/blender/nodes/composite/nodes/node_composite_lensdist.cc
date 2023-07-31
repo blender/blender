@@ -40,7 +40,7 @@ static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Distort")
+  b.add_input<decl::Float>("Distortion")
       .default_value(0.0f)
       .min(MINIMUM_DISTORTION)
       .max(1.0f)
@@ -160,7 +160,7 @@ class LensDistortionOperation : public NodeOperation {
 
   float get_distortion()
   {
-    const Result &input = get_input("Distort");
+    const Result &input = get_input("Distortion");
     return clamp_f(input.get_float_value_default(0.0f), MINIMUM_DISTORTION, 1.0f);
   }
 
