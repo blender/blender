@@ -12,7 +12,7 @@ struct ScrArea;
 struct bContext;
 struct wmOperatorType;
 
-/* render_shading.c */
+/* `render_shading.cc` */
 
 void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_remove(struct wmOperatorType *ot);
@@ -72,7 +72,7 @@ void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);
 void TEXTURE_OT_slot_paste(struct wmOperatorType *ot);
 void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
 
-/* render_internal.c */
+/* `render_internal.cc` */
 
 /**
  * Contextual render, using current scene, view3d?
@@ -80,7 +80,7 @@ void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
 void RENDER_OT_render(struct wmOperatorType *ot);
 void RENDER_OT_shutter_curve_preset(struct wmOperatorType *ot);
 
-/* render_view.c */
+/* `render_view.cc` */
 
 /**
  * New window uses x,y to set position.
@@ -90,6 +90,6 @@ struct ScrArea *render_view_open(struct bContext *C, int mx, int my, struct Repo
 void RENDER_OT_view_show(struct wmOperatorType *ot);
 void RENDER_OT_view_cancel(struct wmOperatorType *ot);
 
-/* render_opengl.c */
+/* `render_opengl.cc` */
 
 void RENDER_OT_opengl(struct wmOperatorType *ot);

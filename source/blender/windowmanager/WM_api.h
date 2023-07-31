@@ -899,7 +899,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, short 
 bool WM_operator_last_properties_init(struct wmOperator *op);
 bool WM_operator_last_properties_store(struct wmOperator *op);
 
-/* wm_operator_props.c */
+/* `wm_operator_props.cc` */
 
 void WM_operator_properties_confirm_or_exec(struct wmOperatorType *ot);
 
@@ -1115,7 +1115,7 @@ char *WM_context_path_resolve_property_full(const struct bContext *C,
                                             int index);
 char *WM_context_path_resolve_full(struct bContext *C, const PointerRNA *ptr);
 
-/* wm_operator_type.c */
+/* `wm_operator_type.cc` */
 
 struct wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
 /**
@@ -1194,7 +1194,7 @@ char *WM_operatortype_description_or_name(struct bContext *C,
                                           struct wmOperatorType *ot,
                                           struct PointerRNA *properties);
 
-/* wm_operator_utils.c */
+/* `wm_operator_utils.cc` */
 
 /**
  * Allow an operator with only and execute function to run modally,
@@ -1202,7 +1202,7 @@ char *WM_operatortype_description_or_name(struct bContext *C,
  */
 void WM_operator_type_modal_from_exec_for_object_edit_coords(struct wmOperatorType *ot);
 
-/* wm_uilist_type.c */
+/* `wm_uilist_type.cc` */
 
 /**
  * Called on initialize #WM_init()
@@ -1233,7 +1233,7 @@ void WM_uilisttype_to_full_list_id(const struct uiListType *ult,
  */
 const char *WM_uilisttype_list_id_get(const struct uiListType *ult, struct uiList *list);
 
-/* wm_menu_type.c */
+/* `wm_menu_type.cc` */
 
 /**
  * \note Called on initialize #WM_init().
@@ -1253,7 +1253,7 @@ void WM_menutype_idname_visit_for_search(const struct bContext *C,
                                          StringPropertySearchVisitFunc visit_fn,
                                          void *visit_user_data);
 
-/* wm_panel_type.c */
+/* `wm_panel_type.cc` */
 
 /**
  * Called on initialize #WM_init().
@@ -1271,7 +1271,7 @@ void WM_paneltype_idname_visit_for_search(const struct bContext *C,
                                           StringPropertySearchVisitFunc visit_fn,
                                           void *visit_user_data);
 
-/* wm_gesture_ops.c */
+/* `wm_gesture_ops.cc` */
 
 int WM_gesture_box_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int WM_gesture_box_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
@@ -1765,7 +1765,7 @@ bool WM_window_modal_keymap_status_draw(struct bContext *C,
                                         struct wmWindow *win,
                                         struct uiLayout *layout);
 
-/* wm_event_query.c */
+/* `wm_event_query.cc` */
 
 /**
  * For debugging only, getting inspecting events manually is tedious.
@@ -1855,7 +1855,7 @@ int WM_event_absolute_delta_y(const struct wmEvent *event);
 bool WM_event_is_ime_switch(const struct wmEvent *event);
 #endif
 
-/* wm_tooltip.c */
+/* `wm_tooltip.cc` */
 
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *C,
                                            struct ARegion *region,
@@ -1885,7 +1885,7 @@ void WM_tooltip_init(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 double WM_tooltip_time_closed(void);
 
-/* wm_utils.c */
+/* `wm_utils.cc` */
 
 struct wmGenericCallback *WM_generic_callback_steal(struct wmGenericCallback *callback);
 void WM_generic_callback_free(struct wmGenericCallback *callback);
@@ -1895,7 +1895,7 @@ void WM_generic_user_data_free(struct wmGenericUserData *wm_userdata);
 bool WM_region_use_viewport(struct ScrArea *area, struct ARegion *region);
 
 #ifdef WITH_XR_OPENXR
-/* wm_xr_session.c */
+/* `wm_xr_session.cc` */
 
 /**
  * Check if the XR-Session was triggered.
@@ -2002,7 +2002,7 @@ void WM_xr_haptic_action_stop(wmXrData *xr,
                               const char *action_name,
                               const char *subaction_path);
 
-/* wm_xr_actionmap.c */
+/* `wm_xr_actionmap.cc` */
 
 XrActionMap *WM_xr_actionmap_new(struct wmXrRuntimeData *runtime,
                                  const char *name,

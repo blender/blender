@@ -10,7 +10,7 @@
  * 'rna_wm.cc', some calling into functions here to do python specific
  * functionality.
  *
- * \note This follows 'bpy_operator_wrap.c' very closely.
+ * \note This follows `bpy_operator_wrap.cc` very closely.
  * Keep in sync unless there is good reason not to!
  */
 

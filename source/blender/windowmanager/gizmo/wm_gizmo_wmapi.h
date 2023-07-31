@@ -28,7 +28,7 @@ extern "C" {
 /** \name #wmGizmo
  * \{ */
 
-/* wm_gizmo_type.c, for init/exit */
+/* `wm_gizmo_type.cc`, for init/exit */
 
 void wm_gizmotype_free(void);
 /**

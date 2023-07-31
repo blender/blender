@@ -344,7 +344,7 @@ static void checker_board_grid_fill(
   }
 }
 
-/* defined in image.c */
+/* Defined in `image.cc`. */
 
 static void checker_board_text(
     uchar *rect, float *rect_float, int width, int height, int step, int outline)

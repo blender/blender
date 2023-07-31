@@ -653,7 +653,7 @@ typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 typedef void *(*uiCopyArgFunc)(const void *arg);
 typedef void (*uiFreeArgFunc)(void *arg);
 
-/* interface_query.c */
+/* `interface_query.cc` */
 
 bool UI_but_has_tooltip_label(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
@@ -667,7 +667,7 @@ bool UI_block_can_add_separator(const uiBlock *block);
 
 struct uiList *UI_list_find_mouse_over(const struct ARegion *region, const struct wmEvent *event);
 
-/* interface_region_menu_popup.c */
+/* `interface_region_menu_popup.cc` */
 
 /**
  * Popup Menus
@@ -711,7 +711,7 @@ void UI_popup_menu_retval_set(const uiBlock *block, int retval, bool enable);
  */
 void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but);
 
-/* interface_region_popover.c */
+/* `interface_region_popover.cc` */
 
 typedef struct uiPopover uiPopover;
 
@@ -735,7 +735,7 @@ void UI_popover_end(struct bContext *C, struct uiPopover *pup, struct wmKeyMap *
 struct uiLayout *UI_popover_layout(uiPopover *pup);
 void UI_popover_once_clear(uiPopover *pup);
 
-/* interface_region_menu_pie.c */
+/* `interface_region_menu_pie.cc` */
 
 /* Pie menus */
 typedef struct uiPieMenu uiPieMenu;
@@ -758,7 +758,7 @@ struct uiPieMenu *UI_pie_menu_begin(struct bContext *C,
 void UI_pie_menu_end(struct bContext *C, uiPieMenu *pie);
 struct uiLayout *UI_pie_menu_layout(struct uiPieMenu *pie);
 
-/* interface_region_menu_popup.c */
+/* `interface_region_menu_popup.cc` */
 
 /* Popup Blocks
  *

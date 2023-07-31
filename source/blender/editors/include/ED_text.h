@@ -42,7 +42,7 @@ void ED_text_undosys_type(struct UndoType *ut);
 /** Use operator system to finish the undo step. */
 struct UndoStep *ED_text_undo_push_init(struct bContext *C);
 
-/* text_format.c */
+/* `text_format.cc` */
 
 const char *ED_text_format_comment_line_prefix(struct Text *text);
 

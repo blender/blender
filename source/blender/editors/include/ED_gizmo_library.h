@@ -41,7 +41,7 @@ struct wmGizmo;
  * Intended to be called by custom draw functions.
  */
 
-/* gizmo_library_presets.c */
+/* `gizmo_library_presets.cc` */
 
 void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, float mat[4][4], int select_id);
 void ED_gizmo_draw_preset_arrow(const struct wmGizmo *gz,
@@ -239,7 +239,7 @@ enum {
 /* -------------------------------------------------------------------- */
 /* Specific gizmos utils */
 
-/* snap3d_gizmo.c */
+/* `snap3d_gizmo.cc` */
 
 struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *scene,
                                                                struct wmGizmo *gz);

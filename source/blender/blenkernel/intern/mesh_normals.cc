@@ -7,7 +7,7 @@
  *
  * Mesh normal calculation functions.
  *
- * \see bmesh_mesh_normals.c for the equivalent #BMesh functionality.
+ * \see `bmesh_mesh_normals.cc` for the equivalent #BMesh functionality.
  */
 
 #include <climits>

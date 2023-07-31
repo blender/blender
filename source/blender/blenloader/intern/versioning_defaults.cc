@@ -66,7 +66,7 @@
 
 #include "versioning_common.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static bool blo_is_builtin_template(const char *app_template)

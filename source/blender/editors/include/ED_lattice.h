@@ -18,12 +18,12 @@ struct SelectPick_Params;
 struct UndoType;
 struct wmKeyConfig;
 
-/* lattice_ops.c */
+/* `lattice_ops.cc` */
 
 void ED_operatortypes_lattice(void);
 void ED_keymap_lattice(struct wmKeyConfig *keyconf);
 
-/* editlattice_select.c */
+/* `editlattice_select.cc` */
 
 bool ED_lattice_flags_set(struct Object *obedit, int flag);
 /**
@@ -36,7 +36,7 @@ bool ED_lattice_select_pick(struct bContext *C,
 bool ED_lattice_deselect_all_multi_ex(struct Base **bases, uint bases_len);
 bool ED_lattice_deselect_all_multi(struct bContext *C);
 
-/* editlattice_undo.c */
+/* `editlattice_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_lattice_undosys_type(struct UndoType *ut);

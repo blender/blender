@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edmesh
  *
- * meshtools.c: no editmode (violated already :), mirror & join),
+ * `meshtools.cc`: no editmode (violated already :), mirror & join),
  * tools operating on meshes
  */
 

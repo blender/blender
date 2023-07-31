@@ -134,7 +134,7 @@ void ED_region_toggle_hidden(struct bContext *C, struct ARegion *region);
 void ED_region_visibility_change_update(struct bContext *C,
                                         struct ScrArea *area,
                                         struct ARegion *region);
-/* screen_ops.c */
+/* `screen_ops.cc` */
 
 /**
  * \note Assumes that \a region itself is not a split version from previous region.
@@ -190,7 +190,7 @@ void ED_region_message_subscribe(struct wmRegionMessageSubscribeParams *params);
 /**
  * \note Keymap definitions are registered only once per WM initialize,
  * usually on file read, using the keymap the actual areas/regions add the handlers.
- * \note Called in wm.c. */
+ * \note Called in `wm.cc`. */
 void ED_spacetypes_keymap(struct wmKeyConfig *keyconf);
 /**
  * Returns offset for next button in header.
@@ -318,7 +318,7 @@ void ED_screen_scene_change(struct bContext *C,
                             struct Scene *scene,
                             bool refresh_toolsystem);
 /**
- * Called in wm_event_system.c. sets state vars in screen, cursors.
+ * Called in `wm_event_system.cc`. sets state vars in screen, cursors.
  * event type is mouse move.
  */
 void ED_screen_set_active_region(struct bContext *C, struct wmWindow *win, const int xy[2]);
@@ -605,7 +605,7 @@ bool ED_operator_posemode(struct bContext *C);
 bool ED_operator_posemode_local(struct bContext *C);
 bool ED_operator_camera_poll(struct bContext *C);
 
-/* screen_user_menu.c */
+/* `screen_user_menu.cc` */
 
 bUserMenu **ED_screen_user_menus_find(const struct bContext *C, uint *r_len);
 struct bUserMenu *ED_screen_user_menu_ensure(struct bContext *C);
@@ -653,7 +653,7 @@ void ED_region_cache_draw_curfra_label(int framenr, float x, float y);
 void ED_region_cache_draw_cached_segments(
     struct ARegion *region, int num_segments, const int *points, int sfra, int efra);
 
-/* area_utils.c */
+/* `area_utils.cc` */
 
 /**
  * Callback for #ARegionType.message_subscribe
@@ -665,7 +665,7 @@ void ED_region_generic_tools_region_message_subscribe(
  */
 int ED_region_generic_tools_region_snap_size(const struct ARegion *region, int size, int axis);
 
-/* area_query.c */
+/* `area_query.cc` */
 
 bool ED_region_overlap_isect_x(const ARegion *region, int event_x);
 bool ED_region_overlap_isect_y(const ARegion *region, int event_y);
@@ -694,7 +694,7 @@ bool ED_region_contains_xy(const struct ARegion *region, const int event_xy[2]);
  */
 ARegion *ED_area_find_region_xy_visual(const ScrArea *area, int regiontype, const int event_xy[2]);
 
-/* interface_region_hud.c */
+/* `interface_region_hud.cc` */
 
 struct ARegionType *ED_area_type_hud(int space_type);
 void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *area_keep);

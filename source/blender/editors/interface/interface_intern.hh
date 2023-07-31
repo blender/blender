@@ -601,7 +601,7 @@ struct uiSafetyRct {
   rctf safety;
 };
 
-/* interface.c */
+/* `interface.cc` */
 
 void ui_fontscale(float *points, float aspect);
 
@@ -772,7 +772,7 @@ void ui_block_bounds_calc(uiBlock *block);
 ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
 
-/* interface_regions.c */
+/* `interface_regions.cc` */
 
 struct uiKeyNavLock {
   /** Set when we're using keyboard-input. */
@@ -853,11 +853,11 @@ struct uiPopupBlockHandle {
 /* -------------------------------------------------------------------- */
 /* interface_region_*.c */
 
-/* interface_region_tooltip.c */
+/* `interface_region_tooltip.cc` */
 
 /* exposed as public API in UI_interface.h */
 
-/* interface_region_color_picker.c */
+/* `interface_region_color_picker.cc` */
 
 void ui_color_picker_rgb_to_hsv_compat(const float rgb[3], float r_cp[3]);
 void ui_color_picker_rgb_to_hsv(const float rgb[3], float r_cp[3]);
@@ -875,7 +875,7 @@ void ui_perceptual_to_scene_linear_space(uiBut *but, float rgb[3]);
 uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 ColorPicker *ui_block_colorpicker_create(uiBlock *block);
 
-/* interface_region_search.c */
+/* `interface_region_search.cc` */
 
 /**
  * Search-box for string button.
@@ -906,7 +906,7 @@ void ui_searchbox_free(bContext *C, ARegion *region);
  */
 void ui_but_search_refresh(uiButSearch *but);
 
-/* interface_region_menu_popup.c */
+/* `interface_region_menu_popup.cc` */
 
 int ui_but_menu_step(uiBut *but, int direction);
 bool ui_but_menu_step_poll(const uiBut *but);
@@ -931,12 +931,12 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 uiPopupBlockHandle *ui_popup_menu_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg);
 
-/* interface_region_popover.c */
+/* `interface_region_popover.cc` */
 
 uiPopupBlockHandle *ui_popover_panel_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg);
 
-/* interface_region_menu_pie.c */
+/* `interface_region_menu_pie.cc` */
 
 /**
  * Set up data for defining a new pie menu level and add button that invokes it.
@@ -950,7 +950,7 @@ void ui_pie_menu_level_create(uiBlock *block,
                               wmOperatorCallContext context,
                               eUI_Item_Flag flag);
 
-/* interface_region_popup.c */
+/* `interface_region_popup.cc` */
 
 /**
  * Translate any popup regions (so we can drag them).
@@ -961,7 +961,7 @@ void ui_popup_block_scrolltest(uiBlock *block);
 
 /* end interface_region_*.c */
 
-/* interface_panel.c */
+/* `interface_panel.cc` */
 
 /**
  * Handle region panel events like opening and closing panels, changing categories, etc.
@@ -1026,7 +1026,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *region,
                               const uiWidgetColors *wcol,
                               const rcti *rect);
 
-/* interface_undo.c */
+/* `interface_undo.cc` */
 
 /**
  * Start the undo stack.
@@ -1051,7 +1051,7 @@ void ui_handle_afterfunc_add_operator(wmOperatorType *ot, wmOperatorCallContext 
  */
 void ui_pan_to_scroll(const wmEvent *event, int *type, int *val);
 /**
- * Exported to interface.c: #UI_but_active_only()
+ * Exported to `interface.cc`: #UI_but_active_only()
  * \note The region is only for the button.
  * The context needs to be set by the caller.
  */
@@ -1210,7 +1210,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 #define UI_PIXEL_AA_JITTER 8
 extern const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];
 
-/* interface_style.c */
+/* `interface_style.cc` */
 
 /**
  * Called on each startup.blend read,
@@ -1290,7 +1290,7 @@ int ui_but_align_opposite_to_area_align_get(const ARegion *region) ATTR_WARN_UNU
  */
 void ui_block_align_calc(uiBlock *block, const ARegion *region);
 
-/* interface_anim.c */
+/* `interface_anim.cc` */
 
 void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context);
 void ui_but_anim_copy_driver(bContext *C);
@@ -1310,7 +1310,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra);
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *arg_dummy);
 void ui_but_anim_decorate_update_from_flag(uiButDecorator *but);
 
-/* interface_query.c */
+/* `interface_query.cc` */
 
 bool ui_but_is_editable(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_editable_as_text(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -1407,7 +1407,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
  */
 void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel);
 
-/* interface_eyedropper.c */
+/* `interface_eyedropper.cc` */
 
 wmKeyMap *eyedropper_modal_keymap(wmKeyConfig *keyconf);
 wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf);
@@ -1460,7 +1460,7 @@ struct uiRNACollectionSearch {
 void ui_rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, bool is_first);
 
-/* interface_ops.c */
+/* `interface_ops.cc` */
 
 bool ui_jump_to_target_button_poll(bContext *C);
 

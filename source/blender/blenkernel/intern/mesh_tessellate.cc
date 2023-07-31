@@ -8,7 +8,7 @@
  * This file contains code for face tessellation
  * (creating triangles from polygons).
  *
- * \see bmesh_mesh_tessellate.c for the #BMesh equivalent of this file.
+ * \see `bmesh_mesh_tessellate.cc` for the #BMesh equivalent of this file.
  */
 
 #include "BLI_enumerable_thread_specific.hh"

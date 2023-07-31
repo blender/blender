@@ -30,7 +30,7 @@ struct wmMsgBus;
 /** \name Gizmo
  * \{ */
 
-/* transform_gizmo_3d.c */
+/* `transform_gizmo_3d.cc` */
 
 #define GIZMO_AXIS_LINE_WIDTH 2.0f
 

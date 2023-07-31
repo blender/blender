@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This file defines the animation related methods used in bpy_rna.c
+ * This file defines the animation related methods used in `bpy_rna.cc`.
  */
 
 #include <Python.h>

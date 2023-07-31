@@ -227,7 +227,7 @@ typedef enum IDRemapperApplyOptions {
    * NOTE: Currently unused by main remapping code, since user-count is handled by
    * `foreach_libblock_remap_callback_apply` there, depending on whether the remapped pointer does
    * use it or not. Need for rare cases in UI handling though (see e.g. `image_id_remap` in
-   * `space_image.c`).
+   * `space_image.cc`).
    */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
 

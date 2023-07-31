@@ -107,7 +107,7 @@ bool PAINT_brush_tool_poll(bContext *C);
  */
 void paint_cursor_delete_textures(void);
 
-/* paint_vertex.c */
+/* `paint_vertex.cc` */
 
 bool weight_paint_poll(bContext *C);
 bool weight_paint_poll_ignore_tool(bContext *C);
@@ -142,7 +142,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot);
  */
 unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i);
 
-/* paint_vertex_weight_utils.c */
+/* `paint_vertex_weight_utils.cc` */
 
 /**
  * \param weight: Typically the current weight: #MDeformWeight.weight
@@ -171,7 +171,7 @@ bool ED_wpaint_ensure_data(bContext *C,
 /** Return -1 when invalid. */
 int ED_wpaint_mirror_vgroup_ensure(Object *ob, int vgroup_active);
 
-/* paint_vertex_color_ops.c */
+/* `paint_vertex_color_ops.cc` */
 
 void PAINT_OT_vertex_color_set(wmOperatorType *ot);
 void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot);
@@ -181,13 +181,13 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot);
 void PAINT_OT_vertex_color_invert(wmOperatorType *ot);
 void PAINT_OT_vertex_color_levels(wmOperatorType *ot);
 
-/* paint_vertex_weight_ops.c */
+/* `paint_vertex_weight_ops.cc` */
 
 void PAINT_OT_weight_from_bones(wmOperatorType *ot);
 void PAINT_OT_weight_sample(wmOperatorType *ot);
 void PAINT_OT_weight_sample_group(wmOperatorType *ot);
 
-/* paint_vertex_proj.c */
+/* `paint_vertex_proj.cc` */
 
 VertProjHandle *ED_vpaint_proj_handle_create(Depsgraph *depsgraph,
                                              Scene *scene,
@@ -200,7 +200,7 @@ void ED_vpaint_proj_handle_update(Depsgraph *depsgraph,
                                   const float mval_fl[2]);
 void ED_vpaint_proj_handle_free(VertProjHandle *vp_handle);
 
-/* paint_image.c */
+/* `paint_image.cc` */
 
 struct ImagePaintPartialRedraw {
   rcti dirty_region;
@@ -310,7 +310,7 @@ void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
                                    float radius,
                                    const float cursor_position[2]);
 
-/* sculpt_uv.c */
+/* `sculpt_uv.cc` */
 
 void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot);
 
@@ -467,7 +467,7 @@ typedef enum {
 
 void PAINT_OT_hide_show(wmOperatorType *ot);
 
-/* paint_mask.c */
+/* `paint_mask.cc` */
 
 /* The gesture API doesn't write to this enum type,
  * it writes to eSelectOp from ED_select_utils.h.
@@ -487,7 +487,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot);
 void PAINT_OT_mask_line_gesture(wmOperatorType *ot);
 
-/* paint_curve.c */
+/* `paint_curve.cc` */
 
 void PAINTCURVE_OT_new(wmOperatorType *ot);
 void PAINTCURVE_OT_add_point(wmOperatorType *ot);

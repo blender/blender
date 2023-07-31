@@ -1938,7 +1938,7 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   /* Scene's master collections will be 'root' parent of most of our collections, so start with
    * them. */
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    /* This function can be called from readfile.c, when this pointer is not guaranteed to be
+    /* This function can be called from `readfile.cc`, when this pointer is not guaranteed to be
      * nullptr.
      */
     if (scene->master_collection != nullptr) {

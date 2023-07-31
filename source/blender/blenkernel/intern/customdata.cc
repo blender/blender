@@ -5213,14 +5213,14 @@ static void blend_read_mdisps(BlendDataReader *reader,
         /* this calculation is only correct for loop mdisps;
          * if loading pre-BMesh face mdisps this will be
          * overwritten with the correct value in
-         * bm_corners_to_loops() */
+         * #bm_corners_to_loops() */
         float gridsize = sqrtf(mdisps[i].totdisp);
         mdisps[i].level = int(logf(gridsize - 1.0f) / float(M_LN2)) + 1;
       }
 
       if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {
-        /* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
-        /* this does swap for data written at write_mdisps() - readfile.c */
+        /* #DNA_struct_switch_endian doesn't do endian swap for `(*disps)[]` */
+        /* this does swap for data written at #write_mdisps() - `readfile.cc`. */
         BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
       }
       if (!external && !mdisps[i].disps) {

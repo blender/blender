@@ -537,7 +537,7 @@ static void rna_FKeyframe_ctrlpoint_ui_set(PointerRNA *ptr, const float *values)
   const float value_delta = values[1] - bezt->vec[1][1];
 
   /* To match the behavior of transforming the keyframe Co using the Graph Editor
-   * (transform_convert_graph.c) flushTransGraphData(), we will also move the handles by
+   * (`transform_convert_graph.cc`) flushTransGraphData(), we will also move the handles by
    * the same amount as the Co delta. */
 
   bezt->vec[0][0] += frame_delta;
@@ -2170,8 +2170,9 @@ static void rna_def_fpoint(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-/* duplicate of BezTriple in rna_curve.c
- * but with F-Curve specific options updates/functionality
+/**
+ * Duplicate of #BezTriple in `rna_curve.cc`
+ * but with F-Curve specific options updates/functionality.
  */
 static void rna_def_fkeyframe(BlenderRNA *brna)
 {

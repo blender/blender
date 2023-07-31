@@ -206,7 +206,7 @@ static void bmbvh_tri_from_face(const float *cos[3],
   }
 }
 
-/* Taken from `bvhutils.c`. */
+/* Taken from `bvhutils.cc`. */
 
 /* -------------------------------------------------------------------- */
 /* BKE_bmbvh_ray_cast */

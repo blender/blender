@@ -21,7 +21,7 @@ struct MaskLayerShape;
 struct bContext;
 struct wmKeyConfig;
 
-/* mask_edit.c */
+/* `mask_edit.cc` */
 
 /* Returns true when the following conditions are met:
  * - Current space supports mask editing.
@@ -57,7 +57,7 @@ void ED_operatortypes_mask(void);
 void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
-/* mask_query.c */
+/* `mask_query.cc` */
 
 void ED_mask_get_size(struct ScrArea *area, int *width, int *height);
 void ED_mask_zoom(struct ScrArea *area, struct ARegion *region, float *zoomx, float *zoomy);
@@ -90,7 +90,7 @@ bool ED_mask_selected_minmax(const struct bContext *C,
                              float max[2],
                              bool handles_as_control_point);
 
-/* mask_draw.c */
+/* `mask_draw.cc` */
 
 /**
  * Sets up the opengl context.
@@ -114,7 +114,7 @@ void ED_mask_draw_region(struct Depsgraph *depsgraph,
 
 void ED_mask_draw_frames(struct Mask *mask, struct ARegion *region, int cfra, int sfra, int efra);
 
-/* mask_shapekey.c */
+/* `mask_shapekey.cc` */
 
 void ED_mask_layer_shape_auto_key(struct MaskLayer *mask_layer, int frame);
 bool ED_mask_layer_shape_auto_key_all(struct Mask *mask, int frame);

@@ -654,7 +654,7 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
   if (!isfinite(used_percent_length)) {
     /* #used_percent_length must always be finite, otherwise a segfault occurs.
      * Since this function should never segfault, set #used_percent_length to a safe fallback. */
-    /* NOTE: This fallback is used if gps->totpoints == 2, see MOD_gpencil_legacy_length.c */
+    /* NOTE: This fallback is used if `gps->totpoints == 2`, see `MOD_gpencil_legacy_length.cc`. */
     used_percent_length = 0.1f;
   }
 

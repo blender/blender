@@ -414,7 +414,7 @@ bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const 
 bool keyframe_region_circle_test(const KeyframeEdit_CircleData *data_circle, const float xy[2]);
 
 /* ************************************************ */
-/* Destructive Editing API (keyframes_general.c) */
+/* Destructive Editing API `keyframes_general.cc`. */
 
 bool duplicate_fcurve_keys(struct FCurve *fcu);
 float get_default_rna_value(struct FCurve *fcu, struct PropertyRNA *prop, struct PointerRNA *ptr);

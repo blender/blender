@@ -451,7 +451,7 @@ void BKE_curvemap_handle_set(CurveMap *cuma, int type)
 /* *********************** Making the tables and display ************** */
 
 /**
- * reduced copy of #calchandleNurb_intern code in curve.c
+ * Reduced copy of #calchandleNurb_intern code in `curve.cc`.
  */
 static void calchandle_curvemap(BezTriple *bezt, const BezTriple *prev, const BezTriple *next)
 {

@@ -394,7 +394,7 @@ void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, s
 void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose)
     ATTR_NONNULL(1);
 
-/* action_mirror.c */
+/* `action_mirror.cc` */
 
 void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm) ATTR_NONNULL(1, 2);
 

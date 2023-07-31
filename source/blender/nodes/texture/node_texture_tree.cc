@@ -137,7 +137,7 @@ void register_node_tree_type_tex()
   STRNCPY(tt->idname, "TextureNodeTree");
   STRNCPY(tt->group_idname, "TextureNodeGroup");
   STRNCPY(tt->ui_name, N_("Texture Node Editor"));
-  tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.c`. */
+  tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.cc`. */
   STRNCPY(tt->ui_description, N_("Texture nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;

@@ -8,7 +8,7 @@
  * Used for vertex color & weight paint and mode switching.
  *
  * \note This file is already big,
- * use `paint_vertex_color_ops.c` & `paint_vertex_weight_ops.c` for general purpose operators.
+ * use `paint_vertex_color_ops.cc` & `paint_vertex_weight_ops.cc` for general purpose operators.
  */
 
 #include "MEM_guardedalloc.h"

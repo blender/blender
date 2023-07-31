@@ -538,7 +538,7 @@ static bool is_curved_edge(CurveProfilePoint *path, int i)
 
 /**
  * Used to set bezier handle locations in the sample creation process. Reduced copy of
- * #calchandleNurb_intern code in curve.c, mostly changed by removing the third dimension.
+ * #calchandleNurb_intern code in `curve.cc`, mostly changed by removing the third dimension.
  */
 static void point_calculate_handle(CurveProfilePoint *point,
                                    const CurveProfilePoint *prev,

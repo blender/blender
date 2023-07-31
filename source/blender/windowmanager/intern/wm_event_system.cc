@@ -4089,7 +4089,7 @@ void wm_event_do_handlers(bContext *C)
          * after modal handlers have been done. */
         if (event->type == MOUSEMOVE) {
           /* State variables in screen, cursors.
-           * Also used in `wm_draw.c`, fails for modal handlers though. */
+           * Also used in `wm_draw.cc`, fails for modal handlers though. */
           ED_screen_set_active_region(C, win, event->xy);
           /* For regions having custom cursors. */
           wm_paintcursor_test(C, event);

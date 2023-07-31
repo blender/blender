@@ -238,7 +238,7 @@ void BKE_mesh_calc_edges_legacy(Mesh *me)
 
 void BKE_mesh_strip_loose_faces(Mesh *me)
 {
-  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.c` code. */
+  /* NOTE: We need to keep this for edge creation (for now?), and some old `readfile.cc` code. */
   MFace *f;
   int a, b;
   MFace *mfaces = me->mface;

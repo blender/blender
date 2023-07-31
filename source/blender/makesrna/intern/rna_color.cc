@@ -978,7 +978,7 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
   RNA_def_struct_ui_text(srna, "Color Ramp Elements", "Collection of Color Ramp Elements");
 
-  /* TODO: make these functions generic in `texture.c`. */
+  /* TODO: make these functions generic in `texture.cc`. */
   func = RNA_def_function(srna, "new", "rna_ColorRampElement_new");
   RNA_def_function_ui_description(func, "Add element to Color Ramp");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);

@@ -193,7 +193,7 @@ void EDBM_project_snap_verts(struct bContext *C,
                              struct Object *obedit,
                              struct BMEditMesh *em);
 
-/* editmesh_automerge.c */
+/* `editmesh_automerge.cc` */
 
 void EDBM_automerge(struct Object *obedit, bool update, char hflag, float dist);
 void EDBM_automerge_and_split(struct Object *obedit,
@@ -352,7 +352,7 @@ bool EDBM_selectmode_disable_multi(struct bContext *C,
                                    short selectmode_disable,
                                    short selectmode_fallback);
 
-/* editmesh_preselect_edgering.c */
+/* `editmesh_preselect_edgering.cc` */
 
 struct EditMesh_PreSelEdgeRing;
 struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void);
@@ -365,7 +365,7 @@ void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *ps
                                               int previewlines,
                                               const float (*coords)[3]);
 
-/* editmesh_preselect_elem.c */
+/* `editmesh_preselect_elem.cc` */
 
 struct EditMesh_PreSelElem;
 typedef enum eEditMesh_PreSelPreviewAction {
@@ -393,7 +393,7 @@ void EDBM_preselect_action_set(struct EditMesh_PreSelElem *psel,
                                eEditMesh_PreSelPreviewAction action);
 eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(struct EditMesh_PreSelElem *psel);
 
-/* mesh_ops.c */
+/* `mesh_ops.cc` */
 
 void ED_operatortypes_mesh(void);
 void ED_operatormacros_mesh(void);

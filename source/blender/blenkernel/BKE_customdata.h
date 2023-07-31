@@ -172,7 +172,7 @@ void CustomData_copy_layout(const struct CustomData *source,
                             eCDAllocType alloctype,
                             int totelem);
 
-/* BMESH_TODO, not really a public function but readfile.c needs it */
+/* BMESH_TODO, not really a public function but `readfile.cc` needs it. */
 void CustomData_update_typemap(struct CustomData *data);
 
 /**

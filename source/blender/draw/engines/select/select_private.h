@@ -57,7 +57,7 @@ typedef struct SELECTID_PrivateData {
   DRWView *view_verts;
 } SELECTID_PrivateData; /* Transient data */
 
-/* select_draw_utils.c */
+/* `select_draw_utils.cc` */
 
 void select_id_object_min_max(struct Object *obj, float r_min[3], float r_max[3]);
 short select_id_get_object_select_mode(Scene *scene, Object *ob);

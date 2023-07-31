@@ -1063,7 +1063,7 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
         break;
       }
       case STRUCT_MEMBER_CATEGORY_POINTER: {
-        /* See `readfile.c` (#bh4_from_bh8 swap endian argument),
+        /* See `readfile.cc` (#bh4_from_bh8 swap endian argument),
          * this is only done when reducing the size of a pointer from 4 to 8. */
         if (sizeof(void *) < 8) {
           if (sdna->pointer_size == 8) {

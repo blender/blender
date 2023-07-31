@@ -1110,7 +1110,8 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   }
 }
 
-/* XXX NOTE: con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in `readfile.c`. */
+/* XXX NOTE: con->flag should be CONSTRAINT_SPACEONCE for bone-childof, patched in `readfile.cc`.
+ */
 static bConstraintTypeInfo CTI_CHILDOF = {
     /*type*/ CONSTRAINT_TYPE_CHILDOF,
     /*size*/ sizeof(bChildOfConstraint),
@@ -2634,7 +2635,7 @@ static void armdef_accumulate_bone(bConstraintTarget *ct,
     float basemat[4][4];
 
     /* The target is a B-Bone:
-     * FIRST: find the segment (see b_bone_deform in armature.c)
+     * FIRST: find the segment (see b_bone_deform in `armature.cc`)
      * Need to transform co back to bone-space, only need y. */
     float y = iamat[0][1] * co[0] + iamat[1][1] * co[1] + iamat[2][1] * co[2] + iamat[3][1];
 

@@ -27,7 +27,7 @@ struct MaskSplinePointUW;
 struct MovieClip;
 struct MovieClipUser;
 
-/* mask_ops.c */
+/* `mask_ops.cc` */
 
 typedef enum {
   MASK_WHICH_HANDLE_NONE = 0,
@@ -333,7 +333,7 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
 
 #define MASK_RESOL_MAX 128
 
-/* mask_evaluate.c */
+/* `mask_evaluate.cc` */
 
 unsigned int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
 unsigned int BKE_mask_spline_feather_resolution(struct MaskSpline *spline, int width, int height);
@@ -387,7 +387,7 @@ void BKE_mask_eval_update(struct Depsgraph *depsgraph, struct Mask *mask);
 /** \name Rasterization
  * \{ */
 
-/* mask_rasterize.c */
+/* `mask_rasterize.cc` */
 
 struct MaskRasterHandle;
 typedef struct MaskRasterHandle MaskRasterHandle;

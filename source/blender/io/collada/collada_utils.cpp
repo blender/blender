@@ -83,7 +83,7 @@ float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, uint index)
 
 int bc_test_parent_loop(Object *par, Object *ob)
 {
-  /* Copied from /editors/object/object_relations.c */
+  /* Copied from `editors/object/object_relations.cc`. */
 
   /* test if 'ob' is a parent somewhere in par's parents */
 
@@ -183,7 +183,7 @@ void bc_update_scene(BlenderContext &blender_context, float ctime)
   Scene *scene = blender_context.get_scene();
   Depsgraph *depsgraph = blender_context.get_depsgraph();
 
-  /* See remark in physics_fluid.c lines 395...) */
+  /* See remark in `physics_fluid.cc` lines 395...) */
   // BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
   BKE_scene_frame_set(scene, ctime);
   ED_update_for_newframe(bmain, depsgraph);

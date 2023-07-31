@@ -132,7 +132,7 @@ int BIF_countTransformOrientation(const struct bContext *C);
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
-/* *** transform_orientations.c *** */
+/* `transform_orientations.cc` */
 void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
 /**
  * \note The resulting matrix may not be orthogonal,
@@ -167,7 +167,7 @@ void VIEW3D_GGT_xform_gizmo_context(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_xform_shear(struct wmGizmoGroupType *gzgt);
 
-/* *** transform_gizmo_extrude_3d.c *** */
+/* `transform_gizmo_extrude_3d.cc` */
 void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt);
 
 /* Generic 2D transform gizmo callback assignment. */

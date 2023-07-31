@@ -1101,7 +1101,7 @@ typedef struct AnimOverride {
  *
  * This data-block should be placed immediately after the ID block where it is used, so that
  * the code which retrieves this data can do so in an easier manner.
- * See blenkernel/intern/anim_sys.c for details.
+ * See `blenkernel/intern/anim_sys.cc` for details.
  */
 typedef struct AnimData {
   /**

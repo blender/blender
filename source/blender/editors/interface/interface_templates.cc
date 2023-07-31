@@ -5982,7 +5982,7 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
   }
 
   /* view3d layer change should update depsgraph (invisible object changed maybe) */
-  /* see view3d_header.c */
+  /* see `view3d_header.cc` */
 }
 
 void uiTemplateLayers(uiLayout *layout,

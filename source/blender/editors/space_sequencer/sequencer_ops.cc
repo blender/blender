@@ -22,7 +22,7 @@
 
 void sequencer_operatortypes()
 {
-  /* sequencer_edit.c */
+  /* `sequencer_edit.cc` */
   WM_operatortype_append(SEQUENCER_OT_split);
   WM_operatortype_append(SEQUENCER_OT_slip);
   WM_operatortype_append(SEQUENCER_OT_mute);
@@ -69,14 +69,14 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_cursor_set);
   WM_operatortype_append(SEQUENCER_OT_scene_frame_range_update);
 
-  /* sequencer_retiming.c */
+  /* `sequencer_retiming.cc` */
   WM_operatortype_append(SEQUENCER_OT_retiming_reset);
   WM_operatortype_append(SEQUENCER_OT_retiming_handle_move);
   WM_operatortype_append(SEQUENCER_OT_retiming_handle_add);
   WM_operatortype_append(SEQUENCER_OT_retiming_handle_remove);
   WM_operatortype_append(SEQUENCER_OT_retiming_segment_speed_set);
 
-  /* sequencer_select.c */
+  /* `sequencer_select.cc` */
   WM_operatortype_append(SEQUENCER_OT_select_all);
   WM_operatortype_append(SEQUENCER_OT_select);
   WM_operatortype_append(SEQUENCER_OT_select_more);
@@ -89,7 +89,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_select_box);
   WM_operatortype_append(SEQUENCER_OT_select_grouped);
 
-  /* sequencer_add.c */
+  /* `sequencer_add.cc` */
   WM_operatortype_append(SEQUENCER_OT_scene_strip_add);
   WM_operatortype_append(SEQUENCER_OT_scene_strip_add_new);
   WM_operatortype_append(SEQUENCER_OT_movieclip_strip_add);
@@ -114,7 +114,7 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_view_selected);
   WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 
-  /* sequencer_channels_edit.c */
+  /* `sequencer_channels_edit.cc` */
   WM_operatortype_append(SEQUENCER_OT_rename_channel);
 }
 

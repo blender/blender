@@ -66,7 +66,7 @@ typedef struct {
 extern "C" {
 #endif
 
-/* Actually only used `writefile.c`. */
+/* Actually only used `writefile.cc`. */
 
 void BLO_memfile_write_init(MemFileWriteData *mem_data,
                             MemFile *written_memfile,

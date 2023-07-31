@@ -403,7 +403,7 @@ struct TransCenterData {
 /**
  * Rule of thumb for choosing between mode/type:
  * - If transform mode uses the data, assign to `mode`
- *   (typically in transform.c).
+ *   (typically in `transform.cc`).
  * - If conversion uses the data as an extension to the #TransData, assign to `type`
  *   (typically in transform_conversion.c).
  */
@@ -701,7 +701,7 @@ void applyAspectRatio(TransInfo *t, float vec[2]);
 void removeAspectRatio(TransInfo *t, float vec[2]);
 
 /**
- * Called in transform_ops.c, on each regeneration of key-maps.
+ * Called in `transform_ops.cc`, on each regeneration of key-maps.
  */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf);
 

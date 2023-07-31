@@ -993,7 +993,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
 
 /* Selects all visible keyframes between the specified markers */
 /* TODO(@ideasman42): this is almost an _exact_ duplicate of a function of the same name in
- * graph_select.c should de-duplicate. */
+ * `graph_select.cc` should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};

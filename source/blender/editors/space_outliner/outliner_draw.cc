@@ -2902,7 +2902,7 @@ static bool tselem_draw_icon(uiBlock *block,
 
   /* Collection colors and icons covered by restrict buttons. */
   if (!is_clickable || x >= xmax || is_collection) {
-    /* Placement of icons, copied from interface_widgets.c */
+    /* Placement of icons, copied from `interface_widgets.cc`. */
     float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
     x += 2.0f * aspect;
     y += 2.0f * aspect;

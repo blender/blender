@@ -330,7 +330,7 @@ struct MeshExtract {
 
 /** \} */
 
-/* draw_cache_extract_mesh_render_data.c */
+/* `draw_cache_extract_mesh_render_data.cc` */
 
 /**
  * \param is_mode_active: When true, use the modifiers from the edit-data,

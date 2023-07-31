@@ -5105,7 +5105,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
     lineart_main_remove_unused_lines_from_tiles(ld);
 
-    /* Chaining is all single threaded. See lineart_chain.c
+    /* Chaining is all single threaded. See `lineart_chain.cc`.
      * In this particular call, only lines that are geometrically connected (share the _exact_
      * same end point) will be chained together. */
     MOD_lineart_chain_feature_lines(ld);

@@ -511,7 +511,7 @@ typedef struct Library_Runtime {
 
 /**
  * For each library file used, a Library struct is added to Main
- * WARNING: readfile.c, expand_doit() reads this struct without DNA check!
+ * WARNING: `readfile.cc`, expand_doit() reads this struct without DNA check!
  */
 typedef struct Library {
   ID id;
@@ -832,7 +832,7 @@ enum {
    *
    * RESET_AFTER_USE
    *
-   * \note Also used internally in readfile.c to mark data-blocks needing do_versions.
+   * \note Also used internally in `readfile.cc` to mark data-blocks needing do_versions.
    */
   LIB_TAG_NEW = 1 << 12,
   /**
@@ -844,22 +844,22 @@ enum {
   LIB_TAG_PRE_EXISTING = 1 << 13,
 
   /**
-   * Tag used internally in readfile.c, to mark IDs needing to be expanded (only done once).
+   * Tag used internally in `readfile.cc`, to mark IDs needing to be expanded (only done once).
    *
    * RESET_AFTER_USE
    */
   LIB_TAG_NEED_EXPAND = 1 << 14,
   /**
-   * Tag used internally in readfile.c, to mark ID placeholders for linked data-blocks needing to
-   * be read.
+   * Tag used internally in `readfile.cc`, to mark ID placeholders for linked data-blocks needing
+   * to be read.
    *
    * RESET_AFTER_USE
    */
   LIB_TAG_ID_LINK_PLACEHOLDER = 1 << 15,
   /**
-   * Tag used internally in readfile.c, to mark IDs needing to be 'lib-linked', i.e. to get their
-   * pointers to other data-blocks updated from the 'UID' values stored in .blend files to the new,
-   * actual pointers.
+   * Tag used internally in `readfile.cc`, to mark IDs needing to be 'lib-linked', i.e. to get
+   * their pointers to other data-blocks updated from the 'UID' values stored in `.blend` files to
+   * the new, actual pointers.
    *
    * RESET_AFTER_USE
    */

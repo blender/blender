@@ -42,7 +42,7 @@ wmWindow *wm_window_new(const struct Main *bmain,
                         wmWindow *parent,
                         bool dialog);
 /**
- * Part of `wm_window.c` API.
+ * Part of `wm_window.cc` API.
  */
 wmWindow *wm_window_copy(
     struct Main *bmain, wmWindowManager *wm, wmWindow *win_src, bool duplicate_layout, bool child);

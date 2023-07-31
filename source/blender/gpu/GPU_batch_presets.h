@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* gpu_batch_presets.c */
+/* `gpu_batch_presets.cc` */
 
 /* Replacement for #gluSphere */
 

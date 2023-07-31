@@ -10,7 +10,7 @@
 
 #pragma once
 
-/* interface_eyedropper.c */
+/* `interface_eyedropper.cc` */
 
 void eyedropper_draw_cursor_text_window(const struct wmWindow *window, const char *name);
 void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);

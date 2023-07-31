@@ -19,7 +19,7 @@ struct Object;
 struct ReportList;
 struct Scene;
 
-/* crazyspace.c */
+/* `crazyspace.cc` */
 
 /**
  * Disable subdivision-surface temporal, get mapped coordinates, and enable it.

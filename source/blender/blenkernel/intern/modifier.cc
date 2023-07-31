@@ -1202,7 +1202,7 @@ void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase 
  * Unfortunately, this can not be done as a regular do_versions() since the modifier type is
  * set to NONE, so the do_versions code wouldn't know where the modifier came from.
  *
- * The best approach seems to have the functionality in versioning_280.c but still call the
+ * The best approach seems to have the functionality in `versioning_280.cc` but still call the
  * function from #BKE_modifier_blend_read_data().
  */
 

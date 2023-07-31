@@ -396,7 +396,7 @@ void node_geometry_add_attribute_search_button(const bContext &C,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout);
 
-/* node_context_path.c */
+/* `node_context_path.cc` */
 
 Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
 

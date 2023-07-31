@@ -35,7 +35,7 @@ typedef struct wmPaintCursor {
 void wm_exit_schedule_delayed(const bContext *C);
 
 /**
- * Context is allowed to be NULL, do not free wm itself (lib_id.c).
+ * Context is allowed to be NULL, do not free wm itself `lib_id.cc`.
  */
 extern void wm_close_and_free(bContext *C, wmWindowManager *);
 
@@ -67,9 +67,9 @@ void wm_operatortype_init(void);
 void wm_window_keymap(wmKeyConfig *keyconf);
 void wm_operatortypes_register(void);
 
-/* wm_gesture.c */
+/* `wm_gesture.cc` */
 
-/* called in wm_draw.c */
+/* Called in `wm_draw.cc`. */
 
 void wm_gesture_draw(struct wmWindow *win);
 /**
@@ -77,7 +77,7 @@ void wm_gesture_draw(struct wmWindow *win);
  */
 void wm_gesture_tag_redraw(struct wmWindow *win);
 
-/* wm_jobs.c */
+/* `wm_jobs.cc` */
 
 /**
  * Hard-coded to event #TIMERJOBS.
@@ -98,12 +98,12 @@ void wm_autosave_timer_begin(struct wmWindowManager *wm);
 void wm_autosave_timer_end(wmWindowManager *wm);
 void wm_autosave_delete(void);
 
-/* wm_splash_screen.c */
+/* `wm_splash_screen.cc` */
 
 void WM_OT_splash(wmOperatorType *ot);
 void WM_OT_splash_about(wmOperatorType *ot);
 
-/* wm_stereo.c */
+/* `wm_stereo.cc` */
 
 void wm_stereo3d_draw_sidebyside(wmWindow *win, int view);
 void wm_stereo3d_draw_topbottom(wmWindow *win, int view);

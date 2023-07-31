@@ -1473,7 +1473,7 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
  * Helper to check if a given stroke is within the area.
  *
  * \note Code here is adapted (i.e. copied directly)
- * from gpencil_paint.c #gpencil_stroke_eraser_dostroke().
+ * from `gpencil_paint.cc` #gpencil_stroke_eraser_dostroke().
  * It would be great to de-duplicate the logic here sometime, but that can wait.
  */
 static bool gpencil_stroke_do_circle_sel(bGPdata *gpd,

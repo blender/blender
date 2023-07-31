@@ -105,7 +105,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
 
 /**
  * The same as #BKE_mesh_convert_mfaces_to_mpolys
- * but oriented to be used in #do_versions from `readfile.c`
+ * but oriented to be used in #do_versions from `readfile.cc`
  * the difference is how active/render/clone/stencil indices are handled here.
  *
  * normally they're being set from `pdata` which totally makes sense for meshes which are

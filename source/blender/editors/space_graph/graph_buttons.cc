@@ -1408,7 +1408,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
 /* -------------------------------------------------------------------- */
 /** \name F-Curve Modifiers
  *
- * \note All the drawing code is in `editors/animation/fmodifier_ui.c`
+ * \note All the drawing code is in `editors/animation/fmodifier_ui.cc`.
  * \{ */
 
 #define B_FMODIFIER_REDRAW 20

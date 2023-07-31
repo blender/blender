@@ -269,10 +269,10 @@ static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)ptr->data;
 
-  /* Hack? copied from sequencer.c::reload_sequence_new_file() */
+  /* Hack? copied from `sequencer.cc`, #reload_sequence_new_file(). */
   size_t olen = MEM_allocN_len(seq->strip->stripdata) / sizeof(StripElem);
 
-  /* The problem with seq->strip->len and seq->len is that it's discounted from the offset
+  /* The problem with `seq->strip->len` and `seq->len` is that it's discounted from the offset
    * (hard cut trim). */
   return int(olen);
 }

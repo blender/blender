@@ -70,19 +70,19 @@ struct ColorManagedDisplay;
 
 struct GSet;
 /**
- * \attention defined in DNA_scene_types.h
+ * \attention defined in `DNA_scene_types.h`.
  */
 struct ImageFormatData;
 struct Stereo3dFormat;
 
 /**
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 void IMB_init(void);
 void IMB_exit(void);
 
 /**
- * \attention Defined in readimage.c
+ * \attention Defined in `readimage.cc`.
  */
 struct ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
                                     size_t size,
@@ -91,29 +91,29 @@ struct ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
                                     const char *descr);
 
 /**
- * \attention Defined in readimage.c
+ * \attention Defined in `readimage.cc`.
  */
 struct ImBuf *IMB_testiffname(const char *filepath, int flags);
 
 /**
- * \attention Defined in readimage.c
+ * \attention Defined in `readimage.cc`.
  */
 struct ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
 
 /**
- * \attention Defined in readimage.c
+ * \attention Defined in `readimage.cc`.
  */
 struct ImBuf *IMB_thumb_load_image(const char *filepath,
                                    const size_t max_thumb_size,
                                    char colorspace[IM_MAX_SPACE]);
 
 /**
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 void IMB_freeImBuf(struct ImBuf *ibuf);
 
 /**
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 struct ImBuf *IMB_allocImBuf(unsigned int x,
                              unsigned int y,
@@ -125,7 +125,7 @@ struct ImBuf *IMB_allocImBuf(unsigned int x,
  *
  * Use in cases when temporary image buffer is allocated on stack.
  *
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 bool IMB_initImBuf(
     struct ImBuf *ibuf, unsigned int x, unsigned int y, unsigned char planes, unsigned int flags);
@@ -133,7 +133,7 @@ bool IMB_initImBuf(
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * (transferring ownership to the in imbuf).
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 struct ImBuf *IMB_allocFromBufferOwn(uint8_t *byte_buffer,
                                      float *float_buffer,
@@ -143,7 +143,7 @@ struct ImBuf *IMB_allocFromBufferOwn(uint8_t *byte_buffer,
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 struct ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
                                   const float *float_buffer,
@@ -182,21 +182,21 @@ uint8_t *IMB_steal_encoded_buffer(struct ImBuf *ibuf);
  * (to delete an imbuf you have to call freeImBuf as many times as it
  * is referenced)
  *
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 
 void IMB_refImBuf(struct ImBuf *ibuf);
 struct ImBuf *IMB_makeSingleUser(struct ImBuf *ibuf);
 
 /**
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 struct ImBuf *IMB_dupImBuf(const struct ImBuf *ibuf1);
 
 /**
  * Approximate size of ImBuf in memory
  *
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 size_t IMB_get_size_in_memory(struct ImBuf *ibuf);
 
@@ -207,12 +207,12 @@ size_t IMB_get_size_in_memory(struct ImBuf *ibuf);
  * This function is preferred over `ibuf->x * ibuf->y` due to overflow issues when
  * working with large resolution images (30kx30k).
  *
- * \attention Defined in allocimbuf.c
+ * \attention Defined in `allocimbuf.cc`.
  */
 size_t IMB_get_rect_len(const struct ImBuf *ibuf);
 
 /**
- * \attention Defined in rectop.c
+ * \attention Defined in `rectop.cc`.
  */
 
 typedef enum IMB_BlendMode {
@@ -318,7 +318,7 @@ void IMB_rectblend_threaded(struct ImBuf *dbuf,
                             bool accumulate);
 
 /**
- * \attention Defined in indexer.c
+ * \attention Defined in `indexer.cc`.
  */
 
 typedef enum IMB_Timecode_Type {
@@ -413,7 +413,7 @@ double IMD_anim_get_offset(struct anim *anim);
 bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bool no_av_base);
 
 /**
- * \attention Defined in anim_movie.c
+ * \attention Defined in `anim_movie.cc`.
  */
 struct anim *IMB_open_anim(const char *filepath,
                            int ib_flags,
@@ -425,7 +425,7 @@ void IMB_close_anim_proxies(struct anim *anim);
 bool IMB_anim_can_produce_frames(const struct anim *anim);
 
 /**
- * \attention Defined in anim_movie.c
+ * \attention Defined in `anim_movie.cc`.
  */
 
 int ismovie(const char *filepath);
@@ -434,7 +434,7 @@ int IMB_anim_get_image_height(struct anim *anim);
 bool IMB_get_gop_decode_time(struct anim *anim);
 
 /**
- * \attention Defined in anim_movie.c
+ * \attention Defined in `anim_movie.cc`.
  */
 
 struct ImBuf *IMB_anim_absolute(struct anim *anim,
@@ -443,18 +443,18 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
                                 IMB_Proxy_Size preview_size /* = 0 = IMB_PROXY_NONE */);
 
 /**
- * \attention Defined in anim_movie.c
+ * \attention Defined in `anim_movie.cc`.
  * fetches a define preview-frame, usually half way into the movie.
  */
 struct ImBuf *IMB_anim_previewframe(struct anim *anim);
 
 /**
- * \attention Defined in anim_movie.c
+ * \attention Defined in `anim_movie.cc`.
  */
 void IMB_free_anim(struct anim *anim);
 
 /**
- * \attention Defined in filter.c
+ * \attention Defined in `filter.cc`.
  */
 
 #define FILTER_MASK_NULL 0
@@ -482,24 +482,24 @@ void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
 
 /**
- * \attention Defined in filter.c
+ * \attention Defined in `filter.cc`.
  */
 void IMB_filtery(struct ImBuf *ibuf);
 
 /**
- * \attention Defined in scaling.c
+ * \attention Defined in `scaling.cc`.
  */
 struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1);
 
 /**
- * \attention Defined in scaling.c
+ * \attention Defined in `scaling.cc`.
  *
  * Return true if \a ibuf is modified.
  */
 bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
- * \attention Defined in scaling.c
+ * \attention Defined in `scaling.cc`.
  */
 /**
  * Return true if \a ibuf is modified.
@@ -507,17 +507,17 @@ bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
- * \attention Defined in scaling.c
+ * \attention Defined in `scaling.cc`.
  */
 void IMB_scaleImBuf_threaded(struct ImBuf *ibuf, unsigned int newx, unsigned int newy);
 
 /**
- * \attention Defined in writeimage.c
+ * \attention Defined in `writeimage.cc`.
  */
 bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
 
 /**
- * \attention Defined in util.c
+ * \attention Defined in `util.cc`.
  */
 bool IMB_ispic(const char *filepath);
 bool IMB_ispic_type_matches(const char *filepath, int filetype);
@@ -525,12 +525,12 @@ int IMB_ispic_type_from_memory(const unsigned char *buf, size_t buf_size);
 int IMB_ispic_type(const char *filepath);
 
 /**
- * \attention Defined in util.c
+ * \attention Defined in `util.cc`.
  */
 bool IMB_isanim(const char *filepath);
 
 /**
- * \attention Defined in util.c
+ * \attention Defined in `util.cc`.
  */
 int imb_get_anim_type(const char *filepath);
 
@@ -647,14 +647,14 @@ void IMB_buffer_float_premultiply(float *buf, int width, int height);
  * Change the ordering of the color bytes pointed to by rect from
  * RGBA to ABGR. size * 4 color bytes are reordered.
  *
- * \attention Defined in imageprocess.c
+ * \attention Defined in `imageprocess.cc`.
  *
  * Only this one is used liberally here, and in imbuf.
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
 
 /**
- * \attention defined in imageprocess.c
+ * \attention defined in `imageprocess.cc`.
  */
 
 void bicubic_interpolation(
@@ -704,7 +704,7 @@ void IMB_sampleImageAtLocation(
     struct ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4]);
 
 /**
- * \attention defined in readimage.c
+ * \attention defined in `readimage.cc`.
  */
 struct ImBuf *IMB_loadifffile(int file,
                               int flags,
@@ -712,37 +712,37 @@ struct ImBuf *IMB_loadifffile(int file,
                               const char *descr);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_half_x(struct ImBuf *ibuf1);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_double_x(struct ImBuf *ibuf1);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_half_y(struct ImBuf *ibuf1);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1);
 
 /**
- * \attention defined in scaling.c
+ * \attention defined in `scaling.cc`.
  */
 struct ImBuf *IMB_double_y(struct ImBuf *ibuf1);
 
 /**
- * \attention Defined in rotate.c
+ * \attention Defined in `rotate.cc`.
  */
 void IMB_flipx(struct ImBuf *ibuf);
 void IMB_flipy(struct ImBuf *ibuf);
@@ -753,7 +753,7 @@ void IMB_premultiply_alpha(struct ImBuf *ibuf);
 void IMB_unpremultiply_alpha(struct ImBuf *ibuf);
 
 /**
- * \attention Defined in rectop.c
+ * \attention Defined in `rectop.cc`.
  */
 /**
  * Replace pixels of entire image with solid color.
@@ -904,7 +904,7 @@ void IMB_ffmpeg_init(void);
 const char *IMB_ffmpeg_last_error(void);
 
 /**
- * \attention defined in util_gpu.c
+ * \attention defined in `util_gpu.cc`.
  */
 GPUTexture *IMB_create_gpu_texture(const char *name,
                                    struct ImBuf *ibuf,
@@ -951,7 +951,7 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
                                 bool use_premult);
 
 /**
- * \attention defined in stereoimbuf.c
+ * \attention defined in `stereoimbuf.cc`.
  */
 void IMB_stereo3d_write_dimensions(
     char mode, bool is_squeezed, size_t width, size_t height, size_t *r_width, size_t *r_height);

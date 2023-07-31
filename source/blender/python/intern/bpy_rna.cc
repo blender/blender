@@ -5833,7 +5833,7 @@ static PyMethodDef pyrna_struct_methods[] = {
 
     {"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, pyrna_struct_as_pointer_doc},
 
-    /* bpy_rna_anim.c */
+    /* `bpy_rna_anim.cc` */
     {"keyframe_insert",
      (PyCFunction)pyrna_struct_keyframe_insert,
      METH_VARARGS | METH_KEYWORDS,

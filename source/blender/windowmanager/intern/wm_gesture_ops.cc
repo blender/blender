@@ -8,8 +8,8 @@
  * Default operator callbacks for use with gestures (border/circle/lasso/straightline).
  * Operators themselves are defined elsewhere.
  *
- * - Keymaps are in `wm_operators.c`.
- * - Property definitions are in `wm_operator_props.c`.
+ * - Keymaps are in `wm_operators.cc`.
+ * - Property definitions are in `wm_operator_props.cc`.
  */
 
 #include "MEM_guardedalloc.h"

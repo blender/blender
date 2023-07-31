@@ -147,7 +147,7 @@ void add_keyframe(FCurve *fcu, float x, float y)
   BezTriple the_keyframe;
   memset(&the_keyframe, 0, sizeof(the_keyframe));
 
-  /* Copied from insert_vert_fcurve() in keyframing.c. */
+  /* Copied from insert_vert_fcurve() in `keyframing.cc`. */
   the_keyframe.vec[0][0] = x - 1.0f;
   the_keyframe.vec[0][1] = y;
   the_keyframe.vec[1][0] = x;

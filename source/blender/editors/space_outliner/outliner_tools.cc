@@ -1811,7 +1811,7 @@ static void refreshdrivers_animdata_fn(int /*event*/,
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 
   /* Loop over drivers, performing refresh
-   * (i.e. check graph_buttons.c and rna_fcurve.cc for details). */
+   * (i.e. check `graph_buttons.cc` and `rna_fcurve.cc` for details). */
   LISTBASE_FOREACH (FCurve *, fcu, &iat->adt->drivers) {
     fcu->flag &= ~FCURVE_DISABLED;
 

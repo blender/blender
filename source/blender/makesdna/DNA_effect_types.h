@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-/* Don't forget, new effects also in `writefile.c` for DNA! */
+/* Don't forget, new effects also in `writefile.cc` for DNA! */
 
 /** #PartEff::flag. */
 enum {

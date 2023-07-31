@@ -50,7 +50,7 @@ struct PropertyRNA;
  * The following structs + function prototypes are used
  * by these operators so that the operator code
  * (in gpencil_<opname>.c) can communicate with the drawing
- * code (in drawgpencil.c).
+ * code (in `drawgpencil.cc`).
  *
  * NOTE: All this is within the gpencil module, so nothing needs
  * to be exported to other modules.
@@ -105,7 +105,7 @@ void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
 /* Internal API */
 
 /* Stroke Coordinates API ------------------------------ */
-/* gpencil_utils.c */
+/* `gpencil_utils.cc` */
 
 typedef struct GP_SpaceConversion {
   struct Scene *scene;
@@ -353,7 +353,7 @@ void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
                                          float r_out[3]);
 
 /* Poll Callbacks ------------------------------------ */
-/* gpencil_utils.c */
+/* `gpencil_utils.cc` */
 
 /**
  * Poll callback for adding data/layers - special.
@@ -372,7 +372,7 @@ bool gpencil_brush_create_presets_poll(bContext *C);
 int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op);
 
 /* Copy/Paste Buffer --------------------------------- */
-/* gpencil_edit.c */
+/* `gpencil_edit.cc` */
 
 /**
  * list of #bGPDstroke instances

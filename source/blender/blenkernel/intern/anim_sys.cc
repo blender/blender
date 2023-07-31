@@ -3320,7 +3320,7 @@ static bool is_action_track_evaluated_without_nla(const AnimData *adt,
 }
 
 /**
- * XXX(Wayde Moss): #BKE_nlatrack_find_tweaked() exists within nla.c, but it doesn't appear to
+ * XXX(Wayde Moss): #BKE_nlatrack_find_tweaked() exists within `nla.cc`, but it doesn't appear to
  * work as expected. From #animsys_evaluate_nla_for_flush(), it returns nullptr in tweak mode. I'm
  * not sure why. Preferably, it would be as simple as checking for `(adt->act_Track == nlt)` but
  * that doesn't work either, neither does comparing indices.

@@ -6471,7 +6471,7 @@ static void operator_enum_search_exec_fn(bContext * /*C*/, void *but, void *arg2
     if (ot->prop) {
       RNA_property_enum_set(opptr, ot->prop, POINTER_AS_INT(arg2));
       /* We do not call op from here, will be called by button code.
-       * ui_apply_but_funcs_after() (in interface_handlers.c)
+       * ui_apply_but_funcs_after() (in `interface_handlers.cc`)
        * called this func before checking operators,
        * because one of its parameters is the button itself! */
     }

@@ -16,7 +16,7 @@ struct ID;
 struct bContext;
 struct wmMsg;
 
-/* opaque (don't expose outside wm_message_bus.c) */
+/* Opaque (don't expose outside `wm_message_bus.cc`). */
 struct wmMsgBus;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
@@ -131,7 +131,7 @@ void WM_msg_id_update(struct wmMsgBus *mbus, struct ID *id_src, struct ID *id_ds
 void WM_msg_id_remove(struct wmMsgBus *mbus, const struct ID *id);
 
 /* -------------------------------------------------------------------------- */
-/* wm_message_bus_static.c */
+/* `wm_message_bus_static.cc` */
 
 enum {
   /* generic window redraw */
@@ -172,7 +172,7 @@ void WM_msg_subscribe_static(struct wmMsgBus *mbus,
                              const char *id_repr);
 
 /* -------------------------------------------------------------------------- */
-/* wm_message_bus_rna.c */
+/* `wm_message_bus_rna.cc` */
 
 typedef struct wmMsgParams_RNA {
   /** when #PointerRNA.data & owner_id are NULL. match against all. */

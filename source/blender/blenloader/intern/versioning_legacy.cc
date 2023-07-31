@@ -77,7 +77,7 @@
 
 #include <cerrno>
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static void vcol_to_fcol(Mesh *me)
@@ -1163,7 +1163,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if ((tex->flag & (TEX_CHECKER_ODD + TEX_CHECKER_EVEN)) == 0) {
         tex->flag |= TEX_CHECKER_ODD;
       }
-      /* copied from kernel texture.c */
+      /* Copied from kernel `texture.cc`. */
       if (tex->ns_outscale == 0.0f) {
         /* musgrave */
         tex->mg_H = 1.0f;

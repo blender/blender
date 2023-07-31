@@ -341,7 +341,7 @@ int BKE_fcurve_bezt_binarysearch_index(const struct BezTriple array[],
                                        int arraylen,
                                        bool *r_replace);
 
-/* fcurve_cache.c */
+/* `fcurve_cache.cc` */
 
 /**
  * Cached f-curve look-ups, use when this needs to be done many times.

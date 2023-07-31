@@ -114,7 +114,7 @@ void WM_OT_recover_auto_save(struct wmOperatorType *ot);
 void WM_OT_save_as_mainfile(struct wmOperatorType *ot);
 void WM_OT_save_mainfile(struct wmOperatorType *ot);
 
-/* wm_files_link.c */
+/* `wm_files_link.cc` */
 
 void WM_OT_link(struct wmOperatorType *ot);
 void WM_OT_append(struct wmOperatorType *ot);

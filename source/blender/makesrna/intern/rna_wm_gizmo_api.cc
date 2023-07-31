@@ -259,7 +259,7 @@ void RNA_api_gizmo(StructRNA *srna)
   /* Property API */
 
   /* Define Properties */
-  /* NOTE: 'target_set_handler' is defined in `bpy_rna_gizmo.c`. */
+  /* NOTE: 'target_set_handler' is defined in `bpy_rna_gizmo.cc`. */
   func = RNA_def_function(srna, "target_set_prop", "rna_gizmo_target_set_prop");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "");
@@ -288,7 +288,7 @@ void RNA_api_gizmo(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   /* Access Properties */
-  /* NOTE: 'target_get', 'target_set' is defined in `bpy_rna_gizmo.c`. */
+  /* NOTE: 'target_get', 'target_set' is defined in `bpy_rna_gizmo.cc`. */
   func = RNA_def_function(srna, "target_is_valid", "rna_gizmo_target_is_valid");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "property", nullptr, 0, "", "Property identifier");

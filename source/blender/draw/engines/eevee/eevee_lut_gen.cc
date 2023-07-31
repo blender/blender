@@ -43,7 +43,7 @@ float *EEVEE_lut_update_ggx_brdf(int lut_size)
   float *data = static_cast<float *>(GPU_texture_read(tex, GPU_DATA_FLOAT, 0));
   GPU_texture_free(tex);
 #if DO_FILE_OUTPUT
-  /* Content is to be put inside eevee_lut.c */
+  /* Content is to be put inside `eevee_lut.cc`. */
   FILE *f = BLI_fopen("bsdf_split_sum_ggx.h", "w");
   fprintf(f, "const float bsdf_split_sum_ggx[%d * %d * 2] = {", lut_size, lut_size);
   for (int i = 0; i < lut_size * lut_size * 2;) {
@@ -88,7 +88,7 @@ float *EEVEE_lut_update_ggx_btdf(int lut_size, int lut_depth)
   GPU_texture_free(tex);
 
 #if DO_FILE_OUTPUT
-  /* Content is to be put inside eevee_lut.c. Don't forget to format the output. */
+  /* Content is to be put inside `eevee_lut.cc`. Don't forget to format the output. */
   FILE *f = BLI_fopen("btdf_split_sum_ggx.h", "w");
   fprintf(f, "const float btdf_split_sum_ggx[%d][%d * %d * 2] = {", lut_depth, lut_size, lut_size);
   fprintf(f, "\n    ");

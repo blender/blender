@@ -62,8 +62,8 @@ void do_versions_after_linking_400(FileData * /*fd*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #blo_do_versions_400 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */
@@ -510,8 +510,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #do_versions_after_linking_400 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */

@@ -241,7 +241,7 @@ struct CCGSubSurf {
 
 /* ** General purpose functions  ** */
 
-/* * CCGSubSurf.c * */
+/* `CCGSubSurf.cc` */
 
 void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *freeFaces);
 void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
@@ -252,7 +252,7 @@ void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
                                        CCGEdge ***edges,
                                        int *numEdges);
 
-/* * CCGSubSurf_legacy.c * */
+/* `CCGSubSurf_legacy.cc` */
 
 void ccgSubSurf__sync_legacy(CCGSubSurf *ss);
 

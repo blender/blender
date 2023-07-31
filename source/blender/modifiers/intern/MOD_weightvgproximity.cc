@@ -144,7 +144,7 @@ static void vert2geom_task_cb_ex(void *__restrict userdata,
 }
 
 /**
- * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
+ * Find nearest vertex and/or edge and/or face, for each vertex (adapted from `shrinkwrap.cc`).
  */
 static void get_vert2geom_distance(int verts_num,
                                    const blender::Span<blender::float3> positions,

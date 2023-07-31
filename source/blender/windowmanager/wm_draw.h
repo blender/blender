@@ -28,7 +28,7 @@ struct ScrArea;
 struct bContext;
 struct wmWindow;
 
-/* wm_draw.c */
+/* `wm_draw.cc` */
 
 void wm_draw_update(struct bContext *C);
 void wm_draw_region_clear(struct wmWindow *win, struct ARegion *region);

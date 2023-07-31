@@ -46,7 +46,7 @@ struct PropertyRNA;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
-/* anim_filter.c */
+/* `anim_filter.cc` */
 
 /* -------------------------------------------------------------------- */
 /** \name Context
@@ -723,7 +723,7 @@ bool ANIM_remove_empty_action_from_animdata(struct AnimData *adt);
 
 /* ************************************************ */
 /* DRAWING API */
-/* anim_draw.c */
+/* `anim_draw.cc` */
 
 /** \} */
 
@@ -852,7 +852,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FC
 /** \name Animation F-Curves <-> Icons/Names Mapping
  * \{ */
 
-/* anim_ipo_utils.c */
+/* `anim_ipo_utils.cc` */
 
 /**
  * Get icon + name for channel-list displays for F-Curve.
@@ -892,7 +892,7 @@ void nla_action_get_color(struct AnimData *adt, struct bAction *act, float color
 /** \name NLA-Mapping
  * \{ */
 
-/* anim_draw.c */
+/* `anim_draw.cc` */
 
 /**
  * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).
@@ -915,7 +915,7 @@ void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt,
 
 /**
  * Perform validation & auto-blending/extend refreshes after some operations
- * \note defined in space_nla/nla_edit.c, not in animation/
+ * \note defined in `space_nla/nla_edit.cc`, not in `animation/`.
  */
 void ED_nla_postop_refresh(bAnimContext *ac);
 
@@ -925,7 +925,7 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 /** \name Unit Conversion Mappings
  * \{ */
 
-/* anim_draw.c */
+/* `anim_draw.cc` */
 
 /** Flags for conversion mapping. */
 typedef enum eAnimUnitConv_Flags {
@@ -1011,7 +1011,7 @@ float ANIM_unit_mapping_get_factor(
 
 /** \} */
 
-/* anim_deps.c */
+/* `anim_deps.cc` */
 
 /* -------------------------------------------------------------------- */
 /** \name Animation Updates

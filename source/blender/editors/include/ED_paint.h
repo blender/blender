@@ -32,7 +32,7 @@ void ED_operatortypes_paint(void);
 void ED_operatormacros_paint(void);
 void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
-/* paint_image.c */
+/* `paint_image.cc` */
 
 void ED_imapaint_clear_partial_redraw(void);
 void ED_imapaint_dirty_region(struct Image *ima,
@@ -48,7 +48,7 @@ void ED_imapaint_bucket_fill(struct bContext *C,
                              struct wmOperator *op,
                              const int mouse[2]);
 
-/* paint_image_proj.c */
+/* `paint_image_proj.cc` */
 
 void ED_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil);
 /**
@@ -58,7 +58,7 @@ void ED_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool 
 bool ED_paint_proj_mesh_data_check(
     struct Scene *scene, struct Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil);
 
-/* image_undo.c */
+/* `image_undo.cc` */
 
 /**
  * The caller is responsible for running #ED_image_undo_push_end,
@@ -108,7 +108,7 @@ struct PaintTileMap *ED_image_paint_tile_map_get(void);
 #define ED_IMAGE_UNDO_TILE_NUMBER(size) \
   (((size) + ED_IMAGE_UNDO_TILE_SIZE - 1) >> ED_IMAGE_UNDO_TILE_BITS)
 
-/* paint_curve_undo.c */
+/* `paint_curve_undo.cc` */
 
 void ED_paintcurve_undo_push_begin(const char *name);
 void ED_paintcurve_undo_push_end(struct bContext *C);

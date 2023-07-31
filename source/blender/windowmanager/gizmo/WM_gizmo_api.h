@@ -190,7 +190,7 @@ void WM_gizmo_properties_reset(struct wmGizmo *gz);
 void WM_gizmo_properties_clear(struct PointerRNA *ptr);
 void WM_gizmo_properties_free(struct PointerRNA *ptr);
 
-/* wm_gizmo_type.c */
+/* `wm_gizmo_type.cc` */
 
 const struct wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet);
 void WM_gizmotype_append(void (*gtfunc)(struct wmGizmoType *));
@@ -206,7 +206,7 @@ void WM_gizmotype_free_ptr(struct wmGizmoType *gzt);
  */
 void WM_gizmotype_iter(struct GHashIterator *ghi);
 
-/* wm_gizmo_group_type.c */
+/* `wm_gizmo_group_type.cc` */
 
 struct wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet);
 struct wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoGroupType *));
@@ -225,7 +225,7 @@ void WM_gizmogrouptype_iter(struct GHashIterator *ghi);
 struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
     struct wmGizmoMapType *gzmap_type, void (*wtfunc)(struct wmGizmoGroupType *));
 
-/* wm_gizmo_map.c */
+/* `wm_gizmo_map.cc` */
 
 /* Dynamic Updates (for RNA runtime registration) */
 void WM_gizmoconfig_update_tag_group_type_init(struct wmGizmoMapType *gzmap_type,

@@ -11,7 +11,7 @@ StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # Private dummy object use for comparison only.
 _sentinel = object()
 
-# Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
+# Note that methods extended in C are defined in: `bpy_rna_types_capi.cc`.
 
 
 class Context(StructRNA):
@@ -106,7 +106,7 @@ class Library(bpy_types.ID):
         """ID data blocks which use this library"""
         import bpy
 
-        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE,
+        # See: `readblenentry.cc`, IDTYPE_FLAGS_ISLINKABLE,
         # we could make this an attribute in rna.
         attr_links = (
             "actions", "armatures", "brushes", "cameras",

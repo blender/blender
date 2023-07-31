@@ -44,7 +44,7 @@
 #include "../gizmo_library_intern.h"
 
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
-/* The same as in `draw_cache.c` */
+/* The same as in `draw_cache.cc`. */
 #define CIRCLE_RESOL 32
 
 static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz);

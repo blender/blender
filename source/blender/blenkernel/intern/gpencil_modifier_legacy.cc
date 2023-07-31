@@ -337,7 +337,7 @@ void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
 void BKE_gpencil_modifier_init()
 {
   /* Initialize modifier types */
-  gpencil_modifier_type_init(modifier_gpencil_types); /* MOD_gpencil_legacy_util.c */
+  gpencil_modifier_type_init(modifier_gpencil_types); /* `MOD_gpencil_legacy_util.cc`. */
 
 #if 0
   /* Note that GPencil actually does not support these at the moment,

@@ -28,13 +28,13 @@ struct bContext;
 struct wmKeyConfig;
 struct wmOperator;
 
-/* curve_ops.c */
+/* `curve_ops.cc` */
 
 void ED_operatortypes_curve(void);
 void ED_operatormacros_curve(void);
 void ED_keymap_curve(struct wmKeyConfig *keyconf);
 
-/* editcurve.c */
+/* `editcurve.cc` */
 
 struct ListBase *object_editcurve_get(struct Object *ob);
 
@@ -72,7 +72,7 @@ bool ED_curve_nurb_deselect_all(const struct Nurb *nu);
  */
 int ED_curve_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
-/* editcurve_select.c */
+/* `editcurve_select.cc` */
 
 bool ED_curve_select_check(const struct View3D *v3d, const struct EditNurb *editnurb);
 bool ED_curve_deselect_all(struct EditNurb *editnurb);
@@ -87,7 +87,7 @@ int ED_curve_select_count(const struct View3D *v3d, const struct EditNurb *editn
 /** Export for ED_undo_sys */
 void ED_curve_undosys_type(struct UndoType *ut);
 
-/* editfont.c */
+/* `editfont.cc` */
 
 void ED_curve_editfont_load(struct Object *obedit);
 void ED_curve_editfont_make(struct Object *obedit);
@@ -117,7 +117,7 @@ bool ED_curve_editfont_select_pick(struct bContext *C,
                                    const int mval[2],
                                    const struct SelectPick_Params *params);
 
-/* editfont_undo.c */
+/* `editfont_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_font_undosys_type(struct UndoType *ut);

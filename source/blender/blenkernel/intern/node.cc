@@ -424,7 +424,7 @@ static void node_foreach_cache(ID *id,
   key.id_session_uuid = id->session_uuid;
   key.offset_in_ID = offsetof(bNodeTree, previews);
 
-  /* TODO: see also `direct_link_nodetree()` in readfile.c. */
+  /* TODO: see also `direct_link_nodetree()` in `readfile.cc`. */
 #if 0
   function_callback(id, &key, static_cast<void **>(&nodetree->previews), 0, user_data);
 #endif

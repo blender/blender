@@ -19,7 +19,7 @@ void BPy_init_modules(struct bContext *C);
 
 extern PyObject *bpy_package_py;
 
-/* bpy_interface_atexit.c */
+/* `bpy_interface_atexit.cc` */
 
 void BPY_atexit_register(void);
 void BPY_atexit_unregister(void);

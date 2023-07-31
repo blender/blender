@@ -2225,7 +2225,7 @@ static PyObject *BPyInit_idprop_types()
   IDProp_Init_Types();
   IDPropertyUIData_Init_Types();
 
-  /* bmesh_py_types.c */
+  /* `bmesh_py_types.cc` */
   PyModule_AddType(submodule, &BPy_IDGroup_Type);
 
   PyModule_AddType(submodule, &BPy_IDGroup_ViewKeys_Type);

@@ -257,7 +257,7 @@ enum TreeItemSelectAction {
   OL_ITEM_RECURSIVE = (1 << 4),   /* Select recursively */
 };
 
-/* outliner_tree.c ----------------------------------------------- */
+/* `outliner_tree.cc` */
 
 void outliner_free_tree(ListBase *tree);
 void outliner_cleanup_tree(struct SpaceOutliner *space_outliner);
@@ -317,7 +317,7 @@ struct ParticleSystemElementCreateData {
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);
 
-/* outliner_draw.c ---------------------------------------------- */
+/* `outliner_draw.cc` */
 
 void draw_outliner(const struct bContext *C);
 
@@ -341,7 +341,7 @@ void outliner_collection_isolate_flag(struct Scene *scene,
  */
 int tree_element_id_type_to_index(TreeElement *te);
 
-/* outliner_select.c -------------------------------------------- */
+/* `outliner_select.cc` */
 /**
  * Generic call for non-id data to make active in UI
  */
@@ -403,7 +403,7 @@ void outliner_item_mode_toggle(struct bContext *C,
                                TreeElement *te,
                                bool do_extend);
 
-/* outliner_edit.c ---------------------------------------------- */
+/* `outliner_edit.cc` */
 typedef void (*outliner_operation_fn)(struct bContext *C,
                                       struct ReportList *,
                                       struct Scene *scene,
@@ -489,7 +489,7 @@ void outliner_set_coordinates(const struct ARegion *region,
  */
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
 
-/* outliner_dragdrop.c */
+/* `outliner_dragdrop.cc` */
 
 /**
  * Region drop-box definition.
@@ -536,12 +536,12 @@ void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
 
-/* outliner_query.cc ---------------------------------------------- */
+/* `outliner_query.cc` */
 
 bool outliner_shows_mode_column(const SpaceOutliner &space_outliner);
 bool outliner_has_element_warnings(const SpaceOutliner &space_outliner);
 
-/* outliner_tools.c ---------------------------------------------- */
+/* `outliner_tools.cc` */
 
 void merged_element_search_menu_invoke(struct bContext *C,
                                        TreeElement *parent_te,
@@ -566,14 +566,12 @@ void OUTLINER_OT_constraint_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_modifier_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_delete(struct wmOperatorType *ot);
 
-/* ---------------------------------------------------------------- */
-
-/* outliner_ops.c */
+/* `outliner_ops.cc` */
 
 void outliner_operatortypes(void);
 void outliner_keymap(struct wmKeyConfig *keyconf);
 
-/* outliner_collections.c */
+/* `outliner_collections.cc` */
 
 bool outliner_is_collection_tree_element(const TreeElement *te);
 struct Collection *outliner_collection_from_tree_element(const TreeElement *te);
@@ -612,7 +610,7 @@ void OUTLINER_OT_unhide_all(struct wmOperatorType *ot);
 
 void OUTLINER_OT_collection_color_tag_set(struct wmOperatorType *ot);
 
-/* outliner_utils.c ---------------------------------------------- */
+/* `outliner_utils.cc` */
 
 void outliner_viewcontext_init(const struct bContext *C, TreeViewContext *tvc);
 
@@ -697,14 +695,14 @@ void outliner_scroll_view(struct SpaceOutliner *space_outliner,
 void outliner_tag_redraw_avoid_rebuild_on_open_change(const struct SpaceOutliner *space_outliner,
                                                       struct ARegion *region);
 
-/* outliner_sync.c ---------------------------------------------- */
+/* `outliner_sync.cc` */
 
 /**
  * If outliner is dirty sync selection from view layer and sequencer.
  */
 void outliner_sync_selection(const struct bContext *C, struct SpaceOutliner *space_outliner);
 
-/* outliner_context.c ------------------------------------------- */
+/* `outliner_context.cc` */
 
 int outliner_context(const struct bContext *C,
                      const char *member,

@@ -44,7 +44,7 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Dash;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap;
 extern GpencilModifierTypeInfo modifierType_Gpencil_Envelope;
 
-/* MOD_gpencil_legacy_util.c */
+/* `MOD_gpencil_legacy_util.cc` */
 
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);
 

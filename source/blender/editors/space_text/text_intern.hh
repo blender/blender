@@ -22,7 +22,7 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/* text_draw.c */
+/* `text_draw.cc` */
 
 void draw_text_main(struct SpaceText *st, struct ARegion *region);
 
@@ -98,7 +98,7 @@ int text_get_span_wrap(const struct SpaceText *st,
                        struct TextLine *to);
 int text_get_total_lines(struct SpaceText *st, struct ARegion *region);
 
-/* text_ops.c */
+/* `text_ops.cc` */
 
 enum {
   LINE_BEGIN,
@@ -174,11 +174,11 @@ void TEXT_OT_resolve_conflict(struct wmOperatorType *ot);
 
 bool text_space_edit_poll(struct bContext *C);
 
-/* text_autocomplete.c */
+/* `text_autocomplete.cc` */
 
 void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 
-/* space_text.c */
+/* `space_text.cc` */
 
 extern const char *text_context_dir[]; /* doc access */
 

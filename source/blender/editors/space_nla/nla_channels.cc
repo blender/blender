@@ -86,7 +86,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
   }
 
   /* action to take depends on what channel we've got */
-  /* WARNING: must keep this in sync with the equivalent function in anim_channels_edit.c */
+  /* WARNING: must keep this in sync with the equivalent function in `anim_channels_edit.cc`. */
   switch (ale->type) {
     case ANIMTYPE_SCENE: {
       Scene *sce = static_cast<Scene *>(ale->data);
@@ -519,7 +519,7 @@ static int nla_action_unlink_exec(bContext *C, wmOperator *op)
 static int nla_action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
-   * (in interface_templates.c) */
+   * (in `interface_templates.cc`). */
   RNA_boolean_set(op->ptr, "force_delete", event->modifier & KM_SHIFT);
   return nla_action_unlink_exec(C, op);
 }

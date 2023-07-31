@@ -99,7 +99,7 @@
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
-/* NOTE: there's a similar function in key.c #BKE_key_from_object. */
+/* NOTE: there's a similar function in `key.cc` #BKE_key_from_object. */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
   Scene *scene = ac->scene;

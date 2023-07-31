@@ -17,7 +17,7 @@ extern "C" {
 #define DIAL_RESOLUTION 48
 
 /**
- * Data for common interactions. Used in gizmo_library_utils.c functions.
+ * Data for common interactions. Used in `gizmo_library_utils.cc` functions.
  */
 typedef struct GizmoCommonData {
   float range_fac; /* factor for arrow min/max distance */

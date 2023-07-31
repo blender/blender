@@ -47,7 +47,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   node->id = (ID *)scene->clip;
   id_us_plus(node->id);
 
-  /* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
+  /* Default to bi-linear, see node_sampler_type_items in `rna_nodetree.cc`. */
   node->custom1 = 1;
 }
 
