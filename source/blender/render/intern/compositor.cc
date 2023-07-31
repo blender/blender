@@ -193,8 +193,20 @@ class Context : public realtime_compositor::Context {
     /* TODO: support outputting previews.
      * TODO: just a temporary hack, needs to get stored in RenderResult,
      * once that supports GPU buffers. */
+    const int2 size = get_render_size();
+
+    /* Re-create texture if the viewer size changes. */
+    if (viewer_output_texture_) {
+      const int current_width = GPU_texture_width(viewer_output_texture_);
+      const int current_height = GPU_texture_height(viewer_output_texture_);
+
+      if (current_width != size.x || current_height != size.y) {
+        GPU_TEXTURE_FREE_SAFE(viewer_output_texture_);
+        viewer_output_texture_ = nullptr;
+      }
+    }
+
     if (viewer_output_texture_ == nullptr) {
-      const int2 size = get_render_size();
       viewer_output_texture_ = GPU_texture_create_2d("compositor_viewer_output_texture",
                                                      size.x,
                                                      size.y,
