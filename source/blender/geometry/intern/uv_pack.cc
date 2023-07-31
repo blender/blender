@@ -2216,7 +2216,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   blender::Array<uv_phi> phis(islands.size());
   const float scale = 1.0f;
   const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
-  const float result = can_scale_count > 0 ? params.target_extent / max_uv : 1.0f;
+  const float result = can_scale_count && max_uv > 1e-14f ? params.target_extent / max_uv : 1.0f;
   for (const int64_t i : islands.index_range()) {
     BLI_assert(result == 1.0f || islands[i]->can_scale_(params));
     islands[i]->place_(scale, phis[i]);
