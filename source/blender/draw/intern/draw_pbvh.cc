@@ -122,10 +122,6 @@ template<typename AttributeT, typename VBOT> VBOT convert_value(const AttributeT
   if constexpr (std::is_same_v<AttributeT, VBOT>) {
     return value;
   }
-  else {
-    /* Conversions should be handled by template specializations below. */
-    static_assert(false);
-  }
 }
 
 template<> inline uchar convert_value(const float &value)
