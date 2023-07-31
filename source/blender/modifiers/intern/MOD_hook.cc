@@ -436,7 +436,7 @@ static void deform_verts(ModifierData *md,
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
-                            BMEditMesh *editData,
+                            BMEditMesh *em,
                             Mesh *mesh,
                             float (*vertexCos)[3],
                             int verts_num)
@@ -447,7 +447,7 @@ static void deform_verts_EM(ModifierData *md,
                  ctx,
                  ctx->object,
                  mesh,
-                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? editData : nullptr,
+                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? em : nullptr,
                  vertexCos,
                  verts_num);
 }
