@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include "BLT_translation.h"
@@ -44,6 +45,8 @@
 #include "view3d_intern.h"
 
 #include "view3d_navigate.hh" /* own include */
+
+using namespace blender;
 
 /* Prototypes. */
 static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname);
@@ -490,7 +493,8 @@ static int view3d_navigation_invoke_generic(bContext *C,
                                             ViewOpsData *vod,
                                             const wmEvent *event,
                                             PointerRNA *ptr,
-                                            const ViewOpsType *nav_type)
+                                            const float dyn_ofs_override[3],
+                                            const eV3D_OpMode nav_type)
 {
   if (!nav_type->init_fn) {
     return OPERATOR_CANCELLED;
@@ -1020,16 +1024,20 @@ static int view3d_navigation_invoke(bContext *C,
                                     ViewOpsData *vod,
                                     const wmEvent *event,
                                     wmKeyMapItem *kmi,
-                                    const ViewOpsType *nav_type)
+                                    const float dyn_ofs_override[3],
+                                    eV3D_OpMode nav_type)
 {
   if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
     return OPERATOR_CANCELLED;
   }
 
-  return view3d_navigation_invoke_generic(C, vod, event, kmi->ptr, nav_type);
+  return view3d_navigation_invoke_generic(C, vod, event, kmi->ptr, dyn_ofs_override, nav_type);
 }
 
-bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event)
+bool ED_view3d_navigation_do(bContext *C,
+                             ViewOpsData *vod,
+                             const wmEvent *event,
+                             const float depth_loc_override[3])
 {
   if (!vod) {
     return false;

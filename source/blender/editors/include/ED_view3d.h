@@ -223,7 +223,8 @@ bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
 struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C, const bool use_alt_navigation);
 bool ED_view3d_navigation_do(struct bContext *C,
                              struct ViewOpsData *vod,
-                             const struct wmEvent *event);
+                             const struct wmEvent *event,
+                             const float depth_loc_override[3]);
 void ED_view3d_navigation_free(struct bContext *C, struct ViewOpsData *vod);
 
 /* Projection */
