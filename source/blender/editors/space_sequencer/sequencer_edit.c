@@ -1850,9 +1850,6 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
     if ((seq->flag & SELECT) && (seq->type == SEQ_TYPE_IMAGE) && (seq->len > 1)) {
       Sequence *seq_next;
 
-      /* Remove seq so overlap tests don't conflict,
-       * see seq_free_sequence below for the real freeing. */
-      BLI_remlink(seqbase, seq);
       /* TODO: remove f-curve and assign to split image strips.
        * The old animation system would remove the user of `seq->ipo`. */
 
