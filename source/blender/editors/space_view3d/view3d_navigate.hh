@@ -182,7 +182,8 @@ struct ViewOpsData {
   void init_navigation(bContext *C,
                        const wmEvent *event,
                        const ViewOpsType *nav_type,
-                       const bool use_cursor_init);
+                       const float dyn_ofs_override[3] = nullptr,
+                       const bool use_cursor_init = false);
   void end_navigation(bContext *C);
 
 #ifdef WITH_CXX_GUARDEDALLOC
