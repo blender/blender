@@ -1973,7 +1973,7 @@ def main() -> int:
     parser = create_parser(edits_all, edits_all_default)
     args = parser.parse_args()
 
-    build_dir = args.build_dir
+    build_dir = os.path.normpath(os.path.abspath(args.build_dir))
     regex_list = []
 
     for expr in args.match:
