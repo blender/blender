@@ -907,20 +907,18 @@ static void rna_HookModifier_object_set(PointerRNA *ptr,
 }
 
 static bool rna_HookModifier_object_override_apply(Main *bmain,
-                                                   PointerRNA *ptr_dst,
-                                                   PointerRNA *ptr_src,
-                                                   PointerRNA *ptr_storage,
-                                                   PropertyRNA *prop_dst,
-                                                   PropertyRNA *prop_src,
-                                                   PropertyRNA * /*prop_storage*/,
-                                                   const int len_dst,
-                                                   const int len_src,
-                                                   const int len_storage,
-                                                   PointerRNA * /*ptr_item_dst*/,
-                                                   PointerRNA * /*ptr_item_src*/,
-                                                   PointerRNA * /*ptr_item_storage*/,
-                                                   IDOverrideLibraryPropertyOperation *opop)
+                                                   RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on Hook modifier target object pointer");

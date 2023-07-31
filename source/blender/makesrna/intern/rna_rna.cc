@@ -2386,21 +2386,20 @@ bool rna_property_override_store_default(Main * /*bmain*/,
 }
 
 bool rna_property_override_apply_default(Main *bmain,
-                                         PointerRNA *ptr_dst,
-                                         PointerRNA *ptr_src,
-                                         PointerRNA *ptr_storage,
-                                         PropertyRNA *prop_dst,
-                                         PropertyRNA *prop_src,
-                                         PropertyRNA *prop_storage,
-                                         const int len_dst,
-                                         const int len_src,
-                                         const int len_storage,
-                                         PointerRNA * /*ptr_item_dst*/,
-                                         PointerRNA * /*ptr_item_src*/,
-                                         PointerRNA * /*ptr_item_storage*/,
-                                         IDOverrideLibraryPropertyOperation *opop)
+                                         RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
-  BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage));
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  PropertyRNA *prop_storage = rnaapply_ctx.prop_storage;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
+  BLI_assert(len_dst == len_src && (!prop_storage || len_dst == len_storage));
   UNUSED_VARS_NDEBUG(len_src, len_storage);
 
   const bool is_array = len_dst > 0;
@@ -2493,9 +2492,9 @@ bool rna_property_override_apply_default(Main *bmain,
         }
       }
       else {
-        const int storage_value = ptr_storage ? RNA_PROPERTY_GET_SINGLE(
-                                                    int, ptr_storage, prop_storage, index) :
-                                                0;
+        const int storage_value = prop_storage ? RNA_PROPERTY_GET_SINGLE(
+                                                     int, ptr_storage, prop_storage, index) :
+                                                 0;
 
         switch (override_op) {
           case LIBOVERRIDE_OP_REPLACE:
@@ -2579,9 +2578,9 @@ bool rna_property_override_apply_default(Main *bmain,
         }
       }
       else {
-        const float storage_value = ptr_storage ? RNA_PROPERTY_GET_SINGLE(
-                                                      float, ptr_storage, prop_storage, index) :
-                                                  0.0f;
+        const float storage_value = prop_storage ? RNA_PROPERTY_GET_SINGLE(
+                                                       float, ptr_storage, prop_storage, index) :
+                                                   0.0f;
 
         switch (override_op) {
           case LIBOVERRIDE_OP_REPLACE:

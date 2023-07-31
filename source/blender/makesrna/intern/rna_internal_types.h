@@ -263,23 +263,43 @@ typedef bool (*RNAPropOverrideStore)(struct Main *bmain,
  * Apply given override operation from src to dst (using value from storage as second operand
  * for differential operations).
  *
- * \note Given PropertyRNA are final (in case of IDProps...).
+ * \return `true` if given operation is successfully applied to given data, false otherwise.
+ *
+ * \note Given PropertyRNA are final, fully resolved (in case of IDProps...).
  * \note In non-array cases, \a len values are 0.
+ * \note `_storage` data is currently unused.
  */
+struct RNAPropertyOverrideApplyContext {
+  eRNAOverrideApplyFlag flag = RNA_OVERRIDE_APPLY_FLAG_NOP;
+  bool do_insert = false;
+
+  /** Main RNA data and property pointers. */
+  PointerRNA ptr_dst = {0};
+  PointerRNA ptr_src = {0};
+  PointerRNA ptr_storage = {0};
+  PropertyRNA *prop_dst = nullptr;
+  PropertyRNA *prop_src = nullptr;
+  PropertyRNA *prop_storage = nullptr;
+
+  /** Length, for array properties. */
+  int len_dst = 0;
+  int len_src = 0;
+  int len_storage = 0;
+
+  /** Items, for RNA collections. */
+  PointerRNA ptr_item_dst = {0};
+  PointerRNA ptr_item_src = {0};
+  PointerRNA ptr_item_storage = {0};
+
+  /** LibOverride data. */
+  struct IDOverrideLibrary *liboverride = nullptr;
+  struct IDOverrideLibraryProperty *liboverride_property = nullptr;
+  struct IDOverrideLibraryPropertyOperation *liboverride_operation = nullptr;
+
+  /* TODO: Add more refined/descriptive result report? */
+};
 typedef bool (*RNAPropOverrideApply)(struct Main *bmain,
-                                     struct PointerRNA *ptr_dst,
-                                     struct PointerRNA *ptr_src,
-                                     struct PointerRNA *ptr_storage,
-                                     struct PropertyRNA *prop_dst,
-                                     struct PropertyRNA *prop_src,
-                                     struct PropertyRNA *prop_storage,
-                                     int len_dst,
-                                     int len_src,
-                                     int len_storage,
-                                     struct PointerRNA *ptr_item_dst,
-                                     struct PointerRNA *ptr_item_src,
-                                     struct PointerRNA *ptr_item_storage,
-                                     struct IDOverrideLibraryPropertyOperation *opop);
+                                     RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 /* Container - generic abstracted container of RNA properties */
 typedef struct ContainerRNA {

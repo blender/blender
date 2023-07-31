@@ -231,19 +231,7 @@ int rna_AttributeGroup_color_length(PointerRNA *ptr);
 void rna_def_animdata_common(struct StructRNA *srna);
 
 bool rna_AnimaData_override_apply(struct Main *bmain,
-                                  struct PointerRNA *ptr_local,
-                                  struct PointerRNA *ptr_reference,
-                                  struct PointerRNA *ptr_storage,
-                                  struct PropertyRNA *prop_local,
-                                  struct PropertyRNA *prop_reference,
-                                  struct PropertyRNA *prop_storage,
-                                  int len_local,
-                                  int len_reference,
-                                  int len_storage,
-                                  struct PointerRNA *ptr_item_local,
-                                  struct PointerRNA *ptr_item_reference,
-                                  struct PointerRNA *ptr_item_storage,
-                                  struct IDOverrideLibraryPropertyOperation *opop);
+                                  RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 void rna_def_animviz_common(struct StructRNA *srna);
 void rna_def_motionpath_common(struct StructRNA *srna);
@@ -561,19 +549,7 @@ bool rna_property_override_store_default(struct Main *bmain,
                                          struct IDOverrideLibraryPropertyOperation *opop);
 
 bool rna_property_override_apply_default(struct Main *bmain,
-                                         struct PointerRNA *ptr_dst,
-                                         struct PointerRNA *ptr_src,
-                                         struct PointerRNA *ptr_storage,
-                                         struct PropertyRNA *prop_dst,
-                                         struct PropertyRNA *prop_src,
-                                         struct PropertyRNA *prop_storage,
-                                         int len_dst,
-                                         int len_src,
-                                         int len_storage,
-                                         struct PointerRNA *ptr_item_dst,
-                                         struct PointerRNA *ptr_item_src,
-                                         struct PointerRNA *ptr_item_storage,
-                                         struct IDOverrideLibraryPropertyOperation *opop);
+                                         RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 /* Builtin Property Callbacks */
 
