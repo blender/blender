@@ -481,7 +481,7 @@ void BKE_gpencil_modifier_copydata_generic(const GpencilModifierData *md_src,
   const size_t data_size = sizeof(GpencilModifierData);
   const char *md_src_data = ((const char *)md_src) + data_size;
   char *md_dst_data = ((char *)md_dst) + data_size;
-  BLI_assert(data_size <= (size_t)mti->struct_size);
+  BLI_assert(data_size <= size_t(mti->struct_size));
   memcpy(md_dst_data, md_src_data, size_t(mti->struct_size) - data_size);
 }
 

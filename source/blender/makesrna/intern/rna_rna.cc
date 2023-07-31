@@ -1587,7 +1587,7 @@ static void rna_property_override_diff_propptr(Main *bmain,
                  index > 0 && item_index_buff_len < sizeof(item_index_buff);
                  index /= 10)
             {
-              item_index_buff[item_index_buff_len++] = '0' + (char)(index % 10);
+              item_index_buff[item_index_buff_len++] = '0' + char(index % 10);
             }
             BLI_assert(index == 0);
           }

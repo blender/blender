@@ -426,7 +426,7 @@ struct BufferOrOffset {
 #define ret_def_GLuint uint ret_uint
 #define ret_set_GLuint ret_uint =
 #define ret_default_GLuint 0
-#define ret_ret_GLuint return PyLong_FromLong((long)ret_uint)
+#define ret_ret_GLuint return PyLong_FromLong(long(ret_uint))
 
 #if 0
 #  define ret_def_GLsizei size_t ret_size_t
@@ -437,18 +437,18 @@ struct BufferOrOffset {
 #if 0
 #  define ret_def_GLsync uint ret_sync
 #  define ret_set_GLsync ret_sync =
-#  define ret_ret_GLsync return PyLong_FromLong((long)ret_sync)
+#  define ret_ret_GLsync return PyLong_FromLong(long(ret_sync))
 #endif
 
 #define ret_def_GLenum uint ret_uint
 #define ret_set_GLenum ret_uint =
 #define ret_default_GLenum 0
-#define ret_ret_GLenum return PyLong_FromLong((long)ret_uint)
+#define ret_ret_GLenum return PyLong_FromLong(long(ret_uint))
 
 #define ret_def_GLboolean uchar ret_bool
 #define ret_set_GLboolean ret_bool =
 #define ret_default_GLboolean GL_FALSE
-#define ret_ret_GLboolean return PyLong_FromLong((long)ret_bool)
+#define ret_ret_GLboolean return PyLong_FromLong(long(ret_bool))
 
 #define ret_def_GLstring \
   const char *default_GLstring = ""; \

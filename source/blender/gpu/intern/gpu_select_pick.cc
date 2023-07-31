@@ -304,7 +304,7 @@ void gpu_select_pick_begin(GPUSelectResult *buffer,
 #ifdef DEBUG_PRINT
   printf("%s: mode=%d, use_cache=%d, is_cache=%d\n",
          __func__,
-         (int)mode,
+         int(mode),
          ps->use_cache,
          ps->is_cached);
 #endif

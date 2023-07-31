@@ -222,7 +222,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
       break;
     }
     case IDP_FLOAT: {
-      float fvalue = (float)PyFloat_AsDouble(value);
+      float fvalue = float(PyFloat_AsDouble(value));
       if (fvalue == -1 && PyErr_Occurred()) {
         PyErr_SetString(PyExc_TypeError, "expected a float");
         return -1;
@@ -1807,9 +1807,9 @@ static PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, Py_ssize_t index)
     case IDP_DOUBLE:
       return PyFloat_FromDouble(((double *)IDP_Array(self->prop))[index]);
     case IDP_INT:
-      return PyLong_FromLong((long)((int *)IDP_Array(self->prop))[index]);
+      return PyLong_FromLong(long(((int *)IDP_Array(self->prop))[index]));
     case IDP_BOOLEAN:
-      return PyBool_FromLong((long)((int8_t *)IDP_Array(self->prop))[index]);
+      return PyBool_FromLong(long(((int8_t *)IDP_Array(self->prop))[index]));
   }
 
   PyErr_Format(

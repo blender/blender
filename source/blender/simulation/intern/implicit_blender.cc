@@ -992,7 +992,7 @@ static int cg_filtered_pre(lfVector *dv,
 
 #      ifdef DEBUG_TIME
   double end = PIL_check_seconds_timer();
-  printf("cg_filtered_pre time: %f\n", (float)(end - start));
+  printf("cg_filtered_pre time: %f\n", float(end - start));
 #      endif
 
   del_lfvector(h);
@@ -1103,7 +1103,7 @@ static int cg_filtered_pre(lfVector *dv,
 
 #    ifdef DEBUG_TIME
   double end = PIL_check_seconds_timer();
-  printf("cg_filtered_pre time: %f\n", (float)(end - start));
+  printf("cg_filtered_pre time: %f\n", float(end - start));
 #    endif
 
   del_lfvector(btemp);
@@ -1145,7 +1145,7 @@ bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
 
 #  ifdef DEBUG_TIME
   double end = PIL_check_seconds_timer();
-  printf("cg_filtered calc time: %f\n", (float)(end - start));
+  printf("cg_filtered calc time: %f\n", float(end - start));
 #  endif
 
   /* advance velocities */

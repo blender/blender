@@ -203,7 +203,7 @@ static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc, uint charco
  */
 static uchar blf_glyph_gamma(uchar c)
 {
-  /* The following is `(char)(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f)`. */
+  /* The following is `char(powf(c / 256.0f, 1.0f / 1.43f) * 256.0f)`. */
   static const uchar gamma[256] = {
       0,   5,   9,   11,  14,  16,  19,  21,  23,  25,  26,  28,  30,  32,  34,  35,  37,  38,
       40,  41,  43,  44,  46,  47,  49,  50,  52,  53,  54,  56,  57,  58,  60,  61,  62,  64,

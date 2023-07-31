@@ -71,7 +71,7 @@ bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer)
   return false;
 }
 
-void select_frames_region(struct KeyframeEditData *ked,
+void select_frames_region(  KeyframeEditData *ked,
                           bke::greasepencil::Layer *layer,
                           const short tool,
                           const short select_mode)

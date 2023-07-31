@@ -5530,22 +5530,22 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 
         switch (raw_type) {
           case PROP_RAW_CHAR:
-            item = PyLong_FromLong((long)((char *)array)[i]);
+            item = PyLong_FromLong(long(((char *)array)[i]));
             break;
           case PROP_RAW_SHORT:
-            item = PyLong_FromLong((long)((short *)array)[i]);
+            item = PyLong_FromLong(long(((short *)array)[i]));
             break;
           case PROP_RAW_INT:
-            item = PyLong_FromLong((long)((int *)array)[i]);
+            item = PyLong_FromLong(long(((int *)array)[i]));
             break;
           case PROP_RAW_FLOAT:
-            item = PyFloat_FromDouble((double)((float *)array)[i]);
+            item = PyFloat_FromDouble(double(((float *)array)[i]));
             break;
           case PROP_RAW_DOUBLE:
-            item = PyFloat_FromDouble((double)((double *)array)[i]);
+            item = PyFloat_FromDouble(double(((double *)array)[i]));
             break;
           case PROP_RAW_BOOLEAN:
-            item = PyBool_FromLong((long)((bool *)array)[i]);
+            item = PyBool_FromLong(long(((bool *)array)[i]));
             break;
           default: /* PROP_RAW_UNSET */
             /* Should never happen. */
@@ -5658,7 +5658,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
           RNA_property_int_get_array(&self->ptr, self->prop, static_cast<int *>(array));
 
           for (i = 0; i < size; i++) {
-            item = PyLong_FromLong((long)((int *)array)[i]);
+            item = PyLong_FromLong(long(((int *)array)[i]));
             PySequence_SetItem(seq, i, item);
             Py_DECREF(item);
           }
@@ -5680,7 +5680,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
           RNA_property_float_get_array(&self->ptr, self->prop, static_cast<float *>(array));
 
           for (i = 0; i < size; i++) {
-            item = PyFloat_FromDouble((double)((float *)array)[i]);
+            item = PyFloat_FromDouble(double(((float *)array)[i]));
             PySequence_SetItem(seq, i, item);
             Py_DECREF(item);
           }
@@ -6588,7 +6588,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 #ifdef DEBUG_STRING_FREE
 #  if 0
 if (PyList_GET_SIZE(string_free_ls)) {
-printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_GET_SIZE(string_free_ls));
+printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), int(PyList_GET_SIZE(string_free_ls)));
 }
 #  endif
   Py_DECREF(string_free_ls);

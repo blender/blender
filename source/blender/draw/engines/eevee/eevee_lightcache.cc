@@ -1097,8 +1097,8 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
                          probe->grid_resolution_z;
 
   /* Add one for level 0 */
-  int max_lvl = (int)floorf(log2f(
-      float(MAX3(probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z))));
+  int max_lvl = int(floorf(log2f(
+      float(MAX3(probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z)))));
 
   int visited_cells = 0;
   *r_stride = 0;
