@@ -22,6 +22,7 @@ namespace blender::ed::outliner {
 TreeElementDeformGroupBase::TreeElementDeformGroupBase(TreeElement &legacy_te, Object &object)
     : AbstractTreeElement(legacy_te), object_(object)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_DEFGROUP_BASE);
   legacy_te.name = IFACE_("Vertex Groups");
 }
 
@@ -44,6 +45,7 @@ TreeElementDeformGroup::TreeElementDeformGroup(TreeElement &legacy_te,
                                                bDeformGroup &defgroup)
     : AbstractTreeElement(legacy_te), /* object_(object), */ defgroup_(defgroup)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_DEFGROUP);
   legacy_te.name = defgroup_.name;
   legacy_te.directdata = &defgroup_;
 }

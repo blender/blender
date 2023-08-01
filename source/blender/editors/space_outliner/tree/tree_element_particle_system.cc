@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include "DNA_outliner_types.h"
 #include "DNA_particle_types.h"
 
 #include "../outliner_intern.hh"
@@ -19,6 +20,7 @@ TreeElementParticleSystem::TreeElementParticleSystem(TreeElement &legacy_te,
                                                      ParticleSystem &psys)
     : AbstractTreeElement(legacy_te), /* object_(object), */ psys_(psys)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_LINKED_PSYS);
   legacy_te.directdata = &psys_;
   legacy_te.name = psys_.part->id.name + 2;
 }

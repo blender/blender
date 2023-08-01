@@ -23,6 +23,7 @@ namespace blender::ed::outliner {
 TreeElementGPencilEffectBase::TreeElementGPencilEffectBase(TreeElement &legacy_te, Object &object)
     : AbstractTreeElement(legacy_te), object_(object)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_GPENCIL_EFFECT_BASE);
   legacy_te.name = IFACE_("Effects");
 }
 
@@ -40,6 +41,7 @@ TreeElementGPencilEffect::TreeElementGPencilEffect(TreeElement &legacy_te,
                                                    ShaderFxData &fx)
     : AbstractTreeElement(legacy_te), /* object_(object), */ fx_(fx)
 {
+  BLI_assert(legacy_te.store_elem->type == TSE_GPENCIL_EFFECT);
   legacy_te.name = fx_.name;
   legacy_te.directdata = &fx_;
 }
