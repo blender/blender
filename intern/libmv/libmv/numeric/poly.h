@@ -22,6 +22,7 @@
 #define LIBMV_NUMERIC_POLY_H_
 
 #include <stdio.h>
+#include <algorithm>
 #include <cmath>
 
 namespace libmv {
