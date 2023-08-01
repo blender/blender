@@ -736,12 +736,12 @@ struct GWL_Seat {
 
   /**
    * Keep a state with shift enabled, use to access predictable number access for AZERTY keymaps.
-   * If shift is not supported by the key-map, this is set to NULL.
+   * If shift is not supported by the key-map, this is set to nullptr.
    */
   struct xkb_state *xkb_state_empty_with_shift = nullptr;
   /**
    * Keep a state with number-lock enabled, use to access predictable key-pad symbols.
-   * If number-lock is not supported by the key-map, this is set to NULL.
+   * If number-lock is not supported by the key-map, this is set to nullptr.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;
 
@@ -1789,7 +1789,7 @@ static size_t ghost_wl_shm_format_as_size(enum wl_shm_format format)
 }
 
 /**
- * Return a #wl_buffer, ready to have it's data filled in or NULL in case of failure.
+ * Return a #wl_buffer, ready to have it's data filled in or nullptr in case of failure.
  * The caller is responsible for calling `unmap(buffer_data, buffer_size)`.
  *
  * \param r_buffer_data: The buffer to be filled.
@@ -4993,7 +4993,7 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
   gwl_seat_capability_keyboard_disable(seat);
   gwl_seat_capability_touch_disable(seat);
 
-  /* Un-referencing checks for NULL case. */
+  /* Un-referencing checks for nullptr case. */
   xkb_state_unref(seat->xkb_state);
   xkb_state_unref(seat->xkb_state_empty);
   xkb_state_unref(seat->xkb_state_empty_with_shift);
@@ -6270,7 +6270,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
       GHOST_Context *context = new GHOST_ContextVK(false,
                                                    GHOST_kVulkanPlatformWayland,
                                                    0,
-                                                   NULL,
+                                                   nullptr,
                                                    wl_surface,
                                                    display_->wl_display,
                                                    1,
@@ -6997,7 +6997,7 @@ GHOST_TimerManager *GHOST_SystemWayland::ghost_timer_manager()
 
 GWL_Output *ghost_wl_output_user_data(wl_output *wl_output)
 {
-  GHOST_ASSERT(wl_output, "output must not be NULL");
+  GHOST_ASSERT(wl_output, "output must not be nullptr");
   GHOST_ASSERT(ghost_wl_output_own(wl_output), "output is not owned by GHOST");
   GWL_Output *output = static_cast<GWL_Output *>(wl_output_get_user_data(wl_output));
   return output;
@@ -7005,7 +7005,7 @@ GWL_Output *ghost_wl_output_user_data(wl_output *wl_output)
 
 GHOST_WindowWayland *ghost_wl_surface_user_data(wl_surface *wl_surface)
 {
-  GHOST_ASSERT(wl_surface, "wl_surface must not be NULL");
+  GHOST_ASSERT(wl_surface, "wl_surface must not be nullptr");
   GHOST_ASSERT(ghost_wl_surface_own(wl_surface), "wl_surface is not owned by GHOST");
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(wl_surface));

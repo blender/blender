@@ -28,7 +28,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(uint8_t &numDisplays) c
 static BOOL get_dd(DWORD d, DISPLAY_DEVICE *dd)
 {
   dd->cb = sizeof(DISPLAY_DEVICE);
-  return ::EnumDisplayDevices(NULL, d, dd, 0);
+  return ::EnumDisplayDevices(nullptr, d, dd, 0);
 }
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(uint8_t display,

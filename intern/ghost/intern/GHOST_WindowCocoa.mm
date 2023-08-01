@@ -458,7 +458,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 bool GHOST_WindowCocoa::getValid() const
 {
   NSView *view = (m_openGLView) ? m_openGLView : m_metalView;
-  return GHOST_Window::getValid() && m_window != NULL && view != NULL;
+  return GHOST_Window::getValid() && m_window != nullptr && view != nullptr;
 }
 
 void *GHOST_WindowCocoa::getOSWindow() const
@@ -940,7 +940,7 @@ static NSCursor *getImageCursor(GHOST_TStandardCursor shape, NSString *name, NSP
     @autoreleasepool {
       /* clang-format on */
       NSImage *image = [NSImage imageNamed:name];
-      if (image != NULL) {
+      if (image != nullptr) {
         cursors[index] = [[NSCursor alloc] initWithImage:image hotSpot:hotspot];
       }
     }
@@ -959,7 +959,7 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
         return m_customCursor;
       }
       else {
-        return NULL;
+        return nullptr;
       }
     case GHOST_kStandardCursorDestroy:
       return [NSCursor disappearingItemCursor];
@@ -1024,7 +1024,7 @@ NSCursor *GHOST_WindowCocoa::getStandardCursor(GHOST_TStandardCursor shape) cons
     case GHOST_kStandardCursorCrosshairC:
       return getImageCursor(shape, @"crossc.pdf", NSMakePoint(16, 16));
     default:
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1043,7 +1043,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor shape) co
   }
 
   NSCursor *cursor = getStandardCursor(shape);
-  if (cursor == NULL) {
+  if (cursor == nullptr) {
     cursor = getStandardCursor(GHOST_kStandardCursorDefault);
   }
 

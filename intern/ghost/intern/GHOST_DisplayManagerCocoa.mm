@@ -133,7 +133,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
       (size_t)setting.xPixels,
       (size_t)setting.yPixels,
       (CGRefreshRate)setting.frequency,
-      NULL);
+      nullptr);
 #endif
 
 #ifdef GHOST_DEBUG

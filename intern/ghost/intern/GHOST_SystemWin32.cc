@@ -255,7 +255,7 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
   else {
     GHOST_PRINT("GHOST_SystemWin32::createWindow(): window invalid\n");
     delete window;
-    window = NULL;
+    window = nullptr;
   }
 
   return window;
@@ -293,10 +293,10 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuS
                                0,
                                64,
                                64,
-                               NULL,
-                               NULL,
-                               GetModuleHandle(NULL),
-                               NULL);
+                               nullptr,
+                               nullptr,
+                               GetModuleHandle(nullptr),
+                               nullptr);
 
       HDC mHDC = GetDC(wnd);
       HDC prev_hdc = wglGetCurrentDC();
@@ -356,10 +356,10 @@ GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
                            0,
                            64,
                            64,
-                           NULL,
-                           NULL,
-                           GetModuleHandle(NULL),
-                           NULL);
+                           nullptr,
+                           nullptr,
+                           GetModuleHandle(nullptr),
+                           nullptr);
 
   GHOST_ContextD3D *context = new GHOST_ContextD3D(false, wnd);
   if (context->initializeDrawingContext()) {
@@ -384,7 +384,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
   do {
     GHOST_TimerManager *timerMgr = getTimerManager();
 
-    if (waitForEvent && !::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+    if (waitForEvent && !::PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
 #if 1
       ::Sleep(1);
 #else
@@ -395,9 +395,9 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
         ::WaitMessage();
       }
       else if (maxSleep >= 0.0) {
-        ::SetTimer(NULL, 0, maxSleep, NULL);
+        ::SetTimer(nullptr, 0, maxSleep, nullptr);
         ::WaitMessage();
-        ::KillTimer(NULL, 0);
+        ::KillTimer(nullptr, 0);
       }
 #endif
     }
@@ -409,7 +409,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
     driveTrackpad();
 
     /* Process all the events waiting for us. */
-    while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
+    while (::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE) != 0) {
       /* #TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
        * Needed for #MapVirtualKey or if we ever need to get chars from wm_ime_char or similar. */
       ::TranslateMessage(&msg);
@@ -532,7 +532,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
     wc.hIcon = ::LoadIcon(wc.hInstance, "APPICON");
 
     if (!wc.hIcon) {
-      ::LoadIcon(NULL, IDI_APPLICATION);
+      ::LoadIcon(nullptr, IDI_APPLICATION);
     }
     wc.hCursor = ::LoadCursor(0, IDC_ARROW);
     wc.hbrBackground =
@@ -1062,7 +1062,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
   if (window->getTabletData().Active != GHOST_kTabletModeNone) {
     /* While pen devices are in range, cursor movement is handled by tablet input processing. */
-    return NULL;
+    return nullptr;
   }
 
   int32_t x_screen = screen_co[0], y_screen = screen_co[1];
@@ -1138,7 +1138,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
       /* When wrapping we don't need to add an event because the setCursorPosition call will cause
        * a new event after. */
-      return NULL;
+      return nullptr;
     }
 
     is_warping_x = false;
@@ -1247,7 +1247,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     if (key_down && ((utf8_char[0] & 0x80) == 0)) {
       const char ascii = utf8_char[0];
       if (window->getImeInput()->IsImeKeyEvent(ascii, key)) {
-        return NULL;
+        return nullptr;
       }
     }
 #endif /* WITH_INPUT_IME */
@@ -1264,7 +1264,7 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
 #endif
   }
   else {
-    event = NULL;
+    event = nullptr;
   }
 
   return event;
@@ -1280,7 +1280,7 @@ GHOST_Event *GHOST_SystemWin32::processWindowSizeEvent(GHOST_WindowWin32 *window
   if (window->m_inLiveResize) {
     system->pushEvent(sizeEvent);
     system->dispatchEvents();
-    return NULL;
+    return nullptr;
   }
   return sizeEvent;
 }
@@ -1468,7 +1468,7 @@ void GHOST_SystemWin32::processTrackpad()
 
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, LPARAM lParam)
 {
-  GHOST_Event *event = NULL;
+  GHOST_Event *event = nullptr;
   bool eventHandled = false;
 
   LRESULT lResult = 0;
@@ -2011,7 +2011,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
            */
           if (!window->m_inLiveResize) {
             event = processWindowEvent(GHOST_kEventWindowUpdate, window);
-            ::ValidateRect(hwnd, NULL);
+            ::ValidateRect(hwnd, nullptr);
           }
           else {
             eventHandled = true;
@@ -2084,7 +2084,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
 
           /* Then move and resize window. */
           SetWindowPos(hwnd,
-                       NULL,
+                       nullptr,
                        suggestedWindowRect->left,
                        suggestedWindowRect->top,
                        suggestedWindowRect->right - suggestedWindowRect->left,
@@ -2111,8 +2111,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           break;
         }
         case WM_SETTINGCHANGE: {
-          /* Microsoft: "Note that some applications send this message with lParam set to NULL" */
-          if ((lParam != NULL) && (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0)) {
+          /* Microsoft: "Note that some applications send this message with lParam set to nullptr"
+           */
+          if (((void *)lParam != nullptr) && (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0))
+          {
             window->ThemeRefresh();
           }
           break;
@@ -2228,17 +2230,17 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
 
 char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 {
-  if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(NULL)) {
+  if (IsClipboardFormatAvailable(CF_UNICODETEXT) && OpenClipboard(nullptr)) {
     wchar_t *buffer;
     HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-    if (hData == NULL) {
+    if (hData == nullptr) {
       CloseClipboard();
-      return NULL;
+      return nullptr;
     }
     buffer = (wchar_t *)GlobalLock(hData);
     if (!buffer) {
       CloseClipboard();
-      return NULL;
+      return nullptr;
     }
 
     char *temp_buff = alloc_utf_8_from_16(buffer, 0);
@@ -2250,18 +2252,18 @@ char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 
     return temp_buff;
   }
-  if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL)) {
+  if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(nullptr)) {
     char *buffer;
     size_t len = 0;
     HANDLE hData = GetClipboardData(CF_TEXT);
-    if (hData == NULL) {
+    if (hData == nullptr) {
       CloseClipboard();
-      return NULL;
+      return nullptr;
     }
     buffer = (char *)GlobalLock(hData);
     if (!buffer) {
       CloseClipboard();
-      return NULL;
+      return nullptr;
     }
 
     len = strlen(buffer);
@@ -2285,7 +2287,7 @@ void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
     return;
   } /* For copying the selection, used on X11. */
 
-  if (OpenClipboard(NULL)) {
+  if (OpenClipboard(nullptr)) {
     EmptyClipboard();
 
     /* Get length of buffer including the terminating null. */
@@ -2589,10 +2591,10 @@ GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,
   config.pButtons = (link) ? buttons : buttons + 1;
   config.cButtons = (link) ? 2 : 1;
 
-  TaskDialogIndirect(&config, &nButtonPressed, NULL, NULL);
+  TaskDialogIndirect(&config, &nButtonPressed, nullptr, nullptr);
   switch (nButtonPressed) {
     case IDOK:
-      ShellExecute(NULL, "open", link, NULL, NULL, SW_SHOWNORMAL);
+      ShellExecute(nullptr, "open", link, nullptr, nullptr, SW_SHOWNORMAL);
       break;
     case IDCONTINUE:
       break;
@@ -2659,8 +2661,8 @@ static bool isStartedFromCommandPrompt()
     GetWindowThreadProcessId(hwnd, &pid);
     if (getProcessName(ppid, parent_name, sizeof(parent_name))) {
       char *filename = strrchr(parent_name, '\\');
-      if (filename != NULL) {
-        start_from_launcher = strstr(filename, "blender.exe") != NULL;
+      if (filename != nullptr) {
+        start_from_launcher = strstr(filename, "blender.exe") != nullptr;
       }
     }
 
