@@ -144,11 +144,6 @@ class Context : public realtime_compositor::Context {
     return true;
   }
 
-  bool use_texture_color_management() const override
-  {
-    return BKE_scene_check_color_management_enabled(input_data_.scene);
-  }
-
   const RenderData &get_render_data() const override
   {
     return *(input_data_.render_data);

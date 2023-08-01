@@ -1498,8 +1498,6 @@ struct DynamicPaintSetInitColorData {
   blender::Span<MLoopTri> looptris;
   const MLoopCol *mloopcol;
   ImagePool *pool;
-
-  bool scene_color_manage;
 };
 
 static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *__restrict userdata,
@@ -1517,8 +1515,6 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *__restrict userdat
   ImagePool *pool = data->pool;
   Tex *tex = data->surface->init_texture;
 
-  const bool scene_color_manage = data->scene_color_manage;
-
   float uv[3] = {0.0f};
 
   for (int j = 3; j--;) {
@@ -1529,7 +1525,7 @@ static void dynamic_paint_set_init_color_tex_to_vcol_cb(void *__restrict userdat
     uv[0] = mloopuv[looptris[i].tri[j]][0] * 2.0f - 1.0f;
     uv[1] = mloopuv[looptris[i].tri[j]][1] * 2.0f - 1.0f;
 
-    multitex_ext_safe(tex, uv, &texres, pool, scene_color_manage, false);
+    multitex_ext_safe(tex, uv, &texres, pool, true, false);
 
     if (texres.tin > pPoint[vert].color[3]) {
       copy_v3_v3(pPoint[vert].color, texres.trgba);
@@ -1553,8 +1549,6 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *__restrict userda
   ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
   const int samples = (data->surface->flags & MOD_DPAINT_ANTIALIAS) ? 5 : 1;
 
-  const bool scene_color_manage = data->scene_color_manage;
-
   float uv[9] = {0.0f};
   float uv_final[3] = {0.0f};
 
@@ -1571,7 +1565,7 @@ static void dynamic_paint_set_init_color_tex_to_imseq_cb(void *__restrict userda
   uv_final[0] = uv_final[0] * 2.0f - 1.0f;
   uv_final[1] = uv_final[1] * 2.0f - 1.0f;
 
-  multitex_ext_safe(tex, uv_final, &texres, nullptr, scene_color_manage, false);
+  multitex_ext_safe(tex, uv_final, &texres, nullptr, true, false);
 
   /* apply color */
   copy_v3_v3(pPoint[i].color, texres.trgba);
@@ -1606,12 +1600,11 @@ static void dynamic_paint_set_init_color_vcol_to_imseq_cb(
   copy_v4_v4(pPoint[i].color, final_color);
 }
 
-static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface *surface)
+static void dynamicPaint_setInitialColor(const Scene * /*scene*/, DynamicPaintSurface *surface)
 {
   PaintSurfaceData *sData = surface->data;
   PaintPoint *pPoint = (PaintPoint *)sData->type_data;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  const bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
   if (surface->type != MOD_DPAINT_SURFACE_T_PAINT) {
     return;
@@ -1662,7 +1655,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       data.looptris = looptris;
       data.mloopuv = mloopuv;
       data.pool = pool;
-      data.scene_color_manage = scene_color_manage;
 
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);
@@ -1676,7 +1668,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
       data.surface = surface;
       data.looptris = looptris;
       data.mloopuv = mloopuv;
-      data.scene_color_manage = scene_color_manage;
 
       TaskParallelSettings settings;
       BLI_parallel_range_settings_defaults(&settings);

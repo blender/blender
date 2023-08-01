@@ -3070,11 +3070,6 @@ void BKE_scene_disable_color_management(Scene *scene)
   }
 }
 
-bool BKE_scene_check_color_management_enabled(const Scene *scene)
-{
-  return !STREQ(scene->display_settings.display_device, "None");
-}
-
 bool BKE_scene_check_rigidbody_active(const Scene *scene)
 {
   return scene && scene->rigidbody_world && scene->rigidbody_world->group &&
