@@ -26,6 +26,7 @@ set(INC_SYS
 
 set(SRC
   asset_catalog_tree_view.cc
+  file_context.cc
   file_draw.cc
   file_indexer.cc
   file_ops.cc

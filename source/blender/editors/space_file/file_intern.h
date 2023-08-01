@@ -20,11 +20,20 @@ extern "C" {
 struct ARegion;
 struct ARegionType;
 struct AssetLibrary;
+struct bContextDataResult;
 struct FileAssetSelectParams;
 struct FileSelectParams;
 struct SpaceFile;
 struct View2D;
 struct uiLayout;
+
+bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile);
+
+/* `file_context.cc` */
+
+int /*eContextResult*/ file_context(const bContext *C,
+                                    const char *member,
+                                    struct bContextDataResult *result);
 
 /* `file_draw.cc` */
 
