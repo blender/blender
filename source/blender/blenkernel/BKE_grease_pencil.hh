@@ -9,6 +9,8 @@
  * \brief Low-level operations for grease pencil.
  */
 
+#include <atomic>
+
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -62,6 +64,13 @@ class DrawingRuntime {
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
+
+  /**
+   * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
+   * Different frames can refer to the same drawing, so we need to make sure we count these users
+   * and remove a drawing if it has zero users.
+   */
+  mutable std::atomic<int> user_count = 1;
 };
 
 class Drawing : public ::GreasePencilDrawing {
@@ -92,6 +101,22 @@ class Drawing : public ::GreasePencilDrawing {
    */
   VArray<float> opacities() const;
   MutableSpan<float> opacities_for_write();
+
+  /**
+   * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
+   * modifify this drawings data.
+   */
+  void add_user() const;
+  /**
+   * Removes a user from this drawing. Note that this does not handle deleting the drawing if it
+   * has not users.
+   */
+  void remove_user() const;
+  /**
+   * Returns true for when this drawing has more than one user.
+   */
+  bool is_instanced() const;
+  bool has_users() const;
 };
 
 class LayerGroup;
@@ -503,6 +528,26 @@ class GreasePencilRuntime {
 };
 
 }  // namespace blender::bke
+
+inline void blender::bke::greasepencil::Drawing::add_user() const
+{
+  this->runtime->user_count.fetch_add(1, std::memory_order_relaxed);
+}
+
+inline void blender::bke::greasepencil::Drawing::remove_user() const
+{
+  this->runtime->user_count.fetch_sub(1, std::memory_order_relaxed);
+}
+
+inline bool blender::bke::greasepencil::Drawing::is_instanced() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 1;
+}
+
+inline bool blender::bke::greasepencil::Drawing::has_users() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
+}
 
 inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 {

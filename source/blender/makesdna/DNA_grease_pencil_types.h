@@ -485,6 +485,7 @@ typedef struct GreasePencil {
                           int frame_number,
                           int duration,
                           eBezTriple_KeyframeType keytype);
+  void remove_frame_at(blender::bke::greasepencil::Layer &layer, int frame_number);
 
   void remove_drawing(int index);
 
