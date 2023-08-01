@@ -4,7 +4,7 @@
 ivec3 compute_saturation_indices(vec3 v)
 {
   int index_of_max = ((v.x > v.y) ? ((v.x > v.z) ? 0 : 2) : ((v.y > v.z) ? 1 : 2));
-  ivec2 other_indices = ivec2(mod(ivec2(index_of_max) + ivec2(1, 2), ivec2(3)));
+  ivec2 other_indices = (ivec2(index_of_max) + ivec2(1, 2)) % 3;
   int min_index = min(other_indices.x, other_indices.y);
   int max_index = max(other_indices.x, other_indices.y);
   return ivec3(index_of_max, max_index, min_index);
