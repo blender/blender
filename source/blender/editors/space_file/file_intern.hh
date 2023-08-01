@@ -115,7 +115,7 @@ void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op);
 
 /* `space_file.cc` */
 
-extern const char *file_context_dir[]; /* doc access */
+extern "C" const char *file_context_dir[]; /* doc access */
 
 /* `filesel.cc` */
 
