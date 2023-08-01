@@ -202,6 +202,7 @@ set(SRC
   intern/mesh_debug.cc
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
+  intern/mesh_flip_faces.cc
   intern/mesh_iterators.cc
   intern/mesh_legacy_convert.cc
   intern/mesh_mapping.cc

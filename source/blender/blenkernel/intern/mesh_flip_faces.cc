@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "GEO_mesh_flip_faces.hh"
-
 #include "DNA_mesh_types.h"
 
 #include "BLI_task.hh"
@@ -12,9 +10,9 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
 
-namespace blender::geometry {
+namespace blender::bke {
 
-void flip_faces(Mesh &mesh, const IndexMask &selection)
+void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
 {
   if (mesh.faces_num == 0 || selection.is_empty()) {
     return;
@@ -61,4 +59,4 @@ void flip_faces(Mesh &mesh, const IndexMask &selection)
   BKE_mesh_tag_face_winding_changed(&mesh);
 }
 
-}  // namespace blender::geometry
+}  // namespace blender::bke

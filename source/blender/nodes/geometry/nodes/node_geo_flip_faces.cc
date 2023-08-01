@@ -2,14 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_task.hh"
-
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-
-#include "BKE_attribute_math.hh"
-
-#include "GEO_mesh_flip_faces.hh"
 
 #include "node_geometry_util.hh"
 
@@ -22,20 +15,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
-static void mesh_flip_faces(Mesh &mesh, const Field<bool> &selection_field)
-{
-  if (mesh.faces_num == 0) {
-    return;
-  }
-  const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
-  fn::FieldEvaluator evaluator{field_context, mesh.faces_num};
-  evaluator.add(selection_field);
-  evaluator.evaluate();
-  const IndexMask selection = evaluator.get_evaluated_as_mask(0);
-
-  geometry::flip_faces(mesh, selection);
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
@@ -44,7 +23,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      mesh_flip_faces(*mesh, selection_field);
+      const bke::MeshFieldContext field_context(*mesh, ATTR_DOMAIN_FACE);
+      fn::FieldEvaluator evaluator(field_context, mesh->faces_num);
+      evaluator.add(selection_field);
+      evaluator.evaluate();
+      const IndexMask selection = evaluator.get_evaluated_as_mask(0);
+      if (selection.is_empty()) {
+        return;
+      }
+
+      bke::mesh_flip_faces(*mesh, selection);
     }
   });
 
