@@ -498,7 +498,7 @@ void UI_view2d_smooth_view(const struct bContext *C,
 /** \name Gizmo Types
  * \{ */
 
-/* view2d_gizmo_navigate.c */
+/* `view2d_gizmo_navigate.cc` */
 
 /**
  * Caller defines the name for gizmo group.

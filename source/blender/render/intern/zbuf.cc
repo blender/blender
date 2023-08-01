@@ -248,5 +248,3 @@ void zspan_scanconvert(ZSpan *zspan,
     }
   }
 }
-
-/* end of zbuf.c */

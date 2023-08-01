@@ -281,13 +281,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "factor", 0, IFACE_("Position"), ICON_NONE);
-  uiItemR(col, ptr, "factor_strength", 0, IFACE_("Strength"), ICON_NONE);
-  uiItemR(col, ptr, "factor_thickness", 0, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(col, ptr, "factor_uvs", 0, IFACE_("UV"), ICON_NONE);
-  uiItemR(col, ptr, "noise_scale", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "noise_offset", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "seed", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);
+  uiItemR(col, ptr, "factor_strength", UI_ITEM_NONE, IFACE_("Strength"), ICON_NONE);
+  uiItemR(col, ptr, "factor_thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(col, ptr, "factor_uvs", UI_ITEM_NONE, IFACE_("UV"), ICON_NONE);
+  uiItemR(col, ptr, "noise_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "noise_offset", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -298,7 +298,7 @@ static void random_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_random", 0, IFACE_("Randomize"), ICON_NONE);
+  uiItemR(layout, ptr, "use_random", UI_ITEM_NONE, IFACE_("Randomize"), ICON_NONE);
 }
 
 static void random_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -311,11 +311,11 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random"));
 
-  uiItemR(layout, ptr, "random_mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "random_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const int mode = RNA_enum_get(ptr, "random_mode");
   if (mode != GP_NOISE_RANDOM_KEYFRAME) {
-    uiItemR(layout, ptr, "step", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

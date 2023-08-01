@@ -71,7 +71,7 @@ struct PointerRNA;
  * =============
  *
  * All callbacks here must be exposed via the Python module `bpy.app.handlers`,
- * see `bpy_app_handlers.c`.
+ * see `bpy_app_handlers.cc`.
  */
 typedef enum {
   BKE_CB_EVT_FRAME_CHANGE_PRE,

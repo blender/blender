@@ -163,10 +163,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "merge_threshold", 0, IFACE_("Distance"), ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
   if (weld_mode == MOD_WELD_MODE_CONNECTED) {
-    uiItemR(layout, ptr, "loose_edges", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "loose_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

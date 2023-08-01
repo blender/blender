@@ -464,9 +464,9 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "seed", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "constant_per_curve", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "partial", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "constant_per_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "partial", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "partial")) {
     uiItemR(layout, op->ptr, "min", UI_ITEM_R_SLIDER, "Min", ICON_NONE);

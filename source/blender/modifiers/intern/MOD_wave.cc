@@ -315,10 +315,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(
       row, ptr, "use_y", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_cyclic", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_cyclic", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Along Normals"));
-  uiItemR(row, ptr, "use_normal", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_normal"));
   uiItemR(sub, ptr, "use_normal_x", UI_ITEM_R_TOGGLE, "X", ICON_NONE);
@@ -326,7 +326,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(sub, ptr, "use_normal_z", UI_ITEM_R_TOGGLE, "Z", ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "falloff_radius", 0, IFACE_("Falloff"), ICON_NONE);
+  uiItemR(col, ptr, "falloff_radius", UI_ITEM_NONE, IFACE_("Falloff"), ICON_NONE);
   uiItemR(col, ptr, "height", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "width", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "narrowness", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
@@ -345,11 +345,11 @@ static void position_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "start_position_object", 0, IFACE_("Object"), ICON_NONE);
+  uiItemR(layout, ptr, "start_position_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "start_position_x", 0, IFACE_("Start Position X"), ICON_NONE);
-  uiItemR(col, ptr, "start_position_y", 0, "Y", ICON_NONE);
+  uiItemR(col, ptr, "start_position_x", UI_ITEM_NONE, IFACE_("Start Position X"), ICON_NONE);
+  uiItemR(col, ptr, "start_position_y", UI_ITEM_NONE, "Y", ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -362,9 +362,9 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "time_offset", 0, IFACE_("Offset"), ICON_NONE);
-  uiItemR(col, ptr, "lifetime", 0, IFACE_("Life"), ICON_NONE);
-  uiItemR(col, ptr, "damping_time", 0, IFACE_("Damping"), ICON_NONE);
+  uiItemR(col, ptr, "time_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+  uiItemR(col, ptr, "lifetime", UI_ITEM_NONE, IFACE_("Life"), ICON_NONE);
+  uiItemR(col, ptr, "damping_time", UI_ITEM_NONE, IFACE_("Damping"), ICON_NONE);
   uiItemR(col, ptr, "speed", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 }
 
@@ -383,9 +383,9 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "texture_coords", 0, IFACE_("Coordinates"), ICON_NONE);
+  uiItemR(col, ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
-    uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
+    uiItemR(col, ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
         (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))

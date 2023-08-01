@@ -241,7 +241,7 @@ struct CCGSubSurf {
 
 /* ** General purpose functions  ** */
 
-/* * CCGSubSurf.c * */
+/* `CCGSubSurf.cc` */
 
 void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *freeFaces);
 void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
@@ -252,27 +252,13 @@ void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
                                        CCGEdge ***edges,
                                        int *numEdges);
 
-/* * CCGSubSurf_legacy.c * */
+/* `CCGSubSurf_legacy.cc` */
 
 void ccgSubSurf__sync_legacy(CCGSubSurf *ss);
 
-/* * CCGSubSurf_opensubdiv.c * */
-
-void ccgSubSurf__sync_opensubdiv(CCGSubSurf *ss);
-
-/* * CCGSubSurf_opensubdiv_converter.c * */
-
 struct OpenSubdiv_Converter;
 
-void ccgSubSurf_converter_setup_from_derivedmesh(CCGSubSurf *ss,
-                                                 struct DerivedMesh *dm,
-                                                 struct OpenSubdiv_Converter *converter);
-
-void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss, struct OpenSubdiv_Converter *converter);
-
-void ccgSubSurf_converter_free(struct OpenSubdiv_Converter *converter);
-
-/* * CCGSubSurf_util.c * */
+/* `CCGSubSurf_util.cc` */
 
 #ifdef DUMP_RESULT_GRIDS
 void ccgSubSurf__dumpCoords(CCGSubSurf *ss);

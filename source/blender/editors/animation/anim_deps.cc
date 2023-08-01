@@ -212,8 +212,8 @@ static void animchan_sync_fcurve(bAnimListElem *ale)
   FCurve *fcu = (FCurve *)ale->data;
   ID *owner_id = ale->id;
 
-  /* major priority is selection status, so refer to the checks done in anim_filter.c
-   * skip_fcurve_selected_data() for reference about what's going on here...
+  /* major priority is selection status, so refer to the checks done in `anim_filter.cc`
+   * #skip_fcurve_selected_data() for reference about what's going on here.
    */
   if (ELEM(nullptr, fcu, fcu->rna_path, owner_id)) {
     return;

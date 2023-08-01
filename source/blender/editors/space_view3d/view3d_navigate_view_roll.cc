@@ -192,7 +192,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
 
   if (vod->depsgraph == nullptr) {
     vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    vod->init_navigation(C, nullptr, &ViewOpsType_roll, false);
+    vod->init_navigation(C, nullptr, &ViewOpsType_roll);
   }
 
   int type = RNA_enum_get(op->ptr, "type");

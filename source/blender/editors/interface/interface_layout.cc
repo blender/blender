@@ -111,13 +111,7 @@ enum uiItemType {
 #endif
 };
 
-struct uiItem {
-  uiItem *next, *prev;
-  uiItemType type;
-  int flag;
-};
-
-enum {
+enum uiItemInternalFlag {
   UI_ITEM_AUTO_FIXED_SIZE = 1 << 0,
   UI_ITEM_FIXED_SIZE = 1 << 1,
 
@@ -128,6 +122,13 @@ enum {
    * Enabled by default, depends on 'UI_ITEM_PROP_SEP'. */
   UI_ITEM_PROP_DECORATE = 1 << 5,
   UI_ITEM_PROP_DECORATE_NO_PAD = 1 << 6,
+};
+ENUM_OPERATORS(uiItemInternalFlag, UI_ITEM_PROP_DECORATE_NO_PAD)
+
+struct uiItem {
+  uiItem *next, *prev;
+  uiItemType type;
+  uiItemInternalFlag flag;
 };
 
 struct uiButtonItem {
@@ -1213,7 +1214,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  int icon,
                                  IDProperty *properties,
                                  wmOperatorCallContext context,
-                                 int flag,
+                                 const eUI_Item_Flag flag,
                                  PointerRNA *r_opptr)
 {
   /* Take care to fill 'r_opptr' whatever happens. */
@@ -1345,7 +1346,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      int icon,
                      IDProperty *properties,
                      wmOperatorCallContext context,
-                     int flag,
+                     const eUI_Item_Flag flag,
                      PointerRNA *r_opptr)
 {
   uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
@@ -1357,7 +1358,7 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              int icon,
                              IDProperty *properties,
                              wmOperatorCallContext context,
-                             int flag,
+                             const eUI_Item_Flag flag,
                              const char *menu_id,
                              PointerRNA *r_opptr)
 {
@@ -1371,7 +1372,7 @@ void uiItemFullO(uiLayout *layout,
                  int icon,
                  IDProperty *properties,
                  wmOperatorCallContext context,
-                 int flag,
+                 const eUI_Item_Flag flag,
                  PointerRNA *r_opptr)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
@@ -1439,7 +1440,7 @@ void uiItemEnumO_ptr(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 void uiItemEnumO(uiLayout *layout,
@@ -1472,7 +1473,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                             PropertyRNA *prop,
                             IDProperty *properties,
                             wmOperatorCallContext context,
-                            int flag,
+                            eUI_Item_Flag flag,
                             const EnumPropertyItem *item_array,
                             int totitem)
 {
@@ -1531,14 +1532,8 @@ void uiItemsFullEnumO_items(uiLayout *layout,
         }
 
         if (tmp->identifier) { /* only true if loop above found item and did early-exit */
-          ui_pie_menu_level_create(block,
-                                   ot,
-                                   propname,
-                                   properties,
-                                   item_array,
-                                   totitem,
-                                   context,
-                                   wmOperatorCallContext(flag));
+          ui_pie_menu_level_create(
+              block, ot, propname, properties, item_array, totitem, context, flag);
           /* break since rest of items is handled in new pie level */
           break;
         }
@@ -1627,7 +1622,7 @@ void uiItemsFullEnumO(uiLayout *layout,
                       const char *propname,
                       IDProperty *properties,
                       wmOperatorCallContext context,
-                      int flag)
+                      eUI_Item_Flag flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
@@ -1696,7 +1691,7 @@ void uiItemsFullEnumO(uiLayout *layout,
 
 void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
 {
-  uiItemsFullEnumO(layout, opname, propname, nullptr, layout->root->opcontext, 0);
+  uiItemsFullEnumO(layout, opname, propname, nullptr, layout->root->opcontext, UI_ITEM_NONE);
 }
 
 void uiItemEnumO_value(uiLayout *layout,
@@ -1732,7 +1727,7 @@ void uiItemEnumO_value(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
@@ -1788,7 +1783,7 @@ void uiItemEnumO_string(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
@@ -1812,7 +1807,7 @@ void uiItemBooleanO(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
@@ -1836,7 +1831,7 @@ void uiItemIntO(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
@@ -1861,7 +1856,7 @@ void uiItemFloatO(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
@@ -1886,13 +1881,13 @@ void uiItemStringO(uiLayout *layout,
                   icon,
                   static_cast<IDProperty *>(ptr.data),
                   layout->root->opcontext,
-                  0,
+                  UI_ITEM_NONE,
                   nullptr);
 }
 
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname)
 {
-  uiItemFullO(layout, opname, name, icon, nullptr, layout->root->opcontext, 0, nullptr);
+  uiItemFullO(layout, opname, name, icon, nullptr, layout->root->opcontext, UI_ITEM_NONE, nullptr);
 }
 
 /* RNA property items */
@@ -2003,7 +1998,7 @@ static void ui_item_rna_size(uiLayout *layout,
   *r_h = h;
 }
 
-static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, int item_flag)
+static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, const eUI_Item_Flag item_flag)
 {
   const bool is_array = RNA_property_array_check(prop);
   const int subtype = RNA_property_subtype(prop);
@@ -2080,7 +2075,7 @@ void uiItemFullR(uiLayout *layout,
                  PropertyRNA *prop,
                  int index,
                  int value,
-                 int flag,
+                 eUI_Item_Flag flag,
                  const char *name,
                  int icon)
 {
@@ -2534,8 +2529,12 @@ void uiItemFullR(uiLayout *layout,
   }
 }
 
-void uiItemR(
-    uiLayout *layout, PointerRNA *ptr, const char *propname, int flag, const char *name, int icon)
+void uiItemR(uiLayout *layout,
+             PointerRNA *ptr,
+             const char *propname,
+             const eUI_Item_Flag flag,
+             const char *name,
+             int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 
@@ -2553,7 +2552,7 @@ void uiItemFullR_with_popover(uiLayout *layout,
                               PropertyRNA *prop,
                               int index,
                               int value,
-                              int flag,
+                              const eUI_Item_Flag flag,
                               const char *name,
                               int icon,
                               const char *panel_type)
@@ -2584,7 +2583,7 @@ void uiItemFullR_with_menu(uiLayout *layout,
                            PropertyRNA *prop,
                            int index,
                            int value,
-                           int flag,
+                           const eUI_Item_Flag flag,
                            const char *name,
                            int icon,
                            const char *menu_type)
@@ -2620,7 +2619,7 @@ void uiItemEnumR_prop(
     return;
   }
 
-  uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, 0, name, icon);
+  uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
 }
 
 void uiItemEnumR(
@@ -2634,7 +2633,7 @@ void uiItemEnumR(
     return;
   }
 
-  uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, 0, name, icon);
+  uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
 }
 
 void uiItemEnumR_string_prop(uiLayout *layout,
@@ -2676,7 +2675,7 @@ void uiItemEnumR_string_prop(uiLayout *layout,
       const char *item_name = name ?
                                   name :
                                   CTX_IFACE_(RNA_property_translation_context(prop), item[a].name);
-      const int flag = item_name[0] ? 0 : UI_ITEM_R_ICON_ONLY;
+      const eUI_Item_Flag flag = item_name[0] ? UI_ITEM_NONE : UI_ITEM_R_ICON_ONLY;
 
       uiItemFullR(
           layout, ptr, prop, RNA_ENUM_VALUE, ivalue, flag, item_name, icon ? icon : item[a].icon);
@@ -3150,7 +3149,7 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
     return;
   }
 
-  const bool is_expand = ui_item_rna_is_expand(prop, index, 0);
+  const bool is_expand = ui_item_rna_is_expand(prop, index, UI_ITEM_NONE);
   const bool is_array = RNA_property_array_check(prop);
 
   /* Loop for the array-case, but only do in case of an expanded array. */
@@ -3591,7 +3590,7 @@ static void menu_item_enum_opname_menu(bContext * /*C*/, uiLayout *layout, void 
   IDProperty *op_props = but->opptr ? static_cast<IDProperty *>(but->opptr->data) : nullptr;
 
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
-  uiItemsFullEnumO(layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, 0);
+  uiItemsFullEnumO(layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE);
 
   layout->root->block->flag |= UI_BLOCK_IS_FLIP;
 
@@ -5832,7 +5831,7 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
 
   BLI_listbase_clear(&block->layouts);
 
-  /* XXX silly trick, interface_templates.c doesn't get linked
+  /* XXX silly trick, `interface_templates.cc` doesn't get linked
    * because it's not used by other files in this module? */
   {
     UI_template_fix_linking();

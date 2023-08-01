@@ -1010,7 +1010,7 @@ typedef struct UserDef {
   UserDef_Runtime runtime;
 } UserDef;
 
-/** From blenkernel `blender.c`. */
+/** From blenkernel `blender.cc`. */
 extern UserDef U;
 
 /* ***************** USERDEF ****************** */

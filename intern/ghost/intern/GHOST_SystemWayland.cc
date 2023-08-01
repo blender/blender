@@ -4274,7 +4274,9 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
 
   zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures();
   if (pointer_gestures) {
+    const uint pointer_gestures_version = zwp_pointer_gestures_v1_get_version(pointer_gestures);
 #ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
+    if (pointer_gestures_version >= ZWP_POINTER_GESTURES_V1_GET_HOLD_GESTURE_SINCE_VERSION)
     { /* Hold gesture. */
       zwp_pointer_gesture_hold_v1 *gesture = zwp_pointer_gestures_v1_get_hold_gesture(
           pointer_gestures, seat->wl_pointer);
@@ -5113,7 +5115,10 @@ static void gwl_registry_wp_pointer_gestures_add(GWL_Display *display,
                                                  const GWL_RegisteryAdd_Params *params)
 {
   display->wp_pointer_gestures = static_cast<zwp_pointer_gestures_v1 *>(
-      wl_registry_bind(display->wl_registry, params->name, &zwp_pointer_gestures_v1_interface, 3));
+      wl_registry_bind(display->wl_registry,
+                       params->name,
+                       &zwp_pointer_gestures_v1_interface,
+                       std::min(params->version, 3u)));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_pointer_gestures_remove(GWL_Display *display,

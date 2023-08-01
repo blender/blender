@@ -2162,7 +2162,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                                 addon_preferences_class.layout = box_prefs
                                 try:
                                     draw(context)
-                                except:
+                                except BaseException:
                                     import traceback
                                     traceback.print_exc()
                                     box_prefs.label(text="Error (see console)", icon='ERROR')

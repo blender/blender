@@ -29,7 +29,7 @@ struct Paint;
 struct wmOperator;
 struct wmWindowManager;
 
-/* image_draw.c */
+/* `image_draw.cc` */
 
 float ED_space_image_zoom_level(const struct View2D *v2d, int grid_dimension);
 void ED_space_image_grid_steps(struct SpaceImage *sima,
@@ -45,7 +45,7 @@ float ED_space_image_increment_snap_value(int grid_dimensions,
                                           const float grid_steps[SI_GRID_STEPS_LEN],
                                           float zoom_factor);
 
-/* image_edit.c, exported for transform. */
+/* `image_edit.cc`, exported for transform. */
 
 struct Image *ED_space_image(const struct SpaceImage *sima);
 void ED_space_image_set(struct Main *bmain,
@@ -198,7 +198,7 @@ bool ED_image_should_save_modified(const struct Main *bmain);
 int ED_image_save_all_modified_info(const struct Main *bmain, struct ReportList *reports);
 bool ED_image_save_all_modified(const struct bContext *C, struct ReportList *reports);
 
-/* image_sequence.c */
+/* `image_sequence.cc` */
 
 typedef struct ImageFrameRange {
   struct ImageFrameRange *next, *prev;

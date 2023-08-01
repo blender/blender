@@ -223,7 +223,8 @@ bool ED_view3d_depth_unproject_v3(const struct ARegion *region,
 struct ViewOpsData *ED_view3d_navigation_init(struct bContext *C, const bool use_alt_navigation);
 bool ED_view3d_navigation_do(struct bContext *C,
                              struct ViewOpsData *vod,
-                             const struct wmEvent *event);
+                             const struct wmEvent *event,
+                             const float depth_loc_override[3]);
 void ED_view3d_navigation_free(struct bContext *C, struct ViewOpsData *vod);
 
 /* Projection */
@@ -289,13 +290,13 @@ ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
   (V3D_PROJ_TEST_CLIP_CONTENT | V3D_PROJ_TEST_CLIP_NEAR | V3D_PROJ_TEST_CLIP_FAR | \
    V3D_PROJ_TEST_CLIP_WIN)
 
-/* view3d_snap.c */
+/* `view3d_snap.cc` */
 
 bool ED_view3d_snap_selected_to_location(struct bContext *C,
                                          const float snap_target_global[3],
                                          int pivot_point);
 
-/* view3d_cursor_snap.c */
+/* `view3d_cursor_snap.cc` */
 
 #define USE_SNAP_DETECT_FROM_KEYMAP_HACK
 typedef enum {
@@ -447,7 +448,7 @@ void pose_foreachScreenBone(struct ViewContext *vc,
                             eV3DProjTest clip_flag);
 /* *** end iterators *** */
 
-/* view3d_project.c */
+/* `view3d_project.cc` */
 
 /**
  * \note use #ED_view3d_ob_project_mat_get to get the projection matrix
@@ -1369,7 +1370,7 @@ void ED_view3d_buttons_region_layout_ex(const struct bContext *C,
                                         struct ARegion *region,
                                         const char *category_override);
 
-/* view3d_view.c */
+/* `view3d_view.cc` */
 
 /**
  * See if current UUID is valid, otherwise set a valid UUID to v3d,

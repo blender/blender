@@ -148,7 +148,7 @@ DefNode(CompositorNode, CMP_NODE_HUE_SAT,        0,                      "HUE_SA
 DefNode(CompositorNode, CMP_NODE_IMAGE,          def_cmp_image,          "IMAGE",          Image,            "Image",             ""              )
 DefNode(CompositorNode, CMP_NODE_R_LAYERS,       def_cmp_render_layers,  "R_LAYERS",       RLayers,          "Render Layers",     ""              )
 DefNode(CompositorNode, CMP_NODE_COMPOSITE,      def_cmp_composite,      "COMPOSITE",      Composite,        "Composite",         ""              )
-/* NOTE: #OutputFile node has special RNA setup function called in rna_nodetree.c */
+/* NOTE: #OutputFile node has special RNA setup function called in `rna_nodetree.cc`. */
 DefNode(CompositorNode, CMP_NODE_OUTPUT_FILE,    0,                      "OUTPUT_FILE",    OutputFile,       "File Output",       ""              )
 DefNode(CompositorNode, CMP_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode(CompositorNode, CMP_NODE_TRANSLATE,      def_cmp_translate,      "TRANSLATE",      Translate,        "Translate",         ""              )

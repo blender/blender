@@ -56,12 +56,12 @@ struct wmOperator;
   (CHECK_TYPE_INLINE(ebone, EditBone *), \
    (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)))
 
-/* Used in `armature_select.c` and `pose_select.c`. */
+/* Used in `armature_select.cc` and `pose_select.cc`. */
 
 #define BONE_SELECT_PARENT 0
 #define BONE_SELECT_CHILD 1
 
-/* armature_add.c */
+/* `armature_add.cc` */
 
 /**
  * Default bone add, returns it selected, but without tail set.
@@ -73,7 +73,7 @@ struct EditBone *ED_armature_ebone_add_primitive(struct Object *obedit_arm,
                                                  float length,
                                                  bool view_aligned);
 
-/* armature_edit.c */
+/* `armature_edit.cc` */
 
 /**
  * Adjust bone roll to align Z axis with vector `align_axis` is in local space and is normalized.
@@ -94,7 +94,7 @@ void ED_armature_origin_set(
 void ED_armature_edit_transform(struct bArmature *arm, const float mat[4][4], bool do_props);
 void ED_armature_transform(struct bArmature *arm, const float mat[4][4], bool do_props);
 
-/* armature_naming.c */
+/* `armature_naming.cc` */
 
 /**
  * Ensure the bone name is unique.
@@ -126,20 +126,20 @@ void ED_armature_bones_flip_names(struct Main *bmain,
                                   struct ListBase *bones_names,
                                   bool do_strip_numbers);
 
-/* armature_ops.c */
+/* `armature_ops.cc` */
 
 void ED_operatortypes_armature(void);
 void ED_operatormacros_armature(void);
 void ED_keymap_armature(struct wmKeyConfig *keyconf);
 
-/* armature_relations.c */
+/* `armature_relations.cc` */
 
 /**
  * Join armature exec is exported for use in object->join objects operator.
  */
 int ED_armature_join_objects_exec(struct bContext *C, struct wmOperator *op);
 
-/* armature_select.c */
+/* `armature_select.cc` */
 
 struct Base *ED_armature_base_and_ebone_from_select_buffer(struct Base **bases,
                                                            uint bases_len,
@@ -193,7 +193,7 @@ bool ED_armature_edit_select_pick(struct bContext *C,
  */
 bool ED_armature_edit_select_op_from_tagged(struct bArmature *arm, int sel_op);
 
-/* armature_skinning.c */
+/* `armature_skinning.cc` */
 
 #define ARM_GROUPS_NAME 1
 #define ARM_GROUPS_ENVELOPE 2
@@ -211,7 +211,7 @@ void ED_object_vgroup_calc_from_armature(struct ReportList *reports,
 /** Export for ED_undo_sys. */
 void ED_armature_undosys_type(struct UndoType *ut);
 
-/* armature_utils.c */
+/* `armature_utils.cc` */
 
 /** Sync selection to parent for connected children. */
 void ED_armature_edit_sync_selection(struct ListBase *edbo);
@@ -281,7 +281,7 @@ void ED_armature_ebone_select_set(struct EditBone *ebone, bool select);
 void ED_armature_ebone_selectflag_enable(struct EditBone *ebone, int flag);
 void ED_armature_ebone_selectflag_disable(struct EditBone *ebone, int flag);
 
-/* pose_edit.c */
+/* `pose_edit.cc` */
 
 struct Object *ED_pose_object_from_context(struct bContext *C);
 bool ED_object_posemode_exit_ex(struct Main *bmain, struct Object *ob);
@@ -307,7 +307,7 @@ void ED_pose_recalculate_paths(struct bContext *C,
                                struct Object *ob,
                                ePosePathCalcRange range);
 
-/* pose_select.c */
+/* `pose_select.cc` */
 
 /**
  * \return True when pick finds an element or the selection changed.

@@ -1755,6 +1755,8 @@ endif()
 
 if(WITH_COMPILER_SHORT_FILE_MACRO)
   # Use '-fmacro-prefix-map' for Clang and GCC (MSVC doesn't support this).
+  set(C_PREFIX_MAP_FLAGS "")
+  set(CXX_PREFIX_MAP_FLAGS "")
   add_check_c_compiler_flag(C_PREFIX_MAP_FLAGS C_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
   add_check_cxx_compiler_flag(CXX_PREFIX_MAP_FLAGS CXX_MACRO_PREFIX_MAP -fmacro-prefix-map=foo=bar)
   if(C_MACRO_PREFIX_MAP AND CXX_MACRO_PREFIX_MAP)
@@ -1789,6 +1791,8 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
     )
     set(WITH_COMPILER_SHORT_FILE_MACRO OFF)
   endif()
+  unset(C_PREFIX_MAP_FLAGS)
+  unset(CXX_PREFIX_MAP_FLAGS)
 endif()
 
 # Include warnings first, so its possible to disable them with user defined flags

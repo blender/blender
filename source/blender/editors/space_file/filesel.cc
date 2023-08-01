@@ -64,8 +64,8 @@
 #include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 #define VERTLIST_MAJORCOLUMN_WIDTH (25 * UI_UNIT_X)
 

@@ -63,7 +63,7 @@ void AbstractView::update_from_old(uiBlock &new_block)
 /** \} */
 
 /* ---------------------------------------------------------------------- */
-/** \name State Managment
+/** \name State Management
  * \{ */
 
 void AbstractView::change_state_delayed()

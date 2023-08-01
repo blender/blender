@@ -907,20 +907,18 @@ static void rna_HookModifier_object_set(PointerRNA *ptr,
 }
 
 static bool rna_HookModifier_object_override_apply(Main *bmain,
-                                                   PointerRNA *ptr_dst,
-                                                   PointerRNA *ptr_src,
-                                                   PointerRNA *ptr_storage,
-                                                   PropertyRNA *prop_dst,
-                                                   PropertyRNA *prop_src,
-                                                   PropertyRNA * /*prop_storage*/,
-                                                   const int len_dst,
-                                                   const int len_src,
-                                                   const int len_storage,
-                                                   PointerRNA * /*ptr_item_dst*/,
-                                                   PointerRNA * /*ptr_item_src*/,
-                                                   PointerRNA * /*ptr_item_storage*/,
-                                                   IDOverrideLibraryPropertyOperation *opop)
+                                                   RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on Hook modifier target object pointer");
@@ -975,16 +973,16 @@ static void rna_HookModifier_vertex_indices_get(PointerRNA *ptr, int *values)
 
 static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
                                                 ReportList *reports,
-                                                int indices_len,
-                                                int *indices)
+                                                const int *indices,
+                                                int indices_num)
 {
-  if (indices_len == 0) {
+  if (indices_num == 0) {
     MEM_SAFE_FREE(hmd->indexar);
     hmd->indexar_num = 0;
   }
   else {
     /* Reject negative indices. */
-    for (int i = 0; i < indices_len; i++) {
+    for (int i = 0; i < indices_num; i++) {
       if (indices[i] < 0) {
         BKE_reportf(reports, RPT_ERROR, "Negative vertex index in vertex_indices_set");
         return;
@@ -992,14 +990,14 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
     }
 
     /* Copy and sort the index array. */
-    size_t size = sizeof(int) * indices_len;
+    size_t size = sizeof(int) * indices_num;
     int *buffer = static_cast<int *>(MEM_mallocN(size, "hook indexar"));
     memcpy(buffer, indices, size);
 
-    qsort(buffer, indices_len, sizeof(int), BLI_sortutil_cmp_int);
+    qsort(buffer, indices_num, sizeof(int), BLI_sortutil_cmp_int);
 
     /* Reject duplicate indices. */
-    for (int i = 1; i < indices_len; i++) {
+    for (int i = 1; i < indices_num; i++) {
       if (buffer[i] == buffer[i - 1]) {
         BKE_reportf(reports, RPT_ERROR, "Duplicate index %d in vertex_indices_set", buffer[i]);
         MEM_freeN(buffer);
@@ -1010,7 +1008,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
     /* Success - save the new array. */
     MEM_SAFE_FREE(hmd->indexar);
     hmd->indexar = buffer;
-    hmd->indexar_num = indices_len;
+    hmd->indexar_num = indices_num;
   }
 }
 

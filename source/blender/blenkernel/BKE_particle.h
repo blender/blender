@@ -487,7 +487,7 @@ void psys_apply_hair_lattice(struct Depsgraph *depsgraph,
                              struct Object *ob,
                              struct ParticleSystem *psys);
 
-/* particle_system.c */
+/* `particle_system.cc` */
 
 struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
 /**
@@ -626,7 +626,7 @@ void psys_particle_on_dm(struct Mesh *mesh_final,
                          float vtan[3],
                          float orco[3]);
 
-/* particle_system.c */
+/* `particle_system.cc` */
 
 void distribute_particles(struct ParticleSimulationData *sim, int from);
 /**

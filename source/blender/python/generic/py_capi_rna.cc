@@ -7,7 +7,7 @@
  *
  * Python/RNA utilities.
  *
- * RNA functions that aren't part of the `bpy_rna.c` API.
+ * RNA functions that aren't part of the `bpy_rna.cc` API.
  */
 
 /* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */

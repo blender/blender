@@ -55,6 +55,8 @@
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
 
+using namespace blender;
+
 /* ************************** GENERICS **************************** */
 
 void resetTransModal(TransInfo *t)
@@ -171,20 +173,20 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->redraw = TREDRAW_HARD; /* redraw first time */
 
-  int mval[2];
+  float2 mval;
   if (event) {
     if (t->flag & T_EVENT_DRAG_START) {
-      WM_event_drag_start_mval(event, region, mval);
+      WM_event_drag_start_mval_fl(event, region, mval);
     }
     else {
-      copy_v2_v2_int(mval, event->mval);
+      mval = float2(event->mval);
     }
   }
   else {
-    zero_v2_int(mval);
+    mval = float2(0, 0);
   }
-  copy_v2_v2_int(t->mval, mval);
-  copy_v2_v2_int(t->mouse.imval, mval);
+
+  t->mouse.imval = mval;
 
   t->mode_info = nullptr;
 

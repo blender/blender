@@ -424,7 +424,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
   if (t->vod && (exit_code & OPERATOR_PASS_THROUGH)) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
     const bool is_navigating = (rv3d->rflag & RV3D_NAVIGATING) != 0;
-    if (ED_view3d_navigation_do(C, t->vod, event)) {
+    if (ED_view3d_navigation_do(C, t->vod, event, t->center_global)) {
       if (!is_navigating) {
         /* Navigation has started. */
 

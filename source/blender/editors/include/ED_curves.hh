@@ -53,7 +53,7 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob);
 
 /**
  * Allocate an array of `TransVert` for cursor/selection snapping (See
- * `ED_transverts_create_from_obedit` in `view3d_snap.c`).
+ * `ED_transverts_create_from_obedit` in `view3d_snap.cc`).
  * \note: the `TransVert` elements in \a tvs are expected to write to the positions of \a curves.
  */
 void transverts_from_curves_positions_create(bke::CurvesGeometry &curves, TransVertStore *tvs);

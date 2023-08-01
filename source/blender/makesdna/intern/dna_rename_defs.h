@@ -29,7 +29,7 @@
  *   Compare the results before & after to ensure all changes are reversed by renaming
  *   and the DNA remains unchanged.
  *
- * \see versioning_dna.c for actual version patching.
+ * \see `versioning_dna.cc` for actual version patching.
  */
 
 /* No include guard (intentional). */

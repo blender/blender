@@ -198,10 +198,10 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
   const eAttrDomain domain = eAttrDomain(storage.domain);
 
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
   if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
-    uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+    uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   }
 }
 

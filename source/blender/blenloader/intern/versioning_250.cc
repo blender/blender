@@ -77,7 +77,7 @@
 
 #include <cerrno>
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 /* 2.50 patch */
@@ -107,7 +107,7 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
 void sequencer_init_preview_region(ARegion *region)
 {
   /* XXX a bit ugly still, copied from space_sequencer */
-  /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
+  /* NOTE: if you change values here, also change them in `space_sequencer.cc`, sequencer_new */
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
   region->flag &= ~RGN_FLAG_HIDDEN;
@@ -548,7 +548,7 @@ static void do_version_bone_roll_256(Bone *bone)
   }
 }
 
-/* deprecated, only keep this for readfile.c */
+/* deprecated, only keep this for `readfile.cc` */
 /* XXX Deprecated function to add a socket in ntree->inputs/ntree->outputs list
  * (previously called node_group_add_socket). This function has been superseded
  * by the implementation of proxy nodes. It is still necessary though

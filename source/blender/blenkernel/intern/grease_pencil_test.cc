@@ -60,7 +60,7 @@ TEST(greasepencil, remove_drawing)
   grease_pencil.add_empty_drawings(3);
 
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[1]);
+      grease_pencil.drawings(1));
   drawing->geometry.wrap().resize(0, 10);
 
   Layer &layer1 = grease_pencil.root_group().add_layer("Layer1");

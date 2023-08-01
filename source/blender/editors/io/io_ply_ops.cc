@@ -99,27 +99,33 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
-  uiItemR(sub, imfptr, "ascii_format", 0, IFACE_("ASCII"), ICON_NONE);
+  uiItemR(sub, imfptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
-  uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "global_scale", 0, nullptr, ICON_NONE);
+  uiItemR(
+      sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
-  uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
+  uiItemR(sub, imfptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
 
   /* Geometry options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
-  uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Vertex Normals"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Vertex Colors"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
+  uiItemR(sub,
+          imfptr,
+          "export_triangulated_mesh",
+          UI_ITEM_NONE,
+          IFACE_("Triangulated Mesh"),
+          ICON_NONE);
 }
 
 static void wm_ply_export_draw(bContext * /*C*/, wmOperator *op)

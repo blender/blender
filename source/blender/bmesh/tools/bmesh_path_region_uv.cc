@@ -8,7 +8,7 @@
  * Find the region defined by the path(s) between 2 UV elements.
  * (path isn't ordered).
  *
- * \note This uses the same behavior as bmesh_path_region.c
+ * \note This uses the same behavior as `bmesh_path_region.cc`
  * however walking UVs causes enough differences that it's
  * impractical to share the code.
  */

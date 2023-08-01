@@ -84,12 +84,13 @@ static void lib_override_library_property_clear(IDOverrideLibraryProperty *op);
 static void lib_override_library_property_operation_clear(
     IDOverrideLibraryPropertyOperation *opop);
 
-BLI_INLINE IDOverrideLibraryRuntime *override_library_runtime_ensure(IDOverrideLibrary *override)
+BLI_INLINE IDOverrideLibraryRuntime *override_library_runtime_ensure(
+    IDOverrideLibrary *liboverride)
 {
-  if (override->runtime == nullptr) {
-    override->runtime = MEM_cnew<IDOverrideLibraryRuntime>(__func__);
+  if (liboverride->runtime == nullptr) {
+    liboverride->runtime = MEM_cnew<IDOverrideLibraryRuntime>(__func__);
   }
-  return override->runtime;
+  return liboverride->runtime;
 }
 
 /** Helper to preserve Pose mode on override objects.
@@ -229,39 +230,40 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
   dst_id->tag &= ~LIB_TAG_LIBOVERRIDE_REFOK;
 }
 
-void BKE_lib_override_library_clear(IDOverrideLibrary *override, const bool do_id_user)
+void BKE_lib_override_library_clear(IDOverrideLibrary *liboverride, const bool do_id_user)
 {
-  BLI_assert(override != nullptr);
+  BLI_assert(liboverride != nullptr);
 
-  if (!ELEM(nullptr, override->runtime, override->runtime->rna_path_to_override_properties)) {
-    BLI_ghash_clear(override->runtime->rna_path_to_override_properties, nullptr, nullptr);
+  if (!ELEM(nullptr, liboverride->runtime, liboverride->runtime->rna_path_to_override_properties))
+  {
+    BLI_ghash_clear(liboverride->runtime->rna_path_to_override_properties, nullptr, nullptr);
   }
 
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
     lib_override_library_property_clear(op);
   }
-  BLI_freelistN(&override->properties);
+  BLI_freelistN(&liboverride->properties);
 
   if (do_id_user) {
-    id_us_min(override->reference);
+    id_us_min(liboverride->reference);
     /* override->storage should never be refcounted... */
   }
 }
 
-void BKE_lib_override_library_free(IDOverrideLibrary **override, const bool do_id_user)
+void BKE_lib_override_library_free(IDOverrideLibrary **liboverride, const bool do_id_user)
 {
-  BLI_assert(*override != nullptr);
+  BLI_assert(*liboverride != nullptr);
 
-  if ((*override)->runtime != nullptr) {
-    if ((*override)->runtime->rna_path_to_override_properties != nullptr) {
-      BLI_ghash_free((*override)->runtime->rna_path_to_override_properties, nullptr, nullptr);
+  if ((*liboverride)->runtime != nullptr) {
+    if ((*liboverride)->runtime->rna_path_to_override_properties != nullptr) {
+      BLI_ghash_free((*liboverride)->runtime->rna_path_to_override_properties, nullptr, nullptr);
     }
-    MEM_SAFE_FREE((*override)->runtime);
+    MEM_SAFE_FREE((*liboverride)->runtime);
   }
 
-  BKE_lib_override_library_clear(*override, do_id_user);
-  MEM_freeN(*override);
-  *override = nullptr;
+  BKE_lib_override_library_clear(*liboverride, do_id_user);
+  MEM_freeN(*liboverride);
+  *liboverride = nullptr;
 }
 
 static ID *lib_override_library_create_from(Main *bmain,
@@ -359,26 +361,27 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
   return false;
 }
 
-bool BKE_lib_override_library_property_is_animated(const ID *id,
-                                                   const IDOverrideLibraryProperty *override_prop,
-                                                   const PropertyRNA *override_rna_prop,
-                                                   const int rnaprop_index)
+bool BKE_lib_override_library_property_is_animated(
+    const ID *id,
+    const IDOverrideLibraryProperty *liboverride_prop,
+    const PropertyRNA *override_rna_prop,
+    const int rnaprop_index)
 {
   AnimData *anim_data = BKE_animdata_from_id(id);
   if (anim_data != nullptr) {
     FCurve *fcurve;
     char *index_token_start = const_cast<char *>(
-        RNA_path_array_index_token_find(override_prop->rna_path, override_rna_prop));
+        RNA_path_array_index_token_find(liboverride_prop->rna_path, override_rna_prop));
     if (index_token_start != nullptr) {
       const char index_token_start_backup = *index_token_start;
       *index_token_start = '\0';
       fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          anim_data, override_prop->rna_path, rnaprop_index, nullptr, nullptr);
+          anim_data, liboverride_prop->rna_path, rnaprop_index, nullptr, nullptr);
       *index_token_start = index_token_start_backup;
     }
     else {
       fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          anim_data, override_prop->rna_path, 0, nullptr, nullptr);
+          anim_data, liboverride_prop->rna_path, 0, nullptr, nullptr);
     }
     if (fcurve != nullptr) {
       return true;
@@ -3598,44 +3601,44 @@ void BKE_lib_override_library_make_local(ID *id)
 }
 
 /* We only build override GHash on request. */
-BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *override)
+BLI_INLINE GHash *override_library_rna_path_mapping_ensure(IDOverrideLibrary *liboverride)
 {
-  IDOverrideLibraryRuntime *override_runtime = override_library_runtime_ensure(override);
-  if (override_runtime->rna_path_to_override_properties == nullptr) {
-    override_runtime->rna_path_to_override_properties = BLI_ghash_new(
+  IDOverrideLibraryRuntime *liboverride_runtime = override_library_runtime_ensure(liboverride);
+  if (liboverride_runtime->rna_path_to_override_properties == nullptr) {
+    liboverride_runtime->rna_path_to_override_properties = BLI_ghash_new(
         BLI_ghashutil_strhash_p_murmur, BLI_ghashutil_strcmp, __func__);
     for (IDOverrideLibraryProperty *op =
-             static_cast<IDOverrideLibraryProperty *>(override->properties.first);
+             static_cast<IDOverrideLibraryProperty *>(liboverride->properties.first);
          op != nullptr;
          op = op->next)
     {
-      BLI_ghash_insert(override_runtime->rna_path_to_override_properties, op->rna_path, op);
+      BLI_ghash_insert(liboverride_runtime->rna_path_to_override_properties, op->rna_path, op);
     }
   }
 
-  return override_runtime->rna_path_to_override_properties;
+  return liboverride_runtime->rna_path_to_override_properties;
 }
 
-IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *override,
+IDOverrideLibraryProperty *BKE_lib_override_library_property_find(IDOverrideLibrary *liboverride,
                                                                   const char *rna_path)
 {
-  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
-  return static_cast<IDOverrideLibraryProperty *>(BLI_ghash_lookup(override_runtime, rna_path));
+  GHash *liboverride_runtime = override_library_rna_path_mapping_ensure(liboverride);
+  return static_cast<IDOverrideLibraryProperty *>(BLI_ghash_lookup(liboverride_runtime, rna_path));
 }
 
-IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *override,
+IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibrary *liboverride,
                                                                  const char *rna_path,
                                                                  bool *r_created)
 {
-  IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(override, rna_path);
+  IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride, rna_path);
 
   if (op == nullptr) {
     op = MEM_cnew<IDOverrideLibraryProperty>(__func__);
     op->rna_path = BLI_strdup(rna_path);
-    BLI_addtail(&override->properties, op);
+    BLI_addtail(&liboverride->properties, op);
 
-    GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
-    BLI_ghash_insert(override_runtime, op->rna_path, op);
+    GHash *liboverride_runtime = override_library_rna_path_mapping_ensure(liboverride);
+    BLI_ghash_insert(liboverride_runtime, op->rna_path, op);
 
     if (r_created) {
       *r_created = true;
@@ -3687,70 +3690,70 @@ void lib_override_library_property_clear(IDOverrideLibraryProperty *op)
   BLI_freelistN(&op->operations);
 }
 
-bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *override,
+bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *liboverride,
                                                        const char *old_rna_path,
                                                        const char *new_rna_path)
 {
   /* Find the override property by its old RNA path. */
-  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
-  IDOverrideLibraryProperty *override_property = static_cast<IDOverrideLibraryProperty *>(
-      BLI_ghash_popkey(override_runtime, old_rna_path, nullptr));
+  GHash *liboverride_runtime = override_library_rna_path_mapping_ensure(liboverride);
+  IDOverrideLibraryProperty *liboverride_property = static_cast<IDOverrideLibraryProperty *>(
+      BLI_ghash_popkey(liboverride_runtime, old_rna_path, nullptr));
 
-  if (override_property == nullptr) {
+  if (liboverride_property == nullptr) {
     return false;
   }
 
   /* Switch over the RNA path. */
-  MEM_SAFE_FREE(override_property->rna_path);
-  override_property->rna_path = BLI_strdup(new_rna_path);
+  MEM_SAFE_FREE(liboverride_property->rna_path);
+  liboverride_property->rna_path = BLI_strdup(new_rna_path);
 
   /* Put property back into the lookup mapping, using the new RNA path. */
-  BLI_ghash_insert(override_runtime, override_property->rna_path, override_property);
+  BLI_ghash_insert(liboverride_runtime, liboverride_property->rna_path, liboverride_property);
 
   return true;
 }
 
-static void lib_override_library_property_delete(IDOverrideLibrary *override,
-                                                 IDOverrideLibraryProperty *override_property,
+static void lib_override_library_property_delete(IDOverrideLibrary *liboverride,
+                                                 IDOverrideLibraryProperty *liboverride_property,
                                                  const bool do_runtime_updates)
 {
   if (do_runtime_updates &&
-      !ELEM(nullptr, override->runtime, override->runtime->rna_path_to_override_properties))
+      !ELEM(nullptr, liboverride->runtime, liboverride->runtime->rna_path_to_override_properties))
   {
-    BLI_ghash_remove(override->runtime->rna_path_to_override_properties,
-                     override_property->rna_path,
+    BLI_ghash_remove(liboverride->runtime->rna_path_to_override_properties,
+                     liboverride_property->rna_path,
                      nullptr,
                      nullptr);
   }
-  lib_override_library_property_clear(override_property);
-  BLI_freelinkN(&override->properties, override_property);
+  lib_override_library_property_clear(liboverride_property);
+  BLI_freelinkN(&liboverride->properties, liboverride_property);
 }
 
-bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *override,
+bool BKE_lib_override_library_property_search_and_delete(IDOverrideLibrary *liboverride,
                                                          const char *rna_path)
 {
   /* Find the override property by its old RNA path. */
-  GHash *override_runtime = override_library_rna_path_mapping_ensure(override);
-  IDOverrideLibraryProperty *override_property = static_cast<IDOverrideLibraryProperty *>(
-      BLI_ghash_popkey(override_runtime, rna_path, nullptr));
+  GHash *liboverride_runtime = override_library_rna_path_mapping_ensure(liboverride);
+  IDOverrideLibraryProperty *liboverride_property = static_cast<IDOverrideLibraryProperty *>(
+      BLI_ghash_popkey(liboverride_runtime, rna_path, nullptr));
 
-  if (override_property == nullptr) {
+  if (liboverride_property == nullptr) {
     return false;
   }
 
   /* The key (rna_path) was already popped out of the runtime mapping above. */
-  lib_override_library_property_delete(override, override_property, false);
+  lib_override_library_property_delete(liboverride, liboverride_property, false);
   return true;
 }
 
-void BKE_lib_override_library_property_delete(IDOverrideLibrary *override,
-                                              IDOverrideLibraryProperty *override_property)
+void BKE_lib_override_library_property_delete(IDOverrideLibrary *liboverride,
+                                              IDOverrideLibraryProperty *liboverride_property)
 {
-  lib_override_library_property_delete(override, override_property, true);
+  lib_override_library_property_delete(liboverride, liboverride_property, true);
 }
 
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
-    IDOverrideLibraryProperty *override_property,
+    IDOverrideLibraryProperty *liboverride_property,
     const char *subitem_refname,
     const char *subitem_locname,
     const int subitem_refindex,
@@ -3767,7 +3770,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
 
   if (subitem_locname != nullptr) {
     opop = static_cast<IDOverrideLibraryPropertyOperation *>(
-        BLI_findstring_ptr(&override_property->operations,
+        BLI_findstring_ptr(&liboverride_property->operations,
                            subitem_locname,
                            offsetof(IDOverrideLibraryPropertyOperation, subitem_local_name)));
 
@@ -3786,7 +3789,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
 
   if (subitem_refname != nullptr) {
     opop = static_cast<IDOverrideLibraryPropertyOperation *>(
-        BLI_findstring_ptr(&override_property->operations,
+        BLI_findstring_ptr(&liboverride_property->operations,
                            subitem_refname,
                            offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_name)));
 
@@ -3804,7 +3807,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
   }
 
   if ((opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &override_property->operations,
+           &liboverride_property->operations,
            &subitem_locindex,
            sizeof(subitem_locindex),
            offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)))))
@@ -3813,7 +3816,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
   }
 
   if ((opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &override_property->operations,
+           &liboverride_property->operations,
            &subitem_refindex,
            sizeof(subitem_refindex),
            offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_index)))))
@@ -3825,7 +3828,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
    */
   if (!strict && (subitem_locindex != subitem_defindex) &&
       (opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
-           &override_property->operations,
+           &liboverride_property->operations,
            &subitem_defindex,
            sizeof(subitem_defindex),
            offsetof(IDOverrideLibraryPropertyOperation, subitem_local_index)))))
@@ -3840,7 +3843,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
 }
 
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_get(
-    IDOverrideLibraryProperty *override_property,
+    IDOverrideLibraryProperty *liboverride_property,
     const short operation,
     const char *subitem_refname,
     const char *subitem_locname,
@@ -3851,7 +3854,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     bool *r_created)
 {
   IDOverrideLibraryPropertyOperation *opop = BKE_lib_override_library_property_operation_find(
-      override_property,
+      liboverride_property,
       subitem_refname,
       subitem_locname,
       subitem_refindex,
@@ -3871,7 +3874,7 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     opop->subitem_local_index = subitem_locindex;
     opop->subitem_reference_index = subitem_refindex;
 
-    BLI_addtail(&override_property->operations, opop);
+    BLI_addtail(&liboverride_property->operations, opop);
 
     if (r_created) {
       *r_created = true;
@@ -3906,15 +3909,15 @@ void lib_override_library_property_operation_clear(IDOverrideLibraryPropertyOper
 }
 
 void BKE_lib_override_library_property_operation_delete(
-    IDOverrideLibraryProperty *override_property,
-    IDOverrideLibraryPropertyOperation *override_property_operation)
+    IDOverrideLibraryProperty *liboverride_property,
+    IDOverrideLibraryPropertyOperation *liboverride_property_operation)
 {
-  lib_override_library_property_operation_clear(override_property_operation);
-  BLI_freelinkN(&override_property->operations, override_property_operation);
+  lib_override_library_property_operation_clear(liboverride_property_operation);
+  BLI_freelinkN(&liboverride_property->operations, liboverride_property_operation);
 }
 
 bool BKE_lib_override_library_property_operation_operands_validate(
-    IDOverrideLibraryPropertyOperation *override_property_operation,
+    IDOverrideLibraryPropertyOperation *liboverride_property_operation,
     PointerRNA *ptr_dst,
     PointerRNA *ptr_src,
     PointerRNA *ptr_storage,
@@ -3922,7 +3925,7 @@ bool BKE_lib_override_library_property_operation_operands_validate(
     PropertyRNA *prop_src,
     PropertyRNA *prop_storage)
 {
-  switch (override_property_operation->operation) {
+  switch (liboverride_property_operation->operation) {
     case LIBOVERRIDE_OP_NOOP:
       return true;
     case LIBOVERRIDE_OP_ADD:
@@ -4106,7 +4109,7 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
 
 static void lib_override_library_operations_create(Main *bmain,
                                                    ID *local,
-                                                   const eRNAOverrideMatch override_match_flags,
+                                                   const eRNAOverrideMatch liboverride_match_flags,
                                                    eRNAOverrideMatchResult *r_report_flags)
 {
   BLI_assert(!ID_IS_LINKED(local));
@@ -4146,7 +4149,7 @@ static void lib_override_library_operations_create(Main *bmain,
                                 nullptr,
                                 0,
                                 local->override_library,
-                                override_match_flags,
+                                liboverride_match_flags,
                                 &local_report_flags);
 
     if (local_report_flags & RNA_OVERRIDE_MATCH_RESULT_RESTORED) {
@@ -4413,9 +4416,9 @@ static bool lib_override_library_id_reset_do(Main *bmain,
 
   if (was_op_deleted) {
     DEG_id_tag_update_ex(bmain, id_root, ID_RECALC_COPY_ON_WRITE);
-    IDOverrideLibraryRuntime *override_runtime = override_library_runtime_ensure(
+    IDOverrideLibraryRuntime *liboverride_runtime = override_library_runtime_ensure(
         id_root->override_library);
-    override_runtime->tag |= LIBOVERRIDE_TAG_NEEDS_RELOAD;
+    liboverride_runtime->tag |= LIBOVERRIDE_TAG_NEEDS_RELOAD;
   }
 
   return was_op_deleted;
@@ -4507,19 +4510,20 @@ void BKE_lib_override_library_id_hierarchy_reset(Main *bmain,
   FOREACH_MAIN_ID_END;
 }
 
-void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *override_property,
+void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *liboverride_property,
                                              const short tag,
                                              const bool do_set)
 {
-  if (override_property != nullptr) {
+  if (liboverride_property != nullptr) {
     if (do_set) {
-      override_property->tag |= tag;
+      liboverride_property->tag |= tag;
     }
     else {
-      override_property->tag &= ~tag;
+      liboverride_property->tag &= ~tag;
     }
 
-    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &override_property->operations) {
+    LISTBASE_FOREACH (
+        IDOverrideLibraryPropertyOperation *, opop, &liboverride_property->operations) {
       if (do_set) {
         opop->tag |= tag;
       }
@@ -4530,12 +4534,12 @@ void BKE_lib_override_library_operations_tag(IDOverrideLibraryProperty *override
   }
 }
 
-void BKE_lib_override_library_properties_tag(IDOverrideLibrary *override,
+void BKE_lib_override_library_properties_tag(IDOverrideLibrary *liboverride,
                                              const short tag,
                                              const bool do_set)
 {
-  if (override != nullptr) {
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+  if (liboverride != nullptr) {
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
       BKE_lib_override_library_operations_tag(op, tag, do_set);
     }
   }
@@ -4784,7 +4788,7 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
   return true;
 }
 
-void BKE_lib_override_debug_print(IDOverrideLibrary *override, const char *intro_txt)
+void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *intro_txt)
 {
   const char *line_prefix = "";
   if (intro_txt != nullptr) {
@@ -4792,7 +4796,7 @@ void BKE_lib_override_debug_print(IDOverrideLibrary *override, const char *intro
     line_prefix = "\t";
   }
 
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &liboverride->properties) {
     std::cout << line_prefix << op->rna_path << " [";
     if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
       std::cout << " UNUSED ";
@@ -4843,7 +4847,7 @@ OverrideLibraryStorage *BKE_lib_override_library_operations_store_init()
 }
 
 ID *BKE_lib_override_library_operations_store_start(Main *bmain,
-                                                    OverrideLibraryStorage *override_storage,
+                                                    OverrideLibraryStorage *liboverride_storage,
                                                     ID *local)
 {
   if (ID_IS_OVERRIDE_LIBRARY_TEMPLATE(local) || ID_IS_OVERRIDE_LIBRARY_VIRTUAL(local)) {
@@ -4854,8 +4858,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   }
 
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
-  BLI_assert(override_storage != nullptr);
-  UNUSED_VARS_NDEBUG(override_storage);
+  BLI_assert(liboverride_storage != nullptr);
+  UNUSED_VARS_NDEBUG(liboverride_storage);
 
   /* Forcefully ensure we know about all needed override operations. */
   BKE_lib_override_library_operations_create(bmain, local, nullptr);
@@ -4880,7 +4884,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
    * (and possibly all over Blender code).
    * Not impossible to do, but would rather see first is extra useless usual user handling is
    * actually a (performances) issue here, before doing it. */
-  storage_id = BKE_id_copy(reinterpret_cast<Main *>(override_storage), local);
+  storage_id = BKE_id_copy(reinterpret_cast<Main *>(liboverride_storage), local);
 
   if (storage_id != nullptr) {
     PointerRNA rnaptr_reference, rnaptr_final, rnaptr_storage;
@@ -4907,8 +4911,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   return storage_id;
 }
 
-void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage * /*override_storage*/,
-                                                   ID *local)
+void BKE_lib_override_library_operations_store_end(
+    OverrideLibraryStorage * /*liboverride_storage*/, ID *local)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
 
@@ -4917,16 +4921,17 @@ void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage * /*ov
   local->override_library->storage = nullptr;
 }
 
-void BKE_lib_override_library_operations_store_finalize(OverrideLibraryStorage *override_storage)
+void BKE_lib_override_library_operations_store_finalize(
+    OverrideLibraryStorage *liboverride_storage)
 {
   /* We cannot just call BKE_main_free(override_storage), not until we have option to make
    * 'ghost' copies of IDs without increasing user-count of used data-blocks. */
   ID *id;
 
-  FOREACH_MAIN_ID_BEGIN (override_storage, id) {
-    BKE_id_free_ex(override_storage, id, LIB_ID_FREE_NO_UI_USER, true);
+  FOREACH_MAIN_ID_BEGIN (liboverride_storage, id) {
+    BKE_id_free_ex(liboverride_storage, id, LIB_ID_FREE_NO_UI_USER, true);
   }
   FOREACH_MAIN_ID_END;
 
-  BKE_main_free(override_storage);
+  BKE_main_free(liboverride_storage);
 }

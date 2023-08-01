@@ -45,7 +45,7 @@ enum {
   DRW_TEXT_CACHE_STRING_PTR = (1 << 3),
 };
 
-/* draw_manager.c */
+/* `draw_manager.cc` */
 
 struct DRWTextStore *DRW_text_cache_ensure(void);
 

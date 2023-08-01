@@ -65,7 +65,7 @@ Object **ED_object_array_in_mode_or_selected(struct bContext *C,
                                              void *filter_user_data,
                                              uint *r_objects_len);
 
-/* object_utils.c */
+/* `object_utils.cc` */
 
 bool ED_object_calc_active_center_for_editmode(struct Object *obedit,
                                                bool select_only,
@@ -127,13 +127,13 @@ void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChil
 
 void ED_object_xform_array_m4(struct Object **objects, uint objects_len, const float matrix[4][4]);
 
-/* object_ops.c */
+/* `object_ops.cc` */
 
 void ED_operatortypes_object(void);
 void ED_operatormacros_object(void);
 void ED_keymap_object(struct wmKeyConfig *keyconf);
 
-/* object_relations.c */
+/* `object_relations.cc` */
 
 typedef enum eParentType {
   PAR_OBJECT,
@@ -538,7 +538,7 @@ Object *ED_object_in_mode_from_index(const struct Scene *scene,
                                      eObjectMode mode,
                                      int index);
 
-/* object_modifier.c */
+/* `object_modifier.cc` */
 
 enum {
   MODIFIER_APPLY_DATA = 1,
@@ -660,7 +660,7 @@ bool ED_object_gpencil_modifier_copy(struct ReportList *reports,
 void ED_object_gpencil_modifier_copy_to_object(struct Object *ob_dst,
                                                struct GpencilModifierData *md);
 
-/* object_shader_fx.c */
+/* `object_shader_fx.cc` */
 
 struct ShaderFxData *ED_object_shaderfx_add(struct ReportList *reports,
                                             struct Main *bmain,
@@ -686,7 +686,7 @@ bool ED_object_shaderfx_move_to_index(struct ReportList *reports,
 void ED_object_shaderfx_link(struct Object *dst, struct Object *src);
 void ED_object_shaderfx_copy(struct Object *dst, struct ShaderFxData *fx);
 
-/* object_select.c */
+/* `object_select.cc` */
 
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 

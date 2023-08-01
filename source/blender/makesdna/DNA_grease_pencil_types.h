@@ -428,22 +428,15 @@ typedef struct GreasePencil {
    */
   GreasePencilRuntimeHandle *runtime;
 #ifdef __cplusplus
-  /* GreasePencilDrawingBase array functions. */
-  void read_drawing_array(BlendDataReader *reader);
-  void write_drawing_array(BlendWriter *writer);
-  void free_drawing_array();
-
-  /* Layer tree read/write functions. */
-  void read_layer_tree(BlendDataReader *reader);
-  void write_layer_tree(BlendWriter *writer);
-
   /* Root group. */
   const blender::bke::greasepencil::LayerGroup &root_group() const;
   blender::bke::greasepencil::LayerGroup &root_group();
 
   /* Drawings read/write access. */
   blender::Span<GreasePencilDrawingBase *> drawings() const;
-  blender::MutableSpan<GreasePencilDrawingBase *> drawings_for_write();
+  blender::MutableSpan<GreasePencilDrawingBase *> drawings();
+  GreasePencilDrawingBase *drawings(int64_t index) const;
+  GreasePencilDrawingBase *drawings(int64_t index);
 
   blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
 

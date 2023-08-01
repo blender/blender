@@ -520,25 +520,25 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
   uiItemR(row, ptr, "use_x", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "use_y", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "use_z", toggles_flag, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "lambda_factor", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "lambda_border", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_border", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_volume_preserve", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_normalized", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_normalized", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

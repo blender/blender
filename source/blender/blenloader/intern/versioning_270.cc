@@ -74,7 +74,7 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 /* ************************************************** */

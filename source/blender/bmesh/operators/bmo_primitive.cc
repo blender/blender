@@ -852,7 +852,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
   const float phid = float(M_PI) / tot;
-  /* phi = 0.25f * (float)M_PI; */ /* UNUSED */
+  // const float phi = 0.25f * float(M_PI); /* UNUSED. */
 
   /* one segment first */
   for (a = 0; a <= tot; a++) {
@@ -970,8 +970,8 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 
   BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
-  /* phid = 2.0f * (float)M_PI / subdiv; */ /* UNUSED */
-  /* phi = 0.25f * (float)M_PI; */          /* UNUSED */
+  // phid = 2.0f * float(M_PI) / subdiv; /* UNUSED. */
+  // phi = 0.25f * float(M_PI);          /* UNUSED. */
 
   for (a = 0; a < 12; a++) {
     vec[0] = rad_div * icovert[a][0];

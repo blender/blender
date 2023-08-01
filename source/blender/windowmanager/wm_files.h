@@ -90,7 +90,7 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
  */
 bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWindowManager *wm);
 /**
- * Confirmation dialog when user is about to save the current blend file, and it was prviously
+ * Confirmation dialog when user is about to save the current blend file, and it was previously
  * created by a newer version of Blender.
  *
  * Important to ask confirmation, as this is a very common scenario of data loss.
@@ -114,7 +114,7 @@ void WM_OT_recover_auto_save(struct wmOperatorType *ot);
 void WM_OT_save_as_mainfile(struct wmOperatorType *ot);
 void WM_OT_save_mainfile(struct wmOperatorType *ot);
 
-/* wm_files_link.c */
+/* `wm_files_link.cc` */
 
 void WM_OT_link(struct wmOperatorType *ot);
 void WM_OT_append(struct wmOperatorType *ot);

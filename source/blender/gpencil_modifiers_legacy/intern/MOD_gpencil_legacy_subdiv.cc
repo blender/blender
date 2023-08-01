@@ -106,8 +106,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "subdivision_type", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "level", 0, IFACE_("Subdivisions"), ICON_NONE);
+  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "level", UI_ITEM_NONE, IFACE_("Subdivisions"), ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }

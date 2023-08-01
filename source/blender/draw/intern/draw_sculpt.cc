@@ -175,7 +175,7 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features)
     if (layer) {
       attrs[attrs_len].type = eCustomDataType(layer->type);
       attrs[attrs_len].domain = BKE_id_attribute_domain(&mesh->id, layer);
-      STRNCPY(attrs[attrs_len].name, layer->name);
+      attrs[attrs_len].name = layer->name;
       attrs_len++;
     }
   }
@@ -186,7 +186,7 @@ Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features)
       CustomDataLayer *layer = mesh->loop_data.layers + layer_i;
       attrs[attrs_len].type = CD_PROP_FLOAT2;
       attrs[attrs_len].domain = ATTR_DOMAIN_CORNER;
-      STRNCPY(attrs[attrs_len].name, layer->name);
+      attrs[attrs_len].name = layer->name;
       attrs_len++;
     }
   }
@@ -216,7 +216,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
     DRW_AttributeRequest *req = draw_attrs.requests + i;
     attrs[attrs_len].type = req->cd_type;
     attrs[attrs_len].domain = req->domain;
-    STRNCPY(attrs[attrs_len].name, req->attribute_name);
+    attrs[attrs_len].name = req->attribute_name;
     attrs_len++;
   }
 
@@ -228,7 +228,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
       if (layer) {
         attrs[attrs_len].type = CD_PROP_FLOAT2;
         attrs[attrs_len].domain = ATTR_DOMAIN_CORNER;
-        STRNCPY(attrs[attrs_len].name, layer->name);
+        attrs[attrs_len].name = layer->name;
         attrs_len++;
       }
     }

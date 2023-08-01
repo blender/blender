@@ -17,7 +17,7 @@ extern "C" {
 
 struct rctf;
 
-/* gpu_batch_utils.c */
+/* `gpu_batch_utils.cc` */
 
 /**
  * Creates triangles from a byte-array of polygons.

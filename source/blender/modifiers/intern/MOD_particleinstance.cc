@@ -527,7 +527,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -536,7 +536,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
     uiItemPointerR(layout,
                    ptr,
@@ -547,7 +547,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
                    ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "particle_system_index", 0, IFACE_("Particle System"), ICON_NONE);
+    uiItemR(
+        layout, ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
   }
 
   uiItemS(layout);
@@ -562,12 +563,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(row, ptr, "show_dead", toggles_flag, nullptr, ICON_NONE);
   uiItemR(row, ptr, "show_unborn", toggles_flag, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "particle_amount", 0, IFACE_("Amount"), ICON_NONE);
-  uiItemR(layout, ptr, "particle_offset", 0, IFACE_("Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "particle_amount", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
+  uiItemR(layout, ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "space", 0, IFACE_("Coordinate Space"), ICON_NONE);
+  uiItemR(layout, ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
   row = uiLayoutRow(layout, true);
   uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
@@ -580,7 +581,7 @@ static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_path", 0, IFACE_("Create Along Paths"), ICON_NONE);
+  uiItemR(layout, ptr, "use_path", UI_ITEM_NONE, IFACE_("Create Along Paths"), ICON_NONE);
 }
 
 static void path_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -602,7 +603,7 @@ static void path_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "rotation", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
   uiItemR(col, ptr, "random_rotation", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
-  uiItemR(layout, ptr, "use_preserve_shape", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_preserve_shape", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void layers_panel_draw(const bContext * /*C*/, Panel *panel)

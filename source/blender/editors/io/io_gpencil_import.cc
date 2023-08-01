@@ -137,8 +137,8 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, imfptr, "resolution", 0, nullptr, ICON_NONE);
-  uiItemR(col, imfptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "resolution", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, imfptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void wm_gpencil_import_svg_draw(bContext * /*C*/, wmOperator *op)

@@ -2010,7 +2010,7 @@ void uiTemplateAnyID(uiLayout *layout,
   sub = uiLayoutRow(row, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
-  uiItemFullR(sub, ptr, propID, 0, 0, 0, "", ICON_NONE);
+  uiItemFullR(sub, ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);
 }
 
 /** \} */
@@ -2276,7 +2276,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
   uiLayout *row = uiLayoutRow(layout, true);
 
   /* Path (existing string) Widget */
-  uiItemR(row, ptr, propname, 0, text, ICON_RNA);
+  uiItemR(row, ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
 
   /* TODO: attach something to this to make allow
    * searching of nested properties to 'build' the path */
@@ -2743,10 +2743,11 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     uiItemM(row, "WM_MT_operator_presets", nullptr, ICON_NONE);
 
     wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
-    uiItemFullO_ptr(row, ot, "", ICON_ADD, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+    uiItemFullO_ptr(row, ot, "", ICON_ADD, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
 
-    uiItemFullO_ptr(row, ot, "", ICON_REMOVE, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+    uiItemFullO_ptr(
+        row, ot, "", ICON_REMOVE, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
     RNA_boolean_set(&op_ptr, "remove_active", true);
   }
@@ -3021,7 +3022,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
               ICON_TRIA_UP,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
   if (!con->prev) {
@@ -3036,7 +3037,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
               ICON_TRIA_DOWN,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   ListBase *constraint_list = ED_object_constraint_list_from_constraint(ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
@@ -3071,10 +3072,10 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   uiLayout *row = uiLayoutRow(layout, true);
 
-  uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
+  uiItemR(row, &ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Enabled eye icon. */
-  uiItemR(row, &ptr, "enabled", 0, "", ICON_NONE);
+  uiItemR(row, &ptr, "enabled", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators menu. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
@@ -3268,7 +3269,7 @@ void uiTemplatePreview(uiLayout *layout,
        * just hide the option until this feature is supported. */
       if (!BKE_scene_uses_blender_eevee(CTX_data_scene(C))) {
         uiItemS(col);
-        uiItemR(col, &material_ptr, "use_preview_world", 0, "", ICON_WORLD);
+        uiItemR(col, &material_ptr, "use_preview_world", UI_ITEM_NONE, "", ICON_WORLD);
       }
     }
 
@@ -3373,7 +3374,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {
         row = uiLayoutRow(layout, false);
-        uiItemR(row, &texture_ptr, "use_preview_alpha", 0, nullptr, ICON_NONE);
+        uiItemR(row, &texture_ptr, "use_preview_alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
       }
     }
   }
@@ -3675,12 +3676,12 @@ static void colorband_buttons_layout(uiLayout *layout,
   row = uiLayoutRow(split, false);
 
   UI_block_align_begin(block);
-  uiItemR(row, &ptr, "color_mode", 0, "", ICON_NONE);
+  uiItemR(row, &ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
   if (ELEM(coba->color_mode, COLBAND_BLEND_HSV, COLBAND_BLEND_HSL)) {
-    uiItemR(row, &ptr, "hue_interpolation", 0, "", ICON_NONE);
+    uiItemR(row, &ptr, "hue_interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   else { /* COLBAND_BLEND_RGB */
-    uiItemR(row, &ptr, "interpolation", 0, "", ICON_NONE);
+    uiItemR(row, &ptr, "interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   UI_block_align_end(block);
 
@@ -3730,10 +3731,10 @@ static void colorband_buttons_layout(uiLayout *layout,
       UI_but_number_step_size_set(bt, 1);
 
       row = uiLayoutRow(split, false);
-      uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
+      uiItemR(row, &ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
 
       row = uiLayoutRow(layout, false);
-      uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
+      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
       split = uiLayoutSplit(layout, 0.5f, false);
@@ -3760,7 +3761,7 @@ static void colorband_buttons_layout(uiLayout *layout,
       uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 
       row = uiLayoutRow(split, false);
-      uiItemR(row, &ptr, "color", 0, "", ICON_NONE);
+      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
 
     /* Some special (rather awkward) treatment to update UI state on certain property changes. */
@@ -4636,23 +4637,35 @@ static void curvemap_buttons_layout(uiLayout *layout,
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[3].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "C", 0, 0, dx, dx, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
+      bt = uiDefButI(block,
+                     UI_BTYPE_ROW,
+                     0,
+                     CTX_IFACE_(BLT_I18NCONTEXT_COLOR, "C"),
+                     0,
+                     0,
+                     dx,
+                     dx,
+                     &cumap->cur,
+                     0.0,
+                     3.0,
+                     0.0,
+                     0.0,
+                     "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
     if (cumap->cm[0].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "R", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("R"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
     if (cumap->cm[1].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "G", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("G"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
     if (cumap->cm[2].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "B", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("B"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
   }
@@ -4663,17 +4676,17 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
     if (cumap->cm[0].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "H", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("H"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
     if (cumap->cm[1].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "S", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("S"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
     if (cumap->cm[2].curve) {
       bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "V", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+          block, UI_BTYPE_ROW, 0, IFACE_("V"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw, nullptr, nullptr);
     }
   }
@@ -5545,8 +5558,8 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
     }
   }
 
-  uiItemR(layout, ptr, "use_sample_straight_edges", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_sample_even_lengths", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_sample_straight_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_sample_even_lengths", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   UI_block_funcN_set(block, nullptr, nullptr, nullptr);
 }
@@ -5981,7 +5994,7 @@ static void handle_layer_buttons(bContext *C, void *arg1, void *arg2)
   }
 
   /* view3d layer change should update depsgraph (invisible object changed maybe) */
-  /* see view3d_header.c */
+  /* see `view3d_header.cc` */
 }
 
 void uiTemplateLayers(uiLayout *layout,
@@ -6671,7 +6684,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
     uiLayout *row = uiLayoutRow(box, false);
 
     /* property value */
-    uiItemFullR(row, ptr, prop, -1, 0, 0, nullptr, ICON_NONE);
+    uiItemFullR(row, ptr, prop, -1, 0, UI_ITEM_NONE, nullptr, ICON_NONE);
 
     if (is_set) {
       /* unset operator */
@@ -6773,7 +6786,8 @@ void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char 
 
   PointerRNA colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
 
-  uiItemR(layout, &colorspace_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
+  uiItemR(
+      layout, &colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
 }
 
 void uiTemplateColormanagedViewSettings(uiLayout *layout,
@@ -6794,15 +6808,15 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
       view_transform_ptr.data);
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, &view_transform_ptr, "view_transform", 0, IFACE_("View"), ICON_NONE);
-  uiItemR(col, &view_transform_ptr, "look", 0, IFACE_("Look"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "view_transform", UI_ITEM_NONE, IFACE_("View"), ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "look", UI_ITEM_NONE, IFACE_("Look"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &view_transform_ptr, "exposure", 0, nullptr, ICON_NONE);
-  uiItemR(col, &view_transform_ptr, "gamma", 0, nullptr, ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "exposure", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "gamma", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, nullptr, ICON_NONE);
+  uiItemR(col, &view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
     uiTemplateCurveMapping(
         col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false);
@@ -6874,7 +6888,7 @@ void uiTemplateComponentMenu(uiLayout *layout,
 /** \name Node Socket Icon Template
  * \{ */
 
-void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, float color[4])
+void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[4])
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_align_begin(block);
@@ -6904,8 +6918,8 @@ void uiTemplateCacheFileVelocity(uiLayout *layout, PointerRNA *fileptr)
   /* Ensure that the context has a CacheFile as this may not be set inside of modifiers panels. */
   uiLayoutSetContextPointer(layout, "edit_cachefile", fileptr);
 
-  uiItemR(layout, fileptr, "velocity_name", 0, nullptr, ICON_NONE);
-  uiItemR(layout, fileptr, "velocity_unit", 0, nullptr, ICON_NONE);
+  uiItemR(layout, fileptr, "velocity_name", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, fileptr, "velocity_unit", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerRNA *fileptr)
@@ -6952,18 +6966,18 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, is_alembic && engine_supports_procedural);
-  uiItemR(row, fileptr, "use_render_procedural", 0, nullptr, ICON_NONE);
+  uiItemR(row, fileptr, "use_render_procedural", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const bool use_render_procedural = RNA_boolean_get(fileptr, "use_render_procedural");
   const bool use_prefetch = RNA_boolean_get(fileptr, "use_prefetch");
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row, use_render_procedural);
-  uiItemR(row, fileptr, "use_prefetch", 0, nullptr, ICON_NONE);
+  uiItemR(row, fileptr, "use_prefetch", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   sub = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(sub, use_prefetch && use_render_procedural);
-  uiItemR(sub, fileptr, "prefetch_cache_size", 0, nullptr, ICON_NONE);
+  uiItemR(sub, fileptr, "prefetch_cache_size", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
@@ -6978,19 +6992,19 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
   uiLayout *row, *sub, *subsub;
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, fileptr, "is_sequence", 0, nullptr, ICON_NONE);
+  uiItemR(row, fileptr, "is_sequence", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Override Frame"));
   sub = uiLayoutRow(row, true);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, fileptr, "override_frame", 0, "", ICON_NONE);
+  uiItemR(sub, fileptr, "override_frame", UI_ITEM_NONE, "", ICON_NONE);
   subsub = uiLayoutRow(sub, true);
   uiLayoutSetActive(subsub, RNA_boolean_get(fileptr, "override_frame"));
-  uiItemR(subsub, fileptr, "frame", 0, "", ICON_NONE);
+  uiItemR(subsub, fileptr, "frame", UI_ITEM_NONE, "", ICON_NONE);
   uiItemDecoratorR(row, fileptr, "frame", 0);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, fileptr, "frame_offset", 0, nullptr, ICON_NONE);
+  uiItemR(row, fileptr, "frame_offset", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiLayoutSetActive(row, !RNA_boolean_get(fileptr, "is_sequence"));
 }
 
@@ -7121,22 +7135,22 @@ void uiTemplateCacheFile(uiLayout *layout,
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, &fileptr, "filepath", 0, nullptr, ICON_NONE);
+  uiItemR(row, &fileptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiItemO(sub, "", ICON_FILE_REFRESH, "cachefile.reload");
 
   if (sbuts->mainb == BCONTEXT_CONSTRAINT) {
     row = uiLayoutRow(layout, false);
-    uiItemR(row, &fileptr, "scale", 0, IFACE_("Manual Scale"), ICON_NONE);
+    uiItemR(row, &fileptr, "scale", UI_ITEM_NONE, IFACE_("Manual Scale"), ICON_NONE);
   }
 
   /* TODO: unused for now, so no need to expose. */
 #if 0
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "forward_axis", 0, "Forward Axis", ICON_NONE);
+  uiItemR(row, &fileptr, "forward_axis", UI_ITEM_NONE, "Forward Axis", ICON_NONE);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &fileptr, "up_axis", 0, "Up Axis", ICON_NONE);
+  uiItemR(row, &fileptr, "up_axis", UI_ITEM_NONE, "Up Axis", ICON_NONE);
 #endif
 }
 
@@ -7162,7 +7176,7 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
                 BKE_blendfile_extension_check(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,
-                0,
+                UI_ITEM_NONE,
                 &ptr);
     RNA_string_set(&ptr, "filepath", recent->filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);

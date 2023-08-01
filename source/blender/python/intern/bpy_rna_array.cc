@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This file deals with array access for 'BPy_PropertyArrayRNA' from bpy_rna.c
+ * This file deals with array access for 'BPy_PropertyArrayRNA' from `bpy_rna.cc`.
  */
 
 #include <Python.h>

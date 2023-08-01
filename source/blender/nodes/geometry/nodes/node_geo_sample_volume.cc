@@ -113,8 +113,8 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "grid_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "interpolation_mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "grid_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "interpolation_mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

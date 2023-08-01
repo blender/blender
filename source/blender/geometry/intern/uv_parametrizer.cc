@@ -2984,10 +2984,9 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
   }
 
   if (abf) {
-    if (p_chart_abf_solve(chart)) {
-      return;
+    if (!p_chart_abf_solve(chart)) {
+      param_warning("ABF solving failed: falling back to LSCM.\n");
     }
-    param_warning("ABF solving failed: falling back to LSCM.\n");
   }
 
   if (npins <= 1) {

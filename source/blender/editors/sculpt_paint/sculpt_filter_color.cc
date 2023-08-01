@@ -439,10 +439,10 @@ static void sculpt_color_filter_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (RNA_enum_get(op->ptr, "type") == COLOR_FILTER_FILL) {
-    uiItemR(layout, op->ptr, "fill_color", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "fill_color", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

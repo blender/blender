@@ -48,6 +48,7 @@ struct PBVH_GPU_Args {
   const CustomData *loop_data;
   const CustomData *face_data;
   blender::Span<blender::float3> vert_normals;
+  blender::Span<blender::float3> face_normals;
 
   const char *active_color;
   const char *render_color;

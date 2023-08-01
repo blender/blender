@@ -29,11 +29,11 @@ struct PreviewImage;
 struct wmWindow;
 struct wmWindowManager;
 
-/* render_ops.c */
+/* `render_ops.cc` */
 
 void ED_operatortypes_render(void);
 
-/* render_update.c */
+/* `render_update.cc` */
 
 void ED_render_engine_changed(struct Main *bmain, bool update_scene_data);
 void ED_render_engine_area_exit(struct Main *bmain, struct ScrArea *area);

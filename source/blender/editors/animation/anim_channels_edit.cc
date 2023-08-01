@@ -3733,7 +3733,7 @@ static int mouse_anim_channels(bContext *C,
   }
 
   /* action to take depends on what channel we've got */
-  /* WARNING: must keep this in sync with the equivalent function in nla_channels.c */
+  /* WARNING: must keep this in sync with the equivalent function in `nla_channels.cc`. */
   switch (ale->type) {
     case ANIMTYPE_SCENE:
       notifierFlags |= click_select_channel_scene(ale, selectmode);

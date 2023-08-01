@@ -380,7 +380,7 @@ void BKE_pchan_to_mat4(const struct bPoseChannel *pchan, float r_chanmat[4][4]);
 
 /**
  * Convert the loc/rot/size to mat4 (`pchan.chan_mat`),
- * used in `constraint.c` too.
+ * used in `constraint.cc` too.
  */
 void BKE_pchan_calc_mat(struct bPoseChannel *pchan);
 
@@ -638,7 +638,7 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
                            struct Object *object);
 
 /* -------------------------------------------------------------------- */
-/** \name Deform 3D Coordinates by Armature (armature_deform.c)
+/** \name Deform 3D Coordinates by Armature (`armature_deform.cc`)
  * \{ */
 
 /* Note that we could have a 'BKE_armature_deform_coords' that doesn't take object data

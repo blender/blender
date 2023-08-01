@@ -622,16 +622,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "spread", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "thickness", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "spread", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const int mode = RNA_enum_get(ptr, "mode");
   if (mode != GP_ENVELOPE_DEFORM) {
-    uiItemR(layout, ptr, "strength", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "mat_nr", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "skip", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "mat_nr", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "skip", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);

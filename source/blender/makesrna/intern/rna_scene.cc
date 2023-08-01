@@ -1151,7 +1151,7 @@ static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value)
   scene->active_keyingset = value + 1;
 }
 
-/* XXX: evil... builtin_keyingsets is defined in keyingsets.c! */
+/* XXX: evil... builtin_keyingsets is defined in `keyingsets.cc`! */
 /* TODO: make API function to retrieve this... */
 extern "C" ListBase builtin_keyingsets;
 

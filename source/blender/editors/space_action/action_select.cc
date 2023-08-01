@@ -693,6 +693,15 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       ale->update |= ANIM_UPDATE_DEPS;
       break;
     }
+    case ANIMTYPE_GREASE_PENCIL_LAYER: {
+      blender::ed::greasepencil::select_frames_region(
+          &sel_data->ked,
+          static_cast<blender::bke::greasepencil::Layer *>(ale->data),
+          sel_data->mode,
+          sel_data->selectmode);
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
     case ANIMTYPE_MASKDATABLOCK: {
       Mask *mask = static_cast<Mask *>(ale->data);
       MaskLayer *masklay;
@@ -993,7 +1002,7 @@ static const EnumPropertyItem prop_column_select_types[] = {
 
 /* Selects all visible keyframes between the specified markers */
 /* TODO(@ideasman42): this is almost an _exact_ duplicate of a function of the same name in
- * graph_select.c should de-duplicate. */
+ * `graph_select.cc` should de-duplicate. */
 static void markers_selectkeys_between(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};
@@ -1080,7 +1089,19 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
         ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
         for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
-          ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+          switch (ale->type) {
+            case ANIMTYPE_GPLAYER:
+              ED_gpencil_layer_make_cfra_list(
+                  static_cast<bGPDlayer *>(ale->data), &ked.list, true);
+              break;
+            case ANIMTYPE_GREASE_PENCIL_LAYER:
+              blender::ed::greasepencil ::create_keyframe_edit_data_selected_frames_list(
+                  &ked, static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+              break;
+            default:
+              /* Invalid channel type. */
+              BLI_assert_unreachable();
+          }
         }
       }
       else {
@@ -1144,6 +1165,11 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
       /* select elements with frame number matching cfraelem */
       if (ale->type == ANIMTYPE_GPLAYER) {
         ED_gpencil_select_frame(static_cast<bGPDlayer *>(ale->data), ce->cfra, SELECT_ADD);
+        ale->update |= ANIM_UPDATE_DEPS;
+      }
+      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+        blender::ed::greasepencil::select_frame_at(
+            static_cast<blender::bke::greasepencil::Layer *>(ale->data), ce->cfra, SELECT_ADD);
         ale->update |= ANIM_UPDATE_DEPS;
       }
       else if (ale->type == ANIMTYPE_MASKLAYER) {

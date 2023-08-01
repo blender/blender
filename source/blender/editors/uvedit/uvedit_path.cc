@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eduv
  *
- * \note The logic in this file closely follows editmesh_path.c
+ * \note The logic in this file closely follows `editmesh_path.cc`.
  */
 
 #include <cmath>

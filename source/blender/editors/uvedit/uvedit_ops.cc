@@ -2051,7 +2051,7 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 
 void ED_operatortypes_uvedit()
 {
-  /* uvedit_select.c */
+  /* `uvedit_select.cc` */
   WM_operatortype_append(UV_OT_select_all);
   WM_operatortype_append(UV_OT_select);
   WM_operatortype_append(UV_OT_select_loop);

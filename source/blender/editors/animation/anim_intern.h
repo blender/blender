@@ -14,7 +14,7 @@ extern "C" {
 
 /* KeyingSets/Keyframing Interface ------------- */
 
-/* list of builtin KeyingSets (defined in keyingsets.c) */
+/** List of builtin KeyingSets (defined in `keyingsets.cc`). */
 extern ListBase builtin_keyingsets;
 
 /* Operator Define Prototypes ------------------- */

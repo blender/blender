@@ -24,12 +24,12 @@
 #  include "BKE_armature.h"
 #  include "BLI_math_vector.h"
 
-static void rna_EditBone_align_roll(EditBone *ebo, float no[3])
+static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])
 {
   ebo->roll = ED_armature_ebone_roll_to_vector(ebo, no, false);
 }
 
-static float rna_Bone_do_envelope(Bone *bone, float vec[3])
+static float rna_Bone_do_envelope(Bone *bone, const float vec[3])
 {
   float scale = (bone->flag & BONE_MULT_VG_ENV) == BONE_MULT_VG_ENV ? bone->weight : 1.0f;
   return distfactor_to_bone(vec,
@@ -42,10 +42,10 @@ static float rna_Bone_do_envelope(Bone *bone, float vec[3])
 
 static void rna_Bone_convert_local_to_pose(Bone *bone,
                                            float r_matrix[16],
-                                           float matrix[16],
-                                           float matrix_local[16],
-                                           float parent_matrix[16],
-                                           float parent_matrix_local[16],
+                                           const float matrix[16],
+                                           const float matrix_local[16],
+                                           const float parent_matrix[16],
+                                           const float parent_matrix_local[16],
                                            bool invert)
 {
   BoneParentTransform bpt;
@@ -74,13 +74,13 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
   BKE_bone_parent_transform_apply(&bpt, (float(*)[4])matrix, (float(*)[4])r_matrix);
 }
 
-static void rna_Bone_MatrixFromAxisRoll(float axis[3], float roll, float r_matrix[9])
+static void rna_Bone_MatrixFromAxisRoll(const float axis[3], float roll, float r_matrix[9])
 {
   vec_roll_to_mat3(axis, roll, (float(*)[3])r_matrix);
 }
 
-static void rna_Bone_AxisRollFromMatrix(float matrix[9],
-                                        float axis_override[3],
+static void rna_Bone_AxisRollFromMatrix(const float matrix[9],
+                                        const float axis_override[3],
                                         float r_axis[3],
                                         float *r_roll)
 {

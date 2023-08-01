@@ -780,7 +780,7 @@ static void action_refresh(const bContext *C, ScrArea *area)
 
     /* Perform syncing of channel state incl. selection
      * Active action setting also occurs here
-     * (as part of anim channel filtering in anim_filter.c). */
+     * (as part of anim channel filtering in `anim_filter.cc`). */
     ANIM_sync_animchannels_to_data(C);
     saction->runtime.flag &= ~SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
 

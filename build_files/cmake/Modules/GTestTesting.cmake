@@ -39,6 +39,8 @@ macro(BLENDER_SRC_GTEST_EX)
     unset(_current_include_directories)
     if(WIN32)
       set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
+    else()
+      set(MANIFEST "")
     endif()
 
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
@@ -63,10 +65,13 @@ macro(BLENDER_SRC_GTEST_EX)
                           bf_intern_guardedalloc
                           extern_gtest
                           extern_gmock
-                          # needed for glog
-                          ${PTHREADS_LIBRARIES}
+                          # Needed for GLOG.
                           ${GLOG_LIBRARIES}
                           ${GFLAGS_LIBRARIES})
+
+    if(DEFINED PTHREADS_LIBRARIES) # Needed for GLOG.
+      target_link_libraries(${TARGET_NAME} PRIVATE ${PTHREADS_LIBRARIES})
+    endif()
     if(WITH_OPENMP_STATIC)
       target_link_libraries(${TARGET_NAME} PRIVATE ${OpenMP_LIBRARIES})
     endif()
@@ -102,8 +107,8 @@ macro(BLENDER_SRC_GTEST_EX)
     endif()
     if(WIN32)
       set_target_properties(${TARGET_NAME} PROPERTIES VS_GLOBAL_VcpkgEnabled "false")
-      unset(MANIFEST)
     endif()
+    unset(MANIFEST)
     unset(TEST_INC)
     unset(TEST_INC_SYS)
     unset(TARGET_NAME)

@@ -9664,7 +9664,7 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
     }
 
     /* If type still is mouse-pan, we call it handled, since delta-y accumulate. */
-    /* also see wm_event_system.c do_wheel_ui hack */
+    /* also see `wm_event_system.cc` do_wheel_ui hack. */
     if (type == MOUSEPAN) {
       retval = WM_UI_HANDLER_BREAK;
     }

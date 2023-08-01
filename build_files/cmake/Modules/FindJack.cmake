@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  JACK_LIBRARY, where to find the JACK library.
 
-# If JACK_ROOT_DIR was defined in the environment, use it.
-IF(NOT JACK_ROOT_DIR AND NOT $ENV{JACK_ROOT_DIR} STREQUAL "")
+# If `JACK_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED JACK_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{JACK_ROOT_DIR})
   SET(JACK_ROOT_DIR $ENV{JACK_ROOT_DIR})
+ELSE()
+  SET(JACK_ROOT_DIR "")
 ENDIF()
 
 SET(_jack_SEARCH_DIRS

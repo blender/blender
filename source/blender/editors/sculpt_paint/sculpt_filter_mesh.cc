@@ -1148,9 +1148,9 @@ static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "strength", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "iteration_count", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "orientation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "iteration_count", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
   layout = uiLayoutRow(layout, true);
   uiItemR(layout, op->ptr, "deform_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }

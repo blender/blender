@@ -13,9 +13,13 @@
 # also defined, but not for general use are
 #  ICU_LIBRARY_xxx, where to find the icu libraries.
 
-# If ICU_ROOT_DIR was defined in the environment, use it.
-IF(NOT ICU_ROOT_DIR AND NOT $ENV{ICU_ROOT_DIR} STREQUAL "")
+# If `ICU_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED ICU_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{ICU_ROOT_DIR})
   SET(ICU_ROOT_DIR $ENV{ICU_ROOT_DIR})
+ELSE()
+  SET(ICU_ROOT_DIR "")
 ENDIF()
 
 if(Boost_USE_STATIC_LIBS)

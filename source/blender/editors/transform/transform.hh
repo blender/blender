@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+
 #include "ED_numinput.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
@@ -364,9 +366,8 @@ struct MouseInput {
   void (*post)(TransInfo *t, float values[3]);
 
   /** Initial mouse position. */
-  int imval[2];
-  float imval_unproj[3];
-  float center[2];
+  blender::float2 imval;
+  blender::float2 center;
   float factor;
   float precision_factor;
   bool precision;
@@ -403,7 +404,7 @@ struct TransCenterData {
 /**
  * Rule of thumb for choosing between mode/type:
  * - If transform mode uses the data, assign to `mode`
- *   (typically in transform.c).
+ *   (typically in `transform.cc`).
  * - If conversion uses the data as an extension to the #TransData, assign to `type`
  *   (typically in transform_conversion.c).
  */
@@ -701,7 +702,7 @@ void applyAspectRatio(TransInfo *t, float vec[2]);
 void removeAspectRatio(TransInfo *t, float vec[2]);
 
 /**
- * Called in transform_ops.c, on each regeneration of key-maps.
+ * Called in `transform_ops.cc`, on each regeneration of key-maps.
  */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf);
 
@@ -742,16 +743,19 @@ enum MouseInputMode {
   INPUT_CUSTOM_RATIO_FLIP,
 };
 
-void initMouseInput(
-    TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], bool precision);
+void initMouseInput(TransInfo *t,
+                    MouseInput *mi,
+                    const blender::float2 &center,
+                    const blender::float2 &mval,
+                    bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float output[3]);
+void applyMouseInput(TransInfo *t, MouseInput *mi, const blender::int2 &mval, float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
-void transform_input_reset(TransInfo *t, const int mval[2]);
+void transform_input_reset(TransInfo *t, const blender::float2 &mval);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
-void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
+void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const blender::float2 &dir);
 void setInputPostFct(MouseInput *mi, void (*post)(TransInfo *t, float values[3]));
 
 /** \} */

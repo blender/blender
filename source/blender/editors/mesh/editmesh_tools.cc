@@ -3973,8 +3973,8 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   uiItemPointerR(layout, op->ptr, "shape", &ptr_key, "key_blocks", nullptr, ICON_SHAPEKEY_DATA);
-  uiItemR(layout, op->ptr, "blend", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "add", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "blend", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "add", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
@@ -5939,16 +5939,16 @@ static void edbm_decimate_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, op->ptr, "ratio", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "ratio", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, op->ptr, "use_vertex_group", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "use_vertex_group", UI_ITEM_NONE, nullptr, ICON_NONE);
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_vertex_group"));
-  uiItemR(col, op->ptr, "vertex_group_factor", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "invert_vertex_group", 0, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "vertex_group_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "invert_vertex_group", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
-  uiItemR(row, op->ptr, "use_symmetry", 0, "", ICON_NONE);
+  uiItemR(row, op->ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "use_symmetry"));
   uiItemR(sub, op->ptr, "symmetry_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);

@@ -367,20 +367,21 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &stereo3d_format_ptr, "display_mode", 0, nullptr, ICON_NONE);
+  uiItemR(col, &stereo3d_format_ptr, "display_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   switch (s3dd->stereo3d_format.display_mode) {
     case S3D_DISPLAY_ANAGLYPH: {
-      uiItemR(col, &stereo3d_format_ptr, "anaglyph_type", 0, nullptr, ICON_NONE);
+      uiItemR(col, &stereo3d_format_ptr, "anaglyph_type", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     }
     case S3D_DISPLAY_INTERLACE: {
-      uiItemR(col, &stereo3d_format_ptr, "interlace_type", 0, nullptr, ICON_NONE);
-      uiItemR(col, &stereo3d_format_ptr, "use_interlace_swap", 0, nullptr, ICON_NONE);
+      uiItemR(col, &stereo3d_format_ptr, "interlace_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, &stereo3d_format_ptr, "use_interlace_swap", UI_ITEM_NONE, nullptr, ICON_NONE);
       break;
     }
     case S3D_DISPLAY_SIDEBYSIDE: {
-      uiItemR(col, &stereo3d_format_ptr, "use_sidebyside_crosseyed", 0, nullptr, ICON_NONE);
+      uiItemR(
+          col, &stereo3d_format_ptr, "use_sidebyside_crosseyed", UI_ITEM_NONE, nullptr, ICON_NONE);
       /* fall-through */
     }
     case S3D_DISPLAY_PAGEFLIP:

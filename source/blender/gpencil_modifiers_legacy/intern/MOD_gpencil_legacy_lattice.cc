@@ -215,7 +215,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (!RNA_pointer_is_null(&hook_object_ptr) &&
       RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE)
   {
@@ -229,7 +229,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, has_vertex_group);
   uiLayoutSetPropSep(sub, false);
-  uiItemR(sub, ptr, "invert_vertex", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "invert_vertex", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 

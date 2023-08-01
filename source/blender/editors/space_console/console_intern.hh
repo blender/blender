@@ -14,7 +14,7 @@ struct ConsoleLine;
 struct bContext;
 struct wmOperatorType;
 
-/* console_draw.c */
+/* `console_draw.cc` */
 
 void console_textview_main(struct SpaceConsole *sc, const struct ARegion *region);
 /* Needed to calculate the scroll-bar. */
@@ -24,7 +24,7 @@ int console_char_pick(struct SpaceConsole *sc, const struct ARegion *region, con
 void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
 void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy);
 
-/* console_ops.c */
+/* `console_ops.cc` */
 
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
 void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl);

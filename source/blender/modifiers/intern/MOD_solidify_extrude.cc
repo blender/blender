@@ -158,7 +158,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   const short mat_ofs_rim = mat_nr_max ? smd->mat_ofs_rim : 0;
 
   /* use for edges */
-  /* over-alloc new_vert_arr, old_vert_arr */
+  /* Over-allocate new_vert_arr, old_vert_arr. */
   uint *new_vert_arr = nullptr;
   STACK_DECLARE(new_vert_arr);
 

@@ -294,7 +294,7 @@ static void mesh_looptri_nearest_point(void *userdata,
     normal_tri_v3(nearest->no, UNPACK3(vtri_co));
   }
 }
-/* copy of function above (warning, should de-duplicate with editmesh_bvh.c) */
+/* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
 static void editmesh_looptri_nearest_point(void *userdata,
                                            int index,
                                            const float co[3],
@@ -398,7 +398,7 @@ static void mesh_looptri_spherecast(void *userdata,
     normal_tri_v3(hit->no, UNPACK3(vtri_co));
   }
 }
-/* copy of function above (warning, should de-duplicate with editmesh_bvh.c) */
+/* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
 static void editmesh_looptri_spherecast(void *userdata,
                                         int index,
                                         const BVHTreeRay *ray,

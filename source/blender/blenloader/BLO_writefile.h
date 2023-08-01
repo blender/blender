@@ -6,7 +6,7 @@
 
 /** \file
  * \ingroup blenloader
- * \brief external `writefile.c` function prototypes.
+ * \brief external `writefile.cc` function prototypes.
  */
 
 #ifdef __cplusplus

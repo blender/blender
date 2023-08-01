@@ -636,8 +636,7 @@ static bool gpencil_brush_push_apply(tGP_BrushEditData *gso,
 static void gpencil_brush_calc_midpoint(tGP_BrushEditData *gso)
 {
   /* Convert mouse position to 3D space
-   * See: gpencil_paint.c :: gpencil_stroke_convertcoords()
-   */
+   * See: `gpencil_paint.cc`, #gpencil_stroke_convertcoords(). */
   RegionView3D *rv3d = static_cast<RegionView3D *>(gso->region->regiondata);
   const float *rvec = gso->object->loc;
   const float zfac = ED_view3d_calc_zfac(rv3d, rvec);
@@ -2427,7 +2426,7 @@ static int gpencil_sculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent
         return OPERATOR_PASS_THROUGH;
 
       /* Camera/View Gizmo's - Allowed. */
-      /* (See rationale in gpencil_paint.c -> gpencil_draw_modal()) */
+      /* See rationale in `gpencil_paint.cc`, #gpencil_draw_modal(). */
       case EVT_PAD0:
       case EVT_PAD1:
       case EVT_PAD2:

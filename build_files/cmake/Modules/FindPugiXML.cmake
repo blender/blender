@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  PUGIXML_LIBRARY, where to find the PugiXML library.
 
-# If PUGIXML_ROOT_DIR was defined in the environment, use it.
-IF(NOT PUGIXML_ROOT_DIR AND NOT $ENV{PUGIXML_ROOT_DIR} STREQUAL "")
+# If `PUGIXML_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED PUGIXML_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{PUGIXML_ROOT_DIR})
   SET(PUGIXML_ROOT_DIR $ENV{PUGIXML_ROOT_DIR})
+ELSE()
+  SET(PUGIXML_ROOT_DIR "")
 ENDIF()
 
 SET(_pugixml_SEARCH_DIRS

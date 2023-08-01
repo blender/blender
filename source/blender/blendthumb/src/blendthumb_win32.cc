@@ -96,11 +96,11 @@ IFACEMETHODIMP CBlendThumb::Initialize(IStream *pStream, DWORD)
 /**
  * #FileReader compatible wrapper around the Windows stream that gives access to the .blend file.
  */
-typedef struct {
+struct StreamReader {
   FileReader reader;
 
   IStream *_pStream;
-} StreamReader;
+};
 
 static ssize_t stream_read(FileReader *reader, void *buffer, size_t size)
 {

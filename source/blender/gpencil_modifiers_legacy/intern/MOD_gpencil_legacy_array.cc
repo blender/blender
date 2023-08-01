@@ -392,8 +392,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "count", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "replace_material", 0, IFACE_("Material Override"), ICON_NONE);
+  uiItemR(layout, ptr, "count", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
 
   gpencil_modifier_panel_end(layout, ptr);
 }
@@ -404,7 +404,7 @@ static void relative_offset_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_relative_offset", 0, IFACE_("Relative Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative Offset"), ICON_NONE);
 }
 
 static void relative_offset_draw(const bContext * /*C*/, Panel *panel)
@@ -418,7 +418,7 @@ static void relative_offset_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, false);
 
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_relative_offset"));
-  uiItemR(col, ptr, "relative_offset", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(col, ptr, "relative_offset", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
 static void constant_offset_header_draw(const bContext * /*C*/, Panel *panel)
@@ -427,7 +427,7 @@ static void constant_offset_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_constant_offset", 0, IFACE_("Constant Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "use_constant_offset", UI_ITEM_NONE, IFACE_("Constant Offset"), ICON_NONE);
 }
 
 static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
@@ -441,7 +441,7 @@ static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, false);
 
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_constant_offset"));
-  uiItemR(col, ptr, "constant_offset", 0, IFACE_("Distance"), ICON_NONE);
+  uiItemR(col, ptr, "constant_offset", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
 }
 
 /**
@@ -453,7 +453,7 @@ static void object_offset_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_object_offset", 0, IFACE_("Object Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "use_object_offset", UI_ITEM_NONE, IFACE_("Object Offset"), ICON_NONE);
 }
 
 static void object_offset_draw(const bContext * /*C*/, Panel *panel)
@@ -467,7 +467,7 @@ static void object_offset_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = uiLayoutColumn(layout, false);
 
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_object_offset"));
-  uiItemR(col, ptr, "offset_object", 0, IFACE_("Object"), ICON_NONE);
+  uiItemR(col, ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 }
 
 static void random_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -478,11 +478,11 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "random_offset", 0, IFACE_("Offset"), ICON_NONE);
-  uiItemR(layout, ptr, "random_rotation", 0, IFACE_("Rotation"), ICON_NONE);
-  uiItemR(layout, ptr, "random_scale", 0, IFACE_("Scale"), ICON_NONE);
-  uiItemR(layout, ptr, "use_uniform_random_scale", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "seed", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
+  uiItemR(layout, ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+  uiItemR(layout, ptr, "use_uniform_random_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void mask_panel_draw(const bContext * /*C*/, Panel *panel)

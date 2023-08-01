@@ -8,6 +8,8 @@ set(INC
 
 set(INC_SYS
 )
+set(LIB
+)
 
 add_library(bf_intern_atomic INTERFACE)
 

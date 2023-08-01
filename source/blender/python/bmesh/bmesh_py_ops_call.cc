@@ -776,8 +776,8 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMO_op_init(bm, &bmop, BMO_FLAG_DEFAULTS, self->opname);
 
   if (kw && PyDict_Size(kw) > 0) {
-    /* setup properties, see bpy_rna.c: pyrna_py_to_prop()
-     * which shares this logic for parsing properties */
+    /* Setup properties, see `bpy_rna.cc`: #pyrna_py_to_prop()
+     * which shares this logic for parsing properties. */
 
     PyObject *key, *value;
     Py_ssize_t pos = 0;

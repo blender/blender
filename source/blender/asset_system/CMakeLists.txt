@@ -49,6 +49,8 @@ set(LIB
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     tests/asset_catalog_path_test.cc
     tests/asset_catalog_test.cc

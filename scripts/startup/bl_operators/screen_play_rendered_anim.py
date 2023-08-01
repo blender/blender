@@ -174,8 +174,8 @@ class PlayRenderedAnim(Operator):
 
         try:
             subprocess.Popen(cmd)
-        except Exception as e:
-            err_msg = tip_("Couldn't run external animation player with command %r\n%s") % (cmd, e)
+        except BaseException as ex:
+            err_msg = tip_("Couldn't run external animation player with command %r\n%s") % (cmd, ex)
             self.report(
                 {'ERROR'},
                 err_msg,

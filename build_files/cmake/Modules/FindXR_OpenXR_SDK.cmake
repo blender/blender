@@ -23,9 +23,13 @@
 # also defined, but not for general use are
 #  XR_OPENXR_SDK_LOADER_LIBRARY, where to find the OpenXR-SDK loader library.
 
-# If XR_OPENXR_SDK_ROOT_DIR was defined in the environment, use it.
-IF(NOT XR_OPENXR_SDK_ROOT_DIR AND NOT $ENV{XR_OPENXR_SDK_ROOT_DIR} STREQUAL "")
+# If `XR_OPENXR_SDK_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED XR_OPENXR_SDK_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{XR_OPENXR_SDK_ROOT_DIR})
   SET(XR_OPENXR_SDK_ROOT_DIR $ENV{XR_OPENXR_SDK_ROOT_DIR})
+ELSE()
+  SET(XR_OPENXR_SDK_ROOT_DIR "")
 ENDIF()
 
 SET(_xr_openxr_sdk_SEARCH_DIRS

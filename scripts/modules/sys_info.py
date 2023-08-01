@@ -80,8 +80,8 @@ def write_sysinfo(filepath):
                     sys.executable,
                     "--version",
                 ]).strip())
-            except Exception as e:
-                py_ver = str(e)
+            except BaseException as ex:
+                py_ver = str(ex)
             output.write("version: %s\n" % py_ver)
             del py_ver
 
@@ -232,5 +232,5 @@ def write_sysinfo(filepath):
                 else:
                     output.write("%s (version: %s, path: %s)\n" %
                                  (addon, addon_mod.bl_info.get('version', "UNKNOWN"), addon_mod.__file__))
-        except Exception as e:
-            output.write("ERROR: %s\n" % e)
+        except BaseException as ex:
+            output.write("ERROR: %s\n" % ex)

@@ -23,7 +23,7 @@ typedef enum {
   PBVH_BMESH,
 } PBVHType;
 
-/* PBVHNodeFlags is needed by DRW_render.h and draw_cache.c. */
+/* #PBVHNodeFlags is needed by `DRW_render.h` and `draw_cache.cc`. */
 typedef enum PBVHNodeFlags {
   PBVH_Leaf = 1 << 0,
 
@@ -44,7 +44,8 @@ typedef enum PBVHNodeFlags {
   PBVH_UpdateColor = 1 << 14,
   PBVH_RebuildPixels = 1 << 15,
   PBVH_TexLeaf = 1 << 16,
-  PBVH_TopologyUpdated = 1 << 17, /* Used internally by pbvh_bmesh.c */
+  /** Used internally by `pbvh_bmesh.cc`. */
+  PBVH_TopologyUpdated = 1 << 17,
 } PBVHNodeFlags;
 ENUM_OPERATORS(PBVHNodeFlags, PBVH_TopologyUpdated);
 
@@ -106,7 +107,7 @@ extern "C" {
 /* Needed by eevee_materias.c. */
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
 
-/* Needed by basic_engine.c. */
+/* Needed by `basic_engine.cc`. */
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(PBVHNode *node,
                                             void *user_data,

@@ -20,7 +20,7 @@ extern "C" {
  * passed by reference in the #GPUStageInterfaceInfo and #GPUShaderCreateInfo APIs. */
 #define USE_GPU_PY_REFERENCES
 
-/* gpu_py_shader.c */
+/* `gpu_py_shader.cc` */
 
 extern PyTypeObject BPyGPUShader_Type;
 

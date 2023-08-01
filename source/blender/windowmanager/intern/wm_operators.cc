@@ -1057,7 +1057,7 @@ int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opconte
                      RNA_property_identifier(prop),
                      static_cast<IDProperty *>(op->ptr->data),
                      opcontext,
-                     0);
+                     UI_ITEM_NONE);
     UI_popup_menu_end(C, pup);
     return OPERATOR_INTERFACE;
   }
@@ -1193,7 +1193,8 @@ int WM_operator_confirm_message_ex(bContext *C,
 
   uiPopupMenu *pup = UI_popup_menu_begin(C, title, icon);
   uiLayout *layout = UI_popup_menu_layout(pup);
-  uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, opcontext, 0, nullptr);
+  uiItemFullO_ptr(
+      layout, op->type, message, ICON_NONE, properties, opcontext, UI_ITEM_NONE, nullptr);
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;

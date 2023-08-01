@@ -406,7 +406,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       if (has_undo) {
         SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
       }
-      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
         SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
         SCULPT_undo_push_end(ob);
@@ -1190,13 +1190,13 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case AUTOMASK_SETTINGS_OPERATOR: {
-      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "blur_steps", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "invert", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "use_curve", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "blur_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "invert", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr;
@@ -1209,9 +1209,9 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
     }
     case AUTOMASK_SETTINGS_BRUSH:
     case AUTOMASK_SETTINGS_SCENE:
-      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       break;
   }

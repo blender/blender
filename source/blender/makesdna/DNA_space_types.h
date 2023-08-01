@@ -76,7 +76,7 @@ typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 #endif
 
-/** Defined in `file_intern.h`. */
+/** Defined in `file_intern.hh`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;
 
 /** Defined in `spreadsheet_intern.hh`. */
@@ -290,11 +290,12 @@ typedef struct SpaceOutliner {
 
   ListBase tree;
 
-  /* treestore is an ordered list of TreeStoreElem's from outliner tree;
+  /**
+   * Treestore is an ordered list of TreeStoreElem's from outliner tree;
    * Note that treestore may contain duplicate elements if element
    * is used multiple times in outliner tree (e. g. linked objects)
    * Also note that BLI_mempool can not be read/written in DNA directly,
-   * therefore `readfile.c/writefile.c` linearize treestore into TreeStore structure
+   * therefore `readfile.cc` / `writefile.cc` linearize treestore into #TreeStore structure.
    */
   struct BLI_mempool *treestore;
 

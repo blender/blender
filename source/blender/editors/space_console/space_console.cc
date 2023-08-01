@@ -220,7 +220,7 @@ static void console_main_region_draw(const bContext *C, ARegion *region)
 
 static void console_operatortypes()
 {
-  /* console_ops.c */
+  /* `console_ops.cc` */
   WM_operatortype_append(CONSOLE_OT_move);
   WM_operatortype_append(CONSOLE_OT_delete);
   WM_operatortype_append(CONSOLE_OT_insert);

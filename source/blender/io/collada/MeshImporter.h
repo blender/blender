@@ -134,10 +134,10 @@ class MeshImporter : public MeshImporterBase {
   bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
   /**
-   * This function is copied from source/blender/editors/mesh/mesh_data.c
+   * This function is copied from `source/blender/editors/mesh/mesh_data.cc`
    *
    * TODO: (As discussed with sergey-) :
-   * Maybe move this function to `blenderkernel/intern/mesh.c`.
+   * Maybe move this function to `blenderkernel/intern/mesh.cc`.
    * and add definition to BKE_mesh.c.
    */
   static void mesh_add_edges(Mesh *mesh, int len);

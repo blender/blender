@@ -147,7 +147,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
-  int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
+  const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
@@ -156,19 +156,19 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   int wrap_method = RNA_enum_get(ptr, "wrap_method");
 
-  uiItemR(layout, ptr, "wrap_method", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "wrap_method", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (ELEM(wrap_method,
            MOD_SHRINKWRAP_PROJECT,
            MOD_SHRINKWRAP_NEAREST_SURFACE,
            MOD_SHRINKWRAP_TARGET_PROJECT))
   {
-    uiItemR(layout, ptr, "wrap_mode", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "wrap_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "project_limit", 0, IFACE_("Limit"), ICON_NONE);
-    uiItemR(layout, ptr, "subsurf_levels", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "project_limit", UI_ITEM_NONE, IFACE_("Limit"), ICON_NONE);
+    uiItemR(layout, ptr, "subsurf_levels", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     col = uiLayoutColumn(layout, false);
     row = uiLayoutRowWithHeading(col, true, IFACE_("Axis"));
@@ -176,22 +176,22 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemR(row, ptr, "use_project_y", toggles_flag, nullptr, ICON_NONE);
     uiItemR(row, ptr, "use_project_z", toggles_flag, nullptr, ICON_NONE);
 
-    uiItemR(col, ptr, "use_negative_direction", 0, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "use_positive_direction", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_negative_direction", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_positive_direction", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
     col = uiLayoutColumn(layout, false);
     uiLayoutSetActive(col,
                       RNA_boolean_get(ptr, "use_negative_direction") &&
                           RNA_enum_get(ptr, "cull_face") != 0);
-    uiItemR(col, ptr, "use_invert_cull", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_invert_cull", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "target", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "auxiliary_target", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "auxiliary_target", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
-  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

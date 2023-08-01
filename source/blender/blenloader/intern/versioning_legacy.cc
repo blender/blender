@@ -77,7 +77,7 @@
 
 #include <cerrno>
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static void vcol_to_fcol(Mesh *me)
@@ -792,11 +792,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       sound = static_cast<bSound *>(sound->id.next);
     }
 
-    /* me->subdiv changed to reflect the actual reparametization
-     * better, and smeshes were removed - if it was a smesh make
-     * it a subsurf, and reset the subdiv level because subsurf
-     * takes a lot more work to calculate.
-     */
+    /* `me->subdiv` changed to reflect the actual reparametization
+     * better, and S-meshes were removed - if it was a S-mesh make
+     * it a subsurf, and reset the subdivision level because subsurf
+     * takes a lot more work to calculate. */
     for (me = static_cast<Mesh *>(bmain->meshes.first); me; me = static_cast<Mesh *>(me->id.next))
     {
       enum {
@@ -1164,7 +1163,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       if ((tex->flag & (TEX_CHECKER_ODD + TEX_CHECKER_EVEN)) == 0) {
         tex->flag |= TEX_CHECKER_ODD;
       }
-      /* copied from kernel texture.c */
+      /* Copied from kernel `texture.cc`. */
       if (tex->ns_outscale == 0.0f) {
         /* musgrave */
         tex->mg_H = 1.0f;
@@ -1192,9 +1191,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       wrld = static_cast<World *>(wrld->id.next);
     }
 
-    /* new variable blockscale, for panels in any area, do again because new
-     * areas didn't initialize it to 0.7 yet
-     */
+    /* New variable block-scale, for panels in any area, do again because new
+     * areas didn't initialize it to 0.7 yet. */
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {

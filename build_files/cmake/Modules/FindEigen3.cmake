@@ -11,9 +11,13 @@
 #                    This can also be an environment variable.
 #  EIGEN3_FOUND, If false, do not try to use Eigen3.
 
-# If EIGEN3_ROOT_DIR was defined in the environment, use it.
-IF(NOT EIGEN3_ROOT_DIR AND NOT $ENV{EIGEN3_ROOT_DIR} STREQUAL "")
+# If `EIGEN3_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED EIGEN3_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{EIGEN3_ROOT_DIR})
   SET(EIGEN3_ROOT_DIR $ENV{EIGEN3_ROOT_DIR})
+ELSE()
+  SET(EIGEN3_ROOT_DIR "")
 ENDIF()
 
 SET(_eigen3_SEARCH_DIRS

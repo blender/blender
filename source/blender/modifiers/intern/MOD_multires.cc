@@ -330,17 +330,17 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "levels", 0, IFACE_("Level Viewport"), ICON_NONE);
-  uiItemR(col, ptr, "sculpt_levels", 0, IFACE_("Sculpt"), ICON_NONE);
-  uiItemR(col, ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
+  uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Level Viewport"), ICON_NONE);
+  uiItemR(col, ptr, "sculpt_levels", UI_ITEM_NONE, IFACE_("Sculpt"), ICON_NONE);
+  uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_set(block, !is_sculpt_mode, IFACE_("Sculpt Base Mesh"));
-  uiItemR(col, ptr, "use_sculpt_base_mesh", 0, IFACE_("Sculpt Base Mesh"), ICON_NONE);
+  uiItemR(col, ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   UI_block_lock_clear(block);
 
-  uiItemR(layout, ptr, "show_only_control_edges", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -375,7 +375,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_CATMULL_CLARK);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -387,7 +387,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_SIMPLE);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -397,7 +397,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
               ICON_NONE,
               nullptr,
               WM_OP_EXEC_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_enum_set(&op_ptr, "mode", MULTIRES_SUBDIVIDE_LINEAR);
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
@@ -444,7 +444,7 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
     uiLayoutSetPropSep(col, true);
     row = uiLayoutRow(col, false);
-    uiItemR(row, ptr, "filepath", 0, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else {
     uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
@@ -464,15 +464,15 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, !has_displacement);
 
-  uiItemR(layout, ptr, "quality", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, true);
-  uiItemR(col, ptr, "uv_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "boundary_smooth", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "uv_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "boundary_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_creases", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

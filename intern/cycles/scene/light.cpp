@@ -1159,9 +1159,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
         /* Negative inverse area indicates ellipse. */
         invarea = -invarea;
       }
-      float3 dir = light->dir;
 
-      dir = safe_normalize(dir);
+      float3 dir = safe_normalize(light->dir);
 
       klights[portal_index].co = light->co;
       klights[portal_index].area.axis_u = axis_u;
@@ -1181,10 +1180,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       continue;
     }
 
-    float3 co = light->co;
     Shader *shader = (light->shader) ? light->shader : scene->default_light;
     int shader_id = scene->shader_manager->get_shader_id(shader);
-    int max_bounces = light->max_bounces;
     float random = (float)light->random_id * (1.0f / (float)0xFFFFFFFF);
 
     if (!light->cast_shadow)
@@ -1218,7 +1215,6 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       shader_id &= ~SHADER_AREA_LIGHT;
 
       float radius = light->size;
-
       float invarea = (radius == 0.0f)   ? 1.0f / 4.0f :
                       (light->normalize) ? 1.0f / (4.0f * M_PI_F * radius * radius) :
                                            1.0f;
@@ -1229,7 +1225,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
 
-      klights[light_index].co = co;
+      klights[light_index].co = light->co;
       klights[light_index].spot.radius = radius;
       klights[light_index].spot.eval_fac = eval_fac;
     }
@@ -1279,8 +1275,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       }
     }
     else if (light->light_type == LIGHT_AREA) {
-      float3 extentu = light->axisu * (light->sizeu * light->size);
-      float3 extentv = light->axisv * (light->sizev * light->size);
+      float light_size = light->size;
+      float3 extentu = light->axisu * (light->sizeu * light_size);
+      float3 extentv = light->axisv * (light->sizev * light_size);
 
       float len_u, len_v;
       float3 axis_u = normalize_len(extentu, &len_u);
@@ -1294,7 +1291,6 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
         /* Negative inverse area indicates ellipse. */
         invarea = -invarea;
       }
-      float3 dir = light->dir;
 
       const float half_spread = 0.5f * light->spread;
       const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
@@ -1305,12 +1301,12 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       const float normalize_spread = half_spread > 0.05f ? 1.0f / (tan_half_spread - half_spread) :
                                                            3.0f / powf(half_spread, 3.0f);
 
-      dir = safe_normalize(dir);
+      float3 dir = safe_normalize(light->dir);
 
       if (light->use_mis && area != 0.0f)
         shader_id |= SHADER_USE_MIS;
 
-      klights[light_index].co = co;
+      klights[light_index].co = light->co;
       klights[light_index].area.axis_u = axis_u;
       klights[light_index].area.len_u = len_u;
       klights[light_index].area.axis_v = axis_v;
@@ -1342,7 +1338,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
     klights[light_index].shader_id = shader_id;
 
-    klights[light_index].max_bounces = max_bounces;
+    klights[light_index].max_bounces = light->max_bounces;
     klights[light_index].random = random;
     klights[light_index].use_caustics = light->use_caustics;
 

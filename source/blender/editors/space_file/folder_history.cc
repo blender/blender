@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "file_intern.h"
+#include "file_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name FOLDERLIST (previous/next)

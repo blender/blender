@@ -63,10 +63,10 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
                UI_TEMPLATE_ID_FILTER_ALL,
                false,
                nullptr);
-  uiItemR(layout, ptr, "overflow", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "align_x", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "align_y", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "pivot_mode", 0, IFACE_("Pivot Point"), ICON_NONE);
+  uiItemR(layout, ptr, "overflow", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "align_x", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "align_y", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "pivot_mode", UI_ITEM_NONE, IFACE_("Pivot Point"), ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

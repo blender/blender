@@ -270,8 +270,8 @@ int imagewrap(Tex *tex,
     texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
-  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
-   * do not de-premul for generated alpha, it is already in straight */
+  /* De-pre-multiply, this is being pre-multiplied in #shade_input_do_shade()
+   * do not de-pre-multiply for generated alpha, it is already in straight. */
   if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     fx = 1.0f / texres->trgba[3];
     texres->trgba[0] *= fx;

@@ -106,12 +106,12 @@ void ED_undo_object_set_active_or_warn(struct Scene *scene,
                                        const char *info,
                                        struct CLG_LogRef *log);
 
-/* undo_system_types.c */
+/* `undo_system_types.cc` */
 
 void ED_undosys_type_init(void);
 void ED_undosys_type_free(void);
 
-/* memfile_undo.c */
+/* `memfile_undo.cc` */
 
 struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
 /**

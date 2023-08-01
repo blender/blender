@@ -436,7 +436,7 @@ def draw_keymaps(context, layout):
                 # Defined by user preset, may contain mistakes out of our control.
                 try:
                     kc_prefs.draw(box)
-                except Exception:
+                except BaseException:
                     import traceback
                     traceback.print_exc()
             del box

@@ -372,7 +372,8 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
       continue;
     }
     PointerRNA op_ptr;
-    uiItemFullO_ptr(layout, ot, dg->name, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &op_ptr);
+    uiItemFullO_ptr(
+        layout, ot, dg->name, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &op_ptr);
     RNA_property_enum_set(&op_ptr, ot->prop, i);
   }
   UI_popup_menu_end(C, pup);
@@ -907,7 +908,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
   ot->cancel = WM_gesture_straightline_cancel;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   prop = RNA_def_enum(ot->srna, "type", gradient_types, 0, "Type", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

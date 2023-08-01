@@ -1619,27 +1619,27 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, op->ptr, "shape_method", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "shape_method", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   {
-    uiItemR(layout, op->ptr, "rotate", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "rotate", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "rotate"));
-    uiItemR(sub, op->ptr, "rotate_method", 0, nullptr, ICON_NONE);
+    uiItemR(sub, op->ptr, "rotate_method", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "margin_method", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "margin", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin_method", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemS(layout);
   {
-    uiItemR(layout, op->ptr, "pin", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "pin", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "pin"));
-    uiItemR(sub, op->ptr, "pin_method", 0, IFACE_("Lock Method"), ICON_NONE);
+    uiItemR(sub, op->ptr, "pin_method", UI_ITEM_NONE, IFACE_("Lock Method"), ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "merge_overlap", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "udim_source", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "merge_overlap", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "udim_source", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemS(layout);
 }
 

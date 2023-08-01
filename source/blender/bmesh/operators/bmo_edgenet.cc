@@ -228,7 +228,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     normal_tri_v3(dvec2, v1->co, v4->co, v3->co);
 #else
     {
-      /* save some CPU cycles and skip the sqrt and 1 subtraction */
+      /* Save some CPU cycles and skip the `sqrt` and 1 subtraction. */
       float a1[3], a2[3], a3[3];
       sub_v3_v3v3(a1, v1->co, v2->co);
       sub_v3_v3v3(a2, v1->co, v4->co);

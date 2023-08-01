@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  ZSTD_LIBRARY, where to find the Zstd library.
 
-# If ZSTD_ROOT_DIR was defined in the environment, use it.
-IF(NOT ZSTD_ROOT_DIR AND NOT $ENV{ZSTD_ROOT_DIR} STREQUAL "")
+# If `ZSTD_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED ZSTD_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{ZSTD_ROOT_DIR})
   SET(ZSTD_ROOT_DIR $ENV{ZSTD_ROOT_DIR})
+ELSE()
+  SET(ZSTD_ROOT_DIR "")
 ENDIF()
 
 SET(_zstd_SEARCH_DIRS

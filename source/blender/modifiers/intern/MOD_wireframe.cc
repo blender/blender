@@ -115,24 +115,24 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "thickness", 0, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_boundary", 0, IFACE_("Boundary"), ICON_NONE);
-  uiItemR(col, ptr, "use_replace", 0, IFACE_("Replace Original"), ICON_NONE);
+  uiItemR(col, ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
+  uiItemR(col, ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Thickness"));
-  uiItemR(col, ptr, "use_even_offset", 0, IFACE_("Even"), ICON_NONE);
-  uiItemR(col, ptr, "use_relative_offset", 0, IFACE_("Relative"), ICON_NONE);
+  uiItemR(col, ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
+  uiItemR(col, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Crease Edges"));
-  uiItemR(row, ptr, "use_crease", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));
   uiItemR(sub, ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "material_offset", 0, IFACE_("Material Offset"), ICON_NONE);
+  uiItemR(layout, ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -153,7 +153,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "thickness_vertex_group", 0, IFACE_("Factor"), ICON_NONE);
+  uiItemR(row, ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

@@ -436,7 +436,7 @@ static void deform_verts(ModifierData *md,
 
 static void deform_verts_EM(ModifierData *md,
                             const ModifierEvalContext *ctx,
-                            BMEditMesh *editData,
+                            BMEditMesh *em,
                             Mesh *mesh,
                             float (*vertexCos)[3],
                             int verts_num)
@@ -447,7 +447,7 @@ static void deform_verts_EM(ModifierData *md,
                  ctx,
                  ctx->object,
                  mesh,
-                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? editData : nullptr,
+                 mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH ? em : nullptr,
                  vertexCos,
                  verts_num);
 }
@@ -465,7 +465,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (!RNA_pointer_is_null(&hook_object_ptr) &&
       RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE)
   {
@@ -500,13 +500,13 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "falloff_type", 0, IFACE_("Type"), ICON_NONE);
+  uiItemR(layout, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, use_falloff);
-  uiItemR(row, ptr, "falloff_radius", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "falloff_radius", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_falloff_uniform", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_falloff_uniform", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
     uiTemplateCurveMapping(layout, ptr, "falloff_curve", 0, false, false, false, false);

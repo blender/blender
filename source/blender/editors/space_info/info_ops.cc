@@ -360,7 +360,7 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
                    "method",
                    static_cast<IDProperty *>(op->ptr->data),
                    WM_OP_EXEC_REGION_WIN,
-                   0);
+                   UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 
@@ -566,7 +566,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 
 /* NOTE(@broken): Hard to decide whether to keep this as an operator,
  * or turn it into a hard_coded UI control feature,
- * handling TIMER events for all regions in `interface_handlers.c`.
+ * handling TIMER events for all regions in `interface_handlers.cc`.
  * Not sure how good that is to be accessing UI data from
  * inactive regions, so use this for now. */
 

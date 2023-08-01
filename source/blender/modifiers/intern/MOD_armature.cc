@@ -227,16 +227,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_deform_preserve_volume", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_multi_modifier", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_deform_preserve_volume", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_multi_modifier", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumnWithHeading(layout, true, IFACE_("Bind To"));
-  uiItemR(col, ptr, "use_vertex_groups", 0, IFACE_("Vertex Groups"), ICON_NONE);
-  uiItemR(col, ptr, "use_bone_envelopes", 0, IFACE_("Bone Envelopes"), ICON_NONE);
+  uiItemR(col, ptr, "use_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
+  uiItemR(col, ptr, "use_bone_envelopes", UI_ITEM_NONE, IFACE_("Bone Envelopes"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

@@ -18,7 +18,7 @@ extern "C" {
  * \param defgrp_index: Vertex group index, -1 for no vertex groups.
  *
  * \note All edge tags must be cleared.
- * \note Behavior matches MOD_solidify.c
+ * \note Behavior matches `MOD_solidify.cc`.
  */
 void BM_mesh_wireframe(BMesh *bm,
                        float offset,

@@ -12,9 +12,13 @@
 #                        This can also be an environment variable.
 #  OPENSUBDIV_FOUND, if false, do not try to use OpenSubdiv.
 
-# If OPENSUBDIV_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENSUBDIV_ROOT_DIR AND NOT $ENV{OPENSUBDIV_ROOT_DIR} STREQUAL "")
+# If `OPENSUBDIV_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OPENSUBDIV_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OPENSUBDIV_ROOT_DIR})
   SET(OPENSUBDIV_ROOT_DIR $ENV{OPENSUBDIV_ROOT_DIR})
+ELSE()
+  SET(OPENSUBDIV_ROOT_DIR "")
 ENDIF()
 
 SET(_opensubdiv_FIND_COMPONENTS

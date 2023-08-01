@@ -1853,7 +1853,7 @@ static void edittranslation_find_po_file(const char *root,
     return;
   }
 
-  /* Now try without the second iso code part (_ES in es_ES). */
+  /* Now try without the second ISO code part (`_ES` in `es_ES`). */
   {
     const char *tc = nullptr;
     size_t szt = 0;

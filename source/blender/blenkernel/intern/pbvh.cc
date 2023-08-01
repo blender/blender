@@ -693,6 +693,7 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
       args->me = pbvh->mesh;
       args->faces = pbvh->faces;
       args->vert_normals = pbvh->vert_normals;
+      args->face_normals = pbvh->face_normals;
 
       args->active_color = pbvh->mesh->active_color_attribute;
       args->render_color = pbvh->mesh->default_color_attribute;

@@ -62,6 +62,8 @@
  * and being able to set it to zero is handy. */
 /* #define USE_NUM_NO_ZERO */
 
+using namespace blender;
+
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
@@ -2021,12 +2023,12 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    int mval[2];
+    float2 mval;
     if (t->flag & T_EVENT_DRAG_START) {
-      WM_event_drag_start_mval(event, t->region, mval);
+      WM_event_drag_start_mval_fl(event, t->region, mval);
     }
     else {
-      copy_v2_v2_int(mval, event->mval);
+      mval = float2(event->mval);
     }
     initMouseInput(t, &t->mouse, t->center2d, mval, use_accurate);
   }
@@ -2059,7 +2061,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
    * values. */
   if (t->flag & T_MODAL) {
     /* Setup the mouse input with initial values. */
-    applyMouseInput(t, &t->mouse, t->mouse.imval, t->values);
+    applyMouseInput(t, &t->mouse, int2(t->mouse.imval), t->values);
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "preserve_clnor"))) {

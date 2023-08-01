@@ -157,7 +157,7 @@ static void info_operatortypes()
   WM_operatortype_append(FILE_OT_find_missing_files);
   WM_operatortype_append(INFO_OT_reports_display_update);
 
-  /* info_report.c */
+  /* `info_report.cc` */
   WM_operatortype_append(INFO_OT_select_pick);
   WM_operatortype_append(INFO_OT_select_all);
   WM_operatortype_append(INFO_OT_select_box);

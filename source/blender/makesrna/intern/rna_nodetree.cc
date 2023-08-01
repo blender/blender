@@ -4343,8 +4343,8 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self, Depsgraph *depsgraph)
 
 void rna_ShaderNodePointDensity_density_calc(bNode *self,
                                              Depsgraph *depsgraph,
-                                             int *length,
-                                             float **values)
+                                             float **values,
+                                             int *values_num)
 {
   NodeShaderTexPointDensity *shader_point_density = static_cast<NodeShaderTexPointDensity *>(
       self->storage);
@@ -4352,16 +4352,16 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
   const int resolution = shader_point_density->cached_resolution;
 
   if (depsgraph == nullptr) {
-    *length = 0;
+    *values_num = 0;
     return;
   }
 
   /* TODO(sergey): Will likely overflow, but how to pass size_t via RNA? */
-  *length = 4 * resolution * resolution * resolution;
+  *values_num = 4 * resolution * resolution * resolution;
 
   if (*values == nullptr) {
     *values = static_cast<float *>(
-        MEM_mallocN(sizeof(float) * (*length), "point density dynamic array"));
+        MEM_mallocN(sizeof(float) * (*values_num), "point density dynamic array"));
   }
 
   /* Single-threaded sampling of the voxel domain. */

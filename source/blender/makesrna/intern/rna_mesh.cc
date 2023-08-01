@@ -1959,20 +1959,14 @@ static bool rna_Mesh_is_editmode_get(PointerRNA *ptr)
 }
 
 static bool rna_Mesh_materials_override_apply(Main *bmain,
-                                              PointerRNA *ptr_dst,
-                                              PointerRNA * /*ptr_src*/,
-                                              PointerRNA * /*ptr_storage*/,
-                                              PropertyRNA *prop_dst,
-                                              PropertyRNA * /*prop_src*/,
-                                              PropertyRNA * /*prop_storage*/,
-                                              const int /*len_dst*/,
-                                              const int /*len_src*/,
-                                              const int /*len_storage*/,
-                                              PointerRNA *ptr_item_dst,
-                                              PointerRNA *ptr_item_src,
-                                              PointerRNA * /*ptr_item_storage*/,
-                                              IDOverrideLibraryPropertyOperation *opop)
+                                              RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
+  PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
                  "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);

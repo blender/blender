@@ -3329,9 +3329,16 @@ class VIEW3D_MT_paint_weight(Menu):
         if not is_editmode:
             layout.separator()
 
+            # Primarily for shortcut discoverability.
             layout.operator("paint.weight_set")
             layout.operator("paint.weight_sample", text="Sample Weight")
             layout.operator("paint.weight_sample_group", text="Sample Group")
+
+            layout.separator()
+
+            # Primarily for shortcut discoverability.
+            layout.operator("paint.weight_gradient", text="Gradient (Linear)").type = 'LINEAR'
+            layout.operator("paint.weight_gradient", text="Gradient (Radial)").type = 'RADIAL'
 
         layout.separator()
 

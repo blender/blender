@@ -108,7 +108,7 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static bScreen *screen_parent_find(const bScreen *screen)
@@ -2435,7 +2435,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
               }
 
               /* Create a tree store element for the collection. This is normally
-               * done in check_persistent (outliner_tree.c), but we need to access
+               * done in check_persistent `outliner_tree.cc`, but we need to access
                * it here :/ (expand element if it's the only one) */
               TreeStoreElem *tselem = static_cast<TreeStoreElem *>(
                   BLI_mempool_calloc(space_outliner->treestore));
@@ -3098,8 +3098,8 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #blo_do_versions_280 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */
@@ -6527,8 +6527,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #do_versions_after_linking_280 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */

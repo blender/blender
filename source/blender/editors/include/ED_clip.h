@@ -21,7 +21,7 @@ struct SpaceClip;
 struct bContext;
 struct bScreen;
 
-/*  ** clip_editor.c ** */
+/* `clip_editor.cc` */
 
 /* Returns true when the following conditions are met:
  * - Current space is Space Clip.
@@ -169,7 +169,7 @@ void ED_clip_view_lock_state_store(const struct bContext *C, ClipViewLockState *
 void ED_clip_view_lock_state_restore_no_jump(const struct bContext *C,
                                              const ClipViewLockState *state);
 
-/* ** clip_ops.c ** */
+/* `clip_ops.cc` */
 void ED_operatormacros_clip(void);
 
 #ifdef __cplusplus

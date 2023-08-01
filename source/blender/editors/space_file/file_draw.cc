@@ -55,9 +55,9 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "filelist.h"
+#include "filelist.hh"
 
-#include "file_intern.h" /* own include */
+#include "file_intern.hh" /* own include */
 
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,

@@ -201,6 +201,9 @@ void IrradianceCache::set_view(View & /*view*/)
     grid.world_to_grid_transposed = float3x4::identity();
     grid.grid_size = int3(1);
     grid.brick_offset = bricks_infos_buf_.size();
+    grid.normal_bias = 0.0f;
+    grid.view_bias = 0.0f;
+    grid.facing_bias = 0.0f;
     grids_infos_buf_[grids_len++] = grid;
     bricks_infos_buf_.append(world_brick_index_);
 

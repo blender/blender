@@ -94,7 +94,7 @@ static void rna_uiItemR(uiLayout *layout,
                         bool invert_checkbox)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-  int flag = 0;
+  eUI_Item_Flag flag = UI_ITEM_NONE;
 
   if (!prop) {
     RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
@@ -108,19 +108,35 @@ static void rna_uiItemR(uiLayout *layout,
   /* Get translated name (label). */
   name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
 
-  flag |= (slider) ? UI_ITEM_R_SLIDER : 0;
-  flag |= (expand) ? UI_ITEM_R_EXPAND : 0;
+  if (slider) {
+    flag |= UI_ITEM_R_SLIDER;
+  }
+  if (expand) {
+    flag |= UI_ITEM_R_EXPAND;
+  }
+
   if (toggle == 1) {
     flag |= UI_ITEM_R_TOGGLE;
   }
   else if (toggle == 0) {
     flag |= UI_ITEM_R_ICON_NEVER;
   }
-  flag |= (icon_only) ? UI_ITEM_R_ICON_ONLY : 0;
-  flag |= (event) ? UI_ITEM_R_EVENT : 0;
-  flag |= (full_event) ? UI_ITEM_R_FULL_EVENT : 0;
-  flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
-  flag |= (invert_checkbox) ? UI_ITEM_R_CHECKBOX_INVERT : 0;
+
+  if (icon_only) {
+    flag |= UI_ITEM_R_ICON_ONLY;
+  }
+  if (event) {
+    flag |= UI_ITEM_R_EVENT;
+  }
+  if (full_event) {
+    flag |= UI_ITEM_R_FULL_EVENT;
+  }
+  if (emboss == false) {
+    flag |= UI_ITEM_R_NO_BG;
+  }
+  if (invert_checkbox) {
+    flag |= UI_ITEM_R_CHECKBOX_INVERT;
+  }
 
   uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
@@ -148,9 +164,10 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
         "property is not an enum or color: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;
   }
-  int flag = 0;
-
-  flag |= (icon_only) ? UI_ITEM_R_ICON_ONLY : 0;
+  eUI_Item_Flag flag = UI_ITEM_NONE;
+  if (icon_only) {
+    flag |= UI_ITEM_R_ICON_ONLY;
+  }
 
   /* Get translated name (label). */
   name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
@@ -177,9 +194,10 @@ static void rna_uiItemR_with_menu(uiLayout *layout,
     RNA_warning("property is not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
     return;
   }
-  int flag = 0;
-
-  flag |= (icon_only) ? UI_ITEM_R_ICON_ONLY : 0;
+  eUI_Item_Flag flag = UI_ITEM_NONE;
+  if (icon_only) {
+    flag |= UI_ITEM_R_ICON_ONLY;
+  }
 
   /* Get translated name (label). */
   name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
@@ -328,8 +346,13 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
   if (icon_value && !icon) {
     icon = icon_value;
   }
-  int flag = (emboss) ? 0 : UI_ITEM_R_NO_BG;
-  flag |= (depress) ? UI_ITEM_O_DEPRESS : 0;
+  eUI_Item_Flag flag = UI_ITEM_NONE;
+  if (emboss == false) {
+    flag |= UI_ITEM_R_NO_BG;
+  }
+  if (depress) {
+    flag |= UI_ITEM_O_DEPRESS;
+  }
 
   PointerRNA opptr;
   uiItemFullO_ptr(
@@ -359,8 +382,13 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
   if (icon_value && !icon) {
     icon = icon_value;
   }
-  int flag = (emboss) ? 0 : UI_ITEM_R_NO_BG;
-  flag |= (depress) ? UI_ITEM_O_DEPRESS : 0;
+  eUI_Item_Flag flag = UI_ITEM_NONE;
+  if (emboss == false) {
+    flag |= UI_ITEM_R_NO_BG;
+  }
+  if (depress) {
+    flag |= UI_ITEM_O_DEPRESS;
+  }
 
   PointerRNA opptr;
   uiItemFullOMenuHold_ptr(
@@ -373,7 +401,7 @@ static void rna_uiItemsEnumO(uiLayout *layout,
                              const char *propname,
                              const bool icon_only)
 {
-  int flag = icon_only ? UI_ITEM_R_ICON_ONLY : 0;
+  eUI_Item_Flag flag = icon_only ? UI_ITEM_R_ICON_ONLY : UI_ITEM_NONE;
   uiItemsFullEnumO(layout, opname, propname, nullptr, uiLayoutGetOperatorContext(layout), flag);
 }
 

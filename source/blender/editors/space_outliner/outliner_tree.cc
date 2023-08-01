@@ -110,7 +110,7 @@ static void check_persistent(
     SpaceOutliner *space_outliner, TreeElement *te, ID *id, short type, short nr)
 {
   if (space_outliner->treestore == nullptr) {
-    /* if treestore was not created in readfile.c, create it here */
+    /* If treestore was not created in `readfile.cc`, create it here. */
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
   }

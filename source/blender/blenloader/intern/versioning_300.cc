@@ -1342,8 +1342,8 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #blo_do_versions_300 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */
@@ -1764,7 +1764,12 @@ static bool version_seq_fix_broken_sound_strips(Sequence *seq, void * /*user_dat
 
   seq->speed_factor = 1.0f;
   SEQ_retiming_data_clear(seq);
-  seq->startofs = 0.0f;
+
+  /* Broken files do have negative start offset, which should not be present in sound strips. */
+  if (seq->startofs < 0) {
+    seq->startofs = 0.0f;
+  }
+
   return true;
 }
 
@@ -4516,6 +4521,13 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        version_node_socket_name(ntree, CMP_NODE_LENSDIST, "Distort", "Distortion");
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**
@@ -4523,8 +4535,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #do_versions_after_linking_300 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */

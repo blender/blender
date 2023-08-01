@@ -177,6 +177,7 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
                                        View3D *v3d,
                                        const wmEvent *event,
                                        eViewOpsFlag viewops_flag,
+                                       const float dyn_ofs_override[3],
                                        float r_pivot[3])
 {
   if ((viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) && view3d_orbit_calc_center(C, r_pivot)) {
@@ -191,6 +192,11 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     /* Uses the `lastofs` in #view3d_orbit_calc_center. */
     BLI_assert(viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT);
     return VIEWOPS_FLAG_ORBIT_SELECT;
+  }
+
+  if (dyn_ofs_override) {
+    ED_view3d_win_to_3d_int(v3d, region, dyn_ofs_override, event->mval, r_pivot);
+    return VIEWOPS_FLAG_DEPTH_NAVIGATE;
   }
 
   const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
@@ -214,6 +220,7 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
 void ViewOpsData::init_navigation(bContext *C,
                                   const wmEvent *event,
                                   const ViewOpsType *nav_type,
+                                  const float dyn_ofs_override[3],
                                   const bool use_cursor_init)
 {
   this->nav_type = nav_type;
@@ -252,7 +259,8 @@ void ViewOpsData::init_navigation(bContext *C,
   if (viewops_flag & (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT)) {
     float pivot_new[3];
     eViewOpsFlag pivot_type = navigate_pivot_get(
-        C, depsgraph, region, v3d, event, viewops_flag, pivot_new);
+        C, depsgraph, region, v3d, event, viewops_flag, dyn_ofs_override, pivot_new);
+
     viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT);
     viewops_flag |= pivot_type;
 
@@ -490,7 +498,8 @@ static int view3d_navigation_invoke_generic(bContext *C,
                                             ViewOpsData *vod,
                                             const wmEvent *event,
                                             PointerRNA *ptr,
-                                            const ViewOpsType *nav_type)
+                                            const ViewOpsType *nav_type,
+                                            const float dyn_ofs_override[3])
 {
   if (!nav_type->init_fn) {
     return OPERATOR_CANCELLED;
@@ -501,7 +510,7 @@ static int view3d_navigation_invoke_generic(bContext *C,
     use_cursor_init = RNA_property_boolean_get(ptr, prop);
   }
 
-  vod->init_navigation(C, event, nav_type, use_cursor_init);
+  vod->init_navigation(C, event, nav_type, dyn_ofs_override, use_cursor_init);
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
   return nav_type->init_fn(C, vod, event, ptr);
@@ -514,7 +523,7 @@ int view3d_navigate_invoke_impl(bContext *C,
 {
   ViewOpsData *vod = new ViewOpsData();
   vod->init_context(C);
-  int ret = view3d_navigation_invoke_generic(C, vod, event, op->ptr, nav_type);
+  int ret = view3d_navigation_invoke_generic(C, vod, event, op->ptr, nav_type, nullptr);
   op->customdata = (void *)vod;
 
   if (ret == OPERATOR_RUNNING_MODAL) {
@@ -558,7 +567,7 @@ int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
     wmOperatorType *ot_new = WM_operatortype_find(vod->nav_type->idname, false);
     WM_operator_type_set(op, ot_new);
     vod->end_navigation(C);
-    return view3d_navigation_invoke_generic(C, vod, event, op->ptr, vod->nav_type);
+    return view3d_navigation_invoke_generic(C, vod, event, op->ptr, vod->nav_type, nullptr);
   }
 
   int ret = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
@@ -816,7 +825,7 @@ ViewOpsData *viewops_data_create(bContext *C,
 {
   ViewOpsData *vod = new ViewOpsData();
   vod->init_context(C);
-  vod->init_navigation(C, event, nav_type, use_cursor_init);
+  vod->init_navigation(C, event, nav_type, nullptr, use_cursor_init);
   return vod;
 }
 
@@ -1015,21 +1024,10 @@ ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigatio
   return new ViewOpsData_Utility(C, use_alt_navigation);
 }
 
-/* Checks and initializes the navigation modal operation. */
-static int view3d_navigation_invoke(bContext *C,
-                                    ViewOpsData *vod,
-                                    const wmEvent *event,
-                                    wmKeyMapItem *kmi,
-                                    const ViewOpsType *nav_type)
-{
-  if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return view3d_navigation_invoke_generic(C, vod, event, kmi->ptr, nav_type);
-}
-
-bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event)
+bool ED_view3d_navigation_do(bContext *C,
+                             ViewOpsData *vod,
+                             const wmEvent *event,
+                             const float depth_loc_override[3])
 {
   if (!vod) {
     return false;
@@ -1062,7 +1060,13 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
       }
 
       const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi->idname);
-      op_return = view3d_navigation_invoke(C, vod, event, kmi, nav_type);
+      if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
+        break;
+      }
+
+      op_return = view3d_navigation_invoke_generic(
+          C, vod, event, kmi->ptr, nav_type, depth_loc_override);
+
       if (op_return == OPERATOR_RUNNING_MODAL) {
         vod_intern->is_modal_event = true;
       }

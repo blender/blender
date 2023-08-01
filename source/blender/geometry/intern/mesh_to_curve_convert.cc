@@ -58,7 +58,9 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     curves.cyclic_for_write().slice(cyclic_curves).fill(true);
   }
 
-  const bool share_vert_data = indices_are_full_ordered_copy(vert_indices);
+  const int src_total_points = mesh_attributes.domain_size(ATTR_DOMAIN_POINT);
+  const bool share_vert_data = vert_indices.size() == src_total_points &&
+                               indices_are_full_ordered_copy(vert_indices);
   if (share_vert_data) {
     bke::copy_attributes(
         mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, curves_attributes);

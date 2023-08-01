@@ -18,6 +18,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
+#include "BKE_object.h"
 #include "BKE_unit.h"
 
 #include "DNA_mesh_types.h"
@@ -223,7 +224,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
    */
   DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  Mesh *me = static_cast<Mesh *>(ob->data);
+  Mesh *me = BKE_object_get_editmesh_eval_cage(ob);
   BMEditMesh *em = me->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */

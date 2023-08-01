@@ -284,7 +284,7 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
 {
   if (!ELEM(stereo_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
     /* Early Exit: the other display modes need access to the full screen and cannot be
-     * done from a single viewport. See `wm_stereo.c` */
+     * done from a single viewport. See `wm_stereo.cc`. */
     return;
   }
   /* The composite framebuffer object needs to be created in the window context. */

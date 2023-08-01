@@ -2944,7 +2944,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
-  uiItemR(layout, op->ptr, "load_ui", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   if (file_info->is_untrusted) {
@@ -2956,7 +2956,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
     autoexec_text = IFACE_("Trusted Source");
   }
 
-  uiItemR(col, op->ptr, "use_scripts", 0, autoexec_text, ICON_NONE);
+  uiItemR(col, op->ptr, "use_scripts", UI_ITEM_NONE, autoexec_text, ICON_NONE);
 }
 
 static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
@@ -3580,7 +3580,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiItemR(layout,
           &pref_ptr,
           "use_scripts_auto_execute",
-          0,
+          UI_ITEM_NONE,
           TIP_("Permanently allow execution of scripts"),
           ICON_NONE);
 
@@ -3988,7 +3988,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 
   if (file_has_been_saved_before) {
     if (bmain->has_forward_compatibility_issues) {
-      /* Need to invoke to get the filebrowser and choose where to save the new file.
+      /* Need to invoke to get the file-browser and choose where to save the new file.
        * This also makes it impossible to keep on going with current operation, which is why
        * callback cannot be executed anymore.
        *

@@ -554,7 +554,7 @@ void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
 void BKE_crazyspace_api_displacement_to_deformed(Object *object,
                                                  ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement[3],
+                                                 const float displacement[3],
                                                  float r_displacement_deformed[3])
 {
   if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
@@ -574,7 +574,7 @@ void BKE_crazyspace_api_displacement_to_deformed(Object *object,
 void BKE_crazyspace_api_displacement_to_original(Object *object,
                                                  ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement_deformed[3],
+                                                 const float displacement_deformed[3],
                                                  float r_displacement[3])
 {
   if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
@@ -674,13 +674,13 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
   BLI_assert(ob_orig.type == OB_GREASE_PENCIL);
   const GreasePencil &grease_pencil_orig = *static_cast<const GreasePencil *>(ob_orig.data);
 
-  GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawings()[drawing_index];
+  GreasePencilDrawingBase *drawing_base = grease_pencil_orig.drawings(drawing_index);
 
   GeometryDeformation deformation;
   if (drawing_base->type == GP_DRAWING) {
     GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
     /* Use the undeformed positions by default. */
-    deformation.positions = drawing->geometry.wrap().positions();
+    deformation.positions = drawing->wrap().strokes().positions();
   }
   else if (drawing_base->type == GP_DRAWING_REFERENCE) {
     /* TODO */

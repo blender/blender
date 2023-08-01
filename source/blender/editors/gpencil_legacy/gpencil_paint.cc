@@ -3045,7 +3045,7 @@ static void gpencil_draw_apply_event(bContext *C,
     /* get stroke angle for grids */
     if (ELEM(guide->type, GP_GUIDE_ISO)) {
       p->guide.stroke_angle = atan2f(pt[1], pt[0]);
-      /* determine iso angle, less weight is given for vertical strokes */
+      /* Determine ISO angle, less weight is given for vertical strokes. */
       if (((p->guide.stroke_angle >= 0.0f) && (p->guide.stroke_angle < DEG2RAD(75))) ||
           (p->guide.stroke_angle < DEG2RAD(-105)))
       {

@@ -302,7 +302,7 @@ eWM_GizmoFlagMapDrawStep WM_gizmomap_drawstep_from_gizmo_group(const wmGizmoGrou
 
 void WM_gizmomap_tag_refresh_drawstep(wmGizmoMap *gzmap, const eWM_GizmoFlagMapDrawStep drawstep)
 {
-  BLI_assert((uint)drawstep < WM_GIZMOMAP_DRAWSTEP_MAX);
+  BLI_assert(uint(drawstep) < WM_GIZMOMAP_DRAWSTEP_MAX);
   if (gzmap) {
     gzmap->update_flag[drawstep] |= (GIZMOMAP_IS_PREPARE_DRAW | GIZMOMAP_IS_REFRESH_CALLBACK);
   }

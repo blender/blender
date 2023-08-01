@@ -252,7 +252,7 @@ struct PlayState {
 static void print_ps(PlayState *ps)
 {
   printf("ps:\n");
-  printf("    direction=%d,\n", (int)ps->direction);
+  printf("    direction=%d,\n", int(ps->direction));
   printf("    once=%d,\n", ps->once);
   printf("    pingpong=%d,\n", ps->pingpong);
   printf("    noskip=%d,\n", ps->noskip);

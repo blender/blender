@@ -101,7 +101,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  vod.init_navigation(C, nullptr, &ViewOpsType_orbit, false);
+  vod.init_navigation(C, nullptr, &ViewOpsType_orbit, nullptr, false);
 
   int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
   float quat_mul[4];

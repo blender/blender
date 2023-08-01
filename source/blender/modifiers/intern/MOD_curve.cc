@@ -178,8 +178,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, IFACE_("Curve Object"), ICON_NONE);
-  uiItemR(layout, ptr, "deform_axis", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, IFACE_("Curve Object"), ICON_NONE);
+  uiItemR(layout, ptr, "deform_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

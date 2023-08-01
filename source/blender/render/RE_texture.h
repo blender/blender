@@ -21,7 +21,7 @@ struct Tex;
 extern "C" {
 #endif
 
-/* texture_procedural.c */
+/* `texture_procedural.cc` */
 
 /**
  * \param pool: Thread pool, may be NULL.
@@ -50,11 +50,11 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void RE_texture_rng_init(void);
 void RE_texture_rng_exit(void);
 
-/* texture_image.c */
+/* `texture_image.cc` */
 
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 
-/* texture_pointdensity.c */
+/* `texture_pointdensity.cc` */
 
 struct PointDensity;
 
@@ -78,7 +78,7 @@ void RE_point_density_free(struct PointDensity *pd);
 
 void RE_point_density_fix_linking(void);
 
-/* texture_procedural.c */
+/* `texture_procedural.cc` */
 
 /**
  * Texture evaluation result.
@@ -100,7 +100,7 @@ typedef struct TexResult {
  * Use it for stuff which is out of render pipeline.
  */
 int multitex_ext(struct Tex *tex,
-                 float texvec[3],
+                 const float texvec[3],
                  float dxt[3],
                  float dyt[3],
                  int osatex,

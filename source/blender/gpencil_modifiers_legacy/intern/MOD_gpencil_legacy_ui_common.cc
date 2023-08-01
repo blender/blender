@@ -107,14 +107,14 @@ void gpencil_modifier_masking_panel_draw(Panel *panel, bool use_material, bool u
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, has_layer);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, ptr, "invert_layers", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "invert_layers", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "layer_pass", 0, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "layer_pass", UI_ITEM_NONE, nullptr, ICON_NONE);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, RNA_int_get(ptr, "layer_pass") != 0);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, ptr, "invert_layer_pass", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "invert_layer_pass", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   if (use_material) {
     PointerRNA material_ptr = RNA_pointer_get(ptr, "material");
@@ -153,14 +153,14 @@ void gpencil_modifier_masking_panel_draw(Panel *panel, bool use_material, bool u
     sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_material);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, ptr, "invert_materials", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_materials", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
     row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "pass_index", 0, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "pass_index", UI_ITEM_NONE, nullptr, ICON_NONE);
     sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, RNA_int_get(ptr, "pass_index") != 0);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, ptr, "invert_material_pass", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_material_pass", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 
   if (use_vertex) {
@@ -171,7 +171,7 @@ void gpencil_modifier_masking_panel_draw(Panel *panel, bool use_material, bool u
     sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, ptr, "invert_vertex", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_vertex", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 }
 
@@ -181,7 +181,7 @@ void gpencil_modifier_curve_header_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_custom_curve", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void gpencil_modifier_curve_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -269,7 +269,7 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
               ICON_TRIA_UP,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
   if (!md->prev) {
@@ -284,7 +284,7 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
               ICON_TRIA_DOWN,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->greasepencil_modifiers) - 1);
   if (!md->next) {
@@ -316,7 +316,7 @@ static void gpencil_modifier_panel_header(const bContext * /*C*/, Panel *panel)
   /* Modifier name. */
   row = uiLayoutRow(layout, true);
   if (!narrow_panel) {
-    uiItemR(row, ptr, "name", 0, "", ICON_NONE);
+    uiItemR(row, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
@@ -325,10 +325,10 @@ static void gpencil_modifier_panel_header(const bContext * /*C*/, Panel *panel)
   /* Display mode buttons. */
   if (mti->flags & eGpencilModifierTypeFlag_SupportsEditmode) {
     sub = uiLayoutRow(row, true);
-    uiItemR(sub, ptr, "show_in_editmode", 0, "", ICON_NONE);
+    uiItemR(sub, ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
   }
-  uiItemR(row, ptr, "show_viewport", 0, "", ICON_NONE);
-  uiItemR(row, ptr, "show_render", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(row, ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators. */
   // row = uiLayoutRow(layout, true);

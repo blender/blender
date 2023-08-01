@@ -5,7 +5,7 @@
 /** \file
  * \ingroup edsculpt
  *
- * Intended for use by `paint_vertex.c` & `paint_vertex_weight_ops.c`.
+ * Intended for use by `paint_vertex.cc` & `paint_vertex_weight_ops.cc`.
  */
 
 #include "BLI_listbase.h"

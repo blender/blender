@@ -1356,10 +1356,7 @@ enum eDynTopoWarnFlag {
 ENUM_OPERATORS(eDynTopoWarnFlag, DYNTOPO_WARN_MODIFIER);
 
 /** Enable dynamic topology; mesh will be triangulated */
-void SCULPT_dynamic_topology_enable_ex(Main *bmain,
-                                       Depsgraph *depsgraph,
-                                       Scene *scene,
-                                       Object *ob);
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob);
 void SCULPT_dynamic_topology_disable(bContext *C, SculptUndoNode *unode);
 void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
                                                Depsgraph *depsgraph,

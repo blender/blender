@@ -355,13 +355,13 @@ static void eevee_cryptomatte_download_buffer(EEVEE_Data *vedata, GPUFrameBuffer
                              GPU_DATA_FLOAT,
                              download_buffer);
 
-  /* Integrate download buffer into the accum buffer.
+  /* Integrate download buffer into the accumulation buffer.
    * The download buffer contains up to 3 floats per pixel (one float per cryptomatte layer.
    *
    * NOTE: here we deviate from the cryptomatte standard. During integration the standard always
    * sort the samples by its weight to make sure that samples with the lowest weight
    * are discarded first. In our case the weight of each sample is always 1 as we don't have
-   * subsamples and apply the coverage during the post processing. When there is no room for new
+   * sub-samples and apply the coverage during the post processing. When there is no room for new
    * samples the new samples has a weight of 1 and will always be discarded. */
   int download_pixel_index = 0;
   int accum_pixel_index = 0;
@@ -424,7 +424,7 @@ void EEVEE_cryptomatte_output_accumulate(EEVEE_ViewLayerData * /*sldata*/, EEVEE
 
 void EEVEE_cryptomatte_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
-  /* NOTE: Name channels lowercase rgba so that compression rules check in OpenEXR DWA code uses
+  /* NOTE: Name channels lowercase RGBA so that compression rules check in OpenEXR DWA code uses
    * lossless compression. Reportedly this naming is the only one which works good from the
    * interoperability point of view. Using XYZW naming is not portable. */
 

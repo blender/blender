@@ -20,17 +20,17 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/* space_image.c */
+/* `space_image.cc` */
 
 extern const char *image_context_dir[]; /* doc access */
 
-/* image_draw.c */
+/* `image_draw.cc` */
 
 void draw_image_main_helpers(const struct bContext *C, struct ARegion *region);
 void draw_image_cache(const struct bContext *C, struct ARegion *region);
 void draw_image_sample_line(struct SpaceImage *sima);
 
-/* image_ops.c */
+/* `image_ops.cc` */
 
 bool space_image_main_region_poll(struct bContext *C);
 bool space_image_view_center_cursor_poll(struct bContext *C);

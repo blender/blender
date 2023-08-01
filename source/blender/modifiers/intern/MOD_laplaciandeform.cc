@@ -530,7 +530,7 @@ static void initSystem(
 
   if (isValidVertexGroup(lmd, ob, mesh)) {
     int *index_anchors = static_cast<int *>(
-        MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* over-alloc */
+        MEM_malloc_arrayN(verts_num, sizeof(int), __func__)); /* Over-allocate. */
 
     STACK_DECLARE(index_anchors);
 
@@ -777,7 +777,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

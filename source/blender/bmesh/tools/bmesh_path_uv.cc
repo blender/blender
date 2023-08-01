@@ -30,7 +30,7 @@
 /**
  * Use skip options when we want to start measuring from a boundary.
  *
- * See #step_cost_3_v3_ex in bmesh_path.c which follows the same logic.
+ * See #step_cost_3_v3_ex in `bmesh_path.cc` which follows the same logic.
  */
 static float step_cost_3_v2_ex(
     const float v1[2], const float v2[2], const float v3[2], bool skip_12, bool skip_23)

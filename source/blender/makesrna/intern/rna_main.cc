@@ -170,7 +170,7 @@ void RNA_def_main(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* plural must match idtypes in readblenentry.c */
+  /* Plural must match ID-types in `readblenentry.cc`. */
   MainCollectionDef lists[] = {
       {"cameras",
        "Camera",

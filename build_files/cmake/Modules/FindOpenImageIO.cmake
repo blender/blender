@@ -17,9 +17,13 @@
 # also defined, but not for general use are
 #  OPENIMAGEIO_LIBRARY, where to find the OpenImageIO library.
 
-# If OPENIMAGEIO_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENIMAGEIO_ROOT_DIR AND NOT $ENV{OPENIMAGEIO_ROOT_DIR} STREQUAL "")
+# If `OPENIMAGEIO_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OPENIMAGEIO_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OPENIMAGEIO_ROOT_DIR})
   SET(OPENIMAGEIO_ROOT_DIR $ENV{OPENIMAGEIO_ROOT_DIR})
+ELSE()
+  SET(OPENIMAGEIO_ROOT_DIR "")
 ENDIF()
 
 SET(_openimageio_SEARCH_DIRS

@@ -2156,9 +2156,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
       vsm->zone = SCROLLHANDLE_BAR;
     }
 
-    /* check if zoom zones are inappropriate (i.e. zoom widgets not shown), so cannot continue
-     * NOTE: see view2d.c for latest conditions, and keep this in sync with that
-     */
+    /* Check if zoom zones are inappropriate (i.e. zoom widgets not shown), so cannot continue
+     * NOTE: see `view2d.cc` for latest conditions, and keep this in sync with that. */
     if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
       if (((vsm->scroller == 'h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HANDLES) == 0) ||
           ((vsm->scroller == 'v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HANDLES) == 0))

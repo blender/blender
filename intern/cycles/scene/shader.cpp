@@ -339,6 +339,18 @@ void Shader::tag_update(Scene *scene)
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
 
+  if (!has_surface) {
+    foreach (ShaderNode *node, graph->nodes) {
+      if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
+        foreach (const ShaderInput *in, node->inputs) {
+          if (in->link) {
+            has_surface = true;
+          }
+        }
+      }
+    }
+  }
+
   /* get requested attributes. this could be optimized by pruning unused
    * nodes here already, but that's the job of the shader manager currently,
    * and may not be so great for interactive rendering where you temporarily
@@ -347,8 +359,9 @@ void Shader::tag_update(Scene *scene)
   AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes)
+  foreach (ShaderNode *node, graph->nodes) {
     node->attributes(this, &attributes);
+  }
 
   if (has_displacement) {
     if (displacement_method == DISPLACE_BOTH) {

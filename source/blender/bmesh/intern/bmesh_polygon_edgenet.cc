@@ -1563,7 +1563,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         BMVert *v_origin = g->vert_span.min;
         /* Index of BMVert for the edge group connection with `v_origin`. */
         const int index_other = bm_face_split_edgenet_find_connection(&args, v_origin, false);
-        // BLI_assert(index_other >= 0 && index_other < (int)vert_arr_len);
+        // BLI_assert(index_other >= 0 && index_other < int(vert_arr_len));
 
         /* only for degenerate geometry */
         if (index_other != -1) {
@@ -1590,7 +1590,7 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
         BMVert *v_origin = g->vert_span.max;
         /* Index of BMVert for the edge group connection with `v_origin`. */
         const int index_other = bm_face_split_edgenet_find_connection(&args, v_origin, true);
-        // BLI_assert(index_other >= 0 && index_other < (int)vert_arr_len);
+        // BLI_assert(index_other >= 0 && index_other < int(vert_arr_len));
 
         /* only for degenerate geometry */
         if (index_other != -1) {

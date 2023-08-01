@@ -366,9 +366,10 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   col = uiLayoutColumn(row, true);
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_output_file_move_active_socket", false);
-  uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  uiItemFullO_ptr(col, ot, "", ICON_TRIA_UP, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
   RNA_enum_set(&op_ptr, "direction", 1);
-  uiItemFullO_ptr(col, ot, "", ICON_TRIA_DOWN, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  uiItemFullO_ptr(
+      col, ot, "", ICON_TRIA_DOWN, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
   RNA_enum_set(&op_ptr, "direction", 2);
 
   if (active_input_ptr.data) {

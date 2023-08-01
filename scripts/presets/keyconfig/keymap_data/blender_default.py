@@ -4708,7 +4708,6 @@ def km_pose(params):
 
     items.extend([
         # Transform Actions.
-        # NOTE: pose mode transform should match the "Weight Paint" key-map.
         *_template_items_transform_actions(params, use_mirror=True),
 
         ("object.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
@@ -5188,6 +5187,11 @@ def km_weight_paint(params):
             ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
             ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
              {"properties": [("toggle", True)]}),
+
+            # Ctrl-Shift-LMB is needed for MMB emulation (which conflicts with Alt).
+            # NOTE: this works reasonably well for pose-mode where typically selecting a single bone is sufficient.
+            # For selecting faces/vertices, this is less useful. Selection tools are needed in this case.
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
         ])
 
     if params.legacy:

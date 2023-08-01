@@ -31,8 +31,8 @@ typedef struct TreeStore {
   /** Number of elements in data array. */
   int usedelem;
   /**
-   * Elements to be packed from mempool in `writefile.c`
-   * or extracted to mempool in `readfile.c`.
+   * Elements to be packed from mempool in `writefile.cc`
+   * or extracted to mempool in `readfile.cc`.
    */
   TreeStoreElem *data;
 } TreeStore;

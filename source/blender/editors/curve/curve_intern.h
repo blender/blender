@@ -20,7 +20,7 @@ struct wmOperatorType;
 extern "C" {
 #endif
 
-/* editfont.c */
+/* `editfont.cc` */
 
 enum {
   DEL_NEXT_CHAR,
@@ -103,7 +103,7 @@ void FONT_OT_unlink(struct wmOperatorType *ot);
 void FONT_OT_textbox_add(struct wmOperatorType *ot);
 void FONT_OT_textbox_remove(struct wmOperatorType *ot);
 
-/* editcurve.c */
+/* `editcurve.cc` */
 
 void CURVE_OT_hide(struct wmOperatorType *ot);
 void CURVE_OT_reveal(struct wmOperatorType *ot);
@@ -144,7 +144,7 @@ void CURVE_OT_match_texture_space(struct wmOperatorType *ot);
 struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
-/* exported for editcurve_pen.c */
+/* exported for `editcurve_pen.cc` */
 
 int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float location_init[3]);
 bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction);
@@ -174,7 +174,7 @@ bool ed_editnurb_spin(float viewmat[4][4],
                       const float axis[3],
                       const float cent[3]);
 
-/* editcurve_select.c */
+/* `editcurve_select.cc` */
 
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
@@ -191,7 +191,7 @@ void CURVE_OT_select_nth(struct wmOperatorType *ot);
 void CURVE_OT_select_similar(struct wmOperatorType *ot);
 void CURVE_OT_shortest_path_pick(struct wmOperatorType *ot);
 
-/* editcurve_add.c */
+/* `editcurve_add.cc` */
 
 void CURVE_OT_primitive_bezier_curve_add(struct wmOperatorType *ot);
 void CURVE_OT_primitive_bezier_circle_add(struct wmOperatorType *ot);
@@ -206,7 +206,7 @@ void SURFACE_OT_primitive_nurbs_surface_cylinder_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(struct wmOperatorType *ot);
 void SURFACE_OT_primitive_nurbs_surface_torus_add(struct wmOperatorType *ot);
 
-/* editcurve_query.c */
+/* `editcurve_query.cc` */
 
 bool ED_curve_pick_vert(struct ViewContext *vc,
                         short sel,
@@ -232,11 +232,11 @@ bool ED_curve_pick_vert_ex(struct ViewContext *vc,
 void ED_curve_nurb_vert_selected_find(
     Curve *cu, View3D *v3d, Nurb **r_nu, BezTriple **r_bezt, BPoint **r_bp);
 
-/* editcurve_paint.c */
+/* `editcurve_paint.cc` */
 
 void CURVE_OT_draw(struct wmOperatorType *ot);
 
-/* editcurve_pen.c */
+/* `editcurve_pen.cc` */
 
 void CURVE_OT_pen(struct wmOperatorType *ot);
 struct wmKeyMap *curve_pen_modal_keymap(struct wmKeyConfig *keyconf);

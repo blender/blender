@@ -205,7 +205,7 @@ static void callback_clg_fatal(void *fp)
 
 #ifdef WITH_PYTHON_MODULE
 
-/* Called in `bpy_interface.c` when building as a Python module. */
+/* Called in `bpy_interface.cc` when building as a Python module. */
 int main_python_enter(int argc, const char **argv);
 void main_python_exit(void);
 
@@ -425,7 +425,7 @@ int main(int argc,
 
   DNA_sdna_current_init();
 
-  BKE_blender_globals_init(); /* blender.c */
+  BKE_blender_globals_init(); /* `blender.cc` */
 
   BKE_cpp_types_init();
   BKE_idtype_init();

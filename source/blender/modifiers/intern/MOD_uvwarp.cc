@@ -256,21 +256,21 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemPointerR(layout, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "center", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "center", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "axis_u", 0, IFACE_("Axis U"), ICON_NONE);
-  uiItemR(col, ptr, "axis_v", 0, IFACE_("V"), ICON_NONE);
+  uiItemR(col, ptr, "axis_u", UI_ITEM_NONE, IFACE_("Axis U"), ICON_NONE);
+  uiItemR(col, ptr, "axis_v", UI_ITEM_NONE, IFACE_("V"), ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "object_from", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "object_from", UI_ITEM_NONE, nullptr, ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_from");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
     uiItemPointerR(col, ptr, "bone_from", &warp_obj_data_ptr, "bones", nullptr, ICON_NONE);
   }
 
-  uiItemR(col, ptr, "object_to", 0, IFACE_("To"), ICON_NONE);
+  uiItemR(col, ptr, "object_to", UI_ITEM_NONE, IFACE_("To"), ICON_NONE);
   warp_obj_ptr = RNA_pointer_get(ptr, "object_to");
   if (!RNA_pointer_is_null(&warp_obj_ptr) && RNA_enum_get(&warp_obj_ptr, "type") == OB_ARMATURE) {
     PointerRNA warp_obj_data_ptr = RNA_pointer_get(&warp_obj_ptr, "data");
@@ -290,9 +290,9 @@ static void transform_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "offset", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

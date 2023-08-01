@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  FFTW3_LIBRARY, where to find the Fftw3 library.
 
-# If FFTW3_ROOT_DIR was defined in the environment, use it.
-IF(NOT FFTW3_ROOT_DIR AND NOT $ENV{FFTW3_ROOT_DIR} STREQUAL "")
+# If `FFTW3_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED FFTW3_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{FFTW3_ROOT_DIR})
   SET(FFTW3_ROOT_DIR $ENV{FFTW3_ROOT_DIR})
+ELSE()
+  SET(FFTW3_ROOT_DIR "")
 ENDIF()
 
 SET(_fftw3_SEARCH_DIRS

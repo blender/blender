@@ -49,7 +49,7 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-/* to use custom arrows exported to geom_arrow_gizmo.c */
+// /** To use custom arrows exported to `geom_arrow_gizmo.cc`. */
 // #define USE_GIZMO_CUSTOM_ARROWS
 
 /* Margin to add when selecting the arrow. */
@@ -269,7 +269,7 @@ static void gizmo_arrow_draw(const bContext * /*C*/, wmGizmo *gz)
 static int gizmo_arrow_test_select(bContext * /*C*/, wmGizmo *gz, const int mval[2])
 {
   /* This following values are based on manual inspection of `verts[]` defined in
-   * geom_arrow_gizmo.c */
+   * `geom_arrow_gizmo.cc`. */
   const float head_center_z = (0.974306f + 1.268098f) / 2;
   const float head_geo_x = 0.051304f;
   const float stem_geo_x = 0.012320f;

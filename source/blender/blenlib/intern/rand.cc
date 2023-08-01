@@ -25,7 +25,7 @@
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
 
-extern "C" uchar BLI_noise_hash_uchar_512[512]; /* noise.c */
+extern "C" uchar BLI_noise_hash_uchar_512[512]; /* `noise.cc` */
 #define hash BLI_noise_hash_uchar_512
 
 /**

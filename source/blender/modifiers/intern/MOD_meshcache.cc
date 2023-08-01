@@ -294,12 +294,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "cache_format", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "filepath", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "cache_format", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "factor", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "deform_mode", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "interpolation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "deform_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "interpolation", UI_ITEM_NONE, nullptr, ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
@@ -318,19 +318,19 @@ static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "play_mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   if (RNA_enum_get(ptr, "play_mode") == MOD_MESHCACHE_PLAY_CFEA) {
-    uiItemR(layout, ptr, "frame_start", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "frame_scale", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "frame_start", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "frame_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else { /* play_mode == MOD_MESHCACHE_PLAY_EVAL */
     int time_mode = RNA_enum_get(ptr, "time_mode");
     if (time_mode == MOD_MESHCACHE_TIME_FRAME) {
-      uiItemR(layout, ptr, "eval_frame", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_frame", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     else if (time_mode == MOD_MESHCACHE_TIME_SECONDS) {
-      uiItemR(layout, ptr, "eval_time", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_time", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     else { /* time_mode == MOD_MESHCACHE_TIME_FACTOR */
-      uiItemR(layout, ptr, "eval_factor", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
   }
 }
@@ -346,8 +346,8 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, true);
   uiLayoutSetRedAlert(col, RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
-  uiItemR(col, ptr, "forward_axis", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "up_axis", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "flip_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }

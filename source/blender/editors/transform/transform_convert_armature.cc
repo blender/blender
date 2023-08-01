@@ -1582,7 +1582,7 @@ static short apply_targetless_ik(Object *ob)
     data = has_targetless_ik(pchan);
     if (data && (data->flag & CONSTRAINT_IK_AUTO)) {
 
-      /* fill the array with the bones of the chain (armature.c does same, keep it synced) */
+      /* Fill the array with the bones of the chain (`armature.cc` does same, keep it synced). */
       segcount = 0;
 
       /* exclude tip from chain? */

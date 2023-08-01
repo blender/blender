@@ -211,7 +211,7 @@ void ED_operatormacros_gpencil(void);
 void ED_gpencil_strokes_copybuf_free(void);
 
 /* ------------ Grease-Pencil Drawing API ------------------ */
-/* drawgpencil.c */
+/* `drawgpencil.cc` */
 
 /**
  * Draw grease-pencil sketches to specified 2d-view that uses `ibuf` corrections.

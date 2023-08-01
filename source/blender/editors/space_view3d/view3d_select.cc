@@ -1900,7 +1900,8 @@ static bool bone_mouse_select_menu(bContext *C,
 
   GSet *added_bones = BLI_gset_ptr_new("Bone mouse select menu");
 
-  /* Select logic taken from ed_armature_pick_bone_from_selectbuffer_impl in armature_select.c */
+  /* Select logic taken from #ed_armature_pick_bone_from_selectbuffer_impl
+   * in `armature_select.cc`. */
   for (int a = 0; a < hits; a++) {
     void *bone_ptr = nullptr;
     Base *bone_base = nullptr;

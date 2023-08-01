@@ -93,9 +93,9 @@ static void rna_Mesh_calc_looptri(Mesh *mesh)
 }
 
 static void rna_Mesh_calc_smooth_groups(
-    Mesh *mesh, bool use_bitflags, int *r_poly_group_len, int **r_poly_group, int *r_group_total)
+    Mesh *mesh, bool use_bitflags, int **r_poly_group, int *r_poly_group_num, int *r_group_total)
 {
-  *r_poly_group_len = mesh->faces_num;
+  *r_poly_group_num = mesh->faces_num;
   const bool *sharp_edges = (const bool *)CustomData_get_layer_named(
       &mesh->edge_data, CD_PROP_BOOL, "sharp_edge");
   const bool *sharp_faces = (const bool *)CustomData_get_layer_named(
@@ -111,16 +111,16 @@ static void rna_Mesh_calc_smooth_groups(
 
 static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               ReportList *reports,
-                                              int normals_len,
-                                              float *normals)
+                                              const float *normals,
+                                              int normals_num)
 {
   float(*loop_normals)[3] = (float(*)[3])normals;
   const int numloops = mesh->totloop;
-  if (normals_len != numloops * 3) {
+  if (normals_num != numloops * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Number of custom normals is not number of loops (%f / %d)",
-                float(normals_len) / 3.0f,
+                float(normals_num) / 3.0f,
                 numloops);
     return;
   }
@@ -132,16 +132,16 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
 
 static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             ReportList *reports,
-                                                            int normals_len,
-                                                            float *normals)
+                                                            const float *normals,
+                                                            int normals_num)
 {
   float(*vert_normals)[3] = (float(*)[3])normals;
   const int numverts = mesh->totvert;
-  if (normals_len != numverts * 3) {
+  if (normals_num != numverts * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Number of custom normals is not number of vertices (%f / %d)",
-                float(normals_len) / 3.0f,
+                float(normals_num) / 3.0f,
                 numverts);
     return;
   }
@@ -151,9 +151,9 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
   DEG_id_tag_update(&mesh->id, 0);
 }
 
-static void rna_Mesh_transform(Mesh *mesh, float mat[16], bool shape_keys)
+static void rna_Mesh_transform(Mesh *mesh, const float mat[16], bool shape_keys)
 {
-  BKE_mesh_transform(mesh, (float(*)[4])mat, shape_keys);
+  BKE_mesh_transform(mesh, (const float(*)[4])mat, shape_keys);
 
   DEG_id_tag_update(&mesh->id, 0);
 }

@@ -27,11 +27,15 @@
 
 /* Internal algorithm used */
 enum eGPUSelectAlgo {
-  /** glBegin/EndQuery(GL_SAMPLES_PASSED... ), `gpu_select_query.c`
-   * Only sets 4th component (ID) correctly. */
+  /**
+   * `glBegin/EndQuery(GL_SAMPLES_PASSED... )`, `gpu_select_query.c`
+   * Only sets 4th component (ID) correctly.
+   */
   ALGO_GL_QUERY = 1,
-  /** Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.c`
-   * Only sets 4th component (ID) correctly. */
+  /**
+   * Read depth buffer for every drawing pass and extract depths, `gpu_select_pick.cc`
+   * Only sets 4th component (ID) correctly.
+   */
   ALGO_GL_PICK = 2,
   /** Use Select-Next draw engine. */
   ALGO_SELECT_NEXT = 3,

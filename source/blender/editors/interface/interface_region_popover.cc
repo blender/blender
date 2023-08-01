@@ -7,7 +7,7 @@
  *
  * Pop-Over Region
  *
- * \note This is very close to 'interface_region_menu_popup.c'
+ * \note This is very close to `interface_region_menu_popup.cc`.
  *
  * We could even merge them, however menu logic is already over-loaded.
  * PopOver's have the following differences.

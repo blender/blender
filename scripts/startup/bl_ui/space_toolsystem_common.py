@@ -242,7 +242,7 @@ class ToolSelectPanelHelper:
                 filepath = os.path.join(dirname, icon_name + ".dat")
                 try:
                     icon_value = bpy.app.icons.new_triangles_from_file(filepath)
-                except Exception as ex:
+                except BaseException as ex:
                     if not os.path.exists(filepath):
                         print("Missing icons:", filepath, ex)
                     else:

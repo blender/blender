@@ -7,8 +7,9 @@
  *
  * Abstractions to manage runtime asset lists with a global cache for multiple UI elements to
  * access.
- * Internally this uses the #FileList API and structures from `filelist.c`. This is just because it
- * contains most necessary logic already and there's not much time for a more long-term solution.
+ * Internally this uses the #FileList API and structures from `filelist.cc`.
+ * This is just because it contains most necessary logic already and
+ * there's not much time for a more long-term solution.
  */
 
 #include <optional>
@@ -29,8 +30,8 @@
 #include "WM_api.h"
 
 /* XXX uses private header of file-space. */
-#include "../space_file/file_indexer.h"
-#include "../space_file/filelist.h"
+#include "../space_file/file_indexer.hh"
+#include "../space_file/filelist.hh"
 
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"

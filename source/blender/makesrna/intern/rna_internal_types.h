@@ -196,23 +196,46 @@ typedef struct PropertyRNAOrID {
 } PropertyRNAOrID;
 
 /**
- * If \a override is NULL, merely do comparison between prop_a and prop_b,
+ * If \a liboverride is NULL, merely do comparison between prop_a and prop_b,
  * following comparison mode given.
- * If \a override and \a rna_path are not NULL, it will add a new override operation for
+ * If \a liboverride and \a rna_path are not NULL, it will add a new override operation for
  * overridable properties that differ and have not yet been overridden
  * (and set accordingly \a r_override_changed if given).
  *
- * \note \a override, \a rna_path and \a r_override_changed may be NULL pointers.
+ * \note \a liboverride and \a rna_path may be NULL pointers.
  */
-typedef int (*RNAPropOverrideDiff)(struct Main *bmain,
-                                   struct PropertyRNAOrID *prop_a,
-                                   struct PropertyRNAOrID *prop_b,
-                                   int mode,
-                                   struct IDOverrideLibrary *override,
-                                   const char *rna_path,
-                                   size_t rna_path_len,
-                                   int flags,
-                                   eRNAOverrideMatchResult *r_report_flag);
+struct RNAPropertyOverrideDiffContext {
+  /** General diffing parameters. */
+
+  /* Using #PropertyRNAOrID for properties info here allows to cover all three cases ('real' RNA
+   * properties, 'runtime' RNA properties created from python and stored in IDPropertoies, and
+   * 'pure' IDProperties).
+   *
+   * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
+   * (unset IDProperties would merely be nullptr then). */
+  struct PropertyRNAOrID *prop_a = nullptr;
+  struct PropertyRNAOrID *prop_b = nullptr;
+
+  eRNACompareMode mode = RNA_EQ_COMPARE;
+
+  /** LibOverride specific parameters. */
+  struct IDOverrideLibrary *liboverride = nullptr;
+  const char *rna_path = nullptr;
+  size_t rna_path_len = 0;
+  eRNAOverrideMatch liboverride_flags = eRNAOverrideMatch(0);
+
+  /** Results. */
+
+  /** `0` is matching, `-1` if `prop_a < prop_b`, `1` if `prop_a > prop_b`. Note that for
+   * unquantifiable properties (e.g. pointers or collections), return value should be interpreted
+   * as a boolean (false == matching, true == not matching). */
+  int comparison = 0;
+  /** Additional flags reporting potential actions taken by the function (e.g. resetting forbidden
+   * overrides to their reference value). */
+  eRNAOverrideMatchResult report_flag = eRNAOverrideMatchResult(0);
+};
+typedef void (*RNAPropOverrideDiff)(struct Main *bmain,
+                                    RNAPropertyOverrideDiffContext &rnadiff_ctx);
 
 /**
  * Only used for differential override (add, sub, etc.).
@@ -240,23 +263,43 @@ typedef bool (*RNAPropOverrideStore)(struct Main *bmain,
  * Apply given override operation from src to dst (using value from storage as second operand
  * for differential operations).
  *
- * \note Given PropertyRNA are final (in case of IDProps...).
+ * \return `true` if given operation is successfully applied to given data, false otherwise.
+ *
+ * \note Given PropertyRNA are final, fully resolved (in case of IDProps...).
  * \note In non-array cases, \a len values are 0.
+ * \note `_storage` data is currently unused.
  */
+struct RNAPropertyOverrideApplyContext {
+  eRNAOverrideApplyFlag flag = RNA_OVERRIDE_APPLY_FLAG_NOP;
+  bool do_insert = false;
+
+  /** Main RNA data and property pointers. */
+  PointerRNA ptr_dst = {0};
+  PointerRNA ptr_src = {0};
+  PointerRNA ptr_storage = {0};
+  PropertyRNA *prop_dst = nullptr;
+  PropertyRNA *prop_src = nullptr;
+  PropertyRNA *prop_storage = nullptr;
+
+  /** Length, for array properties. */
+  int len_dst = 0;
+  int len_src = 0;
+  int len_storage = 0;
+
+  /** Items, for RNA collections. */
+  PointerRNA ptr_item_dst = {0};
+  PointerRNA ptr_item_src = {0};
+  PointerRNA ptr_item_storage = {0};
+
+  /** LibOverride data. */
+  struct IDOverrideLibrary *liboverride = nullptr;
+  struct IDOverrideLibraryProperty *liboverride_property = nullptr;
+  struct IDOverrideLibraryPropertyOperation *liboverride_operation = nullptr;
+
+  /* TODO: Add more refined/descriptive result report? */
+};
 typedef bool (*RNAPropOverrideApply)(struct Main *bmain,
-                                     struct PointerRNA *ptr_dst,
-                                     struct PointerRNA *ptr_src,
-                                     struct PointerRNA *ptr_storage,
-                                     struct PropertyRNA *prop_dst,
-                                     struct PropertyRNA *prop_src,
-                                     struct PropertyRNA *prop_storage,
-                                     int len_dst,
-                                     int len_src,
-                                     int len_storage,
-                                     struct PointerRNA *ptr_item_dst,
-                                     struct PointerRNA *ptr_item_src,
-                                     struct PointerRNA *ptr_item_storage,
-                                     struct IDOverrideLibraryPropertyOperation *opop);
+                                     RNAPropertyOverrideApplyContext &rnaapply_ctx);
 
 /* Container - generic abstracted container of RNA properties */
 typedef struct ContainerRNA {

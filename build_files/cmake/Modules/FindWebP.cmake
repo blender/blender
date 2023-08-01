@@ -14,9 +14,13 @@
 # also defined, but not for general use are
 #  WEBP_LIBRARY, where to find the WEBP library.
 
-# If WEBP_ROOT_DIR was defined in the environment, use it.
-IF(NOT WEBP_ROOT_DIR AND NOT $ENV{WEBP_ROOT_DIR} STREQUAL "")
+# If `WEBP_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED WEBP_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{WEBP_ROOT_DIR})
   SET(WEBP_ROOT_DIR $ENV{WEBP_ROOT_DIR})
+ELSE()
+  SET(WEBP_ROOT_DIR "")
 ENDIF()
 
 SET(_webp_SEARCH_DIRS

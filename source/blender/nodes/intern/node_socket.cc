@@ -812,7 +812,7 @@ static bNodeSocketType *make_socket_type_material()
 
 void register_standard_node_socket_types()
 {
-  /* Draw callbacks are set in `drawnode.c` to avoid bad-level calls. */
+  /* Draw callbacks are set in `drawnode.cc` to avoid bad-level calls. */
 
   nodeRegisterSocketType(make_socket_type_float(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_float(PROP_UNSIGNED));

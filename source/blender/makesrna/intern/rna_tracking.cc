@@ -735,7 +735,7 @@ static MovieTrackingMarker *rna_trackingMarkers_find_frame(MovieTrackingTrack *t
 
 static MovieTrackingMarker *rna_trackingMarkers_insert_frame(MovieTrackingTrack *track,
                                                              int framenr,
-                                                             float co[2])
+                                                             const float co[2])
 {
   MovieTrackingMarker marker, *new_marker;
 

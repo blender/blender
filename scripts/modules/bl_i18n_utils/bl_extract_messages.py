@@ -28,8 +28,8 @@ def init_spell_check(settings, lang="en_US"):
     try:
         from bl_i18n_utils import utils_spell_check
         return utils_spell_check.SpellChecker(settings, lang)
-    except Exception as e:
-        print("Failed to import utils_spell_check ({})".format(str(e)))
+    except BaseException as ex:
+        print("Failed to import utils_spell_check ({})".format(str(ex)))
         return None
 
 
@@ -560,9 +560,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             op = getattr(op, n)
         try:
             return op.get_rna_type().translation_context
-        except Exception as e:
+        except BaseException as ex:
             default_op_context = i18n_contexts.operator_default
-            print("ERROR: ", str(e))
+            print("ERROR: ", str(ex))
             print("       Assuming default operator context '{}'".format(default_op_context))
             return default_op_context
 

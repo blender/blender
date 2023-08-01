@@ -13,9 +13,13 @@
 #  VULKAN_FOUND, If false, do not try to use Vulkan.
 #
 
-# If VULKAN_ROOT_DIR was defined in the environment, use it.
-IF(NOT VULKAN_ROOT_DIR AND NOT $ENV{VULKAN_ROOT_DIR} STREQUAL "")
+# If `VULKAN_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED VULKAN_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{VULKAN_ROOT_DIR})
   SET(VULKAN_ROOT_DIR $ENV{VULKAN_ROOT_DIR})
+ELSE()
+  SET(VULKAN_ROOT_DIR "")
 ENDIF()
 
 SET(_vulkan_SEARCH_DIRS

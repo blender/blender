@@ -1340,7 +1340,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
   zero_v3(r_col);
 
   /* While this shouldn't happen, return in the case it does. */
-  BLI_assert((uint)pos[0] < (uint)size[0] && (uint)pos[1] < (uint)size[1]);
+  BLI_assert(uint(pos[0]) < uint(size[0]) && uint(pos[1]) < uint(size[1]));
   if (!(uint(pos[0]) < uint(size[0]) && uint(pos[1]) < uint(size[1]))) {
     return false;
   }

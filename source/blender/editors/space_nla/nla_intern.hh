@@ -14,7 +14,7 @@
 /* Macros, etc. only used by NLA */
 
 /* **************************************** */
-/* space_nla.c / nla_buttons.c */
+/* `space_nla.cc` / `nla_buttons.cc`. */
 
 bool nla_panel_context(const bContext *C,
                        PointerRNA *adt_ptr,
@@ -24,13 +24,13 @@ bool nla_panel_context(const bContext *C,
 void nla_buttons_register(ARegionType *art);
 
 /* **************************************** */
-/* nla_draw.c */
+/* `nla_draw.cc` */
 
 void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region);
 void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region);
 
 /* **************************************** */
-/* nla_select.c */
+/* `nla_select.cc` */
 
 /* defines for left-right select tool */
 enum eNlaEdit_LeftRightSelect_Mode {
@@ -48,7 +48,7 @@ void NLA_OT_select_leftright(wmOperatorType *ot);
 void NLA_OT_click_select(wmOperatorType *ot);
 
 /* **************************************** */
-/* nla_edit.c */
+/* `nla_edit.cc` */
 
 /* defines for snap strips */
 enum eNlaEdit_Snap_Mode {
@@ -107,7 +107,7 @@ void NLA_OT_fmodifier_copy(wmOperatorType *ot);
 void NLA_OT_fmodifier_paste(wmOperatorType *ot);
 
 /* **************************************** */
-/* nla_channels.c */
+/* `nla_channels.cc` */
 
 /**
  * Helper - add NLA Tracks alongside existing ones.
@@ -131,7 +131,7 @@ void NLA_OT_tracks_delete(wmOperatorType *ot);
 void NLA_OT_selected_objects_add(wmOperatorType *ot);
 
 /* **************************************** */
-/* nla_ops.c */
+/* `nla_ops.cc` */
 
 /**
  * Tweak-mode is NOT enabled.

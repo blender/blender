@@ -22,7 +22,7 @@ extern "C" {
 /* internal exports only */
 
 /* ***************************************** */
-/* graph_draw.c */
+/* `graph_draw.cc` */
 
 /**
  * Left hand part.
@@ -30,7 +30,7 @@ extern "C" {
 void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
 
 /**
- * This is called twice from space_graph.c -> graph_main_region_draw()
+ * This is called twice from `space_graph.cc`, #graph_main_region_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
 void graph_draw_curves(struct bAnimContext *ac,
@@ -46,7 +46,7 @@ void graph_draw_ghost_curves(struct bAnimContext *ac,
                              struct ARegion *region);
 
 /* ***************************************** */
-/* graph_select.c */
+/* `graph_select.cc` */
 
 /**
  * Deselects keyframes in the Graph Editor
@@ -88,7 +88,7 @@ enum eGraphKeys_ColumnSelect_Mode {
 };
 
 /* ***************************************** */
-/* graph_edit.c */
+/* `graph_edit.cc` */
 
 /**
  * Get the min/max keyframes.
@@ -192,12 +192,12 @@ void GRAPH_OT_ghost_curves_create(struct wmOperatorType *ot);
 void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 
 /* ***************************************** */
-/* graph_buttons.c */
+/* `graph_buttons.cc` */
 
 void graph_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */
-/* graph_utils.c */
+/* `graph_utils.cc` */
 
 /**
  * Find 'active' F-Curve.
@@ -232,7 +232,7 @@ bool graphop_active_editable_fcurve_ctx_poll(struct bContext *C);
 bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
-/* graph_ops.c */
+/* `graph_ops.cc` */
 
 void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);

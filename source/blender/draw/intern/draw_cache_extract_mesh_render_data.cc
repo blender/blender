@@ -46,17 +46,27 @@ static void extract_set_bits(const blender::BitSpan bits, blender::MutableSpan<i
 static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache)
 {
   using namespace blender;
-  const bke::LooseEdgeCache &loose_edges = mr->me->loose_edges();
-  if (loose_edges.count > 0) {
-    cache->loose_geom.edges.reinitialize(loose_edges.count);
-    extract_set_bits(loose_edges.is_loose_bits, cache->loose_geom.edges);
-  }
-
-  const bke::LooseVertCache &loose_verts = mr->me->loose_verts();
-  if (loose_verts.count > 0) {
-    cache->loose_geom.verts.reinitialize(loose_verts.count);
-    extract_set_bits(loose_verts.is_loose_bits, cache->loose_geom.verts);
-  }
+  const Mesh &mesh = *mr->me;
+  const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
+                                  mesh.runtime->loose_verts_cache.data().count == 0;
+  const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
+                                  mesh.runtime->loose_edges_cache.data().count == 0;
+  threading::parallel_invoke(
+      mesh.totedge > 4096 && !no_loose_vert_hint && !no_loose_edge_hint,
+      [&]() {
+        const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
+        if (loose_edges.count > 0) {
+          cache->loose_geom.edges.reinitialize(loose_edges.count);
+          extract_set_bits(loose_edges.is_loose_bits, cache->loose_geom.edges);
+        }
+      },
+      [&]() {
+        const bke::LooseVertCache &loose_verts = mesh.loose_verts();
+        if (loose_verts.count > 0) {
+          cache->loose_geom.verts.reinitialize(loose_verts.count);
+          extract_set_bits(loose_verts.is_loose_bits, cache->loose_geom.verts);
+        }
+      });
 }
 
 static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,

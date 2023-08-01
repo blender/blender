@@ -70,7 +70,7 @@
 #include "readfile.h"
 #include "versioning_common.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
@@ -676,8 +676,8 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
    *
    * \note Be sure to check when bumping the version:
    * - #blo_do_versions_290 in this file.
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */
@@ -1967,8 +1967,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */

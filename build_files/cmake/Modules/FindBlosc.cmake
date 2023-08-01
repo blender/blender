@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  BLOSC_LIBRARY, where to find the Blosc library.
 
-# If BLOSC_ROOT_DIR was defined in the environment, use it.
-IF(NOT BLOSC_ROOT_DIR AND NOT $ENV{BLOSC_ROOT_DIR} STREQUAL "")
+# If `BLOSC_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED BLOSC_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{BLOSC_ROOT_DIR})
   SET(BLOSC_ROOT_DIR $ENV{BLOSC_ROOT_DIR})
+ELSE()
+  SET(BLOSC_ROOT_DIR "")
 ENDIF()
 
 SET(_blosc_SEARCH_DIRS

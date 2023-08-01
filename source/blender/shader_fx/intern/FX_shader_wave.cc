@@ -51,9 +51,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "amplitude", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "period", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "phase", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "phase", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
