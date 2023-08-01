@@ -258,6 +258,8 @@ DEF_ENUM(rna_enum_nla_mode_extend_items)
 DEF_ENUM(rna_enum_nla_mode_blend_items)
 DEF_ENUM(rna_enum_keyblock_type_items)
 
+DEF_ENUM(rna_enum_aset_library_type_items)
+
 #endif
 
 #undef DEF_ENUM

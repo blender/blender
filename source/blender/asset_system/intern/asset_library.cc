@@ -302,6 +302,13 @@ AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_a
   return AssetIdentifier(root_path_, relative_asset_path);
 }
 
+std::string AssetLibrary::resolve_asset_weak_reference_to_full_path(
+    const AssetWeakReference &asset_reference)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  return service->resolve_asset_weak_reference_to_full_path(asset_reference);
+}
+
 void AssetLibrary::refresh_catalog_simplename(AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
