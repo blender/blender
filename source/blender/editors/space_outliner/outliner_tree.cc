@@ -267,8 +267,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     return nullptr;
   }
 
-  if (type == 0) {
-    /* Zero type means real ID, ensure we do not get non-outliner ID types here... */
+  if (type == TSE_SOME_ID) {
+    /* Real ID, ensure we do not get non-outliner ID types here... */
     BLI_assert(TREESTORE_ID_TYPE(id));
   }
 
