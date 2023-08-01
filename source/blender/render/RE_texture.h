@@ -100,7 +100,7 @@ typedef struct TexResult {
  * Use it for stuff which is out of render pipeline.
  */
 int multitex_ext(struct Tex *tex,
-                 float texvec[3],
+                 const float texvec[3],
                  float dxt[3],
                  float dyt[3],
                  int osatex,

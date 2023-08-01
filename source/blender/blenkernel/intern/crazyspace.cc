@@ -554,7 +554,7 @@ void BKE_crazyspace_api_eval(Depsgraph *depsgraph,
 void BKE_crazyspace_api_displacement_to_deformed(Object *object,
                                                  ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement[3],
+                                                 const float displacement[3],
                                                  float r_displacement_deformed[3])
 {
   if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {
@@ -574,7 +574,7 @@ void BKE_crazyspace_api_displacement_to_deformed(Object *object,
 void BKE_crazyspace_api_displacement_to_original(Object *object,
                                                  ReportList *reports,
                                                  int vertex_index,
-                                                 float displacement_deformed[3],
+                                                 const float displacement_deformed[3],
                                                  float r_displacement[3])
 {
   if (vertex_index < 0 || vertex_index >= object->runtime.crazyspace_verts_num) {

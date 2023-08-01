@@ -1166,7 +1166,7 @@ int multitex_nodes(Tex *tex,
 }
 
 int multitex_ext(Tex *tex,
-                 float texvec[3],
+                 const float texvec[3],
                  float dxt[3],
                  float dyt[3],
                  int osatex,

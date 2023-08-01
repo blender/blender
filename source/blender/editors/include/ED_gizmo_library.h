@@ -43,13 +43,13 @@ struct wmGizmo;
 
 /* `gizmo_library_presets.cc` */
 
-void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, float mat[4][4], int select_id);
+void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, const float mat[4][4], int select_id);
 void ED_gizmo_draw_preset_arrow(const struct wmGizmo *gz,
-                                float mat[4][4],
+                                const float mat[4][4],
                                 int axis,
                                 int select_id);
 void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
-                                 float mat[4][4],
+                                 const float mat[4][4],
                                  int axis,
                                  int select_id);
 
