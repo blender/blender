@@ -345,7 +345,7 @@ static void rna_ParticleHairKey_co_object_set(ID *id,
                                               Object *object,
                                               ParticleSystemModifierData *modifier,
                                               ParticleData *particle,
-                                              float co[3])
+                                              const float co[3])
 {
 
   if (particle == nullptr) {

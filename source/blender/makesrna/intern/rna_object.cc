@@ -2065,8 +2065,8 @@ static void rna_Object_vgroup_clear(Object *ob, Main *bmain, ReportList *reports
 static void rna_VertexGroup_vertex_add(ID *id,
                                        bDeformGroup *def,
                                        ReportList *reports,
-                                       int index_len,
-                                       int *index,
+                                       const int *index,
+                                       int index_num,
                                        float weight,
                                        int assignmode)
 {
@@ -2078,7 +2078,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
     return;
   }
 
-  while (index_len--) {
+  while (index_num--) {
     /* XXX: not efficient calling within loop. */
     ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
   }
@@ -2088,7 +2088,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
 }
 
 static void rna_VertexGroup_vertex_remove(
-    ID *id, bDeformGroup *dg, ReportList *reports, int index_len, int *index)
+    ID *id, bDeformGroup *dg, ReportList *reports, const int *index, int index_num)
 {
   Object *ob = reinterpret_cast<Object *>(id);
 
@@ -2098,7 +2098,7 @@ static void rna_VertexGroup_vertex_remove(
     return;
   }
 
-  while (index_len--) {
+  while (index_num--) {
     ED_vgroup_vert_remove(ob, dg, *index++);
   }
 

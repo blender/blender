@@ -205,12 +205,12 @@ static int rna_KeyBlock_normals_vert_len(const PointerRNA *ptr,
 
 static void rna_KeyBlock_normals_vert_calc(ID *id,
                                            KeyBlock *data,
-                                           int *normals_len,
-                                           float **normals)
+                                           float **normals,
+                                           int *normals_num)
 {
   Mesh *me = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_len = (me ? me->totvert : 0) * 3;
+  *normals_num = (me ? me->totvert : 0) * 3;
 
   if (ELEM(nullptr, me, data) || (me->totvert == 0)) {
     *normals = nullptr;
@@ -218,7 +218,7 @@ static void rna_KeyBlock_normals_vert_calc(ID *id,
   }
 
   *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_len), __func__));
+      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, (float(*)[3])(*normals), nullptr, nullptr);
 }
@@ -236,12 +236,12 @@ static int rna_KeyBlock_normals_poly_len(const PointerRNA *ptr,
 
 static void rna_KeyBlock_normals_poly_calc(ID *id,
                                            KeyBlock *data,
-                                           int *normals_len,
-                                           float **normals)
+                                           float **normals,
+                                           int *normals_num)
 {
   Mesh *me = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_len = (me ? me->faces_num : 0) * 3;
+  *normals_num = (me ? me->faces_num : 0) * 3;
 
   if (ELEM(nullptr, me, data) || (me->faces_num == 0)) {
     *normals = nullptr;
@@ -249,7 +249,7 @@ static void rna_KeyBlock_normals_poly_calc(ID *id,
   }
 
   *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_len), __func__));
+      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, nullptr, (float(*)[3])(*normals), nullptr);
 }
@@ -267,12 +267,12 @@ static int rna_KeyBlock_normals_loop_len(const PointerRNA *ptr,
 
 static void rna_KeyBlock_normals_loop_calc(ID *id,
                                            KeyBlock *data,
-                                           int *normals_len,
-                                           float **normals)
+                                           float **normals,
+                                           int *normals_num)
 {
   Mesh *me = rna_KeyBlock_normals_get_mesh(nullptr, id);
 
-  *normals_len = (me ? me->totloop : 0) * 3;
+  *normals_num = (me ? me->totloop : 0) * 3;
 
   if (ELEM(nullptr, me, data) || (me->totloop == 0)) {
     *normals = nullptr;
@@ -280,7 +280,7 @@ static void rna_KeyBlock_normals_loop_calc(ID *id,
   }
 
   *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_len), __func__));
+      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, nullptr, nullptr, (float(*)[3])(*normals));
 }

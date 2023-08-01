@@ -128,8 +128,8 @@ static void rna_SceneRender_get_frame_path(
 
 static void rna_Scene_ray_cast(Scene *scene,
                                Depsgraph *depsgraph,
-                               float origin[3],
-                               float direction[3],
+                               const float origin[3],
+                               const float direction[3],
                                float ray_dist,
                                bool *r_success,
                                float r_location[3],
@@ -138,7 +138,8 @@ static void rna_Scene_ray_cast(Scene *scene,
                                Object **r_ob,
                                float r_obmat[16])
 {
-  normalize_v3(direction);
+  float direction_unit[3];
+  normalize_v3_v3(direction_unit, direction);
   SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
 
   SnapObjectParams snap_object_params{};
@@ -149,7 +150,7 @@ static void rna_Scene_ray_cast(Scene *scene,
                                                      nullptr,
                                                      &snap_object_params,
                                                      origin,
-                                                     direction,
+                                                     direction_unit,
                                                      &ray_dist,
                                                      r_location,
                                                      r_normal,

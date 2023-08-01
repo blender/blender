@@ -430,19 +430,19 @@ static void rna_construct_wrapper_function_name(
   }
 }
 
-void *rna_alloc_from_buffer(const char *buffer, int buffer_len)
+void *rna_alloc_from_buffer(const char *buffer, int buffer_size)
 {
   AllocDefRNA *alloc = static_cast<AllocDefRNA *>(MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA"));
-  alloc->mem = MEM_mallocN(buffer_len, __func__);
-  memcpy(alloc->mem, buffer, buffer_len);
+  alloc->mem = MEM_mallocN(buffer_size, __func__);
+  memcpy(alloc->mem, buffer, buffer_size);
   rna_addtail(&DefRNA.allocs, alloc);
   return alloc->mem;
 }
 
-void *rna_calloc(int buffer_len)
+void *rna_calloc(int buffer_size)
 {
   AllocDefRNA *alloc = static_cast<AllocDefRNA *>(MEM_callocN(sizeof(AllocDefRNA), "AllocDefRNA"));
-  alloc->mem = MEM_callocN(buffer_len, __func__);
+  alloc->mem = MEM_callocN(buffer_size, __func__);
   rna_addtail(&DefRNA.allocs, alloc);
   return alloc->mem;
 }
@@ -596,6 +596,11 @@ static int rna_enum_bitmask(PropertyRNA *prop)
   }
 
   return mask;
+}
+
+static bool rna_parameter_is_const(const PropertyDefRNA *dparm)
+{
+  return (dparm->prop->arraydimension) && ((dparm->prop->flag_parameter & PARM_OUTPUT) == 0);
 }
 
 static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
@@ -3062,7 +3067,7 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
     WRITE_COMMA;
 
     if (dparm->prop->flag & PROP_DYNAMIC) {
-      fprintf(f, "%s_len, %s", dparm->prop->identifier, dparm->prop->identifier);
+      fprintf(f, "%s, %s_num", dparm->prop->identifier, dparm->prop->identifier);
     }
     else {
       fprintf(f, "%s", rna_safe_id(dparm->prop->identifier));
@@ -3161,11 +3166,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
     /* for dynamic parameters we pass an additional int for the length of the parameter */
     if (flag & PROP_DYNAMIC) {
-      fprintf(f, "\tint %s%s_len;\n", pout ? "*" : "", dparm->prop->identifier);
+      fprintf(f, "\tint %s%s_num;\n", pout ? "*" : "", dparm->prop->identifier);
     }
 
     fprintf(f,
-            "\t%s%s %s%s;\n",
+            "\t%s%s%s %s%s;\n",
+            rna_parameter_is_const(dparm) ? "const " : "",
             rna_type_struct(dparm->prop),
             rna_parameter_type_name(dparm->prop),
             ptrstr,
@@ -3249,7 +3255,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
        * RNA_parameter_get, we could just call the function directly, but this is faster. */
       if (flag & PROP_DYNAMIC) {
         fprintf(f,
-                "\t%s_len = %s((ParameterDynAlloc *)_data)->array_tot;\n",
+                "\t%s_num = %s((ParameterDynAlloc *)_data)->array_tot;\n",
                 rna_safe_id(dparm->prop->identifier),
                 pout ? "(int *)&" : "(int)");
         data_str = "(&(((ParameterDynAlloc *)_data)->array))";
@@ -3264,7 +3270,8 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
       }
 
       fprintf(f,
-              "((%s%s %s)%s);\n",
+              "((%s%s%s %s)%s);\n",
+              rna_parameter_is_const(dparm) ? "const " : "",
               rna_type_struct(dparm->prop),
               rna_parameter_type_name(dparm->prop),
               ptrstr,
@@ -3343,7 +3350,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
       if (dparm->prop->flag & PROP_DYNAMIC) {
         fprintf(f,
-                "%s_len, %s",
+                "%s, %s_num",
                 rna_safe_id(dparm->prop->identifier),
                 rna_safe_id(dparm->prop->identifier));
       }
@@ -3883,7 +3890,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
     first = 0;
 
     if (flag & PROP_DYNAMIC) {
-      fprintf(f, "int %s%s_len, ", pout ? "*" : "", dparm->prop->identifier);
+      fprintf(f, "int %s%s_num, ", pout ? "*" : "", dparm->prop->identifier);
     }
 
     if (!(flag & PROP_DYNAMIC) && dparm->prop->arraydimension) {

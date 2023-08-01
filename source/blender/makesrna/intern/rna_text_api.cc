@@ -40,7 +40,7 @@ static void rna_Text_from_string(Text *text, const char *str)
   BKE_text_write(text, str, strlen(str));
 }
 
-static void rna_Text_as_string(Text *text, int *r_result_len, const char **result)
+static void rna_Text_as_string(Text *text, const char **result, int *r_result_len)
 {
   size_t result_len;
   *result = txt_to_buf(text, &result_len);
