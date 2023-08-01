@@ -1082,11 +1082,11 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 
 static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
 {
-  extern FunctionRNA rna_AssetShelf_asset_poll_temp_api_func;
+  extern FunctionRNA rna_AssetShelf_asset_poll_func;
 
   PointerRNA ptr;
   RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
-  FunctionRNA *func = &rna_AssetShelf_asset_poll_temp_api_func;
+  FunctionRNA *func = &rna_AssetShelf_asset_poll_func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -2125,18 +2125,17 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "poll", nullptr);
   RNA_def_function_ui_description(
-      func, "If this method returns a non-null output, then the asset shelf will be visible");
+      func, "If this method returns a non-null output, the asset shelf will be visible");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "asset_poll_temp_api", nullptr);
+  func = RNA_def_function(srna, "asset_poll", nullptr);
   RNA_def_function_ui_description(
       func,
-      "TEMPORARY DESIGN; Expect compatibility breakage. Determine if an asset should be visible "
-      "in the asset shelf. If this method returns a non-null output, then the asset shelf will be "
-      "visible");
+      "Determine if an asset should be visible in the asset shelf. If this method returns a "
+      "non-null output, the asset will be visible");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");

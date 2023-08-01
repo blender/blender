@@ -10,7 +10,7 @@ class MyAssetShelf(bpy.types.AssetShelf):
         return bool(context.object and context.object.mode == 'OBJECT')
 
     @classmethod
-    def asset_poll_temp_api(cls, asset):
+    def asset_poll(cls, asset):
         return asset.file_data.id_type in {'MATERIAL', 'OBJECT'}
 
 
