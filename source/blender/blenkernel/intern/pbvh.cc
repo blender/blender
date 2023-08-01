@@ -1304,18 +1304,6 @@ static bool update_search_cb(PBVHNode *node, void *data_v)
   return true;
 }
 
-struct PBVHUpdateData {
-  PBVH *pbvh;
-  Span<PBVHNode *> nodes;
-
-  int flag = 0;
-  bool show_sculpt_face_sets = false;
-  PBVHAttrReq *attrs = nullptr;
-  int attrs_num = 0;
-
-  PBVHUpdateData(PBVH *pbvh_, Span<PBVHNode *> nodes_) : pbvh(pbvh_), nodes(nodes_) {}
-};
-
 static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
 {
   using namespace blender;
@@ -1377,124 +1365,81 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
   });
 }
 
-static void pbvh_update_mask_redraw_task_cb(void *__restrict userdata,
-                                            const int n,
-                                            const TaskParallelTLS *__restrict /*tls*/)
+static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
 {
+  if (!(node.flag & PBVH_UpdateMask)) {
+    return;
+  }
+  node.flag &= ~PBVH_UpdateMask;
 
-  PBVHUpdateData *data = static_cast<PBVHUpdateData *>(userdata);
-  PBVH *pbvh = data->pbvh;
-  PBVHNode *node = data->nodes[n];
-  if (node->flag & PBVH_UpdateMask) {
+  bool has_unmasked = false;
+  bool has_masked = true;
+  if (node.flag & PBVH_Leaf) {
+    PBVHVertexIter vd;
 
-    bool has_unmasked = false;
-    bool has_masked = true;
-    if (node->flag & PBVH_Leaf) {
-      PBVHVertexIter vd;
-
-      BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
-        if (vd.mask && *vd.mask < 1.0f) {
-          has_unmasked = true;
-        }
-        if (vd.mask && *vd.mask > 0.0f) {
-          has_masked = false;
-        }
+    BKE_pbvh_vertex_iter_begin (&pbvh, &node, vd, PBVH_ITER_ALL) {
+      if (vd.mask && *vd.mask < 1.0f) {
+        has_unmasked = true;
       }
-      BKE_pbvh_vertex_iter_end;
+      if (vd.mask && *vd.mask > 0.0f) {
+        has_masked = false;
+      }
     }
-    else {
-      has_unmasked = true;
-      has_masked = true;
-    }
-    BKE_pbvh_node_fully_masked_set(node, !has_unmasked);
-    BKE_pbvh_node_fully_unmasked_set(node, has_masked);
+    BKE_pbvh_vertex_iter_end;
+  }
+  else {
+    has_unmasked = true;
+    has_masked = true;
+  }
+  BKE_pbvh_node_fully_masked_set(&node, !has_unmasked);
+  BKE_pbvh_node_fully_unmasked_set(&node, has_masked);
+}
 
-    node->flag &= ~PBVH_UpdateMask;
+static void node_update_visibility_redraw(PBVH &pbvh, PBVHNode &node)
+{
+  if (!(node.flag & PBVH_UpdateVisibility)) {
+    return;
+  }
+  node.flag &= ~PBVH_UpdateVisibility;
+
+  BKE_pbvh_node_fully_hidden_set(&node, true);
+  if (node.flag & PBVH_Leaf) {
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin (&pbvh, &node, vd, PBVH_ITER_ALL) {
+      if (vd.visible) {
+        BKE_pbvh_node_fully_hidden_set(&node, false);
+        return;
+      }
+    }
+    BKE_pbvh_vertex_iter_end;
   }
 }
 
-static void pbvh_update_mask_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
+static void node_update_bounds(PBVH &pbvh, PBVHNode &node, const PBVHNodeFlags flag)
 {
-  PBVHUpdateData data(pbvh, nodes);
-  data.pbvh = pbvh;
-  data.nodes = nodes;
-  data.flag = flag;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_mask_redraw_task_cb, &settings);
-}
-
-static void pbvh_update_visibility_redraw_task_cb(void *__restrict userdata,
-                                                  const int n,
-                                                  const TaskParallelTLS *__restrict /*tls*/)
-{
-
-  PBVHUpdateData *data = static_cast<PBVHUpdateData *>(userdata);
-  PBVH *pbvh = data->pbvh;
-  PBVHNode *node = data->nodes[n];
-  if (node->flag & PBVH_UpdateVisibility) {
-    node->flag &= ~PBVH_UpdateVisibility;
-    BKE_pbvh_node_fully_hidden_set(node, true);
-    if (node->flag & PBVH_Leaf) {
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (pbvh, node, vd, PBVH_ITER_ALL) {
-        if (vd.visible) {
-          BKE_pbvh_node_fully_hidden_set(node, false);
-          return;
-        }
-      }
-      BKE_pbvh_vertex_iter_end;
-    }
-  }
-}
-
-static void pbvh_update_visibility_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
-{
-  PBVHUpdateData data(pbvh, nodes);
-  data.pbvh = pbvh;
-  data.nodes = nodes;
-  data.flag = flag;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(
-      0, nodes.size(), &data, pbvh_update_visibility_redraw_task_cb, &settings);
-}
-
-static void pbvh_update_BB_redraw_task_cb(void *__restrict userdata,
-                                          const int n,
-                                          const TaskParallelTLS *__restrict /*tls*/)
-{
-  PBVHUpdateData *data = static_cast<PBVHUpdateData *>(userdata);
-  PBVH *pbvh = data->pbvh;
-  PBVHNode *node = data->nodes[n];
-  const int flag = data->flag;
-
-  if ((flag & PBVH_UpdateBB) && (node->flag & PBVH_UpdateBB)) {
+  if ((flag & PBVH_UpdateBB) && (node.flag & PBVH_UpdateBB)) {
     /* don't clear flag yet, leave it for flushing later */
     /* Note that bvh usage is read-only here, so no need to thread-protect it. */
-    update_node_vb(pbvh, node);
+    update_node_vb(&pbvh, &node);
   }
 
-  if ((flag & PBVH_UpdateOriginalBB) && (node->flag & PBVH_UpdateOriginalBB)) {
-    node->orig_vb = node->vb;
+  if ((flag & PBVH_UpdateOriginalBB) && (node.flag & PBVH_UpdateOriginalBB)) {
+    node.orig_vb = node.vb;
   }
 
-  if ((flag & PBVH_UpdateRedraw) && (node->flag & PBVH_UpdateRedraw)) {
-    node->flag &= ~PBVH_UpdateRedraw;
+  if ((flag & PBVH_UpdateRedraw) && (node.flag & PBVH_UpdateRedraw)) {
+    node.flag &= ~PBVH_UpdateRedraw;
   }
 }
 
 static void pbvh_update_BB_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
 {
-  /* update BB, redraw flag */
-  PBVHUpdateData data(pbvh, nodes);
-  data.flag = flag;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_BB_redraw_task_cb, &settings);
+  using namespace blender;
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      node_update_bounds(*pbvh, *node, PBVHNodeFlags(flag));
+    }
+  });
 }
 
 bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_domain)
@@ -1505,32 +1450,24 @@ bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *
   return *r_layer != nullptr;
 }
 
-static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict /*tls*/)
+static void node_update_draw_buffers(PBVH &pbvh, PBVHNode &node)
 {
   /* Create and update draw buffers. The functions called here must not
    * do any OpenGL calls. Flags are not cleared immediately, that happens
    * after GPU_pbvh_buffer_flush() which does the final OpenGL calls. */
-  PBVHUpdateData *data = static_cast<PBVHUpdateData *>(userdata);
-  PBVH *pbvh = data->pbvh;
-  PBVHNode *node = data->nodes[n];
-
-  if (node->flag & PBVH_RebuildDrawBuffers) {
+  if (node.flag & PBVH_RebuildDrawBuffers) {
     PBVH_GPU_Args args;
-    pbvh_draw_args_init(pbvh, &args, node);
-
-    node->draw_batches = DRW_pbvh_node_create(args);
+    pbvh_draw_args_init(&pbvh, &args, &node);
+    node.draw_batches = DRW_pbvh_node_create(args);
   }
 
-  if (node->flag & PBVH_UpdateDrawBuffers) {
-    node->debug_draw_gen++;
+  if (node.flag & PBVH_UpdateDrawBuffers) {
+    node.debug_draw_gen++;
 
-    if (node->draw_batches) {
+    if (node.draw_batches) {
       PBVH_GPU_Args args;
-
-      pbvh_draw_args_init(pbvh, &args, node);
-      DRW_pbvh_node_update(node->draw_batches, args);
+      pbvh_draw_args_init(&pbvh, &args, &node);
+      DRW_pbvh_node_update(node.draw_batches, args);
     }
   }
 }
@@ -1545,6 +1482,7 @@ void pbvh_free_draw_buffers(PBVH * /*pbvh*/, PBVHNode *node)
 
 static void pbvh_update_draw_buffers(PBVH *pbvh, Span<PBVHNode *> nodes, int update_flag)
 {
+  using namespace blender;
   if (pbvh->header.type == PBVH_BMESH && !pbvh->header.bm) {
     /* BMesh hasn't been created yet */
     return;
@@ -1566,15 +1504,16 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, Span<PBVHNode *> nodes, int upd
   }
 
   /* Parallel creation and update of draw buffers. */
-  PBVHUpdateData data(pbvh, nodes);
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_draw_buffer_cb, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.slice(range)) {
+      node_update_draw_buffers(*pbvh, *node);
+    }
+  });
 
+  /* Flush buffers uses OpenGL, so not in parallel. */
   for (PBVHNode *node : nodes) {
     if (node->flag & PBVH_UpdateDrawBuffers) {
-      /* Flush buffers uses OpenGL, so not in parallel. */
 
       if (node->draw_batches) {
         DRW_pbvh_node_gpu_flush(node->draw_batches);
@@ -1637,6 +1576,7 @@ void BKE_pbvh_update_bounds(PBVH *pbvh, int flag)
 
 void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
 {
+  using namespace blender;
   if (pbvh->nodes.is_empty()) {
     return;
   }
@@ -1645,7 +1585,11 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
       pbvh, update_search_cb, POINTER_FROM_INT(flag));
 
   if (flag & (PBVH_UpdateMask)) {
-    pbvh_update_mask_redraw(pbvh, nodes, flag);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (PBVHNode *node : nodes.as_span().slice(range)) {
+        node_update_mask_redraw(*pbvh, *node);
+      }
+    });
   }
 
   if (flag & (PBVH_UpdateColor)) {
@@ -1655,22 +1599,22 @@ void BKE_pbvh_update_vertex_data(PBVH *pbvh, int flag)
   }
 
   if (flag & (PBVH_UpdateVisibility)) {
-    pbvh_update_visibility_redraw(pbvh, nodes, flag);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (PBVHNode *node : nodes.as_span().slice(range)) {
+        node_update_visibility_redraw(*pbvh, *node);
+      }
+    });
   }
 }
 
 static void pbvh_faces_node_visibility_update(PBVH *pbvh, PBVHNode *node)
 {
-  int totvert, i;
-  BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
-  const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-
   if (pbvh->hide_vert == nullptr) {
     BKE_pbvh_node_fully_hidden_set(node, false);
     return;
   }
-  for (i = 0; i < totvert; i++) {
-    if (!(pbvh->hide_vert[vert_indices[i]])) {
+  for (const int vert : node->vert_indices) {
+    if (!(pbvh->hide_vert[vert])) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
@@ -1739,42 +1683,28 @@ static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
   BKE_pbvh_node_fully_hidden_set(node, true);
 }
 
-static void pbvh_update_visibility_task_cb(void *__restrict userdata,
-                                           const int n,
-                                           const TaskParallelTLS *__restrict /*tls*/)
+static void node_update_visibility(PBVH &pbvh, PBVHNode &node)
 {
-
-  PBVHUpdateData *data = static_cast<PBVHUpdateData *>(userdata);
-  PBVH *pbvh = data->pbvh;
-  PBVHNode *node = data->nodes[n];
-  if (node->flag & PBVH_UpdateVisibility) {
-    switch (BKE_pbvh_type(pbvh)) {
-      case PBVH_FACES:
-        pbvh_faces_node_visibility_update(pbvh, node);
-        break;
-      case PBVH_GRIDS:
-        pbvh_grids_node_visibility_update(pbvh, node);
-        break;
-      case PBVH_BMESH:
-        pbvh_bmesh_node_visibility_update(node);
-        break;
-    }
-    node->flag &= ~PBVH_UpdateVisibility;
+  if (!(node.flag & PBVH_UpdateVisibility)) {
+    return;
   }
-}
-
-static void pbvh_update_visibility(PBVH *pbvh, Span<PBVHNode *> nodes)
-{
-  PBVHUpdateData data(pbvh, nodes);
-  data.pbvh = pbvh;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_visibility_task_cb, &settings);
+  node.flag &= ~PBVH_UpdateVisibility;
+  switch (BKE_pbvh_type(&pbvh)) {
+    case PBVH_FACES:
+      pbvh_faces_node_visibility_update(&pbvh, &node);
+      break;
+    case PBVH_GRIDS:
+      pbvh_grids_node_visibility_update(&pbvh, &node);
+      break;
+    case PBVH_BMESH:
+      pbvh_bmesh_node_visibility_update(&node);
+      break;
+  }
 }
 
 void BKE_pbvh_update_visibility(PBVH *pbvh)
 {
+  using namespace blender;
   if (pbvh->nodes.is_empty()) {
     return;
   }
@@ -1782,7 +1712,11 @@ void BKE_pbvh_update_visibility(PBVH *pbvh)
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateVisibility));
 
-  pbvh_update_visibility(pbvh, nodes);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
+      node_update_visibility(*pbvh, *node);
+    }
+  });
 }
 
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
@@ -3193,7 +3127,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, &gridsize, &grids);
   BKE_pbvh_node_num_verts(pbvh, node, &uniq_verts, &totvert);
-  const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
   vi->key = pbvh->gridkey;
 
   vi->grids = grids;
@@ -3207,7 +3140,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   else {
     vi->totvert = uniq_verts;
   }
-  vi->vert_indices = vert_indices;
+  vi->vert_indices = node->vert_indices.data();
   vi->vert_positions = pbvh->vert_positions;
   vi->is_mesh = !pbvh->vert_positions.is_empty();
 
