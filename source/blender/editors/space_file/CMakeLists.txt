@@ -38,9 +38,9 @@ set(SRC
   fsmenu.c
   space_file.cc
 
-  file_indexer.h
-  file_intern.h
-  filelist.h
+  file_indexer.hh
+  file_intern.hh
+  filelist.hh
   fsmenu.h
 )
 

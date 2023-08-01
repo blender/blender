@@ -30,8 +30,8 @@
 #include "WM_api.h"
 
 /* XXX uses private header of file-space. */
-#include "../space_file/file_indexer.h"
-#include "../space_file/filelist.h"
+#include "../space_file/file_indexer.hh"
+#include "../space_file/filelist.hh"
 
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"

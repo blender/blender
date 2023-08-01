@@ -33,8 +33,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 #include "fsmenu.h"
 
 #include <cstring>

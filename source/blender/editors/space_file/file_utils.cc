@@ -19,7 +19,7 @@
 
 #include "WM_types.h"
 
-#include "file_intern.h"
+#include "file_intern.hh"
 
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds)
 {

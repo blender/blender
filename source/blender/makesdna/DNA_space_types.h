@@ -76,7 +76,7 @@ typedef struct SpaceNode_Runtime SpaceNode_Runtime;
 typedef struct SpaceOutliner_Runtime SpaceOutliner_Runtime;
 #endif
 
-/** Defined in `file_intern.h`. */
+/** Defined in `file_intern.hh`. */
 typedef struct SpaceFile_Runtime SpaceFile_Runtime;
 
 /** Defined in `spreadsheet_intern.hh`. */

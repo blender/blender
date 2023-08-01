@@ -11,10 +11,6 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* internal exports only */
 
 struct ARegion;
@@ -244,8 +240,6 @@ void file_create_asset_catalog_tree_view_in_layout(struct AssetLibrary *asset_li
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params);
 
-#ifdef __cplusplus
-
 namespace blender::asset_system {
 class AssetLibrary;
 }
@@ -267,9 +261,3 @@ void file_ensure_updated_catalog_filter_data(
 bool file_is_asset_visible_in_catalog_filter_settings(
     const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const AssetMetaData *asset_data);
-
-#endif
-
-#ifdef __cplusplus
-}
-#endif

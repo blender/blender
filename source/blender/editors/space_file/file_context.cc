@@ -13,8 +13,8 @@
 
 #include "RNA_prototypes.h"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 const char *file_context_dir[] = {
     "active_file",

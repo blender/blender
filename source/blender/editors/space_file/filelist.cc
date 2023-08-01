@@ -80,9 +80,9 @@
 
 #include "atomic_ops.h"
 
-#include "file_indexer.h"
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_indexer.hh"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 using namespace blender;
 

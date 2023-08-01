@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AssetLibraryReference;
 struct BlendHandle;
 struct FileIndexerType;
@@ -220,7 +216,3 @@ bool filelist_cache_previews_update(struct FileList *filelist);
 void filelist_cache_previews_set(struct FileList *filelist, bool use_previews);
 bool filelist_cache_previews_running(struct FileList *filelist);
 bool filelist_cache_previews_done(struct FileList *filelist);
-
-#ifdef __cplusplus
-}
-#endif

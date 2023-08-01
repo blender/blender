@@ -46,9 +46,9 @@
 #include "BLO_read_write.h"
 
 #include "GPU_framebuffer.h"
-#include "file_indexer.h"
-#include "file_intern.h" /* own include */
-#include "filelist.h"
+#include "file_indexer.hh"
+#include "file_intern.hh" /* own include */
+#include "filelist.hh"
 #include "fsmenu.h"
 
 /* ******************** default callbacks for file space ***************** */
