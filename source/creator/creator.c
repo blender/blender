@@ -15,7 +15,7 @@
 #endif
 
 #ifdef __linux__
-#include <unistd.h>
+#  include <unistd.h>
 #endif
 
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG)
@@ -337,9 +337,9 @@ int main(int argc,
 /* Here we check for Windows ARM64 or WSL, and override the Mesa reported OpenGL version */
 #if defined(WIN32) || defined(__linux__)
 #  if defined(WIN32)
-  if(strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0)
+  if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0)
 #  else /* Must be linux, so check if we're in WSL */
-  if(access("/proc/sys/fs/binfmt_misc/WSLInterop", F_OK) == 0)
+  if (access("/proc/sys/fs/binfmt_misc/WSLInterop", F_OK) == 0)
 #  endif
   {
     BLI_setenv_if_new("MESA_GLSL_VERSION_OVERRIDE", "430");

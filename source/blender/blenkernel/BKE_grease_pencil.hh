@@ -298,15 +298,17 @@ class Layer : public ::GreasePencilLayer {
 
  private:
   using SortedKeysIterator = const int *;
+
  private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
   int frame_index_at(int frame_number) const;
   /**
-   * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame is reached.
-   * \param begin, end: Iterators into the `sorted_keys` span.
-   * \returns an iterator to the element after the last null-frame that was removed.
+   * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
+   * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to
+   * the element after the last null-frame that was removed.
    */
-  SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin, SortedKeysIterator end);
+  SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
+                                                         SortedKeysIterator end);
 };
 
 class LayerGroupRuntime {
