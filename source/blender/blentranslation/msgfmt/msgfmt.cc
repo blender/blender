@@ -38,7 +38,7 @@ struct Global {
 Global G;
 #endif
 
-/* We cannot use NULL char until ultimate step, would give nightmare to our C string
+/* We cannot use null char until ultimate step, would give nightmare to our C string
  * processing... Using one of the UTF-8 invalid bytes (as per our BLI string_utf8.c) */
 #define NULLSEP_STR "\xff"
 #define NULLSEP_CHR '\xff'

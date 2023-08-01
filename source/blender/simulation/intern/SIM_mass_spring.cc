@@ -884,7 +884,7 @@ static LinkNode *cloth_continuum_add_hair_segments(HairGrid *grid,
     }
     else {
       spring3 = nullptr;
-      // vert4 = NULL;
+      // vert4 = nullptr;
       zero_v3(x4);
       zero_v3(v4);
       zero_v3(dir3);
@@ -1032,7 +1032,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
           madd_v3_v3fl(x, b, float(j) / float(size - 1));
           zero_v3(v);
 
-          SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, NULL, NULL);
+          SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, nullptr, nullptr);
 
 #  if 0
           BKE_sim_debug_data_add_circle(

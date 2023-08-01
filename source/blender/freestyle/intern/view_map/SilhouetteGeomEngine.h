@@ -59,7 +59,7 @@ class SilhouetteGeomEngine {
   /** retrieves an instance on the singleton */
   static SilhouetteGeomEngine *getInstance()
   {
-    if (_pInstance == NULL) {
+    if (_pInstance == nullptr) {
       _pInstance = new SilhouetteGeomEngine;
     }
     return _pInstance;

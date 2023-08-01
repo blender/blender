@@ -77,7 +77,7 @@ class OWXFaceLayer {
 
   OWXFaceLayer()
   {
-    fl = NULL;
+    fl = nullptr;
     order = true;
   }
 
@@ -119,7 +119,7 @@ class OWXEdge {
 
   OWXEdge()
   {
-    e = NULL;
+    e = nullptr;
     order = true;
   }
 

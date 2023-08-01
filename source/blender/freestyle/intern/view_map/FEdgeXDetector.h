@@ -35,8 +35,8 @@ class FEdgeXDetector {
  public:
   FEdgeXDetector()
   {
-    _pProgressBar = NULL;
-    _pRenderMonitor = NULL;
+    _pProgressBar = nullptr;
+    _pRenderMonitor = nullptr;
     _computeViewIndependent = true;
 #if 0
     _bbox_diagonal = 1.0;

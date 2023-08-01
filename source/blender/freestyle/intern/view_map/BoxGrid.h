@@ -375,7 +375,7 @@ inline void BoxGrid::Cell::checkAndInsert(OccluderSource &source,
                                           OccluderData *&occluder)
 {
   if (GridHelpers::insideProscenium(boundary, poly)) {
-    if (occluder == NULL) {
+    if (occluder == nullptr) {
       // Disposal of occluder will be handled in BoxGrid::distributePolygons(),
       // or automatically by BoxGrid::_faces;
       occluder = new OccluderData(source, poly);
@@ -387,7 +387,7 @@ inline void BoxGrid::Cell::checkAndInsert(OccluderSource &source,
 inline bool BoxGrid::insertOccluder(OccluderSource &source, OccluderData *&occluder)
 {
   Polygon3r &poly(source.getGridSpacePolygon());
-  occluder = NULL;
+  occluder = nullptr;
 
   Vec3r bbMin, bbMax;
   poly.getBBox(bbMin, bbMax);
@@ -398,13 +398,13 @@ inline bool BoxGrid::insertOccluder(OccluderSource &source, OccluderData *&occlu
 
   for (uint i = startX; i <= endX; ++i) {
     for (uint j = startY; j <= endY; ++j) {
-      if (_cells[i * _cellsY + j] != NULL) {
+      if (_cells[i * _cellsY + j] != nullptr) {
         _cells[i * _cellsY + j]->checkAndInsert(source, poly, occluder);
       }
     }
   }
 
-  return occluder != NULL;
+  return occluder != nullptr;
 }
 
 } /* namespace Freestyle */

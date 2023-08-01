@@ -43,7 +43,7 @@ class UnaryPredicate1D {
   /** Default constructor. */
   UnaryPredicate1D()
   {
-    py_up1D = NULL;
+    py_up1D = nullptr;
   }
 
   /** Destructor. */
@@ -85,7 +85,7 @@ class BinaryPredicate1D {
   /** Default constructor. */
   BinaryPredicate1D()
   {
-    py_bp1D = NULL;
+    py_bp1D = nullptr;
   }
 
   /** Destructor. */

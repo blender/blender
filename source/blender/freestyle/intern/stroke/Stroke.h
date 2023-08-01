@@ -659,7 +659,7 @@ class Stroke : public Interface1D {
   /** Returns true if this Stroke has textures assigned, false otherwise. */
   inline bool hasTex() const
   {
-    return (_mtex[0] != NULL) || _nodeTree;
+    return (_mtex[0] != nullptr) || _nodeTree;
   }
 
   /** Returns true if this Stroke uses a texture with tips, false otherwise. */

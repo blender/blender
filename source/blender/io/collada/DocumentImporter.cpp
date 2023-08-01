@@ -387,8 +387,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
                                                bool is_library_node)
 {
   // fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ?
-  // instance_node->getOriginalId().c_str() : NULL, source_node ?
-  // source_node->getOriginalId().c_str() : NULL);
+  // instance_node->getOriginalId().c_str() : nullptr, source_node ?
+  // source_node->getOriginalId().c_str() : nullptr);
 
   Main *bmain = CTX_data_main(mContext);
   Object *obn = (Object *)BKE_id_copy(bmain, &source_ob->id);

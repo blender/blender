@@ -76,9 +76,9 @@ class ViewMapBuilder {
 
   inline ViewMapBuilder()
   {
-    _pProgressBar = NULL;
-    _pRenderMonitor = NULL;
-    _Grid = NULL;
+    _pProgressBar = nullptr;
+    _pRenderMonitor = nullptr;
+    _Grid = nullptr;
     _currentId = 1;
     _currentFId = 0;
     _currentSVertexId = 0;
@@ -90,7 +90,7 @@ class ViewMapBuilder {
   {
     if (_pViewEdgeBuilder) {
       delete _pViewEdgeBuilder;
-      _pViewEdgeBuilder = NULL;
+      _pViewEdgeBuilder = nullptr;
     }
   }
 

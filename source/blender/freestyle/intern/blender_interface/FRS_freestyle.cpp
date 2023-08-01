@@ -355,7 +355,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << lineset->name << " - "
-                 << (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
+                 << (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<null>") << endl;
           }
           char *buffer = create_lineset_handler(view_layer->name, lineset->name);
           controller->InsertStyleModule(layer_count, lineset->name, buffer);

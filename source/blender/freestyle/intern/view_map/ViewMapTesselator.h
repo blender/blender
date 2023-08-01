@@ -185,7 +185,7 @@ NodeGroup *ViewMapTesselator::Tesselate(ViewEdgesIterator begin, ViewEdgesIterat
         AddVertexToLine(line, nextFEdge->vertexA());
         currentEdge = nextFEdge;
         nextFEdge = nextFEdge->nextEdge();
-      } while ((nextFEdge != NULL) && (nextFEdge != firstEdge));
+      } while ((nextFEdge != nullptr) && (nextFEdge != firstEdge));
       // Add the last vertex
       // line->AddVertex(currentEdge->vertexB()->point3D());
       AddVertexToLine(line, currentEdge->vertexB());
