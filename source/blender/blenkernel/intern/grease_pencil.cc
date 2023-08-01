@@ -605,7 +605,7 @@ Layer::SortedKeysIterator Layer::remove_leading_null_frames_in_range(
 {
   Layer::SortedKeysIterator next_it = begin;
   while (next_it != end && this->frames().lookup(*next_it).is_null()) {
-    this->frames_for_write().remove(*next_it);
+    this->frames_for_write().remove_contained(*next_it);
     this->tag_frames_map_keys_changed();
     next_it = std::next(next_it);
   }
@@ -618,7 +618,7 @@ GreasePencilFrame *Layer::add_frame_internal(const int frame_number, const int d
   if (!this->frames().contains(frame_number)) {
     GreasePencilFrame frame{};
     frame.drawing_index = drawing_index;
-    this->frames_for_write().add(frame_number, frame);
+    this->frames_for_write().add_new(frame_number, frame);
     this->tag_frames_map_keys_changed();
     return this->frames_for_write().lookup_ptr(frame_number);
   }
@@ -661,7 +661,7 @@ GreasePencilFrame *Layer::add_frame(const int frame_number,
   /* If the next frame comes after the end of the frame we're inserting (or if there are no more
    * frames), add a null-frame. */
   if (next_frame_number_it == sorted_keys.end() || *next_frame_number_it > end_frame_number) {
-    this->frames_for_write().add(end_frame_number, GreasePencilFrame::null());
+    this->frames_for_write().add_new(end_frame_number, GreasePencilFrame::null());
     this->tag_frames_map_keys_changed();
   }
   return frame;
@@ -674,7 +674,7 @@ bool Layer::remove_frame(const int start_frame_number)
     return false;
   }
   if (this->frames().size() == 1) {
-    this->frames_for_write().remove(start_frame_number);
+    this->frames_for_write().remove_contained(start_frame_number);
     this->tag_frames_map_keys_changed();
     return true;
   }
@@ -701,7 +701,7 @@ bool Layer::remove_frame(const int start_frame_number)
     }
   }
   /* Finally, remove the actual frame. */
-  this->frames_for_write().remove(start_frame_number);
+  this->frames_for_write().remove_contained(start_frame_number);
   this->tag_frames_map_keys_changed();
   return true;
 }
@@ -1917,8 +1917,8 @@ static void read_layer(BlendDataReader *reader,
   /* Re-create frames data in runtime map. */
   node->wrap().runtime = MEM_new<blender::bke::greasepencil::LayerRuntime>(__func__);
   for (int i = 0; i < node->frames_storage.num; i++) {
-    node->wrap().frames_for_write().add(node->frames_storage.keys[i],
-                                        node->frames_storage.values[i]);
+    node->wrap().frames_for_write().add_new(node->frames_storage.keys[i],
+                                            node->frames_storage.values[i]);
   }
 
   /* Read layer masks. */
