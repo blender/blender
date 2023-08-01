@@ -550,6 +550,7 @@ void BKE_mesh_face_flip_ex(int face_offset,
                            int *corner_verts,
                            int *corner_edges,
                            struct CustomData *loop_data,
+                           int tot_loop,
                            float (*lnors)[3],
                            struct MDisps *mdisp,
                            bool use_loop_mdisp_flip);
@@ -569,6 +570,7 @@ void BKE_mesh_faces_flip(const int *face_offsets,
                          int *corner_verts,
                          int *corner_edges,
                          struct CustomData *loop_data,
+                         int loops_num,
                          int faces_num);
 
 /**

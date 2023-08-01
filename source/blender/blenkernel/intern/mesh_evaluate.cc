@@ -503,6 +503,7 @@ void BKE_mesh_face_flip_ex(const int face_offset,
                            int *corner_verts,
                            int *corner_edges,
                            CustomData *loop_data,
+                           int tot_loop,
                            float (*lnors)[3],
                            MDisps *mdisp,
                            const bool use_loop_mdisp_flip)
@@ -541,7 +542,7 @@ void BKE_mesh_face_flip_ex(const int face_offset,
     if (lnors) {
       swap_v3_v3(lnors[loopstart], lnors[loopend]);
     }
-    CustomData_swap(loop_data, loopstart, loopend);
+    CustomData_swap(loop_data, loopstart, loopend, tot_loop);
   }
   /* Even if we did not swap the other 'pivot' loop, we need to set its swapped edge. */
   if (loopstart == loopend) {
@@ -557,14 +558,22 @@ void BKE_mesh_face_flip(const int face_offset,
                         const int totloop)
 {
   MDisps *mdisp = (MDisps *)CustomData_get_layer_for_write(loop_data, CD_MDISPS, totloop);
-  BKE_mesh_face_flip_ex(
-      face_offset, face_size, corner_verts, corner_edges, loop_data, nullptr, mdisp, true);
+  BKE_mesh_face_flip_ex(face_offset,
+                        face_size,
+                        corner_verts,
+                        corner_edges,
+                        loop_data,
+                        totloop,
+                        nullptr,
+                        mdisp,
+                        true);
 }
 
 void BKE_mesh_faces_flip(const int *face_offsets,
                          int *corner_verts,
                          int *corner_edges,
                          CustomData *loop_data,
+                         int loops_num,
                          int faces_num)
 {
   const blender::OffsetIndices faces(blender::Span(face_offsets, faces_num + 1));
@@ -575,6 +584,7 @@ void BKE_mesh_faces_flip(const int *face_offsets,
                           corner_verts,
                           corner_edges,
                           loop_data,
+                          loops_num,
                           nullptr,
                           mdisp,
                           true);

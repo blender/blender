@@ -432,7 +432,7 @@ void CustomData_swap_corners(struct CustomData *data, int index, const int *corn
 /**
  * Swap two items of given custom data, in all available layers.
  */
-void CustomData_swap(struct CustomData *data, int index_a, int index_b);
+void CustomData_swap(struct CustomData *data, int index_a, int index_b, const int totelem);
 
 /**
  * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the

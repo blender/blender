@@ -211,6 +211,7 @@ static bool faces_check_flip(blender::MutableSpan<int> corner_verts,
                             corner_verts.data(),
                             corner_edges.data(),
                             ldata,
+                            corner_edges.size(),
                             reinterpret_cast<float(*)[3]>(nos),
                             mdisp,
                             true);
