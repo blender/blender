@@ -29,7 +29,11 @@ static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 }
 
-static const char *outliner_context_dir[] = {"selected_ids", nullptr};
+static const char *outliner_context_dir[] = {
+    "id",
+    "selected_ids",
+    nullptr,
+};
 
 int /*eContextResult*/ outliner_context(const bContext *C,
                                         const char *member,
@@ -41,6 +45,22 @@ int /*eContextResult*/ outliner_context(const bContext *C,
     CTX_data_dir_set(result, outliner_context_dir);
     return CTX_RESULT_OK;
   }
+
+  if (CTX_data_equals(member, "id")) {
+    TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->tree,
+                                                                  TSE_ACTIVE);
+    if (!active_element) {
+      return CTX_RESULT_NO_DATA;
+    }
+    const TreeStoreElem *active_tse = TREESTORE(active_element);
+    if (!TSE_IS_REAL_ID(active_tse)) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    CTX_data_id_pointer_set(result, active_tse->id);
+    return CTX_RESULT_OK;
+  }
+
   if (CTX_data_equals(member, "selected_ids")) {
     outliner_context_selected_ids(space_outliner, result);
     return CTX_RESULT_OK;
