@@ -1545,25 +1545,10 @@ void pbvh_free_draw_buffers(PBVH * /*pbvh*/, PBVHNode *node)
 
 static void pbvh_update_draw_buffers(PBVH *pbvh, Span<PBVHNode *> nodes, int update_flag)
 {
-  const CustomData *vdata;
-
-  switch (pbvh->header.type) {
-    case PBVH_BMESH:
-      if (!pbvh->header.bm) {
-        /* BMesh hasn't been created yet */
-        return;
-      }
-
-      vdata = &pbvh->header.bm->vdata;
-      break;
-    case PBVH_FACES:
-      vdata = pbvh->vert_data;
-      break;
-    case PBVH_GRIDS:
-      vdata = nullptr;
-      break;
+  if (pbvh->header.type == PBVH_BMESH && !pbvh->header.bm) {
+    /* BMesh hasn't been created yet */
+    return;
   }
-  UNUSED_VARS(vdata);
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->header.type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
