@@ -102,8 +102,6 @@ void AssetView::build_items()
   }
 
   ED_assetlist_iterate(library_ref_, [&](AssetHandle asset_handle) {
-    /* TODO calling a (.py defined) callback for every asset isn't exactly great. Should be a
-     * temporary solution until there is proper filtering by asset traits. */
     if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset_handle)) {
       return true;
     }
