@@ -254,4 +254,64 @@ TEST(greasepencil, add_frame_duration_override_null_frames)
   EXPECT_EQ(sorted_keys[2], 11);
 }
 
+TEST(greasepencil, remove_frame_single)
+{
+  Layer layer;
+  layer.add_frame(0, 1);
+  layer.remove_frame(0);
+  EXPECT_EQ(layer.frames().size(), 0);
+}
+
+TEST(greasepencil, remove_frame_first)
+{
+  Layer layer;
+  layer.add_frame(0, 1);
+  layer.add_frame(5, 2);
+  layer.remove_frame(0);
+  EXPECT_EQ(layer.frames().size(), 1);
+  EXPECT_EQ(layer.frames().lookup(5).drawing_index, 2);
+}
+
+TEST(greasepencil, remove_frame_last)
+{
+  Layer layer;
+  layer.add_frame(0, 1);
+  layer.add_frame(5, 2);
+  layer.remove_frame(5);
+  EXPECT_EQ(layer.frames().size(), 1);
+  EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
+}
+
+TEST(greasepencil, remove_frame_implicit_hold)
+{
+  Layer layer;
+  layer.add_frame(0, 1, 4);
+  layer.add_frame(5, 2);
+  layer.remove_frame(5);
+  EXPECT_EQ(layer.frames().size(), 2);
+  EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
+  EXPECT_TRUE(layer.frames().lookup(4).is_null());
+}
+
+TEST(greasepencil, remove_frame_fixed_duration_end)
+{
+  Layer layer;
+  layer.add_frame(0, 1, 5);
+  layer.add_frame(5, 2);
+  layer.remove_frame(0);
+  EXPECT_EQ(layer.frames().size(), 1);
+  EXPECT_EQ(layer.frames().lookup(5).drawing_index, 2);
+}
+
+TEST(greasepencil, remove_frame_fixed_duration_overwrite_end)
+{
+  Layer layer;
+  layer.add_frame(0, 1, 5);
+  layer.add_frame(5, 2);
+  layer.remove_frame(5);
+  EXPECT_EQ(layer.frames().size(), 2);
+  EXPECT_EQ(layer.frames().lookup(0).drawing_index, 1);
+  EXPECT_TRUE(layer.frames().lookup(5).is_null());
+}
+
 }  // namespace blender::bke::greasepencil::tests
