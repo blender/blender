@@ -9,6 +9,8 @@
 #include <limits>
 #include <stdexcept>
 
+#include "BKE_icons.h"
+
 #include "BLI_index_range.hh"
 
 #include "WM_types.h"
@@ -424,10 +426,16 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                         0,
                         0,
                         "");
+  /* Draw icons that are not previews or images as normal icons with a fixed icon size. Otherwise
+   * they will be upscaled to the button size. Should probably be done by the widget code. */
+  const int is_preview_flag = (BKE_icon_is_preview(preview_icon_id) ||
+                               BKE_icon_is_image(preview_icon_id)) ?
+                                  UI_BUT_ICON_PREVIEW :
+                                  0;
   ui_def_but_icon(but,
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
-                  UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+                  UI_HAS_ICON | is_preview_flag);
   UI_but_func_tooltip_label_set(but, [this](const uiBut * /*but*/) { return label; });
   but->emboss = UI_EMBOSS_NONE;
 }

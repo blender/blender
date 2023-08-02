@@ -66,6 +66,8 @@ blender::asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
     const AssetLibraryReference &library_reference, int asset_index);
 #endif
 
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle);
 struct ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle);
 
 /**

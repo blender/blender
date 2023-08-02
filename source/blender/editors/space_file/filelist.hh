@@ -74,6 +74,7 @@ void filelist_free_icons(void);
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/]);
+bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEntry *file);
 ImBuf *filelist_getimage(FileList *filelist, int index);
 ImBuf *filelist_file_getimage(const FileDirEntry *file);
 ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
