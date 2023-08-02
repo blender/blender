@@ -187,12 +187,12 @@ static void mainwindow_do_key(MainWindow *mw, GHOST_TKey key, int press)
       break;
     case GHOST_kKeyLeftBracket:
       if (press) {
-        GHOST_SetCursorVisibility(mw->win, 0);
+        GHOST_SetCursorVisibility(mw->win, false);
       }
       break;
     case GHOST_kKeyRightBracket:
       if (press) {
-        GHOST_SetCursorVisibility(mw->win, 1);
+        GHOST_SetCursorVisibility(mw->win, true);
       }
       break;
     case GHOST_kKeyE:

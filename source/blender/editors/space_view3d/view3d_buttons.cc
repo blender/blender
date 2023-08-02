@@ -1323,7 +1323,7 @@ static bool view3d_panel_vgroup_poll(const bContext *C, PanelType * /*pt*/)
   return false;
 }
 
-static void update_active_vertex_weight(struct bContext *C, void *arg1, void * /*arg2*/)
+static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
@@ -1435,7 +1435,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           UI_but_number_step_size_set(but, 1);
           UI_but_number_precision_set(but, 3);
           UI_but_drawflag_enable(but, UI_BUT_TEXT_LEFT);
-          UI_but_func_set(but, update_active_vertex_weight, POINTER_FROM_INT(i), NULL);
+          UI_but_func_set(but, update_active_vertex_weight, POINTER_FROM_INT(i), nullptr);
           if (locked) {
             lock_count++;
           }

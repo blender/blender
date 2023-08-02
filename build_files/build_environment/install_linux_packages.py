@@ -280,7 +280,7 @@ DEPS_CRITICAL_SUBPACKAGES = (
             distro_package_names={DISTRO_ID_DEBIAN: "libegl-dev",
                                   DISTRO_ID_FEDORA: "mesa-libEGL-devel",
                                   DISTRO_ID_SUSE: "Mesa-libEGL-devel",
-                                  DISTRO_ID_ARCH: None, # Included in libglvnd.
+                                  DISTRO_ID_ARCH: None,  # Included in `libglvnd`.
                                   },
             ),
 )

@@ -9,7 +9,7 @@
  * \ingroup GHOST
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef WITH_X11_XF86VMODE
 #  include <X11/Xlib.h>
