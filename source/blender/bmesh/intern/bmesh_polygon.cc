@@ -289,7 +289,7 @@ static int bm_vert_tri_find_unique_edge(BMVert *verts[3])
 {
 /* find the most 'unique' loop, (greatest difference to others) */
 #if 1
-  /* optimized version that avoids sqrt */
+  /* Optimized version that avoids `sqrt`. */
   float difs[3];
   for (int i_prev = 1, i_curr = 2, i_next = 0; i_next < 3; i_prev = i_curr, i_curr = i_next++) {
     const float *co = verts[i_curr]->co;

@@ -532,7 +532,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
           vc->e[0] = vc->e[1] = nullptr;
           vc->v[0] = vc->v[1] = SV_UNUSED;
 
-          /* Length in 2D, don't sqrt because this is only for comparison. */
+          /* Length in 2D, don't `sqrt` because this is only for comparison. */
           vc->dist_sq = vc->co[other_axis_1] * vc->co[other_axis_1] +
                         vc->co[other_axis_2] * vc->co[other_axis_2];
 

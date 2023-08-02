@@ -712,7 +712,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
       "frame";
 
   /* api callbacks */
-  //  ot->invoke = WM_operator_props_popup; // better wait for action redo panel
+  //  ot->invoke = WM_operator_props_popup; /* Better wait for action redo panel. */
   ot->get_description = actkeys_paste_description;
   ot->exec = actkeys_paste_exec;
   ot->poll = ED_operator_action_active;

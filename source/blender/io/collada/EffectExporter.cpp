@@ -210,9 +210,11 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
   set_transparency(ep, ma);
 
   /* TODO: */
-  // set_shininess(ep, ma); shininess not supported for lambert
-  // set_ambient(ep, ma);
-  // set_specular(ep, ma);
+#if 0
+  set_shininess(ep, ma); /* Shininess not supported for lambert. */
+  set_ambient(ep, ma);
+  set_specular(ep, ma);
+#endif
 
   get_images(ma, material_image_map);
   std::string active_uv(getActiveUVLayerName(ob));

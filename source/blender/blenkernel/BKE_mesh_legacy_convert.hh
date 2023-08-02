@@ -95,7 +95,7 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh);
  * the difference is how active/render/clone/stencil indices are handled here.
  *
  * normally they're being set from `pdata` which totally makes sense for meshes which are
- * already converted to #BMesh ures, but when loading older files indices shall be updated in
+ * already converted to #BMesh structures, but when loading older files indices shall be updated in
  * other way around, so newly added `pdata` and `ldata` would have this indices set based on
  * `pdata`  layer.
  *

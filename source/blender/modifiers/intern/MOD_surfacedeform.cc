@@ -697,7 +697,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           bpoly->point_edgemid_angles[1] = max_ff(0, point_angles[1]);
 
           /* Compute the distance scale for the corner. The base value is the orthogonal
-           * distance from the corner to the chord, scaled by sqrt(2) to preserve the old
+           * distance from the corner to the chord, scaled by `sqrt(2)` to preserve the old
            * values in case of a square grid. This doesn't use the centroid because the
            * LOOPTRI method only uses these three vertices. */
           bpoly->scale_mid = area_tri_v2(vert0_v2, corner_v2, vert1_v2) /

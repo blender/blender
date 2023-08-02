@@ -46,7 +46,7 @@
  * The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'
  * for use in python docs, so reStructuredText may be used
- * rather than doxygen syntax.
+ * rather than DOXYGEN syntax.
  *
  * template (py quotes used because nested comments don't work
  * on all C compilers):

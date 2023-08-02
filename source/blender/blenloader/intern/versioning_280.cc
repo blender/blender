@@ -1245,7 +1245,7 @@ static void square_roughness_node_insert(bNodeTree *ntree)
                                    bNodeSocket *fromsock,
                                    bNode *tonode,
                                    bNodeSocket *tosock) {
-    /* Add sqrt node. */
+    /* Add `sqrt` node. */
     bNode *node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
     node->custom1 = NODE_MATH_POWER;
     node->locx = 0.5f * (fromnode->locx + tonode->locx);

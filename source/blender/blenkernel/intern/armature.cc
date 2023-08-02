@@ -2197,7 +2197,7 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_m
 
     if (theta <= SAFE_THRESHOLD) {
       /* When nor is close to negative Y axis (0,-1,0) the theta precision is very bad,
-       * so recompute it from x and z instead, using the series expansion for sqrt. */
+       * so recompute it from x and z instead, using the series expansion for `sqrt`. */
       theta = theta_alt * 0.5f + theta_alt * theta_alt * 0.125f;
     }
 

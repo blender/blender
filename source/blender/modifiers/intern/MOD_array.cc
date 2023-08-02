@@ -159,7 +159,7 @@ static void dm_mvert_map_doubles(int *doubles_map,
                                  const int source_verts_num,
                                  const float dist)
 {
-  const float dist3 = (float(M_SQRT3) + 0.00005f) * dist; /* Just above sqrt(3) */
+  const float dist3 = (float(M_SQRT3) + 0.00005f) * dist; /* Just above `sqrt(3)`. */
   int i_source, i_target, i_target_low_bound, target_end, source_end;
   SortVertsElem *sve_source, *sve_target, *sve_target_low_bound;
   bool target_scan_completed;

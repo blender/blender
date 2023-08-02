@@ -1049,14 +1049,14 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
 
   /* This function uses a binomial kernel, which is the discrete version of gaussian blur.
    * The weight for a vertex at the relative index point_index is
-   * w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n
+   * `w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n`
    * All weights together sum up to 1
    * This is equivalent to doing multiple iterations of averaging neighbors,
    * where n = iterations * 2 and -n/2 <= j <= n/2
    *
-   * Now the problem is that nCr(n, j + n/2) is very hard to compute for n > 500, since even
+   * Now the problem is that `nCr(n, j + n/2)` is very hard to compute for `n > 500`, since even
    * double precision isn't sufficient. A very good robust approximation for n > 20 is
-   * nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)
+   * `nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)`
    *
    * There is one more problem left: The old smooth algorithm was doing a more aggressive
    * smooth. To solve that problem, choose a different n/2, which does not match the range and
@@ -1064,8 +1064,8 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
    *
    * keep_shape is a new option to stop the stroke from severely deforming.
    * It uses different partially negative weights.
-   * w = 2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))
-   *   ~ 2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))
+   * w = `2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))`
+   *   ~ `2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))`
    * All weights still sum up to 1.
    * Note these weights only work because the averaging is done in relative coordinates.
    */
@@ -1117,7 +1117,7 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
   }
   total_w += w - w2;
   /* The accumulated weight total_w should be
-   * ~sqrt(M_PI * n_half) * exp((iterations * iterations) / n_half) < 100
+   * `~sqrt(M_PI * n_half) * exp((iterations * iterations) / n_half) < 100`
    * here, but sometimes not quite. */
   mul_v3_fl(sco, float(1.0 / total_w));
   /* Shift back to global coordinates. */

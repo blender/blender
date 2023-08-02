@@ -177,7 +177,7 @@ static float hook_falloff(const HookData_cb *hd, const float len_sq)
       goto finally;
     }
     else if (hd->falloff_type == eHook_Falloff_InvSquare) {
-      /* avoid sqrt below */
+      /* Avoid `sqrt` below. */
       fac = 1.0f - (len_sq / hd->falloff_sq);
       goto finally;
     }

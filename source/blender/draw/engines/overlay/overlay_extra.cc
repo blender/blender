@@ -671,8 +671,8 @@ void OVERLAY_light_cache_populate(OVERLAY_Data *vedata, Object *ob)
      * `y = (1/sqrt(1 + x^2) - a)/((1 - a) b)`
      * x being the tangent of the angle between the light direction and the generatrix of the cone.
      * We solve the case where spot attenuation y = 1 and y = 0
-     * root for y = 1 is sqrt(1/c^2 - 1)
-     * root for y = 0 is sqrt(1/a^2 - 1)
+     * root for y = 1 is `sqrt(1/c^2 - 1)`.
+     * root for y = 0 is `sqrt(1/a^2 - 1)`
      * and use that to position the blend circle. */
     float a = cosf(la->spotsize * 0.5f);
     float b = la->spotblend;
