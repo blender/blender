@@ -12,6 +12,7 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
@@ -220,6 +221,9 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
   }
   if (const Curves *curves_id = this->get_curves_for_read()) {
     bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max());
+  }
+  if (const GreasePencil *grease_pencil = this->get_grease_pencil_for_read()) {
+    bounds = bounds::merge(bounds, grease_pencil->bounds_min_max());
   }
   return bounds;
 }
