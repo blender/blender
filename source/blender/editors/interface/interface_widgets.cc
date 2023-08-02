@@ -4617,6 +4617,8 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.draw = nullptr;
       /* Drawn via the `custom` callback. */
       wt.text = nullptr;
+      /* Drawing indicates state well enough. No need to change colors further. */
+      wt.state = widget_state_nothing;
       wt.custom = widget_preview_tile;
       wt.wcol_theme = &btheme->tui.wcol_list_item;
       break;
