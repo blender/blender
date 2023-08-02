@@ -781,7 +781,7 @@ static EnumPropertyItem prop_sculpt_face_sets_change_visibility_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
+static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -906,9 +906,9 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_face_sets_change_visibility_invoke(bContext *C,
-                                                     wmOperator *op,
-                                                     const wmEvent *event)
+static int sculpt_face_set_change_visibility_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -920,10 +920,10 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
-  return sculpt_face_sets_change_visibility_exec(C, op);
+  return sculpt_face_set_change_visibility_exec(C, op);
 }
 
-void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
+void SCULPT_OT_face_set_change_visibility(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Face Sets Visibility";
@@ -931,8 +931,8 @@ void SCULPT_OT_face_sets_change_visibility(wmOperatorType *ot)
   ot->description = "Change the visibility of the Face Sets of the sculpt";
 
   /* Api callbacks. */
-  ot->exec = sculpt_face_sets_change_visibility_exec;
-  ot->invoke = sculpt_face_sets_change_visibility_invoke;
+  ot->exec = sculpt_face_set_change_visibility_exec;
+  ot->invoke = sculpt_face_set_change_visibility_invoke;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
