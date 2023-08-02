@@ -192,6 +192,10 @@ class LayerMask : public ::GreasePencilLayerMask {
   ~LayerMask();
 };
 
+/* The key of a GreasePencilFrame in the frames map is the starting scene frame number (int) of
+ * that frame. */
+using FramesMapKey = int;
+
 class LayerRuntime {
  public:
   /**
@@ -219,11 +223,11 @@ class LayerRuntime {
    * referenced drawings are discarded. If the frame is longer than the number of referenced
    * drawings, then the last referenced drawing is held for the rest of the duration.
    */
-  Map<int, GreasePencilFrame> frames_;
+  Map<FramesMapKey, GreasePencilFrame> frames_;
   /**
    * Caches a sorted vector of the keys of `frames_`.
    */
-  mutable SharedCache<Vector<int>> sorted_keys_cache_;
+  mutable SharedCache<Vector<FramesMapKey>> sorted_keys_cache_;
   /**
    * A vector of LayerMask. This layer will be masked by the layers referenced in the masks.
    * A layer can have zero or more layer masks.
@@ -262,8 +266,8 @@ class Layer : public ::GreasePencilLayer {
   /**
    * \returns the frames mapping.
    */
-  const Map<int, GreasePencilFrame> &frames() const;
-  Map<int, GreasePencilFrame> &frames_for_write();
+  const Map<FramesMapKey, GreasePencilFrame> &frames() const;
+  Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
 
   bool is_visible() const;
   bool is_locked() const;
@@ -273,34 +277,33 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * Adds a new frame into the layer frames map.
-   * Fails if there already exists a frame at \a frame_number that is not a null-frame.
-   * Null-frame at \a frame_number and subsequent null-frames are removed.
+   * Fails if there already exists a frame at \a key that is not a null-frame.
+   * Null-frame at \a key and subsequent null-frames are removed.
    *
    * If \a duration is 0, the frame is marked as an implicit hold (see `GP_FRAME_IMPLICIT_HOLD`).
-   * Otherwise adds an additional null-frame at \a frame_number + \a duration, if necessary, to
+   * Otherwise adds an additional null-frame at \a key + \a duration, if necessary, to
    * indicate the end of the added frame.
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  GreasePencilFrame *add_frame(int frame_number, int drawing_index, int duration = 0);
+  GreasePencilFrame *add_frame(FramesMapKey key, int drawing_index, int duration = 0);
   /**
-   * Removes a frame with \a start_frame_number from the frames map.
+   * Removes a frame with \a key from the frames map.
    *
-   * Fails if the map does not contain a frame with \a frame_number or in the specific case where
+   * Fails if the map does not contain a frame with \a key or in the specific case where
    * the previous frame has a fixed duration (is not marked as an implicit hold) and the frame to
    * remove is a null frame.
    *
    * Will remove null frames after the frame to remove.
-   * \param start_frame_number: the first frame number of the frame to be removed.
    * \return true on success.
    */
-  bool remove_frame(int start_frame_number);
+  bool remove_frame(FramesMapKey key);
 
   /**
-   * Returns the sorted (start) frame numbers of the frames of this layer.
+   * Returns the sorted keys (start frame numbers) of the frames of this layer.
    * \note This will cache the keys lazily.
    */
-  Span<int> sorted_keys() const;
+  Span<FramesMapKey> sorted_keys() const;
 
   /**
    * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
@@ -326,7 +329,7 @@ class Layer : public ::GreasePencilLayer {
 
  private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
-  int frame_index_at(int frame_number) const;
+  FramesMapKey frame_key_at(int frame_number) const;
   /**
    * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
    * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to
