@@ -63,7 +63,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(new_layer_name);
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
 
   return OPERATOR_FINISHED;
 }
@@ -100,7 +100,7 @@ static int grease_pencil_layer_remove_exec(bContext *C, wmOperator * /*op*/)
   grease_pencil.remove_layer(*grease_pencil.get_active_layer_for_write());
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
 
   return OPERATOR_FINISHED;
 }

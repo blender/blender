@@ -3499,7 +3499,9 @@ static bool acf_gpl_setting_valid(bAnimContext * /*ac*/,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *r_neg)
+static int acf_gpl_setting_flag_legacy(bAnimContext * /*ac*/,
+                                       eAnimChannel_Settings setting,
+                                       bool *r_neg)
 {
   /* Clear extra return data first. */
   *r_neg = false;
@@ -3549,7 +3551,7 @@ static bAnimChannelType ACF_GPL_LEGACY = {
     /*icon*/ nullptr,
 
     /*has_setting*/ acf_gpl_setting_valid,
-    /*setting_flag*/ acf_gpl_setting_flag,
+    /*setting_flag*/ acf_gpl_setting_flag_legacy,
     /*setting_ptr*/ acf_gpl_setting_ptr_legacy,
 };
 
@@ -3578,6 +3580,17 @@ static bool acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA
   return (*r_prop != nullptr);
 }
 
+static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *r_neg)
+{
+  *r_neg = false;
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return GP_LAYER_TREE_NODE_SELECT;
+
+    default: /* unsupported */
+      return 0;
+  }
+}
 /* Get pointer to the setting */
 static void *acf_gpl_setting_ptr(bAnimListElem *ale,
                                  eAnimChannel_Settings /*setting*/,

@@ -297,7 +297,6 @@ void ANIM_set_active_channel(bAnimContext *ac,
         gpl->flag |= GP_LAYER_ACTIVE;
         break;
       }
-
       /* unhandled currently, but may be interesting */
       case ANIMTYPE_MASKLAYER:
       case ANIMTYPE_SHAPEKEY:
@@ -3650,6 +3649,26 @@ static int click_select_channel_gplayer(bContext *C,
   return (ND_ANIMCHAN | NA_EDITED); /* Animation Editors updates */
 }
 
+static int click_select_channel_grease_pencil_layer(bContext *C,
+                                                    bAnimContext *ac,
+                                                    bAnimListElem *ale,
+                                                    const short /*selectmode*/,
+                                                    const int /*filter*/)
+{
+  /* TODO: Implement other selection modes. */
+  GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ale->data);
+  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+
+  /* Clear previous channel selection and set active flag on current selection */
+  ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
+
+  layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
+  grease_pencil->active_layer = layer;
+
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
+  return (ND_ANIMCHAN | NA_EDITED);
+}
+
 static int click_select_channel_maskdatablock(bAnimListElem *ale)
 {
   Mask *mask = (Mask *)ale->data;
@@ -3783,6 +3802,13 @@ static int mouse_anim_channels(bContext *C,
       break;
     case ANIMTYPE_GPLAYER:
       notifierFlags |= click_select_channel_gplayer(C, ac, ale, selectmode, filter);
+      break;
+    case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+      /*todo*/
+      break;
+    case ANIMTYPE_GREASE_PENCIL_LAYER:
+      notifierFlags |= click_select_channel_grease_pencil_layer(
+          C, ac, ale, SELECT_REPLACE, filter);
       break;
     case ANIMTYPE_MASKDATABLOCK:
       notifierFlags |= click_select_channel_maskdatablock(ale);
