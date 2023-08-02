@@ -153,6 +153,9 @@ class MoveModifierToNodes(Operator):
                 if not first_geometry_input:
                     first_geometry_input = group_node_input
 
+        if not first_geometry_input:
+            self.report({"WARNING"}, "Node group must have a geometry input")
+            return {'CANCELLED'}
         group.links.new(group_input_node.outputs[0], first_geometry_input)
 
         # Adjust locations of named attribute input nodes and group input node to make some space.
@@ -195,6 +198,9 @@ class MoveModifierToNodes(Operator):
 
             group.links.new(store_nodes[-1].outputs["Geometry"], group_output_node.inputs[data_("Geometry")])
         else:
+            if not first_geometry_output:
+                self.report({"WARNING"}, "Node group must have a geometry output")
+                return {"CANCELLED"}
             group.links.new(first_geometry_output, group_output_node.inputs[data_("Geometry")])
 
         modifier.node_group = group
