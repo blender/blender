@@ -311,6 +311,11 @@ class Layer : public ::GreasePencilLayer {
   int drawing_index_at(const int frame_number) const;
 
   /**
+   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
+   */
+  FramesMapKey frame_key_at(int frame_number) const;
+
+  /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
    */
   const GreasePencilFrame *frame_at(const int frame_number) const;
@@ -329,7 +334,7 @@ class Layer : public ::GreasePencilLayer {
 
  private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
-  FramesMapKey frame_key_at(int frame_number) const;
+
   /**
    * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
    * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to

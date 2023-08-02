@@ -1382,6 +1382,21 @@ void GreasePencil::add_empty_drawings(const int add_num)
   }
 }
 
+void GreasePencil::add_duplicate_drawings(const int duplicate_num,
+                                          const blender::bke::greasepencil::Drawing &drawing)
+{
+  using namespace blender;
+  BLI_assert(duplicate_num > 0);
+  const int prev_num = this->drawings().size();
+  grow_array<GreasePencilDrawingBase *>(
+      &this->drawing_array, &this->drawing_array_num, duplicate_num);
+  MutableSpan<GreasePencilDrawingBase *> new_drawings = this->drawings().drop_front(prev_num);
+  for (const int i : new_drawings.index_range()) {
+    new_drawings[i] = reinterpret_cast<GreasePencilDrawingBase *>(
+        MEM_new<bke::greasepencil::Drawing>(__func__, drawing));
+  }
+}
+
 bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
                                       int frame_number,
                                       int duration,
@@ -1394,6 +1409,73 @@ bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
   }
   frame->type = int8_t(keytype);
   this->add_empty_drawings(1);
+  return true;
+}
+
+static int get_frame_duration(const blender::bke::greasepencil::Layer &layer,
+                              const int frame_number)
+{
+  Span<int> sorted_keys = layer.sorted_keys();
+  const int *frame_number_it = std::lower_bound(
+      sorted_keys.begin(), sorted_keys.end(), frame_number);
+  if (std::next(frame_number_it) == sorted_keys.end()) {
+    return 0;
+  }
+  const int next_frame_number = *(std::next(frame_number_it));
+  return next_frame_number - frame_number;
+}
+
+bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &layer,
+                                          const int src_frame_number,
+                                          const int dst_frame_number,
+                                          const bool do_instance)
+{
+  using namespace blender::bke::greasepencil;
+
+  if (!layer.frames().contains(src_frame_number)) {
+    return false;
+  }
+  const GreasePencilFrame &src_frame = layer.frames().lookup(src_frame_number);
+
+  /* Create the new frame structure, with the same duration.
+   * If we want to make an instance of the source frame, the drawing index gets copied from the
+   * source frame. Otherwise, we set the drawing index to the size of the drawings array, since we
+   * are going to add a new drawing copied from the source drawing. */
+  const int duration = src_frame.is_implicit_hold() ? 0 :
+                                                      get_frame_duration(layer, src_frame_number);
+  const int drawing_index = do_instance ? src_frame.drawing_index : int(this->drawings().size());
+  GreasePencilFrame *dst_frame = layer.add_frame(dst_frame_number, drawing_index, duration);
+
+  if (dst_frame == nullptr) {
+    return false;
+  }
+
+  dst_frame->type = src_frame.type;
+
+  const GreasePencilDrawingBase *src_drawing_base = this->drawings(src_frame.drawing_index);
+  switch (src_drawing_base->type) {
+    case GP_DRAWING: {
+      const Drawing &src_drawing =
+          reinterpret_cast<const GreasePencilDrawing *>(src_drawing_base)->wrap();
+      if (do_instance) {
+        /* Adds the duplicate frame as a new instance of the same drawing. We thus increase the
+         * user count of the corresponding drawing. */
+        src_drawing.add_user();
+      }
+      else {
+        /* Create a copy of the drawing, and add it at the end of the drawings array.
+         * Note that the frame already points to this new drawing, as the drawing index was set to
+         * `int(this->drawings().size())`. */
+        this->add_duplicate_drawings(1, src_drawing);
+      }
+      break;
+    }
+    case GP_DRAWING_REFERENCE:
+      /* TODO: Duplicate drawing references is not yet implemented.
+       * For now, just remove the frame that we inserted. */
+      layer.remove_frame(dst_frame_number);
+      return false;
+  }
   return true;
 }
 
