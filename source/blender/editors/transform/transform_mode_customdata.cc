@@ -136,12 +136,12 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
   ED_area_status_text(t->area, str);
 }
 
-static void applyCrease(TransInfo *t, const int[2] /*mval*/)
+static void applyCrease(TransInfo *t)
 {
   apply_value_impl(t, TIP_("Crease"));
 }
 
-static void applyBevelWeight(TransInfo *t, const int[2] /*mval*/)
+static void applyBevelWeight(TransInfo *t)
 {
   apply_value_impl(t, TIP_("Bevel Weight"));
 }

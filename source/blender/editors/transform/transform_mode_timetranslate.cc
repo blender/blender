@@ -91,7 +91,7 @@ static void applyTimeTranslateValue(TransInfo *t, const float deltax)
   }
 }
 
-static void applyTimeTranslate(TransInfo *t, const int mval[2])
+static void applyTimeTranslate(TransInfo *t)
 {
   View2D *v2d = (View2D *)t->view;
   char str[UI_MAX_DRAW_STR];
@@ -99,7 +99,7 @@ static void applyTimeTranslate(TransInfo *t, const int mval[2])
   /* calculate translation amount from mouse movement - in 'time-grid space' */
   if (t->flag & T_MODAL) {
     float cval[2], sval[2];
-    UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
+    UI_view2d_region_to_view(v2d, t->mval[0], t->mval[0], &cval[0], &cval[1]);
     UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[0], &sval[0], &sval[1]);
 
     /* we only need to calculate effect for time (applyTimeTranslate only needs that) */

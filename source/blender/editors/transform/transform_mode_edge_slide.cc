@@ -1433,7 +1433,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
   }
 }
 
-static void applyEdgeSlide(TransInfo *t, const int[2] /*mval*/)
+static void applyEdgeSlide(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;

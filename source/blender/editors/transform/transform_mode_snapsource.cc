@@ -148,7 +148,7 @@ static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event
   return TREDRAW_NOTHING;
 }
 
-static void snapsource_transform_fn(TransInfo *t, const int[2] /*mval*/)
+static void snapsource_transform_fn(TransInfo *t)
 {
   BLI_assert(t->modifiers & MOD_EDIT_SNAP_SOURCE);
 

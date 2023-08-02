@@ -332,7 +332,7 @@ static bool clip_uv_transform_rotate(const TransInfo *t, float *vec, float *vec_
   return true;
 }
 
-static void applyRotation(TransInfo *t, const int[2] /*mval*/)
+static void applyRotation(TransInfo *t)
 {
   float axis_final[3];
   float final = t->values[0] + t->values_modal_offset[0];

@@ -187,7 +187,7 @@ static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
   return scale != 1.0f;
 }
 
-static void applyResize(TransInfo *t, const int[2] /*mval*/)
+static void applyResize(TransInfo *t)
 {
   float mat[3][3];
   int i;

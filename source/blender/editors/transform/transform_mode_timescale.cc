@@ -77,7 +77,7 @@ static void applyTimeScaleValue(TransInfo *t, float value)
   }
 }
 
-static void applyTimeScale(TransInfo *t, const int[2] /*mval*/)
+static void applyTimeScale(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
 

@@ -180,7 +180,7 @@ static eRedrawFlag handleEventBend(TransInfo * /*t*/, const wmEvent *event)
   return status;
 }
 
-static void Bend(TransInfo *t, const int[2] /*mval*/)
+static void Bend(TransInfo *t)
 {
   float pivot_global[3];
   float warp_end_radius_global[3];

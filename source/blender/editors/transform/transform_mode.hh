@@ -24,7 +24,7 @@ struct TransModeInfo {
   void (*init_fn)(TransInfo *, wmOperator *);
 
   /** Main transform mode function. */
-  void (*transform_fn)(TransInfo *, const int[2]);
+  void (*transform_fn)(TransInfo *);
 
   /**
    * Optional callback to transform a single matrix.

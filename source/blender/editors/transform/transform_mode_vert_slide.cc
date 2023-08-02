@@ -561,7 +561,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
   *value = line_point_factor_v3(snap_point, co_orig_3d, co_curr_3d);
 }
 
-static void applyVertSlide(TransInfo *t, const int[2] /*mval*/)
+static void applyVertSlide(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;

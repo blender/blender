@@ -31,7 +31,7 @@
 /** \name Transform (Curve Shrink/Fatten)
  * \{ */
 
-static void applyCurveShrinkFatten(TransInfo *t, const int[2] /*mval*/)
+static void applyCurveShrinkFatten(TransInfo *t)
 {
   float ratio;
   int i;

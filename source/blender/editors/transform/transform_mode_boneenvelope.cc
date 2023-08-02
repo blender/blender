@@ -30,7 +30,7 @@
 /** \name Transform (Bone Envelope)
  * \{ */
 
-static void applyBoneEnvelope(TransInfo *t, const int[2] /*mval*/)
+static void applyBoneEnvelope(TransInfo *t)
 {
   float ratio;
   int i;

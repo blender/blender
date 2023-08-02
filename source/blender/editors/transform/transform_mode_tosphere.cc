@@ -170,7 +170,7 @@ static void transdata_elem_to_sphere_fn(void *__restrict iter_data_v,
 /** \name Transform (ToSphere)
  * \{ */
 
-static void applyToSphere(TransInfo *t, const int[2] /*mval*/)
+static void applyToSphere(TransInfo *t)
 {
   const bool is_local_center = transdata_check_local_center(t, t->around);
   const bool is_data_space = (t->options & CTX_POSE_BONE) != 0;

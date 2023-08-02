@@ -30,7 +30,7 @@
 /** \name Transform (Mask Shrink/Fatten)
  * \{ */
 
-static void applyMaskShrinkFatten(TransInfo *t, const int[2] /*mval*/)
+static void applyMaskShrinkFatten(TransInfo *t)
 {
   float ratio;
   int i;

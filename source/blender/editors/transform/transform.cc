@@ -2111,7 +2111,7 @@ void transformApply(bContext *C, TransInfo *t)
   if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
     if (t->mode_info) {
-      t->mode_info->transform_fn(t, t->mval); /* calls recalc_data() */
+      t->mode_info->transform_fn(t); /* calls recalc_data() */
     }
   }
 

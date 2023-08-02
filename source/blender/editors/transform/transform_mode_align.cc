@@ -25,7 +25,7 @@
 /** \name Transform (Align)
  * \{ */
 
-static void applyAlign(TransInfo *t, const int[2] /*mval*/)
+static void applyAlign(TransInfo *t)
 {
   float center[3];
   int i;

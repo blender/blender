@@ -95,7 +95,7 @@ static void ElementBoneSize(TransInfo *t,
   td->loc[1] = oldy;
 }
 
-static void applyBoneSize(TransInfo *t, const int[2] /*mval*/)
+static void applyBoneSize(TransInfo *t)
 {
   float mat[3][3];
   int i;
