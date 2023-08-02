@@ -81,6 +81,11 @@ if(WITH_TBB)
   endif()
 endif()
 
+if(WIN32)
+  # Windows.h will define min/max macros that will collide with the stl versions.
+  add_definitions(-DNOMINMAX)
+endif()
+
 if(WITH_USD)
   # USD links libMaterialX, when using pre-compiled libraries
   # ensures `usd_ms` can find `MaterialXRender` and friends.
@@ -140,9 +145,9 @@ endif()
 
 # Setup the EXE sources and `buildinfo`.
 set(SRC
-  creator.c
-  creator_args.c
-  creator_signals.c
+  creator.cc
+  creator_args.cc
+  creator_signals.cc
 
   creator_intern.h
 )
