@@ -36,7 +36,7 @@ void ED_keymap_sculpt(wmKeyConfig *keyconf);
 void ED_sculpt_update_modal_transform(struct bContext *C, struct Object *ob);
 void ED_sculpt_init_transform(struct bContext *C,
                               struct Object *ob,
-                              const int mval[2],
+                              const float mval_fl[2],
                               const char *undo_name);
 void ED_sculpt_end_transform(struct bContext *C, struct Object *ob);
 

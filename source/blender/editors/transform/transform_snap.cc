@@ -1143,7 +1143,7 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
                                    t->scene,
                                    objects,
                                    objects_len,
-                                   t->mval,
+                                   blender::float2(t->mval),
                                    t->tsnap.target_operation & SCE_SNAP_TARGET_NOT_SELECTED,
                                    &dist_sq,
                                    t->tsnap.snap_target))

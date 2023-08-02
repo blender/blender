@@ -88,7 +88,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   copy_m3_m4(td->axismtx, ob->object_to_world);
 
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
-  ED_sculpt_init_transform(C, ob, t->mval, t->undo_name);
+  ED_sculpt_init_transform(C, ob, blender::float2(t->mval), t->undo_name);
 }
 
 /** \} */

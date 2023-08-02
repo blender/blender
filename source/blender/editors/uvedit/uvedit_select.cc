@@ -1088,7 +1088,7 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 const Scene *scene,
                                 Object **objects,
                                 const uint objects_len,
-                                const int mval[2],
+                                const float mval_fl[2],
                                 const bool ignore_selected,
                                 float *dist_sq,
                                 float r_uv[2])
@@ -1100,8 +1100,6 @@ bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
   UI_view2d_view_to_region_fl(v2d, 0.0f, 0.0f, &offset[0], &offset[1]);
 
   float co[2];
-
-  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   sub_v2_v2v2(co, mval_fl, offset);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {

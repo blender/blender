@@ -271,7 +271,7 @@ bool ED_uvedit_nearest_uv_multi(const struct View2D *v2d,
                                 const struct Scene *scene,
                                 struct Object **objects,
                                 uint objects_len,
-                                const int mval[2],
+                                const float mval_fl[2],
                                 const bool ignore_selected,
                                 float *dist_sq,
                                 float r_uv[2]);
