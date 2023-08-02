@@ -671,13 +671,10 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 
 static void rna_MeshPolygon_flip(ID *id, MIntProperty *poly_offset_p)
 {
+  using namespace blender;
   Mesh *me = (Mesh *)id;
-  const int poly_start = *((const int *)poly_offset_p);
-  const int poly_size = *(((const int *)poly_offset_p) + 1) - poly_start;
-  int *corner_verts = me->corner_verts_for_write().data();
-  int *corner_edges = me->corner_edges_for_write().data();
-  BKE_mesh_face_flip(
-      poly_start, poly_size, corner_verts, corner_edges, &me->loop_data, me->totloop);
+  const int index = reinterpret_cast<int *>(poly_offset_p) - me->faces().data();
+  bke::mesh_flip_faces(*me, IndexMask(IndexRange(index, 1)));
   BKE_mesh_tessface_clear(me);
   BKE_mesh_runtime_clear_geometry(me);
 }

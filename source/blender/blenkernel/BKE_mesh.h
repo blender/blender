@@ -538,42 +538,6 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
 void BKE_mesh_mdisp_flip(struct MDisps *md, bool use_loop_mdisp_flip);
 
 /**
- * Flip (invert winding of) the given \a face, i.e. reverse order of its loops
- * (keeping the same vertex as 'start point').
- *
- * \param face: the face to flip.
- * \param mloop: the full loops array.
- * \param loop_data: the loops custom data.
- */
-void BKE_mesh_face_flip_ex(int face_offset,
-                           int face_size,
-                           int *corner_verts,
-                           int *corner_edges,
-                           struct CustomData *loop_data,
-                           int tot_loop,
-                           float (*lnors)[3],
-                           struct MDisps *mdisp,
-                           bool use_loop_mdisp_flip);
-void BKE_mesh_face_flip(int face_offset,
-                        int face_size,
-                        int *corner_verts,
-                        int *corner_edges,
-                        struct CustomData *loop_data,
-                        int totloop);
-
-/**
- * Flip (invert winding of) all faces (used to inverse their normals).
- *
- * \note Invalidates tessellation, caller must handle that.
- */
-void BKE_mesh_faces_flip(const int *face_offsets,
-                         int *corner_verts,
-                         int *corner_edges,
-                         struct CustomData *loop_data,
-                         int loops_num,
-                         int faces_num);
-
-/**
  * Account for custom-data such as UVs becoming detached because of imprecision
  * in custom-data interpolation.
  * Without running this operation subdivision surface can cause UVs to be disconnected,
