@@ -226,13 +226,12 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
   const float(*coords)[3] = nullptr;
   *r_is_alloc = false;
 
-  Mesh *me = static_cast<Mesh *>(ob->data);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
 
-  if (BKE_mesh_wrapper_vert_coords(me) != nullptr) {
+  if (Mesh *mesh_cage = BKE_object_get_editmesh_eval_cage(ob)) {
     /* Deformed, and we have deformed coords already. */
-    coords = BKE_mesh_wrapper_vert_coords(me);
+    coords = BKE_mesh_wrapper_vert_coords(mesh_cage);
   }
   else if ((editmesh_eval_final != nullptr) &&
            (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH))
