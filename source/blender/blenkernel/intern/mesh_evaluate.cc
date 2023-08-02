@@ -17,6 +17,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
@@ -31,7 +32,9 @@
 #include "BKE_multires.h"
 
 using blender::float3;
+using blender::int2;
 using blender::MutableSpan;
+using blender::OffsetIndices;
 using blender::Span;
 using blender::VArray;
 
@@ -591,9 +594,40 @@ void BKE_mesh_faces_flip(const int *face_offsets,
   }
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name Mesh Flag Flushing
+/** \name Visibility Interpolation
  * \{ */
+
+/* Hide edges when either of their vertices are hidden. */
+static void edge_hide_from_vert(const Span<int2> edges,
+                                const Span<bool> hide_vert,
+                                MutableSpan<bool> hide_edge)
+{
+  using namespace blender;
+  threading::parallel_for(edges.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      hide_edge[i] = hide_vert[edges[i][0]] || hide_vert[edges[i][1]];
+    }
+  });
+}
+
+/* Hide faces when any of their vertices are hidden. */
+static void face_hide_from_vert(const OffsetIndices<int> faces,
+                                const Span<int> corner_verts,
+                                const Span<bool> hide_vert,
+                                MutableSpan<bool> hide_poly)
+{
+  using namespace blender;
+  threading::parallel_for(faces.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const Span<int> face_verts = corner_verts.slice(faces[i]);
+      hide_poly[i] = std::any_of(
+          face_verts.begin(), face_verts.end(), [&](const int vert) { return hide_vert[vert]; });
+    }
+  });
+}
 
 void BKE_mesh_flush_hidden_from_verts(Mesh *me)
 {
@@ -609,28 +643,16 @@ void BKE_mesh_flush_hidden_from_verts(Mesh *me)
     return;
   }
   const VArraySpan<bool> hide_vert_span{hide_vert};
-  const Span<int2> edges = me->edges();
-  const OffsetIndices faces = me->faces();
-  const Span<int> corner_verts = me->corner_verts();
 
-  /* Hide edges when either of their vertices are hidden. */
   SpanAttributeWriter<bool> hide_edge = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_edge", ATTR_DOMAIN_EDGE);
-  for (const int i : edges.index_range()) {
-    const int2 &edge = edges[i];
-    hide_edge.span[i] = hide_vert_span[edge[0]] || hide_vert_span[edge[1]];
-  }
-  hide_edge.finish();
-
-  /* Hide faces when any of their vertices are hidden. */
   SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".hide_poly", ATTR_DOMAIN_FACE);
-  for (const int i : faces.index_range()) {
-    const Span<int> face_verts = corner_verts.slice(faces[i]);
-    hide_poly.span[i] = std::any_of(face_verts.begin(), face_verts.end(), [&](const int vert) {
-      return hide_vert_span[vert];
-    });
-  }
+
+  edge_hide_from_vert(me->edges(), hide_vert_span, hide_edge.span);
+  face_hide_from_vert(me->faces(), me->corner_verts(), hide_vert_span, hide_poly.span);
+
+  hide_edge.finish();
   hide_poly.finish();
 }
 
@@ -657,30 +679,37 @@ void BKE_mesh_flush_hidden_from_faces(Mesh *me)
       ".hide_edge", ATTR_DOMAIN_EDGE);
 
   /* Hide all edges or vertices connected to hidden polygons. */
-  for (const int i : faces.index_range()) {
-    if (hide_poly_span[i]) {
-      for (const int corner : faces[i]) {
-        hide_vert.span[corner_verts[corner]] = true;
-        hide_edge.span[corner_edges[corner]] = true;
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (hide_poly_span[i]) {
+        hide_vert.span.fill_indices(corner_verts.slice(faces[i]), true);
+        hide_edge.span.fill_indices(corner_edges.slice(faces[i]), true);
       }
     }
-  }
+  });
   /* Unhide vertices and edges connected to visible polygons. */
-  for (const int i : faces.index_range()) {
-    if (!hide_poly_span[i]) {
-      for (const int corner : faces[i]) {
-        hide_vert.span[corner_verts[corner]] = false;
-        hide_edge.span[corner_edges[corner]] = false;
+  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (!hide_poly_span[i]) {
+        hide_vert.span.fill_indices(corner_verts.slice(faces[i]), false);
+        hide_edge.span.fill_indices(corner_edges.slice(faces[i]), false);
       }
     }
-  }
+  });
 
   hide_vert.finish();
   hide_edge.finish();
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Selection Interpolation
+ * \{ */
+
 void BKE_mesh_flush_select_from_faces(Mesh *me)
 {
+  using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
   const VArray<bool> select_poly = *attributes.lookup_or_default<bool>(
@@ -697,44 +726,18 @@ void BKE_mesh_flush_select_from_faces(Mesh *me)
 
   /* Use generic domain interpolation to read the face attribute on the other domains.
    * Assume selected faces are not hidden and none of their vertices/edges are hidden. */
-  attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_POINT, false)
-      .varray.materialize(select_vert.span);
-  attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_EDGE, false)
-      .varray.materialize(select_edge.span);
+  array_utils::copy(*attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_POINT, false),
+                    select_vert.span);
+  array_utils::copy(*attributes.lookup_or_default<bool>(".select_poly", ATTR_DOMAIN_EDGE, false),
+                    select_edge.span);
 
   select_vert.finish();
   select_edge.finish();
 }
 
-static void mesh_flush_select_from_verts(const Span<blender::int2> edges,
-                                         const blender::OffsetIndices<int> faces,
-                                         const Span<int> corner_verts,
-                                         const VArray<bool> &hide_edge,
-                                         const VArray<bool> &hide_poly,
-                                         const VArray<bool> &select_vert,
-                                         MutableSpan<bool> select_edge,
-                                         MutableSpan<bool> select_poly)
-{
-  /* Select visible edges that have both of their vertices selected. */
-  for (const int i : edges.index_range()) {
-    if (!hide_edge[i]) {
-      const blender::int2 &edge = edges[i];
-      select_edge[i] = select_vert[edge[0]] && select_vert[edge[1]];
-    }
-  }
-
-  /* Select visible faces that have all of their vertices selected. */
-  for (const int i : faces.index_range()) {
-    if (!hide_poly[i]) {
-      const Span<int> face_verts = corner_verts.slice(faces[i]);
-      select_poly[i] = std::all_of(
-          face_verts.begin(), face_verts.end(), [&](const int vert) { return select_vert[vert]; });
-    }
-  }
-}
-
 void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
+  using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = me->attributes_for_write();
   const VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
@@ -748,15 +751,24 @@ void BKE_mesh_flush_select_from_verts(Mesh *me)
       ".select_edge", ATTR_DOMAIN_EDGE);
   SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_only_span<bool>(
       ".select_poly", ATTR_DOMAIN_FACE);
-  mesh_flush_select_from_verts(
-      me->edges(),
-      me->faces(),
-      me->corner_verts(),
-      *attributes.lookup_or_default<bool>(".hide_edge", ATTR_DOMAIN_EDGE, false),
-      *attributes.lookup_or_default<bool>(".hide_poly", ATTR_DOMAIN_FACE, false),
-      select_vert,
-      select_edge.span,
-      select_poly.span);
+  {
+    IndexMaskMemory memory;
+    const VArray<bool> hide_edge = *attributes.lookup_or_default<bool>(
+        ".hide_edge", ATTR_DOMAIN_EDGE, false);
+    array_utils::copy(
+        *attributes.lookup_or_default<bool>(".select_vert", ATTR_DOMAIN_EDGE, false),
+        IndexMask::from_bools(hide_edge, memory).complement(hide_edge.index_range(), memory),
+        select_edge.span);
+  }
+  {
+    IndexMaskMemory memory;
+    const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
+        ".hide_poly", ATTR_DOMAIN_FACE, false);
+    array_utils::copy(
+        *attributes.lookup_or_default<bool>(".select_vert", ATTR_DOMAIN_FACE, false),
+        IndexMask::from_bools(hide_poly, memory).complement(hide_poly.index_range(), memory),
+        select_poly.span);
+  }
   select_edge.finish();
   select_poly.finish();
 }
