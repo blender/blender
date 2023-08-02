@@ -4652,6 +4652,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.draw = nullptr;
       /* Drawn via the `custom` callback. */
       wt.text = nullptr;
+      /* Use a more calm state for text drawing. The preview tile background already indicates the
+       * state well. */
+      wt.state = widget_state_label;
       wt.custom = widget_preview_tile;
       wt.wcol_theme = &btheme->tui.wcol_list_item;
       break;
