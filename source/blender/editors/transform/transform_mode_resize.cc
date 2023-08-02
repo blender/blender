@@ -29,6 +29,8 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
+using namespace blender;
+
 /* -------------------------------------------------------------------- */
 /** \name Transform (Resize) Element
  * \{ */
@@ -315,7 +317,7 @@ static void initResize(TransInfo *t, wmOperator *op)
   }
   else {
     int mval_start[2], mval_end[2];
-    float mval_dir[3], t_mval[2];
+    float mval_dir[3];
     float viewmat[3][3];
 
     copy_m3_m4(viewmat, t->viewmat);
@@ -331,8 +333,7 @@ static void initResize(TransInfo *t, wmOperator *op)
     mval_start[0] = t->center2d[0];
     mval_start[1] = t->center2d[1];
 
-    t_mval[0] = t->mval[0] - mval_start[0];
-    t_mval[1] = t->mval[1] - mval_start[1];
+    float2 t_mval = t->mval - float2(t->center2d);
     project_v2_v2v2(mval_dir, t_mval, mval_dir);
 
     mval_end[0] = t->center2d[0] + mval_dir[0];

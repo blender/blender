@@ -104,7 +104,7 @@ static void snapsource_confirm(TransInfo *t)
   else
 #endif
   {
-    mval = float2(t->mval);
+    mval = t->mval;
   }
 
   snapsource_end(t);
@@ -223,7 +223,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   transform_snap_flag_from_modifiers_set(t);
 
   /* Reset initial values to restore gizmo position. */
-  applyMouseInput(t, &t->mouse, int2(t->mouse.imval), t->values_final);
+  applyMouseInput(t, &t->mouse, t->mouse.imval, t->values_final);
 #endif
 
 #ifdef REMOVE_GIZMO

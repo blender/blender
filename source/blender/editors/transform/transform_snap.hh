@@ -28,7 +28,7 @@ eSnapMode snapObjectsTransform(TransInfo *t,
                                float r_loc[3],
                                float r_no[3]);
 bool snapNodesTransform(TransInfo *t,
-                        const int mval[2],
+                        const blender::float2 &mval,
                         /* return args */
                         float r_loc[2],
                         float *r_dist_px,

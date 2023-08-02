@@ -371,7 +371,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
                                      EdgeSlideData *sld,
                                      const int *sv_table,
                                      const int loop_nr,
-                                     const float mval[2],
+                                     const blender::float2 &mval,
                                      const bool use_occlude_geometry,
                                      const bool use_calc_direction)
 {
@@ -492,7 +492,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 static void calcEdgeSlide_even(TransInfo *t,
                                TransDataContainer *tc,
                                EdgeSlideData *sld,
-                               const float mval[2])
+                               const blender::float2 &mval)
 {
   TransDataEdgeSlideVert *sv = sld->sv;
 
@@ -536,7 +536,6 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  const float mval[2] = {float(t->mval[0]), float(t->mval[1])};
   int numsel, i, loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = nullptr;
@@ -876,10 +875,10 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
                             !XRAY_ENABLED(v3d));
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, true);
+  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, true);
 
   if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, mval);
+    calcEdgeSlide_even(t, tc, sld, t->mval);
   }
 
   MEM_freeN(sv_table);
@@ -901,7 +900,6 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  const float mval[2] = {float(t->mval[0]), float(t->mval[1])};
   int loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = nullptr;
@@ -1061,10 +1059,10 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
                             !XRAY_ENABLED(v3d));
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, false);
+  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, false);
 
   if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, mval);
+    calcEdgeSlide_even(t, tc, sld, t->mval);
   }
 
   MEM_freeN(sv_table);

@@ -967,7 +967,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (!is_navigating && event->type == MOUSEMOVE) {
-    copy_v2_v2_int(t->mval, event->mval);
+    t->mval = float2(event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
     // t->redraw |= TREDRAW_SOFT;
@@ -2061,7 +2061,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
    * values. */
   if (t->flag & T_MODAL) {
     /* Setup the mouse input with initial values. */
-    applyMouseInput(t, &t->mouse, int2(t->mouse.imval), t->values);
+    applyMouseInput(t, &t->mouse, t->mouse.imval, t->values);
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "preserve_clnor"))) {
