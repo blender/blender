@@ -8,7 +8,7 @@
  * GPU fluid drawing functions.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -179,7 +179,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
     return nullptr;
   }
 
-  while (1) {
+  while (true) {
     tex = GPU_texture_create_3d("volume",
                                 UNPACK3(final_dim),
                                 1,

@@ -69,7 +69,7 @@ class HashGrid : public Grid {
   /** returns the cell whose coordinates are passed as argument */
   virtual Cell *getCell(const Vec3u &p)
   {
-    Cell *found_cell = NULL;
+    Cell *found_cell = nullptr;
 
     GridHashTable::const_iterator found = _cells.find(p);
     if (found != _cells.end()) {

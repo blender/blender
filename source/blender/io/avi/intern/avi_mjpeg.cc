@@ -8,8 +8,8 @@
  * This is external code. Converts between AVI and MPEG/JPEG.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "AVI_avi.h"
 

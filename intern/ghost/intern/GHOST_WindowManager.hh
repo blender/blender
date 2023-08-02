@@ -59,7 +59,7 @@ class GHOST_WindowManager {
 
   /**
    * Returns pointer to the full-screen window.
-   * \return The full-screen window (NULL if not in full-screen).
+   * \return The full-screen window (nullptr if not in full-screen).
    */
   GHOST_IWindow *getFullScreenWindow() const;
 
@@ -86,7 +86,7 @@ class GHOST_WindowManager {
   /**
    * Returns the active window (the window receiving events).
    * There can be only one window active which should be in the current window list.
-   * \return window The active window (or NULL if there is none).
+   * \return window The active window (or nullptr if there is none).
    */
   GHOST_IWindow *getActiveWindow() const;
 

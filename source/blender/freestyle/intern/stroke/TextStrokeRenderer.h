@@ -40,7 +40,7 @@ namespace Freestyle {
 
 class TextStrokeRenderer : public StrokeRenderer {
  public:
-  TextStrokeRenderer(const char *iFileName = NULL);
+  TextStrokeRenderer(const char *iFileName = nullptr);
 
   /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;

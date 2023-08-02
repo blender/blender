@@ -305,7 +305,7 @@ void AnimationExporter::export_curve_animation(Object *ob, BCAnimationCurve &cur
   /*
    * Some curves can not be exported as is and need some conversion
    * For more information see implementation of get_modified_export_curve()
-   * NOTE: if mcurve is not NULL then it must be deleted at end of this method;
+   * NOTE: if mcurve is not null then it must be deleted at end of this method;
    */
 
   int channel_index = curve.get_channel_index();

@@ -54,17 +54,11 @@ displays:
     - !<View> {name: Standard, colorspace: sRGB}
     - !<View> {name: Filmic, colorspace: Filmic sRGB}
     - !<View> {name: Filmic Log, colorspace: Filmic Log}
-    - !<View> {name: Raw, colorspace: Raw}
     - !<View> {name: False Color, colorspace: False Color}
-  XYZ:
-    - !<View> {name: Standard, colorspace: XYZ}
-    - !<View> {name: DCI, colorspace: dci_xyz}
-    - !<View> {name: Raw, colorspace: Raw}
-  None:
-    - !<View> {name: Standard, colorspace: Raw}
+    - !<View> {name: Raw, colorspace: Non-Color}
 
-active_displays: [sRGB, XYZ, None]
-active_views: [Standard, Filmic, Filmic Log, Raw, False Color]
+active_displays: [sRGB]
+active_views: [Standard, Filmic, Filmic Log, False Color, Raw]
 
 colorspaces:
   - !<ColorSpace>
@@ -75,13 +69,6 @@ colorspaces:
     description: |
       Rec. 709 (Full Range), Blender native linear space
     isdata: false
-
-  - !<ColorSpace>
-    name: Raw
-    family: raw
-    equalitygroup:
-    bitdepth: 32f
-    isdata: true
 
   - !<ColorSpace>
     name: Linear ACES
@@ -110,18 +97,6 @@ colorspaces:
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP1_to_CIE-XYZ-D65_BFD", direction: inverse}
 
   - !<ColorSpace>
-    name: nuke_rec709
-    family: display
-    equalitygroup:
-    bitdepth: 32f
-    description: |
-      Rec. 709 (Full Range) Display Space
-    isdata: false
-    to_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: rec709.spi1d, interpolation: linear}
-
-  - !<ColorSpace>
     name: XYZ
     family: linear
     equalitygroup:
@@ -130,31 +105,6 @@ colorspaces:
     from_reference: !<GroupTransform>
       children:
         - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
-
-  - !<ColorSpace>
-    name: dci_xyz
-    family: display
-    equalitygroup:
-    bitdepth: 16f
-    description: |
-      OpenDCP output LUT with DCI reference white and Gamma 2.6
-    isdata: false
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
-        - !<FileTransform> {src: dci_xyz.spi1d, interpolation: linear}
-
-  - !<ColorSpace>
-    name: lg10
-    family: display
-    equalitygroup:
-    bitdepth: 10ui
-    description: |
-      conversion from film log
-    isdata: false
-    to_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: lg10.spi1d, interpolation: nearest}
 
   - !<ColorSpace>
     name: sRGB
@@ -169,9 +119,10 @@ colorspaces:
 
   - !<ColorSpace>
     name: Non-Color
+    aliases: [Generic Data, Non-Colour Data, Raw, Utility - Raw]
     family: raw
     description: |
-        Color space used for images which contain non-color data (e.g. normal maps)
+        Generic data that is not color, will not apply any color transform (e.g. normal maps)
     equalitygroup:
     bitdepth: 32f
     isdata: true

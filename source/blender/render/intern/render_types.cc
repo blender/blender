@@ -36,8 +36,6 @@ Render::~Render()
   RE_blender_gpu_context_free(this);
   RE_system_gpu_context_free(this);
 
-  BLI_mutex_end(&gpu_compositor_mutex);
-
   BKE_curvemapping_free_data(&r.mblur_shutter_curve);
 
   render_result_free(pushedresult);

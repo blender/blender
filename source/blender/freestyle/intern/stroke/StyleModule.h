@@ -45,12 +45,12 @@ class StyleModule {
   {
     if (!_inter) {
       cerr << "Error: no interpreter was found to execute the script" << endl;
-      return NULL;
+      return nullptr;
     }
 
     if (!_drawable) {
       cerr << "Error: not drawable" << endl;
-      return NULL;
+      return nullptr;
     }
 
     Operators::reset();
@@ -58,14 +58,14 @@ class StyleModule {
     if (interpret()) {
       cerr << "Error: interpretation failed" << endl;
       Operators::reset();
-      return NULL;
+      return nullptr;
     }
 
     Operators::StrokesContainer *strokes_set = Operators::getStrokesSet();
     if (strokes_set->empty()) {
       cerr << "Error: strokes set empty" << endl;
       Operators::reset();
-      return NULL;
+      return nullptr;
     }
 
     StrokeLayer *sl = new StrokeLayer;

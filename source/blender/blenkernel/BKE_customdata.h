@@ -430,11 +430,6 @@ void CustomData_bmesh_interp(struct CustomData *data,
 void CustomData_swap_corners(struct CustomData *data, int index, const int *corner_indices);
 
 /**
- * Swap two items of given custom data, in all available layers.
- */
-void CustomData_swap(struct CustomData *data, int index_a, int index_b);
-
-/**
  * Retrieve a pointer to an element of the active layer of the given \a type, chosen by the
  * \a index, if it exists.
  */

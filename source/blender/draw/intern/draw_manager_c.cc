@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "BLI_alloca.h"
 #include "BLI_listbase.h"

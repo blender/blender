@@ -756,7 +756,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
   virtual void increment()
   {
     if (!_NextFEdge) {
-      _SVertex = NULL;
+      _SVertex = nullptr;
       return;
     }
     _SVertex = _NextFEdge->vertexB();
@@ -773,7 +773,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
     }
 #endif
     if (!_PreviousFEdge) {
-      _SVertex = NULL;
+      _SVertex = nullptr;
       return;
     }
     _SVertex = _PreviousFEdge->vertexA();

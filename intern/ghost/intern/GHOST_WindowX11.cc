@@ -1182,8 +1182,8 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
                                                    GHOST_kVulkanPlatformX11,
                                                    m_window,
                                                    m_display,
-                                                   NULL,
-                                                   NULL,
+                                                   nullptr,
+                                                   nullptr,
                                                    1,
                                                    2,
                                                    m_is_debug_context);

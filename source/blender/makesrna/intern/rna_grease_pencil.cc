@@ -34,7 +34,7 @@ static GreasePencil *rna_grease_pencil(const PointerRNA *ptr)
 static void rna_grease_pencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   DEG_id_tag_update(&rna_grease_pencil(ptr)->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }
 
 static void rna_iterator_grease_pencil_layers_begin(CollectionPropertyIterator *iter,
@@ -111,7 +111,7 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   grease_pencil->set_active_layer(static_cast<blender::bke::greasepencil::Layer *>(value.data));
-  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }
 
 static char *rna_GreasePencilLayerGroup_path(const PointerRNA *ptr)

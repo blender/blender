@@ -685,7 +685,7 @@ void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
  */
 static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 {
-  if (ebone->prop == NULL) {
+  if (ebone->prop == nullptr) {
     IDPropertyTemplate val = {0};
     ebone->prop = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
   }

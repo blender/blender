@@ -37,7 +37,7 @@ class WXVertex : public WVertex {
  public:
   inline WXVertex(const Vec3f &v) : WVertex(v)
   {
-    _curvatures = NULL;
+    _curvatures = nullptr;
   }
 
   /** Copy constructor */
@@ -212,8 +212,8 @@ class WXSmoothEdge {
 
   WXSmoothEdge()
   {
-    _woea = NULL;
-    _woeb = NULL;
+    _woea = nullptr;
+    _woeb = nullptr;
     _ta = 0.0f;
     _tb = 0.0f;
     _front = false;
@@ -325,18 +325,18 @@ class WXFaceLayer {
   WXFaceLayer(WXFace *iFace, WXNature iNature, bool viewDependant)
   {
     _pWXFace = iFace;
-    _pSmoothEdge = NULL;
+    _pSmoothEdge = nullptr;
     _nPosDotP = 0;
     _nNullDotP = 0;
     _Nature = iNature;
     _viewDependant = viewDependant;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   WXFaceLayer(const WXFaceLayer &iBrother)
   {
     _pWXFace = iBrother._pWXFace;
-    _pSmoothEdge = NULL;
+    _pSmoothEdge = nullptr;
     _DotP = iBrother._DotP;
     _nPosDotP = iBrother._nPosDotP;
     _nNullDotP = iBrother._nNullDotP;
@@ -345,7 +345,7 @@ class WXFaceLayer {
       _pSmoothEdge = new WXSmoothEdge(*(iBrother._pSmoothEdge));
     }
     _viewDependant = iBrother._viewDependant;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   virtual ~WXFaceLayer()
@@ -355,7 +355,7 @@ class WXFaceLayer {
     }
     if (_pSmoothEdge) {
       delete _pSmoothEdge;
-      _pSmoothEdge = NULL;
+      _pSmoothEdge = nullptr;
     }
   }
 
@@ -419,7 +419,7 @@ class WXFaceLayer {
     }
     if (_pSmoothEdge) {
       delete _pSmoothEdge;
-      _pSmoothEdge = NULL;
+      _pSmoothEdge = nullptr;
     }
   }
 
@@ -684,7 +684,7 @@ class WXFace : public WFace {
          wxf != wxfend;
          ++wxf)
     {
-      (*wxf)->userdata = NULL;
+      (*wxf)->userdata = nullptr;
     }
   }
 

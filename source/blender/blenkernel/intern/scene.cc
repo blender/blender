@@ -3063,16 +3063,11 @@ void BKE_scene_disable_color_management(Scene *scene)
 
   STRNCPY(display_settings->display_device, none_display_name);
 
-  view = IMB_colormanagement_view_get_default_name(display_settings->display_device);
+  view = IMB_colormanagement_view_get_raw_or_default_name(display_settings->display_device);
 
   if (view) {
     STRNCPY(view_settings->view_transform, view);
   }
-}
-
-bool BKE_scene_check_color_management_enabled(const Scene *scene)
-{
-  return !STREQ(scene->display_settings.display_device, "None");
 }
 
 bool BKE_scene_check_rigidbody_active(const Scene *scene)

@@ -58,8 +58,8 @@ class WVertex {
   {
     _Id = 0;
     _Vertex = v;
-    userdata = NULL;
-    _Shape = NULL;
+    userdata = nullptr;
+    _Shape = nullptr;
     _Smooth = true;
     _Border = -1;
   }
@@ -138,7 +138,7 @@ class WVertex {
 
   virtual void ResetUserData()
   {
-    userdata = NULL;
+    userdata = nullptr;
   }
 
  public:
@@ -342,17 +342,17 @@ class WOEdge {
   inline WOEdge()
   {
 #if 0
-    _paCWEdge = NULL;
-    _pbCWEdge = NULL;
-    _paCCWEdge = NULL;
-    _pbCCWEdge = NULL;
+    _paCWEdge = nullptr;
+    _pbCWEdge = nullptr;
+    _paCCWEdge = nullptr;
+    _pbCCWEdge = nullptr;
 #endif
-    _paVertex = NULL;
-    _pbVertex = NULL;
-    _paFace = NULL;
-    _pbFace = NULL;
-    _pOwner = NULL;
-    userdata = NULL;
+    _paVertex = nullptr;
+    _pbVertex = nullptr;
+    _paFace = nullptr;
+    _pbFace = nullptr;
+    _pOwner = nullptr;
+    userdata = nullptr;
   }
 
   virtual ~WOEdge(){};  // soc
@@ -481,7 +481,7 @@ class WOEdge {
 
   virtual void ResetUserData()
   {
-    userdata = NULL;
+    userdata = nullptr;
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -510,18 +510,18 @@ class WEdge {
 
   inline WEdge()
   {
-    _paOEdge = NULL;
-    _pbOEdge = NULL;
+    _paOEdge = nullptr;
+    _pbOEdge = nullptr;
     _nOEdges = 0;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   inline WEdge(WOEdge *iOEdge)
   {
     _paOEdge = iOEdge;
-    _pbOEdge = NULL;
+    _pbOEdge = nullptr;
     _nOEdges = 1;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   inline WEdge(WOEdge *iaOEdge, WOEdge *ibOEdge)
@@ -529,7 +529,7 @@ class WEdge {
     _paOEdge = iaOEdge;
     _pbOEdge = ibOEdge;
     _nOEdges = 2;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   /** Copy constructor */
@@ -540,22 +540,22 @@ class WEdge {
   {
     if (_paOEdge) {
       delete _paOEdge;
-      _paOEdge = NULL;
+      _paOEdge = nullptr;
     }
 
     if (_pbOEdge) {
       delete _pbOEdge;
-      _pbOEdge = NULL;
+      _pbOEdge = nullptr;
     }
   }
 
   /** checks whether two WEdge have a common vertex.
-   *  Returns a pointer on the common vertex if it exists, NULL otherwise.
+   *  Returns a pointer on the common vertex if it exists, nullptr otherwise.
    */
   static inline WVertex *CommonVertex(WEdge *iEdge1, WEdge *iEdge2)
   {
     if (!iEdge1 || !iEdge2) {
-      return NULL;
+      return nullptr;
     }
 
     WVertex *wv1 = iEdge1->GetaOEdge()->GetaVertex();
@@ -569,7 +569,7 @@ class WEdge {
     else if ((wv2 == wv3) || (wv2 == wv4)) {
       return wv2;
     }
-    return NULL;
+    return nullptr;
   }
 
   /** accessors */
@@ -670,7 +670,7 @@ class WEdge {
 
   virtual void ResetUserData()
   {
-    userdata = NULL;
+    userdata = nullptr;
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -703,7 +703,7 @@ class WFace {
   void *userdata;
   inline WFace()
   {
-    userdata = NULL;
+    userdata = nullptr;
     _FrsMaterialIndex = 0;
   }
 
@@ -750,7 +750,7 @@ class WFace {
   {
 #if 0
     if (index >= _OEdgeList.size()) {
-      return NULL;
+      return nullptr;
     }
 #endif
     return _OEdgeList[index]->GetaVertex();
@@ -801,7 +801,7 @@ class WFace {
   {
 #if 0
     if (index >= _OEdgeList.size()) {
-      return NULL;
+      return nullptr;
     }
 #endif
     return _OEdgeList[index]->GetaFace();
@@ -873,7 +873,7 @@ class WFace {
       return (*woefirst);
     }
 
-    return NULL;
+    return nullptr;
   }
 
   WOEdge *GetPrevOEdge(WOEdge *iOEdge);
@@ -969,7 +969,7 @@ class WFace {
   WShape *getShape();
   virtual void ResetUserData()
   {
-    userdata = NULL;
+    userdata = nullptr;
   }
 
 #ifdef WITH_CXX_GUARDEDALLOC

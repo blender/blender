@@ -12,7 +12,7 @@
 #include "GHOST_IContext.hh"
 #include "GHOST_Types.h"
 
-#include <cstdlib>  // for NULL
+#include <cstdlib>  // for nullptr
 
 class GHOST_Context : public GHOST_IContext {
  public:
@@ -232,7 +232,7 @@ class GHOST_Context : public GHOST_IContext {
 };
 
 #ifdef _WIN32
-bool win32_chk(bool result, const char *file = NULL, int line = 0, const char *text = NULL);
+bool win32_chk(bool result, const char *file = nullptr, int line = 0, const char *text = nullptr);
 bool win32_silent_chk(bool result);
 
 #  ifndef NDEBUG

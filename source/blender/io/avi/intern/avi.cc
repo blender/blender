@@ -8,11 +8,11 @@
  * This is external code.
  */
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

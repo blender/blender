@@ -9,6 +9,8 @@
  * \brief Low-level operations for grease pencil.
  */
 
+#include <atomic>
+
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -62,6 +64,13 @@ class DrawingRuntime {
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
+
+  /**
+   * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
+   * Different frames can refer to the same drawing, so we need to make sure we count these users
+   * and remove a drawing if it has zero users.
+   */
+  mutable std::atomic<int> user_count = 1;
 };
 
 class Drawing : public ::GreasePencilDrawing {
@@ -92,6 +101,22 @@ class Drawing : public ::GreasePencilDrawing {
    */
   VArray<float> opacities() const;
   MutableSpan<float> opacities_for_write();
+
+  /**
+   * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
+   * modifify this drawings data.
+   */
+  void add_user() const;
+  /**
+   * Removes a user from this drawing. Note that this does not handle deleting the drawing if it
+   * has not users.
+   */
+  void remove_user() const;
+  /**
+   * Returns true for when this drawing has more than one user.
+   */
+  bool is_instanced() const;
+  bool has_users() const;
 };
 
 class LayerGroup;
@@ -167,6 +192,10 @@ class LayerMask : public ::GreasePencilLayerMask {
   ~LayerMask();
 };
 
+/* The key of a GreasePencilFrame in the frames map is the starting scene frame number (int) of
+ * that frame. */
+using FramesMapKey = int;
+
 class LayerRuntime {
  public:
   /**
@@ -194,11 +223,11 @@ class LayerRuntime {
    * referenced drawings are discarded. If the frame is longer than the number of referenced
    * drawings, then the last referenced drawing is held for the rest of the duration.
    */
-  Map<int, GreasePencilFrame> frames_;
+  Map<FramesMapKey, GreasePencilFrame> frames_;
   /**
    * Caches a sorted vector of the keys of `frames_`.
    */
-  mutable SharedCache<Vector<int>> sorted_keys_cache_;
+  mutable SharedCache<Vector<FramesMapKey>> sorted_keys_cache_;
   /**
    * A vector of LayerMask. This layer will be masked by the layers referenced in the masks.
    * A layer can have zero or more layer masks.
@@ -237,8 +266,8 @@ class Layer : public ::GreasePencilLayer {
   /**
    * \returns the frames mapping.
    */
-  const Map<int, GreasePencilFrame> &frames() const;
-  Map<int, GreasePencilFrame> &frames_for_write();
+  const Map<FramesMapKey, GreasePencilFrame> &frames() const;
+  Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
 
   bool is_visible() const;
   bool is_locked() const;
@@ -248,27 +277,43 @@ class Layer : public ::GreasePencilLayer {
 
   /**
    * Adds a new frame into the layer frames map.
-   * Fails if there already exists a frame at \a frame_number that is not a null-frame.
-   * Null-frame at \a frame_number and subsequent null-frames are removed.
+   * Fails if there already exists a frame at \a key that is not a null-frame.
+   * Null-frame at \a key and subsequent null-frames are removed.
    *
    * If \a duration is 0, the frame is marked as an implicit hold (see `GP_FRAME_IMPLICIT_HOLD`).
-   * Otherwise adds an additional null-frame at \a frame_number + \a duration, if necessary, to
+   * Otherwise adds an additional null-frame at \a key + \a duration, if necessary, to
    * indicate the end of the added frame.
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  GreasePencilFrame *add_frame(int frame_number, int drawing_index, int duration = 0);
+  GreasePencilFrame *add_frame(FramesMapKey key, int drawing_index, int duration = 0);
+  /**
+   * Removes a frame with \a key from the frames map.
+   *
+   * Fails if the map does not contain a frame with \a key or in the specific case where
+   * the previous frame has a fixed duration (is not marked as an implicit hold) and the frame to
+   * remove is a null frame.
+   *
+   * Will remove null frames after the frame to remove.
+   * \return true on success.
+   */
+  bool remove_frame(FramesMapKey key);
 
   /**
-   * Returns the sorted (start) frame numbers of the frames of this layer.
+   * Returns the sorted keys (start frame numbers) of the frames of this layer.
    * \note This will cache the keys lazily.
    */
-  Span<int> sorted_keys() const;
+  Span<FramesMapKey> sorted_keys() const;
 
   /**
    * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
    * drawing. */
   int drawing_index_at(const int frame_number) const;
+
+  /**
+   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
+   */
+  FramesMapKey frame_key_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -285,8 +330,18 @@ class Layer : public ::GreasePencilLayer {
   void tag_frames_map_keys_changed();
 
  private:
+  using SortedKeysIterator = const int *;
+
+ private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
-  int frame_index_at(int frame_number) const;
+
+  /**
+   * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
+   * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to
+   * the element after the last null-frame that was removed.
+   */
+  SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
+                                                         SortedKeysIterator end);
 };
 
 class LayerGroupRuntime {
@@ -481,6 +536,26 @@ class GreasePencilRuntime {
 };
 
 }  // namespace blender::bke
+
+inline void blender::bke::greasepencil::Drawing::add_user() const
+{
+  this->runtime->user_count.fetch_add(1, std::memory_order_relaxed);
+}
+
+inline void blender::bke::greasepencil::Drawing::remove_user() const
+{
+  this->runtime->user_count.fetch_sub(1, std::memory_order_relaxed);
+}
+
+inline bool blender::bke::greasepencil::Drawing::is_instanced() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 1;
+}
+
+inline bool blender::bke::greasepencil::Drawing::has_users() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
+}
 
 inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 {

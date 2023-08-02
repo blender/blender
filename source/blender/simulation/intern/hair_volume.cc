@@ -1194,7 +1194,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   int size = hair_grid_size(res);
   HairGridVert *collgrid;
   ListBase *colliders;
-  ColliderCache *col = NULL;
+  ColliderCache *col = nullptr;
   float gmin[3], gmax[3], scale[3];
   /* 2.0f is an experimental value that seems to give good results */
   float collfac = 2.0f * clmd->sim_parms->collider_friction;
@@ -1213,7 +1213,7 @@ static HairGridVert *hair_volume_create_collision_grid(ClothModifierData *clmd,
   }
 
   /* gather colliders */
-  colliders = BKE_collider_cache_create(depsgraph, NULL, NULL);
+  colliders = BKE_collider_cache_create(depsgraph, nullptr, nullptr);
   if (colliders && collfac > 0.0f) {
     for (col = colliders->first; col; col = col->next) {
       float3 *loc0 = col->collmd->x;

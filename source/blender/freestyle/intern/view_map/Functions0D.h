@@ -68,7 +68,7 @@ template<class T> class UnaryFunction0D {
   /** Default constructor. */
   UnaryFunction0D()
   {
-    py_uf0D = NULL;
+    py_uf0D = nullptr;
   }
 
   /** Destructor; */

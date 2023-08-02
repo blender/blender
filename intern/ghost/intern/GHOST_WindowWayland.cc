@@ -1762,7 +1762,7 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
       GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
                                                    GHOST_kVulkanPlatformWayland,
                                                    0,
-                                                   NULL,
+                                                   nullptr,
                                                    window_->wl_surface,
                                                    system_->wl_display(),
                                                    1,

@@ -1404,7 +1404,7 @@ static void particle_batch_cache_ensure_pos(Object *object,
 
   for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
     state.time = DEG_get_ctime(draw_ctx->depsgraph);
-    if (!psys_get_particle_state(&sim, i, &state, 0)) {
+    if (!psys_get_particle_state(&sim, i, &state, false)) {
       continue;
     }
 

@@ -81,11 +81,6 @@ class Context : public realtime_compositor::Context {
     return false;
   }
 
-  bool use_texture_color_management() const override
-  {
-    return BKE_scene_check_color_management_enabled(DRW_context_state_get()->scene);
-  }
-
   const RenderData &get_render_data() const override
   {
     return DRW_context_state_get()->scene->r;

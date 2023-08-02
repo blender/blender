@@ -316,6 +316,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     /* Apply strength in the tangent case. */
     color.x *= strength;
     color.y *= strength;
+    color.z = mix(1.0f, color.z, saturatef(strength));
 
     /* apply normal map */
     float3 B = sign * cross(normal, tangent);

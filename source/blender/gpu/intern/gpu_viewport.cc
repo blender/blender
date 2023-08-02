@@ -8,7 +8,7 @@
  * System that manages viewport drawing.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"

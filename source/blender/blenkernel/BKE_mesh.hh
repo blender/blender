@@ -8,10 +8,12 @@
  * \ingroup bke
  */
 
+#include "BLI_index_mask.hh"
+
 #include "BKE_mesh.h"
 
-namespace blender::bke::mesh {
-
+namespace blender::bke {
+namespace mesh {
 /* -------------------------------------------------------------------- */
 /** \name Polygon Data Evaluation
  * \{ */
@@ -270,7 +272,11 @@ inline int edge_other_vert(const int2 &edge, const int vert)
 
 /** \} */
 
-}  // namespace blender::bke::mesh
+}  // namespace mesh
+
+void mesh_flip_faces(Mesh &mesh, const IndexMask &selection);
+
+}  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
 /** \name Inline Mesh Data Access

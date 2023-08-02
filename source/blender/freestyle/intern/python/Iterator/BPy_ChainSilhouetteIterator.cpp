@@ -21,7 +21,7 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool
+// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=nullptr, bool
 // orientation=true) ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,

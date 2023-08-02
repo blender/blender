@@ -8,8 +8,8 @@
  * GPU immediate mode drawing utilities
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

@@ -345,6 +345,7 @@ int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_colorspace_get_name(const struct ColorSpace *colorspace);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
+const char *IMB_colormanagement_view_get_raw_or_default_name(const char *display_name);
 
 void IMB_colormanagement_colorspace_from_ibuf_ftype(
     struct ColorManagedColorspaceSettings *colorspace_settings, struct ImBuf *ibuf);

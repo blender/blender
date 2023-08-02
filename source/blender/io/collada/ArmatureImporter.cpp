@@ -68,7 +68,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
   if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
     fprintf(
         stderr, "Cannot find a joint index by joint id for %s.\n", node->getOriginalId().c_str());
-    return NULL;
+    return nullptr;
   }
 
   int joint_index = joint_id_to_joint_index_map[joint_id];
@@ -436,7 +436,7 @@ Object *ArmatureImporter::find_armature(COLLADAFW::Node *node)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ArmatureJoints &ArmatureImporter::get_armature_joints(Object *ob_arm)

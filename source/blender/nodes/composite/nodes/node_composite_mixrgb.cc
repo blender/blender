@@ -14,6 +14,10 @@
 
 #include "COM_shader_node.hh"
 
+#include "NOD_socket_search_link.hh"
+
+#include "RNA_enum_types.h"
+
 #include "node_composite_util.hh"
 
 /* **************** MIX RGB ******************** */
@@ -35,6 +39,32 @@ static void cmp_node_mixrgb_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(1);
   b.add_output<decl::Color>("Image");
+}
+
+class SocketSearchOp {
+ public:
+  std::string socket_name;
+  int mode = MA_RAMP_BLEND;
+  void operator()(LinkSearchOpParams &params)
+  {
+    bNode &node = params.add_node("CompositorNodeMixRGB");
+    node.custom1 = mode;
+    params.update_and_connect_available_socket(node, socket_name);
+  }
+};
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const int weight = ELEM(params.other_socket().type, SOCK_RGBA) ? 0 : -1;
+
+  for (const EnumPropertyItem *item = rna_enum_ramp_blend_items; item->identifier != nullptr;
+       item++) {
+    if (item->name != nullptr && item->identifier[0] != '\0') {
+      params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
+                      SocketSearchOp{"Image", item->value},
+                      weight);
+    }
+  }
 }
 
 using namespace blender::realtime_compositor;
@@ -153,6 +183,7 @@ void register_node_type_cmp_mix_rgb()
   ntype.declare = file_ns::cmp_node_mixrgb_declare;
   ntype.labelfunc = node_blend_label;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
 
   nodeRegisterType(&ntype);
 }

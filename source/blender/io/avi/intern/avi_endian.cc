@@ -9,9 +9,9 @@
  * endianness of the system.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "AVI_avi.h"
 #include "avi_endian.h"

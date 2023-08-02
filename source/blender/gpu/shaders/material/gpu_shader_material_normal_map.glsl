@@ -11,6 +11,7 @@ void node_normal_map(vec4 tangent, float strength, vec3 texnormal, out vec3 outn
 
   /* Apply strength here instead of in node_normal_map_mix for tangent space. */
   texnormal.xy *= strength;
+  texnormal.z = mix(1.0, texnormal.z, saturate(strength));
 
   outnormal = texnormal.x * tangent.xyz + texnormal.y * B + texnormal.z * g_data.Ni;
   outnormal = normalize(outnormal);

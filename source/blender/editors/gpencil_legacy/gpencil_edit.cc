@@ -3311,7 +3311,7 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
             continue;
           }
 
-          bool before = bool(gps->flag & GP_STROKE_CYCLIC);
+          eGPDstroke_Flag before = eGPDstroke_Flag(gps->flag & GP_STROKE_CYCLIC);
           switch (type) {
             case GP_STROKE_CYCLIC_CLOSE:
               /* Close all (enable) */
@@ -3330,7 +3330,7 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
               break;
           }
 
-          if (before != (gps->flag & GP_STROKE_CYCLIC)) {
+          if (before != eGPDstroke_Flag(gps->flag & GP_STROKE_CYCLIC)) {
             /* Create new geometry. */
             if (is_curve_edit) {
               BKE_gpencil_editcurve_recalculate_handles(gps);

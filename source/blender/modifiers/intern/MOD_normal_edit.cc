@@ -182,43 +182,34 @@ static void mix_normals(const float mix_factor,
 
 /* Check face normals and new loop normals are compatible, otherwise flip faces
  * (and invert matching face normals). */
-static bool faces_check_flip(blender::MutableSpan<int> corner_verts,
-                             blender::MutableSpan<int> corner_edges,
-                             blender::float3 *nos,
-                             CustomData *ldata,
-                             const blender::OffsetIndices<int> faces,
+static void faces_check_flip(Mesh &mesh,
+                             blender::MutableSpan<blender::float3> nos,
                              const blender::Span<blender::float3> face_normals)
 {
-  MDisps *mdisp = static_cast<MDisps *>(
-      CustomData_get_layer_for_write(ldata, CD_MDISPS, corner_verts.size()));
-  bool flipped = false;
+  using namespace blender;
+  const OffsetIndices faces = mesh.faces();
+  IndexMaskMemory memory;
+  const IndexMask faces_to_flip = IndexMask::from_predicate(
+      faces.index_range(), GrainSize(1024), memory, [&](const int i) {
+        const blender::IndexRange face = faces[i];
+        float norsum[3] = {0.0f};
 
-  for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
-    float norsum[3] = {0.0f};
+        for (const int64_t j : face) {
+          add_v3_v3(norsum, nos[j]);
+        }
+        if (!normalize_v3(norsum)) {
+          return false;
+        }
 
-    for (const int64_t j : face) {
-      add_v3_v3(norsum, nos[j]);
-    }
-    if (!normalize_v3(norsum)) {
-      continue;
-    }
+        /* If average of new loop normals is opposed to face normal, flip face. */
+        if (dot_v3v3(face_normals[i], norsum) < 0.0f) {
+          nos.slice(faces[i].drop_front(1)).reverse();
+          return true;
+        }
+        return false;
+      });
 
-    /* If average of new loop normals is opposed to face normal, flip face. */
-    if (dot_v3v3(face_normals[i], norsum) < 0.0f) {
-      BKE_mesh_face_flip_ex(face.start(),
-                            face.size(),
-                            corner_verts.data(),
-                            corner_edges.data(),
-                            ldata,
-                            reinterpret_cast<float(*)[3]>(nos),
-                            mdisp,
-                            true);
-      flipped = true;
-    }
-  }
-
-  return flipped;
+  bke::mesh_flip_faces(mesh, faces_to_flip);
 }
 
 static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
@@ -326,11 +317,8 @@ static void normalEditModifier_do_radial(NormalEditModifierData *enmd,
                 nos.data());
   }
 
-  if (do_facenors_fix &&
-      faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
-  {
-    BKE_mesh_tag_face_winding_changed(mesh);
+  if (do_facenors_fix) {
+    faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
@@ -434,11 +422,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
                 nos.data());
   }
 
-  if (do_facenors_fix &&
-      faces_check_flip(
-          corner_verts, corner_edges, nos.data(), &mesh->loop_data, faces, mesh->face_normals()))
-  {
-    BKE_mesh_tag_face_winding_changed(mesh);
+  if (do_facenors_fix) {
+    faces_check_flip(*mesh, nos, mesh->face_normals());
   }
   const bool *sharp_faces = static_cast<const bool *>(
       CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));

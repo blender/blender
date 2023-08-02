@@ -284,7 +284,7 @@ static IDRemapper *reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse_dat
   IDRemapper *remapper = reuse_data->remapper;
 
   LISTBASE_FOREACH (Library *, old_lib_iter, &old_bmain->libraries) {
-    /* In case newly opened `new_bmain` is a library of the `old_bmain`, remap it to NULL, since a
+    /* In case newly opened `new_bmain` is a library of the `old_bmain`, remap it to null, since a
      * file should never ever have linked data from itself. */
     if (STREQ(old_lib_iter->filepath_abs, new_bmain->filepath)) {
       BKE_id_remapper_add(remapper, &old_lib_iter->id, nullptr);
@@ -314,12 +314,12 @@ static bool reuse_bmain_data_remapper_is_id_remapped(IDRemapper *remapper, ID *i
   IDRemapperApplyResult result = BKE_id_remapper_get_mapping_result(
       remapper, id, ID_REMAP_APPLY_DEFAULT, nullptr);
   if (ELEM(result, ID_REMAP_RESULT_SOURCE_REMAPPED, ID_REMAP_RESULT_SOURCE_UNASSIGNED)) {
-    /* ID is already remapped to its matching ID in the new main, or explicitly remapped to NULL,
+    /* ID is already remapped to its matching ID in the new main, or explicitly remapped to null,
      * nothing else to do here. */
     return true;
   }
   BLI_assert_msg(result != ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE,
-                 "There should never be a non-mappable (i.e. NULL) input here.");
+                 "There should never be a non-mappable (i.e. null) input here.");
   BLI_assert(result == ID_REMAP_RESULT_SOURCE_UNAVAILABLE);
   return false;
 }
@@ -783,7 +783,7 @@ static void setup_app_data(bContext *C,
 
     if (track_undo_scene) {
       /* Keep the old (to-be-freed) scene, remapping below will ensure it's remapped to the
-       * matching new scene if available, or NULL otherwise, in which case
+       * matching new scene if available, or null otherwise, in which case
        * #wm_data_consistency_ensure will define `curscene` as the active one. */
     }
     /* Enforce curscene to be in current screen. */

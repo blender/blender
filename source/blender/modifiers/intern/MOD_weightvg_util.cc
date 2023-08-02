@@ -115,7 +115,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
                       Mesh *mesh,
                       const float fact,
                       const char defgrp_name[MAX_VGROUP_NAME],
-                      Scene *scene,
+                      Scene * /*scene*/,
                       Tex *texture,
                       const int tex_use_channel,
                       const int tex_mapping,
@@ -161,8 +161,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
       int idx = indices ? indices[i] : i;
       TexResult texres;
       float hsv[3]; /* For HSV color space. */
-      bool do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT &&
-                             BKE_scene_check_color_management_enabled(scene);
+      bool do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
 
       BKE_texture_get_value(texture, tex_co[idx], &texres, do_color_manage);
       /* Get the good channel value... */

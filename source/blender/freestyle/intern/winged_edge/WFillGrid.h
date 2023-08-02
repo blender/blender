@@ -22,7 +22,7 @@ namespace Freestyle {
 
 class WFillGrid {
  public:
-  inline WFillGrid(Grid *grid = NULL, WingedEdge *winged_edge = NULL)
+  inline WFillGrid(Grid *grid = nullptr, WingedEdge *winged_edge = nullptr)
   {
     _winged_edge = winged_edge;
     _grid = grid;

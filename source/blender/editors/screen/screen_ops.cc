@@ -4945,6 +4945,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
      * playback. */
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, scene);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SPREADSHEET, scene);
+    WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM, scene);
   }
   else {
     BKE_callback_exec_id_depsgraph(

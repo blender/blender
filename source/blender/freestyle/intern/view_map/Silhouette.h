@@ -163,8 +163,8 @@ class SVertex : public Interface0D {
   inline SVertex()
   {
     _Id = 0;
-    userdata = NULL;
-    _Shape = NULL;
+    userdata = nullptr;
+    _Shape = nullptr;
     _pViewVertex = 0;
     _curvature_info = 0;
   }
@@ -174,8 +174,8 @@ class SVertex : public Interface0D {
   {
     _Point3D = iPoint3D;
     _Id = id;
-    userdata = NULL;
-    _Shape = NULL;
+    userdata = nullptr;
+    _Shape = nullptr;
     _pViewVertex = 0;
     _curvature_info = 0;
   }
@@ -529,13 +529,13 @@ class FEdge : public Interface1D {
   /** Default constructor */
   inline FEdge()
   {
-    userdata = NULL;
-    _VertexA = NULL;
-    _VertexB = NULL;
+    userdata = nullptr;
+    _VertexA = nullptr;
+    _VertexB = nullptr;
     _Nature = Nature::NO_FEATURE;
-    _NextEdge = NULL;
-    _PreviousEdge = NULL;
-    _ViewEdge = NULL;
+    _NextEdge = nullptr;
+    _PreviousEdge = nullptr;
+    _ViewEdge = nullptr;
     //_hasVisibilityPoint = false;
     _occludeeEmpty = true;
     _isSmooth = false;
@@ -546,13 +546,13 @@ class FEdge : public Interface1D {
   /** Builds an FEdge going from vA to vB. */
   inline FEdge(SVertex *vA, SVertex *vB)
   {
-    userdata = NULL;
+    userdata = nullptr;
     _VertexA = vA;
     _VertexB = vB;
     _Nature = Nature::NO_FEATURE;
-    _NextEdge = NULL;
-    _PreviousEdge = NULL;
-    _ViewEdge = NULL;
+    _NextEdge = nullptr;
+    _PreviousEdge = nullptr;
+    _ViewEdge = nullptr;
     //_hasVisibilityPoint = false;
     _occludeeEmpty = true;
     _isSmooth = false;
@@ -819,12 +819,12 @@ class FEdge : public Interface1D {
   }
 
   /* checks whether two FEdge have a common vertex.
-   *  Returns a pointer on the common vertex if it exists, NULL otherwise.
+   *  Returns a pointer on the common vertex if it exists, nullptr otherwise.
    */
   static inline SVertex *CommonVertex(FEdge *iEdge1, FEdge *iEdge2)
   {
-    if ((NULL == iEdge1) || (NULL == iEdge2)) {
-      return NULL;
+    if ((nullptr == iEdge1) || (nullptr == iEdge2)) {
+      return nullptr;
     }
 
     SVertex *sv1 = iEdge1->vertexA();
@@ -839,7 +839,7 @@ class FEdge : public Interface1D {
       return sv2;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   inline const SVertex *min2d() const
@@ -970,8 +970,8 @@ class SVertexIterator : public Interface0DIteratorNested {
  public:
   SVertexIterator()
   {
-    _vertex = NULL;
-    _edge = NULL;
+    _vertex = nullptr;
+    _edge = nullptr;
   }
 
   SVertexIterator(const SVertexIterator &vi)
@@ -1298,7 +1298,7 @@ class FEdgeSmooth : public FEdge {
   /** Default constructor. */
   inline FEdgeSmooth() : FEdge()
   {
-    _Face = NULL;
+    _Face = nullptr;
     _FaceMark = false;
     _FrsMaterialIndex = 0;
     _isSmooth = true;
@@ -1307,7 +1307,7 @@ class FEdgeSmooth : public FEdge {
   /** Builds an FEdgeSmooth going from vA to vB. */
   inline FEdgeSmooth(SVertex *vA, SVertex *vB) : FEdge(vA, vB)
   {
-    _Face = NULL;
+    _Face = nullptr;
     _FaceMark = false;
     _FrsMaterialIndex = 0;
     _isSmooth = true;
@@ -1421,15 +1421,15 @@ class SShape {
   /** Default constructor */
   inline SShape()
   {
-    userdata = NULL;
+    userdata = nullptr;
     _importance = 0.0f;
-    _ViewShape = NULL;
+    _ViewShape = nullptr;
   }
 
   /** Copy constructor */
   inline SShape(SShape &iBrother)
   {
-    userdata = NULL;
+    userdata = nullptr;
     _Id = iBrother._Id;
     _Name = iBrother._Name;
     _LibraryPath = iBrother._LibraryPath;
@@ -1494,20 +1494,20 @@ class SShape {
       (*e)->setPreviousEdge((FEdge *)((*e)->previousEdge()->userdata));
     }
 
-    // reset all brothers userdata to NULL:
+    // reset all brothers userdata to nullptr:
     //-------------------------------------
     //---------
     // vertices
     //---------
     for (sv = _verticesList.begin(), svend = _verticesList.end(); sv != svend; sv++) {
-      (*sv)->userdata = NULL;
+      (*sv)->userdata = nullptr;
     }
 
     //------
     // edges
     //------
     for (e = _edgesList.begin(), eend = _edgesList.end(); e != eend; e++) {
-      (*e)->userdata = NULL;
+      (*e)->userdata = nullptr;
     }
   }
 
@@ -1676,7 +1676,7 @@ class SShape {
 
       // update edge AA' for the next pointing edge
       // ioEdge->setNextEdge(newEdge);
-      (fe)->setNextEdge(NULL);
+      (fe)->setNextEdge(nullptr);
 
       // update vertex pointing edges list:
       // -- vertex B --

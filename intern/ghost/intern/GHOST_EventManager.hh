@@ -99,7 +99,7 @@ class GHOST_EventManager {
    * \param type: The type of events to be removed.
    * \param window: The window to remove the events for.
    */
-  void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = NULL);
+  void removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *window = nullptr);
 
  protected:
   /**

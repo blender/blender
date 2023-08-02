@@ -956,8 +956,8 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
 
   ED_area_tag_redraw(area);
 
-  /* when calling render modally this can be NULL when calling:
-   * bpy.ops.render.render('INVOKE_DEFAULT') */
+  /* When calling render modally this can be null when calling:
+   * `bpy.ops.render.render('INVOKE_DEFAULT')`. */
   if (region) {
     console_scroll_bottom(region);
   }

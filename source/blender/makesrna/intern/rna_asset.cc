@@ -17,6 +17,14 @@
 
 #include "rna_internal.h"
 
+const EnumPropertyItem rna_enum_aset_library_type_items[] = {
+    {ASSET_LIBRARY_LOCAL, "LOCAL", 0, "Local", ""},
+    {ASSET_LIBRARY_ALL, "ALL", 0, "All", ""},
+    {ASSET_LIBRARY_ESSENTIALS, "ESSENTIALS", 0, "Essentials", ""},
+    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "AS_asset_library.h"

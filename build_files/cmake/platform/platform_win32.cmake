@@ -186,8 +186,6 @@ endif()
 # C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
 if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /permissive-")
-  # Two-phase name lookup does not place nicely with OpenMP yet, so disable for now
-  string(APPEND CMAKE_CXX_FLAGS " /Zc:twoPhase-")
 endif()
 
 if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)

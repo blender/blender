@@ -256,7 +256,7 @@ class GHOST_SystemWayland : public GHOST_System {
   void output_scale_update(GWL_Output *output);
 
   /**
-   * Clear all references to this surface to prevent accessing NULL pointers.
+   * Clear all references to this surface to prevent accessing nullptr pointers.
    *
    * \return true when any references were removed.
    */

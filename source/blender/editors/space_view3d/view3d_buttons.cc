@@ -101,6 +101,7 @@ struct TransformProperties {
   float ob_dims_orig[3];
   float ob_scale_orig[3];
   float ob_dims[3];
+  float active_vertex_weight;
   /* Floats only (treated as an array). */
   TransformMedian ve_median, median;
   bool tag_for_update;
@@ -1322,6 +1323,18 @@ static bool view3d_panel_vgroup_poll(const bContext *C, PanelType * /*pt*/)
   return false;
 }
 
+static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  TransformProperties *tfp = v3d_transform_props_ensure(v3d);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
+  MDeformVert *dv = ED_mesh_active_dvert_get_only(ob);
+  const int vertex_group_index = POINTER_AS_INT(arg1);
+  MDeformWeight *dw = BKE_defvert_find_index(dv, vertex_group_index);
+  dw->weight = tfp->active_vertex_weight;
+}
+
 static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 {
   uiBlock *block = uiLayoutAbsoluteBlock(panel->layout);
@@ -1329,6 +1342,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
+  View3D *v3d = CTX_wm_view3d(C);
+  TransformProperties *tfp = v3d_transform_props_ensure(v3d);
 
   MDeformVert *dv;
 
@@ -1402,6 +1417,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
           /* The weight group value */
           /* To be reworked still */
+          tfp->active_vertex_weight = dw->weight;
           but = uiDefButF(block,
                           UI_BTYPE_NUM,
                           B_VGRP_PNL_EDIT_SINGLE + i,
@@ -1410,7 +1426,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
                           yco,
                           (x = UI_UNIT_X * 4),
                           UI_UNIT_Y,
-                          &dw->weight,
+                          &tfp->active_vertex_weight,
                           0.0,
                           1.0,
                           0,
@@ -1419,6 +1435,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
           UI_but_number_step_size_set(but, 1);
           UI_but_number_precision_set(but, 3);
           UI_but_drawflag_enable(but, UI_BUT_TEXT_LEFT);
+          UI_but_func_set(but, update_active_vertex_weight, POINTER_FROM_INT(i), nullptr);
           if (locked) {
             lock_count++;
           }

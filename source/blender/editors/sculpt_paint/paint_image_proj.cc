@@ -449,8 +449,6 @@ struct ProjPaintState {
 
   /* Actual material for each index, either from object or Mesh datablock... */
   Material **mat_array;
-
-  bool use_colormanagement;
 };
 
 union PixelPointer {
@@ -1998,12 +1996,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
             uchar rgba_ub[4];
             float rgba[4];
             project_face_pixel(lt_other_tri_uv, ibuf_other, w, rgba_ub, nullptr);
-            if (ps->use_colormanagement) {
-              srgb_to_linearrgb_uchar4(rgba, rgba_ub);
-            }
-            else {
-              rgba_uchar_to_float(rgba, rgba_ub);
-            }
+            srgb_to_linearrgb_uchar4(rgba, rgba_ub);
             straight_to_premul_v4_v4(((ProjPixelClone *)projPixel)->clonepx.f, rgba);
           }
         }
@@ -2012,12 +2005,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
             float rgba[4];
             project_face_pixel(lt_other_tri_uv, ibuf_other, w, nullptr, rgba);
             premul_to_straight_v4(rgba);
-            if (ps->use_colormanagement) {
-              linearrgb_to_srgb_uchar3(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
-            }
-            else {
-              rgb_float_to_uchar(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
-            }
+            linearrgb_to_srgb_uchar3(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
             ((ProjPixelClone *)projPixel)->clonepx.ch[3] = rgba[3] * 255;
           }
           else { /* char to char */
@@ -5099,12 +5087,7 @@ static void do_projectpaint_draw(ProjPaintState *ps,
   if (ps->is_texbrush) {
     mul_v3_v3v3(rgb, texrgb, ps->paint_color_linear);
     /* TODO(sergey): Support texture paint color space. */
-    if (ps->use_colormanagement) {
-      linearrgb_to_srgb_v3_v3(rgb, rgb);
-    }
-    else {
-      copy_v3_v3(rgb, rgb);
-    }
+    linearrgb_to_srgb_v3_v3(rgb, rgb);
   }
   else {
     copy_v3_v3(rgb, ps->paint_color);
@@ -5807,12 +5790,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
                           pressure,
                           ps->paint_color,
                           nullptr);
-    if (ps->use_colormanagement) {
-      srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
-    }
-    else {
-      copy_v3_v3(ps->paint_color_linear, ps->paint_color);
-    }
+    srgb_to_linearrgb_v3_v3(ps->paint_color_linear, ps->paint_color);
   }
   else if (ps->tool == PAINT_TOOL_MASK) {
     ps->stencil_value = brush->weight;
@@ -5977,8 +5955,6 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
   ps->normal_angle_inner__cos = cosf(ps->normal_angle_inner);
 
   ps->dither = settings->imapaint.dither;
-
-  ps->use_colormanagement = BKE_scene_check_color_management_enabled(CTX_data_scene(C));
 }
 
 void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int mode)

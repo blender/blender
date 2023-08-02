@@ -92,7 +92,7 @@ class GHOST_SystemCocoa : public GHOST_System {
                               GHOST_GPUSettings gpuSettings,
                               const bool exclusive = false,
                               const bool is_dialog = false,
-                              const GHOST_IWindow *parentWindow = NULL);
+                              const GHOST_IWindow *parentWindow = nullptr);
 
   /**
    * Create a new off-screen context.
