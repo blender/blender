@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 /* NOTE: Was initially used to get proper enumerator types, but this makes
  * it tricky to compile without OpenSubdiv. */

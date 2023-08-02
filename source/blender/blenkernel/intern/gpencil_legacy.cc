@@ -48,7 +48,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BLI_math_color.h"
 

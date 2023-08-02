@@ -7,11 +7,10 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-#  include "BLI_offset_indices.hh"
-#endif
+#include "DNA_customdata_types.h"
 
-#ifdef __cplusplus
+#include "BLI_offset_indices.hh"
+#include "BLI_sys_types.h"
 
 struct ReportList;
 
@@ -32,12 +31,6 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           blender::OffsetIndices<int> faces,
                                           struct ReportList *reports);
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
  * \note
@@ -48,12 +41,6 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
                                        const char *uvmap,
                                        float (*r_looptangents)[4],
                                        struct ReportList *reports);
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
@@ -90,7 +77,7 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(struct CustomData *uv_data,
                                                   int numLoopData,
                                                   const char *layer_name);
 
-#  define DM_TANGENT_MASK_ORCO (1 << 9)
+#define DM_TANGENT_MASK_ORCO (1 << 9)
 /**
  * Here we get some useful information such as active uv layer name and
  * search if it is already in tangent_names.
@@ -108,5 +95,3 @@ void BKE_mesh_calc_loop_tangent_step_0(const struct CustomData *loopData,
                                        char *ract_uv_name,
                                        char *rren_uv_name,
                                        short *rtangent_mask);
-
-#endif

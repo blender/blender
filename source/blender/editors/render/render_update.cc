@@ -32,7 +32,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 
 #include "NOD_composite.h"

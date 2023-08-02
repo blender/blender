@@ -38,13 +38,13 @@
 #include "BKE_editmesh_cache.hh"
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_tangent.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_tangent.hh"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subdiv_modifier.h"
+#include "BKE_subdiv_modifier.hh"
 
 #include "atomic_ops.h"
 

@@ -44,8 +44,8 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 /* these 2 are only used by conversion functions */
 #include "BKE_curve.h"

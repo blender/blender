@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 

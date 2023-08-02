@@ -13,10 +13,10 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_kelvinlet.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"

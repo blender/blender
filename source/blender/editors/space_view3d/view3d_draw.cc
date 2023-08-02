@@ -28,7 +28,7 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_studiolight.h"
 #include "BKE_unit.h"

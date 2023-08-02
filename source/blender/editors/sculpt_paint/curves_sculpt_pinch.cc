@@ -14,10 +14,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"

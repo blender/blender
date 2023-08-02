@@ -26,7 +26,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_pointcloud.h"
 
 #include "MEM_guardedalloc.h"

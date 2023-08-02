@@ -23,7 +23,7 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "ED_paint.h"
 #include "ED_view3d.h"

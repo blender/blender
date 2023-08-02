@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 struct OpenSubdiv_EvaluatorCache;
 struct OpenSubdiv_EvaluatorSettings;
@@ -95,7 +91,3 @@ void BKE_subdiv_eval_displacement(struct Subdiv *subdiv,
 /* Evaluate point on a limit surface with displacement applied to it. */
 void BKE_subdiv_eval_final_point(
     struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3]);
-
-#ifdef __cplusplus
-}
-#endif

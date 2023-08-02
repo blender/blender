@@ -15,7 +15,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "sculpt_intern.hh"

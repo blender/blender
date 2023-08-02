@@ -16,7 +16,7 @@
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"

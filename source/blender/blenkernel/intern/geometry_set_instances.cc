@@ -6,7 +6,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.h"
 
 #include "DNA_collection_types.h"

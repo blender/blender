@@ -20,7 +20,7 @@
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "NOD_texture.h"
 #include "node_common.h"

@@ -26,7 +26,7 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil_geom_legacy.h"
@@ -35,7 +35,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 

@@ -20,7 +20,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_shrinkwrap.h"

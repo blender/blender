@@ -56,7 +56,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 #  include "BKE_customdata.h"
 #  include "BKE_main.h"
 #  include "BKE_mesh.hh"
-#  include "BKE_mesh_runtime.h"
+#  include "BKE_mesh_runtime.hh"
 #  include "BKE_report.h"
 
 #  include "DEG_depsgraph.h"

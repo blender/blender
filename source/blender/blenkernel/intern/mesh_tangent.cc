@@ -22,8 +22,8 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_tangent.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_tangent.hh"
 #include "BKE_report.h"
 
 #include "BLI_strict_flags.h"

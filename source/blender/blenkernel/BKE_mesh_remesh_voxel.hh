@@ -8,10 +8,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 
 struct Mesh *BKE_mesh_remesh_voxel_fix_poles(const struct Mesh *mesh);
@@ -32,7 +28,3 @@ struct Mesh *BKE_mesh_remesh_quadriflow(const struct Mesh *mesh,
 void BKE_mesh_remesh_reproject_paint_mask(struct Mesh *target, const struct Mesh *source);
 void BKE_remesh_reproject_vertex_paint(struct Mesh *target, const struct Mesh *source);
 void BKE_remesh_reproject_sculpt_face_sets(struct Mesh *target, const struct Mesh *source);
-
-#ifdef __cplusplus
-}
-#endif

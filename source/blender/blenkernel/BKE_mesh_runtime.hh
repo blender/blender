@@ -9,11 +9,7 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
-#include "BKE_mesh_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_mesh_types.hh"
 
 struct CustomData_MeshMasks;
 struct Depsgraph;
@@ -96,7 +92,3 @@ void BKE_mesh_runtime_eval_to_meshkey(struct Mesh *me_deformed,
 #ifndef NDEBUG
 bool BKE_mesh_runtime_is_valid(struct Mesh *me_eval);
 #endif /* NDEBUG */
-
-#ifdef __cplusplus
-}
-#endif

@@ -16,11 +16,11 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "IMB_colormanagement.h"

@@ -765,7 +765,6 @@ class VIEW3D_HT_header(Header):
                     depress=(tool_settings.gpencil_selectmode_edit == 'STROKE'),
                 ).mode = 'STROKE'
 
-
             if object_mode == 'PAINT_GREASE_PENCIL':
                 row = layout.row()
                 sub = row.row(align=True)

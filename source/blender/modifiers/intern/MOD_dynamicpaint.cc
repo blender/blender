@@ -26,7 +26,7 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_layer.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 

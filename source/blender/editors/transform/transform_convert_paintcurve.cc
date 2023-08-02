@@ -13,7 +13,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

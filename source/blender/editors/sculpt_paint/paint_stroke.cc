@@ -25,12 +25,12 @@
 
 #include "RNA_access.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_image.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"

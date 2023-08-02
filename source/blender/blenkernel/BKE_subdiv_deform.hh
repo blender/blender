@@ -10,10 +10,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 struct Subdiv;
 
@@ -28,7 +24,3 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
                                        const struct Mesh *coarse_mesh,
                                        float (*vertex_cos)[3],
                                        int num_verts);
-
-#ifdef __cplusplus
-}
-#endif

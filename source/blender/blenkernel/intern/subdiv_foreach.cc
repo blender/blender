@@ -20,7 +20,7 @@
 #include "BKE_customdata.h"
 #include "BKE_key.h"
 #include "BKE_mesh.hh"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
 #include "MEM_guardedalloc.h"

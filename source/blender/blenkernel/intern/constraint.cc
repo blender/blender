@@ -58,7 +58,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"

@@ -24,7 +24,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

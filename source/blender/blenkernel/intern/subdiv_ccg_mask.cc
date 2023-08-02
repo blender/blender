@@ -8,7 +8,7 @@
 
 #include <cmath>
 
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -19,7 +19,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 #include "MEM_guardedalloc.h"
 

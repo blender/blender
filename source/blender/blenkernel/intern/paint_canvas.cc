@@ -10,7 +10,7 @@
 #include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "IMB_imbuf_types.h"
 
@@ -33,8 +33,6 @@ static TexPaintSlot *get_active_slot(Object *ob)
 }
 
 }  // namespace blender::bke::paint::canvas
-
-extern "C" {
 
 using namespace blender::bke::paint::canvas;
 
@@ -129,5 +127,4 @@ char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob)
   }
 
   return BLI_strdup(ss.str().c_str());
-}
 }

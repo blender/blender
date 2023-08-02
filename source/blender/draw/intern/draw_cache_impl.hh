@@ -25,8 +25,11 @@ struct Volume;
 struct bGPdata;
 struct GreasePencil;
 
-#include "BKE_mesh.h" /* For #eMeshBatchDirtyMode. */
 #include "BKE_mesh_types.hh"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* -------------------------------------------------------------------- */
 /** \name Expose via BKE callbacks
@@ -332,3 +335,7 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *ob
                                                                struct PTCacheEdit *edit);
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

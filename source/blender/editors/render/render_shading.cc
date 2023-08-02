@@ -35,7 +35,7 @@
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_blender_copybuffer.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_editmesh.h"

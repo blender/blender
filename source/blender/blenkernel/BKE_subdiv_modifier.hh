@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 #include "BLI_sys_types.h"
 

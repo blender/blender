@@ -17,7 +17,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_global.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 
 #include "DNA_curves_types.h"

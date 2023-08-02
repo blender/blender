@@ -8,18 +8,13 @@
  * \ingroup bke
  */
 
+#include "BLI_resource_scope.hh"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
-
-#ifdef __cplusplus
-#  include "BLI_resource_scope.hh"
-#  include "BLI_span.hh"
-#endif
 
 struct CustomData;
 struct Mesh;
 struct MFace;
-
-#ifdef __cplusplus
 
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
@@ -79,12 +74,6 @@ void BKE_mesh_legacy_convert_loops_to_corners(struct Mesh *mesh);
 
 void BKE_mesh_legacy_face_map_to_generic(struct Mesh *mesh);
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Recreate #MFace Tessellation.
  */
@@ -133,7 +122,3 @@ BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
   const int j = index_mf_to_mpoly[i];
   return (j != -1) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : -1;
 }
-
-#ifdef __cplusplus
-}
-#endif

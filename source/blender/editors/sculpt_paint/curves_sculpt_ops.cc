@@ -8,13 +8,13 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "WM_api.h"
 #include "WM_message.h"

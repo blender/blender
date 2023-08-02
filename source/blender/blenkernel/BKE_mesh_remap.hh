@@ -8,13 +8,10 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-#  include "BLI_offset_indices.hh"
-#endif
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_mesh_mapping.hh"
 
 struct CustomData;
 struct CustomData_MeshMasks;
@@ -186,12 +183,6 @@ void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
 void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
                                          float max_dist,
@@ -238,5 +229,3 @@ void BKE_mesh_remap_calc_faces_from_mesh(int mode,
                                          const blender::OffsetIndices<int> faces_dst,
                                          const struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
-
-#endif

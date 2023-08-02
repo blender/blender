@@ -23,8 +23,8 @@
 
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_remesh_voxel.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_remesh_voxel.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_screen.h"
 
 #include "UI_interface.h"

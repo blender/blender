@@ -10,7 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
 #include "UI_interface.h"

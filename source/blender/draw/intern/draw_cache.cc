@@ -25,7 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_utils.h"

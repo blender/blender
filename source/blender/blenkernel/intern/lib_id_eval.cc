@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id)
 {

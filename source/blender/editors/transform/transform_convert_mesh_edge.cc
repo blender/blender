@@ -15,7 +15,7 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

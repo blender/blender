@@ -39,9 +39,9 @@
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 #include "GPU_batch.h"
 

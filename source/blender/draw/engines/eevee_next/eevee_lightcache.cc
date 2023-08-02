@@ -8,6 +8,8 @@
  * Contains everything about light baking.
  */
 
+#include <mutex>
+
 #include "DRW_render.h"
 
 #include "BKE_global.h"

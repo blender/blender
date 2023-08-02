@@ -7,15 +7,9 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-#  include "BLI_array.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_offset_indices.hh"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_array.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 
 struct MLoopTri;
 
@@ -100,8 +94,6 @@ typedef struct MeshElemMap {
   int count;
 } MeshElemMap;
 
-#ifdef __cplusplus
-
 /* mapping */
 
 UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
@@ -114,12 +106,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(blender::OffsetIndices<int> faces,
                                        bool selected,
                                        bool use_winding);
 
-#endif
-
 UvMapVert *BKE_mesh_uv_vert_map_get_vert(UvVertMap *vmap, unsigned int v);
 void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
-
-#ifdef __cplusplus
 
 /**
  * Generates a map where the key is the edge and the value
@@ -255,10 +243,6 @@ bool BKE_mesh_calc_islands_loop_face_uvmap(float (*vert_positions)[3],
                                            const float (*luvs)[2],
                                            MeshIslandStore *r_island_store);
 
-#  ifdef __cplusplus
-}
-#  endif
-
 /**
  * Calculate smooth groups from sharp edges.
  *
@@ -276,14 +260,14 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
                                 bool use_bitflags);
 
 /* use on looptri vertex values */
-#  define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
-    ((CHECK_TYPE_ANY( \
-          _tri, unsigned int *, int *, int[3], const unsigned int *, const int *, const int[3]), \
-      CHECK_TYPE_ANY(_v, unsigned int, const unsigned int, int, const int)), \
-     (((_tri)[0] == _v) ? 0 : \
-      ((_tri)[1] == _v) ? 1 : \
-      ((_tri)[2] == _v) ? 2 : \
-                          -1))
+#define BKE_MESH_TESSTRI_VINDEX_ORDER(_tri, _v) \
+  ((CHECK_TYPE_ANY( \
+        _tri, unsigned int *, int *, int[3], const unsigned int *, const int *, const int[3]), \
+    CHECK_TYPE_ANY(_v, unsigned int, const unsigned int, int, const int)), \
+   (((_tri)[0] == _v) ? 0 : \
+    ((_tri)[1] == _v) ? 1 : \
+    ((_tri)[2] == _v) ? 2 : \
+                        -1))
 
 namespace blender::bke::mesh {
 
@@ -317,4 +301,3 @@ GroupedSpan<int> build_edge_to_face_map(OffsetIndices<int> faces,
                                         Array<int> &r_indices);
 
 }  // namespace blender::bke::mesh
-#endif

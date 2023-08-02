@@ -13,11 +13,7 @@
 #include "DNA_color_types.h"
 #include "DNA_object_enums.h"
 
-#include "BKE_paint.h" /* for ePaintMode */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_paint.hh" /* for ePaintMode */
 
 struct Brush;
 struct ImBuf;
@@ -207,7 +203,3 @@ bool BKE_brush_has_cube_tip(const struct Brush *brush, ePaintMode paint_mode);
 
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);
-
-#ifdef __cplusplus
-}
-#endif

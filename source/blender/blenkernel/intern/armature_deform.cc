@@ -36,7 +36,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DEG_depsgraph_build.h"
 

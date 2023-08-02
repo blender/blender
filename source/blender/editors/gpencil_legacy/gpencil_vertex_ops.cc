@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "WM_api.h"

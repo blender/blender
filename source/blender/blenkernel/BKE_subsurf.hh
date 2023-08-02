@@ -14,10 +14,6 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct CCGEdge;
 struct CCGElem;
 struct CCGFace;
@@ -129,7 +125,3 @@ typedef struct CCGDerivedMesh {
   ThreadMutex loops_cache_lock;
   ThreadRWMutex origindex_cache_rwlock;
 } CCGDerivedMesh;
-
-#ifdef __cplusplus
-}
-#endif

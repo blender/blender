@@ -29,7 +29,7 @@
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "SEQ_transform.h"
 

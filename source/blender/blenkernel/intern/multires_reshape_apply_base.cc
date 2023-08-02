@@ -21,10 +21,10 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_multires.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_multires.hh"
+#include "BKE_subdiv_eval.hh"
 
 #include "DEG_depsgraph_query.h"
 

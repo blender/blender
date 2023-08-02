@@ -13,7 +13,7 @@
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "ED_sculpt.h"

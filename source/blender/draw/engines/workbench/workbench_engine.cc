@@ -5,7 +5,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"

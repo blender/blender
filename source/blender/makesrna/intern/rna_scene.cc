@@ -34,7 +34,7 @@
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_idtype.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_volume.h"
 
 #include "ED_gpencil_legacy.h"
@@ -714,7 +714,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  include "BKE_animsys.h"
-#  include "BKE_brush.h"
+#  include "BKE_brush.hh"
 #  include "BKE_collection.h"
 #  include "BKE_colortools.h"
 #  include "BKE_context.h"
@@ -726,7 +726,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_image_format.h"
 #  include "BKE_layer.h"
 #  include "BKE_main.h"
-#  include "BKE_mesh.h"
+#  include "BKE_mesh.hh"
 #  include "BKE_node.h"
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"

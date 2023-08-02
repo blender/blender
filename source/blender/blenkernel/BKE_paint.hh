@@ -8,13 +8,11 @@
  * \ingroup bke
  */
 
+#include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
-#ifdef __cplusplus
-#  include "BLI_array.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_offset_indices.hh"
-#endif
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
@@ -24,10 +22,6 @@
 #include "BKE_pbvh.h"
 
 #include "bmesh.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct BMFace;
 struct BMesh;
@@ -282,7 +276,6 @@ void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
 #define SCULPT_FACE_SET_NONE 0
 
 /** Used for both vertex color and weight paint. */
-#ifdef __cplusplus
 struct SculptVertexPaintGeomMap {
   blender::Array<int> vert_to_loop_offsets;
   blender::Array<int> vert_to_loop_indices;
@@ -292,7 +285,6 @@ struct SculptVertexPaintGeomMap {
   blender::Array<int> vert_to_face_indices;
   blender::GroupedSpan<int> vert_to_face;
 };
-#endif
 
 /** Pose Brush IK Chain. */
 typedef struct SculptPoseIKChainSegment {
@@ -581,8 +573,6 @@ typedef struct SculptAttributePointers {
   SculptAttribute *dyntopo_node_id_face;
 } SculptAttributePointers;
 
-#ifdef __cplusplus
-
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -780,8 +770,6 @@ typedef struct SculptSession {
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
-#endif
-
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
@@ -955,7 +943,3 @@ int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *setti
                                            struct Object *ob);
 void BKE_sculpt_check_cavity_curves(struct Sculpt *sd);
 struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
-
-#ifdef __cplusplus
-}
-#endif

@@ -19,9 +19,9 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -118,7 +118,7 @@ eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_paint.h
+/** \name Stubs of BKE_paint.hh
  * \{ */
 bool paint_is_face_hidden(const int * /*looptri_faces*/,
                           const bool * /*hide_poly*/,
@@ -198,7 +198,7 @@ bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_subdiv_ccg.h
+/** \name Stubs of BKE_subdiv_ccg.hh
  * \{ */
 int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG * /*subdiv_ccg*/, const int /*grid_index*/)
 {

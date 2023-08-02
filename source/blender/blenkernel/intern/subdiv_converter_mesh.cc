@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include "subdiv_converter.h"
+#include "subdiv_converter.hh"
 
 #include <cstring>
 
@@ -17,8 +17,8 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_subdiv.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_subdiv.hh"
 
 #include "MEM_guardedalloc.h"
 

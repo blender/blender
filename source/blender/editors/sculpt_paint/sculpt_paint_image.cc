@@ -20,7 +20,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_image_wrappers.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"

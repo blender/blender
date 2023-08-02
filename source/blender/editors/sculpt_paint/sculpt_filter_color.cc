@@ -18,7 +18,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "IMB_colormanagement.h"

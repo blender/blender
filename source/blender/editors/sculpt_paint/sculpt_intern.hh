@@ -15,7 +15,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "BLI_bitmap.h"

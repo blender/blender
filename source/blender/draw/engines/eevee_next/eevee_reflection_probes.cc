@@ -2,8 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "eevee_reflection_probes.hh"
+#include "BLI_bit_vector.hh"
+
 #include "eevee_instance.hh"
+#include "eevee_reflection_probes.hh"
 
 namespace blender::eevee {
 

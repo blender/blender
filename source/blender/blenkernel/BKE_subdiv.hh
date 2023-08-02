@@ -11,10 +11,6 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
@@ -309,8 +305,4 @@ BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
 /* Convert Blender edge crease value to OpenSubdiv sharpness. */
 BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease);
 
-#ifdef __cplusplus
-}
-#endif
-
-#include "intern/subdiv_inline.h"
+#include "intern/subdiv_inline.hh"

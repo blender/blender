@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 
 typedef enum MeshForeachFlag {
@@ -56,7 +52,3 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
 void BKE_mesh_foreach_mapped_vert_coords_get(const struct Mesh *me_eval,
                                              float (*r_cos)[3],
                                              int totcos);
-
-#ifdef __cplusplus
-}
-#endif

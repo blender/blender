@@ -12,10 +12,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Mesh Fairing. */
 /* Creates a smooth as possible geometry patch in a defined area. Different values of depth allow
  * to minimize changes in the vertex positions or tangency in the affected area. */
@@ -41,7 +37,3 @@ void BKE_mesh_prefair_and_fair_verts(struct Mesh *mesh,
                                      float (*deform_vert_positions)[3],
                                      bool *affect_verts,
                                      eMeshFairingDepth depth);
-
-#ifdef __cplusplus
-}
-#endif

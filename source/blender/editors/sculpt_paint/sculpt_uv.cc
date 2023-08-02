@@ -18,14 +18,14 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_paint.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_paint.hh"
 
 #include "DEG_depsgraph.h"
 

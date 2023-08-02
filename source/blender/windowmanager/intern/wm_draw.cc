@@ -62,7 +62,7 @@
 #include "UI_resources.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "BKE_subsurf.h"
+#  include "BKE_subsurf.hh"
 #endif
 
 /* -------------------------------------------------------------------- */

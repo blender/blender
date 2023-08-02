@@ -11,7 +11,7 @@
 #include "BLI_string.h"
 
 #include "BKE_mesh.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"

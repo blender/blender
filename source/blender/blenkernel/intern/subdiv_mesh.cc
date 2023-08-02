@@ -23,9 +23,9 @@
 #include "BKE_customdata.h"
 #include "BKE_key.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 

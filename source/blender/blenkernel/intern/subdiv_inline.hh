@@ -11,7 +11,7 @@
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(const float ptex_u,
                                                    const float ptex_v,

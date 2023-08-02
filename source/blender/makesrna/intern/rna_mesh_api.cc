@@ -23,10 +23,10 @@
 #  include "DNA_mesh_types.h"
 
 #  include "BKE_anim_data.h"
-#  include "BKE_mesh.h"
-#  include "BKE_mesh_mapping.h"
-#  include "BKE_mesh_runtime.h"
-#  include "BKE_mesh_tangent.h"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_mapping.hh"
+#  include "BKE_mesh_runtime.hh"
+#  include "BKE_mesh_tangent.hh"
 #  include "BKE_report.h"
 
 #  include "ED_mesh.h"

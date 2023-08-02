@@ -61,8 +61,8 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_layer.h"
 #  include "BKE_main.h"
 #  include "BKE_mball.h"
-#  include "BKE_mesh.h"
-#  include "BKE_mesh_runtime.h"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_runtime.hh"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_report.h"
@@ -735,7 +735,7 @@ static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings
 
 #  ifndef NDEBUG
 
-#    include "BKE_mesh_runtime.h"
+#    include "BKE_mesh_runtime.hh"
 
 void rna_Object_me_eval_info(
     Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)

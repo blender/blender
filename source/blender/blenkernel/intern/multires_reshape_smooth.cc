@@ -20,9 +20,9 @@
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_multires.hh"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
@@ -31,7 +31,7 @@
 #include "opensubdiv_topology_refiner_capi.h"
 
 #include "atomic_ops.h"
-#include "subdiv_converter.h"
+#include "subdiv_converter.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structs
