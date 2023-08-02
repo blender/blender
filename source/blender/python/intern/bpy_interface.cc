@@ -777,8 +777,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 static void bpy_module_free(void *mod);
 
 /* Defined in 'creator.c' when building as a Python module. */
-extern "C" int main_python_enter(int argc, const char **argv);
-extern "C" void main_python_exit(void);
+extern int main_python_enter(int argc, const char **argv);
+extern void main_python_exit(void);
 
 static struct PyModuleDef bpy_proxy_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
