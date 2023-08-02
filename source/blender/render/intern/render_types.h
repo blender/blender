@@ -12,6 +12,8 @@
 /* exposed internal in render module only! */
 /* ------------------------------------------------------------------------- */
 
+#include <mutex>
+
 #include "DNA_scene_types.h"
 
 #include "BLI_threads.h"
@@ -21,12 +23,14 @@
 
 #include "tile_highlight.h"
 
+struct bNodeTree;
 struct Depsgraph;
 struct GSet;
 struct Main;
 struct Object;
 struct RenderEngine;
 struct ReportList;
+struct Scene;
 
 struct BaseRender {
   BaseRender() = default;
@@ -36,6 +40,14 @@ struct BaseRender {
    * Note that it might not exist: for example, viewport render does not support the tile
    * highlight. */
   virtual blender::render::TilesHighlight *get_tile_highlight() = 0;
+
+  /* GPU/realtime compositor. */
+  virtual void compositor_execute(const Scene &scene,
+                                  const RenderData &render_data,
+                                  const bNodeTree &node_tree,
+                                  const bool use_file_output,
+                                  const char *view_name) = 0;
+  virtual void compositor_free() = 0;
 
   /* Result of rendering */
   RenderResult *result = nullptr;
@@ -57,6 +69,15 @@ struct ViewRender : public BaseRender {
   {
     return nullptr;
   }
+
+  void compositor_execute(const Scene & /*scene*/,
+                          const RenderData & /*render_data*/,
+                          const bNodeTree & /*node_tree*/,
+                          const bool /*use_file_output*/,
+                          const char * /*view_name*/) override
+  {
+  }
+  void compositor_free() override {}
 };
 
 /* Controls state of render, everything that's read-only during render stage */
@@ -70,6 +91,13 @@ struct Render : public BaseRender {
   {
     return &tile_highlight;
   }
+
+  void compositor_execute(const Scene &scene,
+                          const RenderData &render_data,
+                          const bNodeTree &node_tree,
+                          const bool use_file_output,
+                          const char *view_name) override;
+  void compositor_free() override;
 
   char name[RE_MAXNAME] = "";
   int slot = 0;
@@ -116,9 +144,11 @@ struct Render : public BaseRender {
   struct Depsgraph *pipeline_depsgraph = nullptr;
   Scene *pipeline_scene_eval = nullptr;
 
-  /* Realtime GPU Compositor. */
+  /* Realtime GPU Compositor.
+   * NOTE: Use bare pointer instead of smart pointer because the RealtimeCompositor is a fully
+   * opaque type. */
   blender::render::RealtimeCompositor *gpu_compositor = nullptr;
-  ThreadMutex gpu_compositor_mutex = BLI_MUTEX_INITIALIZER;
+  std::mutex gpu_compositor_mutex;
 
   /* callbacks */
   void (*display_init)(void *handle, RenderResult *rr) = nullptr;
