@@ -25,7 +25,7 @@
 #include "BKE_collection.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_main.h"
 
 #include "BLO_readfile.h"

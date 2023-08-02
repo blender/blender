@@ -1457,7 +1457,7 @@ void SCULPT_filter_cache_init(bContext *C,
                               Object *ob,
                               Sculpt *sd,
                               int undo_type,
-                              const int mval[2],
+                              const float mval_fl[2],
                               float area_normal_radius,
                               float start_strength);
 void SCULPT_filter_cache_free(SculptSession *ss);

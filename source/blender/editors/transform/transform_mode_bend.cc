@@ -180,7 +180,7 @@ static eRedrawFlag handleEventBend(TransInfo * /*t*/, const wmEvent *event)
   return status;
 }
 
-static void Bend(TransInfo *t, const int[2] /*mval*/)
+static void Bend(TransInfo *t)
 {
   float pivot_global[3];
   float warp_end_radius_global[3];
@@ -325,7 +325,6 @@ static void Bend(TransInfo *t, const int[2] /*mval*/)
 
 static void initBend(TransInfo *t, wmOperator * /*op*/)
 {
-  const float mval_fl[2] = {float(t->mval[0]), float(t->mval[1])};
   const float *curs;
   float tvec[3];
   BendCustomData *data;
@@ -356,7 +355,7 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   curs = t->scene->cursor.location;
   copy_v3_v3(data->warp_sta, curs);
   ED_view3d_win_to_3d(
-      (View3D *)t->area->spacedata.first, t->region, curs, mval_fl, data->warp_end);
+      (View3D *)t->area->spacedata.first, t->region, curs, t->mval, data->warp_end);
 
   copy_v3_v3(data->warp_nor, t->viewinv[2]);
   normalize_v3(data->warp_nor);

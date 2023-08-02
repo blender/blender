@@ -30,7 +30,7 @@
 /** \name Transform (EditBone Roll)
  * \{ */
 
-static void applyBoneRoll(TransInfo *t, const int[2] /*mval*/)
+static void applyBoneRoll(TransInfo *t)
 {
   int i;
   char str[UI_MAX_DRAW_STR];

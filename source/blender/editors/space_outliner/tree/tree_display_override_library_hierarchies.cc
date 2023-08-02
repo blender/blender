@@ -17,7 +17,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 

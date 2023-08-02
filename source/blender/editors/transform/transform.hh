@@ -651,7 +651,7 @@ struct TransInfo {
   /** assign from the operator, or can be NULL. */
   ReportList *reports;
   /** current mouse position. */
-  int mval[2];
+  blender::float2 mval;
   /** use for 3d view. */
   float zfac;
   void *draw_handle_view;
@@ -749,7 +749,7 @@ void initMouseInput(TransInfo *t,
                     const blender::float2 &mval,
                     bool precision);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
-void applyMouseInput(TransInfo *t, MouseInput *mi, const blender::int2 &mval, float output[3]);
+void applyMouseInput(TransInfo *t, MouseInput *mi, const blender::float2 &mval, float output[3]);
 void transform_input_update(TransInfo *t, const float fac);
 void transform_input_virtual_mval_reset(TransInfo *t);
 void transform_input_reset(TransInfo *t, const blender::float2 &mval);

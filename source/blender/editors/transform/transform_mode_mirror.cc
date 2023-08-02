@@ -152,7 +152,7 @@ static void ElementMirror(TransInfo *t, TransDataContainer *tc, TransData *td, i
   }
 }
 
-static void applyMirror(TransInfo *t, const int[2] /*mval*/)
+static void applyMirror(TransInfo *t)
 {
   int i;
   char str[UI_MAX_DRAW_STR];

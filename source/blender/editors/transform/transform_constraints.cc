@@ -1071,7 +1071,8 @@ static void setNearestAxis2d(TransInfo *t)
   t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 
   /* no correction needed... just use whichever one is lower */
-  if (abs(t->mval[0] - t->mouse.imval[0]) < abs(t->mval[1] - t->mouse.imval[1])) {
+  blender::float2 dvec = t->mval - t->mouse.imval;
+  if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
     STRNCPY(t->con.text, TIP_(" along Y axis"));
   }
@@ -1092,8 +1093,8 @@ static void setNearestAxis3d(TransInfo *t)
   int i;
 
   /* calculate mouse movement */
-  mvec[0] = float(t->mval[0] - t->mouse.imval[0]);
-  mvec[1] = float(t->mval[1] - t->mouse.imval[1]);
+  mvec[0] = t->mval[0] - t->mouse.imval[0];
+  mvec[1] = t->mval[1] - t->mouse.imval[1];
   mvec[2] = 0.0f;
 
   /* We need to correct axis length for the current zoom-level of view,

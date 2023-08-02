@@ -7,7 +7,7 @@
  */
 
 #include "BKE_collection.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_listbase_wrapper.hh"

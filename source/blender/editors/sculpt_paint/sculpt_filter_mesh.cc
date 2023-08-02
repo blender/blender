@@ -111,7 +111,7 @@ void SCULPT_filter_cache_init(bContext *C,
                               Object *ob,
                               Sculpt *sd,
                               const int undo_type,
-                              const int mval[2],
+                              const float mval_fl[2],
                               float area_normal_radius,
                               float start_strength)
 {
@@ -175,7 +175,6 @@ void SCULPT_filter_cache_init(bContext *C,
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
   float co[3];
-  float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   if (vc.rv3d && SCULPT_stroke_get_location(C, co, mval_fl, false)) {
     Vector<PBVHNode *> nodes;
@@ -1026,13 +1025,13 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  float mval_fl[2] = {float(mval[0]), float(mval[1])};
   if (use_automasking) {
     /* Increment stroke id for automasking system. */
     SCULPT_stroke_id_next(ob);
 
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
-    float mval_fl[2] = {float(mval[0]), float(mval[1])};
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
@@ -1048,7 +1047,7 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
                            ob,
                            sd,
                            SCULPT_UNDO_COORDS,
-                           mval,
+                           mval_fl,
                            RNA_float_get(op->ptr, "area_normal_radius"),
                            RNA_float_get(op->ptr, "strength"));
 

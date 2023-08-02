@@ -53,6 +53,8 @@
 #include "transform_mode.hh"
 #include "transform_snap.hh"
 
+using namespace blender;
+
 /* use half of flt-max so we can scale up without an exception */
 
 /* -------------------------------------------------------------------- */
@@ -1002,7 +1004,6 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
   if (t->tsnap.status & SNAP_MULTI_POINTS) {
     TransSnapPoint *p, *closest_p = nullptr;
     float dist_min_sq = TRANSFORM_SNAP_MAX_PX;
-    const float mval_fl[2] = {float(t->mval[0]), float(t->mval[1])};
     float screen_loc[2];
 
     for (p = static_cast<TransSnapPoint *>(t->tsnap.points.first); p; p = p->next) {
@@ -1014,7 +1015,7 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
         continue;
       }
 
-      dist_sq = len_squared_v2v2(mval_fl, screen_loc);
+      dist_sq = len_squared_v2v2(t->mval, screen_loc);
 
       if (dist_sq < dist_min_sq) {
         closest_p = p;
@@ -1095,22 +1096,18 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   BLI_assert(t->spacetype == SPACE_VIEW3D);
   float loc[3];
   float no[3];
-  float mval[2];
   bool found = false;
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
-  mval[0] = t->mval[0];
-  mval[1] = t->mval[1];
-
   if (t->tsnap.mode & SCE_SNAP_TO_GEOM) {
     zero_v3(no); /* objects won't set this */
-    snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
+    snap_elem = snapObjectsTransform(t, t->mval, &dist_px, loc, no);
     found = (snap_elem != SCE_SNAP_TO_NONE);
   }
   if ((found == false) && (t->tsnap.mode & SCE_SNAP_TO_VOLUME)) {
     bool use_peel = (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0;
-    found = peelObjectsTransform(t, mval, use_peel, loc, no, nullptr);
+    found = peelObjectsTransform(t, t->mval, use_peel, loc, no, nullptr);
 
     if (found) {
       snap_elem = SCE_SNAP_TO_VOLUME;
@@ -1530,7 +1527,7 @@ static bool snapNode(ToolSettings *ts,
                      SpaceNode * /*snode*/,
                      ARegion *region,
                      bNode *node,
-                     const int mval[2],
+                     const float2 &mval,
                      float r_loc[2],
                      float *r_dist_px,
                      char *r_node_border)
@@ -1589,7 +1586,7 @@ static bool snapNode(ToolSettings *ts,
 static bool snapNodes(ToolSettings *ts,
                       SpaceNode *snode,
                       ARegion *region,
-                      const int mval[2],
+                      const float2 &mval,
                       eSnapTargetOP snap_target_select,
                       float r_loc[2],
                       float *r_dist_px,
@@ -1611,7 +1608,7 @@ static bool snapNodes(ToolSettings *ts,
 }
 
 bool snapNodesTransform(
-    TransInfo *t, const int mval[2], float r_loc[2], float *r_dist_px, char *r_node_border)
+    TransInfo *t, const float2 &mval, float r_loc[2], float *r_dist_px, char *r_node_border)
 {
   return snapNodes(t->settings,
                    static_cast<SpaceNode *>(t->area->spacedata.first),

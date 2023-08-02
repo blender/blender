@@ -342,6 +342,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
 
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
+  float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, nullptr);
   if (use_automasking) {
@@ -351,7 +352,6 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     if (v3d) {
       /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
        * Filter Tool. */
-      float mval_fl[2] = {float(mval[0]), float(mval[1])};
       SculptCursorGeometryInfo sgi;
       SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
     }
@@ -374,7 +374,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                            ob,
                            sd,
                            SCULPT_UNDO_COLOR,
-                           mval,
+                           mval_fl,
                            RNA_float_get(op->ptr, "area_normal_radius"),
                            RNA_float_get(op->ptr, "strength"));
   FilterCache *filter_cache = ss->filter_cache;

@@ -41,6 +41,8 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 
+using namespace blender;
+
 struct TransformModeItem {
   const char *idname;
   int mode;
@@ -446,13 +448,11 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
       {
         /* Navigation has ended. */
 
-        /* Make sure `t->mval` is up to date before calling #transformViewUpdate. */
-        copy_v2_v2_int(t->mval, event->mval);
-
         /* Call before #applyMouseInput. */
         tranformViewUpdate(t);
 
         /* Mouse input is outdated. */
+        t->mval = float2(event->mval);
         applyMouseInput(t, &t->mouse, t->mval, t->values);
         t->redraw |= TREDRAW_HARD;
       }

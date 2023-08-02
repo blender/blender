@@ -104,7 +104,7 @@ static void snapsource_confirm(TransInfo *t)
   else
 #endif
   {
-    mval = float2(t->mval);
+    mval = t->mval;
   }
 
   snapsource_end(t);
@@ -148,7 +148,7 @@ static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event
   return TREDRAW_NOTHING;
 }
 
-static void snapsource_transform_fn(TransInfo *t, const int[2] /*mval*/)
+static void snapsource_transform_fn(TransInfo *t)
 {
   BLI_assert(t->modifiers & MOD_EDIT_SNAP_SOURCE);
 
@@ -223,7 +223,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   transform_snap_flag_from_modifiers_set(t);
 
   /* Reset initial values to restore gizmo position. */
-  applyMouseInput(t, &t->mouse, int2(t->mouse.imval), t->values_final);
+  applyMouseInput(t, &t->mouse, t->mouse.imval, t->values_final);
 #endif
 
 #ifdef REMOVE_GIZMO

@@ -412,7 +412,7 @@ void setInputPostFct(MouseInput *mi, void (*post)(TransInfo *t, float values[3])
   mi->post = post;
 }
 
-void applyMouseInput(TransInfo *t, MouseInput *mi, const int2 &mval, float output[3])
+void applyMouseInput(TransInfo *t, MouseInput *mi, const float2 &mval, float output[3])
 {
   double mval_db[2];
 

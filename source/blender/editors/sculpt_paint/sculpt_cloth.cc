@@ -1579,7 +1579,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
                            ob,
                            sd,
                            SCULPT_UNDO_COORDS,
-                           event->mval,
+                           mval_fl,
                            RNA_float_get(op->ptr, "area_normal_radius"),
                            RNA_float_get(op->ptr, "strength"));
 

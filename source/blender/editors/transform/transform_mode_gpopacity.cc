@@ -32,7 +32,7 @@
 /** \name Transform (GPencil Strokes Opacity)
  * \{ */
 
-static void applyGPOpacity(TransInfo *t, const int[2] /*mval*/)
+static void applyGPOpacity(TransInfo *t)
 {
   float ratio;
   int i;

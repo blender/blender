@@ -60,7 +60,7 @@ void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData
 }
 
 /* Works by getting custom normal from clnor_data, transform, then store */
-static void applyNormalRotation(TransInfo *t, const int[2] /*mval*/)
+static void applyNormalRotation(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
 

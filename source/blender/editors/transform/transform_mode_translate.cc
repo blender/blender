@@ -573,7 +573,7 @@ static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
   return result;
 }
 
-static void applyTranslation(TransInfo *t, const int[2] /*mval*/)
+static void applyTranslation(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   float global_dir[3] = {0.0f};
