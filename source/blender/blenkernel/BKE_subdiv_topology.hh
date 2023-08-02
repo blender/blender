@@ -10,4 +10,4 @@
 
 struct Subdiv;
 
-int BKE_subdiv_topology_num_fvar_layers_get(const struct Subdiv *subdiv);
+int BKE_subdiv_topology_num_fvar_layers_get(const Subdiv *subdiv);

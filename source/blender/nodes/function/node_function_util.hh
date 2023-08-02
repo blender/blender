@@ -25,4 +25,4 @@
 
 #include "RNA_access.h"
 
-void fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
+void fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);

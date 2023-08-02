@@ -114,6 +114,8 @@ struct ObjectState {
   ObjectState(const SceneState &scene_state, Object *ob);
 };
 
+struct SceneResources;
+
 class CavityEffect {
  private:
   /* This value must be kept in sync with the one declared at
@@ -128,8 +130,8 @@ class CavityEffect {
   bool cavity_enabled_ = false;
 
  public:
-  void init(const SceneState &scene_state, struct SceneResources &resources);
-  void setup_resolve_pass(PassSimple &pass, struct SceneResources &resources);
+  void init(const SceneState &scene_state, SceneResources &resources);
+  void setup_resolve_pass(PassSimple &pass, SceneResources &resources);
 
  private:
   void load_samples_buf(int ssao_samples);

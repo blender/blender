@@ -47,6 +47,7 @@ struct PaintModeSettings;
 struct WeightPaintInfo;
 struct WPaintData;
 struct wmKeyConfig;
+struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
@@ -1698,7 +1699,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /* Mesh Filter. */
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
-struct wmKeyMap *filter_mesh_modal_keymap(struct wmKeyConfig *keyconf);
+wmKeyMap *filter_mesh_modal_keymap(wmKeyConfig *keyconf);
 
 /* Cloth Filter. */
 

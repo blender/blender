@@ -17,19 +17,21 @@
 struct CCGEdge;
 struct CCGElem;
 struct CCGFace;
+struct CCGSubSurf;
 struct CCGVert;
 struct DMFlagMat;
 struct DerivedMesh;
 struct EdgeHash;
 struct Mesh;
 struct MeshElemMap;
+struct MultiresModifierData;
 struct Object;
 struct PBVH;
 struct SubsurfModifierData;
 
 /**************************** External *****************************/
 
-typedef enum SubsurfFlags {
+enum SubsurfFlags {
   SUBSURF_USE_RENDER_PARAMS = 1,
   SUBSURF_IS_FINAL_CALC = 2,
   SUBSURF_FOR_EDIT_MODE = 4,
@@ -37,16 +39,16 @@ typedef enum SubsurfFlags {
   SUBSURF_ALLOC_PAINT_MASK = 16,
   SUBSURF_USE_GPU_BACKEND = 32,
   SUBSURF_IGNORE_SIMPLIFY = 64,
-} SubsurfFlags;
+};
 ENUM_OPERATORS(SubsurfFlags, SUBSURF_IGNORE_SIMPLIFY);
 
-struct DerivedMesh *subsurf_make_derived_from_derived(struct DerivedMesh *dm,
-                                                      struct SubsurfModifierData *smd,
-                                                      const struct Scene *scene,
-                                                      float (*vertCos)[3],
-                                                      SubsurfFlags flags);
+DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
+                                               SubsurfModifierData *smd,
+                                               const Scene *scene,
+                                               float (*vertCos)[3],
+                                               SubsurfFlags flags);
 
-void subsurf_calculate_limit_positions(struct Mesh *me, float (*r_positions)[3]);
+void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3]);
 
 /**
  * Get grid-size from 'level', level must be greater than zero.
@@ -59,20 +61,20 @@ int BKE_ccg_gridsize(int level);
  */
 int BKE_ccg_factor(int low_level, int high_level);
 
-typedef enum MultiresModifiedFlags {
+enum MultiresModifiedFlags {
   /* indicates the grids have been sculpted on, so MDisps
    * have to be updated */
   MULTIRES_COORDS_MODIFIED = 1,
   /* indicates elements have been hidden or unhidden */
   MULTIRES_HIDDEN_MODIFIED = 2,
-} MultiresModifiedFlags;
+};
 
 /**************************** Internal *****************************/
 
-typedef struct CCGDerivedMesh {
+struct CCGDerivedMesh {
   DerivedMesh dm;
 
-  struct CCGSubSurf *ss;
+  CCGSubSurf *ss;
   int freeSS;
   int drawInteriorEdges, useSubsurfUv;
 
@@ -83,45 +85,45 @@ typedef struct CCGDerivedMesh {
   struct {
     int startVert;
     int startEdge;
-    struct CCGEdge *edge;
+    CCGEdge *edge;
   } * edgeMap;
   struct {
     int startVert;
     int startEdge;
     int startFace;
-    struct CCGFace *face;
+    CCGFace *face;
   } * faceMap;
 
-  struct DMFlagMat *faceFlags;
+  DMFlagMat *faceFlags;
 
   int *reverseFaceMap;
 
-  struct PBVH *pbvh;
+  PBVH *pbvh;
 
-  struct MeshElemMap *pmap;
+  MeshElemMap *pmap;
   int *pmap_mem;
 
-  struct CCGElem **gridData;
+  CCGElem **gridData;
   int *gridOffset;
-  struct CCGFace **gridFaces;
-  struct DMFlagMat *gridFlagMats;
+  CCGFace **gridFaces;
+  DMFlagMat *gridFlagMats;
   unsigned int **gridHidden;
   /* Elements in arrays above. */
   unsigned int numGrid;
 
   struct {
-    struct MultiresModifierData *mmd;
+    MultiresModifierData *mmd;
     int local_mmd;
 
     int lvl, totlvl;
     float (*orco)[3];
 
-    struct Object *ob;
+    Object *ob;
     MultiresModifiedFlags modified_flags;
   } multires;
 
-  struct EdgeHash *ehash;
+  EdgeHash *ehash;
 
   ThreadMutex loops_cache_lock;
   ThreadRWMutex origindex_cache_rwlock;
-} CCGDerivedMesh;
+};

@@ -29,7 +29,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const float (*loopuv)[2],
                                           int numLoops,
                                           blender::OffsetIndices<int> faces,
-                                          struct ReportList *reports);
+                                          ReportList *reports);
 
 /**
  * Wrapper around BKE_mesh_calc_loop_tangent_single_ex, which takes care of most boilerplate code.
@@ -37,10 +37,10 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
  * - There must be a valid loop's CD_NORMALS available.
  * - The mesh should be made of only triangles and quads!
  */
-void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
+void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        const char *uvmap,
                                        float (*r_looptangents)[4],
-                                       struct ReportList *reports);
+                                       ReportList *reports);
 
 /**
  * See: #BKE_editmesh_loop_tangent_calc (matching logic).
@@ -48,12 +48,12 @@ void BKE_mesh_calc_loop_tangent_single(struct Mesh *mesh,
 void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    blender::OffsetIndices<int> faces,
                                    const int *corner_verts,
-                                   const struct MLoopTri *looptri,
+                                   const MLoopTri *looptri,
                                    const int *looptri_faces,
                                    uint looptri_len,
                                    const bool *sharp_faces,
 
-                                   struct CustomData *loopdata,
+                                   CustomData *loopdata,
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
@@ -62,18 +62,18 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const float (*loop_normals)[3],
                                    const float (*vert_orco)[3],
                                    /* result */
-                                   struct CustomData *loopdata_out,
+                                   CustomData *loopdata_out,
                                    uint loopdata_out_len,
                                    short *tangent_mask_curr_p);
 
-void BKE_mesh_calc_loop_tangents(struct Mesh *me_eval,
+void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
                                  bool calc_active_tangent,
                                  const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len);
 
 /* Helpers */
-void BKE_mesh_add_loop_tangent_named_layer_for_uv(struct CustomData *uv_data,
-                                                  struct CustomData *tan_data,
+void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
+                                                  CustomData *tan_data,
                                                   int numLoopData,
                                                   const char *layer_name);
 
@@ -84,7 +84,7 @@ void BKE_mesh_add_loop_tangent_named_layer_for_uv(struct CustomData *uv_data,
  * Also, we calculate tangent_mask that works as a descriptor of tangents state.
  * If tangent_mask has changed, then recalculate tangents.
  */
-void BKE_mesh_calc_loop_tangent_step_0(const struct CustomData *loopData,
+void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
                                        bool calc_active_tangent,
                                        const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                        int tangent_names_count,

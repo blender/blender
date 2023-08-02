@@ -119,14 +119,14 @@ class ShaderModule {
 
   GPUShader *static_shader_get(eShaderType shader_type);
   GPUMaterial *material_shader_get(::Material *blender_mat,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool deferred_compilation);
-  GPUMaterial *world_shader_get(::World *blender_world, struct bNodeTree *nodetree);
+  GPUMaterial *world_shader_get(::World *blender_world, bNodeTree *nodetree);
   GPUMaterial *material_shader_get(const char *name,
                                    ListBase &materials,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool is_lookdev);

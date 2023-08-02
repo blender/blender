@@ -18,13 +18,13 @@ struct Mesh;
 struct OpenSubdiv_Converter;
 struct SubdivSettings;
 
-void BKE_subdiv_converter_init_for_mesh(struct OpenSubdiv_Converter *converter,
-                                        const struct SubdivSettings *settings,
-                                        const struct Mesh *mesh);
+void BKE_subdiv_converter_init_for_mesh(OpenSubdiv_Converter *converter,
+                                        const SubdivSettings *settings,
+                                        const Mesh *mesh);
 
 /* NOTE: Frees converter data, but not converter itself. This means, that if
  * converter was allocated on heap, it is up to the user to free that memory. */
-void BKE_subdiv_converter_free(struct OpenSubdiv_Converter *converter);
+void BKE_subdiv_converter_free(OpenSubdiv_Converter *converter);
 
 /* ============================ INTERNAL HELPERS ============================ */
 

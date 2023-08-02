@@ -243,7 +243,7 @@ using uiListItemGetNameFn =
  *                     to provide the name still.
  */
 void UI_list_filter_and_sort_items(uiList *ui_list,
-                                   const struct bContext *C,
+                                   const bContext *C,
                                    uiListItemFilterFn item_filter_fn,
                                    PointerRNA *dataptr,
                                    const char *propname,

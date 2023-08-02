@@ -32,14 +32,14 @@ struct EditMeshData;
 }
 
 /** #MeshRuntime.wrapper_type */
-typedef enum eMeshWrapperType {
+enum eMeshWrapperType {
   /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.corner_verts(), #Mesh.faces()). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,
   /** Use subdivision mesh data (#MeshRuntime.mesh_eval). */
   ME_WRAPPER_TYPE_SUBD = 2,
-} eMeshWrapperType;
+};
 
 namespace blender::bke {
 

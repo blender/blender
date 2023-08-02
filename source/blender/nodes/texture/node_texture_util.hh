@@ -54,7 +54,9 @@
 extern "C" {
 #endif
 
-typedef struct TexCallData {
+struct bNodeThreadStack;
+
+struct TexCallData {
   TexResult *target;
   /* all float[3] */
   const float *co;
@@ -68,9 +70,9 @@ typedef struct TexCallData {
   int cfra;
 
   MTex *mtex;
-} TexCallData;
+};
 
-typedef struct TexParams {
+struct TexParams {
   const float *co;
   float *dxt, *dyt;
   const float *previewco;
@@ -80,23 +82,23 @@ typedef struct TexParams {
   /* optional. we don't really want these here, but image
    * textures need to do mapping & color correction */
   MTex *mtex;
-} TexParams;
+};
 
 typedef void (*TexFn)(float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
 
-typedef struct TexDelegate {
+struct TexDelegate {
   TexCallData *cdata;
   TexFn fn;
   bNode *node;
   bNodePreview *preview;
   bNodeStack *in[MAX_SOCKET];
   int type;
-} TexDelegate;
+};
 
-bool tex_node_poll_default(const struct bNodeType *ntype,
-                           const struct bNodeTree *ntree,
+bool tex_node_poll_default(const bNodeType *ntype,
+                           const bNodeTree *ntree,
                            const char **r_disabled_hint);
-void tex_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
+void tex_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
 
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);
@@ -111,17 +113,17 @@ void tex_output(bNode *node,
 
 void params_from_cdata(TexParams *out, TexCallData *in);
 
-struct bNodeThreadStack *ntreeGetThreadStack(struct bNodeTreeExec *exec, int thread);
-void ntreeReleaseThreadStack(struct bNodeThreadStack *nts);
-bool ntreeExecThreadNodes(struct bNodeTreeExec *exec,
-                          struct bNodeThreadStack *nts,
+bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread);
+void ntreeReleaseThreadStack(bNodeThreadStack *nts);
+bool ntreeExecThreadNodes(bNodeTreeExec *exec,
+                          bNodeThreadStack *nts,
                           void *callerdata,
                           int thread);
 
-struct bNodeTreeExec *ntreeTexBeginExecTree_internal(struct bNodeExecContext *context,
-                                                     struct bNodeTree *ntree,
-                                                     bNodeInstanceKey parent_key);
-void ntreeTexEndExecTree_internal(struct bNodeTreeExec *exec);
+bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
+                                              bNodeTree *ntree,
+                                              bNodeInstanceKey parent_key);
+void ntreeTexEndExecTree_internal(bNodeTreeExec *exec);
 
 #ifdef __cplusplus
 }

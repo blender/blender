@@ -90,11 +90,11 @@ enum class ePartialUpdateIterResult {
  * last invoke for the same user. The changes can be read by using
  * #BKE_image_partial_update_get_next_change.
  */
-ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(
-    struct Image *image, struct PartialUpdateUser *user);
+ePartialUpdateCollectResult BKE_image_partial_update_collect_changes(Image *image,
+                                                                     PartialUpdateUser *user);
 
-ePartialUpdateIterResult BKE_image_partial_update_get_next_change(
-    struct PartialUpdateUser *user, struct PartialUpdateRegion *r_region);
+ePartialUpdateIterResult BKE_image_partial_update_get_next_change(PartialUpdateUser *user,
+                                                                  PartialUpdateRegion *r_region);
 
 /** \brief Abstract class to load tile data when using the PartialUpdateChecker. */
 class AbstractTileData {

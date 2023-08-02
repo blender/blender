@@ -13,7 +13,7 @@ namespace blender::io::gpencil {
 class GpencilExporter : public GpencilIO {
 
  public:
-  GpencilExporter(const struct GpencilIOParams *iparams) : GpencilIO(iparams){};
+  GpencilExporter(const GpencilIOParams *iparams) : GpencilIO(iparams){};
   virtual bool write() = 0;
 
  protected:

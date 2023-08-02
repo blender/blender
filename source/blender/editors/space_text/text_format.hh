@@ -39,7 +39,7 @@ enum {
 #define FMT_CONT_ALL \
   (FMT_CONT_QUOTESINGLE | FMT_CONT_QUOTEDOUBLE | FMT_CONT_TRIPLE | FMT_CONT_COMMENT_C)
 
-int flatten_string(const struct SpaceText *st, FlattenString *fs, const char *in);
+int flatten_string(const SpaceText *st, FlattenString *fs, const char *in);
 void flatten_string_free(FlattenString *fs);
 /**
  * Takes a string within `fs->buf` and returns its length.
@@ -66,7 +66,7 @@ void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len
 
 /* *** Generalize Formatting *** */
 struct TextFormatType {
-  struct TextFormatType *next, *prev;
+  TextFormatType *next, *prev;
 
   char (*format_identifier)(const char *string);
 
@@ -110,7 +110,7 @@ enum {
   FMT_TYPE_DEFAULT = 'q',
 };
 
-TextFormatType *ED_text_format_get(struct Text *text);
+TextFormatType *ED_text_format_get( Text *text);
 void ED_text_format_register(TextFormatType *tft);
 
 /* formatters */

@@ -77,7 +77,7 @@
   } \
 \
   [[maybe_unused]] static void rna_Mesh_##collection_name##_##active_type##_set( \
-      PointerRNA *ptr, PointerRNA value, struct ReportList *) \
+      PointerRNA *ptr, PointerRNA value, ReportList *) \
   { \
     Mesh *me = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \

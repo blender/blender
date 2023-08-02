@@ -173,5 +173,5 @@ struct CurvesConstraintSolver {
 
 }  // namespace blender::ed::sculpt_paint
 
-bool CURVES_SCULPT_mode_poll(struct bContext *C);
-bool CURVES_SCULPT_mode_poll_view3d(struct bContext *C);
+bool CURVES_SCULPT_mode_poll(bContext *C);
+bool CURVES_SCULPT_mode_poll_view3d(bContext *C);

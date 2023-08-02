@@ -33,15 +33,22 @@ struct CurveMapping;
 struct Depsgraph;
 struct EdgeSet;
 struct EnumPropertyItem;
+struct ExpandCache;
+struct FilterCache;
 struct GHash;
 struct GridPaintMask;
 struct Image;
 struct ImagePool;
 struct ImageUser;
+struct KeyBlock;
 struct ListBase;
 struct MLoopTri;
 struct Main;
 struct Mesh;
+struct MDeformVert;
+struct MLoopCol;
+struct MPropCol;
+struct MultiresModifierData;
 struct Object;
 struct PBVH;
 struct Paint;
@@ -70,7 +77,7 @@ extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
 extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 
-typedef enum ePaintMode {
+enum ePaintMode {
   PAINT_MODE_SCULPT = 0,
   /** Vertex color. */
   PAINT_MODE_VERTEX = 1,
@@ -90,19 +97,19 @@ typedef enum ePaintMode {
 
   /** Keep last. */
   PAINT_MODE_INVALID = 11,
-} ePaintMode;
+};
 
 #define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)
 
 /* overlay invalidation */
-typedef enum ePaintOverlayControlFlags {
+enum ePaintOverlayControlFlags {
   PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY = 1,
   PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY = (1 << 2),
   PAINT_OVERLAY_INVALID_CURVE = (1 << 3),
   PAINT_OVERLAY_OVERRIDE_CURSOR = (1 << 4),
   PAINT_OVERLAY_OVERRIDE_PRIMARY = (1 << 5),
   PAINT_OVERLAY_OVERRIDE_SECONDARY = (1 << 6),
-} ePaintOverlayControlFlags;
+};
 ENUM_OPERATORS(ePaintOverlayControlFlags, PAINT_OVERLAY_OVERRIDE_SECONDARY);
 
 #define PAINT_OVERRIDE_MASK \
@@ -116,21 +123,17 @@ ENUM_OPERATORS(ePaintOverlayControlFlags, PAINT_OVERLAY_OVERRIDE_SECONDARY);
  */
 #define PAINT_SYMM_AREA_DEFAULT 0
 
-typedef enum ePaintSymmetryAreas {
+enum ePaintSymmetryAreas {
   PAINT_SYMM_AREA_X = (1 << 0),
   PAINT_SYMM_AREA_Y = (1 << 1),
   PAINT_SYMM_AREA_Z = (1 << 2),
-} ePaintSymmetryAreas;
+};
 ENUM_OPERATORS(ePaintSymmetryAreas, PAINT_SYMM_AREA_Z);
 
 #define PAINT_SYMM_AREAS 8
 
-void BKE_paint_invalidate_overlay_tex(struct Scene *scene,
-                                      struct ViewLayer *view_layer,
-                                      const struct Tex *tex);
-void BKE_paint_invalidate_cursor_overlay(struct Scene *scene,
-                                         struct ViewLayer *view_layer,
-                                         struct CurveMapping *curve);
+void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex);
+void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
 ePaintOverlayControlFlags BKE_paint_get_overlay_flags(void);
 void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
@@ -138,82 +141,79 @@ void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
 /* Palettes. */
 
-struct Palette *BKE_palette_add(struct Main *bmain, const char *name);
-struct PaletteColor *BKE_palette_color_add(struct Palette *palette);
-bool BKE_palette_is_empty(const struct Palette *palette);
+Palette *BKE_palette_add(Main *bmain, const char *name);
+PaletteColor *BKE_palette_color_add(Palette *palette);
+bool BKE_palette_is_empty(const Palette *palette);
 /**
  * Remove color from palette. Must be certain color is inside the palette!
  */
-void BKE_palette_color_remove(struct Palette *palette, struct PaletteColor *color);
-void BKE_palette_clear(struct Palette *palette);
+void BKE_palette_color_remove(Palette *palette, PaletteColor *color);
+void BKE_palette_clear(Palette *palette);
 
-void BKE_palette_sort_hsv(struct tPaletteColorHSV *color_array, int totcol);
-void BKE_palette_sort_svh(struct tPaletteColorHSV *color_array, int totcol);
-void BKE_palette_sort_vhs(struct tPaletteColorHSV *color_array, int totcol);
-void BKE_palette_sort_luminance(struct tPaletteColorHSV *color_array, int totcol);
-bool BKE_palette_from_hash(struct Main *bmain,
-                           struct GHash *color_table,
-                           const char *name,
-                           bool linear);
+void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_svh(tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_vhs(tPaletteColorHSV *color_array, int totcol);
+void BKE_palette_sort_luminance(tPaletteColorHSV *color_array, int totcol);
+bool BKE_palette_from_hash(Main *bmain, GHash *color_table, const char *name, bool linear);
 
 /* Paint curves. */
 
-struct PaintCurve *BKE_paint_curve_add(struct Main *bmain, const char *name);
+PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
 
 /**
  * Call when entering each respective paint mode.
  */
-bool BKE_paint_ensure(struct ToolSettings *ts, struct Paint **r_paint);
-void BKE_paint_init(struct Main *bmain, struct Scene *sce, ePaintMode mode, const uchar col[3]);
-void BKE_paint_free(struct Paint *p);
+bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
+void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3]);
+void BKE_paint_free(Paint *p);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
  * #id_us_plus(), rather than if we were copying between 2 existing scenes where a matching
  * value should decrease the existing user count as with #paint_brush_set()
  */
-void BKE_paint_copy(struct Paint *src, struct Paint *tar, int flag);
+void BKE_paint_copy(Paint *src, Paint *tar, int flag);
 
-void BKE_paint_runtime_init(const struct ToolSettings *ts, struct Paint *paint);
+void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 
-void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
+void BKE_paint_cavity_curve_preset(Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode);
-bool BKE_paint_ensure_from_paintmode(struct Scene *sce, ePaintMode mode);
-struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
-const struct EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
+bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode);
+Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode);
+const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode);
 uint BKE_paint_get_brush_tool_offset_from_paintmode(ePaintMode mode);
-struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *view_layer);
-struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
-ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
-ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref);
-struct Brush *BKE_paint_brush(struct Paint *paint);
-const struct Brush *BKE_paint_brush_for_read(const struct Paint *p);
-void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
-struct Palette *BKE_paint_palette(struct Paint *paint);
-void BKE_paint_palette_set(struct Paint *p, struct Palette *palette);
-void BKE_paint_curve_set(struct Brush *br, struct PaintCurve *pc);
-void BKE_paint_curve_clamp_endpoint_add_index(struct PaintCurve *pc, int add_index);
+Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
+Paint *BKE_paint_get_active_from_context(const bContext *C);
+ePaintMode BKE_paintmode_get_active_from_context(const bContext *C);
+ePaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
+Brush *BKE_paint_brush(Paint *paint);
+const Brush *BKE_paint_brush_for_read(const Paint *p);
+void BKE_paint_brush_set(Paint *paint, Brush *br);
+Palette *BKE_paint_palette(Paint *paint);
+void BKE_paint_palette_set(Paint *p, Palette *palette);
+void BKE_paint_curve_set(Brush *br, PaintCurve *pc);
+void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, int add_index);
 
 /**
  * Return true when in vertex/weight/texture paint + face-select mode?
  */
-bool BKE_paint_select_face_test(struct Object *ob);
+bool BKE_paint_select_face_test(Object *ob);
 /**
  * Return true when in vertex/weight paint + vertex-select mode?
  */
-bool BKE_paint_select_vert_test(struct Object *ob);
+bool BKE_paint_select_vert_test(Object *ob);
 /**
  * used to check if selection is possible
  * (when we don't care if its face or vert)
  */
-bool BKE_paint_select_elem_test(struct Object *ob);
+bool BKE_paint_select_elem_test(Object *ob);
 /**
  * Checks if face/vertex hiding is always applied in the current mode.
  * Returns true in vertex/weight paint.
  */
-bool BKE_paint_always_hide_test(struct Object *ob);
+bool BKE_paint_always_hide_test(Object *ob);
 
 /* Partial visibility. */
 
@@ -229,49 +229,43 @@ bool paint_is_grid_face_hidden(const unsigned int *grid_hidden, int gridsize, in
 /**
  * Return true if all vertices in the face are visible, false otherwise.
  */
-bool paint_is_bmesh_face_hidden(struct BMFace *f);
+bool paint_is_bmesh_face_hidden(BMFace *f);
 
 /* Paint masks. */
 
-float paint_grid_paint_mask(const struct GridPaintMask *gpm, uint level, uint x, uint y);
+float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y);
 
 void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[4]);
 
 /* Stroke related. */
 
-bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
-                                   struct Brush *brush,
+bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
+                                   Brush *brush,
                                    const float mouse_pos[2],
                                    ePaintMode paint_mode,
                                    bool stroke_has_started);
-void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
-                                      struct Brush *brush,
-                                      float rotation);
+void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
 
-void BKE_paint_stroke_get_average(struct Scene *scene, struct Object *ob, float stroke[3]);
+void BKE_paint_stroke_get_average(Scene *scene, Object *ob, float stroke[3]);
 
 /* Tool slot API. */
 
-void BKE_paint_toolslots_init_from_main(struct Main *bmain);
-void BKE_paint_toolslots_len_ensure(struct Paint *paint, int len);
-void BKE_paint_toolslots_brush_update_ex(struct Paint *paint, struct Brush *brush);
-void BKE_paint_toolslots_brush_update(struct Paint *paint);
+void BKE_paint_toolslots_init_from_main(Main *bmain);
+void BKE_paint_toolslots_len_ensure(Paint *paint, int len);
+void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush);
+void BKE_paint_toolslots_brush_update(Paint *paint);
 /**
  * Run this to ensure brush types are set for each slot on entering modes
  * (for new scenes for example).
  */
-void BKE_paint_toolslots_brush_validate(struct Main *bmain, struct Paint *paint);
-struct Brush *BKE_paint_toolslots_brush_get(struct Paint *paint, int slot_index);
+void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint);
+Brush *BKE_paint_toolslots_brush_get(Paint *paint, int slot_index);
 
 /* .blend I/O */
 
-void BKE_paint_blend_write(struct BlendWriter *writer, struct Paint *paint);
-void BKE_paint_blend_read_data(struct BlendDataReader *reader,
-                               const struct Scene *scene,
-                               struct Paint *paint);
-void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
-                              struct Scene *scene,
-                              struct Paint *paint);
+void BKE_paint_blend_write(BlendWriter *writer, Paint *paint);
+void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint);
+void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *scene, Paint *paint);
 
 #define SCULPT_FACE_SET_NONE 0
 
@@ -287,7 +281,7 @@ struct SculptVertexPaintGeomMap {
 };
 
 /** Pose Brush IK Chain. */
-typedef struct SculptPoseIKChainSegment {
+struct SculptPoseIKChainSegment {
   float orig[3];
   float head[3];
 
@@ -303,18 +297,18 @@ typedef struct SculptPoseIKChainSegment {
   float trans_mat[PAINT_SYMM_AREAS][4][4];
   float pivot_mat[PAINT_SYMM_AREAS][4][4];
   float pivot_mat_inv[PAINT_SYMM_AREAS][4][4];
-} SculptPoseIKChainSegment;
+};
 
-typedef struct SculptPoseIKChain {
+struct SculptPoseIKChain {
   SculptPoseIKChainSegment *segments;
   int tot_segments;
   float grab_delta_offset[3];
-} SculptPoseIKChain;
+};
 
 /* Cloth Brush */
 
 /* Cloth Simulation. */
-typedef enum eSculptClothNodeSimState {
+enum eSculptClothNodeSimState {
   /* Constraints were not built for this node, so it can't be simulated. */
   SCULPT_CLOTH_NODE_UNINITIALIZED,
 
@@ -323,9 +317,9 @@ typedef enum eSculptClothNodeSimState {
 
   /* There are constraints for this node and they should be used by the solver. */
   SCULPT_CLOTH_NODE_ACTIVE,
-} eSculptClothNodeSimState;
+};
 
-typedef enum eSculptClothConstraintType {
+enum eSculptClothConstraintType {
   /* Constraint that creates the structure of the cloth. */
   SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
   /* Constraint that references the position of a vertex and a position in deformation_pos which
@@ -336,9 +330,9 @@ typedef enum eSculptClothConstraintType {
   SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
   /* Constraint that references the vertex position and its initial position. */
   SCULPT_CLOTH_CONSTRAINT_PIN = 3,
-} eSculptClothConstraintType;
+};
 
-typedef struct SculptClothLengthConstraint {
+struct SculptClothLengthConstraint {
   /* Elements that are affected by the constraint. */
   /* Element a should always be a mesh vertex with the index stored in elem_index_a as it is always
    * deformed. Element b could be another vertex of the same mesh or any other position (arbitrary
@@ -359,12 +353,12 @@ typedef struct SculptClothLengthConstraint {
   int node;
 
   eSculptClothConstraintType type;
-} SculptClothLengthConstraint;
+};
 
-typedef struct SculptClothSimulation {
+struct SculptClothSimulation {
   SculptClothLengthConstraint *length_constraints;
   int tot_length_constraints;
-  struct EdgeSet *created_length_constraints;
+  EdgeSet *created_length_constraints;
   int capacity_length_constraints;
   float *length_constraint_tweak;
 
@@ -386,26 +380,26 @@ typedef struct SculptClothSimulation {
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];
 
-  struct ListBase *collider_list;
+  ListBase *collider_list;
 
   int totnode;
   /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
-  struct GHash *node_state_index;
+  GHash *node_state_index;
   eSculptClothNodeSimState *node_state;
-} SculptClothSimulation;
+};
 
-typedef struct SculptPersistentBase {
+struct SculptPersistentBase {
   float co[3];
   float no[3];
   float disp;
-} SculptPersistentBase;
+};
 
-typedef struct SculptVertexInfo {
+struct SculptVertexInfo {
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
-} SculptVertexInfo;
+};
 
-typedef struct SculptBoundaryEditInfo {
+struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
   int original_vertex_i;
 
@@ -414,15 +408,15 @@ typedef struct SculptBoundaryEditInfo {
 
   /* Strength that is used to deform this vertex. */
   float strength_factor;
-} SculptBoundaryEditInfo;
+};
 
 /* Edge for drawing the boundary preview in the cursor. */
-typedef struct SculptBoundaryPreviewEdge {
+struct SculptBoundaryPreviewEdge {
   PBVHVertRef v1;
   PBVHVertRef v2;
-} SculptBoundaryPreviewEdge;
+};
 
-typedef struct SculptBoundary {
+struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *verts;
   int verts_capacity;
@@ -461,7 +455,7 @@ typedef struct SculptBoundary {
 
   /* Indexed by vertex index, contains the topology information needed for boundary deformations.
    */
-  struct SculptBoundaryEditInfo *edit_info;
+  SculptBoundaryEditInfo *edit_info;
 
   /* Bend Deform type. */
   struct {
@@ -479,9 +473,9 @@ typedef struct SculptBoundary {
     float rotation_axis[3];
     float pivot_position[3];
   } twist;
-} SculptBoundary;
+};
 
-typedef struct SculptFakeNeighbors {
+struct SculptFakeNeighbors {
   bool use_fake_neighbors;
 
   /* Max distance used to calculate neighborhood information. */
@@ -489,14 +483,13 @@ typedef struct SculptFakeNeighbors {
 
   /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
   int *fake_neighbor_index;
-
-} SculptFakeNeighbors;
+};
 
 /* Session data (mode-specific) */
 
 /* Custom Temporary Attributes */
 
-typedef struct SculptAttributeParams {
+struct SculptAttributeParams {
   /* Allocate a flat array outside the CustomData system.  Cannot be combined with permanent. */
   int simple_array : 1;
 
@@ -505,16 +498,16 @@ typedef struct SculptAttributeParams {
    */
   int permanent : 1;   /* Cannot be combined with simple_array. */
   int stroke_only : 1; /* Release layer at end of struct */
-} SculptAttributeParams;
+};
 
-typedef struct SculptAttribute {
+struct SculptAttribute {
   /* Domain, data type and name */
   eAttrDomain domain;
   eCustomDataType proptype;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
 
   /* Source layer on mesh/bmesh, if any. */
-  struct CustomDataLayer *layer;
+  CustomDataLayer *layer;
 
   /* Data stored as flat array. */
   void *data;
@@ -537,7 +530,7 @@ typedef struct SculptAttribute {
    * inside of SculptSession.temp_attribute are used.
    */
   bool used;
-} SculptAttribute;
+};
 
 #define SCULPT_MAX_ATTRIBUTES 64
 
@@ -553,7 +546,7 @@ typedef struct SculptAttribute {
 
 /* Convenience pointers for standard sculpt attributes. */
 
-typedef struct SculptAttributePointers {
+struct SculptAttributePointers {
   /* Persistent base. */
   SculptAttribute *persistent_co;
   SculptAttribute *persistent_no;
@@ -571,18 +564,18 @@ typedef struct SculptAttributePointers {
   /* BMesh */
   SculptAttribute *dyntopo_node_id_vertex;
   SculptAttribute *dyntopo_node_id_face;
-} SculptAttributePointers;
+};
 
-typedef struct SculptSession {
+struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
     bool active;
-    struct MultiresModifierData *modifier;
+    MultiresModifierData *modifier;
     int level;
   } multires;
 
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   blender::MutableSpan<blender::float3> vert_positions;
@@ -592,9 +585,9 @@ typedef struct SculptSession {
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, faces_num;
 
-  struct KeyBlock *shapekey_active;
-  struct MPropCol *vcol;
-  struct MLoopCol *mcol;
+  KeyBlock *shapekey_active;
+  MPropCol *vcol;
+  MLoopCol *mcol;
 
   eAttrDomain vcol_domain;
   eCustomDataType vcol_type;
@@ -633,15 +626,15 @@ typedef struct SculptSession {
   bool *hide_poly;
 
   /* BMesh for dynamic topology sculpting */
-  struct BMesh *bm;
+  BMesh *bm;
   /* Undo/redo log for dynamic topology sculpting */
-  struct BMLog *bm_log;
+  BMLog *bm_log;
 
   /* Limit surface/grids. */
-  struct SubdivCCG *subdiv_ccg;
+  SubdivCCG *subdiv_ccg;
 
   /* PBVH acceleration structure */
-  struct PBVH *pbvh;
+  PBVH *pbvh;
 
   /* Painting on deformed mesh */
   bool deform_modifiers_active; /* Object is deformed with some modifiers. */
@@ -650,11 +643,11 @@ typedef struct SculptSession {
   float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
 
   /* Pool for texture evaluations. */
-  struct ImagePool *tex_pool;
+  ImagePool *tex_pool;
 
-  struct StrokeCache *cache;
-  struct FilterCache *filter_cache;
-  struct ExpandCache *expand_cache;
+  StrokeCache *cache;
+  FilterCache *filter_cache;
+  ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
   PBVHVertRef active_vertex;
@@ -681,9 +674,9 @@ typedef struct SculptSession {
   bool gesture_initial_hit;
 
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
-  struct RegionView3D *rv3d;
-  struct View3D *v3d;
-  struct Scene *scene;
+  RegionView3D *rv3d;
+  View3D *v3d;
+  Scene *scene;
 
   /* Dynamic mesh preview */
   PBVHVertRef *preview_vert_list;
@@ -714,17 +707,17 @@ typedef struct SculptSession {
 
   struct {
     struct {
-      struct SculptVertexPaintGeomMap gmap;
+      SculptVertexPaintGeomMap gmap;
     } vpaint;
 
     struct {
-      struct SculptVertexPaintGeomMap gmap;
+      SculptVertexPaintGeomMap gmap;
       /* Keep track of how much each vertex has been painted (non-airbrush only). */
       float *alpha_weight;
 
       /* Needed to continuously re-apply over the same weights (BRUSH_ACCUMULATE disabled).
        * Lazy initialize as needed (flag is set to 1 to tag it as uninitialized). */
-      struct MDeformVert *dvert_prev;
+      MDeformVert *dvert_prev;
     } wpaint;
 
     /* TODO: identify sculpt-only fields */
@@ -744,7 +737,7 @@ typedef struct SculptSession {
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
    */
-  struct SculptAttribute temp_attributes[SCULPT_MAX_ATTRIBUTES];
+  SculptAttribute temp_attributes[SCULPT_MAX_ATTRIBUTES];
 
   /* Convenience #SculptAttribute pointers. */
   SculptAttributePointers attrs;
@@ -768,40 +761,40 @@ typedef struct SculptSession {
   int last_automasking_settings_hash;
   uchar last_automask_stroke_id;
   bool islands_valid; /* Is attrs.topology_island_key valid? */
-} SculptSession;
+};
 
-void BKE_sculptsession_free(struct Object *ob);
-void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
-void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
-void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
-void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-int BKE_sculptsession_vertex_count(const struct SculptSession *ss);
+void BKE_sculptsession_free(Object *ob);
+void BKE_sculptsession_free_deformMats(SculptSession *ss);
+void BKE_sculptsession_free_vwpaint_data(SculptSession *ss);
+void BKE_sculptsession_bm_to_me(Object *ob, bool reorder);
+void BKE_sculptsession_bm_to_me_for_render(Object *object);
+int BKE_sculptsession_vertex_count(const SculptSession *ss);
 
 /* Ensure an attribute layer exists. */
-SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
+SculptAttribute *BKE_sculpt_attribute_ensure(Object *ob,
                                              eAttrDomain domain,
                                              eCustomDataType proptype,
                                              const char *name,
                                              const SculptAttributeParams *params);
 
 /* Returns nullptr if attribute does not exist. */
-SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
+SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
                                           eAttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name);
 
-bool BKE_sculpt_attribute_exists(struct Object *ob,
+bool BKE_sculpt_attribute_exists(Object *ob,
                                  eAttrDomain domain,
                                  eCustomDataType proptype,
                                  const char *name);
 
-bool BKE_sculpt_attribute_destroy(struct Object *ob, SculptAttribute *attr);
+bool BKE_sculpt_attribute_destroy(Object *ob, SculptAttribute *attr);
 
 /* Destroy all attributes and pseudo-attributes created by sculpt mode. */
-void BKE_sculpt_attribute_destroy_temporary_all(struct Object *ob);
+void BKE_sculpt_attribute_destroy_temporary_all(Object *ob);
 
 /* Destroy attributes that were marked as stroke only in SculptAttributeParams. */
-void BKE_sculpt_attributes_destroy_temporary_stroke(struct Object *ob);
+void BKE_sculpt_attributes_destroy_temporary_stroke(Object *ob);
 
 BLI_INLINE void *BKE_sculpt_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
 {
@@ -849,32 +842,28 @@ BLI_INLINE void *BKE_sculpt_face_attr_get(const PBVHFaceRef vertex, const Sculpt
  * Create new color layer on object if it doesn't have one and if experimental feature set has
  * sculpt vertex color enabled. Returns truth if new layer has been added, false otherwise.
  */
-void BKE_sculpt_color_layer_create_if_needed(struct Object *object);
+void BKE_sculpt_color_layer_create_if_needed(Object *object);
 
 /**
  * \warning Expects a fully evaluated depsgraph.
  */
-void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
-                                       struct Object *ob_orig,
-                                       bool need_pmap,
-                                       bool need_mask,
-                                       bool is_paint_tool);
-void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
-void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
+void BKE_sculpt_update_object_for_edit(
+    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool is_paint_tool);
+void BKE_sculpt_update_object_before_eval(Object *ob_eval);
+void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval);
 
 /**
  * Sculpt mode handles multi-res differently from regular meshes, but only if
  * it's the last modifier on the stack and it is not on the first level.
  */
-struct MultiresModifierData *BKE_sculpt_multires_active(const struct Scene *scene,
-                                                        struct Object *ob);
-int *BKE_sculpt_face_sets_ensure(struct Object *ob);
+MultiresModifierData *BKE_sculpt_multires_active(const Scene *scene, Object *ob);
+int *BKE_sculpt_face_sets_ensure(Object *ob);
 /**
  * Create the attribute used to store face visibility and retrieve its data.
  * Note that changes to the face visibility have to be propagated to other domains
  * (see #SCULPT_visibility_sync_all_from_faces).
  */
-bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
+bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh);
 
 /**
  * Ensures a mask layer exists. If depsgraph and bmain are non-null,
@@ -884,24 +873,24 @@ bool *BKE_sculpt_hide_poly_ensure(struct Mesh *mesh);
  *
  * \note always call *before* #BKE_sculpt_update_object_for_edit.
  */
-int BKE_sculpt_mask_layers_ensure(struct Depsgraph *depsgraph,
-                                  struct Main *bmain,
-                                  struct Object *ob,
-                                  struct MultiresModifierData *mmd);
-void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
+int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
+                                  Main *bmain,
+                                  Object *ob,
+                                  MultiresModifierData *mmd);
+void BKE_sculpt_toolsettings_data_ensure(Scene *scene);
 
-struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct Object *ob);
+PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 
-void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_ccg);
+void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg);
 
-void BKE_sculpt_ensure_orig_mesh_data(struct Scene *scene, struct Object *object);
-void BKE_sculpt_sync_face_visibility_to_grids(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
+void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object);
+void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 
 /**
  * Test if PBVH can be used directly for drawing, which is faster than
  * drawing the mesh and all updates that come with it.
  */
-bool BKE_sculptsession_use_pbvh_draw(const struct Object *ob, const struct RegionView3D *rv3d);
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const RegionView3D *rv3d);
 
 enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
@@ -919,13 +908,13 @@ enum {
  *
  * \return #true if successful.
  */
-bool BKE_object_attributes_active_color_fill(struct Object *ob,
+bool BKE_object_attributes_active_color_fill(Object *ob,
                                              const float fill_color[4],
                                              bool only_selected);
 
 /** C accessor for #Object::sculpt::pbvh. */
-struct PBVH *BKE_object_sculpt_pbvh_get(struct Object *object);
-bool BKE_object_sculpt_use_dyntopo(const struct Object *object);
+PBVH *BKE_object_sculpt_pbvh_get(Object *object);
+bool BKE_object_sculpt_use_dyntopo(const Object *object);
 
 /* paint_canvas.cc */
 
@@ -933,13 +922,12 @@ bool BKE_object_sculpt_use_dyntopo(const struct Object *object);
  * Create a key that can be used to compare with previous ones to identify changes.
  * The resulting 'string' is owned by the caller.
  */
-char *BKE_paint_canvas_key_get(struct PaintModeSettings *settings, struct Object *ob);
+char *BKE_paint_canvas_key_get(PaintModeSettings *settings, Object *ob);
 
-bool BKE_paint_canvas_image_get(struct PaintModeSettings *settings,
-                                struct Object *ob,
-                                struct Image **r_image,
-                                struct ImageUser **r_image_user);
-int BKE_paint_canvas_uvmap_layer_index_get(const struct PaintModeSettings *settings,
-                                           struct Object *ob);
-void BKE_sculpt_check_cavity_curves(struct Sculpt *sd);
-struct CurveMapping *BKE_sculpt_default_cavity_curve(void);
+bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
+                                Object *ob,
+                                Image **r_image,
+                                ImageUser **r_image_user);
+int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Object *ob);
+void BKE_sculpt_check_cavity_curves(Sculpt *sd);
+CurveMapping *BKE_sculpt_default_cavity_curve(void);

@@ -20,7 +20,7 @@ struct Subdiv;
  * paint on a deformed mesh with sub-surf on it.
  *
  * vertex_cos are supposed to hold coordinates of the coarse mesh. */
-void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
-                                       const struct Mesh *coarse_mesh,
+void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
+                                       const Mesh *coarse_mesh,
                                        float (*vertex_cos)[3],
                                        int num_verts);

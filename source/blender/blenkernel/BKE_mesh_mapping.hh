@@ -11,32 +11,34 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 
+struct BMLoop;
+struct MemArena;
 struct MLoopTri;
 
 /* UvVertMap */
 #define STD_UV_CONNECT_LIMIT 0.0001f
 
-/* Map from uv vertex to face. Used by select linked, uv subdivision-surface and obj exporter. */
-typedef struct UvVertMap {
-  struct UvMapVert **vert;
-  struct UvMapVert *buf;
-} UvVertMap;
-
-typedef struct UvMapVert {
-  struct UvMapVert *next;
+struct UvMapVert {
+  UvMapVert *next;
   unsigned int face_index;
   unsigned short loop_of_face_index;
   bool separate;
-} UvMapVert;
+};
+
+/* Map from uv vertex to face. Used by select linked, uv subdivision-surface and obj exporter. */
+struct UvVertMap {
+  UvMapVert **vert;
+  UvMapVert *buf;
+};
 
 /* UvElement stores per uv information so that we can quickly access information for a uv.
  * it is actually an improved UvMapVert, including an island and a direct pointer to the face
  * to avoid initializing face arrays */
-typedef struct UvElement {
+struct UvElement {
   /* Next UvElement corresponding to same vertex */
-  struct UvElement *next;
+  UvElement *next;
   /* Face the element belongs to */
-  struct BMLoop *l;
+  BMLoop *l;
   /* index in loop. */
   unsigned short loop_of_face_index;
   /* Whether this element is the first of coincident elements */
@@ -45,7 +47,7 @@ typedef struct UvElement {
   unsigned char flag;
   /* If generating element map with island sorting, this stores the island index */
   unsigned int island;
-} UvElement;
+};
 
 /**
  * UvElementMap is a container for UvElements of a BMesh.
@@ -61,19 +63,19 @@ typedef struct UvElement {
  * be `mutable`, as they are created on demand, and never
  * changed after creation.
  */
-typedef struct UvElementMap {
+struct UvElementMap {
   /** UvElement Storage. */
-  struct UvElement *storage;
+  UvElement *storage;
   /** Total number of UVs. */
   int total_uvs;
   /** Total number of unique UVs. */
   int total_unique_uvs;
 
   /** If Non-NULL, address UvElements by `BM_elem_index_get(BMVert*)`. */
-  struct UvElement **vertex;
+  UvElement **vertex;
 
   /** If Non-NULL, pointer to local head of each unique UV. */
-  struct UvElement **head_table;
+  UvElement **head_table;
 
   /** If Non-NULL, pointer to index of each unique UV. */
   int *unique_index_table;
@@ -86,13 +88,13 @@ typedef struct UvElementMap {
   int *island_total_uvs;
   /** Array of number of unique UVs in each island. */
   int *island_total_unique_uvs;
-} UvElementMap;
+};
 
 /* Connectivity data */
-typedef struct MeshElemMap {
+struct MeshElemMap {
   int *indices;
   int count;
-} MeshElemMap;
+};
 
 /* mapping */
 
@@ -117,7 +119,7 @@ void BKE_mesh_uv_vert_map_free(UvVertMap *vmap);
 void BKE_mesh_vert_looptri_map_create(MeshElemMap **r_map,
                                       int **r_mem,
                                       int totvert,
-                                      const struct MLoopTri *mlooptri,
+                                      const MLoopTri *mlooptri,
                                       int totlooptri,
                                       const int *corner_verts,
                                       int totloop);
@@ -158,7 +160,7 @@ enum {
   MISLAND_TYPE_LOOP = 4,
 };
 
-typedef struct MeshIslandStore {
+struct MeshIslandStore {
   short item_type;     /* MISLAND_TYPE_... */
   short island_type;   /* MISLAND_TYPE_... */
   short innercut_type; /* MISLAND_TYPE_... */
@@ -168,11 +170,11 @@ typedef struct MeshIslandStore {
 
   int islands_num;
   size_t islands_num_alloc;
-  struct MeshElemMap **islands;   /* Array of pointers, one item per island. */
-  struct MeshElemMap **innercuts; /* Array of pointers, one item per island. */
+  MeshElemMap **islands;   /* Array of pointers, one item per island. */
+  MeshElemMap **innercuts; /* Array of pointers, one item per island. */
 
-  struct MemArena *mem; /* Memory arena, internal use only. */
-} MeshIslandStore;
+  MemArena *mem; /* Memory arena, internal use only. */
+};
 
 void BKE_mesh_loop_islands_init(MeshIslandStore *island_store,
                                 short item_type,
@@ -189,16 +191,16 @@ void BKE_mesh_loop_islands_add(MeshIslandStore *island_store,
                                int num_innercut_items,
                                int *innercut_item_indices);
 
-typedef bool (*MeshRemapIslandsCalc)(const float (*vert_positions)[3],
-                                     int totvert,
-                                     const blender::int2 *edges,
-                                     int totedge,
-                                     const bool *uv_seams,
-                                     blender::OffsetIndices<int> faces,
-                                     const int *corner_verts,
-                                     const int *corner_edges,
-                                     int totloop,
-                                     struct MeshIslandStore *r_island_store);
+using MeshRemapIslandsCalc = bool (*)(const float (*vert_positions)[3],
+                                      int totvert,
+                                      const blender::int2 *edges,
+                                      int totedge,
+                                      const bool *uv_seams,
+                                      blender::OffsetIndices<int> faces,
+                                      const int *corner_verts,
+                                      const int *corner_edges,
+                                      int totloop,
+                                      MeshIslandStore *r_island_store);
 
 /* Above vert/UV mapping stuff does not do what we need here, but does things we do not need here.
  * So better keep them separated for now, I think. */

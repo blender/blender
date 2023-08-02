@@ -100,7 +100,7 @@ struct CryptomatteLayer {
 #endif
 
   static std::unique_ptr<CryptomatteLayer> read_from_manifest(blender::StringRefNull manifest);
-  uint32_t add_ID(const struct ID &id);
+  uint32_t add_ID(const ID &id);
   void add_hash(blender::StringRef name, CryptomatteHash cryptomatte_hash);
   std::string manifest() const;
 
@@ -108,7 +108,7 @@ struct CryptomatteLayer {
 };
 
 struct CryptomatteStampDataCallbackData {
-  struct CryptomatteSession *session;
+  CryptomatteSession *session;
   blender::Map<std::string, std::string> hash_to_layer_name;
 
   /**

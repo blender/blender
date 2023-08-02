@@ -467,9 +467,9 @@ struct uiButtonGroup {
 };
 
 struct uiBlockDynamicListener {
-  struct uiBlockDynamicListener *next, *prev;
+  uiBlockDynamicListener *next, *prev;
 
-  void (*listener_func)(const struct wmRegionListenerParams *params);
+  void (*listener_func)(const wmRegionListenerParams *params);
 };
 
 struct uiBlock {

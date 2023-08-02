@@ -33,9 +33,9 @@
 
 struct BVHTreeFromMesh;
 
-void geo_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
-bool geo_node_poll_default(const struct bNodeType *ntype,
-                           const struct bNodeTree *ntree,
+void geo_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
+bool geo_node_poll_default(const bNodeType *ntype,
+                           const bNodeTree *ntree,
                            const char **r_disabled_hint);
 
 namespace blender::nodes {
