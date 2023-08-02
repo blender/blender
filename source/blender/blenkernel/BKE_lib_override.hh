@@ -23,10 +23,6 @@
  *    of IDs in a given Main data-base.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendFileReadReport;
 struct Collection;
 struct ID;
@@ -559,7 +555,3 @@ void BKE_lib_override_library_operations_store_end(OverrideLibraryStorage *libov
                                                    struct ID *local);
 void BKE_lib_override_library_operations_store_finalize(
     OverrideLibraryStorage *liboverride_storage);
-
-#ifdef __cplusplus
-}
-#endif

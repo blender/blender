@@ -62,7 +62,7 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 #include "BKE_mesh.hh"
