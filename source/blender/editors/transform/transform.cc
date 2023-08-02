@@ -2023,14 +2023,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    float2 mval;
-    if (t->flag & T_EVENT_DRAG_START) {
-      WM_event_drag_start_mval_fl(event, t->region, mval);
-    }
-    else {
-      mval = float2(event->mval);
-    }
-    initMouseInput(t, &t->mouse, t->center2d, mval, use_accurate);
+    initMouseInput(t, &t->mouse, t->center2d, t->mval, use_accurate);
   }
 
   transform_mode_init(t, op, mode);

@@ -186,7 +186,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     mval = float2(0, 0);
   }
 
-  t->mouse.imval = mval;
+  t->mval = mval;
 
   t->mode_info = nullptr;
 
