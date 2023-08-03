@@ -51,7 +51,6 @@
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
-#include "ED_asset_shelf.h"
 #include "ED_geometry.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
@@ -279,19 +278,6 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->regiontype = RGN_TYPE_TOOL_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
-
-  /* asset shelf */
-  region = MEM_cnew<ARegion>("asset shelf for view3d");
-
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_ASSET_SHELF;
-  region->alignment = RGN_ALIGN_BOTTOM;
-
-  /* asset shelf header */
-  region = MEM_cnew<ARegion>("asset shelf header for view3d");
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_ASSET_SHELF_HEADER;
-  region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 
   /* tool shelf */
   region = MEM_cnew<ARegion>("toolshelf for view3d");
@@ -1918,15 +1904,6 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels_ex(C, region, contexts);
 }
 
-/* add handlers, stuff you only do once or on area/region changes */
-static void view3d_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
-{
-  wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
-  WM_event_add_keymap_handler(&region->handlers, keymap);
-
-  ED_asset_shelf_region_init(wm, region);
-}
-
 /* area (not region) level listener */
 static void space_view3d_listener(const wmSpaceTypeListenerParams *params)
 {
@@ -2235,33 +2212,6 @@ void ED_spacetype_view3d()
   art->init = view3d_header_region_init;
   art->draw = view3d_header_region_draw;
   BLI_addhead(&st->regiontypes, art);
-
-  /* regions: asset shelf */
-  art = MEM_cnew<ARegionType>("spacetype view3d asset shelf region");
-  art->regionid = RGN_TYPE_ASSET_SHELF;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
-  art->duplicate = ED_asset_shelf_region_duplicate;
-  art->free = ED_asset_shelf_region_free;
-  art->listener = ED_asset_shelf_region_listen;
-  art->poll = ED_asset_shelf_regions_poll;
-  art->snap_size = ED_asset_shelf_region_snap;
-  art->context = ED_asset_shelf_context;
-  art->init = view3d_asset_shelf_region_init;
-  art->layout = ED_asset_shelf_region_layout;
-  art->draw = ED_asset_shelf_region_draw;
-  BLI_addhead(&st->regiontypes, art);
-
-  /* regions: asset shelf header */
-  art = MEM_cnew<ARegionType>("spacetype view3d asset shelf header region");
-  art->regionid = RGN_TYPE_ASSET_SHELF_HEADER;
-  art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;
-  art->init = ED_asset_shelf_header_region_init;
-  art->poll = ED_asset_shelf_regions_poll;
-  art->draw = ED_asset_shelf_header_region;
-  art->listener = ED_asset_shelf_header_region_listen;
-  art->context = ED_asset_shelf_context;
-  BLI_addhead(&st->regiontypes, art);
-  ED_asset_shelf_header_regiontype_register(art, SPACE_VIEW3D);
 
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);

@@ -498,8 +498,7 @@ if __name__ == "__main__":
         branch = f"blender-v{major}.{minor}-release"
         release_version: Optional[str] = f"{major}.{minor}"
     else:
-        # TODO !!!!! remove this before merge !!!!!
-        branch = 'asset-shelf'
+        branch = 'main'
         release_version = None
 
     if not args.no_libraries:
