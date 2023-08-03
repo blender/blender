@@ -816,7 +816,10 @@ typedef struct AssetShelf {
 typedef struct RegionAssetShelf {
   /** Owning list of previously activated asset shelves. */
   ListBase shelves;
-  /** The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
+  /**
+   * The currently active shelf, if any. Updated on redraw, so that context changes are reflected.
+   * Note that this may still be set even though the shelf isn't available anymore
+   * (#AssetShelfType.poll() fails). The pointer isn't necessarily unset when polling.
    */
   AssetShelf *active_shelf; /* Non-owning. */
 #ifdef __cplusplus
