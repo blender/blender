@@ -635,6 +635,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
 
 void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const IDProperty *old_properties,
+                                            const bool use_bool_for_use_attribute,
                                             IDProperty &properties)
 {
   tree.ensure_topology_cache();
@@ -683,7 +684,8 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       const std::string attribute_name_id = socket.identifier + input_attribute_name_suffix();
 
       IDPropertyTemplate idprop = {0};
-      IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_id.c_str());
+      IDProperty *use_attribute_prop = IDP_New(
+          use_bool_for_use_attribute ? IDP_BOOLEAN : IDP_INT, &idprop, use_attribute_id.c_str());
       IDP_AddToGroup(&properties, use_attribute_prop);
 
       IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());

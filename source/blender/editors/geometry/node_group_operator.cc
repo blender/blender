@@ -360,7 +360,7 @@ static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent * /*
     return OPERATOR_CANCELLED;
   }
 
-  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, *op->properties);
+  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, true, *op->properties);
   nodes::update_output_properties_from_node_tree(*node_tree, op->properties, *op->properties);
 
   return run_node_group_exec(C, op);
@@ -379,6 +379,132 @@ static char *run_node_group_get_description(bContext *C, wmOperatorType * /*ot*/
   return BLI_strdup(description);
 }
 
+static void add_attribute_search_or_value_buttons(uiLayout *layout,
+                                                  PointerRNA *md_ptr,
+                                                  const bNodeSocket &socket)
+{
+  char socket_id_esc[sizeof(socket.identifier) * 2];
+  BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
+  const std::string rna_path = "[\"" + std::string(socket_id_esc) + "\"]";
+  const std::string rna_path_use_attribute = "[\"" + std::string(socket_id_esc) +
+                                             nodes::input_use_attribute_suffix() + "\"]";
+  const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
+                                              nodes::input_attribute_name_suffix() + "\"]";
+
+  /* We're handling this manually in this case. */
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *name_row = uiLayoutRow(split, false);
+  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+
+  const bool use_attribute = RNA_boolean_get(md_ptr, rna_path_use_attribute.c_str());
+  if (socket.type == SOCK_BOOLEAN && !use_attribute) {
+    uiItemL(name_row, "", ICON_NONE);
+  }
+  else {
+    uiItemL(name_row, socket.name, ICON_NONE);
+  }
+
+  uiLayout *prop_row = uiLayoutRow(split, true);
+  if (socket.type == SOCK_BOOLEAN) {
+    uiLayoutSetPropSep(prop_row, false);
+    uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
+  }
+
+  if (use_attribute) {
+    /* TODO: Add attribute search. */
+    uiItemR(prop_row, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
+  }
+  else {
+    const char *name = socket.type == SOCK_BOOLEAN ? socket.name : "";
+    uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
+  }
+
+  uiItemR(
+      prop_row, md_ptr, rna_path_use_attribute.c_str(), UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
+}
+
+static void draw_property_for_socket(const bNodeTree &node_tree,
+                                     uiLayout *layout,
+                                     IDProperty *op_properties,
+                                     PointerRNA *bmain_ptr,
+                                     PointerRNA *op_ptr,
+                                     const bNodeSocket &socket,
+                                     const int socket_index)
+{
+  /* The property should be created in #MOD_nodes_update_interface with the correct type. */
+  IDProperty *property = IDP_GetPropertyFromGroup(op_properties, socket.identifier);
+
+  /* IDProperties can be removed with python, so there could be a situation where
+   * there isn't a property for a socket or it doesn't have the correct type. */
+  if (property == nullptr || !nodes::id_property_type_matches_socket(socket, *property)) {
+    return;
+  }
+
+  char socket_id_esc[sizeof(socket.identifier) * 2];
+  BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
+
+  char rna_path[sizeof(socket_id_esc) + 4];
+  SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
+
+  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayoutSetPropDecorate(row, true);
+
+  /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
+   * information about what type of ID to select for editing the values. This is because
+   * pointer IDProperties contain no information about their type. */
+  switch (socket.type) {
+    case SOCK_OBJECT:
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "objects", socket.name, ICON_OBJECT_DATA);
+      break;
+    case SOCK_COLLECTION:
+      uiItemPointerR(
+          row, op_ptr, rna_path, bmain_ptr, "collections", socket.name, ICON_OUTLINER_COLLECTION);
+      break;
+    case SOCK_MATERIAL:
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "materials", socket.name, ICON_MATERIAL);
+      break;
+    case SOCK_TEXTURE:
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "textures", socket.name, ICON_TEXTURE);
+      break;
+    case SOCK_IMAGE:
+      uiItemPointerR(row, op_ptr, rna_path, bmain_ptr, "images", socket.name, ICON_IMAGE);
+      break;
+    default:
+      if (nodes::input_has_attribute_toggle(node_tree, socket_index)) {
+        add_attribute_search_or_value_buttons(row, op_ptr, socket);
+      }
+      else {
+        uiItemR(row, op_ptr, rna_path, UI_ITEM_NONE, socket.name, ICON_NONE);
+      }
+  }
+  if (!nodes::input_has_attribute_toggle(node_tree, socket_index)) {
+    uiItemL(row, "", ICON_BLANK1);
+  }
+}
+
+static void run_node_group_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+  Main *bmain = CTX_data_main(C);
+  PointerRNA bmain_ptr;
+  RNA_main_pointer_create(bmain, &bmain_ptr);
+
+  const bNodeTree *node_tree = get_node_group(*C, *op->ptr, nullptr);
+  if (!node_tree) {
+    return;
+  }
+
+  int input_index;
+  LISTBASE_FOREACH_INDEX (bNodeSocket *, io_socket, &node_tree->inputs, input_index) {
+    draw_property_for_socket(
+        *node_tree, layout, op->properties, &bmain_ptr, op->ptr, *io_socket, input_index);
+  }
+}
+
 void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
 {
   ot->name = "Run Node Group";
@@ -389,6 +515,7 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   ot->invoke = run_node_group_invoke;
   ot->exec = run_node_group_exec;
   ot->get_description = run_node_group_get_description;
+  ot->ui = run_node_group_ui;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -523,7 +650,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
                     ICON_NONE,
                     nullptr,
                     WM_OP_INVOKE_DEFAULT,
-                    eUI_Item_Flag(0),
+                    UI_ITEM_NONE,
                     &props_ptr);
     RNA_enum_set(&props_ptr, "asset_library_type", weak_ref->asset_library_type);
     RNA_string_set(&props_ptr, "asset_library_identifier", weak_ref->asset_library_identifier);

@@ -27,6 +27,7 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
@@ -366,6 +367,10 @@ class NodeTreeMainUpdater {
             }
           }
         }
+      }
+
+      if (result.output_changed) {
+        ntree->runtime->geometry_nodes_lazy_function_graph_info.reset();
       }
 
       if (params_) {

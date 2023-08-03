@@ -403,7 +403,8 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   }
   IDProperty *new_properties = nmd->settings.properties;
 
-  nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
+  nodes::update_input_properties_from_node_tree(
+      *nmd->node_group, old_properties, false, *new_properties);
   nodes::update_output_properties_from_node_tree(
       *nmd->node_group, old_properties, *new_properties);
 
