@@ -140,8 +140,9 @@ void *lineart_mem_acquire_thread(LineartStaticMemPool *smp, size_t size)
 }
 void lineart_mem_destroy(LineartStaticMemPool *smp)
 {
-  LineartStaticMemPoolNode *smpn;
-  while ((smpn = static_cast<LineartStaticMemPoolNode *>(BLI_pophead(&smp->pools))) != nullptr) {
+  while (LineartStaticMemPoolNode *smpn = static_cast<LineartStaticMemPoolNode *>(
+             BLI_pophead(&smp->pools)))
+  {
     MEM_freeN(smpn);
   }
 }

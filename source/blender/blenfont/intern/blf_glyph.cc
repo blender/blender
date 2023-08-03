@@ -139,9 +139,8 @@ void blf_glyph_cache_release(FontBLF *font)
 
 static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
-  GlyphBLF *g;
   for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
-    while ((g = static_cast<GlyphBLF *>(BLI_pophead(&gc->bucket[i])))) {
+    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&gc->bucket[i]))) {
       blf_glyph_free(g);
     }
   }
@@ -156,11 +155,9 @@ static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 
 void blf_glyph_cache_clear(FontBLF *font)
 {
-  GlyphCacheBLF *gc;
-
   BLI_mutex_lock(&font->glyph_cache_mutex);
 
-  while ((gc = static_cast<GlyphCacheBLF *>(BLI_pophead(&font->cache)))) {
+  while (GlyphCacheBLF *gc = static_cast<GlyphCacheBLF *>(BLI_pophead(&font->cache))) {
     blf_glyph_cache_free(gc);
   }
 

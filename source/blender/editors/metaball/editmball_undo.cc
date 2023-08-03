@@ -55,13 +55,11 @@ struct UndoMBall {
 /* free all MetaElems from ListBase */
 static void freeMetaElemlist(ListBase *lb)
 {
-  MetaElem *ml;
-
   if (lb == nullptr) {
     return;
   }
 
-  while ((ml = static_cast<MetaElem *>(BLI_pophead(lb)))) {
+  while (MetaElem *ml = static_cast<MetaElem *>(BLI_pophead(lb))) {
     MEM_freeN(ml);
   }
 }

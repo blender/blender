@@ -895,8 +895,7 @@ UndoType *BKE_undosys_type_append(void (*undosys_fn)(UndoType *))
 
 void BKE_undosys_type_free_all()
 {
-  UndoType *ut;
-  while ((ut = static_cast<UndoType *>(BLI_pophead(&g_undo_types)))) {
+  while (UndoType *ut = static_cast<UndoType *>(BLI_pophead(&g_undo_types))) {
     MEM_freeN(ut);
   }
 }

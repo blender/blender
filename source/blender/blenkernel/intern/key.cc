@@ -76,9 +76,7 @@ static void shapekey_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, c
 static void shapekey_free_data(ID *id)
 {
   Key *key = (Key *)id;
-  KeyBlock *kb;
-
-  while ((kb = static_cast<KeyBlock *>(BLI_pophead(&key->block)))) {
+  while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
     }
@@ -245,9 +243,7 @@ void BKE_key_free_data(Key *key)
 
 void BKE_key_free_nolib(Key *key)
 {
-  KeyBlock *kb;
-
-  while ((kb = static_cast<KeyBlock *>(BLI_pophead(&key->block)))) {
+  while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
     }

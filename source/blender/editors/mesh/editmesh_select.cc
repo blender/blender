@@ -1305,10 +1305,9 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
     MEM_freeN(fg);
 
     if (tot) {
-      LinkData *link;
-      while ((link = static_cast<LinkData *>(BLI_pophead(&faces_regions)))) {
-        BMFace *f, **faces = static_cast<BMFace **>(link->data);
-        while ((f = *(faces++))) {
+      while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&faces_regions))) {
+        BMFace **faces = static_cast<BMFace **>(link->data);
+        while (BMFace *f = *(faces++)) {
           BM_face_select_set(bm, f, true);
         }
         MEM_freeN(link->data);
@@ -3027,8 +3026,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
     fgroup_table[i_min] = nullptr;
     changed = true;
 
-    BMFaceLink *f_link;
-    while ((f_link = static_cast<BMFaceLink *>(BLI_pophead(&fgroup_listbase[i_min])))) {
+    while (BMFaceLink *f_link = static_cast<BMFaceLink *>(BLI_pophead(&fgroup_listbase[i_min]))) {
       BMFace *f = f_link->face;
       BM_face_select_set(bm, f, true);
       BM_elem_index_set(f, -1); /* set-dirty */

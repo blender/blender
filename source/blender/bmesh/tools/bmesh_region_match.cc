@@ -676,9 +676,8 @@ static bool bm_uuidwalk_facestep_begin(UUIDWalk *uuidwalk, UUIDFaceStep *fstep)
  */
 static void bm_uuidwalk_facestep_end(UUIDWalk *uuidwalk, UUIDFaceStep *fstep)
 {
-  UUIDFaceStepItem *fstep_item;
-
-  while ((fstep_item = static_cast<UUIDFaceStepItem *>(BLI_pophead(&fstep->items)))) {
+  while (
+      UUIDFaceStepItem *fstep_item = static_cast<UUIDFaceStepItem *>(BLI_pophead(&fstep->items))) {
     BLI_mempool_free(uuidwalk->step_pool_items, fstep_item);
   }
 }

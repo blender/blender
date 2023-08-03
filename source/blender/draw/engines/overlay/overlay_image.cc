@@ -221,8 +221,7 @@ static GPUTexture *image_camera_background_texture_get(CameraBGImage *bgpic,
 static void OVERLAY_image_free_movieclips_textures(OVERLAY_Data *data)
 {
   /* Free Movie clip textures after rendering */
-  LinkData *link;
-  while ((link = static_cast<LinkData *>(BLI_pophead(&data->stl->pd->bg_movie_clips)))) {
+  while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&data->stl->pd->bg_movie_clips))) {
     MovieClip *clip = (MovieClip *)link->data;
     BKE_movieclip_free_gputexture(clip);
     MEM_freeN(link);

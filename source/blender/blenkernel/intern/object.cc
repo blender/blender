@@ -1314,9 +1314,7 @@ void BKE_object_workob_clear(Object *workob)
 
 void BKE_object_free_particlesystems(Object *ob)
 {
-  ParticleSystem *psys;
-
-  while ((psys = (ParticleSystem *)BLI_pophead(&ob->particlesystem))) {
+  while (ParticleSystem *psys = (ParticleSystem *)BLI_pophead(&ob->particlesystem)) {
     psys_free(ob, psys);
   }
 }
@@ -1342,14 +1340,13 @@ void BKE_object_free_curve_cache(Object *ob)
 
 void BKE_object_free_modifiers(Object *ob, const int flag)
 {
-  ModifierData *md;
-  GpencilModifierData *gp_md;
-
-  while ((md = (ModifierData *)BLI_pophead(&ob->modifiers))) {
+  while (ModifierData *md = (ModifierData *)BLI_pophead(&ob->modifiers)) {
     BKE_modifier_free_ex(md, flag);
   }
 
-  while ((gp_md = (GpencilModifierData *)BLI_pophead(&ob->greasepencil_modifiers))) {
+  while (
+      GpencilModifierData *gp_md = (GpencilModifierData *)BLI_pophead(&ob->greasepencil_modifiers))
+  {
     BKE_gpencil_modifier_free_ex(gp_md, flag);
   }
   /* Particle modifiers were freed, so free the particle-systems as well. */
@@ -1364,9 +1361,7 @@ void BKE_object_free_modifiers(Object *ob, const int flag)
 
 void BKE_object_free_shaderfx(Object *ob, const int flag)
 {
-  ShaderFxData *fx;
-
-  while ((fx = (ShaderFxData *)BLI_pophead(&ob->shader_fx))) {
+  while (ShaderFxData *fx = (ShaderFxData *)BLI_pophead(&ob->shader_fx)) {
     BKE_shaderfx_free_ex(fx, flag);
   }
 }

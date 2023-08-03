@@ -3513,8 +3513,7 @@ void UI_block_free(const bContext *C, uiBlock *block)
 {
   UI_butstore_clear(block);
 
-  uiBut *but;
-  while ((but = static_cast<uiBut *>(BLI_pophead(&block->buttons)))) {
+  while (uiBut *but = static_cast<uiBut *>(BLI_pophead(&block->buttons))) {
     ui_but_free(C, but);
   }
 
@@ -3584,8 +3583,7 @@ void UI_blocklist_draw(const bContext *C, const ListBase *lb)
 void UI_blocklist_free(const bContext *C, ARegion *region)
 {
   ListBase *lb = &region->uiblocks;
-  uiBlock *block;
-  while ((block = static_cast<uiBlock *>(BLI_pophead(lb)))) {
+  while (uiBlock *block = static_cast<uiBlock *>(BLI_pophead(lb))) {
     UI_block_free(C, block);
   }
   if (region->runtime.block_name_map != nullptr) {

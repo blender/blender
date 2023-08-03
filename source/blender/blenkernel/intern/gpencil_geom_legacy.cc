@@ -458,7 +458,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
   bGPDspoint *pt = gps->points;
   bGPDspoint *pt1 = nullptr;
   bGPDspoint *pt2 = nullptr;
-  LinkData *ld;
   ListBase def_nr_list = {nullptr};
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
@@ -563,7 +562,7 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
     /* Free original weight data. */
     BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
-    while ((ld = (LinkData *)BLI_pophead(&def_nr_list))) {
+    while (LinkData *ld = (LinkData *)BLI_pophead(&def_nr_list)) {
       MEM_freeN(ld);
     }
 

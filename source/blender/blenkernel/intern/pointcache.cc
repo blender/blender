@@ -3059,9 +3059,7 @@ void BKE_ptcache_free(PointCache *cache)
 }
 void BKE_ptcache_free_list(ListBase *ptcaches)
 {
-  PointCache *cache;
-
-  while ((cache = static_cast<PointCache *>(BLI_pophead(ptcaches)))) {
+  while (PointCache *cache = static_cast<PointCache *>(BLI_pophead(ptcaches))) {
     BKE_ptcache_free(cache);
   }
 }

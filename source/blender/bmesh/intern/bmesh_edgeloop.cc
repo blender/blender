@@ -391,8 +391,7 @@ bool BM_mesh_edgeloops_find_path(BMesh *bm,
 
 void BM_mesh_edgeloops_free(ListBase *eloops)
 {
-  BMEdgeLoopStore *el_store;
-  while ((el_store = static_cast<BMEdgeLoopStore *>(BLI_pophead(eloops)))) {
+  while (BMEdgeLoopStore *el_store = static_cast<BMEdgeLoopStore *>(BLI_pophead(eloops))) {
     BM_edgeloop_free(el_store);
   }
 }

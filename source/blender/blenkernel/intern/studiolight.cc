@@ -1472,8 +1472,7 @@ void BKE_studiolight_init()
 
 void BKE_studiolight_free()
 {
-  StudioLight *sl;
-  while ((sl = static_cast<StudioLight *>(BLI_pophead(&studiolights)))) {
+  while (StudioLight *sl = static_cast<StudioLight *>(BLI_pophead(&studiolights))) {
     studiolight_free(sl);
   }
 }

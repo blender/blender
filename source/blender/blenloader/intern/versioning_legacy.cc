@@ -414,9 +414,7 @@ static void do_version_free_effect_245(Effect *eff)
 
 static void do_version_free_effects_245(ListBase *lb)
 {
-  Effect *eff;
-
-  while ((eff = static_cast<Effect *>(BLI_pophead(lb)))) {
+  while (Effect *eff = static_cast<Effect *>(BLI_pophead(lb))) {
     do_version_free_effect_245(eff);
   }
 }

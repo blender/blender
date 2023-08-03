@@ -1338,9 +1338,8 @@ void lineart_main_cull_triangles(LineartData *ld, bool clip_far)
 
 void lineart_main_free_adjacent_data(LineartData *ld)
 {
-  LinkData *link;
-  while ((link = static_cast<LinkData *>(BLI_pophead(&ld->geom.triangle_adjacent_pointers))) !=
-         nullptr)
+  while (
+      LinkData *link = static_cast<LinkData *>(BLI_pophead(&ld->geom.triangle_adjacent_pointers)))
   {
     MEM_freeN(link->data);
   }

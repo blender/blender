@@ -879,9 +879,7 @@ static void gpu_node_free(GPUNode *node)
 
 void gpu_node_graph_free_nodes(GPUNodeGraph *graph)
 {
-  GPUNode *node;
-
-  while ((node = static_cast<GPUNode *>(BLI_pophead(&graph->nodes)))) {
+  while (GPUNode *node = static_cast<GPUNode *>(BLI_pophead(&graph->nodes))) {
     gpu_node_free(node);
   }
 
