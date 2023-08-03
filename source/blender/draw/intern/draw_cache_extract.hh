@@ -252,11 +252,11 @@ struct MeshBufferCache {
 };
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
-  for (MeshBufferCache *mbc = &batch_cache->final; \
-       mbc == &batch_cache->final || mbc == &batch_cache->cage || mbc == &batch_cache->uv_cage; \
-       mbc = (mbc == &batch_cache->final) ? \
-                 &batch_cache->cage : \
-                 ((mbc == &batch_cache->cage) ? &batch_cache->uv_cage : NULL))
+  for (MeshBufferCache *mbc = &batch_cache.final; \
+       mbc == &batch_cache.final || mbc == &batch_cache.cage || mbc == &batch_cache.uv_cage; \
+       mbc = (mbc == &batch_cache.final) ? \
+                 &batch_cache.cage : \
+                 ((mbc == &batch_cache.cage) ? &batch_cache.uv_cage : NULL))
 
 struct MeshBatchCache {
   MeshBufferCache final, cage, uv_cage;
@@ -314,8 +314,8 @@ struct MeshBatchCache {
 namespace blender::draw {
 
 void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
-                                        MeshBatchCache *cache,
-                                        MeshBufferCache *mbc,
+                                        MeshBatchCache &cache,
+                                        MeshBufferCache &mbc,
                                         Object *object,
                                         Mesh *me,
                                         bool is_editmode,
@@ -328,9 +328,9 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         const ToolSettings *ts,
                                         bool use_hide);
 
-void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
-                                               MeshBufferCache *mbc,
-                                               DRWSubdivCache *subdiv_cache,
-                                               MeshRenderData *mr);
+void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
+                                               MeshBufferCache &mbc,
+                                               DRWSubdivCache &subdiv_cache,
+                                               MeshRenderData &mr);
 
 }  // namespace blender::draw

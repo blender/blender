@@ -10,5 +10,5 @@
 
 struct wmOperatorType;
 
-void WM_OT_alembic_export( wmOperatorType *ot);
-void WM_OT_alembic_import( wmOperatorType *ot);
+void WM_OT_alembic_export(wmOperatorType *ot);
+void WM_OT_alembic_import(wmOperatorType *ot);

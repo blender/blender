@@ -80,8 +80,8 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
   return input;
 }
 
-static void extract_weights_init(const MeshRenderData *mr,
-                                 MeshBatchCache *cache,
+static void extract_weights_init(const MeshRenderData &mr,
+                                 MeshBatchCache &cache,
                                  void *buf,
                                  void *tls_data)
 {
@@ -91,28 +91,28 @@ static void extract_weights_init(const MeshRenderData *mr,
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr->loop_len + mr->loop_loose_len);
+  GPU_vertbuf_data_alloc(vbo, mr.loop_len + mr.loop_loose_len);
 
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(tls_data);
   data->vbo_data = (float *)GPU_vertbuf_get_data(vbo);
-  data->wstate = &cache->weight_state;
+  data->wstate = &cache.weight_state;
 
   if (data->wstate->defgroup_active == -1) {
     /* Nothing to show. */
     data->dvert = nullptr;
     data->cd_ofs = -1;
   }
-  else if (mr->extract_type == MR_EXTRACT_BMESH) {
+  else if (mr.extract_type == MR_EXTRACT_BMESH) {
     data->dvert = nullptr;
-    data->cd_ofs = CustomData_get_offset(&mr->bm->vdata, CD_MDEFORMVERT);
+    data->cd_ofs = CustomData_get_offset(&mr.bm->vdata, CD_MDEFORMVERT);
   }
   else {
-    data->dvert = mr->me->deform_verts().data();
+    data->dvert = mr.me->deform_verts().data();
     data->cd_ofs = -1;
   }
 }
 
-static void extract_weights_iter_face_bm(const MeshRenderData * /*mr*/,
+static void extract_weights_iter_face_bm(const MeshRenderData & /*mr*/,
                                          const BMFace *f,
                                          const int /*f_index*/,
                                          void *_data)
@@ -133,13 +133,13 @@ static void extract_weights_iter_face_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_weights_iter_face_mesh(const MeshRenderData *mr,
+static void extract_weights_iter_face_mesh(const MeshRenderData &mr,
                                            const int face_index,
                                            void *_data)
 {
   MeshExtract_Weight_Data *data = static_cast<MeshExtract_Weight_Data *>(_data);
-  for (const int ml_index : mr->faces[face_index]) {
-    const int vert = mr->corner_verts[ml_index];
+  for (const int ml_index : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[ml_index];
     if (data->dvert != nullptr) {
       const MDeformVert *dvert = &data->dvert[vert];
       data->vbo_data[ml_index] = evaluate_vertex_weight(dvert, data->wstate);
@@ -151,25 +151,25 @@ static void extract_weights_iter_face_mesh(const MeshRenderData *mr,
   }
 }
 
-static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                        const MeshRenderData *mr,
-                                        MeshBatchCache *cache,
+static void extract_weights_init_subdiv(const DRWSubdivCache &subdiv_cache,
+                                        const MeshRenderData &mr,
+                                        MeshBatchCache &cache,
                                         void *buffer,
                                         void *_data)
 {
-  Mesh *coarse_mesh = subdiv_cache->mesh;
+  Mesh *coarse_mesh = subdiv_cache.mesh;
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
 
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
-  GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache->num_subdiv_loops);
+  GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache.num_subdiv_loops);
 
   GPUVertBuf *coarse_weights = GPU_vertbuf_calloc();
   extract_weights_init(mr, cache, coarse_weights, _data);
 
-  if (mr->extract_type != MR_EXTRACT_BMESH) {
+  if (mr.extract_type != MR_EXTRACT_BMESH) {
     const OffsetIndices coarse_faces = coarse_mesh->faces();
     for (const int i : coarse_faces.index_range()) {
       extract_weights_iter_face_mesh(mr, i, _data);
@@ -179,7 +179,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
     BMIter f_iter;
     BMFace *efa;
     int face_index = 0;
-    BM_ITER_MESH_INDEX (efa, &f_iter, mr->bm, BM_FACES_OF_MESH, face_index) {
+    BM_ITER_MESH_INDEX (efa, &f_iter, mr.bm, BM_FACES_OF_MESH, face_index) {
       extract_weights_iter_face_bm(mr, efa, face_index, _data);
     }
   }
