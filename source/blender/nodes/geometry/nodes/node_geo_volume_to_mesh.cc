@@ -154,7 +154,7 @@ static Mesh *create_mesh_from_volume_grids(Span<openvdb::GridBase::ConstPtr> gri
 
 static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParams &params)
 {
-  const Volume *volume = geometry_set.get_volume_for_read();
+  const Volume *volume = geometry_set.get_volume();
   if (volume == nullptr) {
     return nullptr;
   }

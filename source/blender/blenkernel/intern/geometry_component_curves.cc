@@ -80,7 +80,7 @@ Curves *CurveComponent::release()
   return curves;
 }
 
-const Curves *CurveComponent::get_for_read() const
+const Curves *CurveComponent::get() const
 {
   return curves_;
 }

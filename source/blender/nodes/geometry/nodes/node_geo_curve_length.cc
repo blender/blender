@@ -22,7 +22,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const Curves &curves_id = *curve_set.get_curves_for_read();
+  const Curves &curves_id = *curve_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   const VArray<bool> cyclic = curves.cyclic();
 

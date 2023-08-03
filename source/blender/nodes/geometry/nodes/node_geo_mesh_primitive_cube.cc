@@ -113,7 +113,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z, uv_map_id.get());
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_cube_cc

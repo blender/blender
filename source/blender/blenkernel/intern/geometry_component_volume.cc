@@ -63,7 +63,7 @@ Volume *VolumeComponent::release()
   return volume;
 }
 
-const Volume *VolumeComponent::get_for_read() const
+const Volume *VolumeComponent::get() const
 {
   return volume_;
 }

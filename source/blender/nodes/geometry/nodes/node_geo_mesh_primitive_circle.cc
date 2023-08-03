@@ -195,7 +195,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_circle_mesh(radius, verts_num, fill);
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_circle_cc

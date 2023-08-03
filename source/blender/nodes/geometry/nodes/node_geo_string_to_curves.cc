@@ -303,7 +303,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       layout.pivot_points.add_new(layout.char_codes[i], pivot_point);
     }
 
-    GeometrySet geometry_set = GeometrySet::create_with_curves(curves_id);
+    GeometrySet geometry_set = GeometrySet::from_curves(curves_id);
     handles.add_new(layout.char_codes[i], instances.add_reference(std::move(geometry_set)));
   }
   return handles;
@@ -380,7 +380,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   add_instances_from_handles(*instances, char_handles, *layout);
   create_attributes(params, *layout, *instances);
 
-  params.set_output("Curve Instances", GeometrySet::create_with_instances(instances.release()));
+  params.set_output("Curve Instances", GeometrySet::from_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_string_to_curves_cc

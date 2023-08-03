@@ -135,7 +135,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set(params.extract_input<GeometrySet>("Mesh"));
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
-      Volume *volume = create_volume_from_mesh(*geometry_set.get_mesh_for_read(), params);
+      Volume *volume = create_volume_from_mesh(*geometry_set.get_mesh(), params);
       geometry_set.replace_volume(volume);
       geometry_set.keep_only_during_modify({GeometryComponent::Type::Volume});
     }

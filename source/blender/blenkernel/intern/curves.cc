@@ -271,8 +271,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 
   /* Evaluate modifiers. */
   Curves *curves = static_cast<Curves *>(object->data);
-  GeometrySet geometry_set = GeometrySet::create_with_curves(curves,
-                                                             GeometryOwnershipType::ReadOnly);
+  GeometrySet geometry_set = GeometrySet::from_curves(curves, GeometryOwnershipType::ReadOnly);
   if (object->mode == OB_MODE_SCULPT_CURVES) {
     /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
      * on evaluated curves. */
@@ -284,7 +283,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
-  Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves_for_read());
+  Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves());
   if (curves_eval == nullptr) {
     curves_eval = curves_new_nomain(0, 0);
     BKE_object_eval_assign_data(object, &curves_eval->id, true);

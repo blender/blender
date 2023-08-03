@@ -193,8 +193,7 @@ static void rename_attributes(const Span<GeometrySet *> geometries,
         continue;
       }
       /* Avoid write access on the geometry when unnecessary to avoid copying data-blocks. */
-      const AttributeAccessor attributes_read_only =
-          *geometry->get_component_for_read(type)->attributes();
+      const AttributeAccessor attributes_read_only = *geometry->get_component(type)->attributes();
       if (std::none_of(attribute_map.keys().begin(),
                        attribute_map.keys().end(),
                        [&](const StringRef name) { return attributes_read_only.contains(name); }))

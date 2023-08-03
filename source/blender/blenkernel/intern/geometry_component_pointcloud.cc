@@ -65,7 +65,7 @@ PointCloud *PointCloudComponent::release()
   return pointcloud;
 }
 
-const PointCloud *PointCloudComponent::get_for_read() const
+const PointCloud *PointCloudComponent::get() const
 {
   return pointcloud_;
 }

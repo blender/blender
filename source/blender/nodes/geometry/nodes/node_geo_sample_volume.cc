@@ -335,8 +335,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const VolumeComponent *component = geometry_set.get_component_for_read<VolumeComponent>();
-  const Volume *volume = component->get_for_read();
+  const VolumeComponent *component = geometry_set.get_component<VolumeComponent>();
+  const Volume *volume = component->get();
   BKE_volume_load(volume, DEG_get_bmain(params.depsgraph()));
   const VolumeGrid *volume_grid = BKE_volume_grid_find_for_read(volume, grid_name.c_str());
   if (volume_grid == nullptr) {

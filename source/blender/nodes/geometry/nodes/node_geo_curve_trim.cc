@@ -121,7 +121,7 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   if (!geometry_set.has_curves()) {
     return;
   }
-  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+  const Curves &src_curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
   if (src_curves.curves_num() == 0) {
     return;

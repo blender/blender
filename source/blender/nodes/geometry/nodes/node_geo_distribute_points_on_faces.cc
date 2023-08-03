@@ -495,7 +495,7 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
     return;
   }
 
-  const Mesh &mesh = *geometry_set.get_mesh_for_read();
+  const Mesh &mesh = *geometry_set.get_mesh();
 
   Vector<float3> positions;
   Vector<float3> bary_coords;

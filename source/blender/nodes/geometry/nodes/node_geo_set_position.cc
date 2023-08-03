@@ -114,7 +114,7 @@ static void set_position_in_component(GeometrySet &geometry,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  const GeometryComponent &component = *geometry.get_component_for_read(component_type);
+  const GeometryComponent &component = *geometry.get_component(component_type);
   const eAttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;

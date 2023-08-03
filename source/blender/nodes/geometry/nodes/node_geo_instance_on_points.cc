@@ -91,7 +91,7 @@ static void add_instances_from_component(
 
   const VArraySpan positions = *src_attributes.lookup<float3>("position");
 
-  const bke::Instances *src_instances = instance.get_instances_for_read();
+  const bke::Instances *src_instances = instance.get_instances();
 
   /* Maps handles from the source instances to handles on the new instance. */
   Array<int> handle_mapping;
@@ -214,7 +214,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     for (const GeometryComponent::Type type : types) {
       if (geometry_set.has(type)) {
         add_instances_from_component(*dst_instances,
-                                     *geometry_set.get_component_for_read(type),
+                                     *geometry_set.get_component(type),
                                      instance,
                                      params,
                                      attributes_to_propagate);

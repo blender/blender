@@ -3268,7 +3268,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           newob = ob;
         }
 
-        const Curves *curves_eval = geometry.get_curves_for_read();
+        const Curves *curves_eval = geometry.get_curves();
         Curves *new_curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, newob->id.name + 2));
 
         newob->data = new_curves;
@@ -3567,12 +3567,12 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       newob->data = new_mesh;
       newob->type = OB_MESH;
 
-      if (const Mesh *mesh_eval = geometry.get_mesh_for_read()) {
+      if (const Mesh *mesh_eval = geometry.get_mesh()) {
         BKE_mesh_nomain_to_mesh(BKE_mesh_copy_for_eval(mesh_eval), new_mesh, newob);
         BKE_object_material_from_eval_data(bmain, newob, &mesh_eval->id);
         new_mesh->attributes_for_write().remove_anonymous();
       }
-      else if (const Curves *curves_eval = geometry.get_curves_for_read()) {
+      else if (const Curves *curves_eval = geometry.get_curves()) {
         bke::AnonymousAttributePropagationInfo propagation_info;
         propagation_info.propagate_all = false;
         Mesh *mesh = bke::curve_to_wire_mesh(curves_eval->geometry.wrap(), propagation_info);

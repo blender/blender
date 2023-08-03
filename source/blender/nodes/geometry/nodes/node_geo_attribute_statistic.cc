@@ -190,7 +190,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bNode &node = params.node();
   const eCustomDataType data_type = eCustomDataType(node.custom1);
   const eAttrDomain domain = eAttrDomain(node.custom2);
-  Vector<const GeometryComponent *> components = geometry_set.get_components_for_read();
+  Vector<const GeometryComponent *> components = geometry_set.get_components();
 
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
 

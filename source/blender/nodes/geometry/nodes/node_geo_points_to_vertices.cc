@@ -28,7 +28,7 @@ static void geometry_set_points_to_vertices(
     Field<bool> &selection_field,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const PointCloud *points = geometry_set.get_pointcloud_for_read();
+  const PointCloud *points = geometry_set.get_pointcloud();
   if (points == nullptr) {
     geometry_set.remove_geometry_during_modify();
     return;

@@ -29,19 +29,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet instances;
 
   if (geometry_set.has<MeshComponent>()) {
-    meshes.add(*geometry_set.get_component_for_read<MeshComponent>());
+    meshes.add(*geometry_set.get_component<MeshComponent>());
   }
   if (geometry_set.has<CurveComponent>()) {
-    curves.add(*geometry_set.get_component_for_read<CurveComponent>());
+    curves.add(*geometry_set.get_component<CurveComponent>());
   }
   if (geometry_set.has<PointCloudComponent>()) {
-    point_clouds.add(*geometry_set.get_component_for_read<PointCloudComponent>());
+    point_clouds.add(*geometry_set.get_component<PointCloudComponent>());
   }
   if (geometry_set.has<VolumeComponent>()) {
-    volumes.add(*geometry_set.get_component_for_read<VolumeComponent>());
+    volumes.add(*geometry_set.get_component<VolumeComponent>());
   }
   if (geometry_set.has<InstancesComponent>()) {
-    instances.add(*geometry_set.get_component_for_read<InstancesComponent>());
+    instances.add(*geometry_set.get_component<InstancesComponent>());
   }
 
   params.set_output("Mesh", meshes);

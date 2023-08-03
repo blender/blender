@@ -58,7 +58,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       params.extract_input<float3>("Middle"),
       params.extract_input<float3>("End"),
       std::max(params.extract_input<int>("Resolution"), 3));
-  params.set_output("Curve", GeometrySet::create_with_curves(curves));
+  params.set_output("Curve", GeometrySet::from_curves(curves));
 }
 
 }  // namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc

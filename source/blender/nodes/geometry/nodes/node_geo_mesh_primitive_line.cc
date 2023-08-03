@@ -165,7 +165,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     mesh = create_line_mesh(start, delta, count);
   }
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_line_cc

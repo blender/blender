@@ -24,7 +24,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    if (const Mesh *mesh = geometry_set.get_mesh()) {
       const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_EDGE};
       fn::FieldEvaluator selection_evaluator{field_context, mesh->totedge};
       selection_evaluator.set_selection(selection_field);

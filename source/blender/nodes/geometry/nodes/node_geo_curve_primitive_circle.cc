@@ -203,7 +203,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   if (curves) {
-    params.set_output("Curve", GeometrySet::create_with_curves(curves));
+    params.set_output("Curve", GeometrySet::from_curves(curves));
   }
   else {
     params.set_default_remaining_outputs();

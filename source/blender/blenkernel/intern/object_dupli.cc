@@ -893,21 +893,21 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 {
   int component_index = 0;
   if (ctx->object->type != OB_MESH || geometry_set_is_instance) {
-    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+    if (const Mesh *mesh = geometry_set.get_mesh()) {
       make_dupli(ctx, ctx->object, &mesh->id, parent_transform, component_index++);
     }
   }
   if (ctx->object->type != OB_VOLUME || geometry_set_is_instance) {
-    if (const Volume *volume = geometry_set.get_volume_for_read()) {
+    if (const Volume *volume = geometry_set.get_volume()) {
       make_dupli(ctx, ctx->object, &volume->id, parent_transform, component_index++);
     }
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
     if (const blender::bke::CurveComponent *component =
-            geometry_set.get_component_for_read<blender::bke::CurveComponent>())
+            geometry_set.get_component<blender::bke::CurveComponent>())
     {
       if (use_new_curves_type) {
-        if (const Curves *curves = component->get_for_read()) {
+        if (const Curves *curves = component->get()) {
           make_dupli(ctx, ctx->object, &curves->id, parent_transform, component_index++);
         }
       }
@@ -919,13 +919,13 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
     }
   }
   if (ctx->object->type != OB_POINTCLOUD || geometry_set_is_instance) {
-    if (const PointCloud *pointcloud = geometry_set.get_pointcloud_for_read()) {
+    if (const PointCloud *pointcloud = geometry_set.get_pointcloud()) {
       make_dupli(ctx, ctx->object, &pointcloud->id, parent_transform, component_index++);
     }
   }
   const bool creates_duplis_for_components = component_index >= 1;
 
-  const Instances *instances = geometry_set.get_instances_for_read();
+  const Instances *instances = geometry_set.get_instances();
   if (instances == nullptr) {
     return;
   }
@@ -1838,7 +1838,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
     }
 
     const InstancesComponent *component =
-        dupli->instance_data[i]->get_component_for_read<InstancesComponent>();
+        dupli->instance_data[i]->get_component<InstancesComponent>();
 
     if (component == nullptr) {
       continue;

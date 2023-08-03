@@ -213,7 +213,7 @@ static bool component_is_available(const GeometrySet &geometry,
   if (!geometry.has(type)) {
     return false;
   }
-  const GeometryComponent &component = *geometry.get_component_for_read(type);
+  const GeometryComponent &component = *geometry.get_component(type);
   return component.attribute_domain_size(domain) != 0;
 }
 
@@ -229,7 +229,7 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
       GeometryComponent::Type::Instance};
   for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
-      return geometry.get_component_for_read(src_type);
+      return geometry.get_component(src_type);
     }
   }
 
@@ -269,7 +269,7 @@ class SampleNearestFunction : public mf::MultiFunction {
     switch (src_component_->type()) {
       case GeometryComponent::Type::Mesh: {
         const MeshComponent &component = *static_cast<const MeshComponent *>(src_component_);
-        const Mesh &mesh = *component.get_for_read();
+        const Mesh &mesh = *component.get();
         switch (domain_) {
           case ATTR_DOMAIN_POINT:
             get_closest_mesh_points(mesh, positions, mask, indices, {}, {});
@@ -291,7 +291,7 @@ class SampleNearestFunction : public mf::MultiFunction {
       case GeometryComponent::Type::PointCloud: {
         const PointCloudComponent &component = *static_cast<const PointCloudComponent *>(
             src_component_);
-        const PointCloud &points = *component.get_for_read();
+        const PointCloud &points = *component.get();
         get_closest_pointcloud_points(points, positions, mask, indices, {});
         break;
       }

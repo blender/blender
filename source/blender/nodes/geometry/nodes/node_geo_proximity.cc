@@ -162,12 +162,12 @@ class ProximityFunction : public mf::MultiFunction {
     bool success = false;
     if (target_.has_mesh()) {
       success |= calculate_mesh_proximity(
-          src_positions, mask, *target_.get_mesh_for_read(), type_, distances, positions);
+          src_positions, mask, *target_.get_mesh(), type_, distances, positions);
     }
 
     if (target_.has_pointcloud() && type_ == GEO_NODE_PROX_TARGET_POINTS) {
       success |= calculate_pointcloud_proximity(
-          src_positions, mask, *target_.get_pointcloud_for_read(), distances, positions);
+          src_positions, mask, *target_.get_pointcloud(), distances, positions);
     }
 
     if (!success) {

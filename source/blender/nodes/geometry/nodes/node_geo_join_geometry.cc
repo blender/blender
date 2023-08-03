@@ -108,12 +108,12 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
 
   int tot_instances = 0;
   for (const InstancesComponent *src_component : src_components) {
-    tot_instances += src_component->get_for_read()->instances_num();
+    tot_instances += src_component->get()->instances_num();
   }
   dst_instances->reserve(tot_instances);
 
   for (const InstancesComponent *src_component : src_components) {
-    const bke::Instances &src_instances = *src_component->get_for_read();
+    const bke::Instances &src_instances = *src_component->get();
 
     Span<bke::InstanceReference> src_references = src_instances.references();
     Array<int> handle_map(src_references.size());
@@ -151,7 +151,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets,
 {
   Vector<const Component *> components;
   for (const GeometrySet &geometry_set : src_geometry_sets) {
-    const Component *component = geometry_set.get_component_for_read<Component>();
+    const Component *component = geometry_set.get_component<Component>();
     if (component != nullptr && !component->is_empty()) {
       components.append(component);
     }
@@ -182,7 +182,7 @@ static void join_component_type(Span<GeometrySet> src_geometry_sets,
     options.realize_instance_attributes = false;
     options.propagation_info = propagation_info;
     GeometrySet joined_components = geometry::realize_instances(
-        GeometrySet::create_with_instances(instances.release()), options);
+        GeometrySet::from_instances(instances.release()), options);
     result.add(joined_components.get_component_for_write<Component>());
   }
 }

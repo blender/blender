@@ -152,7 +152,7 @@ static bool component_is_available(const GeometrySet &geometry,
   if (!geometry.has(type)) {
     return false;
   }
-  const GeometryComponent &component = *geometry.get_component_for_read(type);
+  const GeometryComponent &component = *geometry.get_component(type);
   return component.attribute_domain_size(domain) != 0;
 }
 
@@ -168,7 +168,7 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
       GeometryComponent::Type::Instance};
   for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
-      return geometry.get_component_for_read(src_type);
+      return geometry.get_component(src_type);
     }
   }
 

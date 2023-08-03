@@ -677,7 +677,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_mesh_tag_positions_changed(mesh);
   }
 
-  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
+  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
 
   BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

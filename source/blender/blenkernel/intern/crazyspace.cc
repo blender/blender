@@ -626,7 +626,7 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
 
   /* If available, use deformation information generated during evaluation. */
   const GeometryComponentEditData *edit_component_eval =
-      geometry_eval->get_component_for_read<GeometryComponentEditData>();
+      geometry_eval->get_component<GeometryComponentEditData>();
   bool uses_extra_positions = false;
   if (edit_component_eval != nullptr) {
     const CurvesEditHints *edit_hints = edit_component_eval->curves_edit_hints_.get();
@@ -645,10 +645,9 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
 
   /* Use the positions of the evaluated curves directly, if the number of points matches. */
   if (!uses_extra_positions) {
-    const CurveComponent *curves_component_eval =
-        geometry_eval->get_component_for_read<CurveComponent>();
+    const CurveComponent *curves_component_eval = geometry_eval->get_component<CurveComponent>();
     if (curves_component_eval != nullptr) {
-      const Curves *curves_id_eval = curves_component_eval->get_for_read();
+      const Curves *curves_id_eval = curves_component_eval->get();
       if (curves_id_eval != nullptr) {
         const CurvesGeometry &curves_eval = curves_id_eval->geometry.wrap();
         if (curves_eval.points_num() == points_num) {
