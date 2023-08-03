@@ -561,4 +561,36 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
   }
+
+  if (!DNA_struct_find(fd->filesdna, "RegionAssetShelf")) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_VIEW3D) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+
+          if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF,
+                  "asset shelf for view3d (versioning)",
+                  RGN_TYPE_TOOL_HEADER))
+          {
+            new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
+          }
+          if (ARegion *new_shelf_header = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF_HEADER,
+                  "asset shelf header for view3d (versioning)",
+                  RGN_TYPE_ASSET_SHELF))
+          {
+            new_shelf_header->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+          }
+        }
+      }
+    }
+  }
 }
