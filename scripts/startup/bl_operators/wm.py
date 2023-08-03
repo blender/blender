@@ -3319,7 +3319,7 @@ class WM_MT_region_toggle_pie(Menu):
         # no need to include both in this list.
         'HEADER': "show_region_header",
         'FOOTER': "show_region_footer",
-        'ASSET_SHELF': "show_regions_asset_shelf",
+        'ASSET_SHELF': "show_region_asset_shelf",
         'CHANNELS': "show_region_channels",
     }
     # Map the `region.alignment` to the axis-aligned pie position.
