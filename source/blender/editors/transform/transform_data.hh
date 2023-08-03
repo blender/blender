@@ -142,7 +142,7 @@ struct TransData {
 enum {
   TD_SELECTED = 1 << 0,
   TD_USEQUAT = 1 << 1,
-  TD_NOTCONNECTED = 1 << 2,
+  /* TD_NOTCONNECTED = 1 << 2, */ 
   /** Used for scaling of #MetaElem.rad */
   TD_SINGLESIZE = 1 << 3,
   /** Scale relative to individual element center. */

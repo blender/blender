@@ -1658,7 +1658,6 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
             tob->dist = dists[a];
           }
           else {
-            tob->flag |= TD_NOTCONNECTED;
             tob->dist = FLT_MAX;
           }
         }

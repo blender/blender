@@ -76,6 +76,12 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
    * Needed for #transform_around_single_fallback_ex. */
   int data_len_all_pt = 0;
 
+  const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+  const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
+  View3D *v3d = static_cast<View3D *>(t->view);
+  short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
+                                          false;
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     Curve *cu = static_cast<Curve *>(tc->obedit->data);
     BLI_assert(cu->editnurb != nullptr);
@@ -84,11 +90,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     int a;
     int count = 0, countsel = 0;
     int count_pt = 0, countsel_pt = 0;
-    const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-    const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
-    View3D *v3d = static_cast<View3D *>(t->view);
-    short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
-                                            false;
 
     /* count total of vertices, check identical as in 2nd loop for making transdata! */
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
@@ -168,10 +169,6 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
     BezTriple *bezt;
     BPoint *bp;
     int a;
-    const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-    View3D *v3d = static_cast<View3D *>(t->view);
-    short hide_handles = (v3d != nullptr) ? (v3d->overlay.handle_display == CURVE_HANDLE_NONE) :
-                                            false;
 
     bool use_around_origins_for_handles_test = ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
                                                 transform_mode_use_local_origins(t));
@@ -394,13 +391,15 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       }
       if (is_prop_edit && head != tail) {
         tail -= 1;
-        if (!has_any_selected) {
+        if (is_prop_connected && has_any_selected) {
+          bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
+          calc_distanceCurveVerts(head, tail, cyclic);
+        }
+        else {
           for (td = head; td <= tail; td++) {
-            td->flag |= TD_NOTCONNECTED;
+            td->dist = FLT_MAX;
           }
         }
-        bool cyclic = (nu->flagu & CU_NURB_CYCLIC) != 0;
-        calc_distanceCurveVerts(head, tail, cyclic);
       }
 
       /* TODO: in the case of tilt and radius we can also avoid allocating the

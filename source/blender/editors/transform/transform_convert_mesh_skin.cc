@@ -227,7 +227,6 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
             td->dist = dists[a];
           }
           else {
-            td->flag |= TD_NOTCONNECTED;
             td->dist = FLT_MAX;
           }
         }

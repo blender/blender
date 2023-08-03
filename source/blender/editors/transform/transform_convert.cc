@@ -434,7 +434,7 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic)
       next_td = head;
     }
 
-    if (next_td != nullptr && !(next_td->flag & TD_NOTCONNECTED)) {
+    if (next_td != nullptr) {
       sub_v3_v3v3(vec, next_td->center, td->center);
       mul_m3_v3(head->mtx, vec);
       dist = len_v3(vec) + td->dist;
@@ -454,7 +454,7 @@ void calc_distanceCurveVerts(TransData *head, TransData *tail, bool cyclic)
       next_td = tail;
     }
 
-    if (next_td != nullptr && !(next_td->flag & TD_NOTCONNECTED)) {
+    if (next_td != nullptr) {
       sub_v3_v3v3(vec, next_td->center, td->center);
       mul_m3_v3(head->mtx, vec);
       dist = len_v3(vec) + td->dist;
