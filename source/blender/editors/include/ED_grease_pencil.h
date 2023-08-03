@@ -63,30 +63,30 @@ namespace blender::ed::greasepencil {
 
 bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
 
-void select_layer_channel(GreasePencil *grease_pencil, bke::greasepencil::Layer *layer);
+void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer *layer);
 
 /**
  * Sets the selection flag, according to \a selection_mode to the frame at \a frame_number in the
  * \a layer if such frame exists. Returns false if no such frame exists.
  */
-bool select_frame_at(bke::greasepencil::Layer *layer,
+bool select_frame_at(bke::greasepencil::Layer &layer,
                      const int frame_number,
                      const short select_mode);
 
-void select_all_frames(bke::greasepencil::Layer *layer, const short select_mode);
+void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode);
 
 void select_frames_region(struct KeyframeEditData *ked,
-                          bke::greasepencil::Layer *layer,
+                          bke::greasepencil::Layer &layer,
                           const short tool,
                           const short select_mode);
 
 /**
  * Returns true if any frame of the \a layer is selected.
  */
-bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer);
+bool has_any_frame_selected(const bke::greasepencil::Layer &layer);
 
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
-                                                    const bke::greasepencil::Layer *layer);
+                                                    const bke::greasepencil::Layer &layer);
 
 bool active_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);

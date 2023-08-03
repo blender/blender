@@ -54,12 +54,12 @@ static void select_frame(GreasePencilFrame &frame, const short select_mode)
   }
 }
 
-bool select_frame_at(bke::greasepencil::Layer *layer,
+bool select_frame_at(bke::greasepencil::Layer &layer,
                      const int frame_number,
                      const short select_mode)
 {
 
-  GreasePencilFrame *frame = layer->frames_for_write().lookup_ptr(frame_number);
+  GreasePencilFrame *frame = layer.frames_for_write().lookup_ptr(frame_number);
   if (frame == nullptr) {
     return false;
   }
@@ -67,16 +67,16 @@ bool select_frame_at(bke::greasepencil::Layer *layer,
   return true;
 }
 
-void select_all_frames(bke::greasepencil::Layer *layer, const short select_mode)
+void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode)
 {
-  for (auto item : layer->frames_for_write().items()) {
+  for (auto item : layer.frames_for_write().items()) {
     select_frame(item.value, select_mode);
   }
 }
 
-bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer)
+bool has_any_frame_selected(const bke::greasepencil::Layer &layer)
 {
-  for (const auto &[frame_number, frame] : layer->frames().items()) {
+  for (const auto &[frame_number, frame] : layer.frames().items()) {
     if (frame.is_selected()) {
       return true;
     }
@@ -85,14 +85,11 @@ bool layer_has_any_frame_selected(const bke::greasepencil::Layer *layer)
 }
 
 void select_frames_region(KeyframeEditData *ked,
-                          bke::greasepencil::Layer *layer,
+                          bke::greasepencil::Layer &layer,
                           const short tool,
                           const short select_mode)
 {
-  if (layer == nullptr) {
-    return;
-  }
-  for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+  for (auto [frame_number, frame] : layer.frames_for_write().items()) {
     /* Construct a dummy point coordinate to do this testing with. */
     const float2 pt(float(frame_number), ked->channel_y);
 
@@ -122,11 +119,11 @@ static void append_frame_to_key_edit_data(KeyframeEditData *ked,
 }
 
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
-                                                    const bke::greasepencil::Layer *layer)
+                                                    const bke::greasepencil::Layer &layer)
 {
   BLI_assert(ked != nullptr);
 
-  for (const auto &[frame_number, frame] : layer->frames().items()) {
+  for (const auto &[frame_number, frame] : layer.frames().items()) {
     if (frame.is_selected()) {
       append_frame_to_key_edit_data(ked, frame_number, frame);
     }
