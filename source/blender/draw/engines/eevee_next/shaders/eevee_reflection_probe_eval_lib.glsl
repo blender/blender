@@ -1,8 +1,29 @@
 
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 
+int reflection_probes_find_closest(vec3 P)
+{
+  int closest_index = -1;
+  float closest_distance = FLT_MAX;
+
+  /* ReflectionProbeData doesn't contain any gab, exit at first item that is invalid. */
+  for (int index = 1; reflection_probe_buf[index].layer != -1 && index < REFLECTION_PROBES_MAX;
+       index++)
+  {
+    float dist = distance(P, reflection_probe_buf[index].pos.xyz);
+    if (dist < closest_distance) {
+      closest_distance = dist;
+      closest_index = index;
+    }
+  }
+  return closest_index;
+}
+
+#ifdef EEVEE_UTILITY_TX
 vec4 reflection_probe_eval(ClosureReflection reflection,
                            vec3 P,
                            vec3 V,
@@ -15,11 +36,11 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
   /* Pow2f to distributed across lod more evenly */
   float roughness = clamp(pow2f(reflection.roughness), 1e-4f, 0.9999f);
 
-#if defined(GPU_COMPUTE_SHADER)
+#  if defined(GPU_COMPUTE_SHADER)
   vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5;
-#else
+#  else
   vec2 frag_coord = gl_FragCoord.xy;
-#endif
+#  endif
   vec2 noise = utility_tx_fetch(utility_tx, frag_coord, UTIL_BLUE_NOISE_LAYER).gb;
   vec2 rand = fract(noise + sampling_rng_2D_get(SAMPLING_RAYTRACE_U));
 
@@ -57,24 +78,6 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
   return vec4(0.0);
 }
 
-int reflection_probes_find_closest(vec3 P)
-{
-  int closest_index = -1;
-  float closest_distance = FLT_MAX;
-
-  /* ReflectionProbeData doesn't contain any gab, exit at first item that is invalid. */
-  for (int index = 1; reflection_probe_buf[index].layer != -1 && index < REFLECTION_PROBES_MAX;
-       index++)
-  {
-    float dist = distance(P, reflection_probe_buf[index].pos.xyz);
-    if (dist < closest_distance) {
-      closest_distance = dist;
-      closest_index = index;
-    }
-  }
-  return closest_index;
-}
-
 void reflection_probes_eval(ClosureReflection reflection, vec3 P, vec3 V, inout vec3 out_specular)
 {
   int closest_reflection_probe = reflection_probes_find_closest(P);
@@ -93,3 +96,4 @@ void reflection_probes_eval(ClosureReflection reflection, vec3 P, vec3 V, inout 
 
   out_specular += light_color.rgb;
 }
+#endif

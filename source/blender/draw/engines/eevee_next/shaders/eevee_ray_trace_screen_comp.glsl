@@ -3,13 +3,13 @@
  * Use screen space tracing against depth buffer to find intersection with the scene.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 void main()
 {
@@ -32,8 +32,9 @@ void main()
     return;
   }
 
+  vec3 P = get_world_space_from_depth(uv, depth);
   Ray ray;
-  ray.origin = get_world_space_from_depth(uv, depth);
+  ray.origin = P;
   ray.direction = ray_data.xyz;
 
   vec3 radiance = vec3(0.0);
@@ -83,15 +84,16 @@ void main()
     // if (thickness > 0.0 && length(ray_data.xyz) > thickness) {
     //   ray_radiance.rgb *= color;
     // }
-    ReflectionProbeData world_probe = reflection_probe_buf[0];
-    radiance = reflection_probes_sample(ray.direction, 0.0, world_probe).rgb;
+    int closest_probe_id = reflection_probes_find_closest(P);
+    ReflectionProbeData probe = reflection_probe_buf[closest_probe_id];
+    radiance = reflection_probes_sample(ray.direction, 0.0, probe).rgb;
     hit_time = length(ray_view.direction);
   }
   else {
     /* Fallback to nearest lightprobe. */
-    // radiance = lightprobe_cubemap_eval(ray.origin, ray.direction, roughness, rand_probe);
-    ReflectionProbeData world_probe = reflection_probe_buf[0];
-    radiance = reflection_probes_sample(ray.direction, 0.0, world_probe).rgb;
+    int closest_probe_id = reflection_probes_find_closest(P);
+    ReflectionProbeData probe = reflection_probe_buf[closest_probe_id];
+    radiance = reflection_probes_sample(ray.direction, 0.0, probe).rgb;
     hit_time = 10000.0;
   }
 
