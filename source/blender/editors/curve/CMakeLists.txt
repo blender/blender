@@ -39,7 +39,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::intern::guardedalloc
-  extern_curve_fit_nd
 )
 
 
