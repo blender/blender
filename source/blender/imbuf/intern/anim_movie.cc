@@ -614,7 +614,7 @@ static int startffmpeg(anim *anim)
    * starts. */
   anim->start_offset = video_start;
 
-  anim->params = 0;
+  anim->params = nullptr;
 
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
@@ -629,7 +629,7 @@ static int startffmpeg(anim *anim)
   anim->framesize = anim->x * anim->y * 4;
 
   anim->cur_position = 0;
-  anim->cur_frame_final = 0;
+  anim->cur_frame_final = nullptr;
   anim->cur_pts = -1;
   anim->cur_key_frame_pts = -1;
   anim->cur_packet = av_packet_alloc();
@@ -807,7 +807,9 @@ static void ffmpeg_postprocess(anim *anim, AVFrame *input)
 
   /* This means the data wasn't read properly,
    * this check stops crashing */
-  if (input->data[0] == 0 && input->data[1] == 0 && input->data[2] == 0 && input->data[3] == 0) {
+  if (input->data[0] == nullptr && input->data[1] == nullptr && input->data[2] == nullptr &&
+      input->data[3] == nullptr)
+  {
     fprintf(stderr,
             "ffmpeg_fetchibuf: "
             "data not read properly...\n");
@@ -847,7 +849,7 @@ static void ffmpeg_postprocess(anim *anim, AVFrame *input)
   /* Copy the valid bytes from the aligned buffer vertically flipped into ImBuf */
   int aligned_stride = anim->pFrameRGB->linesize[0];
   const uint8_t *const src[4] = {
-      anim->pFrameRGB->data[0] + (anim->y - 1) * aligned_stride, 0, 0, 0};
+      anim->pFrameRGB->data[0] + (anim->y - 1) * aligned_stride, nullptr, nullptr, nullptr};
   /* NOTE: Negative linesize is used to copy and flip image at once with function
    * `av_image_copy_to_buffer`. This could cause issues in future and image may need to be flipped
    * explicitly. */
@@ -1038,7 +1040,7 @@ static int match_format(const char *name, AVFormatContext *pFormatCtx)
 
 static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 {
-  static const char *byte_seek_list[] = {"mpegts", 0};
+  static const char *byte_seek_list[] = {"mpegts", nullptr};
   const char **p;
 
   if (pFormatCtx->iformat->flags & AVFMT_TS_DISCONT) {

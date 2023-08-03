@@ -582,7 +582,7 @@ static int gpencil_stroke_merge_material_exec(bContext *C, wmOperator *op)
 
   /* Review materials. */
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 

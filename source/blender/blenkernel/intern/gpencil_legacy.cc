@@ -2024,7 +2024,7 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
   GHash *mat_used = BLI_ghash_int_new(__func__);
 
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return changed;
   }
 
@@ -2143,7 +2143,7 @@ bool BKE_gpencil_merge_materials(Object *ob,
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
 
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     *r_removed = 0;
     return false;
   }

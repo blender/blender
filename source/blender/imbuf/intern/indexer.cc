@@ -680,7 +680,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx, AVFrame *frame)
               ctx->frame->linesize);
   }
 
-  frame = ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame;
+  frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
 
   if (frame) {
     frame->pts = ctx->cfra++;

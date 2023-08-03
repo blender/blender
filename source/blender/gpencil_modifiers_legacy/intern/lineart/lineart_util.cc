@@ -26,7 +26,7 @@ void *lineart_list_append_pointer_pool(ListBase *h, LineartStaticMemPool *smp, v
 {
   LinkData *lip;
   if (h == nullptr) {
-    return 0;
+    return nullptr;
   }
   lip = static_cast<LinkData *>(lineart_mem_acquire(smp, sizeof(LinkData)));
   lip->data = data;
@@ -40,7 +40,7 @@ void *lineart_list_append_pointer_pool_sized(ListBase *h,
 {
   LinkData *lip;
   if (h == nullptr) {
-    return 0;
+    return nullptr;
   }
   lip = static_cast<LinkData *>(lineart_mem_acquire(smp, size));
   lip->data = data;
@@ -51,7 +51,7 @@ void *lineart_list_append_pointer_pool_thread(ListBase *h, LineartStaticMemPool 
 {
   LinkData *lip;
   if (h == nullptr) {
-    return 0;
+    return nullptr;
   }
   lip = static_cast<LinkData *>(lineart_mem_acquire_thread(smp, sizeof(LinkData)));
   lip->data = data;
@@ -65,7 +65,7 @@ void *lineart_list_append_pointer_pool_sized_thread(ListBase *h,
 {
   LinkData *lip;
   if (h == nullptr) {
-    return 0;
+    return nullptr;
   }
   lip = static_cast<LinkData *>(lineart_mem_acquire_thread(smp, size));
   lip->data = data;
@@ -76,12 +76,12 @@ void *lineart_list_append_pointer_pool_sized_thread(ListBase *h,
 void *lineart_list_pop_pointer_no_free(ListBase *h)
 {
   LinkData *lip;
-  void *rev = 0;
+  void *rev = nullptr;
   if (h == nullptr) {
-    return 0;
+    return nullptr;
   }
   lip = static_cast<LinkData *>(BLI_pophead(h));
-  rev = lip ? lip->data : 0;
+  rev = lip ? lip->data : nullptr;
   return rev;
 }
 void lineart_list_remove_pointer_item_no_free(ListBase *h, LinkData *lip)

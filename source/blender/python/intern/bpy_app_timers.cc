@@ -102,7 +102,7 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
       "p"  /* `persistent` */
       ":register",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &function, &first_interval, &persistent)) {

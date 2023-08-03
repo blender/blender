@@ -38,7 +38,7 @@ static struct {
   } attr_id;
 
   ThreadMutex mutex;
-} g_presets_3d = {{0}};
+} g_presets_3d = {{nullptr}};
 
 static struct {
   struct {
@@ -56,7 +56,7 @@ static struct {
   struct {
     uint pos, col;
   } attr_id;
-} g_presets_2d = {{0}};
+} g_presets_2d = {{nullptr}};
 
 static ListBase presets_list = {nullptr, nullptr};
 

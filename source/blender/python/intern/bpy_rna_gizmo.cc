@@ -355,7 +355,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject * /*self*/, PyObject *arg
       "O"  /* `range` */
       ":target_set_handler",
       _keywords,
-      0,
+      nullptr,
   };
 
   BPyGizmoHandlerUserData *data;
@@ -454,7 +454,7 @@ static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args,
       "O&" /* `target` */
       ":target_get_value",
       _keywords,
-      0,
+      nullptr,
   };
 
   int array_len;
@@ -525,7 +525,7 @@ static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args,
       "O"  /* `value` */
       ":target_set_value",
       _keywords,
-      0,
+      nullptr,
   };
 
   wmGizmo *gz;
@@ -607,7 +607,7 @@ static PyObject *bpy_gizmo_target_get_range(PyObject * /*self*/, PyObject *args,
       "O&" /* `target` */
       ":target_get_range",
       _keywords,
-      0,
+      nullptr,
   };
 
   wmGizmo *gz;

@@ -167,7 +167,7 @@ static PyObject *bpy_user_map(PyObject * /*self*/, PyObject *args, PyObject *kwd
       "O!" /* `value_types` */
       ":user_map",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &subset, &PySet_Type, &key_types, &PySet_Type, &val_types))
@@ -307,7 +307,7 @@ static PyObject *bpy_batch_remove(PyObject * /*self*/, PyObject *args, PyObject 
       "O" /* `ids` */
       ":batch_remove",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kwds, &_parser, &ids)) {
     return ret;
@@ -388,7 +388,7 @@ static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject
       "O&" /* `do_recursive` */
       ":orphans_purge",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,

@@ -507,7 +507,7 @@ void WM_toolsystem_refresh_active(bContext *C)
     ScrArea *area;
     ARegion *region;
     bool is_set;
-  } context_prev = {0};
+  } context_prev = {nullptr};
 
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
        wm = static_cast<wmWindowManager *>(wm->id.next))

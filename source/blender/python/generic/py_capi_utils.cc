@@ -1120,7 +1120,7 @@ bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
 {
   for (int i = 0; imports[i]; i++) {
     PyObject *name = PyUnicode_FromString(imports[i]);
-    PyObject *mod = PyImport_ImportModuleLevelObject(name, nullptr, nullptr, 0, 0);
+    PyObject *mod = PyImport_ImportModuleLevelObject(name, nullptr, nullptr, nullptr, 0);
     bool ok = false;
     if (mod) {
       PyDict_SetItem(py_dict, name, mod);

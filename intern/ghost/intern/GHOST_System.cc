@@ -30,7 +30,7 @@ GHOST_System::GHOST_System()
       m_windowManager(nullptr),
       m_eventManager(nullptr),
 #ifdef WITH_INPUT_NDOF
-      m_ndofManager(0),
+      m_ndofManager(nullptr),
 #endif
       m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),

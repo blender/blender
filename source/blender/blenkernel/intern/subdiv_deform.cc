@@ -204,7 +204,7 @@ void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
   }
 
   /* Initialize subdivision mesh creation context. */
-  SubdivDeformContext subdiv_context = {0};
+  SubdivDeformContext subdiv_context = {nullptr};
   subdiv_context.coarse_mesh = coarse_mesh;
   subdiv_context.subdiv = subdiv;
   subdiv_context.vertex_cos = vertex_cos;

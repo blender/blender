@@ -320,7 +320,7 @@ class Context : public realtime_compositor::Context {
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 
-    ImageUser image_user = {0};
+    ImageUser image_user = {nullptr};
     image_user.multi_index = BKE_scene_multiview_view_id_get(input_data_.render_data,
                                                              input_data_.view_name.c_str());
 

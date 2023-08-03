@@ -127,7 +127,7 @@ static PyObject *bpy_blend_paths(PyObject * /*self*/, PyObject *args, PyObject *
       "O&" /* `local` */
       ":blend_paths",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -189,7 +189,7 @@ static PyObject *bpy_flip_name(PyObject * /*self*/, PyObject *args, PyObject *kw
       "O&" /* `strip_digits` */
       ":flip_name",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &name_src, &name_src_len, PyC_ParseBool, &strip_digits))
@@ -233,7 +233,7 @@ static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject
       "s"  /* `path` */
       ":user_resource",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return nullptr;
@@ -276,7 +276,7 @@ static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObje
       "s"  /* `path` */
       ":system_resource",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, PyC_ParseStringEnum, &type, &subdir)) {
     return nullptr;
@@ -322,7 +322,7 @@ static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject
       "i"  /* `minor` */
       ":resource_path",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, PyC_ParseStringEnum, &type, &major, &minor))
@@ -362,7 +362,7 @@ static PyObject *bpy_driver_secure_code_test(PyObject * /*self*/, PyObject *args
       "O&" /* `verbose` */
       ":driver_secure_code_test",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,

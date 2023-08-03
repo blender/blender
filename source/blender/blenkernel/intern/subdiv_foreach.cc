@@ -1803,7 +1803,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
                                         const SubdivToMeshSettings *mesh_settings,
                                         const Mesh *coarse_mesh)
 {
-  SubdivForeachTaskContext ctx = {0};
+  SubdivForeachTaskContext ctx = {nullptr};
   ctx.coarse_mesh = coarse_mesh;
   ctx.coarse_edges = coarse_mesh->edges();
   ctx.coarse_faces = coarse_mesh->faces();

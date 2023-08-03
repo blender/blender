@@ -48,7 +48,7 @@ static PyObject *bpy_app_icons_new_triangles(PyObject * /*self*/, PyObject *args
       "S"    /* `colors` */
       ":new_triangles",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &coords_range[0], &coords_range[1], &py_coords, &py_colors))
@@ -107,7 +107,7 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject * /*self*/,
       "s" /* `filepath` */
       ":new_triangles_from_file",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return nullptr;
@@ -134,7 +134,7 @@ static PyObject *bpy_app_icons_release(PyObject * /*self*/, PyObject *args, PyOb
       "i" /* `icon_id` */
       ":release",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &icon_id)) {
     return nullptr;

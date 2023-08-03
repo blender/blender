@@ -2958,7 +2958,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         }
 
         /* Duplicate #bGPDlayers. */
-        tJoinGPencil_AdtFixData afd = {0};
+        tJoinGPencil_AdtFixData afd = {nullptr};
         afd.src_gpd = gpd_src;
         afd.tar_gpd = gpd_dst;
         afd.names_map = BLI_ghash_str_new("joined_gp_layers_map");
@@ -3095,7 +3095,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator * /*op*/)
   /* first lock and hide all colors */
   Material *ma = nullptr;
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3278,7 +3278,7 @@ static int gpencil_material_hide_exec(bContext *C, wmOperator *op)
 
   Material *ma = nullptr;
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3341,7 +3341,7 @@ static int gpencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
   Material *ma = nullptr;
   short *totcol = BKE_object_material_len_p(ob);
 
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3394,7 +3394,7 @@ static int gpencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/)
   Material *ma = nullptr;
   short *totcol = BKE_object_material_len_p(ob);
 
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3447,7 +3447,7 @@ static int gpencil_material_unlock_all_exec(bContext *C, wmOperator * /*op*/)
   Material *ma = nullptr;
   short *totcol = BKE_object_material_len_p(ob);
 
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 

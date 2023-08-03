@@ -1340,7 +1340,7 @@ void lineart_main_transform_and_add_shadow(LineartData *ld,
   /* Set the minimum amount of edges a thread has to process. */
   transform_settings.min_iter_per_thread = 8192;
 
-  LineartShadowFinalizeData data = {0};
+  LineartShadowFinalizeData data = {nullptr};
   data.ld = ld;
   data.v = (LineartVert *)veln->pointer;
   data.e = (LineartEdge *)eeln->pointer;

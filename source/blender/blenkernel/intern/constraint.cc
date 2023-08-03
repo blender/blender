@@ -2894,7 +2894,7 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
     }
     else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
       Object workob;
-      bPose pose = {{0}};
+      bPose pose = {{nullptr}};
       bPoseChannel *pchan, *tchan;
 
       /* make a copy of the bone of interest in the temp pose before evaluating action,

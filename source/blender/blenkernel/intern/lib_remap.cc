@@ -649,7 +649,7 @@ void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const
 
   libblock_remap_data(bmain, nullptr, ID_REMAP_TYPE_REMAP, mappings, remap_flags);
 
-  LibBlockRemapMultipleUserData user_data = {0};
+  LibBlockRemapMultipleUserData user_data = {nullptr};
   user_data.bmain = bmain;
   user_data.remap_flags = remap_flags;
 
@@ -811,7 +811,7 @@ void BKE_libblock_relink_multiple(Main *bmain,
 
   switch (remap_type) {
     case ID_REMAP_TYPE_REMAP: {
-      LibBlockRelinkMultipleUserData user_data = {0};
+      LibBlockRelinkMultipleUserData user_data = {nullptr};
       user_data.bmain = bmain;
       user_data.ids = ids;
 

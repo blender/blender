@@ -445,7 +445,7 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
   if (force_fallback == false) {
     int ok;
 
-    IMMDrawPixelsTexState state = {0};
+    IMMDrawPixelsTexState state = {nullptr};
     /* We want GLSL state to be fully handled by OCIO. */
     state.do_shader_unbind = false;
     immDrawPixelsTexSetupAttributes(&state);

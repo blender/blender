@@ -659,7 +659,7 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
 {
   LineartEdgeChainItem *eci, *next_eci;
-  ListBase swap = {0};
+  ListBase swap = {nullptr};
 
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;
@@ -713,8 +713,8 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
         new_ec->chain.last = ec->chain.last;
         new_ec->loop_id = loop_id;
         ec->chain.last = eci->prev;
-        ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
-        eci->prev = 0;
+        ((LineartEdgeChainItem *)ec->chain.last)->next = nullptr;
+        eci->prev = nullptr;
 
         /* End the previous one. */
         lineart_chain_append_point(ld,
@@ -929,7 +929,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
   int reverse_main, loop_id;
   uint8_t occlusion, material_mask_bits, isec_mask;
   uint32_t shadow_mask;
-  ListBase swap = {0};
+  ListBase swap = {nullptr};
 
   if (ld->conf.chaining_image_threshold < 0.0001) {
     return;
@@ -1230,7 +1230,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld)
 {
   LineartEdgeChainItem *eci, *next_eci, *prev_eci, *new_eci;
   bool is_inside, new_inside;
-  ListBase swap = {0};
+  ListBase swap = {nullptr};
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;
 
@@ -1294,7 +1294,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld)
 void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
 {
   LineartEdgeChainItem *eci, *next_eci, *prev_eci;
-  ListBase swap = {0};
+  ListBase swap = {nullptr};
 
   swap.first = ld->chains.first;
   swap.last = ld->chains.last;
@@ -1320,8 +1320,8 @@ void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
         new_ec->chain.first = eci;
         new_ec->chain.last = ec->chain.last;
         ec->chain.last = eci->prev;
-        ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
-        eci->prev = 0;
+        ((LineartEdgeChainItem *)ec->chain.last)->next = nullptr;
+        eci->prev = nullptr;
 
         /* End the previous one. */
         lineart_chain_append_point(ld,

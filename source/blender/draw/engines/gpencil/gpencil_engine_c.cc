@@ -600,7 +600,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   }
 
   if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
-    gpIterPopulateData iter = {0};
+    gpIterPopulateData iter = {nullptr};
     iter.ob = ob;
     iter.pd = pd;
     iter.tgp_ob = gpencil_object_cache_add(pd, ob);

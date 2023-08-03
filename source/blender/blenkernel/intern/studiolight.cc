@@ -1635,7 +1635,7 @@ StudioLight *BKE_studiolight_create(const char *filepath,
 
 StudioLight *BKE_studiolight_studio_edit_get()
 {
-  static StudioLight sl = {0};
+  static StudioLight sl = {nullptr};
   sl.flag = STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS;
 
   memcpy(sl.light, U.light_param, sizeof(*sl.light) * 4);

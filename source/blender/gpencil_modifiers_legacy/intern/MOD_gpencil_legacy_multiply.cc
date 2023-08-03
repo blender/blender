@@ -183,7 +183,7 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
 {
   MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
   bGPDstroke *gps;
-  ListBase duplicates = {0};
+  ListBase duplicates = {nullptr};
   for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
     if (!is_stroke_affected_by_modifier(ob,
                                         mmd->layername,

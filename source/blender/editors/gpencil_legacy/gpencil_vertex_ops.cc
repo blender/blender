@@ -831,7 +831,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 

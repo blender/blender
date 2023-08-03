@@ -185,7 +185,7 @@ static PyObject *bpyunits_to_value(PyObject * /*self*/, PyObject *args, PyObject
       "z"  /* `str_ref_unit` */
       ":to_value",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref))
@@ -274,7 +274,7 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
       "O&" /* `compatible_unit` */
       ":to_string",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,

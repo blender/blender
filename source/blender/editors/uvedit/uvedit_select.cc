@@ -797,7 +797,7 @@ static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scen
 
 UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 {
-  UvNearestHit hit = {0};
+  UvNearestHit hit = {nullptr};
   hit.dist_sq = square_f(U.pixelsize * dist_px);
   hit.scale[0] = UI_view2d_scale_get_x(v2d);
   hit.scale[1] = UI_view2d_scale_get_y(v2d);
@@ -806,7 +806,7 @@ UvNearestHit uv_nearest_hit_init_dist_px(const View2D *v2d, const float dist_px)
 
 UvNearestHit uv_nearest_hit_init_max(const View2D *v2d)
 {
-  UvNearestHit hit = {0};
+  UvNearestHit hit = {nullptr};
   hit.dist_sq = FLT_MAX;
   hit.scale[0] = UI_view2d_scale_get_x(v2d);
   hit.scale[1] = UI_view2d_scale_get_y(v2d);

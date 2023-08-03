@@ -728,7 +728,7 @@ static bool region_poll(const bContext *C,
     return true;
   }
 
-  RegionPollParams params = {0};
+  RegionPollParams params = {nullptr};
   params.screen = screen;
   params.area = area;
   params.region = region;

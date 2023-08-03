@@ -1090,7 +1090,7 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 
 PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
 {
-  PTCacheID result = {0};
+  PTCacheID result = {nullptr};
 
   ListBase pidlist;
   BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
@@ -3679,7 +3679,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
   PointCache *cache = pid->cache;
   PTCacheExtra *extra = nullptr;
   int totframes = 0;
-  char mem_info[sizeof(((PointCache *)0)->info) / sizeof(*(((PointCache *)0)->info))];
+  char mem_info[sizeof(((PointCache *)nullptr)->info) / sizeof(*(((PointCache *)nullptr)->info))];
 
   cache->flag &= ~PTCACHE_FLAG_INFO_DIRTY;
 
