@@ -548,7 +548,7 @@ class EeveeRaytracingDenoisePanel(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_eevee_next_raytracing_reflection(EeveeRaytracingOptionsPanel):
-    #NOTE: Label is drawn by draw_header
+    # NOTE: Label is drawn by draw_header
     bl_label = ""
     bl_parent_id = "RENDER_PT_eevee_next_raytracing"
 

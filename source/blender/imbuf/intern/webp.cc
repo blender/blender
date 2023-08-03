@@ -12,9 +12,9 @@
 #  include <unistd.h>
 #endif
 
-#include <fcntl.h>
 #include <cstdio>
 #include <cstdlib>
+#include <fcntl.h>
 #include <webp/decode.h>
 #include <webp/encode.h>
 
