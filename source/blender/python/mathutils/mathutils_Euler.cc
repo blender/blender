@@ -719,10 +719,10 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void * /*closure*
  * \{ */
 
 static PyGetSetDef Euler_getseters[] = {
-    {"x", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)0},
-    {"y", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)1},
-    {"z", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, (void *)2},
-    {"order", (getter)Euler_order_get, (setter)Euler_order_set, Euler_order_doc, (void *)nullptr},
+    {"x", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(0)},
+    {"y", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(1)},
+    {"z", (getter)Euler_axis_get, (setter)Euler_axis_set, Euler_axis_doc, POINTER_FROM_INT(2)},
+    {"order", (getter)Euler_order_get, (setter)Euler_order_set, Euler_order_doc, nullptr},
 
     {"is_wrapped",
      (getter)BaseMathObject_is_wrapped_get,
