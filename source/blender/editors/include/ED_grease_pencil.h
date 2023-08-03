@@ -61,6 +61,8 @@ eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
 
 namespace blender::ed::greasepencil {
 
+bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
+
 void select_layer_channel(GreasePencil *grease_pencil, bke::greasepencil::Layer *layer);
 
 /**

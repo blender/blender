@@ -1481,30 +1481,31 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
   return true;
 }
 
-void GreasePencil::remove_frame_at(blender::bke::greasepencil::Layer &layer,
+bool GreasePencil::remove_frame_at(blender::bke::greasepencil::Layer &layer,
                                    const int frame_number)
 {
   using namespace blender::bke::greasepencil;
   if (!layer.frames().contains(frame_number)) {
-    return;
+    return false;
   }
   const GreasePencilFrame &frame_to_remove = layer.frames().lookup(frame_number);
   const int drawing_index_to_remove = frame_to_remove.drawing_index;
   if (!layer.remove_frame(frame_number)) {
     /* If removing the frame was not successful, return early. */
-    return;
+    return false;
   }
   GreasePencilDrawingBase *drawing_base = this->drawings(drawing_index_to_remove);
   if (drawing_base->type != GP_DRAWING) {
     /* If the drawing is referenced from another object, we don't track it's users because we
      * cannot delete drawings from another object. Return early. */
-    return;
+    return false;
   }
   Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
   drawing.remove_user();
   if (!drawing.has_users()) {
     this->remove_drawing(drawing_index_to_remove);
   }
+  return true;
 }
 
 void GreasePencil::remove_drawing(const int index_to_remove)

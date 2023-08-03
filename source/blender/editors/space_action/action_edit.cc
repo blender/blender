@@ -46,6 +46,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 #include "ED_markers.h"
@@ -1086,7 +1087,9 @@ static bool delete_action_keys(bAnimContext *ac)
       changed = ED_gpencil_layer_frames_delete((bGPDlayer *)ale->data);
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      /* GPv3: To be implemented. */
+      changed = blender::ed::greasepencil::remove_all_selected_frames(
+          *reinterpret_cast<GreasePencil *>(ale->id),
+          static_cast<GreasePencilLayer *>(ale->data)->wrap());
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       changed = ED_masklayer_frames_delete((MaskLayer *)ale->data);
