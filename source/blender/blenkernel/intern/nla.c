@@ -1361,7 +1361,7 @@ NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitio
 {
   NlaStrip *next = strip->next;
   while (next != NULL) {
-    if (skip_transitions && (next->type & NLASTRIP_TYPE_TRANSITION)) {
+    if (skip_transitions && (next->type == NLASTRIP_TYPE_TRANSITION)) {
       next = next->next;
     }
     else {
@@ -1375,7 +1375,7 @@ NlaStrip *BKE_nlastrip_prev_in_track(struct NlaStrip *strip, bool skip_transitio
 {
   NlaStrip *prev = strip->prev;
   while (prev != NULL) {
-    if (skip_transitions && (prev->type & NLASTRIP_TYPE_TRANSITION)) {
+    if (skip_transitions && (prev->type == NLASTRIP_TYPE_TRANSITION)) {
       prev = prev->prev;
     }
     else {
@@ -1959,10 +1959,10 @@ static void BKE_nlastrip_validate_autoblends(NlaTrack *nlt, NlaStrip *nls)
  * Strip will be removed / freed if it doesn't fit (invalid).
  * Return value indicates if passed strip is valid/fixed or invalid/removed.
  */
-static bool nlastrip_validate_transition_start_end(NlaStrip *strip)
+static bool nlastrip_validate_transition_start_end(ListBase *strips, NlaStrip *strip)
 {
 
-  if (!(strip->type & NLASTRIP_TYPE_TRANSITION)) {
+  if (!(strip->type == NLASTRIP_TYPE_TRANSITION)) {
     return true;
   }
   if (strip->prev) {
@@ -1972,7 +1972,7 @@ static bool nlastrip_validate_transition_start_end(NlaStrip *strip)
     strip->end = strip->next->start;
   }
   if (strip->start >= strip->end || strip->prev == NULL || strip->next == NULL) {
-    BKE_nlastrip_free(strip, true);
+    BKE_nlastrip_remove_and_free(strips, strip, true);
     return false;
   }
   return true;
@@ -1992,7 +1992,7 @@ void BKE_nla_validate_state(AnimData *adt)
   for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
     LISTBASE_FOREACH_MUTABLE (NlaStrip *, strip, &nlt->strips) {
 
-      if (!nlastrip_validate_transition_start_end(strip)) {
+      if (!nlastrip_validate_transition_start_end(&nlt->strips, strip)) {
         printf(
             "While moving NLA strips, a transition strip could no longer be applied to the new "
             "positions and was removed.\n");
