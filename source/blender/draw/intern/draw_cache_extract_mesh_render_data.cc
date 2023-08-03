@@ -11,9 +11,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
-#include "BLI_math.h"
-#include "BLI_task.h"
+#include "BLI_enumerable_thread_specific.hh"
+#include "BLI_task.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
@@ -166,87 +165,86 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
  * Contains face indices sorted based on their material.
  * \{ */
 
-static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
-                                                     const int iter,
-                                                     const TaskParallelTLS *__restrict tls)
-{
-  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
-  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
+namespace blender::draw {
 
-  BMesh *bm = mr->bm;
-  BMFace *efa = BM_face_at_index(bm, iter);
-  if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-    int mat = clamp_i(efa->mat_nr, 0, mr->mat_len - 1);
-    mat_tri_len[mat] += efa->len - 2;
-  }
+static void accumululate_material_counts_bm(
+    const BMesh &bm, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
+{
+  threading::parallel_for(IndexRange(bm.totface), 1024, [&](const IndexRange range) {
+    Array<int> &tri_counts = all_tri_counts.local();
+    const short last_index = tri_counts.size() - 1;
+    for (const int i : range) {
+      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), i);
+      if (!BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
+        const short mat = std::clamp<short>(face.mat_nr, 0, last_index);
+        tri_counts[mat] += face.len - 2;
+      }
+    }
+  });
 }
 
-static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata,
-                                                       const int iter,
-                                                       const TaskParallelTLS *__restrict tls)
+static void accumululate_material_counts_mesh(
+    const MeshRenderData &mr, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
 {
-  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
-  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
-
-  if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
-    const int mat = mr->material_indices ?
-                        clamp_i(mr->material_indices[iter], 0, mr->mat_len - 1) :
-                        0;
-    mat_tri_len[mat] += mr->faces[iter].size() - 2;
+  if (!mr.material_indices) {
+    all_tri_counts.local().first() = poly_to_tri_count(mr.face_len, mr.loop_len);
+    return;
   }
-}
 
-static void mesh_render_data_mat_tri_len_reduce_fn(const void *__restrict userdata,
-                                                   void *__restrict chunk_join,
-                                                   void *__restrict chunk)
-{
-  const MeshRenderData *mr = static_cast<const MeshRenderData *>(userdata);
-  int *dst_mat_len = static_cast<int *>(chunk_join);
-  int *src_mat_len = static_cast<int *>(chunk);
-  for (int i = 0; i < mr->mat_len; i++) {
-    dst_mat_len[i] += src_mat_len[i];
-  }
-}
-
-static void mesh_render_data_mat_tri_len_build_threaded(MeshRenderData *mr,
-                                                        int face_len,
-                                                        TaskParallelRangeFunc range_func,
-                                                        blender::MutableSpan<int> mat_tri_len)
-{
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.userdata_chunk = mat_tri_len.data();
-  settings.userdata_chunk_size = mat_tri_len.as_span().size_in_bytes();
-  settings.min_iter_per_thread = MIN_RANGE_LEN;
-  settings.func_reduce = mesh_render_data_mat_tri_len_reduce_fn;
-  BLI_task_parallel_range(0, face_len, mr, range_func, &settings);
+  const OffsetIndices faces = mr.faces;
+  const Span material_indices(mr.material_indices, mr.face_len);
+  threading::parallel_for(material_indices.index_range(), 1024, [&](const IndexRange range) {
+    Array<int> &tri_counts = all_tri_counts.local();
+    const int last_index = tri_counts.size() - 1;
+    if (mr.use_hide && mr.hide_poly) {
+      for (const int i : range) {
+        if (!mr.hide_poly[i]) {
+          const int mat = std::clamp(material_indices[i], 0, last_index);
+          tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+        }
+      }
+    }
+    else {
+      for (const int i : range) {
+        const int mat = std::clamp(material_indices[i], 0, last_index);
+        tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+      }
+    }
+  });
 }
 
 /* Count how many triangles for each material. */
-static blender::Array<int> mesh_render_data_mat_tri_len_build(MeshRenderData *mr)
+static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
 {
-  blender::Array<int> mat_tri_len(mr->mat_len, 0);
-  if (mr->extract_type == MR_EXTRACT_BMESH) {
-    BMesh *bm = mr->bm;
-    mesh_render_data_mat_tri_len_build_threaded(
-        mr, bm->totface, mesh_render_data_mat_tri_len_bm_range_fn, mat_tri_len);
+  threading::EnumerableThreadSpecific<Array<int>> all_tri_counts(
+      [&]() { return Array<int>(mr.mat_len, 0); });
+
+  if (mr.extract_type == MR_EXTRACT_BMESH) {
+    accumululate_material_counts_bm(*mr.bm, all_tri_counts);
   }
   else {
-    mesh_render_data_mat_tri_len_build_threaded(
-        mr, mr->face_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
+    accumululate_material_counts_mesh(mr, all_tri_counts);
   }
-  return mat_tri_len;
+
+  Array<int> &mat_tri_len = all_tri_counts.local();
+  for (const Array<int> &counts : all_tri_counts) {
+    if (&counts != &mat_tri_len) {
+      for (const int i : mat_tri_len.index_range()) {
+        mat_tri_len[i] += counts[i];
+      }
+    }
+  }
+  return std::move(mat_tri_len);
 }
 
 static void mesh_render_data_faces_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
 {
-  using namespace blender;
-  cache->face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
+  cache->face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(*mr);
   const Span<int> mat_tri_len = cache->face_sorted.mat_tri_len;
 
   /* Apply offset. */
   int visible_tri_len = 0;
-  blender::Array<int, 32> mat_tri_offs(mr->mat_len);
+  Array<int, 32> mat_tri_offs(mr->mat_len);
   {
     for (int i = 0; i < mr->mat_len; i++) {
       mat_tri_offs[i] = visible_tri_len;
@@ -297,12 +295,14 @@ static void mesh_render_data_faces_sorted_ensure(MeshRenderData *mr, MeshBufferC
   mesh_render_data_faces_sorted_build(mr, cache);
 }
 
+}  // namespace blender::draw
+
 void mesh_render_data_update_faces_sorted(MeshRenderData *mr,
                                           MeshBufferCache *cache,
                                           const eMRDataType data_flag)
 {
   if (data_flag & MR_DATA_POLYS_SORTED) {
-    mesh_render_data_faces_sorted_ensure(mr, cache);
+    blender::draw::mesh_render_data_faces_sorted_ensure(mr, cache);
     mr->face_sorted = &cache->face_sorted;
   }
 }
