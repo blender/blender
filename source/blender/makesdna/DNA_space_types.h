@@ -1670,7 +1670,7 @@ typedef enum eSpaceNode_ShaderFrom {
 /** #SpaceNode.geometry_nodes_type */
 typedef enum SpaceNodeGeometryNodesType {
   SNODE_GEOMETRY_MODIFIER = 0,
-  SNODE_GEOMETRY_OPERATOR = 1,
+  SNODE_GEOMETRY_TOOL = 1,
 } SpaceNodeGeometryNodesType;
 
 /** #SpaceNode.insert_ofs_dir */
