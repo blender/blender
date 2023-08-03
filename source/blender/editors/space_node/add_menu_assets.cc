@@ -163,6 +163,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     menus.add_new("Point");
     menus.add_new("Text");
     menus.add_new("Texture");
+    menus.add_new("Tool");
     menus.add_new("Utilities");
     menus.add_new("UV");
     menus.add_new("Vector");
