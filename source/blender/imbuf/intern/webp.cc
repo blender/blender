@@ -13,8 +13,8 @@
 #endif
 
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <webp/decode.h>
 #include <webp/encode.h>
 

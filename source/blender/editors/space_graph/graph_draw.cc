@@ -865,14 +865,14 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
                                           BezTriple *prevbezt,
                                           const blender::float2 resolution_scale)
 {
-  const int resolution_x = (int)((bezt->vec[1][0] - prevbezt->vec[1][0]) * resolution_scale[0]);
+  const int resolution_x = int((bezt->vec[1][0] - prevbezt->vec[1][0]) * resolution_scale[0]);
   /* Include the handles in the resolution calculation to cover the case where keys have the same
    * y-value, but their handles are offset to create an arc. */
   const float min_y = min_ffff(
       bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
   const float max_y = max_ffff(
       bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
-  const int resolution_y = (int)((max_y - min_y) * resolution_scale[1]);
+  const int resolution_y = int((max_y - min_y) * resolution_scale[1]);
   /* Using a simple sum instead of calculating the diagonal. This gives a slightly higher
    * resolution but it does compensate for the fact that bezier curves can create long arcs between
    * keys. */
