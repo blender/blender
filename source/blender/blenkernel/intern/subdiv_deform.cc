@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv_deform.h"
+#include "BKE_subdiv_deform.hh"
 
 #include <cstring>
 
@@ -17,8 +17,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_subdiv.h"
-#include "BKE_subdiv_eval.h"
+#include "BKE_subdiv.hh"
+#include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
 #include "BKE_subdiv_mesh.hh"
 
@@ -204,7 +204,7 @@ void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
   }
 
   /* Initialize subdivision mesh creation context. */
-  SubdivDeformContext subdiv_context = {0};
+  SubdivDeformContext subdiv_context = {nullptr};
   subdiv_context.coarse_mesh = coarse_mesh;
   subdiv_context.subdiv = subdiv;
   subdiv_context.vertex_cos = vertex_cos;

@@ -48,8 +48,8 @@
 #include "BKE_effect.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh_legacy_convert.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_legacy_convert.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_particle.h"
 
 #include "BKE_bvhutils.h"
@@ -745,11 +745,20 @@ void psys_get_birth_coords(
                              nor,
                              utan,
                              vtan,
-                             0);
+                             nullptr);
   }
   else {
-    psys_particle_on_emitter(
-        sim->psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, loc, nor, 0, 0, 0);
+    psys_particle_on_emitter(sim->psmd,
+                             part->from,
+                             pa->num,
+                             pa->num_dmcache,
+                             pa->fuv,
+                             pa->foffset,
+                             loc,
+                             nor,
+                             nullptr,
+                             nullptr,
+                             nullptr);
   }
 
   /* get possible textural influence */
@@ -1203,7 +1212,7 @@ void psys_count_keyed_targets(ParticleSimulationData *sim)
 static void set_keyed_keys(ParticleSimulationData *sim)
 {
   ParticleSystem *psys = sim->psys;
-  ParticleSimulationData ksim = {0};
+  ParticleSimulationData ksim = {nullptr};
   ParticleTarget *pt;
   PARTICLE_P;
   ParticleKey *key;
@@ -4206,7 +4215,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
   ParticleSystem *psys = sim->psys;
   if (psys->particles) {
     MEM_freeN(psys->particles);
-    psys->particles = 0;
+    psys->particles = nullptr;
     psys->totpart = 0;
   }
 
@@ -4793,7 +4802,7 @@ void particle_system_update(Depsgraph *depsgraph,
                             ParticleSystem *psys,
                             const bool use_render_params)
 {
-  ParticleSimulationData sim = {0};
+  ParticleSimulationData sim = {nullptr};
   ParticleSettings *part = psys->part;
   ParticleSystem *psys_orig = psys_orig_get(psys);
   float cfra;

@@ -692,6 +692,7 @@ bool Layer::remove_frame(const FramesMapKey key)
      * null frame, we cannot just delete the frame. We need to replace it with a null frame. */
     if (!prev_frame.is_implicit_hold() && !prev_frame.is_null()) {
       this->frames_for_write().lookup(key) = GreasePencilFrame::null();
+      this->tag_frames_map_changed();
       /* Since the original frame was replaced with a null frame, we consider the frame to be
        * successfully removed here. */
       return true;
@@ -1341,7 +1342,9 @@ template<typename T> static void grow_array(T **array, int *num, const int add_n
   T *new_array = reinterpret_cast<T *>(MEM_cnew_array<T *>(new_array_num, __func__));
 
   blender::uninitialized_relocate_n(*array, *num, new_array);
-  MEM_freeN(*array);
+  if (*array != nullptr) {
+    MEM_freeN(*array);
+  }
 
   *array = new_array;
   *num = new_array_num;
@@ -1480,30 +1483,31 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
   return true;
 }
 
-void GreasePencil::remove_frame_at(blender::bke::greasepencil::Layer &layer,
+bool GreasePencil::remove_frame_at(blender::bke::greasepencil::Layer &layer,
                                    const int frame_number)
 {
   using namespace blender::bke::greasepencil;
   if (!layer.frames().contains(frame_number)) {
-    return;
+    return false;
   }
   const GreasePencilFrame &frame_to_remove = layer.frames().lookup(frame_number);
   const int drawing_index_to_remove = frame_to_remove.drawing_index;
   if (!layer.remove_frame(frame_number)) {
     /* If removing the frame was not successful, return early. */
-    return;
+    return false;
   }
   GreasePencilDrawingBase *drawing_base = this->drawings(drawing_index_to_remove);
   if (drawing_base->type != GP_DRAWING) {
     /* If the drawing is referenced from another object, we don't track it's users because we
      * cannot delete drawings from another object. Return early. */
-    return;
+    return false;
   }
   Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base)->wrap();
   drawing.remove_user();
   if (!drawing.has_users()) {
     this->remove_drawing(drawing_index_to_remove);
   }
+  return true;
 }
 
 void GreasePencil::remove_drawing(const int index_to_remove)
@@ -2055,9 +2059,6 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 {
   using namespace blender::bke::greasepencil;
 
-  BLO_write_struct(writer, GreasePencilLayer, node);
-  BLO_write_string(writer, node->base.name);
-
   /* Re-create the frames storage only if it was tagged dirty. */
   if ((node->frames_storage.flag & GP_LAYER_FRAMES_STORAGE_DIRTY) != 0) {
     MEM_SAFE_FREE(node->frames_storage.keys);
@@ -2077,6 +2078,9 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
     /* Reset the flag. */
     node->frames_storage.flag &= ~GP_LAYER_FRAMES_STORAGE_DIRTY;
   }
+
+  BLO_write_struct(writer, GreasePencilLayer, node);
+  BLO_write_string(writer, node->base.name);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
   BLO_write_struct_array(

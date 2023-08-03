@@ -91,8 +91,7 @@ static bool bone_unique_check(void *arg, const char *name)
 
 static void ed_armature_bone_unique_name(bArmature *arm, char *name)
 {
-  BLI_uniquename_cb(
-      bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(((Bone *)nullptr)->name));
+  BLI_uniquename_cb(bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(Bone::name));
 }
 
 /** \} */

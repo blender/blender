@@ -1083,7 +1083,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      0,
                                      0,
                                      0,
-                                     0);
+                                     nullptr);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
         }

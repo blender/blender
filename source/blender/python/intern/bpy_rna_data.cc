@@ -145,7 +145,7 @@ static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyO
       "z"  /* `filepath` */
       ":temp_data",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return nullptr;

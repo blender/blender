@@ -24,7 +24,7 @@ class RenderBuffers {
  public:
   UniformBuffer<RenderBuffersInfoData> data;
 
-  TextureFromPool depth_tx;
+  Texture depth_tx;
   TextureFromPool combined_tx;
 
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */
@@ -63,6 +63,8 @@ class RenderBuffers {
   /* Acquires (also ensures) the render buffer before rendering to them. */
   void acquire(int2 extent);
   void release();
+
+  eGPUTextureFormat vector_tx_format();
 };
 
 }  // namespace blender::eevee

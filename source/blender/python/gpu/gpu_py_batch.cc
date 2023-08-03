@@ -62,7 +62,7 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
       "O!" /* `elem` */
       ":GPUBatch.__new__",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
@@ -263,7 +263,7 @@ static PyObject *pygpu_batch_draw_instanced(BPyGPUBatch *self, PyObject *args, P
       "i"  /* `instance_count' */
       ":GPUBatch.draw_instanced",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &BPyGPUShader_Type, &py_program, &instance_start, &instance_count))
@@ -305,7 +305,7 @@ static PyObject *pygpu_batch_draw_range(BPyGPUBatch *self, PyObject *args, PyObj
       "i"  /* `elem_count' */
       ":GPUBatch.draw_range",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &BPyGPUShader_Type, &py_program, &elem_start, &elem_count))

@@ -29,7 +29,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 
 using blender::float3;
 using blender::int2;

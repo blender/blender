@@ -8,17 +8,11 @@
 
 #pragma once
 
-#include "BKE_DerivedMesh.h"
 #include "BLI_bitmap.h"
+#include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-#  include "BLI_offset_indices.hh"
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_DerivedMesh.h"
 
 struct CCGElem;
 struct CCGFace;
@@ -32,45 +26,44 @@ struct Subdiv;
  */
 
 /* Functor which evaluates mask value at a given (u, v) of given ptex face. */
-typedef struct SubdivCCGMaskEvaluator {
-  float (*eval_mask)(struct SubdivCCGMaskEvaluator *mask_evaluator,
+struct SubdivCCGMaskEvaluator {
+  float (*eval_mask)(SubdivCCGMaskEvaluator *mask_evaluator,
                      int ptex_face_index,
                      float u,
                      float v);
 
   /* Free the data, not the evaluator itself. */
-  void (*free)(struct SubdivCCGMaskEvaluator *mask_evaluator);
+  void (*free)(SubdivCCGMaskEvaluator *mask_evaluator);
 
   void *user_data;
-} SubdivCCGMaskEvaluator;
+};
 
 /* Return true if mesh has mask and evaluator can be used. */
-bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
-                                         const struct Mesh *mesh);
+bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh);
 
 /* --------------------------------------------------------------------
  * Materials.
  */
 
 /* Functor which evaluates material and flags of a given coarse face. */
-typedef struct SubdivCCGMaterialFlagsEvaluator {
-  DMFlagMat (*eval_material_flags)(
-      struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, int coarse_face_index);
+struct SubdivCCGMaterialFlagsEvaluator {
+  DMFlagMat (*eval_material_flags)(SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator,
+                                   int coarse_face_index);
 
   /* Free the data, not the evaluator itself. */
-  void (*free)(struct SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
+  void (*free)(SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
 
   void *user_data;
-} SubdivCCGMaterialFlagsEvaluator;
+};
 
 void BKE_subdiv_ccg_material_flags_init_from_mesh(
-    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const struct Mesh *mesh);
+    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator, const Mesh *mesh);
 
 /* --------------------------------------------------------------------
  * SubdivCCG.
  */
 
-typedef struct SubdivToCCGSettings {
+struct SubdivToCCGSettings {
   /* Resolution at which regular ptex (created for quad face) are being
    * evaluated. This defines how many vertices final mesh will have: every
    * regular ptex has resolution^2 vertices. Special (irregular, or ptex
@@ -80,18 +73,18 @@ typedef struct SubdivToCCGSettings {
   /* Denotes which extra layers to be added to CCG elements. */
   bool need_normal;
   bool need_mask;
-} SubdivToCCGSettings;
+};
 
-typedef struct SubdivCCGCoord {
+struct SubdivCCGCoord {
   /* Index of the grid within SubdivCCG::grids array. */
   int grid_index;
 
   /* Coordinate within the grid. */
   short x, y;
-} SubdivCCGCoord;
+};
 
 /* This is actually a coarse face, which consists of multiple CCG grids. */
-typedef struct SubdivCCGFace {
+struct SubdivCCGFace {
   /* Total number of grids in this face.
    *
    * This 1:1 corresponds to a number of corners (or loops) from a coarse
@@ -99,30 +92,30 @@ typedef struct SubdivCCGFace {
   int num_grids;
   /* Index of first grid from this face in SubdivCCG->grids array. */
   int start_grid_index;
-} SubdivCCGFace;
+};
 
 /* Definition of an edge which is adjacent to at least one of the faces. */
-typedef struct SubdivCCGAdjacentEdge {
+struct SubdivCCGAdjacentEdge {
   int num_adjacent_faces;
   /* Indexed by adjacent face index, then by point index on the edge.
    * points to a coordinate into the grids. */
   struct SubdivCCGCoord **boundary_coords;
-} SubdivCCGAdjacentEdge;
+};
 
 /* Definition of a vertex which is adjacent to at least one of the faces. */
-typedef struct SubdivCCGAdjacentVertex {
+struct SubdivCCGAdjacentVertex {
   int num_adjacent_faces;
   /* Indexed by adjacent face index, points to a coordinate in the grids. */
   struct SubdivCCGCoord *corner_coords;
-} SubdivCCGAdjacentVertex;
+};
 
 /* Representation of subdivision surface which uses CCG grids. */
-typedef struct SubdivCCG {
+struct SubdivCCG {
   /* This is a subdivision surface this CCG was created for.
    *
    * TODO(sergey): Make sure the whole descriptor is valid, including all the
    * displacement attached to the surface. */
-  struct Subdiv *subdiv;
+  Subdiv *subdiv;
   /* A level at which geometry was subdivided. This is what defines grid
    * resolution. It is NOT the topology refinement level. */
   int level;
@@ -138,18 +131,18 @@ typedef struct SubdivCCG {
    */
   /* Indexed by a grid index, points to a grid data which is stored in
    * grids_storage. */
-  struct CCGElem **grids;
+  CCGElem **grids;
   /* Flat array of all grids' data. */
   unsigned char *grids_storage;
   int num_grids;
   /* Loose edges, each array element contains grid_size elements
    * corresponding to vertices created by subdividing coarse edges. */
-  struct CCGElem **edges;
+  CCGElem **edges;
   int num_edges;
   /* Loose vertices. Every element corresponds to a loose vertex from a coarse
    * mesh, every coarse loose vertex corresponds to a single subdivided
    * element. */
-  struct CCGElem *vertices;
+  CCGElem *vertices;
   int num_vertices;
   /* Denotes which layers present in the elements.
    *
@@ -180,7 +173,7 @@ typedef struct SubdivCCG {
   int num_adjacent_vertices;
   SubdivCCGAdjacentVertex *adjacent_vertices;
 
-  struct DMFlagMat *grid_flag_mats;
+  DMFlagMat *grid_flag_mats;
   BLI_bitmap **grid_hidden;
 
   /* TODO(sergey): Consider adding some accessors to a "decoded" geometry,
@@ -206,7 +199,7 @@ typedef struct SubdivCCG {
     /* Indexed by face, indicates index of the first grid which corresponds to the face. */
     int *start_face_grid_index;
   } cache_;
-} SubdivCCG;
+};
 
 /* Create CCG representation of subdivision surface.
  *
@@ -219,10 +212,10 @@ typedef struct SubdivCCG {
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
  * same Subsurf without conflicts. */
-struct SubdivCCG *BKE_subdiv_to_ccg(struct Subdiv *subdiv,
-                                    const SubdivToCCGSettings *settings,
-                                    SubdivCCGMaskEvaluator *mask_evaluator,
-                                    SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
+SubdivCCG *BKE_subdiv_to_ccg(Subdiv *subdiv,
+                             const SubdivToCCGSettings *settings,
+                             SubdivCCGMaskEvaluator *mask_evaluator,
+                             SubdivCCGMaterialFlagsEvaluator *material_flags_evaluator);
 
 /* Destroy CCG representation of subdivision surface. */
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);
@@ -230,20 +223,20 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.
  */
-struct Mesh *BKE_subdiv_to_ccg_mesh(struct Subdiv *subdiv,
-                                    const SubdivToCCGSettings *settings,
-                                    const struct Mesh *coarse_mesh);
+Mesh *BKE_subdiv_to_ccg_mesh(Subdiv *subdiv,
+                             const SubdivToCCGSettings *settings,
+                             const Mesh *coarse_mesh);
 
 /* Create a key for accessing grid elements at a given level. */
-void BKE_subdiv_ccg_key(struct CCGKey *key, const SubdivCCG *subdiv_ccg, int level);
-void BKE_subdiv_ccg_key_top_level(struct CCGKey *key, const SubdivCCG *subdiv_ccg);
+void BKE_subdiv_ccg_key(CCGKey *key, const SubdivCCG *subdiv_ccg, int level);
+void BKE_subdiv_ccg_key_top_level(CCGKey *key, const SubdivCCG *subdiv_ccg);
 
 /* Recalculate all normals based on grid element coordinates. */
 void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
 
 /* Update normals of affected faces. */
 void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
-                                   struct CCGFace **effected_faces,
+                                   CCGFace **effected_faces,
                                    int num_effected_faces);
 
 /* Average grid coordinates and normals along the grid boundaries. */
@@ -251,7 +244,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
 
 /* Similar to above, but only updates given faces. */
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
-                                         struct CCGFace **effected_faces,
+                                         CCGFace **effected_faces,
                                          int num_effected_faces);
 
 /* Get geometry counters at the current subdivision level. */
@@ -261,13 +254,13 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
                                       int *r_num_faces,
                                       int *r_num_loops);
 
-typedef struct SubdivCCGNeighbors {
+struct SubdivCCGNeighbors {
   SubdivCCGCoord *coords;
   int size;
   int num_duplicates;
 
   SubdivCCGCoord coords_fixed[256];
-} SubdivCCGNeighbors;
+};
 
 void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord *coord);
 bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord);
@@ -302,13 +295,11 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG *subdiv_ccg,
                                      const SubdivCCGCoord *coord,
                                      float r_point[3]);
 
-typedef enum SubdivCCGAdjacencyType {
+enum SubdivCCGAdjacencyType {
   SUBDIV_CCG_ADJACENT_NONE,
   SUBDIV_CCG_ADJACENT_VERTEX,
   SUBDIV_CCG_ADJACENT_EDGE,
-} SubdivCCGAdjacencyType;
-
-#ifdef __cplusplus
+};
 
 /* Returns if a grid coordinates is adjacent to a coarse mesh edge, vertex or nothing. If it is
  * adjacent to an edge, r_v1 and r_v2 will be set to the two vertices of that edge. If it is
@@ -321,8 +312,6 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
     int *r_v1,
     int *r_v2);
 
-#endif
-
 /* Get array which is indexed by face index and contains index of a first grid of the face.
  *
  * The "ensure" version allocates the mapping if it's not known yet and stores it in the subdiv_ccg
@@ -334,7 +323,3 @@ const int *BKE_subdiv_ccg_start_face_grid_index_get(const SubdivCCG *subdiv_ccg)
 
 void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG *subdiv_ccg, int grid_index);
 void BKE_subdiv_ccg_grid_hidden_free(SubdivCCG *subdiv_ccg, int grid_index);
-
-#ifdef __cplusplus
-}
-#endif

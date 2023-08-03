@@ -56,9 +56,9 @@
 #include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_particle.h"
@@ -288,7 +288,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         SpaceGraph *sipo = (SpaceGraph *)sl;
         memcpy(&region->v2d, &sipo->v2d, sizeof(View2D));
 
-        /* init mainarea view2d */
+        /* Initialize main-area view2d. */
         region->v2d.scroll |= (V2D_SCROLL_BOTTOM | V2D_SCROLL_HORIZONTAL_HANDLES);
         region->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_VERTICAL_HANDLES);
 
@@ -1148,7 +1148,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 10)) {
-    /* properly initialize hair clothsim data on old files */
+    /* Properly initialize hair cloth-simulation data on old files. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Cloth) {

@@ -22,10 +22,10 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subsurf.h"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.h"
 

@@ -72,8 +72,20 @@ enum eShaderType {
 
   MOTION_BLUR_GATHER,
   MOTION_BLUR_TILE_DILATE,
-  MOTION_BLUR_TILE_FLATTEN_RENDER,
-  MOTION_BLUR_TILE_FLATTEN_VIEWPORT,
+  MOTION_BLUR_TILE_FLATTEN_RGBA,
+  MOTION_BLUR_TILE_FLATTEN_RG,
+
+  RAY_DENOISE_BILATERAL_REFLECT,
+  RAY_DENOISE_BILATERAL_REFRACT,
+  RAY_DENOISE_SPATIAL_REFLECT,
+  RAY_DENOISE_SPATIAL_REFRACT,
+  RAY_DENOISE_TEMPORAL,
+  RAY_GENERATE_REFLECT,
+  RAY_GENERATE_REFRACT,
+  RAY_TILE_CLASSIFY,
+  RAY_TILE_COMPACT,
+  RAY_TRACE_SCREEN_REFLECT,
+  RAY_TRACE_SCREEN_REFRACT,
 
   REFLECTION_PROBE_REMAP,
   REFLECTION_PROBE_UPDATE_IRRADIANCE,
@@ -119,14 +131,14 @@ class ShaderModule {
 
   GPUShader *static_shader_get(eShaderType shader_type);
   GPUMaterial *material_shader_get(::Material *blender_mat,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool deferred_compilation);
-  GPUMaterial *world_shader_get(::World *blender_world, struct bNodeTree *nodetree);
+  GPUMaterial *world_shader_get(::World *blender_world, bNodeTree *nodetree);
   GPUMaterial *material_shader_get(const char *name,
                                    ListBase &materials,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool is_lookdev);

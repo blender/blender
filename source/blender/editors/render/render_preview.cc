@@ -44,7 +44,7 @@
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -1452,12 +1452,6 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
-    *do_update = true;
-  }
-  else if (idtype == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
-
-    ED_screen_preview_render(screen, sp->sizex, sp->sizey, sp->pr_rect);
     *do_update = true;
   }
   else {

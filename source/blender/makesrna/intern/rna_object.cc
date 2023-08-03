@@ -35,7 +35,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_object_deform.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -322,7 +322,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DNA_node_types.h"
 
 #  include "BKE_armature.h"
-#  include "BKE_brush.h"
+#  include "BKE_brush.hh"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
 #  include "BKE_curve.h"
@@ -333,8 +333,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_key.h"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.h"
-#  include "BKE_mesh.h"
-#  include "BKE_mesh_wrapper.h"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_wrapper.hh"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"

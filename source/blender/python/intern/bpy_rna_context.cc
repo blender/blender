@@ -299,7 +299,7 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
       "O&" /* `region` */
       ":temp_override",
       _keywords,
-      0,
+      nullptr,
   };
   /* Parse known keywords, the remaining keywords are set using #CTX_py_state_push. */
   kwds = kwds ? PyDict_Copy(kwds) : PyDict_New();

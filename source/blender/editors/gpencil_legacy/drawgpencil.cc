@@ -34,13 +34,13 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DEG_depsgraph.h"
 

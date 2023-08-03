@@ -42,18 +42,18 @@ static void line_adjacency_data_init(MeshExtract_LineAdjacency_Data *data,
   data->is_manifold = true;
 }
 
-static void extract_lines_adjacency_init(const MeshRenderData *mr,
-                                         MeshBatchCache * /*cache*/,
+static void extract_lines_adjacency_init(const MeshRenderData &mr,
+                                         MeshBatchCache & /*cache*/,
                                          void * /*buf*/,
                                          void *tls_data)
 {
   /* Similar to poly_to_tri_count().
    * There is always (loop + triangle - 1) edges inside a face.
    * Accumulate for all faces and you get : */
-  uint tess_edge_len = mr->loop_len + mr->tri_len - mr->face_len;
+  uint tess_edge_len = mr.loop_len + mr.tri_len - mr.face_len;
 
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
-  line_adjacency_data_init(data, mr->vert_len, mr->loop_len, tess_edge_len);
+  line_adjacency_data_init(data, mr.vert_len, mr.loop_len, tess_edge_len);
 }
 
 BLI_INLINE void lines_adjacency_triangle(
@@ -97,7 +97,7 @@ BLI_INLINE void lines_adjacency_triangle(
   }
 }
 
-static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData * /*mr*/,
+static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData & /*mr*/,
                                                     BMLoop **elt,
                                                     const int /*elt_index*/,
                                                     void *_data)
@@ -114,28 +114,28 @@ static void extract_lines_adjacency_iter_looptri_bm(const MeshRenderData * /*mr*
   }
 }
 
-static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData *mr,
+static void extract_lines_adjacency_iter_looptri_mesh(const MeshRenderData &mr,
                                                       const MLoopTri *mlt,
                                                       const int elt_index,
                                                       void *_data)
 {
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(_data);
-  const int face_i = mr->looptri_faces[elt_index];
-  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[face_i];
+  const int face_i = mr.looptri_faces[elt_index];
+  const bool hidden = mr.use_hide && mr.hide_poly && mr.hide_poly[face_i];
   if (hidden) {
     return;
   }
-  lines_adjacency_triangle(mr->corner_verts[mlt->tri[0]],
-                           mr->corner_verts[mlt->tri[1]],
-                           mr->corner_verts[mlt->tri[2]],
+  lines_adjacency_triangle(mr.corner_verts[mlt->tri[0]],
+                           mr.corner_verts[mlt->tri[1]],
+                           mr.corner_verts[mlt->tri[2]],
                            mlt->tri[0],
                            mlt->tri[1],
                            mlt->tri[2],
                            data);
 }
 
-static void extract_lines_adjacency_finish(const MeshRenderData * /*mr*/,
-                                           MeshBatchCache *cache,
+static void extract_lines_adjacency_finish(const MeshRenderData & /*mr*/,
+                                           MeshBatchCache &cache,
                                            void *buf,
                                            void *_data)
 {
@@ -161,15 +161,15 @@ static void extract_lines_adjacency_finish(const MeshRenderData * /*mr*/,
   BLI_edgehashIterator_free(ehi);
   BLI_edgehash_free(data->eh, nullptr);
 
-  cache->is_manifold = data->is_manifold;
+  cache.is_manifold = data->is_manifold;
 
   GPU_indexbuf_build_in_place(&data->elb, ibo);
   MEM_freeN(data->vert_to_loop);
 }
 
-static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                                const MeshRenderData * /*mr*/,
-                                                MeshBatchCache * /*cache*/,
+static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache &subdiv_cache,
+                                                const MeshRenderData & /*mr*/,
+                                                MeshBatchCache & /*cache*/,
                                                 void * /*buf*/,
                                                 void *_data)
 {
@@ -178,13 +178,13 @@ static void extract_lines_adjacency_init_subdiv(const DRWSubdivCache *subdiv_cac
   /* For each face there is (loop + triangle - 1) edges. Since we only have quads, and a quad
    * is split into 2 triangles, we have (loop + 2 - 1) = (loop + 1) edges for each quad, or in
    * total: (number_of_loops + number_of_quads). */
-  const uint tess_len = subdiv_cache->num_subdiv_loops + subdiv_cache->num_subdiv_quads;
+  const uint tess_len = subdiv_cache.num_subdiv_loops + subdiv_cache.num_subdiv_quads;
   line_adjacency_data_init(
-      data, subdiv_cache->num_subdiv_verts, subdiv_cache->num_subdiv_loops, tess_len);
+      data, subdiv_cache.num_subdiv_verts, subdiv_cache.num_subdiv_loops, tess_len);
 }
 
-static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cache,
-                                                const MeshRenderData * /*mr*/,
+static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache &subdiv_cache,
+                                                const MeshRenderData & /*mr*/,
                                                 void *_data,
                                                 uint subdiv_quad_index)
 {
@@ -196,17 +196,17 @@ static void extract_lines_adjacency_iter_subdiv(const DRWSubdivCache *subdiv_cac
   const uint l2 = loop_index + 2;
   const uint l3 = loop_index + 3;
 
-  const uint v0 = subdiv_cache->subdiv_loop_subdiv_vert_index[l0];
-  const uint v1 = subdiv_cache->subdiv_loop_subdiv_vert_index[l1];
-  const uint v2 = subdiv_cache->subdiv_loop_subdiv_vert_index[l2];
-  const uint v3 = subdiv_cache->subdiv_loop_subdiv_vert_index[l3];
+  const uint v0 = subdiv_cache.subdiv_loop_subdiv_vert_index[l0];
+  const uint v1 = subdiv_cache.subdiv_loop_subdiv_vert_index[l1];
+  const uint v2 = subdiv_cache.subdiv_loop_subdiv_vert_index[l2];
+  const uint v3 = subdiv_cache.subdiv_loop_subdiv_vert_index[l3];
 
   lines_adjacency_triangle(v0, v1, v2, l0, l1, l2, data);
   lines_adjacency_triangle(v0, v2, v3, l0, l2, l3, data);
 }
 
-static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
-                                                   const MeshRenderData *mr,
+static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache &subdiv_cache,
+                                                   const MeshRenderData &mr,
                                                    void *_data,
                                                    uint subdiv_quad_index,
                                                    const BMFace * /*coarse_quad*/)
@@ -214,8 +214,8 @@ static void extract_lines_adjacency_iter_subdiv_bm(const DRWSubdivCache *subdiv_
   extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
 }
 
-static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
-                                                     const MeshRenderData *mr,
+static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache &subdiv_cache,
+                                                     const MeshRenderData &mr,
                                                      void *_data,
                                                      uint subdiv_quad_index,
                                                      const int /*coarse_quad_index*/)
@@ -223,9 +223,9 @@ static void extract_lines_adjacency_iter_subdiv_mesh(const DRWSubdivCache *subdi
   extract_lines_adjacency_iter_subdiv(subdiv_cache, mr, _data, subdiv_quad_index);
 }
 
-static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
-                                                  const MeshRenderData *mr,
-                                                  MeshBatchCache *cache,
+static void extract_lines_adjacency_finish_subdiv(const DRWSubdivCache & /*subdiv_cache*/,
+                                                  const MeshRenderData &mr,
+                                                  MeshBatchCache &cache,
                                                   void *buf,
                                                   void *_data)
 {

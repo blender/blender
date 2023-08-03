@@ -29,6 +29,7 @@
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
+#include "eevee_raytrace.hh"
 #include "eevee_reflection_probes.hh"
 #include "eevee_renderbuffers.hh"
 #include "eevee_sampling.hh"
@@ -58,6 +59,7 @@ class Instance {
   ShadowModule shadows;
   LightModule lights;
   AmbientOcclusion ambient_occlusion;
+  RayTraceModule raytracing;
   ReflectionProbeModule reflection_probes;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
@@ -113,6 +115,7 @@ class Instance {
         shadows(*this),
         lights(*this),
         ambient_occlusion(*this),
+        raytracing(*this),
         reflection_probes(*this),
         velocity(*this),
         motion_blur(*this),

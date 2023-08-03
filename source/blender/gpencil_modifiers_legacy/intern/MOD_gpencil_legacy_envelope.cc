@@ -473,7 +473,7 @@ static void add_stroke_simple(Object *ob,
 static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
 {
   EnvelopeGpencilModifierData *mmd = (EnvelopeGpencilModifierData *)md;
-  ListBase duplicates = {0};
+  ListBase duplicates = {nullptr};
   LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
     if (!is_stroke_affected_by_modifier(ob,
                                         mmd->layername,

@@ -98,7 +98,7 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
       "O&" /* `fetch_mode` */
       ":attr_add",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,

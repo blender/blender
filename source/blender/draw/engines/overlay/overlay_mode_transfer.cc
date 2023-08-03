@@ -6,7 +6,7 @@
  * \ingroup draw_engine
  */
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "DRW_render.h"
 
 #include "ED_view3d.h"

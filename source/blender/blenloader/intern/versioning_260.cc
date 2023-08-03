@@ -45,9 +45,9 @@
 
 #include "BKE_anim_visualization.h"
 #include "BKE_image.h"
-#include "BKE_main.h" /* for Main */
-#include "BKE_mesh.h" /* for ME_ defines (patching) */
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_main.h"  /* for Main */
+#include "BKE_mesh.hh" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_particle.h"

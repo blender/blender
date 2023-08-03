@@ -71,7 +71,7 @@ class ObjectModule {
 
     if (is_viewport) {
       /* TODO(fclem): Avoid access to global DRW. */
-      const struct bContext *evil_C = DRW_context_state_get()->evil_C;
+      const bContext *evil_C = DRW_context_state_get()->evil_C;
       const bool playing = (evil_C != nullptr) ?
                                ED_screen_animation_playing(CTX_wm_manager(evil_C)) != nullptr :
                                false;

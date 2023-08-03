@@ -14,7 +14,7 @@
 #include "BLI_sys_types.h"
 #include "BLI_virtual_array.hh"
 
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 
 struct Depsgraph;
 struct GridPaintMask;

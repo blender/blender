@@ -670,6 +670,7 @@ typedef struct UserDef_Experimental {
   char use_undo_legacy;
   char no_override_auto_resync;
   char use_cycles_debug;
+  char use_eevee_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
   char use_viewport_debug;

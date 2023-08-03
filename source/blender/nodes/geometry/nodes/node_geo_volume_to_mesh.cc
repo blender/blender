@@ -13,7 +13,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 #include "BKE_volume_to_mesh.hh"

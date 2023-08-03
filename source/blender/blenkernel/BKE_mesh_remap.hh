@@ -8,13 +8,10 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-#  include "BLI_offset_indices.hh"
-#endif
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BKE_mesh_mapping.hh"
 
 struct CustomData;
 struct CustomData_MeshMasks;
@@ -23,22 +20,22 @@ struct Mesh;
 
 /* Generic ways to map some geometry elements from a source mesh to a destination one. */
 
-typedef struct MeshPairRemapItem {
+struct MeshPairRemapItem {
   int sources_num;
   int *indices_src;   /* NULL if no source found. */
   float *weights_src; /* NULL if no source found, else, always normalized! */
   /* UNUSED (at the moment). */
   // float  hit_dist;     /* FLT_MAX if irrelevant or no source found. */
   int island; /* For loops only. */
-} MeshPairRemapItem;
+};
 
 /* All mapping computing func return this. */
-typedef struct MeshPairRemap {
+struct MeshPairRemap {
   int items_num;
   MeshPairRemapItem *items; /* Array, one item per destination element. */
 
   struct MemArena *mem; /* memory arena, internal use only. */
-} MeshPairRemap;
+};
 
 /* Helpers! */
 void BKE_mesh_remap_init(MeshPairRemap *map, int items_num);
@@ -146,11 +143,7 @@ enum {
 };
 
 void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-    int vert_mode,
-    int edge_mode,
-    int loop_mode,
-    int face_mode,
-    struct CustomData_MeshMasks *cddata_mask);
+    int vert_mode, int edge_mode, int loop_mode, int face_mode, CustomData_MeshMasks *cddata_mask);
 
 /**
  * Compute a value of the difference between both given meshes.
@@ -162,38 +155,32 @@ void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
  * the same weight in final result, which allows to reduce influence of a few high differences,
  * in favor of a global good matching.
  */
-float BKE_mesh_remap_calc_difference_from_mesh(const struct SpaceTransform *space_transform,
+float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_transform,
                                                const float (*vert_positions_dst)[3],
                                                int numverts_dst,
-                                               const struct Mesh *me_src);
+                                               const Mesh *me_src);
 
 /**
  * Set r_space_transform so that best bbox of dst matches best bbox of src.
  */
 void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[3],
                                               int numverts_dst,
-                                              const struct Mesh *me_src,
-                                              struct SpaceTransform *r_space_transform);
+                                              const Mesh *me_src,
+                                              SpaceTransform *r_space_transform);
 
 void BKE_mesh_remap_calc_verts_from_mesh(int mode,
-                                         const struct SpaceTransform *space_transform,
+                                         const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          bool dirty_nors_dst,
-                                         const struct Mesh *me_src,
-                                         struct Mesh *me_dst,
+                                         const Mesh *me_src,
+                                         Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
 void BKE_mesh_remap_calc_edges_from_mesh(int mode,
-                                         const struct SpaceTransform *space_transform,
+                                         const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
                                          const float (*vert_positions_dst)[3],
@@ -201,15 +188,15 @@ void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const blender::int2 *edges_dst,
                                          int numedges_dst,
                                          bool dirty_nors_dst,
-                                         const struct Mesh *me_src,
-                                         struct Mesh *me_dst,
+                                         const Mesh *me_src,
+                                         Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
 void BKE_mesh_remap_calc_loops_from_mesh(int mode,
-                                         const struct SpaceTransform *space_transform,
+                                         const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
-                                         struct Mesh *mesh_dst,
+                                         Mesh *mesh_dst,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          const blender::int2 *edges_dst,
@@ -218,25 +205,23 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          const int *corner_edges_dst,
                                          int numloops_dst,
                                          const blender::OffsetIndices<int> faces_dst,
-                                         struct CustomData *ldata_dst,
+                                         CustomData *ldata_dst,
                                          bool use_split_nors_dst,
                                          float split_angle_dst,
                                          bool dirty_nors_dst,
-                                         const struct Mesh *me_src,
+                                         const Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
                                          float islands_precision_src,
-                                         struct MeshPairRemap *r_map);
+                                         MeshPairRemap *r_map);
 
 void BKE_mesh_remap_calc_faces_from_mesh(int mode,
-                                         const struct SpaceTransform *space_transform,
+                                         const SpaceTransform *space_transform,
                                          float max_dist,
                                          float ray_radius,
-                                         const struct Mesh *mesh_dst,
+                                         const Mesh *mesh_dst,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          const int *corner_verts,
                                          const blender::OffsetIndices<int> faces_dst,
-                                         const struct Mesh *me_src,
-                                         struct MeshPairRemap *r_map);
-
-#endif
+                                         const Mesh *me_src,
+                                         MeshPairRemap *r_map);

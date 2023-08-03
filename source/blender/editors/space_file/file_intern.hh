@@ -226,7 +226,7 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 /* C-handle for #ed::asset_browser::AssetCatalogFilterSettings. */
 typedef struct FileAssetCatalogFilterSettingsHandle FileAssetCatalogFilterSettingsHandle;
 
-void file_create_asset_catalog_tree_view_in_layout(AssetLibrary *asset_library,
+void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
                                                    uiLayout *layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params);
@@ -245,7 +245,7 @@ void file_delete_asset_catalog_filter_settings(
 bool file_set_asset_catalog_filter_settings(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    bUUID catalog_id);
+    ::bUUID catalog_id);
 void file_ensure_updated_catalog_filter_data(
     FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     const blender::asset_system::AssetLibrary *asset_library);

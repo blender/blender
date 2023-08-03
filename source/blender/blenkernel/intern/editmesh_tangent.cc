@@ -17,7 +17,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_tangent.h" /* for utility functions */
+#include "BKE_mesh_tangent.hh" /* for utility functions */
 
 #include "MEM_guardedalloc.h"
 

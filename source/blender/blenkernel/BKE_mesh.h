@@ -15,7 +15,6 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh_types.h"
 
 struct BMesh;
 struct BMeshCreateParams;
@@ -41,6 +40,16 @@ struct Scene;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* TODO: Move to `BKE_mesh_types.hh` when possible. */
+typedef enum eMeshBatchDirtyMode {
+  BKE_MESH_BATCH_DIRTY_ALL = 0,
+  BKE_MESH_BATCH_DIRTY_SELECT,
+  BKE_MESH_BATCH_DIRTY_SELECT_PAINT,
+  BKE_MESH_BATCH_DIRTY_SHADING,
+  BKE_MESH_BATCH_DIRTY_UVEDIT_ALL,
+  BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT,
+} eMeshBatchDirtyMode;
 
 /*  mesh_runtime.cc  */
 

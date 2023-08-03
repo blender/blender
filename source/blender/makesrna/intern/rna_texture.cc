@@ -24,7 +24,7 @@
 
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BLT_translation.h"
 

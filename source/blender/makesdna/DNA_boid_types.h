@@ -109,7 +109,7 @@ typedef struct BoidData {
   short state_id, mode;
 } BoidData;
 
-// planned for near future
+/* Planned for near future. */
 // typedef enum BoidConditionMode {
 //  eBoidConditionType_Then = 0,
 //  eBoidConditionType_And = 1,
@@ -161,7 +161,7 @@ typedef struct BoidState {
   float volume, falloff;
 } BoidState;
 
-// planned for near future
+/* Planned for near future. */
 // typedef struct BoidSignal {
 //  struct BoidSignal *next, *prev;
 //  float loc[3];

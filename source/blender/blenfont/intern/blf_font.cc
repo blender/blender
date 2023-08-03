@@ -1643,7 +1643,7 @@ void blf_ensure_size(FontBLF *font)
     return;
   }
 
-  FTC_ScalerRec scaler = {0};
+  FTC_ScalerRec scaler = {nullptr};
   scaler.face_id = font;
   scaler.width = 0;
   scaler.height = round_fl_to_uint(font->size * 64.0f);
@@ -1672,7 +1672,7 @@ bool blf_font_size(FontBLF *font, float size)
 
   if (font->size != size) {
     if (font->flags & BLF_CACHED) {
-      FTC_ScalerRec scaler = {0};
+      FTC_ScalerRec scaler = {nullptr};
       scaler.face_id = font;
       scaler.width = 0;
       scaler.height = ft_size;

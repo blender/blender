@@ -925,7 +925,7 @@ static BMEdge *test_edges_isect_2d_ray(const EdgeGroup_FindConnection_Args *args
   hit.index = -1;
   hit.dist = BVH_RAYCAST_DIST_MAX;
 
-  Edges_VertRay_BVHTreeTest user_data = {0};
+  Edges_VertRay_BVHTreeTest user_data = {nullptr};
   user_data.edge_arr = args->edge_arr;
   user_data.v_origin = v_origin;
   user_data.vert_range = args->vert_range;

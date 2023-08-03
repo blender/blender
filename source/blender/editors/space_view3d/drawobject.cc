@@ -18,7 +18,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.h"
 
 #include "DEG_depsgraph.h"

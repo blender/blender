@@ -100,7 +100,7 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
       "O&"   /* `method` */
       ":resize",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &size[0], &size[1], PyC_ParseStringEnum, &method))
@@ -145,7 +145,7 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
       "(II)" /* `max` */
       ":crop",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kw, &_parser, &crop.xmin, &crop.ymin, &crop.xmax, &crop.ymax))
@@ -445,7 +445,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
       "(ii)" /* `size` */
       ":new",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &size[0], &size[1])) {
     return nullptr;
@@ -485,7 +485,7 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
       "s" /* `filepath` */
       ":load",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return nullptr;
@@ -534,7 +534,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
       "s"  /* `filepath` */
       ":write",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &Py_ImBuf_Type, &py_imb, &filepath)) {
     return nullptr;

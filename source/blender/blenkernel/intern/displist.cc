@@ -67,9 +67,7 @@ static void displist_elem_free(DispList *dl)
 
 void BKE_displist_free(ListBase *lb)
 {
-  DispList *dl;
-
-  while ((dl = (DispList *)BLI_pophead(lb))) {
+  while (DispList *dl = (DispList *)BLI_pophead(lb)) {
     displist_elem_free(dl);
   }
 }

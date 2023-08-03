@@ -179,7 +179,7 @@ void InpaintSimpleOperation::pix_step(int x, int y)
             weight = 1.0f;
           }
           else {
-            weight = M_SQRT1_2; /* 1.0f / sqrt(2) */
+            weight = M_SQRT1_2; /* `1.0f / sqrt(2)`. */
           }
 
           madd_v3_v3fl(pix, this->get_pixel(x_ofs, y_ofs), weight);

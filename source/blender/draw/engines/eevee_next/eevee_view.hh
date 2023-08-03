@@ -42,8 +42,8 @@ class ShadingView {
   const float4x4 &face_matrix_;
 
   /** Ray-tracing persistent buffers. Only opaque and refraction can have surface tracing. */
-  // RaytraceBuffer rt_buffer_opaque_;
-  // RaytraceBuffer rt_buffer_refract_;
+  RayTraceBuffer rt_buffer_opaque_;
+  RayTraceBuffer rt_buffer_refract_;
   DepthOfFieldBuffer dof_buffer_;
 
   Framebuffer prepass_fb_;

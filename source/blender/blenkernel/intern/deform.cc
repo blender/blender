@@ -33,7 +33,7 @@
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h" /* own include */
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
@@ -1225,7 +1225,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
 
   const int tot_dst = BLI_listbase_count(dst_defbase);
 
-  const size_t elem_size = sizeof(*((MDeformVert *)nullptr));
+  const size_t elem_size = sizeof(MDeformVert);
 
   switch (tolayers) {
     case DT_LAYERS_INDEX_DST:
@@ -1369,7 +1369,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
 {
   int idx_src, idx_dst;
 
-  const size_t elem_size = sizeof(*((MDeformVert *)nullptr));
+  const size_t elem_size = sizeof(MDeformVert);
 
   /* NOTE:
    * VGroups are a bit hairy, since their layout is defined on object level (ob->defbase),

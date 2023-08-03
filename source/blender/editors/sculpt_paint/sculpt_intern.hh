@@ -15,7 +15,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "BLI_bitmap.h"
@@ -47,6 +47,7 @@ struct PaintModeSettings;
 struct WeightPaintInfo;
 struct WPaintData;
 struct wmKeyConfig;
+struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
@@ -202,7 +203,7 @@ struct SculptUndoNode {
   bool applied;
 
   /* shape keys */
-  char shapeName[sizeof(((KeyBlock *)0))->name];
+  char shapeName[sizeof(KeyBlock::name)];
 
   /* Geometry modification operations.
    *
@@ -1698,7 +1699,7 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /* Mesh Filter. */
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
-struct wmKeyMap *filter_mesh_modal_keymap(struct wmKeyConfig *keyconf);
+wmKeyMap *filter_mesh_modal_keymap(wmKeyConfig *keyconf);
 
 /* Cloth Filter. */
 

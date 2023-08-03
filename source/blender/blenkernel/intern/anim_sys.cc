@@ -3397,7 +3397,7 @@ static bool animsys_evaluate_nla_for_flush(NlaEvalData *echannels,
     return false;
   }
 
-  NlaStrip action_strip = {0};
+  NlaStrip action_strip = {nullptr};
   animsys_create_action_track_strip(adt, false, &action_strip);
   nlastrips_ctime_get_strip_single(&estrips, &action_strip, anim_eval_context, flush_to_original);
 

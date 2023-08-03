@@ -277,8 +277,7 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
    * computing convex hull.
    * In the future, we might also detect special-cases for speed or efficiency, such as
    * rectangle approximation, circle approximation, detecting if the shape has any holes,
-   * analysing the shape for rotational symmetry or removing overlaps.
-   */
+   * analyzing the shape for rotational symmetry or removing overlaps. */
   BLI_assert(triangle_vertices_.size() >= 3);
 
   calculate_pre_rotation_(params);
@@ -1329,7 +1328,7 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
   const float bitmap_scale = 1.0f / occupancy.bitmap_scale_reciprocal;
 
   /* TODO: If `target_aspect_y != 1.0f`, to avoid aliasing issues, we should probably iterate
-   * seperately on `scan_line_x` and `scan_line_y`. See also: Bresenham's algorithm. */
+   * Separately on `scan_line_x` and `scan_line_y`. See also: Bresenham's algorithm. */
   const float sqrt_target_aspect_y = sqrtf(target_aspect_y);
   const int scan_line_x = int(scan_line * sqrt_target_aspect_y);
   const int scan_line_y = int(scan_line / sqrt_target_aspect_y);

@@ -13,7 +13,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_undo_system.h"
 
 #include "ED_paint.h"

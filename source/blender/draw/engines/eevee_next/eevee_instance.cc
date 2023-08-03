@@ -69,6 +69,7 @@ void Instance::init(const int2 &output_res,
   film.init(output_res, output_rect);
   ambient_occlusion.init();
   velocity.init();
+  raytracing.init();
   depth_of_field.init();
   shadows.init();
   motion_blur.init();
@@ -151,6 +152,7 @@ void Instance::begin_sync()
   scene_sync();
 
   depth_of_field.sync();
+  raytracing.sync();
   motion_blur.sync();
   hiz_buffer.sync();
   main_view.sync();
@@ -197,26 +199,12 @@ void Instance::object_sync(Object *ob)
   ObjectHandle &ob_handle = sync.sync_object(ob);
 
   if (partsys_is_visible && ob != DRW_context_state_get()->object_edit) {
-    int sub_key = 1;
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_ParticleSystem) {
-        ParticleSystem *particle_sys = reinterpret_cast<ParticleSystemModifierData *>(md)->psys;
-        ParticleSettings *part_settings = particle_sys->part;
-        const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
-                                                                         part_settings->draw_as;
-        if (draw_as != PART_DRAW_PATH ||
-            !DRW_object_is_visible_psys_in_active_context(ob, particle_sys)) {
-          continue;
-        }
-
-        ObjectHandle _ob_handle{};
-        _ob_handle.object_key = ObjectKey(ob_handle.object_key.ob, sub_key++);
-        _ob_handle.recalc = particle_sys->recalc;
-        ResourceHandle _res_handle = manager->resource_handle(float4x4(ob->object_to_world));
-
-        sync.sync_curves(ob, _ob_handle, _res_handle, md, particle_sys);
-      }
-    }
+    auto sync_hair =
+        [&](ObjectHandle hair_handle, ModifierData &md, ParticleSystem &particle_sys) {
+          ResourceHandle _res_handle = manager->resource_handle(float4x4(ob->object_to_world));
+          sync.sync_curves(ob, hair_handle, _res_handle, &md, &particle_sys);
+        };
+    foreach_hair_particle_handle(ob, ob_handle, sync_hair);
   }
 
   if (object_is_visible) {
@@ -282,6 +270,7 @@ void Instance::render_sync()
 
   begin_sync();
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
+  velocity.geometry_steps_fill();
   end_sync();
 
   manager->end_sync();
@@ -357,8 +346,8 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
         BLI_mutex_lock(&render->update_render_passes_mutex);
         /* WORKAROUND: We use texture read to avoid using a frame-buffer to get the render result.
          * However, on some implementation, we need a buffer with a few extra bytes for the read to
-         * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
-        /* Avoid memcpy(), replace the pointer directly. */
+         * happen correctly (see #GLTexture::read()). So we need a custom memory allocation. */
+        /* Avoid `memcpy()`, replace the pointer directly. */
         RE_pass_set_buffer_data(rp, result);
         BLI_mutex_unlock(&render->update_render_passes_mutex);
       }

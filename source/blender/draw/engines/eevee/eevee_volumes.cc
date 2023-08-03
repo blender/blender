@@ -21,7 +21,7 @@
 
 #include "BKE_fluid.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
 #include "BKE_volume_render.h"

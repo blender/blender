@@ -56,7 +56,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_blender.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_cloth.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
@@ -75,11 +75,11 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
@@ -1245,7 +1245,7 @@ static void square_roughness_node_insert(bNodeTree *ntree)
                                    bNodeSocket *fromsock,
                                    bNode *tonode,
                                    bNodeSocket *tosock) {
-    /* Add sqrt node. */
+    /* Add `sqrt` node. */
     bNode *node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
     node->custom1 = NODE_MATH_POWER;
     node->locx = 0.5f * (fromnode->locx + tonode->locx);

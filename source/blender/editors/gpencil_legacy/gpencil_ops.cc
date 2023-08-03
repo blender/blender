@@ -13,7 +13,7 @@
 #include "BLI_sys_types.h"
 
 #include "BKE_context.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"

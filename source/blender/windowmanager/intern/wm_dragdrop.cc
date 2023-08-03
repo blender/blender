@@ -343,8 +343,7 @@ void WM_drag_free(wmDrag *drag)
 
 void WM_drag_free_list(ListBase *lb)
 {
-  wmDrag *drag;
-  while ((drag = static_cast<wmDrag *>(BLI_pophead(lb)))) {
+  while (wmDrag *drag = static_cast<wmDrag *>(BLI_pophead(lb))) {
     WM_drag_free(drag);
   }
 }

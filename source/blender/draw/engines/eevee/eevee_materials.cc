@@ -17,7 +17,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_global.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 
 #include "DNA_curves_types.h"
@@ -686,7 +686,7 @@ static EeveeMaterialCache material_transparent(EEVEE_Data *vedata,
   Scene *scene = draw_ctx->scene;
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
-  EeveeMaterialCache emc = {0};
+  EeveeMaterialCache emc = {nullptr};
 
   const bool do_cull = (ma->blend_flag & MA_BL_CULL_BACKFACE) != 0;
   const bool use_gpumat = ma->use_nodes && ma->nodetree;

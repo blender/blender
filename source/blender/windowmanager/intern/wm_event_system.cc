@@ -263,8 +263,7 @@ static void wm_event_free_last(wmWindow *win)
 
 void wm_event_free_all(wmWindow *win)
 {
-  wmEvent *event;
-  while ((event = static_cast<wmEvent *>(BLI_pophead(&win->event_queue)))) {
+  while (wmEvent *event = static_cast<wmEvent *>(BLI_pophead(&win->event_queue))) {
     wm_event_free(event);
   }
 }
@@ -628,8 +627,8 @@ void wm_event_do_notifiers(bContext *C)
   }
 
   /* The notifiers are sent without context, to keep it clean. */
-  const wmNotifier *note;
-  while ((note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue)))) {
+  while (
+      const wmNotifier *note = static_cast<const wmNotifier *>(BLI_pophead(&wm->notifier_queue))) {
     if (wm_notifier_is_clear(note)) {
       MEM_freeN((void *)note);
       continue;
@@ -2128,8 +2127,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   /* C is zero on freeing database, modal handlers then already were freed. */
-  wmEventHandler *handler_base;
-  while ((handler_base = static_cast<wmEventHandler *>(BLI_pophead(handlers)))) {
+  while (wmEventHandler *handler_base = static_cast<wmEventHandler *>(BLI_pophead(handlers))) {
     BLI_assert(handler_base->type != 0);
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;

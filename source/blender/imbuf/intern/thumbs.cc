@@ -652,7 +652,7 @@ static struct IMBThumbLocks {
   GSet *locked_paths;
   int lock_counter;
   ThreadCondition cond;
-} thumb_locks = {0};
+} thumb_locks = {nullptr};
 
 void IMB_thumb_locks_acquire()
 {

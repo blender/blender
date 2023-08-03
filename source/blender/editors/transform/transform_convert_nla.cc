@@ -111,7 +111,7 @@ static float transdata_get_time_shuffle_offset_side(ListBase *trans_datas, const
         }
 
         /* Allow overlap with transitions. */
-        if (non_xformed_strip->type & NLASTRIP_TYPE_TRANSITION) {
+        if (non_xformed_strip->type == NLASTRIP_TYPE_TRANSITION) {
           continue;
         }
 

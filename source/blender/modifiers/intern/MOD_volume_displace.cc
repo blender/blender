@@ -8,7 +8,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_query.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"

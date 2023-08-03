@@ -3172,7 +3172,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Sequence *seq, *seq_next;
   Editing *ed = SEQ_editing_get(scene);
-  ListBase text_seq = {0};
+  ListBase text_seq = {nullptr};
   int iter = 1; /* Sequence numbers in .srt files are 1-indexed. */
   FILE *file;
   char filepath[FILE_MAX];

@@ -24,7 +24,7 @@ class GPUTest : public ::testing::Test {
   eGPUBackendType gpu_backend_type;
   GHOST_SystemHandle ghost_system;
   GHOST_ContextHandle ghost_context;
-  struct GPUContext *context;
+  GPUContext *context;
 
   int32_t prev_g_debug_;
 

@@ -62,7 +62,7 @@
 #include "UI_resources.h"
 
 #ifdef WITH_OPENSUBDIV
-#  include "BKE_subsurf.h"
+#  include "BKE_subsurf.hh"
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -354,7 +354,7 @@ static void wm_software_cursor_draw(wmWindow *win, const GrabState *grab_state)
     }
   }
 
-  GHOST_CursorBitmapRef bitmap = {0};
+  GHOST_CursorBitmapRef bitmap = {nullptr};
   if (GHOST_GetCursorBitmap(static_cast<GHOST_WindowHandle>(win->ghostwin), &bitmap) ==
       GHOST_kSuccess)
   {

@@ -61,7 +61,7 @@
 #include "BKE_mask.h"     /* free mask clipboard */
 #include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_studiolight.h"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "RE_engine.h"

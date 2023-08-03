@@ -150,8 +150,7 @@ static void lightprobe_grid_cache_frame_blend_write(BlendWriter *writer,
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_b);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_c);
 
-  BLO_write_struct_array(
-      writer, LightProbeGridCacheFrame, sample_count, cache->connectivity.bitmask);
+  BLO_write_int8_array(writer, sample_count, (int8_t *)cache->connectivity.validity);
 }
 
 static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
@@ -174,6 +173,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   cache->baking.L1_a = nullptr;
   cache->baking.L1_b = nullptr;
   cache->baking.L1_c = nullptr;
+  cache->baking.validity = nullptr;
   cache->surfels = nullptr;
   cache->surfels_len = 0;
 
@@ -187,7 +187,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_b);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_c);
 
-  BLO_read_data_address(reader, &cache->connectivity.bitmask);
+  BLO_read_data_address(reader, &cache->connectivity.validity);
 }
 
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
@@ -227,7 +227,8 @@ void BKE_lightprobe_grid_cache_frame_free(LightProbeGridCacheFrame *cache)
   spherical_harmonic_free(cache->baking);
   spherical_harmonic_free(cache->irradiance);
   spherical_harmonic_free(cache->visibility);
-  MEM_SAFE_FREE(cache->connectivity.bitmask);
+  MEM_SAFE_FREE(cache->baking.validity);
+  MEM_SAFE_FREE(cache->connectivity.validity);
   MEM_SAFE_FREE(cache->surfels);
 
   MEM_SAFE_FREE(cache);

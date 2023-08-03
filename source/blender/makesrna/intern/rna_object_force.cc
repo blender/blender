@@ -1048,8 +1048,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
   /* Note that we do not actually need a getter here, `rna_Cache_info_length` will update the info
    * string just as well. */
   RNA_def_property_string_funcs(prop, nullptr, "rna_Cache_info_length", nullptr);
-  RNA_def_property_string_maxlength(
-      prop, sizeof(((PointCache *)0)->info) / sizeof(*(((PointCache *)0)->info)));
+  RNA_def_property_string_maxlength(prop, sizeof(PointCache::info) / sizeof(*PointCache::info));
   RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status");
 
   prop = RNA_def_property(srna, "use_external", PROP_BOOLEAN, PROP_NONE);

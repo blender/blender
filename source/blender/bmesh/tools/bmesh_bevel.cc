@@ -24,7 +24,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "eigen_capi.h"
 
@@ -3582,11 +3582,11 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 
   v = vstart;
   int i = 0;
-  /* Sqrt of factor to weight down importance of spec match. */
+  /* Square root of factor to weight down importance of spec match. */
   double weight = BEVEL_MATCH_SPEC_WEIGHT;
   EdgeHalf *eleft, *eright, *enextleft;
   do {
-    /* Except at end of chain, v's indep variable is offset_r of v->efirst. */
+    /* Except at end of chain, v's indep variable is offset_r of `v->efirst`. */
     if (iscycle || i < np - 1) {
       eright = v->efirst;
       eleft = v->elast;
@@ -5292,7 +5292,7 @@ static BMEdge *snap_edge_for_center_vmesh_vert(int i,
  * interpolates in the current boundvert's frep [= interpolation face] or the next one's.
  * Similarly, when n is odd, the center row (ring ns2) is ambiguous as to
  * whether it interpolates in the current boundvert's frep or the previous one's.
- * Parameter frep_beats_next should have an array of size n_bndv of bools
+ * Parameter frep_beats_next should have an array of size n_bndv of booleans
  * that say whether the tie should be broken in favor of the next boundvert's
  * frep (if true) or the current one's.
  * For vertices in the center polygon (when ns is odd), the snapping edge depends
@@ -7306,12 +7306,12 @@ static void find_even_superellipse_chords_general(int seg, float r, double *xval
 }
 
 /**
- * Find equidistant points (x0,y0), (x1,y1)... (xn,yn) on the superellipse
+ * Find equidistant points `(x0,y0), (x1,y1)... (xn,yn)` on the superellipse
  * function in the first quadrant. For special profiles (linear, arc,
  * rectangle) the point can be calculated easily, for any other profile a more
  * expensive search procedure must be used because there is no known closed
  * form for equidistant parametrization.
- * xvals and yvals should be size n+1.
+ * `xvals` and `yvals` should be size `n+1`.
  */
 static void find_even_superellipse_chords(int n, float r, double *xvals, double *yvals)
 {

@@ -13,7 +13,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_shader_fx.h"
 
 #include "BKE_camera.h"
@@ -600,7 +600,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   }
 
   if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
-    gpIterPopulateData iter = {0};
+    gpIterPopulateData iter = {nullptr};
     iter.ob = ob;
     iter.pd = pd;
     iter.tgp_ob = gpencil_object_cache_add(pd, ob);

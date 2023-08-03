@@ -20,7 +20,7 @@
 #include "BKE_customdata.h"
 #include "BKE_key.h"
 #include "BKE_mesh.hh"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
 #include "MEM_guardedalloc.h"
@@ -1803,7 +1803,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
                                         const SubdivToMeshSettings *mesh_settings,
                                         const Mesh *coarse_mesh)
 {
-  SubdivForeachTaskContext ctx = {0};
+  SubdivForeachTaskContext ctx = {nullptr};
   ctx.coarse_mesh = coarse_mesh;
   ctx.coarse_edges = coarse_mesh->edges();
   ctx.coarse_faces = coarse_mesh->faces();

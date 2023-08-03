@@ -1565,20 +1565,20 @@ void BKE_pchan_bbone_segments_cache_copy(bPoseChannel *pchan, bPoseChannel *pcha
   }
 }
 
-void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
-                                          float pos,
-                                          int *r_index,
-                                          float *r_blend_next)
+void BKE_pchan_bbone_deform_clamp_segment_index(const bPoseChannel *pchan,
+                                                float head_tail,
+                                                int *r_index,
+                                                float *r_blend_next)
 {
   int segments = pchan->bone->segments;
 
-  CLAMP(pos, 0.0f, 1.0f);
+  CLAMP(head_tail, 0.0f, 1.0f);
 
   /* Calculate the indices of the 2 affecting b_bone segments.
    * Integer part is the first segment's index.
    * Integer part plus 1 is the second segment's index.
    * Fractional part is the blend factor. */
-  float pre_blend = pos * float(segments);
+  float pre_blend = head_tail * float(segments);
 
   int index = int(floorf(pre_blend));
   CLAMP(index, 0, segments - 1);
@@ -1588,6 +1588,22 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
 
   *r_index = index;
   *r_blend_next = blend;
+}
+
+void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
+                                          const float *co,
+                                          int *r_index,
+                                          float *r_blend_next)
+{
+  const Mat4 *mats = pchan->runtime.bbone_deform_mats;
+  const float(*mat)[4] = mats[0].mat;
+
+  /* Transform co to bone space and get its y component. */
+  const float y = mat[0][1] * co[0] + mat[1][1] * co[1] + mat[2][1] * co[2] + mat[3][1];
+
+  /* Calculate the indices of the 2 affecting b_bone segments. */
+  BKE_pchan_bbone_deform_clamp_segment_index(
+      pchan, y / pchan->bone->length, r_index, r_blend_next);
 }
 
 /** \} */
@@ -2197,7 +2213,7 @@ void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float r_m
 
     if (theta <= SAFE_THRESHOLD) {
       /* When nor is close to negative Y axis (0,-1,0) the theta precision is very bad,
-       * so recompute it from x and z instead, using the series expansion for sqrt. */
+       * so recompute it from x and z instead, using the series expansion for `sqrt`. */
       theta = theta_alt * 0.5f + theta_alt * theta_alt * 0.125f;
     }
 

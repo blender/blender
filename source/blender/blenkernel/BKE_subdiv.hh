@@ -11,10 +11,6 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
@@ -22,25 +18,25 @@ struct OpenSubdiv_Evaluator;
 struct OpenSubdiv_TopologyRefiner;
 struct Subdiv;
 
-typedef enum eSubdivVtxBoundaryInterpolation {
+enum eSubdivVtxBoundaryInterpolation {
   /* Do not interpolate boundaries. */
   SUBDIV_VTX_BOUNDARY_NONE,
   /* Sharpen edges. */
   SUBDIV_VTX_BOUNDARY_EDGE_ONLY,
   /* sharpen edges and corners, */
   SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER,
-} eSubdivVtxBoundaryInterpolation;
+};
 
-typedef enum eSubdivFVarLinearInterpolation {
+enum eSubdivFVarLinearInterpolation {
   SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_JUNCTIONS_AND_CONCAVE,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_BOUNDARIES,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL,
-} eSubdivFVarLinearInterpolation;
+};
 
-typedef struct SubdivSettings {
+struct SubdivSettings {
   /* Simple subdivision corresponds to "Simple" option in the interface. When it's enabled the
    * subdivided mesh is not "smoothed": new vertices are added uniformly on the existing surface.
    *
@@ -70,10 +66,10 @@ typedef struct SubdivSettings {
 
   eSubdivVtxBoundaryInterpolation vtx_boundary_interpolation;
   eSubdivFVarLinearInterpolation fvar_linear_interpolation;
-} SubdivSettings;
+};
 
 /* NOTE: Order of enumerators MUST match order of values in SubdivStats. */
-typedef enum eSubdivStatsValue {
+enum eSubdivStatsValue {
   SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME = 0,
   SUBDIV_STATS_SUBDIV_TO_MESH,
   SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY,
@@ -84,9 +80,9 @@ typedef enum eSubdivStatsValue {
   SUBDIV_STATS_TOPOLOGY_COMPARE,
 
   NUM_SUBDIV_STATS_VALUES,
-} eSubdivStatsValue;
+};
 
-typedef struct SubdivStats {
+struct SubdivStats {
   union {
     struct {
       /* Time spent on creating topology refiner, which includes time
@@ -114,16 +110,16 @@ typedef struct SubdivStats {
   /* Per-value timestamp on when corresponding BKE_subdiv_stats_begin() was
    * called. */
   double begin_timestamp_[NUM_SUBDIV_STATS_VALUES];
-} SubdivStats;
+};
 
 /* Functor which evaluates displacement at a given (u, v) of given ptex face. */
-typedef struct SubdivDisplacement {
+struct SubdivDisplacement {
   /* Initialize displacement evaluator.
    *
    * Is called right before evaluation is actually needed. This allows to do
    * some lazy initialization, like allocate evaluator from a main thread but
    * then do actual evaluation from background job. */
-  void (*initialize)(struct SubdivDisplacement *displacement);
+  void (*initialize)(SubdivDisplacement *displacement);
 
   /* Return displacement which is to be added to the original coordinate.
    *
@@ -135,7 +131,7 @@ typedef struct SubdivDisplacement {
    *
    * Averaging of displacement for vertices created for over coarse vertices
    * and edges is done by subdiv code. */
-  void (*eval_displacement)(struct SubdivDisplacement *displacement,
+  void (*eval_displacement)(SubdivDisplacement *displacement,
                             int ptex_face_index,
                             float u,
                             float v,
@@ -144,17 +140,17 @@ typedef struct SubdivDisplacement {
                             float r_D[3]);
 
   /* Free the data, not the evaluator itself. */
-  void (*free)(struct SubdivDisplacement *displacement);
+  void (*free)(SubdivDisplacement *displacement);
 
   void *user_data;
-} SubdivDisplacement;
+};
 
 /* This structure contains everything needed to construct subdivided surface.
  * It does not specify storage, memory layout or anything else.
  * It is possible to create different storage's (like, grid based CPU side
  * buffers, GPU subdivision mesh, CPU side fully qualified mesh) from the same
  * Subdiv structure. */
-typedef struct Subdiv {
+struct Subdiv {
   /* Settings this subdivision surface is created for.
    *
    * It is read-only after assignment in BKE_subdiv_new_from_FOO(). */
@@ -162,11 +158,11 @@ typedef struct Subdiv {
   /* Topology refiner includes all the glue logic to feed Blender side
    * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh
    * drawer. */
-  struct OpenSubdiv_TopologyRefiner *topology_refiner;
+  OpenSubdiv_TopologyRefiner *topology_refiner;
   /* CPU side evaluator. */
-  struct OpenSubdiv_Evaluator *evaluator;
+  OpenSubdiv_Evaluator *evaluator;
   /* Optional displacement evaluator. */
-  struct SubdivDisplacement *displacement_evaluator;
+  SubdivDisplacement *displacement_evaluator;
   /* Statistics for debugging. */
   SubdivStats stats;
 
@@ -185,15 +181,15 @@ typedef struct Subdiv {
      */
     int *face_ptex_offset;
   } cache_;
-} Subdiv;
+};
 
 /* --------------------------------------------------------------------
  * Module.
  */
 
 /* (De)initialize the entire subdivision surface module. */
-void BKE_subdiv_init(void);
-void BKE_subdiv_exit(void);
+void BKE_subdiv_init();
+void BKE_subdiv_exit();
 
 /* --------------------------------------------------------------------
  * Conversion helpers.
@@ -309,8 +305,4 @@ BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
 /* Convert Blender edge crease value to OpenSubdiv sharpness. */
 BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease);
 
-#ifdef __cplusplus
-}
-#endif
-
-#include "intern/subdiv_inline.h"
+#include "intern/subdiv_inline.hh"

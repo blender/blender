@@ -21,7 +21,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

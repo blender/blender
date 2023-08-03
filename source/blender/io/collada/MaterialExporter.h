@@ -36,7 +36,7 @@ class MaterialsExporter : COLLADASW::LibraryMaterials {
   BCExportSettings &export_settings;
 };
 
-// used in forEachMaterialInScene
+/* Used in `forEachMaterialInScene`. */
 template<class Functor> class ForEachMaterialFunctor {
   std::vector<std::string>
       mMat; /* contains list of material names, to avoid duplicate calling of f */

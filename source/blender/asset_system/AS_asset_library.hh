@@ -228,7 +228,7 @@ std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRe
  *         r_library_path. If \a bmain wasn't saved into a file yet, the return value will be
  *         false.
  */
-std::string AS_asset_library_find_suitable_root_path_from_main(const struct Main *bmain);
+std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain);
 
 blender::asset_system::AssetCatalogService *AS_asset_library_get_catalog_service(
     const ::AssetLibrary *library);

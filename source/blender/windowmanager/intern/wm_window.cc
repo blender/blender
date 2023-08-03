@@ -483,7 +483,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     /* this is set to 1 if you don't have startup.blend open */
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
-      char str[sizeof(((Main *)nullptr)->filepath) + 24];
+      char str[sizeof(Main::filepath) + 24];
       SNPRINTF(str,
                "Blender%s [%s%s]",
                wm->file_saved ? "" : "*",
@@ -1975,8 +1975,7 @@ void WM_event_timers_free_all(wmWindowManager *wm)
 {
   BLI_assert_msg(BLI_listbase_is_empty(&wm->windows),
                  "This should only be called when freeing the window-manager");
-  wmTimer *timer;
-  while ((timer = static_cast<wmTimer *>(BLI_pophead(&wm->timers)))) {
+  while (wmTimer *timer = static_cast<wmTimer *>(BLI_pophead(&wm->timers))) {
     WM_event_timer_free_data(timer);
     MEM_freeN(timer);
   }

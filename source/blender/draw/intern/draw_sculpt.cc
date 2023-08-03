@@ -11,8 +11,10 @@
 #include "draw_attributes.hh"
 #include "draw_pbvh.h"
 
-#include "BKE_paint.h"
+#include "BKE_mesh_types.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
+
 #include "DRW_pbvh.hh"
 
 namespace blender::draw {

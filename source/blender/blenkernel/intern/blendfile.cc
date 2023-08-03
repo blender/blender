@@ -1526,10 +1526,8 @@ bool BKE_blendfile_write_partial(Main *bmain_src,
   set_listbasepointers(bmain_src, lbarray_dst);
   a = set_listbasepointers(bmain_dst, lbarray_src);
   while (a--) {
-    ID *id;
     ListBase *lb_dst = lbarray_dst[a], *lb_src = lbarray_src[a];
-
-    while ((id = static_cast<ID *>(BLI_pophead(lb_src)))) {
+    while (ID *id = static_cast<ID *>(BLI_pophead(lb_src))) {
       BLI_addtail(lb_dst, id);
       id_sort_by_name(lb_dst, id, nullptr);
     }

@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -831,7 +831,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   short *totcol = BKE_object_material_len_p(ob);
-  if (totcol == 0) {
+  if (totcol == nullptr) {
     return OPERATOR_CANCELLED;
   }
 

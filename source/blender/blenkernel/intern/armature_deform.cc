@@ -36,7 +36,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DEG_depsgraph_build.h"
 
@@ -106,15 +106,11 @@ static void b_bone_deform(const bPoseChannel *pchan,
 {
   const DualQuat *quats = pchan->runtime.bbone_dual_quats;
   const Mat4 *mats = pchan->runtime.bbone_deform_mats;
-  const float(*mat)[4] = mats[0].mat;
-  float blend, y;
+  float blend;
   int index;
 
-  /* Transform co to bone space and get its y component. */
-  y = mat[0][1] * co[0] + mat[1][1] * co[1] + mat[2][1] * co[2] + mat[3][1];
-
   /* Calculate the indices of the 2 affecting b_bone segments. */
-  BKE_pchan_bbone_deform_segment_index(pchan, y / pchan->bone->length, &index, &blend);
+  BKE_pchan_bbone_deform_segment_index(pchan, co, &index, &blend);
 
   pchan_deform_accumulate(
       &quats[index], mats[index + 1].mat, co, weight * (1.0f - blend), vec, dq, defmat);

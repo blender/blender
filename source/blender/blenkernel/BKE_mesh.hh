@@ -11,6 +11,7 @@
 #include "BLI_index_mask.hh"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_types.hh"
 
 namespace blender::bke {
 namespace mesh {

@@ -13,6 +13,9 @@
 #  define UINT_MAX 0xFFFFFFFFu
 #endif
 #define NAN_FLT uintBitsToFloat(0x7FC00000u)
+#define FLT_11_MAX uintBitsToFloat(0x477E0000)
+#define FLT_10_MAX uintBitsToFloat(0x477C0000)
+#define FLT_11_11_10_MAX vec3(FLT_11_MAX, FLT_11_MAX, FLT_10_MAX)
 
 #define UNPACK2(a) (a)[0], (a)[1]
 #define UNPACK3(a) (a)[0], (a)[1], (a)[2]

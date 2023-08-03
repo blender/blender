@@ -22,7 +22,7 @@ namespace blender::io::gpencil {
 class GpencilExporterPDF : public GpencilExporter {
 
  public:
-  GpencilExporterPDF(const char *filepath, const struct GpencilIOParams *iparams);
+  GpencilExporterPDF(const char *filepath, const GpencilIOParams *iparams);
   bool new_document();
   bool add_newpage();
   bool add_body();

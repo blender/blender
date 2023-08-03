@@ -251,7 +251,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject * /*self*/, PyObject *args, P
       "O!" /* `options` */
       ":subscribe_rna",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -276,9 +276,9 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject * /*self*/, PyObject *args, P
   /* NOTE: we may want to have a way to pass this in. */
   bContext *C = BPY_context_get();
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  wmMsgParams_RNA msg_key_params = {{0}};
+  wmMsgParams_RNA msg_key_params = {{nullptr}};
 
-  wmMsgSubscribeValue msg_val_params = {0};
+  wmMsgSubscribeValue msg_val_params = {nullptr};
 
   if (py_msgbus_rna_key_from_py(py_sub, &msg_key_params, error_prefix) == -1) {
     return nullptr;
@@ -347,7 +347,7 @@ static PyObject *bpy_msgbus_publish_rna(PyObject * /*self*/, PyObject *args, PyO
       "O" /* `key` */
       ":publish_rna",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &py_sub)) {
     return nullptr;
@@ -356,7 +356,7 @@ static PyObject *bpy_msgbus_publish_rna(PyObject * /*self*/, PyObject *args, PyO
   /* NOTE: we may want to have a way to pass this in. */
   bContext *C = BPY_context_get();
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  wmMsgParams_RNA msg_key_params = {{0}};
+  wmMsgParams_RNA msg_key_params = {{nullptr}};
 
   if (py_msgbus_rna_key_from_py(py_sub, &msg_key_params, error_prefix) == -1) {
     return nullptr;

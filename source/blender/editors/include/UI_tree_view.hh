@@ -243,7 +243,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   void ensure_parents_uncollapsed();
 
  private:
-  static void tree_row_click_fn(struct bContext *, void *, void *);
+  static void tree_row_click_fn(bContext *, void *, void *);
   static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
   static bool is_collapse_chevron_but(const uiBut *but);
 
@@ -301,7 +301,7 @@ class BasicTreeViewItem : public AbstractTreeViewItem {
   IsActiveFn is_active_fn_;
 
  private:
-  static void tree_row_click_fn(struct bContext *C, void *arg1, void *arg2);
+  static void tree_row_click_fn(bContext *C, void *arg1, void *arg2);
 
   std::optional<bool> should_be_active() const override;
   void on_activate(bContext &C) override;

@@ -182,7 +182,7 @@ static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  SeqRenderData context = {0};
+  SeqRenderData context = {nullptr};
 
   /* Taking rectx and recty as 0 as dimensions not known here, and context is used to calculate
    * hash key but not necessary as other variables of SeqRenderData are unique enough. */

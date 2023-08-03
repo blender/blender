@@ -21,7 +21,7 @@ namespace blender::io::gpencil {
 class GpencilExporterSVG : public GpencilExporter {
 
  public:
-  GpencilExporterSVG(const char *filepath, const struct GpencilIOParams *iparams);
+  GpencilExporterSVG(const char *filepath, const GpencilIOParams *iparams);
   bool add_newpage();
   bool add_body();
   bool write();
@@ -74,8 +74,8 @@ class GpencilExporterSVG : public GpencilExporter {
    * \param node_gpl: Node of the layer.
    * \param do_fill: True if the stroke is only fill
    */
-  void export_stroke_to_path(struct bGPDlayer *gpl,
-                             struct bGPDstroke *gps,
+  void export_stroke_to_path(bGPDlayer *gpl,
+                             bGPDstroke *gps,
                              pugi::xml_node node_gpl,
                              bool do_fill);
 
@@ -84,21 +84,15 @@ class GpencilExporterSVG : public GpencilExporter {
    * \param node_gpl: Node of the layer.
    * \param do_fill: True if the stroke is only fill
    */
-  void export_stroke_to_polyline(struct bGPDlayer *gpl,
-                                 struct bGPDstroke *gps,
-                                 pugi::xml_node node_gpl,
-                                 bool is_stroke,
-                                 bool do_fill);
+  void export_stroke_to_polyline(
+      bGPDlayer *gpl, bGPDstroke *gps, pugi::xml_node node_gpl, bool is_stroke, bool do_fill);
 
   /**
    * Set color SVG string for stroke
    * \param node_gps: Stroke node.
    * \param do_fill: True if the stroke is only fill.
    */
-  void color_string_set(struct bGPDlayer *gpl,
-                        struct bGPDstroke *gps,
-                        pugi::xml_node node_gps,
-                        bool do_fill);
+  void color_string_set(bGPDlayer *gpl, bGPDstroke *gps, pugi::xml_node node_gps, bool do_fill);
 
   /** Convert a color to Hex value (#FFFFFF). */
   std::string rgb_to_hexstr(const float color[3]);

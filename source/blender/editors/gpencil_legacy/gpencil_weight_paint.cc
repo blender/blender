@@ -23,7 +23,7 @@
 #include "DNA_gpencil_modifier_types.h"
 
 #include "BKE_action.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"

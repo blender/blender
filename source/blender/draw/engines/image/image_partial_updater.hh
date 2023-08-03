@@ -12,8 +12,8 @@
 #include "BKE_image_partial_update.hh"
 
 struct PartialImageUpdater {
-  struct PartialUpdateUser *user;
-  const struct Image *image;
+  PartialUpdateUser *user;
+  const Image *image;
 
   /**
    * \brief Ensure that there is a partial update user for the given image.

@@ -21,16 +21,16 @@ namespace blender::draw {
 /* Initialize the vertex format to be used for UVs. Return true if any UV layer is
  * found, false otherwise. */
 static bool mesh_extract_uv_format_init(GPUVertFormat *format,
-                                        MeshBatchCache *cache,
+                                        MeshBatchCache &cache,
                                         CustomData *cd_ldata,
                                         eMRExtractType extract_type,
                                         uint32_t &r_uv_layers)
 {
   GPU_vertformat_deinterleave(format);
 
-  uint32_t uv_layers = cache->cd_used.uv;
+  uint32_t uv_layers = cache.cd_used.uv;
   /* HACK to fix #68857 */
-  if (extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
+  if (extract_type == MR_EXTRACT_BMESH && cache.cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
     if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
       uv_layers |= (1 << layer);
@@ -73,19 +73,18 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
   return true;
 }
 
-static void extract_uv_init(const MeshRenderData *mr,
-                            MeshBatchCache *cache,
+static void extract_uv_init(const MeshRenderData &mr,
+                            MeshBatchCache &cache,
                             void *buf,
                             void * /*tls_data*/)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
 
-  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata :
-                                                                  &mr->me->loop_data;
-  int v_len = mr->loop_len;
-  uint32_t uv_layers = cache->cd_used.uv;
-  if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr->extract_type, uv_layers)) {
+  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata : &mr.me->loop_data;
+  int v_len = mr.loop_len;
+  uint32_t uv_layers = cache.cd_used.uv;
+  if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr.extract_type, uv_layers)) {
     /* VBO will not be used, only allocate minimum of memory. */
     v_len = 1;
   }
@@ -98,11 +97,11 @@ static void extract_uv_init(const MeshRenderData *mr,
   int vbo_index = 0;
   for (const int i : IndexRange(MAX_MTFACE)) {
     if (uv_layers & (1 << i)) {
-      if (mr->extract_type == MR_EXTRACT_BMESH) {
+      if (mr.extract_type == MR_EXTRACT_BMESH) {
         int cd_ofs = CustomData_get_n_offset(cd_ldata, CD_PROP_FLOAT2, i);
         BMIter f_iter;
         BMFace *efa;
-        BM_ITER_MESH (efa, &f_iter, mr->bm, BM_FACES_OF_MESH) {
+        BM_ITER_MESH (efa, &f_iter, mr.bm, BM_FACES_OF_MESH) {
           BMLoop *l_iter, *l_first;
           l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
           do {
@@ -114,25 +113,25 @@ static void extract_uv_init(const MeshRenderData *mr,
       else {
         const Span<float2> uv_map(
             static_cast<const float2 *>(CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i)),
-            mr->loop_len);
-        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr->loop_len));
-        vbo_index += mr->loop_len;
+            mr.loop_len);
+        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr.loop_len));
+        vbo_index += mr.loop_len;
       }
     }
   }
 }
 
-static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                   const MeshRenderData * /*mr*/,
-                                   MeshBatchCache *cache,
+static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
+                                   const MeshRenderData & /*mr*/,
+                                   MeshBatchCache &cache,
                                    void *buffer,
                                    void * /*data*/)
 {
-  Mesh *coarse_mesh = subdiv_cache->mesh;
+  Mesh *coarse_mesh = subdiv_cache.mesh;
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
   GPUVertFormat format = {0};
 
-  uint v_len = subdiv_cache->num_subdiv_loops;
+  uint v_len = subdiv_cache.num_subdiv_loops;
   uint uv_layers;
   if (!mesh_extract_uv_format_init(
           &format, cache, &coarse_mesh->loop_data, MR_EXTRACT_MESH, uv_layers))
@@ -151,7 +150,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
   int pack_layer_index = 0;
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (uv_layers & (1 << i)) {
-      const int offset = int(subdiv_cache->num_subdiv_loops) * pack_layer_index++;
+      const int offset = int(subdiv_cache.num_subdiv_loops) * pack_layer_index++;
       draw_subdiv_extract_uvs(subdiv_cache, vbo, i, offset);
     }
   }

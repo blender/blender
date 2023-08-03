@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BLI_compiler_compat.h"
 #include "BLI_math.h"

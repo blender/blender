@@ -150,8 +150,7 @@ struct BPyPropStore {
   } py_data;
 };
 
-#define BPY_PROP_STORE_PY_DATA_SIZE \
-  (sizeof(((BPyPropStore *)nullptr)->py_data) / sizeof(PyObject *))
+#define BPY_PROP_STORE_PY_DATA_SIZE (sizeof(BPyPropStore::py_data) / sizeof(PyObject *))
 
 #define ASSIGN_PYOBJECT_INCREF(a, b) \
   { \
@@ -1610,7 +1609,7 @@ static bool bpy_prop_string_visit_fn_call(PyObject *py_func,
         "s" /* `info` */
         ":search",
         _keywords,
-        0,
+        nullptr,
     };
     if (!_PyArg_ParseTupleAndKeywordsFast(item, nullptr, &_parser, &text, &info)) {
       PyC_Err_PrintWithFunc(py_func);
@@ -2855,7 +2854,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O"  /* `set` */
       ":BoolProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3015,7 +3014,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
       "O"  /* `set` */
       ":BoolVectorProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3209,7 +3208,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O"  /* `set` */
       ":IntProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3380,7 +3379,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
       "O"  /* `set` */
       ":IntVectorProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3578,7 +3577,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O"  /* `set` */
       ":FloatProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3763,7 +3762,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
       "O"  /* `set` */
       ":FloatVectorProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -3968,7 +3967,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
       "O&" /* `search_options` */
       ":StringProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -4170,7 +4169,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O"  /* `set` */
       ":EnumProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -4396,7 +4395,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O"  /* `update` */
       ":PointerProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -4536,7 +4535,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
       "O&" /* `tags` */
       ":CollectionProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
@@ -4646,7 +4645,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
       "s" /* `attr` */
       ":RemoveProperty",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &id)) {
     return nullptr;

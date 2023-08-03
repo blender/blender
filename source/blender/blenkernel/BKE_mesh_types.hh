@@ -8,20 +8,18 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
+#include <mutex>
 
-#  include <mutex>
+#include "BLI_array.hh"
+#include "BLI_bit_vector.hh"
+#include "BLI_bounds_types.hh"
+#include "BLI_implicit_sharing.hh"
+#include "BLI_math_vector_types.hh"
+#include "BLI_shared_cache.hh"
+#include "BLI_vector.hh"
 
-#  include "BLI_array.hh"
-#  include "BLI_bit_vector.hh"
-#  include "BLI_bounds_types.hh"
-#  include "BLI_implicit_sharing.hh"
-#  include "BLI_math_vector_types.hh"
-#  include "BLI_shared_cache.hh"
-#  include "BLI_vector.hh"
-
-#  include "DNA_customdata_types.h"
-#  include "DNA_meshdata_types.h"
+#include "DNA_customdata_types.h"
+#include "DNA_meshdata_types.h"
 
 struct BVHCache;
 struct Mesh;
@@ -33,36 +31,15 @@ namespace blender::bke {
 struct EditMeshData;
 }
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef enum eMeshBatchDirtyMode {
-  BKE_MESH_BATCH_DIRTY_ALL = 0,
-  BKE_MESH_BATCH_DIRTY_SELECT,
-  BKE_MESH_BATCH_DIRTY_SELECT_PAINT,
-  BKE_MESH_BATCH_DIRTY_SHADING,
-  BKE_MESH_BATCH_DIRTY_UVEDIT_ALL,
-  BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT,
-} eMeshBatchDirtyMode;
-
 /** #MeshRuntime.wrapper_type */
-typedef enum eMeshWrapperType {
+enum eMeshWrapperType {
   /** Use mesh data (#Mesh.vert_positions(), #Mesh.medge, #Mesh.corner_verts(), #Mesh.faces()). */
   ME_WRAPPER_TYPE_MDATA = 0,
   /** Use edit-mesh data (#Mesh.edit_mesh, #MeshRuntime.edit_data). */
   ME_WRAPPER_TYPE_BMESH = 1,
   /** Use subdivision mesh data (#MeshRuntime.mesh_eval). */
   ME_WRAPPER_TYPE_SUBD = 2,
-} eMeshWrapperType;
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
+};
 
 namespace blender::bke {
 
@@ -200,5 +177,3 @@ struct MeshRuntime {
 };
 
 }  // namespace blender::bke
-
-#endif

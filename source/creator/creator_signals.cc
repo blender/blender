@@ -12,7 +12,7 @@
 #    ifndef _GNU_SOURCE
 #      define _GNU_SOURCE
 #    endif
-#    include <fenv.h>
+#    include <cfenv>
 #  endif
 
 #  if (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
@@ -25,9 +25,9 @@
 #    include <windows.h>
 #  endif
 
-#  include <errno.h>
-#  include <stdlib.h>
-#  include <string.h>
+#  include <cerrno>
+#  include <cstdlib>
+#  include <cstring>
 
 #  include "BLI_sys_types.h"
 
@@ -47,7 +47,7 @@
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
-#  include <signal.h>
+#  include <csignal>
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h" /* BPY_python_backtrace */
@@ -216,7 +216,7 @@ static void sig_handle_abort(int /*signum*/)
   BKE_tempdir_session_purge();
 }
 
-void main_signal_setup(void)
+void main_signal_setup()
 {
   if (app_state.signal.use_crash_handler) {
 #  ifdef WIN32
@@ -238,7 +238,7 @@ void main_signal_setup(void)
   }
 }
 
-void main_signal_setup_background(void)
+void main_signal_setup_background()
 {
   /* for all platforms, even windows has it! */
   BLI_assert(G.background);
@@ -248,7 +248,7 @@ void main_signal_setup_background(void)
   signal(SIGINT, sig_handle_blender_esc);
 }
 
-void main_signal_setup_fpe(void)
+void main_signal_setup_fpe()
 {
 #  if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
   /* zealous but makes float issues a heck of a lot easier to find!

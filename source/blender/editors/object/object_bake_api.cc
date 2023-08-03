@@ -34,7 +34,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.hh"
 #include "BKE_object.h"

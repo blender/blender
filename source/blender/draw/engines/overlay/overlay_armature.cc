@@ -1157,6 +1157,8 @@ static void get_pchan_color_wire(const ThemeWireColor *bcolor,
 {
   const bool draw_active = boneflag & BONE_DRAW_ACTIVE;
   const bool draw_selected = boneflag & BONE_SELECTED;
+  const bool is_edit = draw_mode == ARM_DRAW_MODE_EDIT;
+  float4 wire_color;
 
   if (bcolor) {
     if (draw_active && draw_selected) {
@@ -1174,19 +1176,19 @@ static void get_pchan_color_wire(const ThemeWireColor *bcolor,
   }
   else {
     if (draw_active && draw_selected) {
-      copy_v4_v4(r_color, G_draw.block.color_bone_pose_active);
+      wire_color = is_edit ? G_draw.block.color_bone_active : G_draw.block.color_bone_pose_active;
     }
     else if (draw_active) {
-      copy_v4_v4(r_color, G_draw.block.color_bone_pose_active_unsel);
+      wire_color = is_edit ? G_draw.block.color_bone_active_unsel :
+                             G_draw.block.color_bone_pose_active_unsel;
     }
     else if (draw_selected) {
-      copy_v4_v4(r_color, G_draw.block.color_bone_pose);
+      wire_color = is_edit ? G_draw.block.color_bone_select : G_draw.block.color_bone_pose;
     }
     else {
-      const auto wire_color = (draw_mode == ARM_DRAW_MODE_EDIT) ? G_draw.block.color_wire_edit :
-                                                                  G_draw.block.color_wire;
-      copy_v4_v4(r_color, wire_color);
+      wire_color = is_edit ? G_draw.block.color_wire_edit : G_draw.block.color_wire;
     }
+    copy_v4_v4(r_color, wire_color);
   }
 }
 

@@ -19,7 +19,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "RNA_access.h"

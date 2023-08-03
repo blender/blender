@@ -32,7 +32,9 @@ class Sampling {
   static constexpr uint64_t infinite_sample_count_ = 0xFFFFFFu;
   /* During interactive rendering, loop over the first few samples. */
   static constexpr uint64_t interactive_sample_aa_ = 8;
-  static constexpr uint64_t interactive_sample_max_ = interactive_sample_aa_;
+  static constexpr uint64_t interactive_sample_raytrace_ = 32;
+  static constexpr uint64_t interactive_sample_max_ = interactive_sample_aa_ *
+                                                      interactive_sample_raytrace_;
 
   /** 0 based current sample. Might not increase sequentially in viewport. */
   uint64_t sample_ = 0;

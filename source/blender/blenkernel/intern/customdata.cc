@@ -48,10 +48,10 @@
 #include "BKE_customdata_file.h"
 #include "BKE_deform.h"
 #include "BKE_main.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_remap.h"
-#include "BKE_multires.h"
-#include "BKE_subsurf.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_remap.hh"
+#include "BKE_multires.hh"
+#include "BKE_subsurf.hh"
 
 #include "BLO_read_write.h"
 
@@ -3504,7 +3504,6 @@ void CustomData_swap_corners(CustomData *data, const int index, const int *corne
     }
   }
 }
-
 
 void *CustomData_get_for_write(CustomData *data,
                                const int index,

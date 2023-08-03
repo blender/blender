@@ -29,7 +29,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
@@ -38,7 +38,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 
 #include "NOD_texture.h"

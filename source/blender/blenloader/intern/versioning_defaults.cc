@@ -41,7 +41,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
@@ -56,7 +56,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 

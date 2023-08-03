@@ -12,7 +12,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 

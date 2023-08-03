@@ -398,9 +398,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 
 void WM_operator_stack_clear(wmWindowManager *wm)
 {
-  wmOperator *op;
-
-  while ((op = static_cast<wmOperator *>(BLI_pophead(&wm->operators)))) {
+  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&wm->operators))) {
     WM_operator_free(op);
   }
 
@@ -573,20 +571,17 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   wm_xr_exit(wm);
 #endif
 
-  wmWindow *win;
-  while ((win = static_cast<wmWindow *>(BLI_pophead(&wm->windows)))) {
+  while (wmWindow *win = static_cast<wmWindow *>(BLI_pophead(&wm->windows))) {
     /* Prevent draw clear to use screen. */
     BKE_workspace_active_set(win->workspace_hook, nullptr);
     wm_window_free(C, wm, win);
   }
 
-  wmOperator *op;
-  while ((op = static_cast<wmOperator *>(BLI_pophead(&wm->operators)))) {
+  while (wmOperator *op = static_cast<wmOperator *>(BLI_pophead(&wm->operators))) {
     WM_operator_free(op);
   }
 
-  wmKeyConfig *keyconf;
-  while ((keyconf = static_cast<wmKeyConfig *>(BLI_pophead(&wm->keyconfigs)))) {
+  while (wmKeyConfig *keyconf = static_cast<wmKeyConfig *>(BLI_pophead(&wm->keyconfigs))) {
     WM_keyconfig_free(keyconf);
   }
 

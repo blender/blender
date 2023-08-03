@@ -44,7 +44,7 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject * /*type*/, PyObject *args,
       "&O" /* `seq` */
       ":IndexBuf.__new__",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, PyC_ParseStringEnum, &prim_type, &seq)) {

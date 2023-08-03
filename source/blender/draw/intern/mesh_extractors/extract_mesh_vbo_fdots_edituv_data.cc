@@ -21,8 +21,8 @@ struct MeshExtract_EditUVFdotData_Data {
   BMUVOffsets offsets;
 };
 
-static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
-                                           MeshBatchCache * /*cache*/,
+static void extract_fdots_edituv_data_init(const MeshRenderData &mr,
+                                           MeshBatchCache & /*cache*/,
                                            void *buf,
                                            void *tls_data)
 {
@@ -33,14 +33,14 @@ static void extract_fdots_edituv_data_init(const MeshRenderData *mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr->face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.face_len);
 
   MeshExtract_EditUVFdotData_Data *data = static_cast<MeshExtract_EditUVFdotData_Data *>(tls_data);
   data->vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
-  data->offsets = BM_uv_map_get_offsets(mr->bm);
+  data->offsets = BM_uv_map_get_offsets(mr.bm);
 }
 
-static void extract_fdots_edituv_data_iter_face_bm(const MeshRenderData *mr,
+static void extract_fdots_edituv_data_iter_face_bm(const MeshRenderData &mr,
                                                    const BMFace *f,
                                                    const int /*f_index*/,
                                                    void *_data)
@@ -51,7 +51,7 @@ static void extract_fdots_edituv_data_iter_face_bm(const MeshRenderData *mr,
   mesh_render_data_face_flag(mr, f, data->offsets, eldata);
 }
 
-static void extract_fdots_edituv_data_iter_face_mesh(const MeshRenderData *mr,
+static void extract_fdots_edituv_data_iter_face_mesh(const MeshRenderData &mr,
                                                      const int face_index,
                                                      void *_data)
 {

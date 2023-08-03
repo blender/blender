@@ -21,14 +21,14 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_ccg.h"
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
@@ -591,7 +591,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
 static ListBase *cloth_brush_collider_cache_create(Object *object, Depsgraph *depsgraph)
 {
   ListBase *cache = nullptr;
-  DEGObjectIterSettings deg_iter_settings = {0};
+  DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                             DEG_ITER_OBJECT_FLAG_DUPLI;
@@ -803,7 +803,7 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
 {
 
   AutomaskingCache *automasking = SCULPT_automasking_active_cache_get(ss);
-  AutomaskingNodeData automask_data = {0};
+  AutomaskingNodeData automask_data = {nullptr};
 
   automask_data.have_orig_data = true;
 

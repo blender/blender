@@ -16,13 +16,13 @@
 #include "DEG_depsgraph.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_paint.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"

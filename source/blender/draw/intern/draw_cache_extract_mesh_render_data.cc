@@ -11,15 +11,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
-#include "BLI_math.h"
-#include "BLI_task.h"
+#include "BLI_enumerable_thread_specific.hh"
+#include "BLI_task.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 
 #include "GPU_batch.h"
 
@@ -43,10 +42,10 @@ static void extract_set_bits(const blender::BitSpan bits, blender::MutableSpan<i
   BLI_assert(count == indices.size());
 }
 
-static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_loose_geom_mesh(const MeshRenderData &mr, MeshBufferCache &cache)
 {
   using namespace blender;
-  const Mesh &mesh = *mr->me;
+  const Mesh &mesh = *mr.me;
   const bool no_loose_vert_hint = mesh.runtime->loose_verts_cache.is_cached() &&
                                   mesh.runtime->loose_verts_cache.data().count == 0;
   const bool no_loose_edge_hint = mesh.runtime->loose_edges_cache.is_cached() &&
@@ -56,105 +55,105 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
       [&]() {
         const bke::LooseEdgeCache &loose_edges = mesh.loose_edges();
         if (loose_edges.count > 0) {
-          cache->loose_geom.edges.reinitialize(loose_edges.count);
-          extract_set_bits(loose_edges.is_loose_bits, cache->loose_geom.edges);
+          cache.loose_geom.edges.reinitialize(loose_edges.count);
+          extract_set_bits(loose_edges.is_loose_bits, cache.loose_geom.edges);
         }
       },
       [&]() {
         const bke::LooseVertCache &loose_verts = mesh.loose_verts();
         if (loose_verts.count > 0) {
-          cache->loose_geom.verts.reinitialize(loose_verts.count);
-          extract_set_bits(loose_verts.is_loose_bits, cache->loose_geom.verts);
+          cache.loose_geom.verts.reinitialize(loose_verts.count);
+          extract_set_bits(loose_verts.is_loose_bits, cache.loose_geom.verts);
         }
       });
 }
 
-static void mesh_render_data_loose_verts_bm(const MeshRenderData *mr,
-                                            MeshBufferCache *cache,
-                                            BMesh *bm)
+static void mesh_render_data_loose_verts_bm(const MeshRenderData &mr,
+                                            MeshBufferCache &cache,
+                                            BMesh &bm)
 {
   using namespace blender;
   int i;
   BMIter iter;
   BMVert *vert;
   int count = 0;
-  Array<int> loose_verts(mr->vert_len);
-  BM_ITER_MESH_INDEX (vert, &iter, bm, BM_VERTS_OF_MESH, i) {
+  Array<int> loose_verts(mr.vert_len);
+  BM_ITER_MESH_INDEX (vert, &iter, &bm, BM_VERTS_OF_MESH, i) {
     if (vert->e == nullptr) {
       loose_verts[count] = i;
       count++;
     }
   }
-  if (count < mr->vert_len) {
-    cache->loose_geom.verts = loose_verts.as_span().take_front(count);
+  if (count < mr.vert_len) {
+    cache.loose_geom.verts = loose_verts.as_span().take_front(count);
   }
   else {
-    cache->loose_geom.verts = std::move(loose_verts);
+    cache.loose_geom.verts = std::move(loose_verts);
   }
 }
 
-static void mesh_render_data_loose_edges_bm(const MeshRenderData *mr,
-                                            MeshBufferCache *cache,
-                                            BMesh *bm)
+static void mesh_render_data_loose_edges_bm(const MeshRenderData &mr,
+                                            MeshBufferCache &cache,
+                                            BMesh &bm)
 {
   using namespace blender;
   int i;
   BMIter iter;
   BMEdge *edge;
   int count = 0;
-  Array<int> loose_edges(mr->edge_len);
-  BM_ITER_MESH_INDEX (edge, &iter, bm, BM_EDGES_OF_MESH, i) {
+  Array<int> loose_edges(mr.edge_len);
+  BM_ITER_MESH_INDEX (edge, &iter, &bm, BM_EDGES_OF_MESH, i) {
     if (edge->l == nullptr) {
       loose_edges[count] = i;
       count++;
     }
   }
-  if (count < mr->edge_len) {
-    cache->loose_geom.edges = loose_edges.as_span().take_front(count);
+  if (count < mr.edge_len) {
+    cache.loose_geom.edges = loose_edges.as_span().take_front(count);
   }
   else {
-    cache->loose_geom.edges = std::move(loose_edges);
+    cache.loose_geom.edges = std::move(loose_edges);
   }
 }
 
-static void mesh_render_data_loose_geom_build(const MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_loose_geom_build(const MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if (mr->extract_type != MR_EXTRACT_BMESH) {
+  if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     mesh_render_data_loose_geom_mesh(mr, cache);
   }
   else {
     /* #BMesh */
-    BMesh *bm = mr->bm;
+    BMesh &bm = *mr.bm;
     mesh_render_data_loose_verts_bm(mr, cache, bm);
     mesh_render_data_loose_edges_bm(mr, cache, bm);
   }
 }
 
-static void mesh_render_data_loose_geom_ensure(const MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_loose_geom_ensure(const MeshRenderData &mr, MeshBufferCache &cache)
 {
   /* Early exit: Are loose geometry already available.
    * Only checking for loose verts as loose edges and verts are calculated at the same time. */
-  if (!cache->loose_geom.verts.is_empty()) {
+  if (!cache.loose_geom.verts.is_empty()) {
     return;
   }
   mesh_render_data_loose_geom_build(mr, cache);
 }
 
-void mesh_render_data_update_loose_geom(MeshRenderData *mr,
-                                        MeshBufferCache *cache,
+void mesh_render_data_update_loose_geom(MeshRenderData &mr,
+                                        MeshBufferCache &cache,
                                         const eMRIterType iter_type,
                                         const eMRDataType data_flag)
 {
   if ((iter_type & (MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT)) || (data_flag & MR_DATA_LOOSE_GEOM))
   {
     mesh_render_data_loose_geom_ensure(mr, cache);
-    mr->loose_edges = cache->loose_geom.edges;
-    mr->loose_verts = cache->loose_geom.verts;
-    mr->vert_loose_len = cache->loose_geom.verts.size();
-    mr->edge_loose_len = cache->loose_geom.edges.size();
+    mr.loose_edges = cache.loose_geom.edges;
+    mr.loose_verts = cache.loose_geom.verts;
+    mr.vert_loose_len = cache.loose_geom.verts.size();
+    mr.edge_loose_len = cache.loose_geom.edges.size();
 
-    mr->loop_loose_len = mr->vert_loose_len + (mr->edge_loose_len * 2);
+    mr.loop_loose_len = mr.vert_loose_len + (mr.edge_loose_len * 2);
   }
 }
 
@@ -166,105 +165,104 @@ void mesh_render_data_update_loose_geom(MeshRenderData *mr,
  * Contains face indices sorted based on their material.
  * \{ */
 
-static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
-                                                     const int iter,
-                                                     const TaskParallelTLS *__restrict tls)
-{
-  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
-  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
+namespace blender::draw {
 
-  BMesh *bm = mr->bm;
-  BMFace *efa = BM_face_at_index(bm, iter);
-  if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-    int mat = clamp_i(efa->mat_nr, 0, mr->mat_len - 1);
-    mat_tri_len[mat] += efa->len - 2;
-  }
+static void accumululate_material_counts_bm(
+    const BMesh &bm, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
+{
+  threading::parallel_for(IndexRange(bm.totface), 1024, [&](const IndexRange range) {
+    Array<int> &tri_counts = all_tri_counts.local();
+    const short last_index = tri_counts.size() - 1;
+    for (const int i : range) {
+      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), i);
+      if (!BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
+        const short mat = std::clamp<short>(face.mat_nr, 0, last_index);
+        tri_counts[mat] += face.len - 2;
+      }
+    }
+  });
 }
 
-static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata,
-                                                       const int iter,
-                                                       const TaskParallelTLS *__restrict tls)
+static void accumululate_material_counts_mesh(
+    const MeshRenderData &mr, threading::EnumerableThreadSpecific<Array<int>> &all_tri_counts)
 {
-  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
-  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
-
-  if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[iter])) {
-    const int mat = mr->material_indices ?
-                        clamp_i(mr->material_indices[iter], 0, mr->mat_len - 1) :
-                        0;
-    mat_tri_len[mat] += mr->faces[iter].size() - 2;
+  if (!mr.material_indices) {
+    all_tri_counts.local().first() = poly_to_tri_count(mr.face_len, mr.loop_len);
+    return;
   }
-}
 
-static void mesh_render_data_mat_tri_len_reduce_fn(const void *__restrict userdata,
-                                                   void *__restrict chunk_join,
-                                                   void *__restrict chunk)
-{
-  const MeshRenderData *mr = static_cast<const MeshRenderData *>(userdata);
-  int *dst_mat_len = static_cast<int *>(chunk_join);
-  int *src_mat_len = static_cast<int *>(chunk);
-  for (int i = 0; i < mr->mat_len; i++) {
-    dst_mat_len[i] += src_mat_len[i];
-  }
-}
-
-static void mesh_render_data_mat_tri_len_build_threaded(MeshRenderData *mr,
-                                                        int face_len,
-                                                        TaskParallelRangeFunc range_func,
-                                                        blender::MutableSpan<int> mat_tri_len)
-{
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-  settings.userdata_chunk = mat_tri_len.data();
-  settings.userdata_chunk_size = mat_tri_len.as_span().size_in_bytes();
-  settings.min_iter_per_thread = MIN_RANGE_LEN;
-  settings.func_reduce = mesh_render_data_mat_tri_len_reduce_fn;
-  BLI_task_parallel_range(0, face_len, mr, range_func, &settings);
+  const OffsetIndices faces = mr.faces;
+  const Span material_indices(mr.material_indices, mr.face_len);
+  threading::parallel_for(material_indices.index_range(), 1024, [&](const IndexRange range) {
+    Array<int> &tri_counts = all_tri_counts.local();
+    const int last_index = tri_counts.size() - 1;
+    if (mr.use_hide && mr.hide_poly) {
+      for (const int i : range) {
+        if (!mr.hide_poly[i]) {
+          const int mat = std::clamp(material_indices[i], 0, last_index);
+          tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+        }
+      }
+    }
+    else {
+      for (const int i : range) {
+        const int mat = std::clamp(material_indices[i], 0, last_index);
+        tri_counts[mat] += ME_FACE_TRI_TOT(faces[i].size());
+      }
+    }
+  });
 }
 
 /* Count how many triangles for each material. */
-static blender::Array<int> mesh_render_data_mat_tri_len_build(MeshRenderData *mr)
+static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
 {
-  blender::Array<int> mat_tri_len(mr->mat_len, 0);
-  if (mr->extract_type == MR_EXTRACT_BMESH) {
-    BMesh *bm = mr->bm;
-    mesh_render_data_mat_tri_len_build_threaded(
-        mr, bm->totface, mesh_render_data_mat_tri_len_bm_range_fn, mat_tri_len);
+  threading::EnumerableThreadSpecific<Array<int>> all_tri_counts(
+      [&]() { return Array<int>(mr.mat_len, 0); });
+
+  if (mr.extract_type == MR_EXTRACT_BMESH) {
+    accumululate_material_counts_bm(*mr.bm, all_tri_counts);
   }
   else {
-    mesh_render_data_mat_tri_len_build_threaded(
-        mr, mr->face_len, mesh_render_data_mat_tri_len_mesh_range_fn, mat_tri_len);
+    accumululate_material_counts_mesh(mr, all_tri_counts);
   }
-  return mat_tri_len;
+
+  Array<int> &mat_tri_len = all_tri_counts.local();
+  for (const Array<int> &counts : all_tri_counts) {
+    if (&counts != &mat_tri_len) {
+      for (const int i : mat_tri_len.index_range()) {
+        mat_tri_len[i] += counts[i];
+      }
+    }
+  }
+  return std::move(mat_tri_len);
 }
 
-static void mesh_render_data_faces_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  using namespace blender;
-  cache->face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
-  const Span<int> mat_tri_len = cache->face_sorted.mat_tri_len;
+  cache.face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
+  const Span<int> mat_tri_len = cache.face_sorted.mat_tri_len;
 
   /* Apply offset. */
   int visible_tri_len = 0;
-  blender::Array<int, 32> mat_tri_offs(mr->mat_len);
+  Array<int, 32> mat_tri_offs(mr.mat_len);
   {
-    for (int i = 0; i < mr->mat_len; i++) {
+    for (int i = 0; i < mr.mat_len; i++) {
       mat_tri_offs[i] = visible_tri_len;
       visible_tri_len += mat_tri_len[i];
     }
   }
-  cache->face_sorted.visible_tri_len = visible_tri_len;
+  cache.face_sorted.visible_tri_len = visible_tri_len;
 
-  cache->face_sorted.tri_first_index.reinitialize(mr->face_len);
-  MutableSpan<int> tri_first_index = cache->face_sorted.tri_first_index;
+  cache.face_sorted.tri_first_index.reinitialize(mr.face_len);
+  MutableSpan<int> tri_first_index = cache.face_sorted.tri_first_index;
 
   /* Sort per material. */
-  int mat_last = mr->mat_len - 1;
-  if (mr->extract_type == MR_EXTRACT_BMESH) {
+  int mat_last = mr.mat_len - 1;
+  if (mr.extract_type == MR_EXTRACT_BMESH) {
     BMIter iter;
     BMFace *f;
     int i;
-    BM_ITER_MESH_INDEX (f, &iter, mr->bm, BM_FACES_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (f, &iter, mr.bm, BM_FACES_OF_MESH, i) {
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         const int mat = clamp_i(f->mat_nr, 0, mat_last);
         tri_first_index[i] = mat_tri_offs[mat];
@@ -276,11 +274,11 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData *mr, MeshBufferCa
     }
   }
   else {
-    for (int i = 0; i < mr->face_len; i++) {
-      if (!(mr->use_hide && mr->hide_poly && mr->hide_poly[i])) {
-        const int mat = mr->material_indices ? clamp_i(mr->material_indices[i], 0, mat_last) : 0;
+    for (int i = 0; i < mr.face_len; i++) {
+      if (!(mr.use_hide && mr.hide_poly && mr.hide_poly[i])) {
+        const int mat = mr.material_indices ? clamp_i(mr.material_indices[i], 0, mat_last) : 0;
         tri_first_index[i] = mat_tri_offs[mat];
-        mat_tri_offs[mat] += mr->faces[i].size() - 2;
+        mat_tri_offs[mat] += mr.faces[i].size() - 2;
       }
       else {
         tri_first_index[i] = -1;
@@ -289,21 +287,23 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData *mr, MeshBufferCa
   }
 }
 
-static void mesh_render_data_faces_sorted_ensure(MeshRenderData *mr, MeshBufferCache *cache)
+static void mesh_render_data_faces_sorted_ensure(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if (!cache->face_sorted.tri_first_index.is_empty()) {
+  if (!cache.face_sorted.tri_first_index.is_empty()) {
     return;
   }
   mesh_render_data_faces_sorted_build(mr, cache);
 }
 
-void mesh_render_data_update_faces_sorted(MeshRenderData *mr,
-                                          MeshBufferCache *cache,
+}  // namespace blender::draw
+
+void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
+                                          MeshBufferCache &cache,
                                           const eMRDataType data_flag)
 {
   if (data_flag & MR_DATA_POLYS_SORTED) {
-    mesh_render_data_faces_sorted_ensure(mr, cache);
-    mr->face_sorted = &cache->face_sorted;
+    blender::draw::mesh_render_data_faces_sorted_ensure(mr, cache);
+    mr.face_sorted = &cache.face_sorted;
   }
 }
 
@@ -313,59 +313,59 @@ void mesh_render_data_update_faces_sorted(MeshRenderData *mr,
 /** \name Mesh/BMesh Interface (indirect, partially cached access to complex data).
  * \{ */
 
-void mesh_render_data_update_looptris(MeshRenderData *mr,
+void mesh_render_data_update_looptris(MeshRenderData &mr,
                                       const eMRIterType iter_type,
                                       const eMRDataType data_flag)
 {
-  if (mr->extract_type != MR_EXTRACT_BMESH) {
+  if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
-      mr->looptris = mr->me->looptris();
-      mr->looptri_faces = mr->me->looptri_faces();
+      mr.looptris = mr.me->looptris();
+      mr.looptri_faces = mr.me->looptri_faces();
     }
   }
   else {
     /* #BMesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       /* Edit mode ensures this is valid, no need to calculate. */
-      BLI_assert((mr->bm->totloop == 0) || (mr->edit_bmesh->looptris != nullptr));
+      BLI_assert((mr.bm->totloop == 0) || (mr.edit_bmesh->looptris != nullptr));
     }
   }
 }
 
-void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_flag)
+void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_flag)
 {
-  Mesh *me = mr->me;
+  Mesh *me = mr.me;
   const bool is_auto_smooth = (me->flag & ME_AUTOSMOOTH) != 0;
   const float split_angle = is_auto_smooth ? me->smoothresh : float(M_PI);
 
-  if (mr->extract_type != MR_EXTRACT_BMESH) {
+  if (mr.extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr->vert_normals = mr->me->vert_normals();
+    mr.vert_normals = mr.me->vert_normals();
     if (data_flag & (MR_DATA_POLY_NOR | MR_DATA_LOOP_NOR | MR_DATA_TAN_LOOP_NOR)) {
-      mr->face_normals = mr->me->face_normals();
+      mr.face_normals = mr.me->face_normals();
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
-      mr->loop_normals.reinitialize(mr->corner_verts.size());
+      mr.loop_normals.reinitialize(mr.corner_verts.size());
       const blender::short2 *clnors = static_cast<const blender::short2 *>(
-          CustomData_get_layer(&mr->me->loop_data, CD_CUSTOMLOOPNORMAL));
+          CustomData_get_layer(&mr.me->loop_data, CD_CUSTOMLOOPNORMAL));
       const bool *sharp_edges = static_cast<const bool *>(
-          CustomData_get_layer_named(&mr->me->edge_data, CD_PROP_BOOL, "sharp_edge"));
-      blender::bke::mesh::normals_calc_loop(mr->vert_positions,
-                                            mr->edges,
-                                            mr->faces,
-                                            mr->corner_verts,
-                                            mr->corner_edges,
+          CustomData_get_layer_named(&mr.me->edge_data, CD_PROP_BOOL, "sharp_edge"));
+      blender::bke::mesh::normals_calc_loop(mr.vert_positions,
+                                            mr.edges,
+                                            mr.faces,
+                                            mr.corner_verts,
+                                            mr.corner_edges,
                                             {},
-                                            mr->vert_normals,
-                                            mr->face_normals,
+                                            mr.vert_normals,
+                                            mr.face_normals,
                                             sharp_edges,
-                                            mr->sharp_faces,
+                                            mr.sharp_faces,
                                             clnors,
                                             is_auto_smooth,
                                             split_angle,
                                             nullptr,
-                                            mr->loop_normals);
+                                            mr.loop_normals);
     }
   }
   else {
@@ -379,21 +379,21 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       const float(*vert_normals)[3] = nullptr;
       const float(*face_normals)[3] = nullptr;
 
-      if (mr->edit_data && !mr->edit_data->vertexCos.is_empty()) {
-        vert_coords = reinterpret_cast<const float(*)[3]>(mr->bm_vert_coords.data());
-        vert_normals = reinterpret_cast<const float(*)[3]>(mr->bm_vert_normals.data());
-        face_normals = reinterpret_cast<const float(*)[3]>(mr->bm_face_normals.data());
+      if (mr.edit_data && !mr.edit_data->vertexCos.is_empty()) {
+        vert_coords = reinterpret_cast<const float(*)[3]>(mr.bm_vert_coords.data());
+        vert_normals = reinterpret_cast<const float(*)[3]>(mr.bm_vert_normals.data());
+        face_normals = reinterpret_cast<const float(*)[3]>(mr.bm_face_normals.data());
       }
 
-      mr->loop_normals.reinitialize(mr->loop_len);
-      const int clnors_offset = CustomData_get_offset(&mr->bm->ldata, CD_CUSTOMLOOPNORMAL);
-      BM_loops_calc_normal_vcos(mr->bm,
+      mr.loop_normals.reinitialize(mr.loop_len);
+      const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
+      BM_loops_calc_normal_vcos(mr.bm,
                                 vert_coords,
                                 vert_normals,
                                 face_normals,
                                 is_auto_smooth,
                                 split_angle,
-                                reinterpret_cast<float(*)[3]>(mr->loop_normals.data()),
+                                reinterpret_cast<float(*)[3]>(mr.loop_normals.data()),
                                 nullptr,
                                 nullptr,
                                 clnors_offset,

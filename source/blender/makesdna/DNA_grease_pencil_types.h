@@ -492,7 +492,7 @@ typedef struct GreasePencil {
                               const int dst_frame_number,
                               const bool do_instance);
 
-  void remove_frame_at(blender::bke::greasepencil::Layer &layer, int frame_number);
+  bool remove_frame_at(blender::bke::greasepencil::Layer &layer, int frame_number);
 
   void remove_drawing(int index);
 

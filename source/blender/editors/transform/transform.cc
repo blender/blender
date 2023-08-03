@@ -1684,7 +1684,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
           short *snap_flag_ptr;
 
-          wmMsgParams_RNA msg_key_params = {{0}};
+          wmMsgParams_RNA msg_key_params = {{nullptr}};
           RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
 
           if (t->spacetype == SPACE_NODE) {

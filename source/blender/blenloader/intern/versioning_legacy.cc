@@ -57,9 +57,9 @@
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.h"
-#include "BKE_main.h" /* for Main */
-#include "BKE_mesh.h" /* for ME_ defines (patching) */
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_main.h"  /* for Main */
+#include "BKE_mesh.hh" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -414,9 +414,7 @@ static void do_version_free_effect_245(Effect *eff)
 
 static void do_version_free_effects_245(ListBase *lb)
 {
-  Effect *eff;
-
-  while ((eff = static_cast<Effect *>(BLI_pophead(lb)))) {
+  while (Effect *eff = static_cast<Effect *>(BLI_pophead(lb))) {
     do_version_free_effect_245(eff);
   }
 }

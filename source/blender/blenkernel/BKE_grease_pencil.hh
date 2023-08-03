@@ -104,7 +104,7 @@ class Drawing : public ::GreasePencilDrawing {
 
   /**
    * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
-   * modifify this drawings data.
+   * modify this drawings data.
    */
   void add_user() const;
   /**

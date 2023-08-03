@@ -34,7 +34,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"

@@ -37,7 +37,7 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BIF_glutil.h"
 

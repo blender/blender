@@ -5,7 +5,7 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "DNA_mesh_types.h"

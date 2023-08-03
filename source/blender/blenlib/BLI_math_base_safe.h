@@ -7,7 +7,7 @@
 /** \file
  * \ingroup bli
  *
- * This file provides safe alternatives to common math functions like sqrt, powf.
+ * This file provides safe alternatives to common math functions like `sqrt`, `powf`.
  * In this context "safe" means that the output is not NaN if the input is not NaN.
  */
 

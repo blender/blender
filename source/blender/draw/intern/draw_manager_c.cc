@@ -30,15 +30,15 @@
 #include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
-#include "BKE_subdiv_modifier.h"
+#include "BKE_subdiv_modifier.hh"
 #include "BKE_viewer_path.h"
 #include "BKE_volume.h"
 
@@ -997,7 +997,7 @@ void DRW_cache_free_old_batches(Main *bmain)
 
       /* TODO(fclem): This is not optimal since it iter over all dupli instances.
        * In this case only the source object should be tagged. */
-      DEGObjectIterSettings deg_iter_settings = {0};
+      DEGObjectIterSettings deg_iter_settings = {nullptr};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -1718,7 +1718,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
     if (do_populate_loop) {
       DST.dupli_origin = nullptr;
       DST.dupli_origin_data = nullptr;
-      DEGObjectIterSettings deg_iter_settings = {0};
+      DEGObjectIterSettings deg_iter_settings = {nullptr};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       if (v3d->flag2 & V3D_SHOW_VIEWER) {
@@ -1876,7 +1876,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
     return false;
   }
 
-  DEGObjectIterSettings deg_iter_settings = {0};
+  DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2082,7 +2082,7 @@ void DRW_render_object_iter(
                                                0;
   DST.dupli_origin = nullptr;
   DST.dupli_origin_data = nullptr;
-  DEGObjectIterSettings deg_iter_settings = {0};
+  DEGObjectIterSettings deg_iter_settings = {nullptr};
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2241,7 +2241,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
 
     /* Only iterate over objects when overlay uses object data. */
     if (do_populate_loop) {
-      DEGObjectIterSettings deg_iter_settings = {0};
+      DEGObjectIterSettings deg_iter_settings = {nullptr};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -2536,7 +2536,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
       bool filter_exclude = false;
       DST.dupli_origin = nullptr;
       DST.dupli_origin_data = nullptr;
-      DEGObjectIterSettings deg_iter_settings = {0};
+      DEGObjectIterSettings deg_iter_settings = {nullptr};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       if (v3d->flag2 & V3D_SHOW_VIEWER) {
@@ -2713,7 +2713,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
     const int object_type_exclude_viewport = v3d->object_type_exclude_viewport;
     DST.dupli_origin = nullptr;
     DST.dupli_origin_data = nullptr;
-    DEGObjectIterSettings deg_iter_settings = {0};
+    DEGObjectIterSettings deg_iter_settings = {nullptr};
     deg_iter_settings.depsgraph = DST.draw_ctx.depsgraph;
     deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
     if (v3d->flag2 & V3D_SHOW_VIEWER) {
@@ -2815,7 +2815,7 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     }
 
     if (RETOPOLOGY_ENABLED(v3d) && !XRAY_ENABLED(v3d)) {
-      DEGObjectIterSettings deg_iter_settings = {0};
+      DEGObjectIterSettings deg_iter_settings = {nullptr};
       deg_iter_settings.depsgraph = depsgraph;
       deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
       DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
@@ -3242,7 +3242,7 @@ void DRW_gpu_context_create()
   DST.system_gpu_context = WM_system_gpu_context_create();
   WM_system_gpu_context_activate(DST.system_gpu_context);
   /* Be sure to create blender_gpu_context too. */
-  DST.blender_gpu_context = GPU_context_create(0, DST.system_gpu_context);
+  DST.blender_gpu_context = GPU_context_create(nullptr, DST.system_gpu_context);
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }

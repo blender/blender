@@ -2230,7 +2230,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
     BLI_assert(kfe->e);
 
     if (BLI_gset_add(kcd->edgenet.edge_visit, kfe->e)) {
-      kfe_array[i] = is_new_edge ? kfe : 0;
+      kfe_array[i] = is_new_edge ? kfe : nullptr;
       edge_array[i] = kfe->e;
       i += 1;
     }

@@ -43,7 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"

@@ -328,3 +328,122 @@ void spherical_harmonics_pack(SphericalHarmonicL1 sh,
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multiply Add
+ * \{ */
+
+SphericalHarmonicBandL0 spherical_harmonics_L0_madd(SphericalHarmonicBandL0 a,
+                                                    float b,
+                                                    SphericalHarmonicBandL0 c)
+{
+  SphericalHarmonicBandL0 result;
+  result.M0 = a.M0 * b + c.M0;
+  return result;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_L1_madd(SphericalHarmonicBandL1 a,
+                                                    float b,
+                                                    SphericalHarmonicBandL1 c)
+{
+  SphericalHarmonicBandL1 result;
+  result.Mn1 = a.Mn1 * b + c.Mn1;
+  result.M0 = a.M0 * b + c.M0;
+  result.Mp1 = a.Mp1 * b + c.Mp1;
+  return result;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_L2_madd(SphericalHarmonicBandL2 a,
+                                                    float b,
+                                                    SphericalHarmonicBandL2 c)
+{
+  SphericalHarmonicBandL2 result;
+  result.Mn2 = a.Mn2 * b + c.Mn2;
+  result.Mn1 = a.Mn1 * b + c.Mn1;
+  result.M0 = a.M0 * b + c.M0;
+  result.Mp1 = a.Mp1 * b + c.Mp1;
+  result.Mp2 = a.Mp2 * b + c.Mp2;
+  return result;
+}
+
+SphericalHarmonicL0 spherical_harmonics_madd(SphericalHarmonicL0 a, float b, SphericalHarmonicL0 c)
+{
+  SphericalHarmonicL0 result;
+  result.L0 = spherical_harmonics_L0_madd(a.L0, b, c.L0);
+  return result;
+}
+
+SphericalHarmonicL1 spherical_harmonics_madd(SphericalHarmonicL1 a, float b, SphericalHarmonicL1 c)
+{
+  SphericalHarmonicL1 result;
+  result.L0 = spherical_harmonics_L0_madd(a.L0, b, c.L0);
+  result.L1 = spherical_harmonics_L1_madd(a.L1, b, c.L1);
+  return result;
+}
+
+SphericalHarmonicL2 spherical_harmonics_madd(SphericalHarmonicL2 a, float b, SphericalHarmonicL2 c)
+{
+  SphericalHarmonicL2 result;
+  result.L0 = spherical_harmonics_L0_madd(a.L0, b, c.L0);
+  result.L1 = spherical_harmonics_L1_madd(a.L1, b, c.L1);
+  result.L2 = spherical_harmonics_L2_madd(a.L2, b, c.L2);
+  return result;
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Multiply
+ * \{ */
+
+SphericalHarmonicBandL0 spherical_harmonics_L0_mul(SphericalHarmonicBandL0 a, float b)
+{
+  SphericalHarmonicBandL0 result;
+  result.M0 = a.M0 * b;
+  return result;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_L1_mul(SphericalHarmonicBandL1 a, float b)
+{
+  SphericalHarmonicBandL1 result;
+  result.Mn1 = a.Mn1 * b;
+  result.M0 = a.M0 * b;
+  result.Mp1 = a.Mp1 * b;
+  return result;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_L2_mul(SphericalHarmonicBandL2 a, float b)
+{
+  SphericalHarmonicBandL2 result;
+  result.Mn2 = a.Mn2 * b;
+  result.Mn1 = a.Mn1 * b;
+  result.M0 = a.M0 * b;
+  result.Mp1 = a.Mp1 * b;
+  result.Mp2 = a.Mp2 * b;
+  return result;
+}
+
+SphericalHarmonicL0 spherical_harmonics_mul(SphericalHarmonicL0 a, float b)
+{
+  SphericalHarmonicL0 result;
+  result.L0 = spherical_harmonics_L0_mul(a.L0, b);
+  return result;
+}
+
+SphericalHarmonicL1 spherical_harmonics_mul(SphericalHarmonicL1 a, float b)
+{
+  SphericalHarmonicL1 result;
+  result.L0 = spherical_harmonics_L0_mul(a.L0, b);
+  result.L1 = spherical_harmonics_L1_mul(a.L1, b);
+  return result;
+}
+
+SphericalHarmonicL2 spherical_harmonics_mul(SphericalHarmonicL2 a, float b)
+{
+  SphericalHarmonicL2 result;
+  result.L0 = spherical_harmonics_L0_mul(a.L0, b);
+  result.L1 = spherical_harmonics_L1_mul(a.L1, b);
+  result.L2 = spherical_harmonics_L2_mul(a.L2, b);
+  return result;
+}
+
+/** \} */

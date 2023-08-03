@@ -58,7 +58,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"

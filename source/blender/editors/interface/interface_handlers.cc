@@ -36,13 +36,13 @@
 
 #include "BKE_animsys.h"
 #include "BKE_blender_undo.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_curveprofile.h"
 #include "BKE_movieclip.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_tracking.h"
@@ -4701,12 +4701,12 @@ static int ui_do_but_TEX(
     if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN, EVT_PADENTER, EVT_RETKEY) &&
         event->val == KM_PRESS) {
       if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && !UI_but_is_utf8(but)) {
-        /* pass - allow filesel, enter to execute */
+        /* Pass, allow file-selector, enter to execute. */
       }
       else if (ELEM(but->emboss, UI_EMBOSS_NONE, UI_EMBOSS_NONE_OR_STATUS) &&
                ((event->modifier & KM_CTRL) == 0))
       {
-        /* pass */
+        /* Pass. */
       }
       else {
         if (!ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {

@@ -9,7 +9,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "WM_toolsystem.h"
 

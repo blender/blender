@@ -20,7 +20,7 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_editmesh.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 

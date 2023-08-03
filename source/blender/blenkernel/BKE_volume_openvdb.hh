@@ -29,11 +29,11 @@ bool BKE_volume_grid_bounds(openvdb::GridBase::ConstPtr grid,
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform);
 
-openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const struct VolumeGrid *grid);
-openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume *volume,
-                                                             const struct VolumeGrid *grid);
-openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *volume,
-                                                         struct VolumeGrid *grid,
+openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_metadata(const VolumeGrid *grid);
+openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const Volume *volume,
+                                                             const VolumeGrid *grid);
+openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const Volume *volume,
+                                                         VolumeGrid *grid,
                                                          bool clear);
 
 void BKE_volume_grid_clear_tree(Volume &volume, VolumeGrid &volume_grid);

@@ -29,8 +29,8 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_legacy_convert.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_legacy_convert.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
@@ -623,14 +623,14 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
                         reinterpret_cast<const float(*)[3]>(positions.data()),
                         reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data()),
                         mface,
-                        0,
-                        0,
+                        nullptr,
+                        nullptr,
                         pa->fuv,
                         co,
                         nor,
-                        0,
-                        0,
-                        0);
+                        nullptr,
+                        nullptr,
+                        nullptr);
 
   normalize_v3(nor);
   negate_v3(nor);
@@ -893,15 +893,15 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   Mesh *final_mesh = sim->psmd->mesh_final;
   Object *ob = sim->ob;
   ParticleSystem *psys = sim->psys;
-  ParticleData *pa = 0, *tpars = 0;
+  ParticleData *pa = nullptr, *tpars = nullptr;
   ParticleSettings *part;
-  ParticleSeam *seams = 0;
-  KDTree_3d *tree = 0;
+  ParticleSeam *seams = nullptr;
+  KDTree_3d *tree = nullptr;
   Mesh *mesh = nullptr;
   float *jit = nullptr;
   int i, p = 0;
   int cfrom = 0;
-  int totelem = 0, totpart, *particle_element = 0, children = 0, totseam = 0;
+  int totelem = 0, totpart, *particle_element = nullptr, children = 0, totseam = 0;
   int jitlevel = 1, distr;
   float *element_weight = nullptr, *jitter_offset = nullptr, *vweight = nullptr;
   float cur, maxweight = 0.0, tweight, totweight, inv_totweight, co[3], nor[3], orco[3];
@@ -983,8 +983,17 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     tree = BLI_kdtree_3d_new(totpart);
 
     for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
-      psys_particle_on_dm(
-          mesh, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, nor, 0, 0, orco);
+      psys_particle_on_dm(mesh,
+                          part->from,
+                          pa->num,
+                          pa->num_dmcache,
+                          pa->fuv,
+                          pa->foffset,
+                          co,
+                          nor,
+                          nullptr,
+                          nullptr,
+                          orco);
       BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco, 1, 1);
       BLI_kdtree_3d_insert(tree, p, orco);
     }

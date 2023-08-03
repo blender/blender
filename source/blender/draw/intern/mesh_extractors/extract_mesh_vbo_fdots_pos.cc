@@ -36,20 +36,20 @@ static GPUVertFormat *get_fdots_nor_format_subdiv()
   return &format;
 }
 
-static void extract_fdots_pos_init(const MeshRenderData *mr,
-                                   MeshBatchCache * /*cache*/,
+static void extract_fdots_pos_init(const MeshRenderData &mr,
+                                   MeshBatchCache & /*cache*/,
                                    void *buf,
                                    void *tls_data)
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat *format = get_fdots_pos_format();
   GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr->face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.face_len);
   void *vbo_data = GPU_vertbuf_get_data(vbo);
   *(float(**)[3])tls_data = static_cast<float(*)[3]>(vbo_data);
 }
 
-static void extract_fdots_pos_iter_face_bm(const MeshRenderData *mr,
+static void extract_fdots_pos_iter_face_bm(const MeshRenderData &mr,
                                            const BMFace *f,
                                            const int f_index,
                                            void *data)
@@ -67,7 +67,7 @@ static void extract_fdots_pos_iter_face_bm(const MeshRenderData *mr,
   mul_v3_fl(co, 1.0f / float(f->len));
 }
 
-static void extract_fdots_pos_iter_face_mesh(const MeshRenderData *mr,
+static void extract_fdots_pos_iter_face_mesh(const MeshRenderData &mr,
                                              const int face_index,
                                              void *data)
 {
@@ -75,45 +75,45 @@ static void extract_fdots_pos_iter_face_mesh(const MeshRenderData *mr,
   float *co = center[face_index];
   zero_v3(co);
 
-  const BitSpan facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
+  const BitSpan facedot_tags = mr.me->runtime->subsurf_face_dot_tags;
 
-  for (const int ml_index : mr->faces[face_index]) {
-    const int vert = mr->corner_verts[ml_index];
-    if (mr->use_subsurf_fdots) {
+  for (const int ml_index : mr.faces[face_index]) {
+    const int vert = mr.corner_verts[ml_index];
+    if (mr.use_subsurf_fdots) {
       if (facedot_tags[vert]) {
-        copy_v3_v3(center[face_index], mr->vert_positions[vert]);
+        copy_v3_v3(center[face_index], mr.vert_positions[vert]);
         break;
       }
     }
     else {
-      add_v3_v3(center[face_index], mr->vert_positions[vert]);
+      add_v3_v3(center[face_index], mr.vert_positions[vert]);
     }
   }
 
-  if (!mr->use_subsurf_fdots) {
-    mul_v3_fl(co, 1.0f / float(mr->faces[face_index].size()));
+  if (!mr.use_subsurf_fdots) {
+    mul_v3_fl(co, 1.0f / float(mr.faces[face_index].size()));
   }
 }
 
-static void extract_fdots_init_subdiv(const DRWSubdivCache *subdiv_cache,
-                                      const MeshRenderData * /*mr*/,
-                                      MeshBatchCache *cache,
+static void extract_fdots_init_subdiv(const DRWSubdivCache &subdiv_cache,
+                                      const MeshRenderData & /*mr*/,
+                                      MeshBatchCache &cache,
                                       void *buffer,
                                       void * /*data*/)
 {
   /* We "extract" positions, normals, and indices at once. */
   GPUVertBuf *fdots_pos_vbo = static_cast<GPUVertBuf *>(buffer);
-  GPUVertBuf *fdots_nor_vbo = cache->final.buff.vbo.fdots_nor;
-  GPUIndexBuf *fdots_pos_ibo = cache->final.buff.ibo.fdots;
+  GPUVertBuf *fdots_nor_vbo = cache.final.buff.vbo.fdots_nor;
+  GPUIndexBuf *fdots_pos_ibo = cache.final.buff.ibo.fdots;
 
   /* The normals may not be requested. */
   if (fdots_nor_vbo) {
     GPU_vertbuf_init_build_on_device(
-        fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache->num_coarse_faces);
+        fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache.num_coarse_faces);
   }
   GPU_vertbuf_init_build_on_device(
-      fdots_pos_vbo, get_fdots_pos_format(), subdiv_cache->num_coarse_faces);
-  GPU_indexbuf_init_build_on_device(fdots_pos_ibo, subdiv_cache->num_coarse_faces);
+      fdots_pos_vbo, get_fdots_pos_format(), subdiv_cache.num_coarse_faces);
+  GPU_indexbuf_init_build_on_device(fdots_pos_ibo, subdiv_cache.num_coarse_faces);
   draw_subdiv_build_fdots_buffers(subdiv_cache, fdots_pos_vbo, fdots_nor_vbo, fdots_pos_ibo);
 }
 

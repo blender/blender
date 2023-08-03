@@ -23,7 +23,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_main.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 
 #include "BLO_readfile.h" /* for UserDef version patching. */
 

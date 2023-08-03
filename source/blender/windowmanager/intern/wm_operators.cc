@@ -46,7 +46,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"

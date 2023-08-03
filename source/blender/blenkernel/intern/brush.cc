@@ -22,7 +22,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_bpath.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_gpencil_legacy.h"
@@ -33,7 +33,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_texture.h"
 
 #include "IMB_colormanagement.h"

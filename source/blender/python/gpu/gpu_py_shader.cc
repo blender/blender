@@ -104,7 +104,7 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, P
     const char *libcode;
     const char *defines;
     const char *name;
-  } params = {0};
+  } params = {nullptr};
 
   static const char *_keywords[] = {
       "vertexcode", "fragcode", "geocode", "libcode", "defines", "name", nullptr};
@@ -118,7 +118,7 @@ static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, P
       "s"  /* `name` */
       ":GPUShader.__new__",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
@@ -886,7 +886,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject * /*self*/, PyObject *args, 
       "O&" /* `config` */
       ":from_builtin",
       _keywords,
-      0,
+      nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,

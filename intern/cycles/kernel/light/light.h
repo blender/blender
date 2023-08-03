@@ -79,6 +79,13 @@ ccl_device_inline bool light_link_object_match(KernelGlobals kg,
     return true;
   }
 
+  /* Emitter is OBJECT_NONE when the emitter is a world volume.
+   * It is not explicitly linkable to any object, so assume it is coming from the default light
+   * set which affects all objects in the scene. */
+  if (object_emitter == OBJECT_NONE) {
+    return true;
+  }
+
   const uint64_t set_membership = kernel_data_fetch(objects, object_emitter).light_set_membership;
   const uint receiver_set = (object_receiver != OBJECT_NONE) ?
                                 kernel_data_fetch(objects, object_receiver).receiver_light_set :

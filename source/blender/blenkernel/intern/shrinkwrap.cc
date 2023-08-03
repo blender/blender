@@ -35,9 +35,9 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh" /* for OMP limits. */
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_wrapper.h"
-#include "BKE_subsurf.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph_query.h"
 

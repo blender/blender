@@ -1,5 +1,5 @@
 
-// clang-format off
+/* clang-format off */
 #ifndef GPU_METAL
 bool is_integer(bool v) { return true; }
 #endif
@@ -78,7 +78,7 @@ uint to_type(mat3x4 v) { return TEST_TYPE_MAT3X4; }
 uint to_type(mat4x2 v) { return TEST_TYPE_MAT4X2; }
 uint to_type(mat4x3 v) { return TEST_TYPE_MAT4X3; }
 uint to_type(mat4x4 v) { return TEST_TYPE_MAT4X4; }
-// clang-format on
+/* clang-format on */
 
 #define WRITE_MATRIX(v) \
   TestOutputRawData raw; \
@@ -113,7 +113,7 @@ uint to_type(mat4x4 v) { return TEST_TYPE_MAT4X4; }
   raw.data[0] = uint(v); \
   return raw;
 
-// clang-format off
+/* clang-format off */
 #ifndef GPU_METAL
 TestOutputRawData as_raw_data(bool v) { WRITE_INT_SCALAR(v); }
 #endif
@@ -138,7 +138,7 @@ TestOutputRawData as_raw_data(mat3x4 v) { WRITE_MATRIX(v); }
 TestOutputRawData as_raw_data(mat4x2 v) { WRITE_MATRIX(v); }
 TestOutputRawData as_raw_data(mat4x3 v) { WRITE_MATRIX(v); }
 TestOutputRawData as_raw_data(mat4x4 v) { WRITE_MATRIX(v); }
-// clang-format on
+/* clang-format on */
 
 int g_test_id = 0;
 

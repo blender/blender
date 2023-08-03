@@ -221,8 +221,7 @@ static void apply_dash_for_frame(
       }
     }
   }
-  bGPDstroke *gps_dash;
-  while ((gps_dash = static_cast<bGPDstroke *>(BLI_pophead(&result)))) {
+  while (bGPDstroke *gps_dash = static_cast<bGPDstroke *>(BLI_pophead(&result))) {
     BLI_addtail(&gpf->strokes, gps_dash);
     BKE_gpencil_stroke_geometry_update(gpd, gps_dash);
   }
