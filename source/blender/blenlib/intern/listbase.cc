@@ -660,6 +660,22 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
   return nullptr;
 }
 
+void *BLI_listbase_findafter_string_ptr(Link *link, const char *id, const int offset)
+{
+  const char *id_iter;
+
+  for (link = link->next; link; link = link->next) {
+    /* exact copy of BLI_findstring(), except for this line */
+    id_iter = *((const char **)(((const char *)link) + offset));
+
+    if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
+      return link;
+    }
+  }
+
+  return nullptr;
+}
+
 void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 {
   LISTBASE_FOREACH (Link *, link, listbase) {

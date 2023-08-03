@@ -323,6 +323,19 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
 
         for coll_ in root_collection.children_recursive:
             liboverride_systemoverrideonly_hierarchy_validate(coll_, root_collection)
+            if coll_.override_library:
+                for op in coll_.override_library.properties:
+                    for opop in op.operations:
+                        assert 'IDPOINTER_ITEM_USE_ID' in opop.flag
+                        print(
+                            coll_,
+                            opop.flag,
+                            opop.subitem_reference_name,
+                            opop.subitem_reference_id,
+                            opop.subitem_local_name,
+                            opop.subitem_local_id)
+                        assert opop.subitem_reference_id.library is not None
+                        assert opop.subitem_local_id.library is None if coll_.library is None else opop.subitem_local_id.library is not None
         for ob_ in root_collection.all_objects:
             liboverride_systemoverrideonly_hierarchy_validate(ob_, root_collection)
 

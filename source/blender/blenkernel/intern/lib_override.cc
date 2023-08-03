@@ -3752,15 +3752,73 @@ void BKE_lib_override_library_property_delete(IDOverrideLibrary *liboverride,
   lib_override_library_property_delete(liboverride, liboverride_property, true);
 }
 
+static IDOverrideLibraryPropertyOperation *liboverride_opop_find_name_lib_iterative(
+    ListBase *liboverride_operations,
+    const char *subitem_main_name,
+    const char *subitem_other_name,
+    const std::optional<const ID *> &subitem_main_id,
+    const std::optional<const ID *> &subitem_other_id,
+    const size_t offesetof_opop_main_name,
+    const size_t offesetof_opop_other_name,
+    const size_t offesetof_opop_main_id,
+    const size_t offesetof_opop_other_id)
+{
+  const bool do_ids(subitem_main_id);
+  IDOverrideLibraryPropertyOperation *opop;
+  for (opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_findstring_ptr(
+           liboverride_operations, subitem_main_name, int(offesetof_opop_main_name)));
+       opop;
+       opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_findafter_string_ptr(
+           reinterpret_cast<Link *>(opop), subitem_main_name, int(offesetof_opop_main_name))))
+  {
+    const char *opop_other_name = *reinterpret_cast<const char **>(reinterpret_cast<char *>(opop) +
+                                                                   offesetof_opop_other_name);
+    const bool opop_use_id = (opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_ITEM_USE_ID) != 0;
+
+    if (do_ids && opop_use_id) {
+      /* Skip if ID pointers are expected valid and they do not exactly match. */
+      const ID *opop_main_id = *reinterpret_cast<const ID **>(reinterpret_cast<char *>(opop) +
+                                                              offesetof_opop_main_id);
+      if (*subitem_main_id != opop_main_id) {
+        continue;
+      }
+      const ID *opop_other_id = *reinterpret_cast<const ID **>(reinterpret_cast<char *>(opop) +
+                                                               offesetof_opop_other_id);
+      if (*subitem_other_id != opop_other_id) {
+        continue;
+      }
+    }
+
+    /* Only check other name if ID handling is matching between given search parameters and
+     * current liboverride operation (i.e. if both have valid ID pointers, or both have none). */
+    if ((do_ids && opop_use_id) || (!do_ids && !opop_use_id)) {
+      if (!subitem_other_name && !opop_other_name) {
+        return opop;
+      }
+      if (subitem_other_name && opop_other_name && STREQ(subitem_other_name, opop_other_name)) {
+        return opop;
+      }
+    }
+
+    /* No exact match found, keep cheking the rest of the list of operations. */
+  }
+
+  return nullptr;
+}
+
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     IDOverrideLibraryProperty *liboverride_property,
     const char *subitem_refname,
     const char *subitem_locname,
+    const std::optional<const ID *> &subitem_refid,
+    const std::optional<const ID *> &subitem_locid,
     const int subitem_refindex,
     const int subitem_locindex,
     const bool strict,
     bool *r_strict)
 {
+  BLI_assert(!subitem_refid == !subitem_locid);
+
   IDOverrideLibraryPropertyOperation *opop;
   const int subitem_defindex = -1;
 
@@ -3769,41 +3827,37 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
   }
 
   if (subitem_locname != nullptr) {
-    opop = static_cast<IDOverrideLibraryPropertyOperation *>(
-        BLI_findstring_ptr(&liboverride_property->operations,
-                           subitem_locname,
-                           offsetof(IDOverrideLibraryPropertyOperation, subitem_local_name)));
+    opop = liboverride_opop_find_name_lib_iterative(
+        &liboverride_property->operations,
+        subitem_locname,
+        subitem_refname,
+        subitem_locid,
+        subitem_refid,
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_local_name),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_name),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_local_id),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_id));
 
-    if (opop == nullptr) {
-      return nullptr;
+    if (opop != nullptr) {
+      return opop;
     }
-
-    if (subitem_refname == nullptr || opop->subitem_reference_name == nullptr) {
-      return subitem_refname == opop->subitem_reference_name ? opop : nullptr;
-    }
-    return (subitem_refname != nullptr && opop->subitem_reference_name != nullptr &&
-            STREQ(subitem_refname, opop->subitem_reference_name)) ?
-               opop :
-               nullptr;
   }
 
   if (subitem_refname != nullptr) {
-    opop = static_cast<IDOverrideLibraryPropertyOperation *>(
-        BLI_findstring_ptr(&liboverride_property->operations,
-                           subitem_refname,
-                           offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_name)));
+    opop = liboverride_opop_find_name_lib_iterative(
+        &liboverride_property->operations,
+        subitem_refname,
+        subitem_locname,
+        subitem_refid,
+        subitem_locid,
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_name),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_local_name),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_reference_id),
+        offsetof(IDOverrideLibraryPropertyOperation, subitem_local_id));
 
-    if (opop == nullptr) {
-      return nullptr;
+    if (opop != nullptr) {
+      return opop;
     }
-
-    if (subitem_locname == nullptr || opop->subitem_local_name == nullptr) {
-      return subitem_locname == opop->subitem_local_name ? opop : nullptr;
-    }
-    return (subitem_locname != nullptr && opop->subitem_local_name != nullptr &&
-            STREQ(subitem_locname, opop->subitem_local_name)) ?
-               opop :
-               nullptr;
   }
 
   if ((opop = static_cast<IDOverrideLibraryPropertyOperation *>(BLI_listbase_bytes_find(
@@ -3847,16 +3901,22 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     const short operation,
     const char *subitem_refname,
     const char *subitem_locname,
+    const std::optional<ID *> &subitem_refid,
+    const std::optional<ID *> &subitem_locid,
     const int subitem_refindex,
     const int subitem_locindex,
     const bool strict,
     bool *r_strict,
     bool *r_created)
 {
+  BLI_assert(!subitem_refid == !subitem_locid);
+
   IDOverrideLibraryPropertyOperation *opop = BKE_lib_override_library_property_operation_find(
       liboverride_property,
       subitem_refname,
       subitem_locname,
+      subitem_refid,
+      subitem_locid,
       subitem_refindex,
       subitem_locindex,
       strict,
@@ -3873,6 +3933,12 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     }
     opop->subitem_local_index = subitem_locindex;
     opop->subitem_reference_index = subitem_refindex;
+
+    if (subitem_refid) {
+      opop->subitem_reference_id = *subitem_refid;
+      opop->subitem_local_id = *subitem_locid;
+      opop->flag |= LIBOVERRIDE_OP_FLAG_IDPOINTER_ITEM_USE_ID;
+    }
 
     BLI_addtail(&liboverride_property->operations, opop);
 
@@ -4816,8 +4882,8 @@ void BKE_lib_override_debug_print(IDOverrideLibrary *liboverride, const char *in
       }
       std::cout << "] ";
       if (opop->subitem_reference_name || opop->subitem_local_name) {
-        std::cout << "(" << opop->subitem_reference_name << " -> " << opop->subitem_local_name
-                  << ")";
+        std::cout << "(" << opop->subitem_reference_name << " <" << opop->subitem_reference_id
+                  << "> -> " << opop->subitem_local_name << " <" << opop->subitem_local_id << ">)";
       }
       else if (opop->subitem_reference_index >= 0 || opop->subitem_local_index >= 0) {
         std::cout << "(" << opop->subitem_reference_index << " -> " << opop->subitem_local_index

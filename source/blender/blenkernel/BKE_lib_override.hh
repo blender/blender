@@ -23,6 +23,8 @@
  *    of IDs in a given Main data-base.
  */
 
+#include <optional>
+
 struct BlendFileReadReport;
 struct Collection;
 struct ID;
@@ -338,11 +340,17 @@ bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
 
 /**
  * Find override property operation from given sub-item(s), if it exists.
+ *
+ * \param subitem_refid:
+ * \param subitem_locid: Only for RNA collections of ID pointers, the ID pointers
+ * referenced by the given names. Note that both must be set, or left unset.
  */
 IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_find(
     IDOverrideLibraryProperty *liboverride_property,
     const char *subitem_refname,
     const char *subitem_locname,
+    const std::optional<const ID *> &subitem_refid,
+    const std::optional<const ID *> &subitem_locid,
     int subitem_refindex,
     int subitem_locindex,
     bool strict,
@@ -355,6 +363,8 @@ IDOverrideLibraryPropertyOperation *BKE_lib_override_library_property_operation_
     short operation,
     const char *subitem_refname,
     const char *subitem_locname,
+    const std::optional<ID *> &subitem_refid,
+    const std::optional<ID *> &subitem_locid,
     int subitem_refindex,
     int subitem_locindex,
     bool strict,

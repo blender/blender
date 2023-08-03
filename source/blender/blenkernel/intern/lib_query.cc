@@ -323,6 +323,14 @@ static bool library_foreach_ID_link(Main *bmain,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
 
       CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
+      LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+        LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+          CALLBACK_INVOKE_ID(opop->subitem_reference_id,
+                             IDWALK_CB_DIRECT_WEAK_LINK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+          CALLBACK_INVOKE_ID(opop->subitem_local_id,
+                             IDWALK_CB_DIRECT_WEAK_LINK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
+        }
+      }
     }
 
     IDP_foreach_property(id->properties,

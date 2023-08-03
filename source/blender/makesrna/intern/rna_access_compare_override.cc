@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <optional>
 
 #include <CLG_log.h>
 
@@ -874,6 +875,8 @@ bool RNA_struct_override_matches(Main *bmain,
                                                                   LIBOVERRIDE_OP_REPLACE,
                                                                   nullptr,
                                                                   nullptr,
+                                                                  {},
+                                                                  {},
                                                                   -1,
                                                                   -1,
                                                                   false,
@@ -1000,10 +1003,91 @@ bool RNA_struct_override_store(Main *bmain,
   return changed;
 }
 
+static bool rna_property_override_collection_subitem_name_id_match(
+    const char *item_name,
+    const int item_name_len,
+    const bool do_id_pointer,
+    const std::optional<ID *> &item_id,
+    PointerRNA *ptr_item_name)
+{
+  BLI_assert(!do_id_pointer || RNA_struct_is_ID(ptr_item_name->type));
+
+  bool is_match = false;
+
+  if (do_id_pointer) {
+    if (*item_id != static_cast<ID *>(ptr_item_name->data)) {
+      /* If the ID pointer does not match, then there is no match, no need to check the
+       * name iteself. */
+      return is_match;
+    }
+  }
+
+  PropertyRNA *nameprop = ptr_item_name->type->nameproperty;
+  char name[256];
+  char *nameptr;
+  int namelen;
+
+  nameptr = RNA_property_string_get_alloc(ptr_item_name, nameprop, name, sizeof(name), &namelen);
+
+  is_match = ((item_name_len == namelen) && STREQ(item_name, nameptr));
+
+  if (UNLIKELY(name != nameptr)) {
+    MEM_freeN(nameptr);
+  }
+
+  return is_match;
+}
+
+static bool rna_property_override_collection_subitem_name_id_lookup(
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *item_name,
+    const int item_name_len,
+    const bool do_id_pointer,
+    const std::optional<ID *> &item_id,
+    PointerRNA *r_ptr_item_name)
+{
+  /* NOTE: This code is very similar to the one from #RNA_property_collection_lookup_string_index,
+   * but it adds an extra early check on matching ID pointer.
+   *
+   * This custom code is needed because otherwise, it is only possible to check the first
+   * name-matched item found by #RNA_property_collection_lookup_string, and not potential other
+   * items having the same name. */
+  if (do_id_pointer) {
+    BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+
+    /* We cannot use a potential `CollectionPropertyRNA->lookupstring` here. */
+    CollectionPropertyIterator iter;
+
+    RNA_property_collection_begin(ptr, prop, &iter);
+    for (; iter.valid; RNA_property_collection_next(&iter)) {
+      if (iter.ptr.data && iter.ptr.type->nameproperty) {
+        if (rna_property_override_collection_subitem_name_id_match(
+                item_name, item_name_len, do_id_pointer, item_id, &iter.ptr))
+        {
+          *r_ptr_item_name = iter.ptr;
+          break;
+        }
+      }
+    }
+    RNA_property_collection_end(&iter);
+
+    if (!iter.valid) {
+      memset(r_ptr_item_name, 0, sizeof(*r_ptr_item_name));
+    }
+
+    return bool(iter.valid);
+  }
+  else {
+    return bool(RNA_property_collection_lookup_string(ptr, prop, item_name, r_ptr_item_name));
+  }
+}
+
 static void rna_property_override_collection_subitem_name_index_lookup(
     PointerRNA *ptr,
     PropertyRNA *prop,
     const char *item_name,
+    const std::optional<ID *> &item_id,
     const int item_index,
     PointerRNA *r_ptr_item_name,
     PointerRNA *r_ptr_item_index)
@@ -1011,21 +1095,23 @@ static void rna_property_override_collection_subitem_name_index_lookup(
   RNA_POINTER_INVALIDATE(r_ptr_item_name);
   RNA_POINTER_INVALIDATE(r_ptr_item_index);
 
+  PointerRNA collection_ptr_type;
+  RNA_property_collection_type_get(ptr, prop, &collection_ptr_type);
+  const bool do_id_pointer = item_id && RNA_struct_is_ID(collection_ptr_type.type);
+
+  const int item_name_len = item_name ? int(strlen(item_name)) : 0;
+
   /* First, lookup by index, but only validate if name also matches (or if there is no given name).
+   *
+   * Note that this is also beneficial on performances (when looking up in big collections), since
+   * typically index lookup will be faster than name lookup.
    */
   if (item_index != -1) {
     if (RNA_property_collection_lookup_int(ptr, prop, item_index, r_ptr_item_index)) {
-      if (item_name != nullptr) {
-        PropertyRNA *nameprop = r_ptr_item_index->type->nameproperty;
-        char name[256], *nameptr;
-        int keylen = int(strlen(item_name));
-        int namelen;
-
-        nameptr = RNA_property_string_get_alloc(
-            r_ptr_item_index, nameprop, name, sizeof(name), &namelen);
-
-        if (keylen == namelen && STREQ(nameptr, item_name)) {
-          /* Index and name both match. */
+      if (item_name) {
+        if (rna_property_override_collection_subitem_name_id_match(
+                item_name, item_name_len, do_id_pointer, item_id, r_ptr_item_index))
+        {
           *r_ptr_item_name = *r_ptr_item_index;
           return;
         }
@@ -1033,18 +1119,20 @@ static void rna_property_override_collection_subitem_name_index_lookup(
     }
   }
 
-  if (item_name == nullptr) {
+  if (!item_name) {
     return;
   }
 
-  /* Then, lookup by name only. */
-  if (RNA_property_collection_lookup_string(ptr, prop, item_name, r_ptr_item_name)) {
+  /* Then, lookup by name (+ id) only. */
+  if (rna_property_override_collection_subitem_name_id_lookup(
+          ptr, prop, item_name, item_name_len, do_id_pointer, item_id, r_ptr_item_name))
+  {
     RNA_POINTER_INVALIDATE(r_ptr_item_index);
     return;
   }
 
-  /* If name lookup failed, `r_ptr_item_name` is invalidated, so if index lookup was successful it
-   * will be the only valid return value. */
+  /* If name (+ id) lookup failed, `r_ptr_item_name` is invalidated, so if index lookup was
+   * successful it will be the only valid return value. */
 }
 
 static void rna_property_override_collection_subitem_lookup(
@@ -1071,6 +1159,13 @@ static void rna_property_override_collection_subitem_lookup(
     return;
   }
 
+  const bool use_id_pointer = (opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_ITEM_USE_ID) != 0;
+  std::optional<ID *> subitem_local_id = use_id_pointer ? std::optional(opop->subitem_local_id) :
+                                                          std::nullopt;
+  std::optional<ID *> subitem_reference_id = use_id_pointer ?
+                                                 std::optional(opop->subitem_reference_id) :
+                                                 std::nullopt;
+
   RNA_POINTER_INVALIDATE(ptr_item_dst);
   RNA_POINTER_INVALIDATE(ptr_item_src);
   if (prop_storage != nullptr) {
@@ -1083,12 +1178,14 @@ static void rna_property_override_collection_subitem_lookup(
   rna_property_override_collection_subitem_name_index_lookup(ptr_src,
                                                              prop_src,
                                                              opop->subitem_local_name,
+                                                             subitem_local_id,
                                                              opop->subitem_local_index,
                                                              &ptr_item_src_name,
                                                              &ptr_item_src_index);
   rna_property_override_collection_subitem_name_index_lookup(ptr_dst,
                                                              prop_dst,
                                                              opop->subitem_reference_name,
+                                                             subitem_reference_id,
                                                              opop->subitem_reference_index,
                                                              &ptr_item_dst_name,
                                                              &ptr_item_dst_index);
@@ -1108,6 +1205,7 @@ static void rna_property_override_collection_subitem_lookup(
         ptr_dst,
         prop_dst,
         opop->subitem_local_name,
+        {},
         opop->subitem_reference_index != -1 ? opop->subitem_reference_index :
                                               opop->subitem_local_index,
         &ptr_item_dst_name,
@@ -1121,6 +1219,7 @@ static void rna_property_override_collection_subitem_lookup(
         ptr_dst,
         prop_dst,
         opop->subitem_local_name,
+        {},
         opop->subitem_reference_index != -1 ? opop->subitem_reference_index :
                                               opop->subitem_local_index,
         &ptr_item_dst_name,
@@ -1130,6 +1229,7 @@ static void rna_property_override_collection_subitem_lookup(
     rna_property_override_collection_subitem_name_index_lookup(ptr_src,
                                                                prop_src,
                                                                opop->subitem_reference_name,
+                                                               {},
                                                                opop->subitem_local_index != -1 ?
                                                                    opop->subitem_local_index :
                                                                    opop->subitem_reference_index,
@@ -1140,6 +1240,7 @@ static void rna_property_override_collection_subitem_lookup(
     rna_property_override_collection_subitem_name_index_lookup(ptr_dst,
                                                                prop_dst,
                                                                nullptr,
+                                                               {},
                                                                opop->subitem_local_index,
                                                                &ptr_item_dst_name,
                                                                &ptr_item_dst_index);
@@ -1148,6 +1249,7 @@ static void rna_property_override_collection_subitem_lookup(
     rna_property_override_collection_subitem_name_index_lookup(ptr_src,
                                                                prop_src,
                                                                nullptr,
+                                                               {},
                                                                opop->subitem_reference_index,
                                                                &ptr_item_src_name,
                                                                &ptr_item_src_index);
@@ -1158,6 +1260,7 @@ static void rna_property_override_collection_subitem_lookup(
     rna_property_override_collection_subitem_name_index_lookup(ptr_storage,
                                                                prop_storage,
                                                                opop->subitem_local_name,
+                                                               subitem_local_id,
                                                                opop->subitem_local_index,
                                                                &ptr_item_storage_name,
                                                                &ptr_item_storage_index);
@@ -1165,6 +1268,7 @@ static void rna_property_override_collection_subitem_lookup(
       rna_property_override_collection_subitem_name_index_lookup(ptr_storage,
                                                                  prop_storage,
                                                                  opop->subitem_reference_name,
+                                                                 subitem_reference_id,
                                                                  opop->subitem_reference_index,
                                                                  &ptr_item_storage_name,
                                                                  &ptr_item_storage_index);
@@ -1173,6 +1277,7 @@ static void rna_property_override_collection_subitem_lookup(
       rna_property_override_collection_subitem_name_index_lookup(ptr_storage,
                                                                  prop_storage,
                                                                  nullptr,
+                                                                 {},
                                                                  opop->subitem_local_index,
                                                                  &ptr_item_storage_name,
                                                                  &ptr_item_storage_index);
@@ -1593,7 +1698,7 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_fin
   }
 
   return BKE_lib_override_library_property_operation_find(
-      op, nullptr, nullptr, index, index, strict, r_strict);
+      op, nullptr, nullptr, {}, {}, index, index, strict, r_strict);
 }
 
 IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get(
@@ -1617,7 +1722,7 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
   }
 
   return BKE_lib_override_library_property_operation_get(
-      op, operation, nullptr, nullptr, index, index, strict, r_strict, r_created);
+      op, operation, nullptr, nullptr, {}, {}, index, index, strict, r_strict, r_created);
 }
 
 eRNAOverrideStatus RNA_property_override_library_status(Main *bmain,

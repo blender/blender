@@ -104,14 +104,14 @@ static const EnumPropertyItem rna_enum_override_library_property_operation_items
      "INSERT_AFTER",
      0,
      "Insert After",
-     "Insert a new item into collection after the one referenced in subitem_reference_name or "
-     "_index"},
+     "Insert a new item into collection after the one referenced in "
+     "subitem_reference_name/_id or _index"},
     {LIBOVERRIDE_OP_INSERT_BEFORE,
      "INSERT_BEFORE",
      0,
      "Insert Before",
-     "Insert a new item into collection before the one referenced in subitem_reference_name or "
-     "_index (NOT USED)"},
+     "Insert a new item into collection before the one referenced in "
+     "subitem_reference_name/_id or _index (NOT USED)"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -931,8 +931,11 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
     IDOverrideLibraryProperty *override_property,
     ReportList *reports,
     int operation,
+    const bool use_id,
     const char *subitem_refname,
     const char *subitem_locname,
+    ID *subitem_refid,
+    ID *subitem_locid,
     int subitem_refindex,
     int subitem_locindex)
 {
@@ -943,6 +946,8 @@ static IDOverrideLibraryPropertyOperation *rna_ID_override_library_property_oper
       operation,
       subitem_refname,
       subitem_locname,
+      use_id ? std::optional(subitem_refid) : std::nullopt,
+      use_id ? std::optional(subitem_locid) : std::nullopt,
       subitem_refindex,
       subitem_locindex,
       false,
@@ -1732,6 +1737,12 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
        0,
        "Match Reference",
        "The ID pointer overridden by this operation is expected to match the reference hierarchy"},
+      {LIBOVERRIDE_OP_FLAG_IDPOINTER_ITEM_USE_ID,
+       "IDPOINTER_ITEM_USE_ID",
+       0,
+       "ID Item Use ID Pointer",
+       "RNA collections of IDs only, the reference to the item also uses the ID pointer itself, "
+       "not only its name"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1758,7 +1769,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
                         nullptr,
                         INT_MAX,
                         "Subitem Reference Name",
-                        "Used to handle insertions into collection");
+                        "Used to handle changes into collection");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
   RNA_def_property_string_funcs(prop,
                                 "rna_ID_override_library_property_operation_refname_get",
@@ -1770,12 +1781,28 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
                         nullptr,
                         INT_MAX,
                         "Subitem Local Name",
-                        "Used to handle insertions into collection");
+                        "Used to handle changes into collection");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
   RNA_def_property_string_funcs(prop,
                                 "rna_ID_override_library_property_operation_locname_get",
                                 "rna_ID_override_library_property_operation_locname_length",
                                 nullptr);
+
+  prop = RNA_def_pointer(srna,
+                         "subitem_reference_id",
+                         "ID",
+                         "Subitem Reference ID",
+                         "Collection of IDs only, used to disambiguate between potential IDs with "
+                         "same name from different libraries");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
+
+  prop = RNA_def_pointer(srna,
+                         "subitem_local_id",
+                         "ID",
+                         "Subitem Local ID",
+                         "Collection of IDs only, used to disambiguate between potential IDs with "
+                         "same name from different libraries");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
 
   prop = RNA_def_int(srna,
                      "subitem_reference_index",
@@ -1783,7 +1810,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
                      -1,
                      INT_MAX,
                      "Subitem Reference Index",
-                     "Used to handle insertions into collection",
+                     "Used to handle changes into collection",
                      -1,
                      INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
@@ -1794,7 +1821,7 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
                      -1,
                      INT_MAX,
                      "Subitem Local Index",
-                     "Used to handle insertions into collection",
+                     "Used to handle changes into collection",
                      -1,
                      INT_MAX);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* For now. */
@@ -1822,25 +1849,41 @@ static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, Pr
                       "Operation",
                       "What override operation is performed");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_boolean(
+      func,
+      "use_id",
+      false,
+      "Use ID Pointer Subitem",
+      "Whether the found or created liboverride operation should use ID pointers or not");
   parm = RNA_def_string(func,
                         "subitem_reference_name",
                         nullptr,
                         INT_MAX,
                         "Subitem Reference Name",
-                        "Used to handle insertions into collection");
+                        "Used to handle insertions or ID replacements into collection");
   parm = RNA_def_string(func,
                         "subitem_local_name",
                         nullptr,
                         INT_MAX,
                         "Subitem Local Name",
-                        "Used to handle insertions into collection");
+                        "Used to handle insertions or ID replacements into collection");
+  parm = RNA_def_pointer(func,
+                         "subitem_reference_id",
+                         "ID",
+                         "Subitem Reference ID",
+                         "Used to handle ID replacements into collection");
+  parm = RNA_def_pointer(func,
+                         "subitem_local_id",
+                         "ID",
+                         "Subitem Local ID",
+                         "Used to handle ID replacements into collection");
   parm = RNA_def_int(func,
                      "subitem_reference_index",
                      -1,
                      -1,
                      INT_MAX,
                      "Subitem Reference Index",
-                     "Used to handle insertions into collection",
+                     "Used to handle insertions or ID replacements into collection",
                      -1,
                      INT_MAX);
   parm = RNA_def_int(func,
@@ -1849,7 +1892,7 @@ static void rna_def_ID_override_library_property_operations(BlenderRNA *brna, Pr
                      -1,
                      INT_MAX,
                      "Subitem Local Index",
-                     "Used to handle insertions into collection",
+                     "Used to handle insertions or ID replacements into collection",
                      -1,
                      INT_MAX);
   parm = RNA_def_pointer(func,
