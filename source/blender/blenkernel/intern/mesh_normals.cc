@@ -89,17 +89,22 @@ static void add_v3_v3_atomic(float r[3], const float a[3])
  * Related to managing normals but not directly related to calculating normals.
  * \{ */
 
-float (*BKE_mesh_vert_normals_for_write(Mesh *mesh))[3]
+namespace blender::bke {
+
+void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals)
 {
-  mesh->runtime->vert_normals.reinitialize(mesh->totvert);
-  return reinterpret_cast<float(*)[3]>(mesh->runtime->vert_normals.data());
+  mesh.runtime->vert_normals.clear();
+  mesh.runtime->vert_normals.extend(vert_normals);
+  mesh.runtime->vert_normals_dirty = false;
 }
 
-void BKE_mesh_vert_normals_clear_dirty(Mesh *mesh)
+void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals)
 {
-  mesh->runtime->vert_normals_dirty = false;
-  BLI_assert(mesh->runtime->vert_normals.size() == mesh->totvert);
+  mesh.runtime->vert_normals = std::move(vert_normals);
+  mesh.runtime->vert_normals_dirty = false;
 }
+
+}  // namespace blender::bke
 
 bool BKE_mesh_vert_normals_are_dirty(const Mesh *mesh)
 {

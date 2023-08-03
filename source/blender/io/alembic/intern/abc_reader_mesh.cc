@@ -174,12 +174,12 @@ void read_mverts(Mesh &mesh, const P3fArraySamplePtr positions, const N3fArraySa
   BKE_mesh_tag_positions_changed(&mesh);
 
   if (normals) {
-    float(*vert_normals)[3] = BKE_mesh_vert_normals_for_write(&mesh);
+    Vector<float3> vert_normals(mesh.totvert);
     for (const int64_t i : IndexRange(normals->size())) {
       Imath::V3f nor_in = (*normals)[i];
       copy_zup_from_yup(vert_normals[i], nor_in.getValue());
     }
-    BKE_mesh_vert_normals_clear_dirty(&mesh);
+    bke::mesh_vert_normals_assign(mesh, std::move(vert_normals));
   }
 }
 
