@@ -51,7 +51,7 @@ void main()
   vec2 uv = (vec2(texel) + 0.5) / render_size;
   float depth = texelFetch(depth_tx, texel, 0).r;
   vec4 motion = velocity_resolve(imageLoad(velocity_img, texel), uv, depth);
-#ifdef FLATTEN_VIEWPORT
+#ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */
   motion = motion.xyxy;
 #endif

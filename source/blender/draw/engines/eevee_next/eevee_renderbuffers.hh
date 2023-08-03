@@ -63,6 +63,8 @@ class RenderBuffers {
   /* Acquires (also ensures) the render buffer before rendering to them. */
   void acquire(int2 extent);
   void release();
+
+  eGPUTextureFormat vector_tx_format();
 };
 
 }  // namespace blender::eevee

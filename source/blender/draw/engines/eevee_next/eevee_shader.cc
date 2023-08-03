@@ -100,10 +100,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_gather";
     case MOTION_BLUR_TILE_DILATE:
       return "eevee_motion_blur_tiles_dilate";
-    case MOTION_BLUR_TILE_FLATTEN_RENDER:
-      return "eevee_motion_blur_tiles_flatten_render";
-    case MOTION_BLUR_TILE_FLATTEN_VIEWPORT:
-      return "eevee_motion_blur_tiles_flatten_viewport";
+    case MOTION_BLUR_TILE_FLATTEN_RGBA:
+      return "eevee_motion_blur_tiles_flatten_rgba";
+    case MOTION_BLUR_TILE_FLATTEN_RG:
+      return "eevee_motion_blur_tiles_flatten_rg";
     case DEBUG_SURFELS:
       return "eevee_debug_surfels";
     case DISPLAY_PROBE_GRID:

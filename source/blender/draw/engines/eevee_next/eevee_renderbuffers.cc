@@ -70,17 +70,14 @@ void RenderBuffers::acquire(int2 extent)
   depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8);
   combined_tx.acquire(extent, color_format);
 
-  bool do_vector_render_pass = (enabled_passes & EEVEE_RENDER_PASS_VECTOR) ||
-                               (inst_.motion_blur.postfx_enabled() && !inst_.is_viewport());
-
-  /* Only RG16F when only doing only reprojection or motion blur. */
-  eGPUTextureFormat vector_format = do_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
   eGPUTextureUsage usage_attachment_read_write = GPU_TEXTURE_USAGE_ATTACHMENT |
                                                  GPU_TEXTURE_USAGE_SHADER_READ |
                                                  GPU_TEXTURE_USAGE_SHADER_WRITE;
+
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
-  vector_tx.acquire(
-      extent, vector_format, usage_attachment_read_write | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
+  vector_tx.acquire(extent,
+                    vector_tx_format(),
+                    usage_attachment_read_write | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
 
   int color_len = data.color_len + data.aovs.color_len;
   int value_len = data.value_len + data.aovs.value_len;
@@ -117,6 +114,16 @@ void RenderBuffers::release()
 
   vector_tx.release();
   cryptomatte_tx.release();
+}
+
+eGPUTextureFormat RenderBuffers::vector_tx_format()
+{
+  const eViewLayerEEVEEPassType enabled_passes = inst_.film.enabled_passes_get();
+  bool do_vector_render_pass = (enabled_passes & EEVEE_RENDER_PASS_VECTOR) ||
+                               (inst_.motion_blur.postfx_enabled() && !inst_.is_viewport());
+
+  /* Only RG16F when only doing only reprojection or motion blur. */
+  return do_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
 }
 
 }  // namespace blender::eevee

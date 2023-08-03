@@ -180,6 +180,9 @@ class SyncModule {
   void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
 };
 
+using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;
+void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandleCallback callback);
+
 /** \} */
 
 }  // namespace blender::eevee
