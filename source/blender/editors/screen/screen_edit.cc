@@ -1500,7 +1500,9 @@ static bScreen *screen_state_to_nonnormal(bContext *C,
                RGN_TYPE_FOOTER,
                RGN_TYPE_TOOLS,
                RGN_TYPE_NAV_BAR,
-               RGN_TYPE_EXECUTE))
+               RGN_TYPE_EXECUTE,
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_HEADER))
       {
         region->flag |= RGN_FLAG_HIDDEN;
       }

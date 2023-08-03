@@ -363,6 +363,11 @@ class ViewItemAPIWrapper {
     return !view.is_renaming() && item.supports_renaming();
   }
 
+  static bool supports_drag(const AbstractViewItem &item)
+  {
+    return item.create_drag_controller() != nullptr;
+  }
+
   static bool drag_start(bContext &C, const AbstractViewItem &item)
   {
     const std::unique_ptr<AbstractViewItemDragController> drag_controller =
@@ -434,6 +439,12 @@ void UI_view_item_context_menu_build(bContext *C,
 {
   const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
   item.build_context_menu(*C, *column);
+}
+
+bool UI_view_item_supports_drag(const uiViewItemHandle *item_)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
+  return ViewItemAPIWrapper::supports_drag(item);
 }
 
 bool UI_view_item_drag_start(bContext *C, const uiViewItemHandle *item_)

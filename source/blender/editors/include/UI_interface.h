@@ -1814,12 +1814,12 @@ struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOp
 struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
 
 /**
- * A decent size for a button (typically #UI_BTYPE_PREVIEW_TILE) to display a nicely readable
- * preview with label in.
+ * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
+ * size_px plus padding.
  */
-int UI_preview_tile_size_x(void);
-int UI_preview_tile_size_y(void);
-int UI_preview_tile_size_y_no_label(void);
+int UI_preview_tile_size_x(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y(const int size_px CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y_no_label(const int size_px CPP_ARG_DEFAULT(96));
 
 /* Autocomplete
  *
@@ -3349,6 +3349,7 @@ void UI_view_item_context_menu_build(struct bContext *C,
                                      const uiViewItemHandle *item_handle,
                                      uiLayout *column);
 
+bool UI_view_item_supports_drag(const uiViewItemHandle *item_);
 /**
  * Attempt to start dragging \a item_. This will not work if the view item doesn't
  * support dragging, i.e. if it won't create a drag-controller upon request.
@@ -3367,6 +3368,7 @@ uiViewHandle *UI_region_view_find_at(const struct ARegion *region, const int xy[
 uiViewItemHandle *UI_region_views_find_item_at(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL();
 uiViewItemHandle *UI_region_views_find_active_item(const struct ARegion *region);
+uiBut *UI_region_views_find_active_item_but(const struct ARegion *region);
 
 #ifdef __cplusplus
 }

@@ -122,6 +122,7 @@ class AssetList : NonCopyable {
 
   bool needsRefetch() const;
   bool isLoaded() const;
+  bool isAssetPreviewLoading(const AssetHandle &asset) const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListHandleIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
@@ -192,6 +193,11 @@ bool AssetList::needsRefetch() const
 bool AssetList::isLoaded() const
 {
   return filelist_is_ready(filelist_);
+}
+
+bool AssetList::isAssetPreviewLoading(const AssetHandle &asset) const
+{
+  return filelist_file_is_preview_pending(filelist_, asset.file_data);
 }
 
 asset_system::AssetLibrary *AssetList::asset_library() const
@@ -531,6 +537,13 @@ asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
   AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
                                                                     asset_index);
   return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
+}
+
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle)
+{
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->isAssetPreviewLoading(*asset_handle);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

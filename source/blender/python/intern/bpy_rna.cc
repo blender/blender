@@ -8891,7 +8891,7 @@ PyDoc_STRVAR(pyrna_register_class_doc,
              "      :class:`bpy.types.Panel`, :class:`bpy.types.UIList`,\n"
              "      :class:`bpy.types.Menu`, :class:`bpy.types.Header`,\n"
              "      :class:`bpy.types.Operator`, :class:`bpy.types.KeyingSetInfo`,\n"
-             "      :class:`bpy.types.RenderEngine`\n"
+             "      :class:`bpy.types.RenderEngine`, :class:`bpy.types.AssetShelf`\n"
              "   :type cls: class\n"
              "   :raises ValueError:\n"
              "      if the class is not a subclass of a registerable blender class.\n"

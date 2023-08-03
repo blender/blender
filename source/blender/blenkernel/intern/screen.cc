@@ -52,6 +52,10 @@
 
 #include "BLO_read_write.h"
 
+/* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
+ * a #ARegionType callback. */
+#include "../editors/asset/ED_asset_shelf.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -445,6 +449,7 @@ static void spacetype_free(SpaceType *st)
   }
 
   BLI_freelistN(&st->regiontypes);
+  BLI_freelistN(&st->asset_shelf_types);
 }
 
 void BKE_spacetypes_free()
@@ -1204,6 +1209,11 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
       return;
     }
 
+    if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+      ED_asset_shelf_region_blend_write(writer, region);
+      return;
+    }
+
     switch (spacetype) {
       case SPACE_VIEW3D:
         if (region->regiontype == RGN_TYPE_WINDOW) {
@@ -1337,9 +1347,10 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     region->regiondata = nullptr;
   }
   else {
-    BLO_read_data_address(reader, &region->regiondata);
-    if (region->regiondata) {
-      if (spacetype == SPACE_VIEW3D) {
+    if (spacetype == SPACE_VIEW3D) {
+      if (region->regiontype == RGN_TYPE_WINDOW) {
+        BLO_read_data_address(reader, &region->regiondata);
+
         RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
         BLO_read_data_address(reader, &rv3d->localvd);
@@ -1352,6 +1363,9 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
         rv3d->rflag &= ~(RV3D_NAVIGATING | RV3D_PAINTING);
         rv3d->runtime_viewlock = 0;
       }
+    }
+    if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+      ED_asset_shelf_region_blend_read_data(reader, region);
     }
   }
 

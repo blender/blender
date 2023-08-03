@@ -143,6 +143,10 @@ void ED_region_visibility_change_update_animated(struct bContext *C,
                                                  struct ScrArea *area,
                                                  struct ARegion *region);
 
+void ED_region_clear(const struct bContext *C,
+                     const struct ARegion *region,
+                     int /*ThemeColorID*/ colorid);
+
 void ED_region_info_draw(struct ARegion *region,
                          const char *text,
                          float fill_color[4],
@@ -714,6 +718,7 @@ enum {
   ED_KEYMAP_FOOTER = (1 << 9),
   ED_KEYMAP_GPENCIL = (1 << 10),
   ED_KEYMAP_NAVBAR = (1 << 11),
+  ED_KEYMAP_ASSET_SHELF = (1 << 12),
 };
 
 /** #SCREEN_OT_space_context_cycle direction. */

@@ -199,6 +199,11 @@ uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region)
   return item_but->view_item;
 }
 
+uiBut *UI_region_views_find_active_item_but(const ARegion *region)
+{
+  return ui_view_item_find_active(region);
+}
+
 namespace blender::ui {
 
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,

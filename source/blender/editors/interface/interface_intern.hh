@@ -1191,13 +1191,18 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
 /**
  * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
  * state. It just draws the preview and text directly.
+ *
+ * \param draw_as_icon: Instead of stretching the preview/icon to the available width/height, draw
+ *                      it at the standard icon size. Mono-icons will draw with \a text_col or the
+ *                      corresponding theme override for this type of icon.
  */
 void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     rcti *rect,
                                     const char *name,
                                     int iconid,
                                     const uchar text_col[4],
-                                    eFontStyle_Align text_align);
+                                    eFontStyle_Align text_align,
+                                    bool draw_as_icon = false);
 
 #define UI_TEXT_MARGIN_X 0.4f
 #define UI_POPUP_MARGIN (UI_SCALE_FAC * 12)

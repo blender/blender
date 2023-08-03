@@ -196,6 +196,7 @@ class PreviewGridItem : public AbstractGridViewItem {
   ActivateFn activate_fn_;
   /** See #set_is_active_fn() */
   IsActiveFn is_active_fn_;
+  bool hide_label_ = false;
 
  public:
   std::string label{};
@@ -215,6 +216,8 @@ class PreviewGridItem : public AbstractGridViewItem {
    * Set a custom callback to check if this item should be active.
    */
   void set_is_active_fn(IsActiveFn fn);
+
+  void hide_label();
 
  private:
   std::optional<bool> should_be_active() const override;
