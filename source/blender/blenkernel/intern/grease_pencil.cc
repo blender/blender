@@ -692,6 +692,7 @@ bool Layer::remove_frame(const FramesMapKey key)
      * null frame, we cannot just delete the frame. We need to replace it with a null frame. */
     if (!prev_frame.is_implicit_hold() && !prev_frame.is_null()) {
       this->frames_for_write().lookup(key) = GreasePencilFrame::null();
+      this->tag_frames_map_changed();
       /* Since the original frame was replaced with a null frame, we consider the frame to be
        * successfully removed here. */
       return true;
