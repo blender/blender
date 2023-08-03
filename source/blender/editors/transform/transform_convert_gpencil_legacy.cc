@@ -415,13 +415,12 @@ static void createTransGPencil_strokes(bContext *C,
     /* Only editable and visible layers are considered. */
     if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != nullptr)) {
       bGPDframe *gpf;
-      bGPDstroke *gps;
       bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                       gpl->actframe);
 
       for (gpf = init_gpf; gpf; gpf = gpf->next) {
         if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-          for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
             /* skip strokes that are invalid for current view */
             if (ED_gpencil_stroke_can_use(C, gps) == false) {
               continue;

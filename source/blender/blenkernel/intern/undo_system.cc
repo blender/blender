@@ -638,7 +638,7 @@ UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack,
                                                   const char *name,
                                                   const UndoType *ut)
 {
-  for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.last); us; us = us->prev) {
+  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &ustack->steps) {
     if (us->type == ut) {
       if (STREQ(name, us->name)) {
         return us;
@@ -655,7 +655,7 @@ UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name)
 
 UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
 {
-  for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.last); us; us = us->prev) {
+  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &ustack->steps) {
     if (us->type == ut) {
       return us;
     }

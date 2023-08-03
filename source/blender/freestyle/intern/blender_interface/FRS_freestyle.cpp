@@ -302,10 +302,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Modules :" << endl;
       }
-      for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)config->modules.first;
-           module_conf;
-           module_conf = module_conf->next)
-      {
+      LISTBASE_FOREACH (FreestyleModuleConfig *, module_conf, &config->modules) {
         if (module_conf->script && module_conf->is_displayed) {
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
@@ -349,9 +346,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Linesets:" << endl;
       }
-      for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first; lineset;
-           lineset = lineset->next)
-      {
+      LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << lineset->name << " - "
@@ -448,7 +443,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   // set diffuse and z depth passes
   RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
   bool diffuse = false, z = false;
-  for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
+  LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
     float *rpass_buffer_data = rpass->ibuf->float_buffer.data;
     if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE_COLOR)) {
       controller->setPassDiffuse(rpass_buffer_data, rpass->rectx, rpass->recty);
@@ -559,22 +554,14 @@ static int displayed_layer_count(ViewLayer *view_layer)
 
   switch (view_layer->freestyle_config.mode) {
     case FREESTYLE_CONTROL_SCRIPT_MODE:
-      for (FreestyleModuleConfig *module =
-               (FreestyleModuleConfig *)view_layer->freestyle_config.modules.first;
-           module;
-           module = module->next)
-      {
+      LISTBASE_FOREACH (FreestyleModuleConfig *, module, &view_layer->freestyle_config.modules) {
         if (module->script && module->is_displayed) {
           count++;
         }
       }
       break;
     case FREESTYLE_CONTROL_EDITOR_MODE:
-      for (FreestyleLineSet *lineset =
-               (FreestyleLineSet *)view_layer->freestyle_config.linesets.first;
-           lineset;
-           lineset = lineset->next)
-      {
+      LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer->freestyle_config.linesets) {
         if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
           count++;
         }

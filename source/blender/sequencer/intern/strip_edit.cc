@@ -96,11 +96,9 @@ static void seq_update_muting_recursive(ListBase *channels,
                                         Sequence *metaseq,
                                         const bool mute)
 {
-  Sequence *seq;
-
   /* For sound we go over full meta tree to update muted state,
    * since sound is played outside of evaluating the imbufs. */
-  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
     bool seqmute = (mute || SEQ_render_is_muted(channels, seq));
 
     if (seq->type == SEQ_TYPE_META) {
@@ -144,9 +142,7 @@ static void sequencer_flag_users_for_removal(Scene *scene, ListBase *seqbase, Se
     }
 
     /* Clear seq from modifiers. */
-    SequenceModifierData *smd;
-    for (smd = static_cast<SequenceModifierData *>(user_seq->modifiers.first); smd;
-         smd = smd->next) {
+    LISTBASE_FOREACH (SequenceModifierData *, smd, &user_seq->modifiers) {
       if (smd->mask_sequence == seq) {
         smd->mask_sequence = nullptr;
       }

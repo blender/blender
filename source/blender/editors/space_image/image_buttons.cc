@@ -51,10 +51,8 @@
 
 ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
-  bNode *node;
-
   if (ntree) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (node->flag & NODE_DO_OUTPUT) {
           return static_cast<ImageUser *>(node->storage);
@@ -689,10 +687,9 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
   else if ((BKE_image_is_stereo(image) && (!show_stereo)) ||
            (BKE_image_is_multiview(image) && !BKE_image_is_stereo(image)))
   {
-    ImageView *iv;
     int nr = 0;
 
-    for (iv = static_cast<ImageView *>(image->views.first); iv; iv = iv->next) {
+    LISTBASE_FOREACH (ImageView *, iv, &image->views) {
       if (nr++ == iuser->view) {
         display_name = iv->name;
         break;

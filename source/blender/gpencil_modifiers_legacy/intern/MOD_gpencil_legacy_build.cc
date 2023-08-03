@@ -601,7 +601,7 @@ static void build_concurrent(BuildGpencilModifierData *mmd,
 
   /* 1) Determine the longest stroke, to figure out when short strokes should start */
   /* Todo: A *really* long stroke here could dwarf everything else, causing bad timings */
-  for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
     if (gps->totpoints > max_points) {
       max_points = gps->totpoints;
     }

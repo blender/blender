@@ -366,7 +366,7 @@ void gpu_batch_presets_register(GPUBatch *preset_batch)
 bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
 {
   BLI_mutex_lock(&g_presets_3d.mutex);
-  for (LinkData *link = static_cast<LinkData *>(presets_list.last); link; link = link->prev) {
+  LISTBASE_FOREACH_BACKWARD (LinkData *, link, &presets_list) {
     if (preset_batch == link->data) {
       BLI_remlink(&presets_list, link);
       BLI_mutex_unlock(&g_presets_3d.mutex);

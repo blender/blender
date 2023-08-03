@@ -144,7 +144,7 @@ void AnimationExporter::exportAnimation(Object *ob, BCAnimationSampler &sampler)
 
     /* Export skeletal animation (if any) */
     bArmature *arm = (bArmature *)ob->data;
-    for (Bone *root_bone = (Bone *)arm->bonebase.first; root_bone; root_bone = root_bone->next) {
+    LISTBASE_FOREACH (Bone *, root_bone, &arm->bonebase) {
       export_bone_animations_recursive(ob, root_bone, sampler);
     }
   }
@@ -248,7 +248,7 @@ void AnimationExporter::export_bone_animations_recursive(Object *ob,
     }
   }
 
-  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     export_bone_animations_recursive(ob, child, sampler);
   }
 }
@@ -364,7 +364,7 @@ bool AnimationExporter::is_bone_deform_group(Bone *bone)
   }
   /* Check child bones */
 
-  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     /* loop through all the children until deform bone is found, and then return */
     is_def = is_bone_deform_group(child);
     if (is_def) {

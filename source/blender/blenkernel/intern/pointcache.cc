@@ -2936,8 +2936,6 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 {
   PTCacheID pid;
-  ParticleSystem *psys;
-  ModifierData *md;
   int reset, skip;
 
   reset = 0;
@@ -2948,7 +2946,7 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
     reset |= BKE_ptcache_id_reset(scene, &pid, mode);
   }
 
-  for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
     /* children or just redo can be calculated without resetting anything */
     if (psys->recalc & ID_RECALC_PSYS_REDO || psys->recalc & ID_RECALC_PSYS_CHILD) {
       skip = 1;
@@ -2973,7 +2971,7 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
     }
   }
 
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (md->type == eModifierType_Cloth) {
       BKE_ptcache_id_from_cloth(&pid, ob, (ClothModifierData *)md);
       reset |= BKE_ptcache_id_reset(scene, &pid, mode);
@@ -3081,9 +3079,7 @@ static PointCache *ptcache_copy(PointCache *cache, const bool copy_data)
     ncache->simframe = 0;
   }
   else {
-    PTCacheMem *pm;
-
-    for (pm = static_cast<PTCacheMem *>(cache->mem_cache.first); pm; pm = pm->next) {
+    LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
       PTCacheMem *pmn = static_cast<PTCacheMem *>(MEM_dupallocN(pm));
       int i;
 
@@ -3200,10 +3196,9 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       else if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES) {
         /* get all pids from the object and search for smoke low res */
         ListBase pidlist2;
-        PTCacheID *pid2;
         BLI_assert(GS(pid->owner_id->name) == ID_OB);
         BKE_ptcache_ids_from_object(&pidlist2, (Object *)pid->owner_id, scene, MAX_DUPLI_RECUR);
-        for (pid2 = static_cast<PTCacheID *>(pidlist2.first); pid2; pid2 = pid2->next) {
+        LISTBASE_FOREACH (PTCacheID *, pid2, &pidlist2) {
           if (pid2->type == PTCACHE_TYPE_SMOKE_DOMAIN) {
             if (pid2->cache && !(pid2->cache->flag & PTCACHE_BAKED)) {
               if (bake || pid2->cache->flag & PTCACHE_REDO_NEEDED) {
@@ -3366,7 +3361,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
     for (SETLOOPER_VIEW_LAYER(scene, view_layer, sce_iter, base)) {
       BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
-      for (pid = static_cast<PTCacheID *>(pidlist.first); pid; pid = pid->next) {
+      LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
         /* skip hair particles */
         if (pid->type == PTCACHE_TYPE_PARTICLES &&
             ((ParticleSystem *)pid->calldata)->part->type == PART_HAIR)
@@ -3677,7 +3672,6 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 void BKE_ptcache_update_info(PTCacheID *pid)
 {
   PointCache *cache = pid->cache;
-  PTCacheExtra *extra = nullptr;
   int totframes = 0;
   char mem_info[sizeof(PointCache::info) / sizeof(*PointCache::info)];
 
@@ -3740,7 +3734,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
         bytes += MEM_allocN_len(pm->data[i]);
       }
 
-      for (extra = static_cast<PTCacheExtra *>(pm->extradata.first); extra; extra = extra->next) {
+      LISTBASE_FOREACH (PTCacheExtra *, extra, &pm->extradata) {
         bytes += MEM_allocN_len(extra->data);
         bytes += sizeof(PTCacheExtra);
       }

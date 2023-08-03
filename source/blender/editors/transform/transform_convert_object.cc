@@ -743,7 +743,6 @@ static void autokeyframe_object(
 {
   Main *bmain = CTX_data_main(C);
   ID *id = &ob->id;
-  FCurve *fcu;
 
   /* TODO: this should probably be done per channel instead. */
   if (autokeyframe_cfra_can_key(scene, id)) {
@@ -776,7 +775,7 @@ static void autokeyframe_object(
       /* only key on available channels */
       if (adt && adt->action) {
         ListBase nla_cache = {nullptr, nullptr};
-        for (fcu = static_cast<FCurve *>(adt->action->curves.first); fcu; fcu = fcu->next) {
+        LISTBASE_FOREACH (FCurve *, fcu, &adt->action->curves) {
           insert_keyframe(bmain,
                           reports,
                           id,
@@ -953,7 +952,6 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
   for (int i = 0; i < tc->data_len; i++) {
     TransData *td = tc->data + i;
     ListBase pidlist;
-    PTCacheID *pid;
     ob = td->ob;
 
     if (td->flag & TD_SKIP) {
@@ -962,7 +960,7 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
     /* flag object caches as outdated */
     BKE_ptcache_ids_from_object(&pidlist, ob, t->scene, MAX_DUPLI_RECUR);
-    for (pid = static_cast<PTCacheID *>(pidlist.first); pid; pid = pid->next) {
+    LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
       if (pid->type != PTCACHE_TYPE_PARTICLES) {
         /* particles don't need reset on geometry change */
         pid->cache->flag |= PTCACHE_OUTDATED;

@@ -935,14 +935,13 @@ static int gpencil_duplicate_exec(bContext *C, wmOperator *op)
     CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
       ListBase new_strokes = {nullptr, nullptr};
       bGPDframe *gpf = gpl->actframe;
-      bGPDstroke *gps;
 
       if (gpf == nullptr) {
         continue;
       }
 
       /* make copies of selected strokes, and deselect these once we're done */
-      for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
         /* skip strokes that are invalid for current view */
         if (ED_gpencil_stroke_can_use(C, gps) == false) {
           continue;
@@ -1284,7 +1283,6 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = (bGPdata *)obact->data;
   const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
   const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
-  bGPDstroke *gps = nullptr;
 
   if (gpd == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
@@ -1302,7 +1300,7 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
@@ -1520,8 +1518,7 @@ static int gpencil_strokes_copy_exec(bContext *C, wmOperator *op)
           }
 
           /* make copies of selected strokes, and deselect these once we're done */
-          for (bGPDstroke *gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps;
-               gps = gps->next) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
             /* skip strokes that are invalid for current view */
             if (ED_gpencil_stroke_can_use(C, gps) == false) {
               continue;
@@ -1671,11 +1668,9 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Check that some of the strokes in the buffer can be used */
-    bGPDstroke *gps;
     bool ok = false;
 
-    for (gps = static_cast<bGPDstroke *>(gpencil_strokes_copypastebuf.first); gps; gps = gps->next)
-    {
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gpencil_strokes_copypastebuf) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         ok = true;
         break;
@@ -3279,7 +3274,6 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
   const bool geometry = RNA_boolean_get(op->ptr, "geometry");
   const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
-  bGPDstroke *gps = nullptr;
 
   /* sanity checks */
   if (ELEM(nullptr, gpd)) {
@@ -3298,7 +3292,7 @@ static int gpencil_stroke_cyclical_set_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
           /* skip strokes that are not selected or invalid for current view */
           if (((gps->flag & GP_STROKE_SELECT) == 0) || ED_gpencil_stroke_can_use(C, gps) == false)
@@ -3448,8 +3442,7 @@ static int gpencil_stroke_caps_set_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        for (bGPDstroke *gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next)
-        {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
 
           /* skip strokes that are not selected or invalid for current view */
@@ -3965,8 +3958,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
         if (gpf == nullptr) {
           continue;
         }
-        for (bGPDstroke *gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next)
-        {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
@@ -4240,8 +4232,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        for (bGPDstroke *gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next)
-        {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           if ((gps->flag & GP_STROKE_SELECT) == 0) {
             continue;
           }

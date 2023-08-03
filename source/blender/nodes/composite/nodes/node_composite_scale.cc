@@ -44,11 +44,10 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 
 static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 {
-  bNodeSocket *sock;
   bool use_xy_scale = ELEM(node->custom1, CMP_NODE_SCALE_RELATIVE, CMP_NODE_SCALE_ABSOLUTE);
 
   /* Only show X/Y scale factor inputs for modes using them! */
-  for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STR_ELEM(sock->name, "X", "Y")) {
       bke::nodeSetSocketAvailability(ntree, sock, use_xy_scale);
     }

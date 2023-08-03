@@ -64,7 +64,6 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
 {
   ListBase *undobase = &ucu->nubase;
   ListBase *editbase = BKE_curve_editNurbs_get(cu);
-  Nurb *nu, *newnu;
   EditNurb *editnurb = cu->editnurb;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
@@ -86,8 +85,8 @@ static void undocurve_to_editcurve(Main *bmain, UndoCurve *ucu, Curve *cu, short
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(undobase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, undobase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (editnurb->keyindex) {
       ED_curve_keyindex_update_nurb(editnurb, nu, newnu);
@@ -108,7 +107,6 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   BLI_assert(BLI_array_is_zeroed(ucu, 1));
   ListBase *nubase = BKE_curve_editNurbs_get(cu);
   EditNurb *editnurb = cu->editnurb, tmpEditnurb;
-  Nurb *nu, *newnu;
   AnimData *ad = BKE_animdata_from_id(&cu->id);
 
   /* TODO: include size of fcurve & undoIndex */
@@ -128,8 +126,8 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shap
   }
 
   /* Copy. */
-  for (nu = static_cast<Nurb *>(nubase->first); nu; nu = nu->next) {
-    newnu = BKE_nurb_duplicate(nu);
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
+    Nurb *newnu = BKE_nurb_duplicate(nu);
 
     if (ucu->undoIndex) {
       ED_curve_keyindex_update_nurb(&tmpEditnurb, nu, newnu);

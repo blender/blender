@@ -205,8 +205,7 @@ static void clean_paths(Main *bmain)
 
 static bool wm_scene_is_visible(wmWindowManager *wm, Scene *scene)
 {
-  wmWindow *win;
-  for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     if (win->scene == scene) {
       return true;
     }

@@ -263,7 +263,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
       }
 
       if (new_vt == new_e->v1) {
-        for (es = static_cast<LineartEdgeSegment *>(new_e->segments.last); es; es = es->prev) {
+        LISTBASE_FOREACH_BACKWARD (LineartEdgeSegment *, es, &new_e->segments) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
           double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
@@ -420,7 +420,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
         eci->occlusion = last_occlusion;
         eci->material_mask_bits = last_transparency;
         eci->shadow_mask_bits = last_shadow;
-        for (es = static_cast<LineartEdgeSegment *>(new_e->segments.last); es; es = es->prev) {
+        LISTBASE_FOREACH_BACKWARD (LineartEdgeSegment *, es, &new_e->segments) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
           double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
@@ -1036,7 +1036,7 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
     return 0;
   }
   copy_v2_v2(last_point, eci->pos);
-  for (eci = static_cast<LineartEdgeChainItem *>(ec->chain.first); eci; eci = eci->next) {
+  LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
     dist = len_v2v2(eci->pos, last_point);
     offset_accum += dist;
     copy_v2_v2(last_point, eci->pos);
@@ -1316,12 +1316,13 @@ void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
         break; /* No need to split at the last point anyway. */
       }
       if (angle < angle_threshold_rad) {
-        LineartEdgeChain *new_ec = lineart_chain_create(ld);
+        LineartEdgeChain *new_ec;
+        new_ec = lineart_chain_create(ld);
         new_ec->chain.first = eci;
         new_ec->chain.last = ec->chain.last;
         ec->chain.last = eci->prev;
-        ((LineartEdgeChainItem *)ec->chain.last)->next = nullptr;
-        eci->prev = nullptr;
+        ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
+        eci->prev = 0;
 
         /* End the previous one. */
         lineart_chain_append_point(ld,

@@ -1264,7 +1264,7 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
   int tot = 0;
 
   /* Loop through targets, adding (hopefully we don't get any overflow!). */
-  for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     value += driver_get_variable_value(anim_eval_context, driver, dvar);
     tot++;
   }
@@ -1281,11 +1281,10 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
 static void evaluate_driver_min_max(const AnimationEvalContext *anim_eval_context,
                                     ChannelDriver *driver)
 {
-  DriverVar *dvar;
   float value = 0.0f;
 
   /* Loop through the variables, getting the values and comparing them to existing ones. */
-  for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     /* Get value. */
     float tmp_val = driver_get_variable_value(anim_eval_context, driver, dvar);
 

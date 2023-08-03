@@ -528,7 +528,7 @@ static void lineart_shadow_edge_cut(LineartData *ld,
   /* Begin looking for starting position of the segment. */
   /* Not using a list iteration macro because of it more clear when using for loops to iterate
    * through the segments. */
-  for (seg = static_cast<LineartShadowSegment *>(e->shadow_segments.first); seg; seg = seg->next) {
+  LISTBASE_FOREACH (LineartShadowSegment *, seg, &e->shadow_segments) {
     if (LRT_DOUBLE_CLOSE_ENOUGH(seg->ratio, start)) {
       cut_start_after = seg;
       new_seg_1 = cut_start_after;
@@ -1076,7 +1076,6 @@ static void lineart_shadow_register_silhouette(LineartData *ld)
 static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
 {
   LineartEdge *e;
-  LineartEdgeSegment *es;
   for (int i = 0; i < shadow_ld->pending_edges.next; i++) {
     e = shadow_ld->pending_edges.array[i];
 
@@ -1085,7 +1084,7 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
     if (e->min_occ > 0) {
       continue;
     }
-    for (es = static_cast<LineartEdgeSegment *>(e->segments.first); es; es = es->next) {
+    LISTBASE_FOREACH (LineartEdgeSegment *, es, &e->segments) {
       if (es->occlusion > 0) {
         continue;
       }

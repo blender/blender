@@ -134,10 +134,8 @@ static void buttons_texture_users_find_nodetree(ListBase *users,
                                                 bNodeTree *ntree,
                                                 const char *category)
 {
-  bNode *node;
-
   if (ntree) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->typeinfo->nclass == NODE_CLASS_TEXTURE) {
         PointerRNA ptr;
         // PropertyRNA *prop; /* UNUSED */
@@ -402,8 +400,7 @@ void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts)
         /* Detect change of active texture node in same node tree, in that
          * case we also automatically switch to the other node. */
         if ((ct->user->node->flag & NODE_ACTIVE_TEXTURE) == 0) {
-          ButsTextureUser *user;
-          for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+          LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
             if (user->ntree == ct->user->ntree && user->node != ct->user->node) {
               if (user->node->flag & NODE_ACTIVE_TEXTURE) {
                 ct->user = user;
@@ -487,11 +484,10 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
   /* callback when opening texture user selection menu, to create buttons. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
-  ButsTextureUser *user;
   uiBlock *block = uiLayoutGetBlock(layout);
   const char *last_category = nullptr;
 
-  for (user = static_cast<ButsTextureUser *>(ct->users.first); user; user = user->next) {
+  LISTBASE_FOREACH (ButsTextureUser *, user, &ct->users) {
     uiBut *but;
     char name[UI_MAX_NAME_STR];
 

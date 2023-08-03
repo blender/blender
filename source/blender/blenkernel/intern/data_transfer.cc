@@ -1511,13 +1511,9 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        CustomDataTransferLayerMap *lay_mapit;
-
         changed |= (lay_map.first != nullptr);
 
-        for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next)
-        {
+        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
           CustomData_data_transfer(&geom_map[VDATA], lay_mapit);
         }
 
@@ -1600,13 +1596,9 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        CustomDataTransferLayerMap *lay_mapit;
-
         changed |= (lay_map.first != nullptr);
 
-        for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next)
-        {
+        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
           CustomData_data_transfer(&geom_map[EDATA], lay_mapit);
         }
 
@@ -1704,13 +1696,9 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        CustomDataTransferLayerMap *lay_mapit;
-
         changed |= (lay_map.first != nullptr);
 
-        for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next)
-        {
+        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
           CustomData_data_transfer(&geom_map[LDATA], lay_mapit);
         }
 
@@ -1793,13 +1781,9 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                                tolayers,
                                                space_transform))
       {
-        CustomDataTransferLayerMap *lay_mapit;
-
         changed |= (lay_map.first != nullptr);
 
-        for (lay_mapit = static_cast<CustomDataTransferLayerMap *>(lay_map.first); lay_mapit;
-             lay_mapit = lay_mapit->next)
-        {
+        LISTBASE_FOREACH (CustomDataTransferLayerMap *, lay_mapit, &lay_map) {
           CustomData_data_transfer(&geom_map[PDATA], lay_mapit);
         }
 

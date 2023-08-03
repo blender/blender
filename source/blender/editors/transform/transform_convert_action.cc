@@ -81,7 +81,6 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra, bool is_prop_ed
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
 static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_prop_edit)
 {
-  bGPDframe *gpf;
   int count = 0, count_all = 0;
 
   if (gpl == nullptr) {
@@ -89,7 +88,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
   }
 
   /* only include points that occur on the right side of cfra */
-  for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if (FrameOnMouseSide(side, float(gpf->framenum), cfra)) {
       if (gpf->flag & GP_FRAME_SELECT) {
         count++;
@@ -107,7 +106,6 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
 static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, bool is_prop_edit)
 {
-  MaskLayerShape *masklayer_shape;
   int count = 0, count_all = 0;
 
   if (masklay == nullptr) {
@@ -115,10 +113,7 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
   }
 
   /* only include points that occur on the right side of cfra */
-  for (masklayer_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-       masklayer_shape;
-       masklayer_shape = masklayer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, masklayer_shape, &masklay->splines_shapes) {
     if (FrameOnMouseSide(side, float(masklayer_shape->frame), cfra)) {
       if (masklayer_shape->flag & MASK_SHAPE_SELECT) {
         count++;
@@ -230,11 +225,10 @@ static int GPLayerToTransData(TransData *td,
                               bool is_prop_edit,
                               float ypos)
 {
-  bGPDframe *gpf;
   int count = 0;
 
   /* check for select frames on right side of current frame */
-  for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     const bool is_selected = (gpf->flag & GP_FRAME_SELECT) != 0;
     if (is_prop_edit || is_selected) {
       if (FrameOnMouseSide(side, float(gpf->framenum), cfra)) {
@@ -271,13 +265,10 @@ static int MaskLayerToTransData(TransData *td,
                                 bool is_prop_edit,
                                 float ypos)
 {
-  MaskLayerShape *masklay_shape;
   int count = 0;
 
   /* check for select frames on right side of current frame */
-  for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first); masklay_shape;
-       masklay_shape = masklay_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
     if (is_prop_edit || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
       if (FrameOnMouseSide(side, float(masklay_shape->frame), cfra)) {
         tfd->val = float(masklay_shape->frame);
@@ -317,7 +308,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
@@ -346,7 +336,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   }
 
   /* loop 1: fully select F-Curve keys and count how many BezTriples are selected */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     int adt_count = 0;
     /* convert current-frame to action-time (slightly less accurate, especially under
@@ -414,7 +404,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   }
 
   /* loop 2: build transdata array */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
 
     if (is_prop_edit && !ale->tag) {
       continue;
@@ -458,7 +448,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   if (is_prop_edit) {
     td = tc->data;
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt;
 
       /* F-Curve may not have any keyframes */
@@ -476,17 +466,14 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
       if (ale->type == ANIMTYPE_GPLAYER) {
         bGPDlayer *gpl = (bGPDlayer *)ale->data;
-        bGPDframe *gpf;
 
-        for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
           if (gpf->flag & GP_FRAME_SELECT) {
             td->dist = td->rdist = 0.0f;
           }
           else {
-            bGPDframe *gpf_iter;
             int min = INT_MAX;
-            for (gpf_iter = static_cast<bGPDframe *>(gpl->frames.first); gpf_iter;
-                 gpf_iter = gpf_iter->next) {
+            LISTBASE_FOREACH (bGPDframe *, gpf_iter, &gpl->frames) {
               if (gpf_iter->flag & GP_FRAME_SELECT) {
                 if (FrameOnMouseSide(t->frame_side, float(gpf_iter->framenum), cfra)) {
                   int val = abs(gpf->framenum - gpf_iter->framenum);
@@ -503,23 +490,15 @@ static void createTransActionData(bContext *C, TransInfo *t)
       }
       else if (ale->type == ANIMTYPE_MASKLAYER) {
         MaskLayer *masklay = (MaskLayer *)ale->data;
-        MaskLayerShape *masklay_shape;
 
-        for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-             masklay_shape;
-             masklay_shape = masklay_shape->next)
-        {
+        LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
           if (FrameOnMouseSide(t->frame_side, float(masklay_shape->frame), cfra)) {
             if (masklay_shape->flag & MASK_SHAPE_SELECT) {
               td->dist = td->rdist = 0.0f;
             }
             else {
-              MaskLayerShape *masklay_iter;
               int min = INT_MAX;
-              for (masklay_iter = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-                   masklay_iter;
-                   masklay_iter = masklay_iter->next)
-              {
+              LISTBASE_FOREACH (MaskLayerShape *, masklay_iter, &masklay->splines_shapes) {
                 if (masklay_iter->flag & MASK_SHAPE_SELECT) {
                   if (FrameOnMouseSide(t->frame_side, float(masklay_iter->frame), cfra)) {
                     int val = abs(masklay_shape->frame - masklay_iter->frame);
@@ -598,7 +577,6 @@ static void recalcData_actedit(TransInfo *t)
 
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -651,7 +629,7 @@ static void recalcData_actedit(TransInfo *t)
      * BUT only do this if realtime updates are enabled
      */
     if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
-      for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         /* set refresh tags for objects using this animation */
         ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
       }
@@ -689,10 +667,7 @@ static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
 
 static void posttrans_mask_clean(Mask *mask)
 {
-  MaskLayer *masklay;
-
-  for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-       masklay = masklay->next) {
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     MaskLayerShape *masklay_shape, *masklay_shape_next;
     bool is_double = false;
 
@@ -730,9 +705,7 @@ static void posttrans_mask_clean(Mask *mask)
  */
 static void posttrans_gpd_clean(bGPdata *gpd)
 {
-  bGPDlayer *gpl;
-
-  for (gpl = static_cast<bGPDlayer *>(gpd->layers.first); gpl; gpl = gpl->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf, *gpfn;
     bool is_double = false;
 
@@ -766,7 +739,6 @@ static void posttrans_gpd_clean(bGPdata *gpd)
 static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* filter data */
@@ -776,7 +748,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   /* loop through relevant data, removing keyframes as appropriate
    *      - all keyframes are converted in/out of global time
    */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     if (adt) {
@@ -814,14 +786,13 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
   if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
     ListBase anim_data = {nullptr, nullptr};
-    bAnimListElem *ale;
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 
     /* get channels to work on */
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       switch (ale->datatype) {
         case ALE_GPFRAME:
           ale->id->tag &= ~LIB_TAG_DOIT;

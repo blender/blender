@@ -111,12 +111,11 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   }
   else if (obedit->type == OB_ARMATURE) {
     bArmature *arm = static_cast<bArmature *>(obedit->data);
-    EditBone *ebo;
     TransVert *tv = tvs->transverts;
     int a = 0;
 
     /* Ensure all bone tails are correctly adjusted */
-    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
+    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
       /* adjust tip if both ends selected */
       if ((ebo->flag & BONE_ROOTSEL) && (ebo->flag & BONE_TIPSEL)) {
         if (tv) {
@@ -134,7 +133,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
 
     /* Ensure all bones are correctly adjusted */
-    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
+    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
         /* If this bone has a parent tip that has been moved */
         if (ebo->parent->flag & BONE_TIPSEL) {
@@ -205,7 +204,6 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   TransVert *tv = nullptr;
   MetaElem *ml;
   BMVert *eve;
-  EditBone *ebo;
   int a;
 
   tvs->transverts_tot = 0;
@@ -328,7 +326,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     tv = tvs->transverts = static_cast<TransVert *>(
         MEM_callocN(totmalloc * sizeof(TransVert), __func__));
 
-    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
+    LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
       if (ANIM_bonecoll_is_visible_editbone(arm, ebo)) {
         const bool tipsel = (ebo->flag & BONE_TIPSEL) != 0;
         const bool rootsel = (ebo->flag & BONE_ROOTSEL) != 0;
@@ -371,7 +369,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     int totmalloc = 0;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-    for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
         totmalloc += 3 * nu->pntsu;
       }

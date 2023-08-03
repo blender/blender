@@ -446,7 +446,6 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   int count = 0;
@@ -475,15 +474,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   }
 
   /* loop 1: count how many strips are selected (consider each strip as 2 points) */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     NlaTrack *nlt = (NlaTrack *)ale->data;
-    NlaStrip *strip;
 
     /* make some meta-strips for chains of selected strips */
     BKE_nlastrips_make_metas(&nlt->strips, true);
 
     /* only consider selected strips */
-    for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       /* TODO: we can make strips have handles later on. */
       /* transition strips can't get directly transformed */
       if (strip->type != NLASTRIP_TYPE_TRANSITION) {
@@ -504,7 +502,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
     /* clear temp metas that may have been created but aren't needed now
      * because they fell on the wrong side of scene->r.cfra
      */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
       BKE_nlastrips_clear_metas(&nlt->strips, false, true);
     }
@@ -525,15 +523,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   tc->custom.type.use_free = true;
 
   /* loop 2: build transdata array */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* only if a real NLA-track */
     if (ale->type == ANIMTYPE_NLATRACK) {
       AnimData *adt = ale->adt;
       NlaTrack *nlt = (NlaTrack *)ale->data;
-      NlaStrip *strip;
 
       /* only consider selected strips */
-      for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         /* TODO: we can make strips have handles later on. */
         /* transition strips can't get directly transformed */
         if (strip->type != NLASTRIP_TYPE_TRANSITION) {

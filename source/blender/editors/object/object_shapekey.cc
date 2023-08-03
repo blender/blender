@@ -394,7 +394,7 @@ static int shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     kb->curval = 0.0f;
   }
 
@@ -431,7 +431,7 @@ static int shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     kb->pos = cfra;
     cfra += 0.1f;
   }

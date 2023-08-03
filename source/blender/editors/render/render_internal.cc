@@ -743,8 +743,7 @@ static void render_image_restore_layer(RenderJob *rj)
 
   /* Only ever 1 `wm`. */
   LISTBASE_FOREACH (wmWindowManager *, wm, &rj->main->wm) {
-    wmWindow *win;
-    for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {

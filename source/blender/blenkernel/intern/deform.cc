@@ -684,9 +684,8 @@ int BKE_object_defgroup_flip_index(const Object *ob, int index, const bool use_d
 static bool defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *ob)
 {
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  bDeformGroup *curdef;
 
-  for (curdef = static_cast<bDeformGroup *>(defbase->first); curdef; curdef = curdef->next) {
+  LISTBASE_FOREACH (bDeformGroup *, curdef, defbase) {
     if (dg != curdef) {
       if (STREQ(curdef->name, name)) {
         return true;

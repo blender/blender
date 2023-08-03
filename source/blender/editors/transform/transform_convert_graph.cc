@@ -223,7 +223,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   BezTriple *bezt;
@@ -260,7 +259,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 
   /* Loop 1: count how many BezTriples (specifically their verts)
    * are selected (or should be edited). */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
     float cfra;
@@ -368,7 +367,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
   }
 
   /* loop 2: build transdata arrays */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     FCurve *fcu = (FCurve *)ale->key_data;
     bool intvals = (fcu->flag & FCURVE_INT_VALUES) != 0;
@@ -561,7 +560,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     /* loop 2: build transdata arrays */
     td = tc->data;
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
       TransData *td_start = td;
@@ -879,11 +878,10 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
 static void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
-  bAnimListElem *ale;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   /* sort and reassign verts */
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
 
     if (fcu->bezt) {
@@ -916,7 +914,6 @@ static void recalcData_graphedit(TransInfo *t)
   bAnimContext ac = {nullptr};
   int filter;
 
-  bAnimListElem *ale;
   int dosort = 0;
 
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -945,7 +942,7 @@ static void recalcData_graphedit(TransInfo *t)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* now test if there is a need to re-sort */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
 
     /* ignore FC-Curves without any selected verts */
@@ -1000,7 +997,6 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
 
   if (ac.datatype) {
     ListBase anim_data = {nullptr, nullptr};
-    bAnimListElem *ale;
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
                     ANIMFILTER_FCURVESONLY);
 
@@ -1008,7 +1004,7 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
 

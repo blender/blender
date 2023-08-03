@@ -132,9 +132,7 @@ static void gizmotype_unlink(bContext *C, Main *bmain, wmGizmoType *gzt)
         LISTBASE_FOREACH (ARegion *, region, lb) {
           wmGizmoMap *gzmap = region->gizmo_map;
           if (gzmap) {
-            wmGizmoGroup *gzgroup;
-            for (gzgroup = static_cast<wmGizmoGroup *>(gzmap->groups.first); gzgroup;
-                 gzgroup = gzgroup->next) {
+            LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
               for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first), *gz_next; gz;
                    gz = gz_next) {
                 gz_next = gz->next;

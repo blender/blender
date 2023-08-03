@@ -257,9 +257,7 @@ static void bridge_loop_pair(BMesh *bm,
       int winding_votes[2] = {0, 0};
       int winding_dir = 1;
       for (i = 0; i < 2; i++, winding_dir = -winding_dir) {
-        LinkData *el;
-        for (el = static_cast<LinkData *>(BM_edgeloop_verts_get(estore_pair[i])->first); el;
-             el = el->next) {
+        LISTBASE_FOREACH (LinkData *, el, BM_edgeloop_verts_get(estore_pair[i])) {
           LinkData *el_next = BM_EDGELINK_NEXT(estore_pair[i], el);
           if (el_next) {
             BMEdge *e = BM_edge_exists(static_cast<BMVert *>(el->data),
@@ -510,9 +508,7 @@ static void bridge_loop_pair(BMesh *bm,
 
     /* tag verts on each side so we can restrict rotation of edges to verts on the same side */
     for (i = 0; i < 2; i++) {
-      LinkData *el;
-      for (el = static_cast<LinkData *>(BM_edgeloop_verts_get(estore_pair[i])->first); el;
-           el = el->next) {
+      LISTBASE_FOREACH (LinkData *, el, BM_edgeloop_verts_get(estore_pair[i])) {
         BM_elem_flag_set((BMVert *)el->data, BM_ELEM_TAG, i);
       }
     }
@@ -557,9 +553,7 @@ static void bridge_loop_pair(BMesh *bm,
     BMEdgeLoopStore *estore_pair[2] = {el_store_a, el_store_b};
     int i;
     for (i = 0; i < 2; i++) {
-      LinkData *el;
-      for (el = static_cast<LinkData *>(BM_edgeloop_verts_get(estore_pair[i])->first); el;
-           el = el->next) {
+      LISTBASE_FOREACH (LinkData *, el, BM_edgeloop_verts_get(estore_pair[i])) {
         LinkData *el_next = BM_EDGELINK_NEXT(estore_pair[i], el);
         if (el_next) {
           if (el->data != el_next->data) {
@@ -580,7 +574,6 @@ static void bridge_loop_pair(BMesh *bm,
 void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 {
   ListBase eloops = {nullptr};
-  LinkData *el_store;
 
   /* merge-bridge support */
   const bool use_pairs = BMO_slot_bool_get(op->slots_in, "use_pairs");
@@ -610,7 +603,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
   if (use_merge) {
     bool match = true;
     const int eloop_len = BM_edgeloop_length_get(static_cast<BMEdgeLoopStore *>(eloops.first));
-    for (el_store = static_cast<LinkData *>(eloops.first); el_store; el_store = el_store->next) {
+    LISTBASE_FOREACH (LinkData *, el_store, &eloops) {
       if (eloop_len != BM_edgeloop_length_get((BMEdgeLoopStore *)el_store)) {
         match = false;
         break;
@@ -629,7 +622,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
     BM_mesh_edgeloops_calc_order(bm, &eloops, use_pairs);
   }
 
-  for (el_store = static_cast<LinkData *>(eloops.first); el_store; el_store = el_store->next) {
+  LISTBASE_FOREACH (LinkData *, el_store, &eloops) {
     LinkData *el_store_next = el_store->next;
 
     if (el_store_next == nullptr) {

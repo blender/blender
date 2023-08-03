@@ -100,9 +100,7 @@ static bool UNUSED_FUNCTION(object_has_shaderfx)(const Object *ob,
                                                  const ShaderFxData *exclude,
                                                  ShaderFxType type)
 {
-  ShaderFxData *fx;
-
-  for (fx = static_cast<ShaderFxData *>(ob->shader_fx.first); fx; fx = fx->next) {
+  LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
     if ((fx != exclude) && (fx->type == type)) {
       return true;
     }

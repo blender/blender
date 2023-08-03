@@ -5405,18 +5405,17 @@ void PE_create_particle_edit(
       update_world_cos(ob, edit);
     }
     else {
-      PTCacheMem *pm;
       int totframe = 0;
 
       cache->edit = edit;
       cache->free_edit = PE_free_ptcache_edit;
       edit->psys = nullptr;
 
-      for (pm = static_cast<PTCacheMem *>(cache->mem_cache.first); pm; pm = pm->next) {
+      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
         totframe++;
       }
 
-      for (pm = static_cast<PTCacheMem *>(cache->mem_cache.first); pm; pm = pm->next) {
+      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
         LOOP_POINTS {
           void *cur[BPHYS_TOT_DATA];
           if (BKE_ptcache_mem_pointers_seek(p, pm, cur) == 0) {

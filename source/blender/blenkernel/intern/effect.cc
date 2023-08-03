@@ -479,7 +479,6 @@ static float eff_calc_visibility(ListBase *colliders,
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   ListBase *colls = colliders;
-  ColliderCache *col;
   float norm[3], len = 0.0;
   float visibility = 1.0, absorption = 0.0;
 
@@ -497,7 +496,7 @@ static float eff_calc_visibility(ListBase *colliders,
   len = normalize_v3(norm);
 
   /* check all collision objects */
-  for (col = static_cast<ColliderCache *>(colls->first); col; col = col->next) {
+  LISTBASE_FOREACH (ColliderCache *, col, colls) {
     CollisionModifierData *collmd = col->collmd;
 
     if (col->ob == eff->ob) {
@@ -1152,7 +1151,6 @@ void BKE_effectors_apply(ListBase *effectors,
    *   (particles are guided along a curve bezier or old nurbs)
    *   (is independent of other effectors)
    */
-  EffectorCache *eff;
   EffectorData efd;
   int p = 0, tot = 1, step = 1;
 
@@ -1160,7 +1158,7 @@ void BKE_effectors_apply(ListBase *effectors,
   /* Check for min distance here? (yes would be cool to add that, ton) */
 
   if (effectors) {
-    for (eff = static_cast<EffectorCache *>(effectors->first); eff; eff = eff->next) {
+    LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
       /* object effectors were fully checked to be OK to evaluate! */
 
       get_effector_tot(eff, &efd, point, &tot, &p, &step);

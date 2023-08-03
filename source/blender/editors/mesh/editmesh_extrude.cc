@@ -40,12 +40,11 @@ static void edbm_extrude_edge_exclude_mirror(
     Object *obedit, BMEditMesh *em, const char hflag, BMOperator *op, BMOpSlot *slot_edges_exclude)
 {
   BMesh *bm = em->bm;
-  ModifierData *md;
 
   /* If a mirror modifier with clipping is on, we need to adjust some
    * of the cases above to handle edges on the line of symmetry.
    */
-  for (md = static_cast<ModifierData *>(obedit->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &obedit->modifiers) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
       MirrorModifierData *mmd = (MirrorModifierData *)md;
 

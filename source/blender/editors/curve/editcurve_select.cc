@@ -212,9 +212,8 @@ bool ED_curve_nurb_deselect_all(const Nurb *nu)
 int ED_curve_select_count(const View3D *v3d, const EditNurb *editnurb)
 {
   int sel = 0;
-  Nurb *nu;
 
-  for (nu = static_cast<Nurb *>(editnurb->nurbs.first); nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     sel += ED_curve_nurb_select_count(v3d, nu);
   }
 

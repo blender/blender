@@ -40,9 +40,7 @@ void BKE_freestyle_config_init(FreestyleConfig *config)
 
 void BKE_freestyle_config_free(FreestyleConfig *config, const bool do_id_user)
 {
-  FreestyleLineSet *lineset;
-
-  for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
+  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
     if (lineset->group) {
       if (do_id_user) {
         id_us_min(&lineset->group->id);
@@ -64,8 +62,8 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config,
                                const FreestyleConfig *config,
                                const int flag)
 {
-  FreestyleLineSet *lineset, *new_lineset;
-  FreestyleModuleConfig *module, *new_module;
+  FreestyleLineSet *new_lineset;
+  FreestyleModuleConfig *new_module;
 
   new_config->mode = config->mode;
   new_config->flags = config->flags;
@@ -74,14 +72,14 @@ void BKE_freestyle_config_copy(FreestyleConfig *new_config,
   new_config->crease_angle = config->crease_angle;
 
   BLI_listbase_clear(&new_config->linesets);
-  for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
+  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
     new_lineset = alloc_lineset();
     copy_lineset(new_lineset, lineset, flag);
     BLI_addtail(&new_config->linesets, (void *)new_lineset);
   }
 
   BLI_listbase_clear(&new_config->modules);
-  for (module = (FreestyleModuleConfig *)config->modules.first; module; module = module->next) {
+  LISTBASE_FOREACH (FreestyleModuleConfig *, module, &config->modules) {
     new_module = alloc_module();
     copy_module(new_module, module);
     BLI_addtail(&new_config->modules, (void *)new_module);
@@ -211,9 +209,7 @@ bool BKE_freestyle_lineset_delete(FreestyleConfig *config, FreestyleLineSet *lin
 
 FreestyleLineSet *BKE_freestyle_lineset_get_active(FreestyleConfig *config)
 {
-  FreestyleLineSet *lineset;
-
-  for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
+  LISTBASE_FOREACH (FreestyleLineSet *, lineset, &config->linesets) {
     if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return lineset;
     }

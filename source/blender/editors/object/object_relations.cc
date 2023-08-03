@@ -2161,9 +2161,7 @@ static bool make_local_all__instance_indirect_unused(Main *bmain,
 
 static void make_local_animdata_tag_strips(ListBase *strips)
 {
-  NlaStrip *strip;
-
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->act) {
       strip->act->id.tag &= ~LIB_TAG_PRE_EXISTING;
     }
@@ -2208,7 +2206,6 @@ static void make_local_material_tag(Material *ma)
 static int make_local_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  ParticleSystem *psys;
   Material *ma, ***matarar;
   const int mode = RNA_enum_get(op->ptr, "type");
   int a;
@@ -2241,8 +2238,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 
       ob->id.tag &= ~LIB_TAG_PRE_EXISTING;
       make_local_animdata_tag(BKE_animdata_from_id(&ob->id));
-      for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next)
-      {
+      LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
         psys->part->id.tag &= ~LIB_TAG_PRE_EXISTING;
       }
 

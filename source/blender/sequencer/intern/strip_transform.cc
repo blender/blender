@@ -43,11 +43,10 @@ bool SEQ_transform_single_image_check(Sequence *seq)
 
 bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 {
-  Sequence *seq;
   /* is there more than 1 select */
   bool ok = false;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->flag & SELECT) {
       ok = true;
       break;
@@ -59,7 +58,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
   }
 
   /* test relationships */
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
       continue;
     }
@@ -166,10 +165,9 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
     /* Blender 2.4x would remove the strip.
      * nicer to move it to the end */
 
-    Sequence *seq;
     int new_frame = SEQ_time_right_handle_frame_get(evil_scene, test);
 
-    for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
+    LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
       if (seq->machine == orig_machine) {
         new_frame = max_ii(new_frame, SEQ_time_right_handle_frame_get(evil_scene, seq));
       }
@@ -272,9 +270,8 @@ bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
     }
 
     if (use_sync_markers && !(evil_scene->toolsettings->lock_markers) && (markers != nullptr)) {
-      TimeMarker *marker;
       /* affect selected markers - it's unlikely that we will want to affect all in this way? */
-      for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+      LISTBASE_FOREACH (TimeMarker *, marker, markers) {
         if (marker->flag & SELECT) {
           marker->frame += offset;
         }

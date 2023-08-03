@@ -2847,7 +2847,6 @@ static int collision_detect(ParticleData *pa,
                             ListBase *colliders)
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
-  ColliderCache *coll;
   float ray_dir[3];
 
   if (BLI_listbase_is_empty(colliders)) {
@@ -2865,7 +2864,7 @@ static int collision_detect(ParticleData *pa,
     hit->dist = col->original_ray_length = 0.000001f;
   }
 
-  for (coll = static_cast<ColliderCache *>(colliders->first); coll; coll = coll->next) {
+  LISTBASE_FOREACH (ColliderCache *, coll, colliders) {
     /* for boids: don't check with current ground object; also skip if permeated */
     bool skip = false;
 
@@ -5035,7 +5034,6 @@ static void particlesystem_modifiersForeachIDLink(void *user_data,
 
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
-  ParticleTarget *pt;
   LibraryForeachIDData *foreachid_data = static_cast<LibraryForeachIDData *>(userdata);
   const int foreachid_data_flags = BKE_lib_query_foreachid_process_flags_get(foreachid_data);
 
@@ -5056,7 +5054,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     }
   }
 
-  for (pt = static_cast<ParticleTarget *>(psys->targets.first); pt; pt = pt->next) {
+  LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
   }
 

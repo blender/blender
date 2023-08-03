@@ -105,7 +105,6 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
 int ED_markers_post_apply_transform(
     ListBase *markers, Scene *scene, int mode, float value, char side)
 {
-  TimeMarker *marker;
   float cfra = float(scene->r.cfra);
   int changed_tot = 0;
 
@@ -115,7 +114,7 @@ int ED_markers_post_apply_transform(
   }
 
   /* affect selected markers - it's unlikely that we will want to affect all in this way? */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->flag & SELECT) {
       switch (mode) {
         case TFM_TIME_TRANSLATE:
@@ -146,11 +145,11 @@ int ED_markers_post_apply_transform(
 
 TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x)
 {
-  TimeMarker *marker, *nearest = nullptr;
+  TimeMarker *nearest = nullptr;
   float dist, min_dist = 1000000;
 
   if (markers) {
-    for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
       dist = fabsf(float(marker->frame) - x);
 
       if (dist < min_dist) {
@@ -171,7 +170,6 @@ int ED_markers_find_nearest_marker_time(ListBase *markers, float x)
 
 void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *r_last)
 {
-  TimeMarker *marker;
   float min, max;
 
   /* sanity check */
@@ -184,7 +182,7 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
 
   min = FLT_MAX;
   max = -FLT_MAX;
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (!sel || (marker->flag & SELECT)) {
       if (marker->frame < min) {
         min = float(marker->frame);
@@ -298,8 +296,6 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
 
 void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
 {
-  TimeMarker *marker;
-
   if (lb) {
     /* Clear the list first, since callers have no way of knowing
      * whether this terminated early otherwise. This may lead
@@ -315,7 +311,7 @@ void ED_markers_make_cfra_list(ListBase *markers, ListBase *lb, short only_sel)
     return;
   }
 
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     add_marker_to_cfra_elem(lb, marker, only_sel);
   }
 }
@@ -346,10 +342,8 @@ void ED_markers_deselect_all(ListBase *markers, int action)
 
 TimeMarker *ED_markers_get_first_selected(ListBase *markers)
 {
-  TimeMarker *marker;
-
   if (markers) {
-    for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
       if (marker->flag & SELECT) {
         return marker;
       }
@@ -365,9 +359,6 @@ void debug_markers_print_list(ListBase *markers)
 {
   /* NOTE: do NOT make static or use `ifdef`'s as "unused code".
    * That's too much trouble when we need to use for quick debugging! */
-
-  TimeMarker *marker;
-
   if (markers == nullptr) {
     printf("No markers list to print debug for\n");
     return;
@@ -375,7 +366,7 @@ void debug_markers_print_list(ListBase *markers)
 
   printf("List of markers follows: -----\n");
 
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     printf(
         "\t'%s' on %d at %p with %u\n", marker->name, marker->frame, (void *)marker, marker->flag);
   }
@@ -737,14 +728,14 @@ static int ed_marker_add_exec(bContext *C, wmOperator * /*op*/)
 
   /* prefer not having 2 markers at the same place,
    * though the user can move them to overlap once added */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->frame == frame) {
       return OPERATOR_CANCELLED;
     }
   }
 
   /* deselect all */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     marker->flag &= ~SELECT;
   }
 
@@ -1165,8 +1156,6 @@ static void MARKER_OT_move(wmOperatorType *ot)
 static void ed_marker_duplicate_apply(bContext *C)
 {
   ListBase *markers = ED_context_get_markers(C);
-  TimeMarker *marker, *newmarker;
-
   if (markers == nullptr) {
     return;
   }
@@ -1174,13 +1163,14 @@ static void ed_marker_duplicate_apply(bContext *C)
   /* go through the list of markers, duplicate selected markers and add duplicated copies
    * to the beginning of the list (unselect original markers)
    */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->flag & SELECT) {
       /* unselect selected marker */
       marker->flag &= ~SELECT;
 
       /* create and set up new marker */
-      newmarker = static_cast<TimeMarker *>(MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
+      TimeMarker *newmarker = static_cast<TimeMarker *>(
+          MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
       newmarker->flag = SELECT;
       newmarker->frame = marker->frame;
       STRNCPY(newmarker->name, marker->name);
@@ -1263,7 +1253,7 @@ static int select_timeline_marker_frame(ListBase *markers,
   }
 
   /* support for selection cycling */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->frame == frame) {
       if (marker->flag & SELECT) {
         marker_cycle_selected = static_cast<TimeMarker *>(marker->next ? marker->next :
@@ -1304,14 +1294,13 @@ static void select_marker_camera_switch(
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Base *base;
-    TimeMarker *marker;
     int sel = 0;
 
     if (!extend) {
       BKE_view_layer_base_deselect_all(scene, view_layer);
     }
 
-    for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
       if (marker->frame == cfra) {
         sel = (marker->flag & SELECT);
         break;
@@ -1319,7 +1308,7 @@ static void select_marker_camera_switch(
     }
 
     BKE_view_layer_synced_ensure(scene, view_layer);
-    for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+    LISTBASE_FOREACH (TimeMarker *, marker, markers) {
       if (marker->camera) {
         if (marker->frame == cfra) {
           base = BKE_view_layer_base_find(view_layer, marker->camera);
@@ -1766,7 +1755,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
   ListBase *markers = ED_context_get_markers(C);
   Scene *scene_to = static_cast<Scene *>(
       BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene")));
-  TimeMarker *marker, *marker_new;
+  TimeMarker *marker_new;
 
   if (scene_to == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Scene not found");
@@ -1784,7 +1773,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
   }
 
   /* copy markers */
-  for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, markers) {
     if (marker->flag & SELECT) {
       marker_new = static_cast<TimeMarker *>(MEM_dupallocN(marker));
       marker_new->prev = marker_new->next = nullptr;

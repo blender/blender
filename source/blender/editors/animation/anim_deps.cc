@@ -257,7 +257,6 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   bActionGroup *active_agrp = nullptr;
@@ -278,7 +277,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* flush settings as appropriate depending on the types of the channels */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_GROUP:
         animchan_sync_group(&ac, ale, &active_agrp);
@@ -309,9 +308,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 
 void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 {
-  bAnimListElem *ale;
-
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     if (ale->type == ANIMTYPE_GPLAYER) {
       bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 

@@ -364,9 +364,7 @@ int BKE_armature_bonelist_count(const ListBase *lb)
 
 void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
 {
-  Bone *bone;
-
-  for (bone = static_cast<Bone *>(lb->first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->prop) {
       IDP_FreeProperty_ex(bone->prop, do_id_user);
     }
@@ -583,14 +581,12 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], const bool do
 
 static Bone *get_named_bone_bonechildren(ListBase *lb, const char *name)
 {
-  Bone *curBone, *rbone;
-
-  for (curBone = static_cast<Bone *>(lb->first); curBone; curBone = curBone->next) {
+  LISTBASE_FOREACH (Bone *, curBone, lb) {
     if (STREQ(curBone->name, name)) {
       return curBone;
     }
 
-    rbone = get_named_bone_bonechildren(&curBone->childbase, name);
+    Bone *rbone = get_named_bone_bonechildren(&curBone->childbase, name);
     if (rbone) {
       return rbone;
     }
@@ -2288,10 +2284,8 @@ void BKE_armature_where_is_bone(Bone *bone, const Bone *bone_parent, const bool 
 
 void BKE_armature_where_is(bArmature *arm)
 {
-  Bone *bone;
-
   /* hierarchical from root to children */
-  for (bone = static_cast<Bone *>(arm->bonebase.first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     BKE_armature_where_is_bone(bone, nullptr, true);
   }
 }
@@ -2388,9 +2382,7 @@ void BKE_pose_channels_clear_with_null_bone(bPose *pose, const bool do_id_user)
 
 void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_user)
 {
-  Bone *bone;
   bPose *pose;
-  bPoseChannel *pchan;
   int counter = 0;
 
   /* only done here */
@@ -2408,7 +2400,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 
   /* first step, check if all channels are there */
   Bone *prev_bone = nullptr;
-  for (bone = static_cast<Bone *>(arm->bonebase.first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     counter = rebuild_pose_bone(pose, bone, nullptr, counter, &prev_bone);
   }
 
@@ -2417,7 +2409,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 
   BKE_pose_channels_hash_ensure(pose);
 
-  for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     /* Find the custom B-Bone handles. */
     BKE_pchan_rebuild_bbone_handles(pose, pchan);
     /* Re-validate that we are still using a valid pchan form custom transform. */
@@ -2566,7 +2558,6 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   bArmature *arm;
   Bone *bone;
-  bPoseChannel *pchan;
   float imat[4][4];
   float ctime;
 
@@ -2586,8 +2577,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   /* In edit-mode or rest-position we read the data from the bones. */
   if (arm->edbo || (arm->flag & ARM_RESTPOS)) {
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       bone = pchan->bone;
       if (bone) {
         copy_m4_m4(pchan->pose_mat, bone->arm_mat);
@@ -2600,8 +2590,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
     invert_m4_m4(ob->world_to_object, ob->object_to_world); /* world_to_object is needed */
 
     /* 1. clear flags */
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       pchan->flag &= ~(POSE_DONE | POSE_CHAIN | POSE_IKTREE | POSE_IKSPLINE);
     }
 
@@ -2615,8 +2604,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_pose_splineik_init_tree(scene, ob, ctime);
 
     /* 3. the main loop, channels are already hierarchical sorted from root to children */
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       /* 4a. if we find an IK root, we handle it separated */
       if (pchan->flag & POSE_IKTREE) {
         BIK_execute_tree(depsgraph, scene, ob, pchan, ctime);
@@ -2635,7 +2623,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
   }
 
   /* calculating deform matrices */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->bone) {
       invert_m4_m4(imat, pchan->bone->arm_mat);
       mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
@@ -2651,11 +2639,9 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 {
-  bPoseChannel *pchan;
-
   /* For now, we assume BKE_pose_where_is has already been called
    * (hence we have valid data in pachan). */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     minmax_v3v3_v3(r_min, r_max, pchan->pose_head);
     minmax_v3v3_v3(r_min, r_max, pchan->pose_tail);
   }
@@ -2745,10 +2731,8 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
 
   if (ob->pose) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    bPoseChannel *pchan;
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       /* XXX pchan->bone may be nullptr for duplicated bones, see duplicateEditBoneObjects()
        * comment (editarmature.c:2592)... Skip in this case too! */
       if (pchan->bone && (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&

@@ -410,7 +410,7 @@ static ListBase /*bAnimListElem*/ anim_channels_for_selection(bAnimContext *ac)
 static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListBase anim_data)
 {
   /* See if we should be selecting or deselecting. */
-  for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_SCENE:
         if (ale->flag & SCE_DS_SELECTED) {
@@ -494,11 +494,10 @@ static void anim_channels_select_set(bAnimContext *ac,
                                      const ListBase anim_data,
                                      eAnimChannels_SetFlag sel)
 {
-  bAnimListElem *ale;
   /* Boolean to keep active channel status during range selection. */
   const bool change_active = (sel != ACHANNEL_SETFLAG_EXTEND_RANGE);
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_SCENE: {
         if (change_active) {
@@ -751,7 +750,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode)
 {
-  bAnimListElem *ale, *match = nullptr;
+  bAnimListElem *match = nullptr;
   int matchLevel = 0;
 
   /* sanity check */
@@ -764,7 +763,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
   }
 
   /* find the channel that got changed */
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     /* compare data, and type as main way of identifying the channel */
     if ((ale->data == ale_setting->data) && (ale->type == ale_setting->type)) {
       /* We also have to check the ID, this is assigned to,
@@ -1520,7 +1519,7 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
     /* ensure that all of these get their group set to this temp group
      * (so that visibility filtering works)
      */
-    for (fcu = static_cast<FCurve *>(tgrp->channels.first); fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (FCurve *, fcu, &tgrp->channels) {
       fcu->grp = tgrp;
     }
   }
@@ -1532,9 +1531,7 @@ static void split_groups_action_temp(bAction *act, bActionGroup *tgrp)
 /* link lists of channels that groups have */
 static void join_groups_action_temp(bAction *act)
 {
-  bActionGroup *agrp;
-
-  for (agrp = static_cast<bActionGroup *>(act->groups.first); agrp; agrp = agrp->next) {
+  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     /* add list of channels to action's channels */
     const ListBase group_channels = agrp->channels;
     BLI_movelisttolist(&act->curves, &agrp->channels);
@@ -1592,12 +1589,10 @@ static void rearrange_action_channels(bAnimContext *ac, bAction *act, eRearrange
   BLI_freelistN(&anim_data_visible);
 
   if (do_channels) {
-    bActionGroup *agrp;
-
     /* Filter visible data. */
     rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_FCURVE);
 
-    for (agrp = static_cast<bActionGroup *>(act->groups.first); agrp; agrp = agrp->next) {
+    LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
       /* only consider F-Curves if they're visible (group expanded) */
       if (EXPANDED_AGRP(ac, agrp)) {
         rearrange_animchannel_islands(
@@ -1621,9 +1616,6 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
 {
   ListBase anim_data_visible = {nullptr, nullptr};
 
-  NlaTrack *nlt;
-  NlaStrip *strip;
-
   /* get rearranging function */
   AnimChanRearrangeFp rearrange_func = rearrange_get_mode_func(mode);
 
@@ -1640,8 +1632,8 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
   rearrange_animchannels_filter_visible(&anim_data_visible, ac, ANIMTYPE_NLACURVE);
 
   /* we cannot rearrange between strips, but within each strip, we can rearrange those curves */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-    for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       rearrange_animchannel_islands(
           &strip->fcurves, rearrange_func, mode, ANIMTYPE_NLACURVE, &anim_data_visible);
     }
@@ -1656,7 +1648,6 @@ static void rearrange_nla_control_channels(bAnimContext *ac,
 static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode mode)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* get rearranging function */
@@ -1672,7 +1663,7 @@ static void rearrange_gpencil_channels(bAnimContext *ac, eRearrangeAnimChan_Mode
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* only consider grease pencil container channels */
     if (!ELEM(ale->type, ANIMTYPE_GPDATABLOCK, ANIMTYPE_DSGPENCIL)) {
       continue;
@@ -1736,7 +1727,6 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
   }
   else {
     ListBase anim_data = {nullptr, nullptr};
-    bAnimListElem *ale;
     int filter;
 
     if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
@@ -1749,7 +1739,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt = static_cast<AnimData *>(ale->data);
 
       switch (ac.datatype) {
@@ -1897,14 +1887,13 @@ static void animchannels_group_channels(bAnimContext *ac,
 
     if (anim_data.first) {
       bActionGroup *agrp;
-      bAnimListElem *ale;
 
       /* create new group, which should now be part of the action */
       agrp = action_groups_add_new(act, name);
       BLI_assert(agrp != nullptr);
 
       /* Transfer selected F-Curves across to new group. */
-      for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         FCurve *fcu = (FCurve *)ale->data;
         bActionGroup *grp = fcu->grp;
 
@@ -1941,7 +1930,6 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
   /* XXX: name for group should never be empty... */
   if (name[0]) {
     ListBase anim_data = {nullptr, nullptr};
-    bAnimListElem *ale;
     int filter;
 
     /* Handle each animdata block separately, so that the regrouping doesn't flow into blocks. */
@@ -1950,7 +1938,7 @@ static int animchannels_group_exec(bContext *C, wmOperator *op)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       animchannels_group_channels(&ac, ale, name);
     }
 
@@ -2001,7 +1989,6 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
   bAnimContext ac;
 
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* get editor data */
@@ -2015,7 +2002,7 @@ static int animchannels_ungroup_exec(bContext *C, wmOperator * /*op*/)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* find action for this F-Curve... */
     if (ale->adt && ale->adt->action) {
       FCurve *fcu = (FCurve *)ale->data;
@@ -2091,7 +2078,6 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* get editor data */
@@ -2113,7 +2099,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
     /* delete selected groups and their associated channels */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       /* only groups - don't check other types yet, since they may no-longer exist */
       if (ale->type == ANIMTYPE_GROUP) {
         bActionGroup *agrp = (bActionGroup *)ale->data;
@@ -2157,7 +2143,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator * /*op*/)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* delete selected data channels */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_FCURVE: {
         /* F-Curves if we can identify its parent */
@@ -2280,7 +2266,6 @@ static void setflag_anim_channels(bAnimContext *ac,
 {
   ListBase anim_data = {nullptr, nullptr};
   ListBase all_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* filter data that we need if flush is on */
@@ -2323,7 +2308,7 @@ static void setflag_anim_channels(bAnimContext *ac,
     mode = ACHANNEL_SETFLAG_ADD;
 
     /* see if we should turn off instead... */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       /* set the setting in the appropriate way (if available) */
       if (ANIM_channel_setting_get(ac, ale, setting) > 0) {
         mode = ACHANNEL_SETFLAG_CLEAR;
@@ -2333,7 +2318,7 @@ static void setflag_anim_channels(bAnimContext *ac,
   }
 
   /* apply the setting */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* skip channel if setting is not available */
     if (ANIM_channel_setting_get(ac, ale, setting) == -1) {
       continue;
@@ -2612,7 +2597,6 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
   bAnimContext ac;
 
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* get editor data */
@@ -2626,7 +2610,7 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     ID *id = ale->id;
     AnimData *adt = static_cast<AnimData *>(ale->data);
 
@@ -2653,10 +2637,8 @@ static int animchannels_clean_empty_exec(bContext *C, wmOperator * /*op*/)
       nla_empty = true;
     }
     else {
-      NlaTrack *nlt;
-
       /* empty tracks? */
-      for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+      LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
         if (nlt->strips.first) {
           /* stop searching, as we found one that actually had stuff we don't want lost
            * NOTE: nla_empty gets reset to false, as a previous track may have been empty
@@ -2734,7 +2716,6 @@ static int animchannels_enable_exec(bContext *C, wmOperator * /*op*/)
   bAnimContext ac;
 
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* get editor data */
@@ -2748,7 +2729,7 @@ static int animchannels_enable_exec(bContext *C, wmOperator * /*op*/)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* loop through filtered data and clean curves */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->data;
 
     /* remove disabled flags from F-Curves */
@@ -2932,7 +2913,6 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
 static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectmode)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   SpaceNla *snla = (SpaceNla *)ac->sl;
@@ -2958,7 +2938,7 @@ static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectm
   }
 
   /* loop over data, doing box select */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     float ymin;
 
     if (ale->type == ANIMTYPE_GPDATABLOCK) {
@@ -3970,7 +3950,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
       filter = (ANIMFILTER_DATA_VISIBLE);
       ANIM_animdata_filter(
           ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-      for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         FCurve *fcu_inner = (FCurve *)ale->key_data;
 
         if (fcu_inner != nullptr && fcu_inner->bezt != nullptr) {
@@ -4090,11 +4070,10 @@ static int graphkeys_view_selected_channels_exec(bContext *C, wmOperator *op)
   bounds.ymin = FLT_MAX;
   bounds.ymax = -FLT_MAX;
 
-  bAnimListElem *ale;
   const bool include_handles = RNA_boolean_get(op->ptr, "include_handles");
 
   bool valid_bounds = false;
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     rctf channel_bounds;
     const bool found_bounds = get_channel_bounds(
         &ac, ale, range, include_handles, &channel_bounds);

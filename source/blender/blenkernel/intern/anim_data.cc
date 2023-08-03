@@ -469,13 +469,9 @@ void BKE_animdata_merge_copy(
      * - This assumes that the src ID is being merged into the dst ID
      */
     if (fix_drivers) {
-      FCurve *fcu;
-
-      for (fcu = static_cast<FCurve *>(drivers.first); fcu; fcu = fcu->next) {
+      LISTBASE_FOREACH (FCurve *, fcu, &drivers) {
         ChannelDriver *driver = fcu->driver;
-        DriverVar *dvar;
-
-        for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+        LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
           DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
             if (dtar->id == src_id) {
               dtar->id = dst_id;
@@ -782,10 +778,9 @@ static bool fcurves_path_rename_fix(ID *owner_id,
                                     ListBase *curves,
                                     bool verify_paths)
 {
-  FCurve *fcu;
   bool is_changed = false;
   /* We need to check every curve. */
-  for (fcu = static_cast<FCurve *>(curves->first); fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, curves) {
     if (fcu->rna_path == nullptr) {
       continue;
     }
@@ -819,9 +814,8 @@ static bool drivers_path_rename_fix(ID *owner_id,
                                     bool verify_paths)
 {
   bool is_changed = false;
-  FCurve *fcu;
   /* We need to check every curve - drivers are F-Curves too. */
-  for (fcu = static_cast<FCurve *>(curves->first); fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, curves) {
     /* firstly, handle the F-Curve's own path */
     if (fcu->rna_path != nullptr) {
       const char *old_rna_path = fcu->rna_path;
@@ -833,9 +827,8 @@ static bool drivers_path_rename_fix(ID *owner_id,
       continue;
     }
     ChannelDriver *driver = fcu->driver;
-    DriverVar *dvar;
     /* driver variables */
-    for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
       /* only change the used targets, since the others will need fixing manually anyway */
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
         /* rename RNA path */
@@ -872,10 +865,9 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
                                       ListBase *strips,
                                       bool verify_paths)
 {
-  NlaStrip *strip;
   bool is_changed = false;
   /* Recursively check strips, fixing only actions. */
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act != nullptr) {
       is_changed |= fcurves_path_rename_fix(
@@ -1003,7 +995,6 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
                                    int newSubscript,
                                    bool verify_paths)
 {
-  NlaTrack *nlt;
   char *oldN, *newN;
   /* If no AnimData, no need to proceed. */
   if (ELEM(nullptr, owner_id, adt)) {
@@ -1048,7 +1039,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   is_self_changed |= drivers_path_rename_fix(
       owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
   /* NLA Data - Animation Data for Strips */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     is_self_changed |= nlastrips_path_rename_fix(
         owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
   }
@@ -1090,11 +1081,10 @@ static bool fcurves_path_remove_fix(const char *prefix, ListBase *curves)
 /* Check RNA-Paths for a list of F-Curves */
 static bool nlastrips_path_remove_fix(const char *prefix, ListBase *strips)
 {
-  NlaStrip *strip;
   bool any_removed = false;
 
   /* recursively check strips, fixing only actions... */
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act) {
       any_removed |= fcurves_path_remove_fix(prefix, &strip->act->curves);
@@ -1150,9 +1140,7 @@ static void fcurves_apply_cb(ID *id,
                              ID_FCurve_Edit_Callback func,
                              void *user_data)
 {
-  FCurve *fcu;
-
-  for (fcu = static_cast<FCurve *>(fcurves->first); fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     func(id, fcu, user_data);
   }
 }
@@ -1160,9 +1148,7 @@ static void fcurves_apply_cb(ID *id,
 /* Helper for adt_apply_all_fcurves_cb() - Recursively go through each NLA strip */
 static void nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, AllFCurvesCbWrapper *wrapper)
 {
-  NlaStrip *strip;
-
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act) {
       fcurves_apply_cb(id, &strip->act->curves, wrapper->func, wrapper->user_data);
@@ -1177,7 +1163,6 @@ static void nlastrips_apply_all_curves_cb(ID *id, ListBase *strips, AllFCurvesCb
 static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
 {
   AllFCurvesCbWrapper *wrapper = static_cast<AllFCurvesCbWrapper *>(wrapper_data);
-  NlaTrack *nlt;
 
   if (adt->action) {
     fcurves_apply_cb(id, &adt->action->curves, wrapper->func, wrapper->user_data);
@@ -1191,7 +1176,7 @@ static void adt_apply_all_fcurves_cb(ID *id, AnimData *adt, void *wrapper_data)
   fcurves_apply_cb(id, &adt->drivers, wrapper->func, wrapper->user_data);
 
   /* NLA Data - Animation Data for Strips */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     nlastrips_apply_all_curves_cb(id, &nlt->strips, wrapper);
   }
 }

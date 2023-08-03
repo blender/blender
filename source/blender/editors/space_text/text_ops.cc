@@ -270,9 +270,7 @@ void text_update_line_edited(TextLine *line)
 
 void text_update_edited(Text *text)
 {
-  TextLine *line;
-
-  for (line = static_cast<TextLine *>(text->lines.first); line; line = line->next) {
+  LISTBASE_FOREACH (TextLine *, line, &text->lines) {
     text_update_line_edited(line);
   }
 }
@@ -606,7 +604,6 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 {
   FILE *fp;
-  TextLine *tmp;
   BLI_stat_t st;
   char filepath[FILE_MAX];
 
@@ -630,7 +627,7 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
     return;
   }
 
-  for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
     fputs(tmp->line, fp);
     if (tmp->next) {
       fputc('\n', fp);
@@ -1377,14 +1374,13 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 {
   SpaceText *st = CTX_wm_space_text(C);
   Text *text = CTX_data_edit_text(C);
-  TextLine *tmp;
   FlattenString fs;
   size_t a, j, max_len = 0;
   int type = RNA_enum_get(op->ptr, "type");
 
   /* first convert to all space, this make it a lot easier to convert to tabs
    * because there is no mixtures of ' ' && '\t' */
-  for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+  LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
     char *new_line;
 
     BLI_assert(tmp->line);
@@ -1410,7 +1406,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
   if (type == TO_TABS) {
     char *tmp_line = static_cast<char *>(MEM_mallocN(sizeof(*tmp_line) * (max_len + 1), __func__));
 
-    for (tmp = static_cast<TextLine *>(text->lines.first); tmp; tmp = tmp->next) {
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
       const char *text_check_line = tmp->line;
       const int text_check_line_len = tmp->len;
       char *tmp_line_cur = tmp_line;

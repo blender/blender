@@ -328,11 +328,10 @@ static int material_slot_assign_exec(bContext *C, wmOperator * /*op*/)
       }
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-      Nurb *nu;
       ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
 
       if (nurbs) {
-        for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
+        LISTBASE_FOREACH (Nurb *, nu, nurbs) {
           if (ED_curve_nurb_select_check(v3d, nu)) {
             changed = true;
             nu->mat_nr = mat_nr_active;
@@ -430,13 +429,12 @@ static int material_slot_de_select(bContext *C, bool select)
     }
     else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
       ListBase *nurbs = BKE_curve_editNurbs_get((Curve *)ob->data);
-      Nurb *nu;
       BPoint *bp;
       BezTriple *bezt;
       int a;
 
       if (nurbs) {
-        for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
+        LISTBASE_FOREACH (Nurb *, nu, nurbs) {
           if (nu->mat_nr == mat_nr_active) {
             if (nu->bezt) {
               a = nu->pntsu;

@@ -985,7 +985,7 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
   /* ensure locked regions have an axis, locked user views don't make much sense */
   if (viewlock & RV3D_LOCK_ROTATION) {
     int index_qsplit = 0;
-    for (region = static_cast<ARegion *>(area->regionbase.first); region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (region->alignment == RGN_ALIGN_QSPLIT) {
         rv3d = static_cast<RegionView3D *>(region->regiondata);
         if (rv3d->viewlock) {

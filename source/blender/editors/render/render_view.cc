@@ -45,11 +45,11 @@
 static ScrArea *biggest_non_image_area(bContext *C)
 {
   bScreen *screen = CTX_wm_screen(C);
-  ScrArea *area, *big = nullptr;
+  ScrArea *big = nullptr;
   int size, maxsize = 0, bwmaxsize = 0;
   short foundwin = 0;
 
-  for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (area->winx > 30 && area->winy > 30) {
       size = area->winx * area->winy;
       if (!area->full && area->spacetype == SPACE_PROPERTIES) {
@@ -325,11 +325,11 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
     wm_window_lower(wincur);
   }
   else {
-    wmWindow *win, *winshow;
+    wmWindow *winshow;
     ScrArea *area = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
 
     /* is there another window on current scene showing result? */
-    for (win = static_cast<wmWindow *>(CTX_wm_manager(C)->windows.first); win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
       const bScreen *screen = WM_window_get_active_screen(win);
 
       if ((WM_window_is_temp_screen(win) &&

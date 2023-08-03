@@ -592,8 +592,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
       bGPDframe *gpf;
       gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
       if (gpf) {
-        bGPDstroke *gps;
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           bGPDspoint *pt = gps->points;
           int j;
           RulerItem *ruler_item = nullptr;

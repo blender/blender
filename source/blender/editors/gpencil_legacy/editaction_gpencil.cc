@@ -318,7 +318,6 @@ void ED_gpencil_anim_copybuf_free()
 bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   Scene *scene = ac->scene;
@@ -331,7 +330,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   ANIM_animdata_filter(
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* This function only deals with grease pencil layer frames.
      * This check is needed in the case of a call from the main dopesheet. */
     if (ale->type != ANIMTYPE_GPLAYER) {
@@ -387,7 +386,6 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   Scene *scene = ac->scene;
@@ -428,7 +426,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* from selected channels */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* only deal with GPlayers (case of calls from general dopesheet) */
     if (ale->type != ANIMTYPE_GPLAYER) {
       continue;
@@ -436,7 +434,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
     bGPDlayer *gpld = (bGPDlayer *)ale->data;
     bGPDlayer *gpls = nullptr;
-    bGPDframe *gpfs, *gpf;
+    bGPDframe *gpf;
 
     /* find suitable layer from buffer to use to paste from */
     for (gpls = static_cast<bGPDlayer *>(gpencil_anim_copybuf.first); gpls; gpls = gpls->next) {
@@ -452,7 +450,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
     }
 
     /* add frames from buffer */
-    for (gpfs = static_cast<bGPDframe *>(gpls->frames.first); gpfs; gpfs = gpfs->next) {
+    LISTBASE_FOREACH (bGPDframe *, gpfs, &gpls->frames) {
       /* temporarily apply offset to buffer-frame while copying */
       gpfs->framenum += offset;
 
@@ -462,8 +460,6 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
         /* Ensure to use same keyframe type. */
         gpf->key_type = gpfs->key_type;
 
-        bGPDstroke *gps, *gpsn;
-
         /* This should be the right frame... as it may be a pre-existing frame,
          * must make sure that only compatible stroke types get copied over
          * - We cannot just add a duplicate frame, as that would cause errors
@@ -471,9 +467,9 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
          *   don't have enough info to do so. Instead, we simply just paste,
          *   if it works, it will show up.
          */
-        for (gps = static_cast<bGPDstroke *>(gpfs->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpfs->strokes) {
           /* make a copy of stroke, then of its points array */
-          gpsn = BKE_gpencil_stroke_duplicate(gps, true, true);
+          bGPDstroke *gpsn = BKE_gpencil_stroke_duplicate(gps, true, true);
 
           /* append stroke to frame */
           BLI_addtail(&gpf->strokes, gpsn);

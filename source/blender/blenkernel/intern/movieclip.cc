@@ -166,11 +166,7 @@ static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
 
 static void write_moviePlaneTracks(BlendWriter *writer, ListBase *plane_tracks_base)
 {
-  MovieTrackingPlaneTrack *plane_track;
-
-  for (plane_track = static_cast<MovieTrackingPlaneTrack *>(plane_tracks_base->first); plane_track;
-       plane_track = plane_track->next)
-  {
+  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
     BLO_write_struct(writer, MovieTrackingPlaneTrack, plane_track);
 
     BLO_write_pointer_array(writer, plane_track->point_tracksnr, plane_track->point_tracks);

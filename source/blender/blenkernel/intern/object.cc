@@ -5250,8 +5250,7 @@ static Object *obrel_armature_find(Object *ob)
     ob_arm = ob->parent;
   }
   else {
-    ModifierData *mod;
-    for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
+    LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
       if (mod->type == eModifierType_Armature) {
         ob_arm = ((ArmatureModifierData *)mod)->object;
       }

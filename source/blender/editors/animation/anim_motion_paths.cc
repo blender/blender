@@ -110,10 +110,7 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
   /* bones */
   if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    bPoseChannel *pchan;
-
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if ((pchan->bone) && ANIM_bonecoll_is_visible_pchan(arm, pchan) && (pchan->mpath)) {
         /* new target for bone */
         mpt = static_cast<MPathTarget *>(MEM_callocN(sizeof(MPathTarget), "MPathTarget PoseBone"));
@@ -132,10 +129,8 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 /* perform baking for the targets on the current frame */
 static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 {
-  MPathTarget *mpt;
-
   /* for each target, check if it can be baked on the current frame */
-  for (mpt = static_cast<MPathTarget *>(targets->first); mpt; mpt = mpt->next) {
+  LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     bMotionPath *mpath = mpt->mpath;
 
     /* current frame must be within the range the cache works for

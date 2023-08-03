@@ -664,16 +664,12 @@ static void cloth_brush_solve_collision(Object *object,
 {
   const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
 
-  ColliderCache *collider_cache;
   BVHTreeRayHit hit;
 
   float obmat_inv[4][4];
   invert_m4_m4(obmat_inv, object->object_to_world);
 
-  for (collider_cache = static_cast<ColliderCache *>(cloth_sim->collider_list->first);
-       collider_cache;
-       collider_cache = collider_cache->next)
-  {
+  LISTBASE_FOREACH (ColliderCache *, collider_cache, cloth_sim->collider_list) {
     float ray_start[3], ray_normal[3];
     float pos_world_space[3], prev_pos_world_space[3];
 

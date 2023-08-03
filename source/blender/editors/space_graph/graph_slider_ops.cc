@@ -151,13 +151,12 @@ static void store_original_bezt_arrays(tGraphSliderOp *gso)
 {
   ListBase anim_data = {nullptr, nullptr};
   bAnimContext *ac = &gso->ac;
-  bAnimListElem *ale;
 
   ANIM_animdata_filter(
       ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and copy the curves. */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
 
     if (fcu->bezt == nullptr) {
@@ -407,14 +406,13 @@ enum tDecimModes {
 static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_max)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
 
   /* Filter data. */
   ANIM_animdata_filter(
       ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and clean curves. */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
       WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");

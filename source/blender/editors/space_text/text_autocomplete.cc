@@ -151,11 +151,9 @@ static GHash *text_autocomplete_build(Text *text)
 
   /* now walk over entire doc and suggest words */
   {
-    TextLine *linep;
-
     gh = BLI_ghash_str_new(__func__);
 
-    for (linep = static_cast<TextLine *>(text->lines.first); linep; linep = linep->next) {
+    LISTBASE_FOREACH (TextLine *, linep, &text->lines) {
       size_t i_start = 0;
       size_t i_end = 0;
       size_t i_pos = 0;

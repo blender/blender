@@ -686,7 +686,6 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
 static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
 {
-  Ref *ref;
   KnifeVert *kfv;
   KnifeVert *tempkfv;
   KnifeEdge *kfe;
@@ -700,7 +699,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     float *end;
 
     kfe = static_cast<KnifeEdge *>(((Ref *)kfv->edges.first)->ref);
-    for (ref = static_cast<Ref *>(kfv->edges.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kfv->edges) {
       tempkfe = static_cast<KnifeEdge *>(ref->ref);
       if (tempkfe->v1 != kfv) {
         tempkfv = tempkfe->v1;
@@ -783,7 +782,7 @@ static void knifetool_draw_visible_angles(const KnifeTool_OpData *kcd)
     else {
       /* Choose minimum angle edge. */
       kfe = static_cast<KnifeEdge *>(((Ref *)kfv->edges.first)->ref);
-      for (ref = static_cast<Ref *>(kfv->edges.first); ref; ref = ref->next) {
+      LISTBASE_FOREACH (Ref *, ref, &kfv->edges) {
         tempkfe = static_cast<KnifeEdge *>(ref->ref);
         if (tempkfe->v1 != kfv) {
           tempkfv = tempkfe->v1;
@@ -1586,8 +1585,7 @@ static BMElem *bm_elem_from_knife_vert(KnifeVert *kfv, KnifeEdge **r_kfe)
 
   if (r_kfe || ele_test == nullptr) {
     if (kfv->v == nullptr) {
-      Ref *ref;
-      for (ref = static_cast<Ref *>(kfv->edges.first); ref; ref = ref->next) {
+      LISTBASE_FOREACH (Ref *, ref, &kfv->edges) {
         kfe = static_cast<KnifeEdge *>(ref->ref);
         if (kfe->e) {
           if (r_kfe) {
@@ -1655,9 +1653,7 @@ static void knife_append_list(KnifeTool_OpData *kcd, ListBase *lst, void *elem)
 
 static Ref *find_ref(ListBase *lb, void *ref)
 {
-  Ref *ref1;
-
-  for (ref1 = static_cast<Ref *>(lb->first); ref1; ref1 = ref1->next) {
+  LISTBASE_FOREACH (Ref *, ref1, lb) {
     if (ref1->ref == ref) {
       return ref1;
     }
@@ -1694,10 +1690,8 @@ static void knife_add_edge_faces_to_vert(KnifeTool_OpData *kcd, KnifeVert *kfv, 
  * If more than one, return the first; if none, return nullptr. */
 static BMFace *knife_find_common_face(ListBase *faces1, ListBase *faces2)
 {
-  Ref *ref1, *ref2;
-
-  for (ref1 = static_cast<Ref *>(faces1->first); ref1; ref1 = ref1->next) {
-    for (ref2 = static_cast<Ref *>(faces2->first); ref2; ref2 = ref2->next) {
+  LISTBASE_FOREACH (Ref *, ref1, faces1) {
+    LISTBASE_FOREACH (Ref *, ref2, faces2) {
       if (ref1->ref == ref2->ref) {
         return (BMFace *)(ref1->ref);
       }
@@ -1852,7 +1846,7 @@ static KnifeVert *knife_split_edge(KnifeTool_OpData *kcd,
   kfe->v1->is_splitting = true;
   BLI_addtail(&kfe->v1->edges, ref);
 
-  for (ref = static_cast<Ref *>(kfe->faces.first); ref; ref = ref->next) {
+  LISTBASE_FOREACH (Ref *, ref, &kfe->faces) {
     knife_edge_append_face(kcd, newkfe, static_cast<BMFace *>(ref->ref));
   }
 
@@ -2178,7 +2172,6 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, ListBase *kfedges)
 {
   KnifeEdge *kfe;
-  Ref *ref;
   int edge_array_len = BLI_listbase_count(kfedges);
   int i;
 
@@ -2190,7 +2183,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMesh *bm, BMFace *f, Li
   BLI_assert(BLI_gset_len(kcd->edgenet.edge_visit) == 0);
 
   i = 0;
-  for (ref = static_cast<Ref *>(kfedges->first); ref; ref = ref->next) {
+  LISTBASE_FOREACH (Ref *, ref, kfedges) {
     bool is_new_edge = false;
     kfe = static_cast<KnifeEdge *>(ref->ref);
 
@@ -2320,7 +2313,6 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
   BMFace *f;
   BMEdge *e, *enew;
   ListBase *list;
-  Ref *ref;
   float pct;
   SmallHashIter hiter;
   BLI_mempool_iter iter;
@@ -2366,7 +2358,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
     if (kfv->v || kfv->is_invalid || kfv->ob != ob) {
       continue; /* Already have a BMVert. */
     }
-    for (ref = static_cast<Ref *>(kfv->edges.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kfv->edges) {
       kfe = static_cast<KnifeEdge *>(ref->ref);
       e = kfe->e;
       if (!e) {
@@ -2390,7 +2382,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
   {
     BLI_listbase_sort_r(list, sort_verts_by_dist_cb, e->v1->co);
 
-    for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, list) {
       kfv = static_cast<KnifeVert *>(ref->ref);
       pct = line_point_factor_v3(kfv->co, e->v1->co, e->v2->co);
       kfv->v = BM_edge_split(bm, e, e->v1, &enew, pct);
@@ -2422,7 +2414,6 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
   int i;
   GHash *facehits;
   BMFace *f;
-  Ref *r;
   GHashIterator giter;
   ListBase *list;
 
@@ -2462,12 +2453,12 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
       add_hit_to_facehits(kcd, facehits, lh->f, lh);
     }
     if (lh->v) {
-      for (r = static_cast<Ref *>(lh->v->faces.first); r; r = r->next) {
+      LISTBASE_FOREACH (Ref *, r, &lh->v->faces) {
         add_hit_to_facehits(kcd, facehits, static_cast<BMFace *>(r->ref), lh);
       }
     }
     if (lh->kfe) {
-      for (r = static_cast<Ref *>(lh->kfe->faces.first); r; r = r->next) {
+      LISTBASE_FOREACH (Ref *, r, &lh->kfe->faces) {
         add_hit_to_facehits(kcd, facehits, static_cast<BMFace *>(r->ref), lh);
       }
     }
@@ -2589,7 +2580,6 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
   float d, lambda;
   BMLoop **tri;
   ListBase *list;
-  Ref *ref;
   KnifeEdge *kfe;
 
   sub_v3_v3v3(raydir, v2, v1);
@@ -2626,7 +2616,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
       interp_v3_v3v3v3_uv(hit_cageco, UNPACK3(tri_cos), ray_tri_uv);
       /* Now check that far enough away from verts and edges. */
       list = knife_get_face_kedges(kcd, ob, ob_index, f);
-      for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
+      LISTBASE_FOREACH (Ref *, ref, list) {
         kfe = static_cast<KnifeEdge *>(ref->ref);
         if (kfe->is_invalid) {
           continue;
@@ -3287,7 +3277,6 @@ static int knife_sample_screen_density_from_closest_face(KnifeTool_OpData *kcd,
 {
   const float radius_sq = radius * radius;
   ListBase *list;
-  Ref *ref;
   float sco[2];
   float dis_sq;
   int c = 0;
@@ -3295,7 +3284,7 @@ static int knife_sample_screen_density_from_closest_face(KnifeTool_OpData *kcd,
   knife_project_v2(kcd, cageco, sco);
 
   list = knife_get_face_kedges(kcd, ob, ob_index, f);
-  for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
+  LISTBASE_FOREACH (Ref *, ref, list) {
     KnifeEdge *kfe = static_cast<KnifeEdge *>(ref->ref);
     int i;
 
@@ -3422,14 +3411,13 @@ static KnifeEdge *knife_find_closest_edge_of_face(
   KnifeEdge *cure = nullptr;
   float cur_cagep[3];
   ListBase *list;
-  Ref *ref;
   float dis_sq, curdis_sq = maxdist_sq;
 
   knife_project_v2(kcd, cagep, sco);
 
   /* Look through all edges associated with this face. */
   list = knife_get_face_kedges(kcd, ob, ob_index, f);
-  for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
+  LISTBASE_FOREACH (Ref *, ref, list) {
     KnifeEdge *kfe = static_cast<KnifeEdge *>(ref->ref);
     float kfv1_sco[2], kfv2_sco[2], test_cagep[3];
     float lambda;
@@ -3637,7 +3625,6 @@ static float snap_v3_angle_plane(
 /* Snap to required angle along the plane of the face nearest to kcd->prev. */
 static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
 {
-  Ref *ref;
   KnifeEdge *kfe;
   KnifeVert *kfv;
   BMFace *f;
@@ -3668,7 +3655,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
    * If none exists then exit. */
   if (kcd->prev.vert) {
     int count = 0;
-    for (ref = static_cast<Ref *>(kcd->prev.vert->edges.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kcd->prev.vert->edges) {
       kfe = ((KnifeEdge *)(ref->ref));
       if (kfe->is_invalid) {
         continue;
@@ -3701,7 +3688,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   /* Choose best face for plane. */
   BMFace *fprev = nullptr;
   if (kcd->prev.vert && kcd->prev.vert->v) {
-    for (ref = static_cast<Ref *>(kcd->prev.vert->faces.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kcd->prev.vert->faces) {
       f = ((BMFace *)(ref->ref));
       if (f == fcurr) {
         fprev = f;
@@ -3709,7 +3696,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     }
   }
   else if (kcd->prev.edge) {
-    for (ref = static_cast<Ref *>(kcd->prev.edge->faces.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kcd->prev.edge->faces) {
       f = ((BMFace *)(ref->ref));
       if (f == fcurr) {
         fprev = f;
@@ -3777,7 +3764,6 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
 
 static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd)
 {
-  Ref *ref;
   KnifeEdge *kfe;
 
   /* Ray for kcd->curr. */
@@ -3800,7 +3786,7 @@ static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd)
   }
 
   if (kcd->prev.vert) {
-    for (ref = static_cast<Ref *>(kcd->prev.vert->edges.first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, &kcd->prev.vert->edges) {
       kfe = ((KnifeEdge *)(ref->ref));
       if (kfe->is_invalid) {
         continue;
@@ -3956,7 +3942,6 @@ static bool knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[
  */
 static void knifetool_undo(KnifeTool_OpData *kcd)
 {
-  Ref *ref;
   KnifeEdge *kfe, *newkfe;
   KnifeEdge *lastkfe = nullptr;
   KnifeVert *v1, *v2;
@@ -3995,7 +3980,7 @@ static void knifetool_undo(KnifeTool_OpData *kcd)
       if (!v1->is_invalid && !v1->is_splitting) {
         v1->is_invalid = true;
         /* If the first vertex is touching any other cut edges don't remove it. */
-        for (ref = static_cast<Ref *>(v1->edges.first); ref; ref = ref->next) {
+        LISTBASE_FOREACH (Ref *, ref, &v1->edges) {
           kfe = static_cast<KnifeEdge *>(ref->ref);
           if (kfe->is_cut && !kfe->is_invalid) {
             v1->is_invalid = false;
@@ -4008,7 +3993,7 @@ static void knifetool_undo(KnifeTool_OpData *kcd)
       if (!v2->is_invalid && !v2->is_splitting) {
         v2->is_invalid = true;
         /* If the second vertex is touching any other cut edges don't remove it. */
-        for (ref = static_cast<Ref *>(v2->edges.first); ref; ref = ref->next) {
+        LISTBASE_FOREACH (Ref *, ref, &v2->edges) {
           kfe = static_cast<KnifeEdge *>(ref->ref);
           if (kfe->is_cut && !kfe->is_invalid) {
             v2->is_invalid = false;

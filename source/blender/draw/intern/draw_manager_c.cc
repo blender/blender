@@ -790,9 +790,7 @@ void **DRW_view_layer_engine_data_ensure_ex(ViewLayer *view_layer,
 {
   ViewLayerEngineData *sled;
 
-  for (sled = static_cast<ViewLayerEngineData *>(view_layer->drawdata.first); sled;
-       sled = sled->next)
-  {
+  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
     if (sled->engine_type == engine_type) {
       return &sled->storage;
     }
@@ -974,7 +972,6 @@ static void drw_drawdata_unlink_dupli(ID *id)
 void DRW_cache_free_old_batches(Main *bmain)
 {
   Scene *scene;
-  ViewLayer *view_layer;
   static int lasttime = 0;
   int ctime = int(PIL_check_seconds_timer());
 
@@ -987,9 +984,7 @@ void DRW_cache_free_old_batches(Main *bmain)
   for (scene = static_cast<Scene *>(bmain->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
   {
-    for (view_layer = static_cast<ViewLayer *>(scene->view_layers.first); view_layer;
-         view_layer = view_layer->next)
-    {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
       if (depsgraph == nullptr) {
         continue;

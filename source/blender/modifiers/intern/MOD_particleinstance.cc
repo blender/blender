@@ -66,7 +66,6 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
   ParticleSystem *psys;
-  ModifierData *ob_md;
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the mesh is missing).
@@ -85,8 +84,7 @@ static bool is_disabled(const Scene *scene, ModifierData *md, bool use_render_pa
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
    */
-  for (ob_md = static_cast<ModifierData *>(pimd->ob->modifiers.first); ob_md; ob_md = ob_md->next)
-  {
+  LISTBASE_FOREACH (ModifierData *, ob_md, &pimd->ob->modifiers) {
     if (ob_md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
       if (psmd->psys == psys) {

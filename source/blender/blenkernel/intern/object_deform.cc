@@ -53,10 +53,6 @@ static Lattice *object_defgroup_lattice_get(ID *id)
 
 void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
 {
-  ModifierData *md;
-  ParticleSystem *psys;
-  int a;
-
   /* these cases don't use names to refer to vertex groups, so when
    * they get removed the numbers get out of sync, this corrects that */
 
@@ -64,7 +60,7 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     ob->soft->vertgroup = map[ob->soft->vertgroup];
   }
 
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (md->type == eModifierType_Explode) {
       ExplodeModifierData *emd = (ExplodeModifierData *)md;
       emd->vgroup = map[emd->vgroup];
@@ -81,8 +77,8 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     }
   }
 
-  for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
-    for (a = 0; a < PSYS_TOT_VG; a++) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+    for (int a = 0; a < PSYS_TOT_VG; a++) {
       psys->vgroup[a] = map[psys->vgroup[a]];
     }
   }
@@ -207,12 +203,11 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
 
 bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 {
-  bDeformGroup *dg;
   bool changed = false;
 
   const ListBase *defbase = BKE_object_defgroup_list(ob);
 
-  for (dg = static_cast<bDeformGroup *>(defbase->first); dg; dg = dg->next) {
+  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
     if (BKE_object_defgroup_clear(ob, dg, use_selection)) {
       changed = true;
     }
@@ -564,7 +559,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   gh = BLI_ghash_str_new_ex(__func__, defbase_tot);
 
   /* add all names to a hash table */
-  for (dg = static_cast<bDeformGroup *>(defbase->first); dg; dg = dg->next) {
+  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
     BLI_ghash_insert(gh, dg->name, nullptr);
   }
 
@@ -585,9 +580,8 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 
       if (amd->object && amd->object->pose) {
         bPose *pose = amd->object->pose;
-        bPoseChannel *chan;
 
-        for (chan = static_cast<bPoseChannel *>(pose->chanbase.first); chan; chan = chan->next) {
+        LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
           void **val_p;
           if (chan->bone->flag & BONE_NO_DEFORM) {
             continue;

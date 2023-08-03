@@ -72,12 +72,8 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 #ifdef WITH_PYTHON
 static bool script_test_modal_operators(bContext *C)
 {
-  wmWindowManager *wm;
-  wmWindow *win;
-
-  wm = CTX_wm_manager(C);
-
-  for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;

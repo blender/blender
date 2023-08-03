@@ -97,7 +97,7 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
   /* move over the compbufs and previews */
   blender::bke::node_preview_merge_tree(ntree, localtree, true);
 
-  for (bNode *lnode = (bNode *)localtree->nodes.first; lnode; lnode = lnode->next) {
+  LISTBASE_FOREACH (bNode *, lnode, &localtree->nodes) {
     if (bNode *orig_node = nodeFindNodebyName(ntree, lnode->name)) {
       if (ELEM(lnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {

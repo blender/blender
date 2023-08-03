@@ -299,7 +299,7 @@ static bool *gpencil_vgroup_bone_deformed_map_get(Object *ob, const int defbase_
 
   /* Add all vertex group names to a hash table. */
   gh = BLI_ghash_str_new_ex(__func__, defbase_tot);
-  for (dg = static_cast<bDeformGroup *>(defbase->first); dg; dg = dg->next) {
+  LISTBASE_FOREACH (bDeformGroup *, dg, defbase) {
     BLI_ghash_insert(gh, dg->name, nullptr);
   }
   BLI_assert(BLI_ghash_len(gh) == defbase_tot);
@@ -314,9 +314,8 @@ static bool *gpencil_vgroup_bone_deformed_map_get(Object *ob, const int defbase_
 
     if (amd->object && amd->object->pose) {
       bPose *pose = amd->object->pose;
-      bPoseChannel *chan;
 
-      for (chan = static_cast<bPoseChannel *>(pose->chanbase.first); chan; chan = chan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
         void **val_p;
         if (chan->bone->flag & BONE_NO_DEFORM) {
           continue;

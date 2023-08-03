@@ -32,10 +32,9 @@
 #ifdef WITH_AUDASPACE
 static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, ListBase *seqbase)
 {
-  Sequence *seq;
   bool changed = false;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
       if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
         changed = true;
@@ -80,9 +79,7 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   Editing *ed = scene->ed;
 
   if (ed) {
-    Sequence *seq;
-
-    for (seq = static_cast<Sequence *>(ed->seqbase.first); seq; seq = seq->next) {
+    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
       if (seq->type == SEQ_TYPE_META) {
         seq_update_sound_bounds_recursive(scene, seq);
       }
@@ -116,9 +113,7 @@ void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
 
 static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
 {
-  Sequence *seq;
-
-  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_recursive(scene, &seq->seqbase, sound);
     }

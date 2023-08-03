@@ -1012,7 +1012,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                                              const bool is_popover)
 {
   ChannelDriver *driver = fcu->driver;
-  DriverVar *dvar;
 
   PointerRNA driver_ptr;
   uiLayout *col, *row, *row_outer;
@@ -1153,7 +1152,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
 
   /* loop over targets, drawing them */
-  for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+  LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     PointerRNA dvar_ptr;
     uiLayout *box;
     uiLayout *subrow, *sub;

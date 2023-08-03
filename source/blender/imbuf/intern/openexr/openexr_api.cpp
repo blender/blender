@@ -434,9 +434,7 @@ static void openexr_header_compression(Header *header, int compression)
 static void openexr_header_metadata(Header *header, ImBuf *ibuf)
 {
   if (ibuf->metadata) {
-    IDProperty *prop;
-
-    for (prop = (IDProperty *)ibuf->metadata->data.group.first; prop; prop = prop->next) {
+    LISTBASE_FOREACH (IDProperty *, prop, &ibuf->metadata->data.group) {
       if (prop->type == IDP_STRING && !STREQ(prop->name, "compression")) {
         header->insert(prop->name, StringAttribute(IDP_String(prop)));
       }
@@ -889,14 +887,13 @@ bool IMB_exr_begin_write(void *handle,
 {
   ExrHandle *data = (ExrHandle *)handle;
   Header header(width, height);
-  ExrChannel *echan;
 
   data->width = width;
   data->height = height;
 
   bool is_singlelayer, is_multilayer, is_multiview;
 
-  for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+  LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
     header.channels().insert(echan->name, Channel(echan->use_half_float ? Imf::HALF : Imf::FLOAT));
   }
 
@@ -950,7 +947,6 @@ void IMB_exrtile_begin_write(
   ExrHandle *data = (ExrHandle *)handle;
   Header header(width, height);
   std::vector<Header> headers;
-  ExrChannel *echan;
 
   data->tilex = tilex;
   data->tiley = tiley;
@@ -979,7 +975,7 @@ void IMB_exrtile_begin_write(
   exr_printf("---------------------------------------------------------------\n");
 
   /* Assign channels. */
-  for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+  LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
     /* Tiles are expected to be saved with full float currently. */
     BLI_assert(echan->use_half_float == 0);
 
@@ -1143,9 +1139,8 @@ float *IMB_exr_channel_rect(void *handle,
 void IMB_exr_clear_channels(void *handle)
 {
   ExrHandle *data = (ExrHandle *)handle;
-  ExrChannel *chan;
 
-  for (chan = (ExrChannel *)data->channels.first; chan; chan = chan->next) {
+  LISTBASE_FOREACH (ExrChannel *, chan, &data->channels) {
     delete chan->m;
   }
 
@@ -1156,7 +1151,6 @@ void IMB_exr_write_channels(void *handle)
 {
   ExrHandle *data = (ExrHandle *)handle;
   FrameBuffer frameBuffer;
-  ExrChannel *echan;
 
   if (data->channels.first) {
     const size_t num_pixels = size_t(data->width) * data->height;
@@ -1169,7 +1163,7 @@ void IMB_exr_write_channels(void *handle)
       current_rect_half = rect_half;
     }
 
-    for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+    LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
       /* Writing starts from last scan-line, stride negative. */
       if (echan->use_half_float) {
         float *rect = echan->rect;
@@ -1227,10 +1221,7 @@ void IMB_exrtile_write_channels(
   exr_printf("---------------------------------------------------------------------\n");
 
   if (!empty) {
-    ExrChannel *echan;
-
-    for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
-
+    LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
       /* eventually we can make the parts' channels to include
        * only the current view TODO */
       if (!STREQ(viewname, echan->m->view.c_str())) {
@@ -1295,9 +1286,8 @@ void IMB_exr_read_channels(void *handle)
 
     /* Insert all matching channel into frame-buffer. */
     FrameBuffer frameBuffer;
-    ExrChannel *echan;
 
-    for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
+    LISTBASE_FOREACH (ExrChannel *, echan, &data->channels) {
       if (echan->m->part_number != i) {
         continue;
       }
@@ -1360,8 +1350,6 @@ void IMB_exr_multilayer_convert(void *handle,
                                                 const char *view))
 {
   ExrHandle *data = (ExrHandle *)handle;
-  ExrLayer *lay;
-  ExrPass *pass;
 
   /* RenderResult needs at least one RenderView */
   if (data->multiView->empty()) {
@@ -1379,10 +1367,10 @@ void IMB_exr_multilayer_convert(void *handle,
     return;
   }
 
-  for (lay = (ExrLayer *)data->layers.first; lay; lay = lay->next) {
+  LISTBASE_FOREACH (ExrLayer *, lay, &data->layers) {
     void *laybase = addlayer(base, lay->name);
     if (laybase) {
-      for (pass = (ExrPass *)lay->passes.first; pass; pass = pass->next) {
+      LISTBASE_FOREACH (ExrPass *, pass, &lay->passes) {
         addpass(base,
                 laybase,
                 pass->internal_name,
@@ -1399,9 +1387,6 @@ void IMB_exr_multilayer_convert(void *handle,
 void IMB_exr_close(void *handle)
 {
   ExrHandle *data = (ExrHandle *)handle;
-  ExrLayer *lay;
-  ExrPass *pass;
-  ExrChannel *chan;
 
   delete data->ifile;
   delete data->ifile_stream;
@@ -1416,13 +1401,13 @@ void IMB_exr_close(void *handle)
   data->mpofile = nullptr;
   data->ofile_stream = nullptr;
 
-  for (chan = (ExrChannel *)data->channels.first; chan; chan = chan->next) {
+  LISTBASE_FOREACH (ExrChannel *, chan, &data->channels) {
     delete chan->m;
   }
   BLI_freelistN(&data->channels);
 
-  for (lay = (ExrLayer *)data->layers.first; lay; lay = lay->next) {
-    for (pass = (ExrPass *)lay->passes.first; pass; pass = pass->next) {
+  LISTBASE_FOREACH (ExrLayer *, lay, &data->layers) {
+    LISTBASE_FOREACH (ExrPass *, pass, &lay->passes) {
       if (pass->rect) {
         MEM_freeN(pass->rect);
       }
@@ -1639,8 +1624,8 @@ static bool imb_exr_multilayer_parse_channels_from_file(ExrHandle *data)
   }
 
   /* with some heuristics, try to merge the channels in buffers */
-  for (ExrLayer *lay = (ExrLayer *)data->layers.first; lay; lay = lay->next) {
-    for (ExrPass *pass = (ExrPass *)lay->passes.first; pass; pass = pass->next) {
+  LISTBASE_FOREACH (ExrLayer *, lay, &data->layers) {
+    LISTBASE_FOREACH (ExrPass *, pass, &lay->passes) {
       if (pass->totchan) {
         pass->rect = (float *)MEM_callocN(
             data->width * data->height * pass->totchan * sizeof(float), "pass rect");

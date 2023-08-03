@@ -1557,11 +1557,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
                                             float *progress)
 {
   IconPreview *ip = (IconPreview *)customdata;
-  IconPreviewSize *cur_size;
 
-  for (cur_size = static_cast<IconPreviewSize *>(ip->sizes.first); cur_size;
-       cur_size = cur_size->next)
-  {
+  LISTBASE_FOREACH (IconPreviewSize *, cur_size, &ip->sizes) {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :

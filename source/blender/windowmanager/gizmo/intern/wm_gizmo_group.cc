@@ -222,7 +222,7 @@ void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
                                                 BLI_Buffer *visible_gizmos)
 {
   int gzgroup_keymap_uses_modifier = -1;
-  for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.last); gz; gz = gz->prev) {
+  LISTBASE_FOREACH_BACKWARD (wmGizmo *, gz, &gzgroup->gizmos) {
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||

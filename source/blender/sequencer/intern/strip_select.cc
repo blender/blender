@@ -48,11 +48,9 @@ bool SEQ_select_active_get_pair(Scene *scene, Sequence **r_seq_act, Sequence **r
     return false;
   }
 
-  Sequence *seq;
-
   *r_seq_other = nullptr;
 
-  for (seq = static_cast<Sequence *>(ed->seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     if (seq->flag & SELECT && (seq != (*r_seq_act))) {
       if (*r_seq_other) {
         return false;

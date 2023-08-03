@@ -254,7 +254,7 @@ Object *bc_get_assigned_armature(Object *ob)
   }
   else {
     ModifierData *mod;
-    for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
+    LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
       if (mod->type == eModifierType_Armature) {
         ob_arm = ((ArmatureModifierData *)mod)->object;
       }
@@ -425,7 +425,7 @@ void bc_triangulate_mesh(Mesh *me)
 
 bool bc_is_leaf_bone(Bone *bone)
 {
-  for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     if (child->flag & BONE_CONNECTED) {
       return false;
     }
@@ -437,7 +437,7 @@ EditBone *bc_get_edit_bone(bArmature *armature, char *name)
 {
   EditBone *eBone;
 
-  for (eBone = (EditBone *)armature->edbo->first; eBone; eBone = eBone->next) {
+  LISTBASE_FOREACH (EditBone *, eBone, armature->edbo) {
     if (STREQ(name, eBone->name)) {
       return eBone;
     }
@@ -774,7 +774,7 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
     SNPRINTF(prefix, "pose.bones[\"%s\"]", bone_name_esc);
   }
 
-  for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
     if (bone_name) {
       if (STREQLEN(fcu->rna_path, prefix, strlen(prefix))) {
         fcu->flag &= ~FCURVE_DISABLED;
@@ -1309,7 +1309,7 @@ bNode *bc_get_master_shader(Material *ma)
 {
   bNodeTree *nodetree = ma->nodetree;
   if (nodetree) {
-    for (bNode *node = (bNode *)nodetree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
       if (node->typeinfo->type == SH_NODE_BSDF_PRINCIPLED) {
         return node;
       }

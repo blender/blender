@@ -214,10 +214,8 @@ void poseAnim_mapping_refresh(bContext *C, Scene * /*scene*/, Object *ob)
 
 void poseAnim_mapping_reset(ListBase *pfLinks)
 {
-  tPChanFCurveLink *pfl;
-
   /* iterate over each pose-channel affected, restoring all channels to their original values */
-  for (pfl = static_cast<tPChanFCurveLink *>(pfLinks->first); pfl; pfl = pfl->next) {
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
     bPoseChannel *pchan = pfl->pchan;
 
     /* just copy all the values over regardless of whether they changed or not */
@@ -277,13 +275,12 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
   /* Insert keyframes as necessary if auto-key-framing. */
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
   ListBase dsources = {nullptr, nullptr};
-  tPChanFCurveLink *pfl;
 
   /* iterate over each pose-channel affected, tagging bones to be keyed */
   /* XXX: here we already have the information about what transforms exist, though
    * it might be easier to just overwrite all using normal mechanisms
    */
-  for (pfl = static_cast<tPChanFCurveLink *>(pfLinks->first); pfl; pfl = pfl->next) {
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
     bPoseChannel *pchan = pfl->pchan;
 
     if ((pfl->ob->id.tag & LIB_TAG_DOIT) == 0) {

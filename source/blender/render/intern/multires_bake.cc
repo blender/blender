@@ -1465,13 +1465,11 @@ static void count_images(MultiresBakeRender *bkr)
 
 static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
-  LinkData *link;
-
   /* construct bake result */
   result->height_min = FLT_MAX;
   result->height_max = -FLT_MAX;
 
-  for (link = static_cast<LinkData *>(bkr->image.first); link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &bkr->image) {
     Image *ima = (Image *)link->data;
 
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
@@ -1535,10 +1533,9 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 
 static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
-  LinkData *link;
   bool use_displacement_buffer = bkr->mode == RE_BAKE_DISPLACEMENT;
 
-  for (link = static_cast<LinkData *>(bkr->image.first); link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &bkr->image) {
     Image *ima = (Image *)link->data;
 
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {

@@ -1406,13 +1406,11 @@ static void draw_bone_update_disp_matrix_default(UnifiedBonePtr bone)
 /* compute connected child pointer for B-Bone drawing */
 static void edbo_compute_bbone_child(bArmature *arm)
 {
-  EditBone *eBone;
-
-  for (eBone = static_cast<EditBone *>(arm->edbo->first); eBone; eBone = eBone->next) {
+  LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
     eBone->bbone_child = nullptr;
   }
 
-  for (eBone = static_cast<EditBone *>(arm->edbo->first); eBone; eBone = eBone->next) {
+  LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
     if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
       eBone->parent->bbone_child = eBone;
     }
@@ -1800,12 +1798,11 @@ static void pchan_draw_ik_lines(const ArmatureDrawContext *ctx,
                                 const bPoseChannel *pchan,
                                 const bool only_temp)
 {
-  const bConstraint *con;
   const bPoseChannel *parchan;
   const float *line_start = nullptr, *line_end = nullptr;
   const ePchan_ConstFlag constflag = ePchan_ConstFlag(pchan->constflag);
 
-  for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
     if (con->enforce == 0.0f) {
       continue;
     }

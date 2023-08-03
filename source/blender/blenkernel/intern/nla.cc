@@ -138,7 +138,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
                             const int flag)
 {
   NlaStrip *strip_d;
-  NlaStrip *cs, *cs_d;
+  NlaStrip *cs_d;
 
   const bool do_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
 
@@ -172,7 +172,7 @@ NlaStrip *BKE_nlastrip_copy(Main *bmain,
   /* make a copy of all the child-strips, one at a time */
   BLI_listbase_clear(&strip_d->strips);
 
-  for (cs = static_cast<NlaStrip *>(strip->strips.first); cs; cs = cs->next) {
+  LISTBASE_FOREACH (NlaStrip *, cs, &strip->strips) {
     cs_d = BKE_nlastrip_copy(bmain, cs, use_same_action, flag);
     BLI_addtail(&strip_d->strips, cs_d);
   }
@@ -186,7 +186,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
                             const bool use_same_actions,
                             const int flag)
 {
-  NlaStrip *strip, *strip_d;
+  NlaStrip *strip_d;
   NlaTrack *nlt_d;
 
   /* sanity check */
@@ -201,7 +201,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
   /* make a copy of all the strips, one at a time */
   BLI_listbase_clear(&nlt_d->strips);
 
-  for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
     strip_d = BKE_nlastrip_copy(bmain, strip, use_same_actions, flag);
     BLI_addtail(&nlt_d->strips, strip_d);
   }
@@ -212,7 +212,7 @@ NlaTrack *BKE_nlatrack_copy(Main *bmain,
 
 void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const int flag)
 {
-  NlaTrack *nlt, *nlt_d;
+  NlaTrack *nlt_d;
 
   /* sanity checks */
   if (ELEM(nullptr, dst, src)) {
@@ -223,7 +223,7 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   BLI_listbase_clear(dst);
 
   /* copy each NLA-track, one at a time */
-  for (nlt = static_cast<NlaTrack *>(src->first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, src) {
     /* make a copy, and add the copy to the destination list */
     /* XXX: we need to fix this sometime. */
     nlt_d = BKE_nlatrack_copy(bmain, nlt, true, flag);
@@ -759,8 +759,6 @@ float BKE_nla_tweakedit_remap(AnimData *adt, float cframe, short mode)
 
 bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 {
-  NlaStrip *strip;
-
   /* sanity checks */
   if ((strips == nullptr) || IS_EQF(start, end)) {
     return false;
@@ -771,7 +769,7 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
   }
 
   /* loop over NLA strips checking for any overlaps with this area... */
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* if start frame of strip is past the target end-frame, that means that
      * we've gone past the window we need to check for, so things are fine
      */
@@ -794,7 +792,7 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
 void BKE_nlastrips_sort_strips(ListBase *strips)
 {
   ListBase tmp = {nullptr, nullptr};
-  NlaStrip *strip, *sstrip, *stripn;
+  NlaStrip *strip, *stripn;
 
   /* sanity checks */
   if (ELEM(nullptr, strips, strips->first)) {
@@ -814,7 +812,7 @@ void BKE_nlastrips_sort_strips(ListBase *strips)
      */
     BLI_remlink(strips, strip);
 
-    for (sstrip = static_cast<NlaStrip *>(tmp.last); sstrip; sstrip = sstrip->prev) {
+    LISTBASE_FOREACH_BACKWARD (NlaStrip *, sstrip, &tmp) {
       /* check if add after */
       if (sstrip->start <= strip->start) {
         BLI_insertlinkafter(&tmp, sstrip, strip);
@@ -836,14 +834,13 @@ void BKE_nlastrips_sort_strips(ListBase *strips)
 
 void BKE_nlastrips_add_strip_unsafe(ListBase *strips, NlaStrip *strip)
 {
-  NlaStrip *ns;
   bool not_added = true;
 
   /* sanity checks */
   BLI_assert(!ELEM(nullptr, strips, strip));
 
   /* find the right place to add the strip to the nominated track */
-  for (ns = static_cast<NlaStrip *>(strips->first); ns; ns = ns->next) {
+  LISTBASE_FOREACH (NlaStrip *, ns, strips) {
     /* if current strip occurs after the new strip, add it before */
     if (ns->start >= strip->start) {
       BLI_insertlinkbefore(strips, ns, strip);
@@ -1023,7 +1020,6 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 
 void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 {
-  NlaStrip *strip;
   float oStart, oEnd, offset;
   float oLen, nLen;
   short scaleChanged = 0;
@@ -1061,7 +1057,7 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
   }
 
   /* for each child-strip, calculate new start/end points based on this new info */
-  for (strip = static_cast<NlaStrip *>(mstrip->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, &mstrip->strips) {
     if (scaleChanged) {
       float p1, p2;
 
@@ -1088,7 +1084,7 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
   }
 
   /* apply a second pass over child strips, to finish up unfinished business */
-  for (strip = static_cast<NlaStrip *>(mstrip->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, &mstrip->strips) {
     /* only if scale changed, need to perform RNA updates */
     if (scaleChanged) {
       PointerRNA ptr;
@@ -1109,15 +1105,13 @@ void BKE_nlameta_flush_transforms(NlaStrip *mstrip)
 
 NlaTrack *BKE_nlatrack_find_active(ListBase *tracks)
 {
-  NlaTrack *nlt;
-
   /* sanity check */
   if (ELEM(nullptr, tracks, tracks->first)) {
     return nullptr;
   }
 
   /* try to find the first active track */
-  for (nlt = static_cast<NlaTrack *>(tracks->first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
     if (nlt->flag & NLATRACK_ACTIVE) {
       return nlt;
     }
@@ -1129,15 +1123,13 @@ NlaTrack *BKE_nlatrack_find_active(ListBase *tracks)
 
 NlaTrack *BKE_nlatrack_find_tweaked(AnimData *adt)
 {
-  NlaTrack *nlt;
-
   /* sanity check */
   if (adt == nullptr) {
     return nullptr;
   }
 
   /* Since the track itself gets disabled, we want the first disabled... */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     if (nlt->flag & (NLATRACK_ACTIVE | NLATRACK_DISABLED)) {
       /* For good measure, make sure that strip actually exists there */
       if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
@@ -1160,15 +1152,13 @@ NlaTrack *BKE_nlatrack_find_tweaked(AnimData *adt)
 
 void BKE_nlatrack_solo_toggle(AnimData *adt, NlaTrack *nlt)
 {
-  NlaTrack *nt;
-
   /* sanity check */
   if (ELEM(nullptr, adt, adt->nla_tracks.first)) {
     return;
   }
 
   /* firstly, make sure 'solo' flag for all tracks is disabled */
-  for (nt = static_cast<NlaTrack *>(adt->nla_tracks.first); nt; nt = nt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nt, &adt->nla_tracks) {
     if (nt != nlt) {
       nt->flag &= ~NLATRACK_SOLO;
     }
@@ -1194,15 +1184,13 @@ void BKE_nlatrack_solo_toggle(AnimData *adt, NlaTrack *nlt)
 
 void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt_a)
 {
-  NlaTrack *nlt;
-
   /* sanity check */
   if (ELEM(nullptr, tracks, tracks->first)) {
     return;
   }
 
   /* deactivate all the rest */
-  for (nlt = static_cast<NlaTrack *>(tracks->first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
     nlt->flag &= ~NLATRACK_ACTIVE;
   }
 
@@ -1411,17 +1399,14 @@ void BKE_nlastrip_remove_and_free(ListBase *strips, NlaStrip *strip, const bool 
 
 void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)
 {
-  NlaTrack *nlt;
-  NlaStrip *nls;
-
   /* sanity checks */
   if (adt == nullptr) {
     return;
   }
 
   /* Loop over tracks, deactivating. */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-    for (nls = static_cast<NlaStrip *>(nlt->strips.first); nls; nls = nls->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, nls, &nlt->strips) {
       if (nls != strip) {
         nls->flag &= ~NLASTRIP_FLAG_ACTIVE;
       }
@@ -1646,15 +1631,13 @@ void BKE_nlastrip_recalculate_blend(NlaStrip *strip)
 
 bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
 {
-  NlaStrip *strip;
-
   /* sanity checks */
   if (ELEM(nullptr, nlt, nlt->strips.first)) {
     return false;
   }
 
   /* check each strip for F-Curves only (don't care about whether the flags are set) */
-  for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
     if (strip->fcurves.first) {
       return true;
     }
@@ -1666,15 +1649,13 @@ bool BKE_nlatrack_has_animated_strips(NlaTrack *nlt)
 
 bool BKE_nlatracks_have_animated_strips(ListBase *tracks)
 {
-  NlaTrack *nlt;
-
   /* sanity checks */
   if (ELEM(nullptr, tracks, tracks->first)) {
     return false;
   }
 
   /* check each track, stopping on the first hit */
-  for (nlt = static_cast<NlaTrack *>(tracks->first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
     if (BKE_nlatrack_has_animated_strips(nlt)) {
       return true;
     }
@@ -1790,8 +1771,6 @@ static bool nla_editbone_name_check(void *arg, const char *name)
 void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 {
   GHash *gh;
-  NlaStrip *tstrip;
-  NlaTrack *nlt;
 
   /* sanity checks */
   if (ELEM(nullptr, adt, strip)) {
@@ -1822,8 +1801,8 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
    */
   gh = BLI_ghash_str_new("nlastrip_validate_name gh");
 
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-    for (tstrip = static_cast<NlaStrip *>(nlt->strips.first); tstrip; tstrip = tstrip->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, tstrip, &nlt->strips) {
       /* don't add the strip of interest */
       if (tstrip == strip) {
         continue;
@@ -1862,13 +1841,11 @@ static void nlastrip_get_endpoint_overlaps(NlaStrip *strip,
                                            float **start,
                                            float **end)
 {
-  NlaStrip *nls;
-
   /* find strips that overlap over the start/end of the given strip,
    * but which don't cover the entire length
    */
   /* TODO: this scheme could get quite slow for doing this on many strips... */
-  for (nls = static_cast<NlaStrip *>(track->strips.first); nls; nls = nls->next) {
+  LISTBASE_FOREACH (NlaStrip *, nls, &track->strips) {
     /* Check if strip overlaps (extends over or exactly on)
      * the entire range of the strip we're validating. */
     if ((nls->start <= strip->start) && (nls->end >= strip->end)) {
@@ -1984,8 +1961,6 @@ static bool nlastrip_validate_transition_start_end(ListBase *strips, NlaStrip *s
 
 void BKE_nla_validate_state(AnimData *adt)
 {
-  NlaTrack *nlt;
-
   /* sanity checks */
   if (ELEM(nullptr, adt, adt->nla_tracks.first)) {
     return;
@@ -1993,7 +1968,7 @@ void BKE_nla_validate_state(AnimData *adt)
 
   /* Adjust blending values for auto-blending,
    * and also do an initial pass to find the earliest strip. */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     LISTBASE_FOREACH_MUTABLE (NlaStrip *, strip, &nlt->strips) {
 
       if (!nlastrip_validate_transition_start_end(&nlt->strips, strip)) {
@@ -2017,12 +1992,9 @@ void BKE_nla_validate_state(AnimData *adt)
 
 bool BKE_nla_action_is_stashed(AnimData *adt, bAction *act)
 {
-  NlaTrack *nlt;
-  NlaStrip *strip;
-
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     if (strstr(nlt->name, STASH_TRACK_NAME)) {
-      for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         if (strip->act == act) {
           return true;
         }
@@ -2162,13 +2134,13 @@ static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
                                       NlaTrack **r_track_of_active_strip,
                                       NlaStrip **r_active_strip)
 {
-  NlaTrack *nlt, *activeTrack = nullptr;
-  NlaStrip *strip, *activeStrip = nullptr;
+  NlaTrack *activeTrack = nullptr;
+  NlaStrip *activeStrip = nullptr;
 
   /* go over the tracks, finding the active one, and its active strip
    * - if we cannot find both, then there's nothing to do
    */
-  for (nlt = static_cast<NlaTrack *>(nla_tracks->first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, nla_tracks) {
     /* check if active */
     if (nlt->flag & NLATRACK_ACTIVE) {
       /* store reference to this active track */
@@ -2188,7 +2160,7 @@ static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
    */
   if (activeTrack == nullptr) {
     /* try last selected track for active strip */
-    for (nlt = static_cast<NlaTrack *>(nla_tracks->last); nlt; nlt = nlt->prev) {
+    LISTBASE_FOREACH_BACKWARD (NlaTrack *, nlt, nla_tracks) {
       if (nlt->flag & NLATRACK_SELECTED) {
         /* assume this is the active track */
         activeTrack = nlt;
@@ -2202,7 +2174,7 @@ static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
   if ((activeTrack) && (activeStrip == nullptr)) {
     /* No active strip in active or last selected track;
      * compromise for first selected (assuming only single). */
-    for (strip = static_cast<NlaStrip *>(activeTrack->strips.first); strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &activeTrack->strips) {
       if (strip->flag & (NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE)) {
         activeStrip = strip;
         break;
@@ -2217,7 +2189,7 @@ static void nla_tweakmode_find_active(const ListBase /* NlaTrack */ *nla_tracks,
 bool BKE_nla_tweakmode_enter(AnimData *adt)
 {
   NlaTrack *nlt, *activeTrack = nullptr;
-  NlaStrip *strip, *activeStrip = nullptr;
+  NlaStrip *activeStrip = nullptr;
 
   /* verify that data is valid */
   if (ELEM(nullptr, adt, adt->nla_tracks.first)) {
@@ -2243,8 +2215,8 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
   /* Go over all the tracks, tagging each strip that uses the same
    * action as the active strip, but leaving everything else alone.
    */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-    for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       if (strip->act == activeStrip->act) {
         strip->flag |= NLASTRIP_FLAG_TWEAKUSER;
       }
@@ -2291,7 +2263,6 @@ bool BKE_nla_tweakmode_enter(AnimData *adt)
 void BKE_nla_tweakmode_exit(AnimData *adt)
 {
   NlaStrip *strip;
-  NlaTrack *nlt;
 
   /* verify that data is valid */
   if (ELEM(nullptr, adt, adt->nla_tracks.first)) {
@@ -2319,10 +2290,10 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
   /* for all Tracks, clear the 'disabled' flag
    * for all Strips, clear the 'tweak-user' flag
    */
-  for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
     nlt->flag &= ~NLATRACK_DISABLED;
 
-    for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       /* sync strip extents if this strip uses the same action */
       if ((adt->actstrip) && (adt->actstrip->act == strip->act) &&
           (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH))

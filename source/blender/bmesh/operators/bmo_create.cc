@@ -222,11 +222,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
      * if all history verts have ELE_NEW flagged and the total number of history verts == totv,
      * then we know the history contains all verts here and we can continue...
      */
-
-    BMEditSelection *ese;
     int tot_ese_v = 0;
 
-    for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
+    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
       if (ese->htype == BM_VERT) {
         if (BMO_vert_flag_test(bm, (BMVert *)ese->ele, ELE_NEW)) {
           tot_ese_v++;
@@ -243,7 +241,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
       BMVert *v_prev = nullptr;
       /* yes, all select-history verts are accounted for, now make edges */
 
-      for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
+      LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
         if (ese->htype == BM_VERT) {
           BMVert *v = (BMVert *)ese->ele;
           if (v_prev) {

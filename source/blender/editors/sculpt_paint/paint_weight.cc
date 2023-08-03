@@ -1875,11 +1875,8 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
 
   /* and particles too */
   if (ob->particlesystem.first) {
-    ParticleSystem *psys;
-    int i;
-
-    for (psys = (ParticleSystem *)ob->particlesystem.first; psys; psys = psys->next) {
-      for (i = 0; i < PSYS_TOT_VG; i++) {
+    LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
+      for (int i = 0; i < PSYS_TOT_VG; i++) {
         if (psys->vgroup[i] == BKE_object_defgroup_active_index_get(ob)) {
           psys->recalc |= ID_RECALC_PSYS_RESET;
           break;

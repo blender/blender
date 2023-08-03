@@ -298,8 +298,6 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
 
 static void seq_new_fix_links_recursive(Sequence *seq)
 {
-  SequenceModifierData *smd;
-
   if (seq->type & SEQ_TYPE_EFFECT) {
     if (seq->seq1 && seq->seq1->tmp) {
       seq->seq1 = static_cast<Sequence *>(seq->seq1->tmp);
@@ -312,13 +310,12 @@ static void seq_new_fix_links_recursive(Sequence *seq)
     }
   }
   else if (seq->type == SEQ_TYPE_META) {
-    Sequence *seqn;
-    for (seqn = static_cast<Sequence *>(seq->seqbase.first); seqn; seqn = seqn->next) {
+    LISTBASE_FOREACH (Sequence *, seqn, &seq->seqbase) {
       seq_new_fix_links_recursive(seqn);
     }
   }
 
-  for (smd = static_cast<SequenceModifierData *>(seq->modifiers.first); smd; smd = smd->next) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->mask_sequence && smd->mask_sequence->tmp) {
       smd->mask_sequence = static_cast<Sequence *>(smd->mask_sequence->tmp);
     }
@@ -608,8 +605,7 @@ static Sequence *sequence_dupli_recursive_do(const Scene *scene_src,
   seq->tmp = nullptr;
   seqn = seq_dupli(scene_src, scene_dst, new_seq_list, seq, dupe_flag, 0);
   if (seq->type == SEQ_TYPE_META) {
-    Sequence *s;
-    for (s = static_cast<Sequence *>(seq->seqbase.first); s; s = s->next) {
+    LISTBASE_FOREACH (Sequence *, s, &seq->seqbase) {
       sequence_dupli_recursive_do(scene_src, scene_dst, &seqn->seqbase, s, dupe_flag);
     }
   }
@@ -635,13 +631,10 @@ void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
                                        int dupe_flag,
                                        const int flag)
 {
-  Sequence *seq;
-  Sequence *seqn = nullptr;
-
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     seq->tmp = nullptr;
     if ((seq->flag & SELECT) || (dupe_flag & SEQ_DUPE_ALL)) {
-      seqn = seq_dupli(scene_src, scene_dst, nseqbase, seq, dupe_flag, flag);
+      Sequence *seqn = seq_dupli(scene_src, scene_dst, nseqbase, seq, dupe_flag, flag);
 
       if (seqn == nullptr) {
         continue; /* Should never fail. */
@@ -663,7 +656,7 @@ void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
   }
 
   /* fix modifier linking */
-  for (seq = static_cast<Sequence *>(nseqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, nseqbase) {
     seq_new_fix_links_recursive(seq);
   }
 }

@@ -1465,15 +1465,13 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                     gpl->actframe);
-    bGPDstroke *gps = nullptr;
-
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         if (gpf == nullptr) {
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
 
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
@@ -1519,7 +1517,6 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                     gpl->actframe);
-    bGPDstroke *gps = nullptr;
 
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
@@ -1527,8 +1524,7 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
-
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
@@ -1572,16 +1568,13 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                     gpl->actframe);
-    bGPDstroke *gps = nullptr;
-
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         if (gpf == nullptr) {
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
-
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
@@ -1627,15 +1620,13 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                     gpl->actframe);
-    bGPDstroke *gps = nullptr;
-
     for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
       if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
         if (gpf == nullptr) {
           continue;
         }
 
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
 
           /* skip strokes that are invalid for current view */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
@@ -2581,9 +2572,7 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
 
       /* deselect all strokes on all frames */
       LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        bGPDstroke *gps;
-
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           bGPDspoint *pt;
           int i;
 

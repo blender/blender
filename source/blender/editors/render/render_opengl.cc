@@ -225,7 +225,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
     }
 
     /* create all the views that are needed */
-    for (srv = static_cast<SceneRenderView *>(rd->views.first); srv; srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
       }

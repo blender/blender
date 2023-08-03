@@ -1464,18 +1464,17 @@ static void armature_select_less(bArmature * /*arm*/, EditBone *ebone)
 static void armature_select_more_less(Object *ob, bool more)
 {
   bArmature *arm = (bArmature *)ob->data;
-  EditBone *ebone;
 
   /* XXX(@ideasman42): eventually we shouldn't need this. */
   ED_armature_edit_sync_selection(arm->edbo);
 
   /* count bones & store selection state */
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     EBONE_PREV_FLAG_SET(ebone, ED_armature_ebone_selectflag_get(ebone));
   }
 
   /* do selection */
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     if (EBONE_VISIBLE(arm, ebone)) {
       if (more) {
         armature_select_more(arm, ebone);
@@ -1486,7 +1485,7 @@ static void armature_select_more_less(Object *ob, bool more)
     }
   }
 
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     if (EBONE_VISIBLE(arm, ebone)) {
       if (more == false) {
         if (ebone->flag & BONE_SELECTED) {
@@ -2047,14 +2046,12 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
     }
   }
   else { /* BONE_SELECT_CHILD */
-    EditBone *ebone_iter, *ebone_child = nullptr;
+    EditBone *ebone_child = nullptr;
     int pass;
 
     /* first pass, only connected bones (the logical direct child) */
     for (pass = 0; pass < 2 && (ebone_child == nullptr); pass++) {
-      for (ebone_iter = static_cast<EditBone *>(arm->edbo->first); ebone_iter;
-           ebone_iter = ebone_iter->next)
-      {
+      LISTBASE_FOREACH (EditBone *, ebone_iter, arm->edbo) {
         /* possible we have multiple children, some invisible */
         if (EBONE_SELECTABLE(arm, ebone_iter)) {
           if (ebone_iter->parent == ebone_active) {
@@ -2141,14 +2138,14 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
     Object *ob = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
-    EditBone *ebone, *ebone_mirror_act = nullptr;
+    EditBone *ebone_mirror_act = nullptr;
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       const int flag = ED_armature_ebone_selectflag_get(ebone);
       EBONE_PREV_FLAG_SET(ebone, flag);
     }
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_SELECTABLE(arm, ebone)) {
         EditBone *ebone_mirror;
         int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;

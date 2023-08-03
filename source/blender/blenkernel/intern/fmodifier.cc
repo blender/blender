@@ -1240,15 +1240,13 @@ void free_fmodifiers(ListBase *modifiers)
 
 FModifier *find_active_fmodifier(ListBase *modifiers)
 {
-  FModifier *fcm;
-
   /* sanity checks */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
     return nullptr;
   }
 
   /* loop over modifiers until 'active' one is found */
-  for (fcm = static_cast<FModifier *>(modifiers->first); fcm; fcm = fcm->next) {
+  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
     if (fcm->flag & FMODIFIER_FLAG_ACTIVE) {
       return fcm;
     }
@@ -1260,15 +1258,13 @@ FModifier *find_active_fmodifier(ListBase *modifiers)
 
 void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
-  FModifier *fm;
-
   /* sanity checks */
   if (ELEM(nullptr, modifiers, modifiers->first)) {
     return;
   }
 
   /* deactivate all, and set current one active */
-  for (fm = static_cast<FModifier *>(modifiers->first); fm; fm = fm->next) {
+  LISTBASE_FOREACH (FModifier *, fm, modifiers) {
     fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
   }
 
@@ -1280,8 +1276,6 @@ void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
 
 bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short acttype)
 {
-  FModifier *fcm;
-
   /* if there are no specific filtering criteria, just skip */
   if ((mtype == 0) && (acttype == 0)) {
     return (modifiers && modifiers->first);
@@ -1293,7 +1287,7 @@ bool list_has_suitable_fmodifier(const ListBase *modifiers, int mtype, short act
   }
 
   /* Find the first modifier fitting these criteria. */
-  for (fcm = static_cast<FModifier *>(modifiers->first); fcm; fcm = fcm->next) {
+  LISTBASE_FOREACH (FModifier *, fcm, modifiers) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
     short mOk = 1, aOk = 1; /* by default 1, so that when only one test, won't fail */
 

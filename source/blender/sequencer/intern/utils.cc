@@ -55,8 +55,7 @@ struct SeqUniqueInfo {
 
 static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
-  Sequence *seq;
-  for (seq = static_cast<Sequence *>(seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
     if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
       /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
       SNPRINTF(
@@ -343,10 +342,10 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   }
 
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  const Sequence *seq, *best_seq = nullptr;
+  const Sequence *best_seq = nullptr;
   int best_machine = -1;
 
-  for (seq = static_cast<const Sequence *>(ed->seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (const Sequence *, seq, ed->seqbasep) {
     if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(scene, seq, frame))
     {
       continue;
@@ -422,17 +421,15 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 
 Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
-  Sequence *iseq = nullptr;
-  Sequence *rseq = nullptr;
-
-  for (iseq = static_cast<Sequence *>(seqbase->first); iseq; iseq = iseq->next) {
+  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
     if (STREQ(name, iseq->name + 2)) {
       return iseq;
     }
-    if (recursive && (iseq->seqbase.first) &&
-        (rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, true)))
-    {
-      return rseq;
+    if (recursive && !BLI_listbase_is_empty(&iseq->seqbase)) {
+      Sequence *rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, true);
+      if (rseq != nullptr) {
+        return rseq;
+      }
     }
   }
 

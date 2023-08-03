@@ -3573,9 +3573,7 @@ static char *vgroup_init_remap(Object *ob)
   char *name;
 
   name = name_array;
-  for (const bDeformGroup *def = static_cast<const bDeformGroup *>(defbase->first); def;
-       def = def->next)
-  {
+  LISTBASE_FOREACH (const bDeformGroup *, def, defbase) {
     BLI_strncpy(name, def->name, MAX_VGROUP_NAME);
     name += MAX_VGROUP_NAME;
   }
@@ -3708,8 +3706,7 @@ static void vgroup_sort_bone_hierarchy(Object *ob, ListBase *bonebase)
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
   if (bonebase != nullptr) {
-    Bone *bone;
-    for (bone = static_cast<Bone *>(bonebase->last); bone; bone = bone->prev) {
+    LISTBASE_FOREACH_BACKWARD (Bone *, bone, bonebase) {
       bDeformGroup *dg = BKE_object_defgroup_find_name(ob, bone->name);
       vgroup_sort_bone_hierarchy(ob, &bone->childbase);
 

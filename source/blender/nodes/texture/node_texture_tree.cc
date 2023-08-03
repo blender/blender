@@ -213,7 +213,6 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
                                               bNodeInstanceKey parent_key)
 {
   bNodeTreeExec *exec;
-  bNode *node;
 
   /* common base initialization */
   exec = ntree_exec_begin(context, ntree, parent_key);
@@ -221,7 +220,7 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
   /* allocate the thread stack listbase array */
   exec->threadstack = MEM_cnew_array<ListBase>(BLENDER_MAX_THREADS, "thread stack array");
 
-  for (node = static_cast<bNode *>(exec->nodetree->nodes.first); node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &exec->nodetree->nodes) {
     node->runtime->need_exec = 1;
   }
 
@@ -255,13 +254,11 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
 /* free texture delegates */
 static void tex_free_delegates(bNodeTreeExec *exec)
 {
-  bNodeThreadStack *nts;
   bNodeStack *ns;
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts; nts = nts->next)
-    {
+    LISTBASE_FOREACH (bNodeThreadStack *, nts, &exec->threadstack[th]) {
       for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
@@ -273,15 +270,13 @@ static void tex_free_delegates(bNodeTreeExec *exec)
 
 void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
 {
-  bNodeThreadStack *nts;
   int a;
 
   if (exec->threadstack) {
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts; nts = nts->next)
-      {
+      LISTBASE_FOREACH (bNodeThreadStack *, nts, &exec->threadstack[a]) {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }

@@ -1611,9 +1611,8 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
   bContext *C = static_cast<bContext *>(data);
   if (argc >= 2) {
     if (STREQ(argv[1], "help")) {
-      RenderEngineType *type = nullptr;
       printf("Blender Engine Listing:\n");
-      for (type = static_cast<RenderEngineType *>(R_engines.first); type; type = type->next) {
+      LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
         printf("\t%s\n", type->idname);
       }
       exit(0);

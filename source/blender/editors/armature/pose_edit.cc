@@ -384,7 +384,6 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 /* for the object with pose/action: clear path curves for selected bones only */
 static void ED_pose_clear_paths(Object *ob, bool only_selected)
 {
-  bPoseChannel *pchan;
   bool skipped = false;
 
   if (ELEM(nullptr, ob, ob->pose)) {
@@ -392,7 +391,7 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
   }
 
   /* free the motionpath blocks for all bones - This is easier for users to quickly clear all */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->mpath) {
       if ((only_selected == false) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))) {
         animviz_free_motionpath(pchan->mpath);

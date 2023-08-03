@@ -51,7 +51,7 @@ static char *console_select_to_buffer(SpaceConsole *sc)
   console_scrollback_prompt_begin(sc, &cl_dummy);
 
   int offset = 0;
-  for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+  LISTBASE_FOREACH (ConsoleLine *, cl, &sc->scrollback) {
     offset += cl->len + 1;
   }
 
@@ -60,7 +60,7 @@ static char *console_select_to_buffer(SpaceConsole *sc)
     offset -= 1;
     int sel[2] = {offset - sc->sel_end, offset - sc->sel_start};
     DynStr *buf_dyn = BLI_dynstr_new();
-    for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+    LISTBASE_FOREACH (ConsoleLine *, cl, &sc->scrollback) {
       if (sel[0] <= cl->len && sel[1] >= 0) {
         int sta = max_ii(sel[0], 0);
         int end = min_ii(sel[1], cl->len);
@@ -148,9 +148,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 
 static ConsoleLine *console_history_find(SpaceConsole *sc, const char *str, ConsoleLine *cl_ignore)
 {
-  ConsoleLine *cl;
-
-  for (cl = static_cast<ConsoleLine *>(sc->history.last); cl; cl = cl->prev) {
+  LISTBASE_FOREACH_BACKWARD (ConsoleLine *, cl, &sc->history) {
     if (cl == cl_ignore) {
       continue;
     }

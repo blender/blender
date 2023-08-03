@@ -923,14 +923,13 @@ struct tGPSB_CloneBrushData {
 static void gpencil_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
 {
   tGPSB_CloneBrushData *data;
-  bGPDstroke *gps;
 
   /* Initialize custom-data. */
   gso->customdata = data = static_cast<tGPSB_CloneBrushData *>(
       MEM_callocN(sizeof(tGPSB_CloneBrushData), "CloneBrushData"));
 
   /* compute midpoint of strokes on clipboard */
-  for (gps = static_cast<bGPDstroke *>(gpencil_strokes_copypastebuf.first); gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpencil_strokes_copypastebuf) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       const float dfac = 1.0f / float(gps->totpoints);
       float mid[3] = {0.0f};
@@ -996,7 +995,6 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
   Object *ob = gso->object;
   bGPdata *gpd = (bGPdata *)ob->data;
   Scene *scene = gso->scene;
-  bGPDstroke *gps;
 
   float delta[3];
   size_t strokes_added = 0;
@@ -1008,7 +1006,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
   sub_v3_v3v3(delta, gso->dvec, data->buffer_midpoint);
 
   /* Copy each stroke into the layer */
-  for (gps = static_cast<bGPDstroke *>(gpencil_strokes_copypastebuf.first); gps; gps = gps->next) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpencil_strokes_copypastebuf) {
     if (ED_gpencil_stroke_can_use(C, gps)) {
       bGPDstroke *new_stroke;
       bGPDspoint *pt;
@@ -1241,12 +1239,10 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   char tool = gso->brush->gpencil_sculpt_tool;
   switch (tool) {
     case GPSCULPT_TOOL_CLONE: {
-      bGPDstroke *gps;
       bool found = false;
 
       /* check that there are some usable strokes in the buffer */
-      for (gps = static_cast<bGPDstroke *>(gpencil_strokes_copypastebuf.first); gps;
-           gps = gps->next) {
+      LISTBASE_FOREACH (bGPDstroke *, gps, &gpencil_strokes_copypastebuf) {
         if (ED_gpencil_stroke_can_use(C, gps)) {
           found = true;
           break;

@@ -145,15 +145,12 @@ static void rna_remlink(ListBase *listbase, void *vlink)
 
 PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
 {
-  Link *link;
-
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, listbase) {
     PropertyRNA *prop = ((PropertyDefRNA *)link)->prop;
     if (prop && STREQ(prop->identifier, identifier)) {
       return (PropertyDefRNA *)link;
     }
   }
-
   return nullptr;
 }
 
@@ -712,9 +709,8 @@ void RNA_define_free(BlenderRNA * /*brna*/)
 {
   StructDefRNA *ds;
   FunctionDefRNA *dfunc;
-  AllocDefRNA *alloc;
 
-  for (alloc = static_cast<AllocDefRNA *>(DefRNA.allocs.first); alloc; alloc = alloc->next) {
+  LISTBASE_FOREACH (AllocDefRNA *, alloc, &DefRNA.allocs) {
     MEM_freeN(alloc->mem);
   }
   rna_freelistN(&DefRNA.allocs);

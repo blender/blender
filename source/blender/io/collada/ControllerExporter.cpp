@@ -48,7 +48,7 @@ void ControllerExporter::write_bone_URLs(COLLADASW::InstanceController &ins,
     ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, node_id));
   }
   else {
-    for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+    LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
       write_bone_URLs(ins, ob_arm, child);
     }
   }
@@ -71,7 +71,7 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 
   /* write root bone URLs */
   Bone *bone;
-  for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     write_bone_URLs(ins, ob_arm, bone);
   }
 
@@ -425,7 +425,7 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
 
   int totjoint = 0;
   bDeformGroup *def;
-  for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
+  LISTBASE_FOREACH (bDeformGroup *, def, defbase) {
     if (is_bone_defgroup(ob_arm, def)) {
       totjoint++;
     }
@@ -442,7 +442,7 @@ std::string ControllerExporter::add_joints_source(Object *ob_arm,
 
   source.prepareToAppendValues();
 
-  for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
+  LISTBASE_FOREACH (bDeformGroup *, def, defbase) {
     Bone *bone = get_bone_from_defgroup(ob_arm, def);
     if (bone) {
       source.appendValues(get_joint_sid(bone));
@@ -461,7 +461,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
   std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
 
   int totjoint = 0;
-  for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
+  LISTBASE_FOREACH (bDeformGroup *, def, defbase) {
     if (is_bone_defgroup(ob_arm, def)) {
       totjoint++;
     }
@@ -493,7 +493,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
     BKE_pose_where_is(depsgraph, scene, ob_arm);
   }
 
-  for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
+  LISTBASE_FOREACH (bDeformGroup *, def, defbase) {
     if (is_bone_defgroup(ob_arm, def)) {
       bPoseChannel *pchan = BKE_pose_channel_find_name(pose, def->name);
 

@@ -398,27 +398,21 @@ void BM_mesh_edgeloops_free(ListBase *eloops)
 
 void BM_mesh_edgeloops_calc_center(BMesh *bm, ListBase *eloops)
 {
-  BMEdgeLoopStore *el_store;
-  for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-       el_store = el_store->next) {
+  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
     BM_edgeloop_calc_center(bm, el_store);
   }
 }
 
 void BM_mesh_edgeloops_calc_normal(BMesh *bm, ListBase *eloops)
 {
-  BMEdgeLoopStore *el_store;
-  for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-       el_store = el_store->next) {
+  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
     BM_edgeloop_calc_normal(bm, el_store);
   }
 }
 
 void BM_mesh_edgeloops_calc_normal_aligned(BMesh *bm, ListBase *eloops, const float no_align[3])
 {
-  BMEdgeLoopStore *el_store;
-  for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-       el_store = el_store->next) {
+  LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
     BM_edgeloop_calc_normal_aligned(bm, el_store, no_align);
   }
 }
@@ -442,8 +436,7 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/, ListBase *eloops, const bool u
   {
     BMEdgeLoopStore *el_store_best = nullptr;
     float len_best_sq = -1.0f;
-    for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-         el_store = el_store->next) {
+    LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
       const float len_sq = len_squared_v3v3(cent, el_store->co);
       if (len_sq > len_best_sq) {
         len_best_sq = len_sq;
@@ -466,8 +459,7 @@ void BM_mesh_edgeloops_calc_order(BMesh * /*bm*/, ListBase *eloops, const bool u
       BLI_ASSERT_UNIT_V3(no);
     }
 
-    for (el_store = static_cast<BMEdgeLoopStore *>(eloops->first); el_store;
-         el_store = el_store->next) {
+    LISTBASE_FOREACH (BMEdgeLoopStore *, el_store, eloops) {
       float len_sq;
       if (use_normals) {
         /* Scale the length by how close the loops are to pointing at each other. */
@@ -776,23 +768,21 @@ void BM_edgeloop_expand(
 
 bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_store_b)
 {
-  LinkData *node;
-
   /* A little more efficient if 'a' as smaller. */
   if (el_store_a->len > el_store_b->len) {
     SWAP(BMEdgeLoopStore *, el_store_a, el_store_b);
   }
 
   /* init */
-  for (node = static_cast<LinkData *>(el_store_a->verts.first); node; node = node->next) {
+  LISTBASE_FOREACH (LinkData *, node, &el_store_a->verts) {
     BM_elem_flag_enable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
   }
-  for (node = static_cast<LinkData *>(el_store_b->verts.first); node; node = node->next) {
+  LISTBASE_FOREACH (LinkData *, node, &el_store_b->verts) {
     BM_elem_flag_disable((BMVert *)node->data, BM_ELEM_INTERNAL_TAG);
   }
 
   /* Check 'a' (clear as we go). */
-  for (node = static_cast<LinkData *>(el_store_a->verts.first); node; node = node->next) {
+  LISTBASE_FOREACH (LinkData *, node, &el_store_a->verts) {
     if (!BM_elem_flag_test((BMVert *)node->data, BM_ELEM_INTERNAL_TAG)) {
       /* Finish clearing 'a', leave tag clean. */
       while ((node = node->next)) {

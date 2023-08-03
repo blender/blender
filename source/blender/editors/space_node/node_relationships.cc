@@ -2450,11 +2450,10 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   if (!insert.parent ||
       (prev->parent && (prev->parent == next->parent) && (prev->parent != insert.parent)))
   {
-    bNode *frame;
     rctf totr_frame;
 
     /* check nodes front to back */
-    for (frame = (bNode *)ntree->nodes.last; frame; frame = frame->prev) {
+    LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree->nodes) {
       /* skip selected, those are the nodes we want to attach */
       if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
         continue;

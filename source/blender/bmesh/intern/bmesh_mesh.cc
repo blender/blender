@@ -990,8 +990,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
   /* Selection history */
   {
-    BMEditSelection *ese;
-    for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
+    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
       switch (ese->htype) {
         case BM_VERT:
           if (vptr_map) {

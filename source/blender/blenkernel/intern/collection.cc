@@ -1976,9 +1976,7 @@ bool BKE_collection_validate(Collection *collection)
 
   /* Check that children have each collection used/referenced only once. */
   GSet *processed_collections = BLI_gset_ptr_new(__func__);
-  for (CollectionChild *child = static_cast<CollectionChild *>(collection->children.first); child;
-       child = child->next)
-  {
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     void **r_key;
     if (BLI_gset_ensure_p_ex(processed_collections, child->collection, &r_key)) {
       is_ok = false;
@@ -1990,11 +1988,7 @@ bool BKE_collection_validate(Collection *collection)
 
   /* Check that parents have each collection used/referenced only once. */
   BLI_gset_clear(processed_collections, nullptr);
-  for (CollectionParent *parent =
-           static_cast<CollectionParent *>(collection->runtime.parents.first);
-       parent;
-       parent = parent->next)
-  {
+  LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
     void **r_key;
     if (BLI_gset_ensure_p_ex(processed_collections, parent->collection, &r_key)) {
       is_ok = false;

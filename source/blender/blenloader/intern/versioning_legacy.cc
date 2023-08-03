@@ -108,7 +108,6 @@ static void vcol_to_fcol(Mesh *me)
 
 static void do_version_bone_head_tail_237(Bone *bone)
 {
-  Bone *child;
   float vec[3];
 
   /* head */
@@ -119,16 +118,14 @@ static void do_version_bone_head_tail_237(Bone *bone)
   mul_v3_fl(vec, bone->length);
   add_v3_v3v3(bone->arm_tail, bone->arm_head, vec);
 
-  for (child = static_cast<Bone *>(bone->childbase.first); child; child = child->next) {
+  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
     do_version_bone_head_tail_237(child);
   }
 }
 
 static void bone_version_238(ListBase *lb)
 {
-  Bone *bone;
-
-  for (bone = static_cast<Bone *>(lb->first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->rad_tail == 0.0f && bone->rad_head == 0.0f) {
       bone->rad_head = 0.25f * bone->length;
       bone->rad_tail = 0.1f * bone->length;
@@ -144,9 +141,7 @@ static void bone_version_238(ListBase *lb)
 
 static void bone_version_239(ListBase *lb)
 {
-  Bone *bone;
-
-  for (bone = static_cast<Bone *>(lb->first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, lb) {
     if (bone->layer == 0) {
       bone->layer = 1;
     }
@@ -156,10 +151,8 @@ static void bone_version_239(ListBase *lb)
 
 static void ntree_version_241(bNodeTree *ntree)
 {
-  bNode *node;
-
   if (ntree->type == NTREE_COMPOSIT) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == CMP_NODE_BLUR) {
         if (node->storage == nullptr) {
           NodeBlurData *nbd = static_cast<NodeBlurData *>(
@@ -186,10 +179,8 @@ static void ntree_version_241(bNodeTree *ntree)
 
 static void ntree_version_242(bNodeTree *ntree)
 {
-  bNode *node;
-
   if (ntree->type == NTREE_COMPOSIT) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == CMP_NODE_HUE_SAT) {
         if (node->storage) {
           NodeHueSat *nhs = static_cast<NodeHueSat *>(node->storage);
@@ -204,14 +195,13 @@ static void ntree_version_242(bNodeTree *ntree)
 
 static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
 {
-  bNode *node;
   NodeTwoFloats *ntf;
   ID *nodeid;
   Image *image;
   ImageUser *iuser;
 
   if (ntree->type == NTREE_COMPOSIT) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == CMP_NODE_ALPHAOVER) {
         if (!node->storage) {
           ntf = static_cast<NodeTwoFloats *>(MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats"));
@@ -370,10 +360,8 @@ static void customdata_version_243(Mesh *me)
 /* struct NodeImageAnim moved to ImageUser, and we make it default available */
 static void do_version_ntree_242_2(bNodeTree *ntree)
 {
-  bNode *node;
-
   if (ntree->type == NTREE_COMPOSIT) {
-    for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
         /* only image had storage */
         if (node->storage) {
@@ -421,10 +409,9 @@ static void do_version_free_effects_245(ListBase *lb)
 
 static void do_version_constraints_245(ListBase *lb)
 {
-  bConstraint *con;
   bConstraintTarget *ct;
 
-  for (con = static_cast<bConstraint *>(lb->first); con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, lb) {
     if (con->type == CONSTRAINT_TYPE_PYTHON) {
       bPythonConstraint *data = (bPythonConstraint *)con->data;
       if (data->tar) {
@@ -888,12 +875,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_GRAPH) {
             SpaceSeq *sseq = (SpaceSeq *)sl;
             sseq->v2d.keeptot = 0;
@@ -921,8 +904,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
        */
 
       if (list) {
-        bConstraint *curcon;
-        for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
+        LISTBASE_FOREACH (bConstraint *, curcon, list) {
           if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
             bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
             data->reserved1 = ob->trackflag;
@@ -933,12 +915,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
       if (ob->type == OB_ARMATURE) {
         if (ob->pose) {
-          bConstraint *curcon;
-          bPoseChannel *pchan;
-          for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-               pchan = pchan->next) {
-            for (curcon = static_cast<bConstraint *>(pchan->constraints.first); curcon;
-                 curcon = curcon->next) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            LISTBASE_FOREACH (bConstraint *, curcon, &pchan->constraints) {
               if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
                 bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
                 data->reserved1 = ob->trackflag;
@@ -966,12 +944,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *sac = (SpaceAction *)sl;
             sac->v2d.max[0] = 32000;
@@ -1002,8 +976,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
        * set their track and up flag correctly */
 
       if (list) {
-        bConstraint *curcon;
-        for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
+        LISTBASE_FOREACH (bConstraint *, curcon, list) {
           if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
             bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
             data->reserved1 = ob->trackflag;
@@ -1014,12 +987,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
       if (ob->type == OB_ARMATURE) {
         if (ob->pose) {
-          bConstraint *curcon;
-          bPoseChannel *pchan;
-          for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-               pchan = pchan->next) {
-            for (curcon = static_cast<bConstraint *>(pchan->constraints.first); curcon;
-                 curcon = curcon->next) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            LISTBASE_FOREACH (bConstraint *, curcon, &pchan->constraints) {
               if (curcon->type == CONSTRAINT_TYPE_TRACKTO) {
                 bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
                 data->reserved1 = ob->trackflag;
@@ -1037,12 +1006,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_PROPERTIES) {
             SpaceProperties *sbuts = (SpaceProperties *)sl;
 
@@ -1108,12 +1073,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           /* added: 5x better zoom in for action */
           if (sl->spacetype == SPACE_ACTION) {
             SpaceAction *sac = (SpaceAction *)sl;
@@ -1194,10 +1155,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           /* added: 5x better zoom in for nla */
           if (sl->spacetype == SPACE_NLA) {
             SpaceNla *snla = (SpaceNla *)sl;
@@ -1214,10 +1173,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
             v3d->flag |= V3D_SELECT_OUTLINE;
@@ -1233,10 +1190,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_TEXT) {
             SpaceText *st = (SpaceText *)sl;
             if (st->tabnumber == 0) {
@@ -1308,9 +1263,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (bmain->versionfile <= 237) {
     bArmature *arm;
-    bConstraint *con;
     Object *ob;
-    Bone *bone;
 
     /* armature recode checks */
     for (arm = static_cast<bArmature *>(bmain->armatures.first); arm;
@@ -1318,7 +1271,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     {
       BKE_armature_where_is(arm);
 
-      for (bone = static_cast<Bone *>(arm->bonebase.first); bone; bone = bone->next) {
+      LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
         do_version_bone_head_tail_237(bone);
       }
     }
@@ -1385,7 +1338,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       /* follow path constraint needs to set the 'path' option in curves... */
-      for (con = static_cast<bConstraint *>(ob->constraints.first); con; con = con->next) {
+      LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
         if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
           bFollowPathConstraint *data = static_cast<bFollowPathConstraint *>(con->data);
           Object *obc = static_cast<Object *>(
@@ -1435,7 +1388,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       ModifierData *md;
       PartEff *paf;
 
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Subsurf) {
           SubsurfModifierData *smd = (SubsurfModifierData *)md;
 
@@ -1463,17 +1416,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       if (ob->pose) {
-        bPoseChannel *pchan;
-        bConstraint *con;
-        for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-             pchan = pchan->next) {
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           /* NOTE: pchan->bone is also lib-link stuff. */
           if (pchan->limitmin[0] == 0.0f && pchan->limitmax[0] == 0.0f) {
             pchan->limitmin[0] = pchan->limitmin[1] = pchan->limitmin[2] = -180.0f;
             pchan->limitmax[0] = pchan->limitmax[1] = pchan->limitmax[2] = 180.0f;
 
-            for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next)
-            {
+            LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
               if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
                 bKinematicConstraint *data = (bKinematicConstraint *)con->data;
                 data->weight = 1.0f;
@@ -1524,10 +1473,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (key = static_cast<Key *>(bmain->shapekeys.first); key;
          key = static_cast<Key *>(key->id.next)) {
-      KeyBlock *kb;
       int index = 1;
 
-      for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+      LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
         if (kb == key->refkey) {
           if (kb->name[0] == 0) {
             STRNCPY(kb->name, "Basis");
@@ -1553,9 +1501,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* deformflag is local in modifier now */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
-      ModifierData *md;
-
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ArmatureModifierData *amd = (ArmatureModifierData *)md;
           if (amd->object && amd->deformflag == 0) {
@@ -1626,11 +1572,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
       /* We don't add default layer since blender2.8 because the layers
        * are now in Scene->view_layers and a default layer is created in
-       * the doversion later on.
-       */
-      SceneRenderLayer *srl;
+       * the doversion later on. */
+
       /* new layer flag for sky, was default for solid */
-      for (srl = static_cast<SceneRenderLayer *>(sce->r.layers.first); srl; srl = srl->next) {
+      LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
         if (srl->layflag & SCE_LAY_SOLID) {
           srl->layflag |= SCE_LAY_SKY;
         }
@@ -1686,7 +1631,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Material *ma;
     Mesh *me;
     Collection *collection;
-    Nurb *nu;
     BezTriple *bezt;
     BPoint *bp;
     bNodeTree *ntree;
@@ -1698,9 +1642,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       ScrArea *area;
       area = static_cast<ScrArea *>(screen->areabase.first);
       while (area) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_VIEW3D) {
             View3D *v3d = (View3D *)sl;
             if (v3d->gridsubdiv == 0) {
@@ -1743,7 +1685,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     /* add default radius values to old curve points */
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
          cu = static_cast<Curve *>(cu->id.next)) {
-      for (nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->bezt) {
           for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
             if (!bezt->radius) {
@@ -1763,7 +1705,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
-      ModifierData *md;
       ListBase *list;
       list = &ob->constraints;
 
@@ -1771,8 +1712,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
        * and update the sticky flagging */
 
       if (list) {
-        bConstraint *curcon;
-        for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
+        LISTBASE_FOREACH (bConstraint *, curcon, list) {
           switch (curcon->type) {
             case CONSTRAINT_TYPE_ROTLIKE: {
               bRotateLikeConstraint *data = static_cast<bRotateLikeConstraint *>(curcon->data);
@@ -1790,12 +1730,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
       if (ob->type == OB_ARMATURE) {
         if (ob->pose) {
-          bConstraint *curcon;
-          bPoseChannel *pchan;
-          for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-               pchan = pchan->next) {
-            for (curcon = static_cast<bConstraint *>(pchan->constraints.first); curcon;
-                 curcon = curcon->next) {
+          LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+            LISTBASE_FOREACH (bConstraint *, curcon, &pchan->constraints) {
               switch (curcon->type) {
                 case CONSTRAINT_TYPE_KINEMATIC: {
                   bKinematicConstraint *data = static_cast<bKinematicConstraint *>(curcon->data);
@@ -1821,7 +1757,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       /* copy old object level track settings to curve modifiers */
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Curve) {
           CurveModifierData *cmd = (CurveModifierData *)md;
 
@@ -1934,10 +1870,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Object *ob = static_cast<Object *>(bmain->objects.first);
 
     for (; ob; ob = static_cast<Object *>(ob->id.next)) {
-      bDeformGroup *curdef;
-
-      for (curdef = static_cast<bDeformGroup *>(ob->defbase.first); curdef; curdef = curdef->next)
-      {
+      LISTBASE_FOREACH (bDeformGroup *, curdef, &ob->defbase) {
         /* replace an empty-string name with unique name */
         if (curdef->name[0] == '\0') {
           BKE_object_defgroup_unique_name(curdef, ob);
@@ -1945,10 +1878,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
 
       if (bmain->versionfile < 243 || bmain->subversionfile < 1) {
-        ModifierData *md;
-
         /* translate old mirror modifier axis values to new flags */
-        for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
           if (md->type == eModifierType_Mirror) {
             MirrorModifierData *mmd = (MirrorModifierData *)md;
 
@@ -1991,9 +1922,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ScrArea *area;
         area = static_cast<ScrArea *>(screen->areabase.first);
         while (area) {
-          SpaceLink *sl;
-
-          for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_ACTION) {
               SpaceAction *saction = (SpaceAction *)sl;
 
@@ -2018,8 +1947,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     ParticleSettings *part;
     bNodeTree *ntree;
     Tex *tex;
-    ModifierData *md;
-    ParticleSystem *psys;
 
     /* unless the file was created 2.44.3 but not 2.45, update the constraints */
     if (!(bmain->versionfile == 244 && bmain->subversionfile == 3) &&
@@ -2032,8 +1959,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         /* fix up constraints due to constraint recode changes (originally at 2.44.3) */
         if (list) {
-          bConstraint *curcon;
-          for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
+          LISTBASE_FOREACH (bConstraint *, curcon, list) {
             /* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
             if (curcon->flag & 0x20) {
               curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
@@ -2059,14 +1985,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
         if (ob->type == OB_ARMATURE) {
           if (ob->pose) {
-            bConstraint *curcon;
-            bPoseChannel *pchan;
-
-            for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-                 pchan = pchan->next) {
+            LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
               /* make sure constraints are all up to date */
-              for (curcon = static_cast<bConstraint *>(pchan->constraints.first); curcon;
-                   curcon = curcon->next) {
+              LISTBASE_FOREACH (bConstraint *, curcon, &pchan->constraints) {
                 /* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
                 if (curcon->flag & 0x20) {
                   curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
@@ -2112,8 +2033,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         ob->soft->pointcache = BKE_ptcache_add(&ob->soft->ptcaches);
       }
 
-      for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next)
-      {
+      LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
         if (psys->pointcache) {
           if (psys->pointcache->flag & PTCACHE_BAKED &&
               (psys->pointcache->flag & PTCACHE_DISK_CACHE) == 0) {
@@ -2126,7 +2046,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
         }
       }
 
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Cloth) {
           ClothModifierData *clmd = (ClothModifierData *)md;
           if (!clmd->point_cache) {
@@ -2210,7 +2130,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 245, 4)) {
     bArmature *arm;
-    ModifierData *md;
     Object *ob;
 
     for (arm = static_cast<bArmature *>(bmain->armatures.first); arm;
@@ -2221,7 +2140,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Armature) {
           ((ArmatureModifierData *)md)->deformflag |= ARM_DEF_B_BONE_REST;
         }
@@ -2255,13 +2174,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 245, 7)) {
     Object *ob;
-    bPoseChannel *pchan;
 
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
       if (ob->pose) {
-        for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-             pchan = pchan->next) {
+        LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           do_version_constraints_245(&pchan->constraints);
         }
       }
@@ -2465,12 +2382,11 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 245, 11)) {
     Object *ob;
-    bActionStrip *strip;
 
     /* NLA-strips - scale. */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
-      for (strip = static_cast<bActionStrip *>(ob->nlastrips.first); strip; strip = strip->next) {
+      LISTBASE_FOREACH (bActionStrip *, strip, &ob->nlastrips) {
         float length, actlength, repeat;
 
         if (strip->flag & ACTSTRIP_USESTRIDE) {
@@ -2576,11 +2492,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   /* set the curve radius interpolation to 2.47 default - easy */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 247, 6)) {
     Curve *cu;
-    Nurb *nu;
 
     for (cu = static_cast<Curve *>(bmain->curves.first); cu;
          cu = static_cast<Curve *>(cu->id.next)) {
-      for (nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         nu->radius_interp = 3;
 
         /* resolu and resolv are now used differently for surfaces
@@ -2614,12 +2529,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
          screen = static_cast<bScreen *>(screen->id.next))
     {
-      ScrArea *area;
-
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        SpaceLink *sl;
-
-        for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           switch (sl->spacetype) {
             case SPACE_ACTION: {
               SpaceAction *sact = (SpaceAction *)sl;

@@ -235,7 +235,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
 
   int undo_step_count = 0;
   int undo_step_count_all = 0;
-  for (UndoStep *us = static_cast<UndoStep *>(wm->undo_stack->steps.last); us; us = us->prev) {
+  LISTBASE_FOREACH_BACKWARD (UndoStep *, us, &wm->undo_stack->steps) {
     undo_step_count_all += 1;
     if (us->skip) {
       continue;

@@ -1672,7 +1672,7 @@ static int gizmo_modal(bContext *C,
     calc_params.use_only_center = true;
     if (ED_transform_calc_gizmo_stats(C, &calc_params, &tbounds, rv3d)) {
       gizmo_prepare_mat(C, rv3d, &tbounds);
-      for (wmGizmo *gz = static_cast<wmGizmo *>(gzgroup->gizmos.first); gz; gz = gz->next) {
+      LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
         WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
       }
     }

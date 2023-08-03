@@ -395,12 +395,9 @@ static bool constraint_valid(bConstraint *con)
 
 static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
-  bConstraint *con;
-  int treecount;
-
-  /* find all IK constraints and validate them */
-  treecount = 0;
-  for (con = (bConstraint *)pchan_tip->constraints.first; con; con = (bConstraint *)con->next) {
+  /* Find all IK constraints and validate them. */
+  int treecount = 0;
+  LISTBASE_FOREACH (bConstraint *, con, &pchan_tip->constraints) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       if (constraint_valid(con)) {
         treecount += initialize_chain(ob, pchan_tip, con);
@@ -1639,11 +1636,8 @@ static IK_Scene *convert_tree(
 
 static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
-  bPoseChannel *pchan;
-
   /* create the IK scene */
-  for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan;
-       pchan = (bPoseChannel *)pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     /* by construction there is only one tree */
     PoseTree *tree = (PoseTree *)pchan->iktree.first;
     if (tree) {
@@ -1877,7 +1871,6 @@ static void execute_scene(Depsgraph *depsgraph,
 
 void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float ctime)
 {
-  bPoseChannel *pchan;
   int count = 0;
 
   if (ob->pose->ikdata != nullptr && !(ob->pose->flag & POSE_WAS_REBUILT)) {
@@ -1889,8 +1882,7 @@ void itasc_initialize_tree(Depsgraph *depsgraph, Scene *scene, Object *ob, float
   itasc_clear_data(ob->pose);
   /* we should handle all the constraint and mark them all disabled
    * for blender but we'll start with the IK constraint alone */
-  for (pchan = (bPoseChannel *)ob->pose->chanbase.first; pchan;
-       pchan = (bPoseChannel *)pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->constflag & PCHAN_HAS_IK) {
       count += initialize_scene(ob, pchan);
     }

@@ -139,8 +139,7 @@ void tex_output(bNode *node,
 
 void ntreeTexCheckCyclics(bNodeTree *ntree)
 {
-  bNode *node;
-  for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
 
     if (node->type == TEX_NODE_TEXTURE && node->id) {
       /* custom2 stops the node from rendering */

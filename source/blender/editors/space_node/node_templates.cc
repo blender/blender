@@ -89,15 +89,13 @@ static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *it
 
 static void node_tag_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || (node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag |= NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_tag_recursive(input->link->fromnode);
     }
@@ -106,15 +104,13 @@ static void node_tag_recursive(bNode *node)
 
 static void node_clear_recursive(bNode *node)
 {
-  bNodeSocket *input;
-
   if (!node || !(node->flag & NODE_TEST)) {
     return; /* in case of cycles */
   }
 
   node->flag &= ~NODE_TEST;
 
-  for (input = (bNodeSocket *)node->inputs.first; input; input = input->next) {
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
     if (input->link) {
       node_clear_recursive(input->link->fromnode);
     }
@@ -124,23 +120,22 @@ static void node_clear_recursive(bNode *node)
 static void node_remove_linked(Main *bmain, bNodeTree *ntree, bNode *rem_node)
 {
   bNode *node, *next;
-  bNodeSocket *sock;
 
   if (!rem_node) {
     return;
   }
 
   /* tag linked nodes to be removed */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     node->flag &= ~NODE_TEST;
   }
 
   node_tag_recursive(rem_node);
 
   /* clear tags on nodes that are still used by other nodes */
-  for (node = (bNode *)ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (!(node->flag & NODE_TEST)) {
-      for (sock = (bNodeSocket *)node->inputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         if (sock->link && sock->link->fromnode != rem_node) {
           node_clear_recursive(sock->link->fromnode);
         }
@@ -254,12 +249,8 @@ static void node_socket_add_replace(const bContext *C,
 
   /* copy input sockets from previous node */
   if (node_prev && node_from != node_prev) {
-    bNodeSocket *sock_prev, *sock_from;
-
-    for (sock_prev = (bNodeSocket *)node_prev->inputs.first; sock_prev;
-         sock_prev = sock_prev->next) {
-      for (sock_from = (bNodeSocket *)node_from->inputs.first; sock_from;
-           sock_from = sock_from->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock_prev, &node_prev->inputs) {
+      LISTBASE_FOREACH (bNodeSocket *, sock_from, &node_from->inputs) {
         if (nodeCountSocketLinks(ntree, sock_from) >= nodeSocketLinkLimit(sock_from)) {
           continue;
         }
@@ -924,14 +915,12 @@ void uiTemplateNodeView(
 {
   using namespace blender::ed::space_node;
 
-  bNode *tnode;
-
   if (!ntree) {
     return;
   }
 
   /* clear for cycle check */
-  for (tnode = (bNode *)ntree->nodes.first; tnode; tnode = tnode->next) {
+  LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
     tnode->flag &= ~NODE_TEST;
   }
 

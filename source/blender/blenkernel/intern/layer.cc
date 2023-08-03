@@ -566,10 +566,9 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
                  sizeof(view_layer->name));
 
   if (scene->nodetree) {
-    bNode *node;
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
       if (node->type == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY(node->name, view_layer->name);

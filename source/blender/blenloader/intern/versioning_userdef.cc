@@ -319,9 +319,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(250, 8)) {
-    wmKeyMap *km;
-
-    for (km = static_cast<wmKeyMap *>(userdef->user_keymaps.first); km; km = km->next) {
+    LISTBASE_FOREACH (wmKeyMap *, km, &userdef->user_keymaps) {
       if (STREQ(km->idname, "Armature_Sketch")) {
         STRNCPY(km->idname, "Armature Sketch");
       }

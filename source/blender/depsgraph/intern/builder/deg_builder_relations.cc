@@ -1339,7 +1339,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
                                      OperationCode::BONE_CONSTRAINTS :
                                      OperationCode::TRANSFORM_CONSTRAINTS);
   /* Add dependencies for each constraint in turn. */
-  for (bConstraint *con = (bConstraint *)constraints->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, constraints) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
     ListBase targets = {nullptr, nullptr};
     /* Invalid constraint type. */

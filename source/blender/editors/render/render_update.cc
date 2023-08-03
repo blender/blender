@@ -153,14 +153,13 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, const bool
 void ED_render_engine_area_exit(Main *bmain, ScrArea *area)
 {
   /* clear all render engines in this area */
-  ARegion *region;
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   if (area->spacetype != SPACE_VIEW3D) {
     return;
   }
 
-  for (region = static_cast<ARegion *>(area->regionbase.first); region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype != RGN_TYPE_WINDOW || !(region->regiondata)) {
       continue;
     }
@@ -244,8 +243,6 @@ static void lamp_changed(Main * /*bmain*/, Light *la)
 static void texture_changed(Main *bmain, Tex *tex)
 {
   Scene *scene;
-  ViewLayer *view_layer;
-  bNode *node;
 
   /* icons */
   BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
@@ -254,14 +251,12 @@ static void texture_changed(Main *bmain, Tex *tex)
        scene = static_cast<Scene *>(scene->id.next))
   {
     /* paint overlays */
-    for (view_layer = static_cast<ViewLayer *>(scene->view_layers.first); view_layer;
-         view_layer = view_layer->next)
-    {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       BKE_paint_invalidate_overlay_tex(scene, view_layer, tex);
     }
     /* find compositing nodes */
     if (scene->use_nodes && scene->nodetree) {
-      for (node = static_cast<bNode *>(scene->nodetree->nodes.first); node; node = node->next) {
+      LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
         if (node->id == &tex->id) {
           ED_node_tag_update_id(&scene->id);
         }

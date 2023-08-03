@@ -4555,7 +4555,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
     }
 
     /* find both nurbs and points, nu1 will be put behind nu2 */
-    for (nu = static_cast<Nurb *>(nubase->first); nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nubase) {
       if (nu->pntsu == 1) {
         nu->flagu &= ~CU_NURB_CYCLIC;
       }

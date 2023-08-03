@@ -6112,11 +6112,9 @@ static void ui_layout_introspect_button(DynStr *ds, uiButtonItem *bitem)
 
 static void ui_layout_introspect_items(DynStr *ds, ListBase *lb)
 {
-  uiItem *item;
-
   BLI_dynstr_append(ds, "[");
 
-  for (item = static_cast<uiItem *>(lb->first); item; item = item->next) {
+  LISTBASE_FOREACH (uiItem *, item, lb) {
 
     BLI_dynstr_append(ds, "{");
 

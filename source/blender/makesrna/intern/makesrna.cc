@@ -17,6 +17,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_system.h" /* for 'BLI_system_backtrace' stub. */
 #include "BLI_utildefines.h"
@@ -2603,14 +2604,13 @@ static void rna_def_struct_function_prototype_cpp(FILE *f,
                                                   const char *cpp_namespace,
                                                   int close_prototype)
 {
-  PropertyDefRNA *dp;
   FunctionRNA *func = dfunc->func;
 
   int first = 1;
   const char *retval_type = "void";
 
   if (func->c_ret) {
-    dp = rna_find_parameter_def(func->c_ret);
+    PropertyDefRNA *dp = rna_find_parameter_def(func->c_ret);
     retval_type = rna_parameter_type_cpp_name(dp->prop);
   }
 
@@ -2629,7 +2629,7 @@ static void rna_def_struct_function_prototype_cpp(FILE *f,
     WRITE_PARAM("Context C");
   }
 
-  for (dp = static_cast<PropertyDefRNA *>(dfunc->cont.properties.first); dp; dp = dp->next) {
+  LISTBASE_FOREACH (PropertyDefRNA *, dp, &dfunc->cont.properties) {
     int type, flag, flag_parameter, pout;
     const char *ptrstr;
 
@@ -3387,7 +3387,6 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 static void rna_auto_types()
 {
   StructDefRNA *ds;
-  PropertyDefRNA *dp;
 
   for (ds = static_cast<StructDefRNA *>(DefRNA.structs.first); ds;
        ds = static_cast<StructDefRNA *>(ds->cont.next))
@@ -3405,7 +3404,7 @@ static void rna_auto_types()
       }
     }
 
-    for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+    LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
       if (dp->dnastructname) {
         if (STREQ(dp->dnastructname, "Screen")) {
           dp->dnastructname = "bScreen";
@@ -3646,9 +3645,7 @@ static void rna_generate_external_property_prototypes(BlenderRNA *brna, FILE *f)
   for (StructRNA *srna = static_cast<StructRNA *>(brna->structs.first); srna;
        srna = static_cast<StructRNA *>(srna->cont.next))
   {
-    for (PropertyRNA *prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop;
-         prop = prop->next)
-    {
+    LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
       fprintf(f, "extern struct PropertyRNA rna_%s_%s;\n", srna->identifier, prop->identifier);
     }
     fprintf(f, "\n");
@@ -3659,13 +3656,12 @@ static void rna_generate_internal_property_prototypes(BlenderRNA * /*brna*/,
                                                       StructRNA *srna,
                                                       FILE *f)
 {
-  PropertyRNA *prop;
   StructRNA *base;
 
   base = srna->base;
   while (base) {
     fprintf(f, "\n");
-    for (prop = static_cast<PropertyRNA *>(base->cont.properties.first); prop; prop = prop->next) {
+    LISTBASE_FOREACH (PropertyRNA *, prop, &base->cont.properties) {
       fprintf(f,
               "%s%s rna_%s_%s;\n",
               "RNA_EXTERN_C_OR_EXTERN ",
@@ -3680,7 +3676,7 @@ static void rna_generate_internal_property_prototypes(BlenderRNA * /*brna*/,
     fprintf(f, "\n");
   }
 
-  for (prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop; prop = prop->next) {
+  LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
     fprintf(f,
             "RNA_EXTERN_C %s rna_%s_%s;\n",
             rna_property_structname(prop->type),
@@ -3695,9 +3691,7 @@ static void rna_generate_parameter_prototypes(BlenderRNA * /*brna*/,
                                               FunctionRNA *func,
                                               FILE *f)
 {
-  PropertyRNA *parm;
-
-  for (parm = static_cast<PropertyRNA *>(func->cont.properties.first); parm; parm = parm->next) {
+  LISTBASE_FOREACH (PropertyRNA *, parm, &func->cont.properties) {
     fprintf(f,
             "%s%s rna_%s_%s_%s;\n",
             "extern ",
@@ -3758,7 +3752,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
                                                      int close_prototype)
 {
   FunctionRNA *func;
-  PropertyDefRNA *dparm;
+  PropertyDefRNA *dparm_return = nullptr;
   StructDefRNA *dsrna;
   PropertyType type;
   int flag, flag_parameter, pout, cptr, first;
@@ -3768,9 +3762,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
   func = dfunc->func;
 
   /* return type */
-  for (dparm = static_cast<PropertyDefRNA *>(dfunc->cont.properties.first); dparm;
-       dparm = dparm->next)
-  {
+  LISTBASE_FOREACH (PropertyDefRNA *, dparm, &dfunc->cont.properties) {
     if (dparm->prop == func->c_ret) {
       if (dparm->prop->arraydimension) {
         fprintf(f, "XXX no array return types yet"); /* XXX not supported */
@@ -3782,12 +3774,13 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
         fprintf(f, "%s%s ", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
       }
 
+      dparm_return = dparm;
       break;
     }
   }
 
   /* void if nothing to return */
-  if (!dparm) {
+  if (!dparm_return) {
     fprintf(f, "void ");
   }
 
@@ -3855,9 +3848,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
   }
 
   /* defined parameters */
-  for (dparm = static_cast<PropertyDefRNA *>(dfunc->cont.properties.first); dparm;
-       dparm = dparm->next)
-  {
+  LISTBASE_FOREACH (PropertyDefRNA *, dparm, &dfunc->cont.properties) {
     type = dparm->prop->type;
     flag = dparm->prop->flag;
     flag_parameter = dparm->prop->flag_parameter;
@@ -3954,7 +3945,6 @@ static void rna_generate_static_function_prototypes(BlenderRNA * /*brna*/,
 static void rna_generate_struct_prototypes(FILE *f)
 {
   StructDefRNA *ds;
-  PropertyDefRNA *dp;
   FunctionDefRNA *dfunc;
   const char *structures[2048];
   int all_structures = 0;
@@ -3967,7 +3957,7 @@ static void rna_generate_struct_prototypes(FILE *f)
          dfunc = static_cast<FunctionDefRNA *>(dfunc->cont.next))
     {
       if (dfunc->call) {
-        for (dp = static_cast<PropertyDefRNA *>(dfunc->cont.properties.first); dp; dp = dp->next) {
+        LISTBASE_FOREACH (PropertyDefRNA *, dp, &dfunc->cont.properties) {
           if (dp->prop->type == PROP_POINTER) {
             int a, found = 0;
             const char *struct_name = rna_parameter_type_name(dp->prop);
@@ -4491,14 +4481,14 @@ static void rna_generate_struct(BlenderRNA * /*brna*/, StructRNA *srna, FILE *f)
 
   fprintf(f, "/* %s */\n", srna->name);
 
-  for (prop = static_cast<PropertyRNA *>(srna->cont.properties.first); prop; prop = prop->next) {
+  LISTBASE_FOREACH (PropertyRNA *, prop, &srna->cont.properties) {
     rna_generate_property(f, srna, nullptr, prop);
   }
 
   for (func = static_cast<FunctionRNA *>(srna->functions.first); func;
        func = static_cast<FunctionRNA *>(func->cont.next))
   {
-    for (parm = static_cast<PropertyRNA *>(func->cont.properties.first); parm; parm = parm->next) {
+    LISTBASE_FOREACH (PropertyRNA *, parm, &func->cont.properties) {
       rna_generate_property(f, srna, func->identifier, parm);
     }
 
@@ -4777,7 +4767,6 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const char *api_filename)
 {
   StructDefRNA *ds;
-  PropertyDefRNA *dp;
   FunctionDefRNA *dfunc;
 
   fprintf(f,
@@ -4855,7 +4844,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
        ds = static_cast<StructDefRNA *>(ds->cont.next))
   {
     if (!filename || ds->filename == filename) {
-      for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+      LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
         rna_def_property_funcs(f, ds->srna, dp);
       }
     }
@@ -4865,7 +4854,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
        ds = static_cast<StructDefRNA *>(ds->cont.next))
   {
     if (!filename || ds->filename == filename) {
-      for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+      LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
         rna_def_property_wrapper_funcs(f, ds, dp);
       }
 
@@ -4900,7 +4889,6 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 static void rna_generate_header(BlenderRNA * /*brna*/, FILE *f)
 {
   StructDefRNA *ds;
-  PropertyDefRNA *dp;
   StructRNA *srna;
   FunctionDefRNA *dfunc;
 
@@ -4942,7 +4930,7 @@ static void rna_generate_header(BlenderRNA * /*brna*/, FILE *f)
     }
     fprintf(f, "\n");
 
-    for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+    LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
       rna_def_property_funcs_header(f, ds->srna, dp);
     }
 
@@ -5326,7 +5314,6 @@ static int rna_is_collection_functions_struct(const char **collection_structs,
 static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
 {
   StructRNA *srna = ds->srna;
-  PropertyDefRNA *dp;
   FunctionDefRNA *dfunc;
 
   fprintf(f, "/**************** %s ****************/\n\n", srna->name);
@@ -5340,14 +5327,14 @@ static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
           "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)",
           srna->identifier,
           (srna->base) ? srna->base->identifier : "Pointer");
-  for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+  LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
     if (rna_is_collection_prop(dp->prop)) {
       fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
     }
   }
   fprintf(f, "\n\t\t{}\n\n");
 
-  for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+  LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
     rna_def_property_funcs_header_cpp(f, ds->srna, dp);
   }
 
@@ -5364,7 +5351,6 @@ static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
 static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
 {
   StructDefRNA *ds;
-  PropertyDefRNA *dp;
   StructRNA *srna;
   FunctionDefRNA *dfunc;
   const char *first_collection_func_struct = nullptr;
@@ -5401,7 +5387,7 @@ static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
   for (ds = static_cast<StructDefRNA *>(DefRNA.structs.first); ds;
        ds = static_cast<StructDefRNA *>(ds->cont.next))
   {
-    for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+    LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
       if (rna_is_collection_prop(dp->prop)) {
         PropertyRNA *prop = dp->prop;
 
@@ -5473,7 +5459,7 @@ static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
   {
     srna = ds->srna;
 
-    for (dp = static_cast<PropertyDefRNA *>(ds->cont.properties.first); dp; dp = dp->next) {
+    LISTBASE_FOREACH (PropertyDefRNA *, dp, &ds->cont.properties) {
       rna_def_property_funcs_impl_cpp(f, ds->srna, dp);
     }
 

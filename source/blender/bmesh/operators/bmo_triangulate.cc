@@ -54,7 +54,6 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   BMEdge *e;
   ScanFillContext sf_ctx;
   /* ScanFillEdge *sf_edge; */ /* UNUSED */
-  ScanFillFace *sf_tri;
   GHash *sf_vert_map;
   float normal[3];
   const int scanfill_flag = BLI_SCANFILL_CALC_HOLES | BLI_SCANFILL_CALC_POLYS |
@@ -181,9 +180,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
   /* if we have existing faces, base winding on those */
   if (calc_winding) {
     int winding_votes = 0;
-    for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
-         sf_tri = sf_tri->next)
-    {
+    LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
       BMVert *v_tri[3] = {static_cast<BMVert *>(sf_tri->v1->tmp.p),
                           static_cast<BMVert *>(sf_tri->v2->tmp.p),
                           static_cast<BMVert *>(sf_tri->v3->tmp.p)};
@@ -198,17 +195,13 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     }
 
     if (winding_votes < 0) {
-      for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
-           sf_tri = sf_tri->next)
-      {
+      LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
         SWAP(ScanFillVert *, sf_tri->v2, sf_tri->v3);
       }
     }
   }
 
-  for (sf_tri = static_cast<ScanFillFace *>(sf_ctx.fillfacebase.first); sf_tri;
-       sf_tri = sf_tri->next)
-  {
+  LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
     BMFace *f;
     BMLoop *l;
     BMIter liter;

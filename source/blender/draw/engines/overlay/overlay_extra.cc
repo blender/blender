@@ -1286,7 +1286,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
   }
 
   /* Drawing the hook lines. */
-  for (ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (md->type == eModifierType_Hook) {
       HookModifierData *hmd = (HookModifierData *)md;
       float center[3];
@@ -1297,11 +1297,7 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
       OVERLAY_extra_point(cb, center, relation_color);
     }
   }
-  for (GpencilModifierData *md =
-           static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
-       md;
-       md = md->next)
-  {
+  LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
     if (md->type == eGpencilModifierType_Hook) {
       HookGpencilModifierData *hmd = (HookGpencilModifierData *)md;
       float center[3];
@@ -1328,13 +1324,11 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
 
   /* Drawing the constraint lines */
   if (!BLI_listbase_is_empty(&ob->constraints)) {
-    bConstraint *curcon;
-    bConstraintOb *cob;
     ListBase *list = &ob->constraints;
+    bConstraintOb *cob = BKE_constraints_make_evalob(
+        depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
 
-    cob = BKE_constraints_make_evalob(depsgraph, scene, ob, nullptr, CONSTRAINT_OBTYPE_OBJECT);
-
-    for (curcon = static_cast<bConstraint *>(list->first); curcon; curcon = curcon->next) {
+    LISTBASE_FOREACH (bConstraint *, curcon, list) {
       if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
         /* special case for object solver and follow track constraints because they don't fill
          * constraint targets properly (design limitation -- scene is needed for their target
@@ -1360,11 +1354,9 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         ListBase targets = {nullptr, nullptr};
 
         if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
-          bConstraintTarget *ct;
-
           BKE_constraint_custom_object_space_init(cob, curcon);
 
-          for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
             /* calculate target's matrix */
             if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
               copy_m4_m4(ct->matrix, cob->space_obj_world_matrix);

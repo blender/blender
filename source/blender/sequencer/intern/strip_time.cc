@@ -126,11 +126,9 @@ static void seq_update_sound_bounds_recursive_impl(const Scene *scene,
                                                    int start,
                                                    int end)
 {
-  Sequence *seq;
-
   /* For sound we go over full meta tree to update bounds of the sound strips,
    * since sound is played outside of evaluating the image-buffers (#ImBuf). */
-  for (seq = static_cast<Sequence *>(metaseq->seqbase.first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, &metaseq->seqbase) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_bounds_recursive_impl(
           scene, seq, max_ii(start, metaseq_start(seq)), min_ii(end, metaseq_end(seq)));
@@ -265,7 +263,6 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
 {
   Editing *ed = SEQ_editing_get(scene);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  Sequence *seq;
 
   int dist, best_dist, best_frame = timeline_frame;
   int seq_frames[2], seq_frames_tot;
@@ -279,7 +276,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
     return timeline_frame;
   }
 
-  for (seq = static_cast<Sequence *>(ed->seqbasep->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     int i;
 
     if (do_skip_mute && SEQ_render_is_muted(channels, seq)) {

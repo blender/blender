@@ -831,9 +831,7 @@ bool GPU_stack_link(GPUMaterial *material,
 
 static void gpu_inputs_free(ListBase *inputs)
 {
-  GPUInput *input;
-
-  for (input = static_cast<GPUInput *>(inputs->first); input; input = input->next) {
+  LISTBASE_FOREACH (GPUInput *, input, inputs) {
     switch (input->source) {
       case GPU_SOURCE_ATTR:
         input->attr->users--;
@@ -862,11 +860,9 @@ static void gpu_inputs_free(ListBase *inputs)
 
 static void gpu_node_free(GPUNode *node)
 {
-  GPUOutput *output;
-
   gpu_inputs_free(&node->inputs);
 
-  for (output = static_cast<GPUOutput *>(node->outputs.first); output; output = output->next) {
+  LISTBASE_FOREACH (GPUOutput *, output, &node->outputs) {
     if (output->link) {
       output->link->output = nullptr;
       gpu_node_link_free(output->link);

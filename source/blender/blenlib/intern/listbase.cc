@@ -522,10 +522,8 @@ int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
 
 int BLI_listbase_count(const ListBase *listbase)
 {
-  Link *link;
   int count = 0;
-
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, listbase) {
     count++;
   }
 
@@ -601,14 +599,13 @@ int BLI_findindex(const ListBase *listbase, const void *vlink)
 
 void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 {
-  Link *link = nullptr;
   const char *id_iter;
 
   if (id == nullptr) {
     return nullptr;
   }
 
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, listbase) {
     id_iter = ((const char *)link) + offset;
 
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
@@ -621,13 +618,8 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset)
 {
   /* Same as #BLI_findstring but find reverse. */
-
-  Link *link = nullptr;
-  const char *id_iter;
-
-  for (link = static_cast<Link *>(listbase->last); link; link = link->prev) {
-    id_iter = ((const char *)link) + offset;
-
+  LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
+    const char *id_iter = ((const char *)link) + offset;
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -638,10 +630,9 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
 
 void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int offset)
 {
-  Link *link = nullptr;
   const char *id_iter;
 
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, listbase) {
     /* exact copy of BLI_findstring(), except for this line */
     id_iter = *((const char **)(((const char *)link) + offset));
 
@@ -656,13 +647,11 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 {
   /* Same as #BLI_findstring_ptr but find reverse. */
 
-  Link *link = nullptr;
   const char *id_iter;
 
-  for (link = static_cast<Link *>(listbase->last); link; link = link->prev) {
-    /* exact copy of BLI_rfindstring(), except for this line */
+  LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
+    /* Exact copy of #BLI_rfindstring(), except for this line */
     id_iter = *((const char **)(((const char *)link) + offset));
-
     if (id[0] == id_iter[0] && STREQ(id, id_iter)) {
       return link;
     }
@@ -673,36 +662,26 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 
 void *BLI_findptr(const ListBase *listbase, const void *ptr, const int offset)
 {
-  Link *link = nullptr;
-  const void *ptr_iter;
-
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
-    /* exact copy of BLI_findstring(), except for this line */
-    ptr_iter = *((const void **)(((const char *)link) + offset));
-
+  LISTBASE_FOREACH (Link *, link, listbase) {
+    /* Exact copy of #BLI_findstring(), except for this line. */
+    const void *ptr_iter = *((const void **)(((const char *)link) + offset));
     if (ptr == ptr_iter) {
       return link;
     }
   }
-
   return nullptr;
 }
 void *BLI_rfindptr(const ListBase *listbase, const void *ptr, const int offset)
 {
   /* Same as #BLI_findptr but find reverse. */
-
-  Link *link = nullptr;
-  const void *ptr_iter;
-
-  for (link = static_cast<Link *>(listbase->last); link; link = link->prev) {
-    /* exact copy of BLI_rfindstring(), except for this line */
-    ptr_iter = *((const void **)(((const char *)link) + offset));
+  LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
+    /* Exact copy of #BLI_rfindstring(), except for this line. */
+    const void *ptr_iter = *((const void **)(((const char *)link) + offset));
 
     if (ptr == ptr_iter) {
       return link;
     }
   }
-
   return nullptr;
 }
 
@@ -711,12 +690,8 @@ void *BLI_listbase_bytes_find(const ListBase *listbase,
                               const size_t bytes_size,
                               const int offset)
 {
-  Link *link = nullptr;
-  const void *ptr_iter;
-
-  for (link = static_cast<Link *>(listbase->first); link; link = link->next) {
-    ptr_iter = (const void *)(((const char *)link) + offset);
-
+  LISTBASE_FOREACH (Link *, link, listbase) {
+    const void *ptr_iter = (const void *)(((const char *)link) + offset);
     if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
       return link;
     }
@@ -730,18 +705,12 @@ void *BLI_listbase_bytes_rfind(const ListBase *listbase,
                                const int offset)
 {
   /* Same as #BLI_listbase_bytes_find but find reverse. */
-
-  Link *link = nullptr;
-  const void *ptr_iter;
-
-  for (link = static_cast<Link *>(listbase->last); link; link = link->prev) {
-    ptr_iter = (const void *)(((const char *)link) + offset);
-
+  LISTBASE_FOREACH_BACKWARD (Link *, link, listbase) {
+    const void *ptr_iter = (const void *)(((const char *)link) + offset);
     if (memcmp(bytes, ptr_iter, bytes_size) == 0) {
       return link;
     }
   }
-
   return nullptr;
 }
 
@@ -885,7 +854,7 @@ bool BLI_listbase_validate(ListBase *lb)
 
   /* Walk the list in bot directions to ensure all next & prev pointers are valid and consistent.
    */
-  for (Link *lb_link = static_cast<Link *>(lb->first); lb_link; lb_link = lb_link->next) {
+  LISTBASE_FOREACH (Link *, lb_link, lb) {
     if (lb_link == lb->first) {
       if (lb_link->prev != nullptr) {
         return false;
@@ -897,7 +866,7 @@ bool BLI_listbase_validate(ListBase *lb)
       }
     }
   }
-  for (Link *lb_link = static_cast<Link *>(lb->last); lb_link; lb_link = lb_link->prev) {
+  LISTBASE_FOREACH_BACKWARD (Link *, lb_link, lb) {
     if (lb_link == lb->last) {
       if (lb_link->next != nullptr) {
         return false;

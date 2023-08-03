@@ -724,7 +724,6 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
   }
 
   Scene *scene = C ? CTX_data_scene(C) : nullptr;
-  KeyingSet *ks;
 
   /* Active Keying Set. */
   if (!use_poll || (scene && scene->active_keyingset)) {
@@ -736,7 +735,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
 
   /* User-defined Keying Sets. */
   if (scene && scene->keyingsets.first) {
-    for (ks = static_cast<KeyingSet *>(scene->keyingsets.first); ks; ks = ks->next) {
+    LISTBASE_FOREACH (KeyingSet *, ks, &scene->keyingsets) {
       if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
         continue;
       }
@@ -748,7 +747,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
   }
 
   /* Builtin Keying Sets. */
-  for (ks = static_cast<KeyingSet *>(builtin_keyingsets.first); ks; ks = ks->next) {
+  LISTBASE_FOREACH (KeyingSet *, ks, &builtin_keyingsets) {
     if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
       continue;
     }
@@ -920,9 +919,7 @@ static void RKS_ITER_overrides_list(KeyingSetInfo *ksi,
                                     KeyingSet *ks,
                                     ListBase *dsources)
 {
-  tRKS_DSource *ds;
-
-  for (ds = static_cast<tRKS_DSource *>(dsources->first); ds; ds = ds->next) {
+  LISTBASE_FOREACH (tRKS_DSource *, ds, dsources) {
     /* run generate callback on this data */
     ksi->generate(ksi, C, ks, &ds->ptr);
   }
@@ -1048,7 +1045,6 @@ int ANIM_apply_keyingset(
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ReportList *reports = CTX_wm_reports(C);
-  KS_Path *ksp;
   ListBase nla_cache = {nullptr, nullptr};
   const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene, true);
   const char *groupname = nullptr;
@@ -1082,7 +1078,7 @@ int ANIM_apply_keyingset(
   }
 
   /* apply the paths as specified in the KeyingSet now */
-  for (ksp = static_cast<KS_Path *>(ks->paths.first); ksp; ksp = ksp->next) {
+  LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
     int arraylen, i;
     eInsertKeyFlags kflag2;
 

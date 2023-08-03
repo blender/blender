@@ -2307,7 +2307,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    for (ModifierData *md = static_cast<ModifierData *>(modifiers->first); md; md = md->next) {
+    LISTBASE_FOREACH (ModifierData *, md, modifiers) {
       const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
       if (mti->panel_register == nullptr) {
         continue;
@@ -2556,9 +2556,7 @@ void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    for (GpencilModifierData *md = static_cast<GpencilModifierData *>(modifiers->first); md;
-         md = md->next)
-    {
+    LISTBASE_FOREACH (GpencilModifierData *, md, modifiers) {
       const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
           GpencilModifierType(md->type));
       if (mti->panel_register == nullptr) {
@@ -2631,7 +2629,7 @@ void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
 
   if (!panels_match) {
     UI_panels_free_instanced(C, region);
-    for (ShaderFxData *fx = static_cast<ShaderFxData *>(shaderfx->first); fx; fx = fx->next) {
+    LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
       char panel_idname[MAX_NAME];
       shaderfx_panel_id(fx, panel_idname);
 

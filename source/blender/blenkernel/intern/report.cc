@@ -146,8 +146,7 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
   /* Caller must ensure. */
   BLI_assert(reports && reports->list.first);
   const size_t prefix_len = strlen(prepend);
-  for (Report *report = static_cast<Report *>(reports->list.first); report; report = report->next)
-  {
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
     char *message = BLI_string_joinN(prepend, report->message);
     MEM_freeN((void *)report->message);
     report->message = message;
@@ -217,7 +216,6 @@ void BKE_report_store_level_set(ReportList *reports, eReportType level)
 
 char *BKE_reports_string(ReportList *reports, eReportType level)
 {
-  Report *report;
   DynStr *ds;
   char *cstring;
 
@@ -226,7 +224,7 @@ char *BKE_reports_string(ReportList *reports, eReportType level)
   }
 
   ds = BLI_dynstr_new();
-  for (report = static_cast<Report *>(reports->list.first); report; report = report->next) {
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
     if (report->type >= level) {
       BLI_dynstr_appendf(ds, "%s: %s\n", report->typestr, report->message);
     }
@@ -276,9 +274,7 @@ void BKE_reports_print(ReportList *reports, eReportType level)
 
 Report *BKE_reports_last_displayable(ReportList *reports)
 {
-  Report *report;
-
-  for (report = static_cast<Report *>(reports->list.last); report; report = report->prev) {
+  LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
     if (ELEM(report->type, RPT_ERROR, RPT_WARNING, RPT_INFO)) {
       return report;
     }
@@ -289,9 +285,8 @@ Report *BKE_reports_last_displayable(ReportList *reports)
 
 bool BKE_reports_contain(ReportList *reports, eReportType level)
 {
-  Report *report;
   if (reports != nullptr) {
-    for (report = static_cast<Report *>(reports->list.first); report; report = report->next) {
+    LISTBASE_FOREACH (Report *, report, &reports->list) {
       if (report->type >= level) {
         return true;
       }
@@ -302,13 +297,11 @@ bool BKE_reports_contain(ReportList *reports, eReportType level)
 
 bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
 {
-  Report *report;
-
   if (header) {
     fputs(header, fp);
   }
 
-  for (report = static_cast<Report *>(reports->list.first); report; report = report->next) {
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
     fprintf((FILE *)fp, "%s  # %s\n", report->message, report->typestr);
   }
 

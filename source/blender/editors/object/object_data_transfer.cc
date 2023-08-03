@@ -357,16 +357,13 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
                                                   ListBase *ctx_objects,
                                                   const bool reverse_transfer)
 {
-  CollectionPointerLink *ctx_ob;
   CTX_data_selected_editable_objects(C, ctx_objects);
 
   if (reverse_transfer) {
     return; /* Nothing else to do in this case... */
   }
 
-  for (ctx_ob = static_cast<CollectionPointerLink *>(ctx_objects->first); ctx_ob;
-       ctx_ob = ctx_ob->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, ctx_objects) {
     Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
     Mesh *me;
     if ((ob == ob_src) || (ob->type != OB_MESH)) {
@@ -428,7 +425,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   ListBase ctx_objects;
-  CollectionPointerLink *ctx_ob_dst;
 
   bool changed = false;
 
@@ -489,9 +485,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
   data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
-  for (ctx_ob_dst = static_cast<CollectionPointerLink *>(ctx_objects.first); ctx_ob_dst;
-       ctx_ob_dst = ctx_ob_dst->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
     Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
 
     if (reverse_transfer) {
@@ -868,7 +862,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
     Object *ob_src = ob_act;
 
     ListBase ctx_objects;
-    CollectionPointerLink *ctx_ob_dst;
 
     const int data_type = RNA_enum_get(op->ptr, "data_type");
     const bool use_delete = RNA_boolean_get(op->ptr, "use_delete");
@@ -888,9 +881,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
-    for (ctx_ob_dst = static_cast<CollectionPointerLink *>(ctx_objects.first); ctx_ob_dst;
-         ctx_ob_dst = ctx_ob_dst->next)
-    {
+    LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
       Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
       if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
         BKE_object_data_transfer_layout(depsgraph,

@@ -241,9 +241,7 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area)
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   if (v3d->shading.type != OB_RENDER) {
-    ARegion *region;
-
-    for (region = static_cast<ARegion *>(area->regionbase.first); region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if ((region->regiontype == RGN_TYPE_WINDOW) && region->regiondata) {
         ED_view3d_stop_render_preview(wm, region);
       }
@@ -2056,14 +2054,13 @@ static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappin
 static void view3d_id_remap_v3d(
     ScrArea *area, SpaceLink *slink, View3D *v3d, const IDRemapper *mappings, const bool is_local)
 {
-  ARegion *region;
   if (BKE_id_remapper_apply(mappings, (ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
     ListBase *regionbase = (slink == area->spacedata.first) ? &area->regionbase :
                                                               &slink->regionbase;
-    for (region = static_cast<ARegion *>(regionbase->first); region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, regionbase) {
       if (region->regiontype == RGN_TYPE_WINDOW) {
         RegionView3D *rv3d = is_local ? ((RegionView3D *)region->regiondata)->localvd :
                                         static_cast<RegionView3D *>(region->regiondata);

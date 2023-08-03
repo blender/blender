@@ -365,8 +365,7 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, Image, id_address, &ima->id);
   BKE_id_blend_write(writer, &ima->id);
 
-  for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf; imapf = imapf->next)
-  {
+  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
     BLO_write_struct(writer, ImagePackedFile, imapf);
     BKE_packedfile_blend_write(writer, imapf->packedfile);
   }
@@ -2685,8 +2684,7 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
     image_add_view(ima, "", "");
   }
   else {
-    for (SceneRenderView *srv = static_cast<SceneRenderView *>(rd->views.first); srv;
-         srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
       if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {
         continue;
       }
@@ -2711,11 +2709,8 @@ void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *
 
   /* multiview also needs to be sure all the views are synced */
   if (is_multiview && !do_reset) {
-    SceneRenderView *srv;
-    ImageView *iv;
-
-    for (iv = static_cast<ImageView *>(ima->views.first); iv; iv = iv->next) {
-      srv = static_cast<SceneRenderView *>(
+    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
+      SceneRenderView *srv = static_cast<SceneRenderView *>(
           BLI_findstring(&rd->views, iv->name, offsetof(SceneRenderView, name)));
       if ((srv == nullptr) || (BKE_scene_multiview_is_render_view_active(rd, srv) == false)) {
         do_reset = true;
@@ -3151,9 +3146,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
         }
         else {
-          ImagePackedFile *imapf;
-          for (imapf = static_cast<ImagePackedFile *>(ima->packedfiles.first); imapf;
-               imapf = imapf->next) {
+          LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
             PackedFile *pf;
             pf = BKE_packedfile_new(nullptr, imapf->filepath, ID_BLEND_PATH(bmain, &ima->id));
             if (pf) {
@@ -4774,11 +4767,9 @@ void BKE_image_pool_free(ImagePool *pool)
 BLI_INLINE ImBuf *image_pool_find_item(
     ImagePool *pool, Image *image, int entry, int index, bool *found)
 {
-  ImagePoolItem *item;
-
   *found = false;
 
-  for (item = static_cast<ImagePoolItem *>(pool->image_buffers.first); item; item = item->next) {
+  LISTBASE_FOREACH (ImagePoolItem *, item, &pool->image_buffers) {
     if (item->image == image && item->entry == entry && item->index == index) {
       *found = true;
       return item->ibuf;
@@ -5365,7 +5356,6 @@ ImBuf *BKE_image_get_first_ibuf(Image *image)
 
 static void image_update_views_format(Image *ima, ImageUser *iuser)
 {
-  SceneRenderView *srv;
   ImageView *iv;
   Scene *scene = iuser->scene;
   const bool is_multiview = ((scene->r.scemode & R_MULTIVIEW) != 0) &&
@@ -5399,7 +5389,7 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
     }
 
     /* create all the image views */
-    for (srv = static_cast<SceneRenderView *>(scene->r.views.first); srv; srv = srv->next) {
+    LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
         char filepath_view[FILE_MAX];
         SNPRINTF(filepath_view, "%s%s%s", prefix, srv->suffix, ext);

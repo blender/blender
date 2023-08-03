@@ -579,9 +579,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, bool *stop, bool *do_updat
 void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
 {
   if (context->index_context) {
-    StripAnim *sanim;
-
-    for (sanim = static_cast<StripAnim *>(context->seq->anims.first); sanim; sanim = sanim->next) {
+    LISTBASE_FOREACH (StripAnim *, sanim, &context->seq->anims) {
       IMB_close_anim_proxies(sanim->anim);
     }
 

@@ -4224,9 +4224,8 @@ static PyObject *pyrna_struct_dir(BPy_StructRNA *self)
 
   if (self->ptr.type == &RNA_Context) {
     ListBase lb = CTX_data_dir_get(static_cast<const bContext *>(self->ptr.data));
-    LinkData *link;
 
-    for (link = static_cast<LinkData *>(lb.first); link; link = link->next) {
+    LISTBASE_FOREACH (LinkData *, link, &lb) {
       PyList_APPEND(ret, PyUnicode_FromString(static_cast<const char *>(link->data)));
     }
 
@@ -4417,12 +4416,9 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             }
             break;
           case CTX_DATA_TYPE_COLLECTION: {
-            CollectionPointerLink *link;
-
             ret = PyList_New(0);
 
-            for (link = static_cast<CollectionPointerLink *>(newlb.first); link; link = link->next)
-            {
+            LISTBASE_FOREACH (CollectionPointerLink *, link, &newlb) {
               PyList_APPEND(ret, pyrna_struct_CreatePyObject(&link->ptr));
             }
             break;
@@ -7198,10 +7194,9 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
   {
     const PointerRNA func_ptr = {nullptr, srna, nullptr};
     const ListBase *lb;
-    Link *link;
 
     lb = RNA_struct_type_functions(srna);
-    for (link = static_cast<Link *>(lb->first); link; link = link->next) {
+    LISTBASE_FOREACH (Link *, link, lb) {
       FunctionRNA *func = (FunctionRNA *)link;
       const int flag = RNA_function_flag(func);
       if ((flag & FUNC_NO_SELF) &&         /* Is `staticmethod` or `classmethod`. */
@@ -8220,13 +8215,12 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
 {
   const ListBase *lb = RNA_function_defined_parameters(func);
   PropertyRNA *parm;
-  Link *link;
   const int flag = RNA_function_flag(func);
   const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
   int count = is_staticmethod ? 0 : 1;
   bool done_min_count = false;
 
-  for (link = static_cast<Link *>(lb->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, lb) {
     parm = (PropertyRNA *)link;
     if (!(RNA_parameter_flag(parm) & PARM_OUTPUT)) {
       if (!done_min_count && (RNA_parameter_flag(parm) & PARM_PYFUNC_OPTIONAL)) {
@@ -8252,7 +8246,6 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
                                         bool *have_function)
 {
   const ListBase *lb;
-  Link *link;
   const char *class_type = RNA_struct_identifier(srna);
   StructRNA *srna_base = RNA_struct_base(srna);
   PyObject *py_class = (PyObject *)py_data;
@@ -8280,7 +8273,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
   /* Verify callback functions. */
   lb = RNA_struct_type_functions(srna);
   i = 0;
-  for (link = static_cast<Link *>(lb->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, lb) {
     FunctionRNA *func = (FunctionRNA *)link;
     const int flag = RNA_function_flag(func);
     if (!(flag & FUNC_REGISTER)) {
@@ -8387,7 +8380,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummy_ptr,
 
   /* Verify properties. */
   lb = RNA_struct_type_properties(srna);
-  for (link = static_cast<Link *>(lb->first); link; link = link->next) {
+  LISTBASE_FOREACH (Link *, link, lb) {
     const char *identifier;
     PropertyRNA *prop = (PropertyRNA *)link;
     const int flag = RNA_property_flag(prop);
@@ -9046,12 +9039,11 @@ static int pyrna_srna_contains_pointer_prop_srna(StructRNA *srna_props,
                                                  const char **r_prop_identifier)
 {
   PropertyRNA *prop;
-  LinkData *link;
 
   /* Verify properties. */
   const ListBase *lb = RNA_struct_type_properties(srna);
 
-  for (link = static_cast<LinkData *>(lb->first); link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, lb) {
     prop = (PropertyRNA *)link;
     if (RNA_property_type(prop) == PROP_POINTER && !RNA_property_builtin(prop)) {
       PointerRNA tptr;

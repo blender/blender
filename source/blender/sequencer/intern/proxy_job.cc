@@ -45,9 +45,8 @@ static void proxy_freejob(void *pjv)
 static void proxy_startjob(void *pjv, bool *stop, bool *do_update, float *progress)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-  LinkData *link;
 
-  for (link = static_cast<LinkData *>(pj->queue.first); link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
     SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
 
     SEQ_proxy_rebuild(context, stop, do_update, progress);
@@ -64,9 +63,8 @@ static void proxy_endjob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
   Editing *ed = SEQ_editing_get(pj->scene);
-  LinkData *link;
 
-  for (link = static_cast<LinkData *>(pj->queue.first); link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
     SEQ_proxy_rebuild_finish(static_cast<SeqIndexBuildContext *>(link->data), pj->stop);
   }
 

@@ -6300,8 +6300,6 @@ void BKE_constraint_targets_for_solving_get(
   const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
   if (cti && cti->get_constraint_targets) {
-    bConstraintTarget *ct;
-
     /* get targets
      * - constraints should use ct->matrix, not directly accessing values
      * - ct->matrix members have not yet been calculated here!
@@ -6317,12 +6315,12 @@ void BKE_constraint_targets_for_solving_get(
      * - calculate if possible, otherwise just initialize as identity matrix
      */
     if (cti->get_target_matrix) {
-      for (ct = static_cast<bConstraintTarget *>(targets->first); ct; ct = ct->next) {
+      LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
         cti->get_target_matrix(depsgraph, con, cob, ct, ctime);
       }
     }
     else {
-      for (ct = static_cast<bConstraintTarget *>(targets->first); ct; ct = ct->next) {
+      LISTBASE_FOREACH (bConstraintTarget *, ct, targets) {
         unit_m4(ct->matrix);
       }
     }
@@ -6355,7 +6353,6 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
                            bConstraintOb *cob,
                            float ctime)
 {
-  bConstraint *con;
   float oldmat[4][4];
   float enf;
 
@@ -6365,7 +6362,7 @@ void BKE_constraints_solve(Depsgraph *depsgraph,
   }
 
   /* loop over available constraints, solving and blending them */
-  for (con = static_cast<bConstraint *>(conlist->first); con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, conlist) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
     ListBase targets = {nullptr, nullptr};
 

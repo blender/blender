@@ -622,13 +622,11 @@ static ParticleCacheKey **psys_alloc_path_cache_buffers(ListBase *bufs, int tot,
 
 static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *bufs)
 {
-  LinkData *buf;
-
   if (cache) {
     MEM_freeN(cache);
   }
 
-  for (buf = static_cast<LinkData *>(bufs->first); buf; buf = buf->next) {
+  LISTBASE_FOREACH (LinkData *, buf, bufs) {
     MEM_freeN(buf->data);
   }
   BLI_freelistN(bufs);
@@ -640,12 +638,11 @@ static void psys_free_path_cache_buffers(ParticleCacheKey **cache, ListBase *buf
 
 ParticleSystem *psys_get_current(Object *ob)
 {
-  ParticleSystem *psys;
   if (ob == nullptr) {
     return nullptr;
   }
 
-  for (psys = static_cast<ParticleSystem *>(ob->particlesystem.first); psys; psys = psys->next) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, &ob->particlesystem) {
     if (psys->flag & PSYS_CURRENT) {
       return psys;
     }
@@ -915,7 +912,7 @@ void psys_check_group_weights(ParticleSettings *part)
 
   /* Ensure there is an element marked as current. */
   int current = 0;
-  for (dw = static_cast<ParticleDupliWeight *>(part->instance_weights.first); dw; dw = dw->next) {
+  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
     if (dw->flag & PART_DUPLIW_CURRENT) {
       current = 1;
       break;
@@ -1083,7 +1080,6 @@ void psys_free(Object *ob, ParticleSystem *psys)
 {
   if (psys) {
     int nr = 0;
-    ParticleSystem *tpsys;
 
     psys_free_path_cache(psys, nullptr);
 
@@ -1116,8 +1112,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
     }
 
     /* check if we are last non-visible particle system */
-    for (tpsys = static_cast<ParticleSystem *>(ob->particlesystem.first); tpsys;
-         tpsys = tpsys->next) {
+    LISTBASE_FOREACH (ParticleSystem *, tpsys, &ob->particlesystem) {
       if (tpsys->part) {
         if (ELEM(tpsys->part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
           nr++;
@@ -1355,10 +1350,9 @@ static int get_pointcache_times_for_particle(PointCache *cache,
                                              float *r_start,
                                              float *r_dietime)
 {
-  PTCacheMem *pm;
   int ret = 0;
 
-  for (pm = static_cast<PTCacheMem *>(cache->mem_cache.first); pm; pm = pm->next) {
+  LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
     if (BKE_ptcache_mem_index_find(pm, index) >= 0) {
       *r_start = pm->frame;
       ret++;
@@ -1366,7 +1360,7 @@ static int get_pointcache_times_for_particle(PointCache *cache,
     }
   }
 
-  for (pm = static_cast<PTCacheMem *>(cache->mem_cache.last); pm; pm = pm->prev) {
+  LISTBASE_FOREACH_BACKWARD (PTCacheMem *, pm, &cache->mem_cache) {
     if (BKE_ptcache_mem_index_find(pm, index) >= 0) {
       /* Die *after* the last available frame. */
       *r_dietime = pm->frame + 1;
@@ -1380,10 +1374,9 @@ static int get_pointcache_times_for_particle(PointCache *cache,
 
 float psys_get_dietime_from_cache(PointCache *cache, int index)
 {
-  PTCacheMem *pm;
   int dietime = 10000000; /* some max value so that we can default to pa->time+lifetime */
 
-  for (pm = static_cast<PTCacheMem *>(cache->mem_cache.last); pm; pm = pm->prev) {
+  LISTBASE_FOREACH_BACKWARD (PTCacheMem *, pm, &cache->mem_cache) {
     if (BKE_ptcache_mem_index_find(pm, index) >= 0) {
       /* Die *after* the last available frame. */
       dietime = pm->frame + 1;
@@ -2259,10 +2252,9 @@ float psys_particle_value_from_verts(Mesh *mesh, short from, ParticleData *pa, f
 
 ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 {
-  ModifierData *md;
   ParticleSystemModifierData *psmd;
 
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (md->type == eModifierType_ParticleSystem) {
       psmd = (ParticleSystemModifierData *)md;
       if (psmd->psys == psys) {
@@ -2390,7 +2382,6 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
   EffectedPoint point;
   ParticleKey state;
   EffectorData efd;
-  EffectorCache *eff;
   ParticleSystem *psys = sim->psys;
   EffectorWeights *weights = sim->psys->part->effector_weights;
   GuideEffectorData *data;
@@ -2419,7 +2410,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 
     pd_point_from_particle(sim, pa, &state, &point);
 
-    for (eff = static_cast<EffectorCache *>(effectors->first); eff; eff = eff->next) {
+    LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
       if (eff->pd->forcefield != PFIELD_GUIDE) {
         continue;
       }
@@ -2452,7 +2443,6 @@ bool do_guides(Depsgraph *depsgraph,
                                                                                nullptr;
   CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve :
                                                                                nullptr;
-  EffectorCache *eff;
   PartDeflect *pd;
   Curve *cu;
   GuideEffectorData *data;
@@ -2463,7 +2453,7 @@ bool do_guides(Depsgraph *depsgraph,
   float vec_to_point[3];
 
   if (effectors) {
-    for (eff = static_cast<EffectorCache *>(effectors->first); eff; eff = eff->next) {
+    LISTBASE_FOREACH (EffectorCache *, eff, effectors) {
       pd = eff->pd;
 
       if (pd->forcefield != PFIELD_GUIDE) {

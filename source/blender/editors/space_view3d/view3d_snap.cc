@@ -118,14 +118,11 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
-      bPoseChannel *pchan_eval;
       bArmature *arm_eval = static_cast<bArmature *>(ob_eval->data);
 
       invert_m4_m4(ob_eval->world_to_object, ob_eval->object_to_world);
 
-      for (pchan_eval = static_cast<bPoseChannel *>(ob_eval->pose->chanbase.first); pchan_eval;
-           pchan_eval = pchan_eval->next)
-      {
+      LISTBASE_FOREACH (bPoseChannel *, pchan_eval, &ob_eval->pose->chanbase) {
         if (pchan_eval->bone->flag & BONE_SELECTED) {
           if (ANIM_bonecoll_is_visible_pchan(arm_eval, pchan_eval)) {
             if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
@@ -389,15 +386,13 @@ static bool snap_selected_to_location(bContext *C,
 
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob = objects[ob_index];
-      bPoseChannel *pchan;
       bArmature *arm = static_cast<bArmature *>(ob->data);
       float snap_target_local[3];
 
       invert_m4_m4(ob->world_to_object, ob->object_to_world);
       mul_v3_m4v3(snap_target_local, ob->world_to_object, snap_target_global);
 
-      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-           pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
@@ -411,8 +406,7 @@ static bool snap_selected_to_location(bContext *C,
         }
       }
 
-      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-           pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         if ((pchan->bone->flag & BONE_TRANSFORM) &&
             /* check that our parents not transformed (if we have one) */
             ((pchan->bone->parent &&
@@ -453,8 +447,7 @@ static bool snap_selected_to_location(bContext *C,
         }
       }
 
-      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-           pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         pchan->bone->flag &= ~BONE_TRANSFORM;
       }
 
@@ -841,10 +834,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     if (obact && (obact->mode & OB_MODE_POSE)) {
       Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
       bArmature *arm = static_cast<bArmature *>(obact_eval->data);
-      bPoseChannel *pchan;
-      for (pchan = static_cast<bPoseChannel *>(obact_eval->pose->chanbase.first); pchan;
-           pchan = pchan->next)
-      {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &obact_eval->pose->chanbase) {
         if (ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
           if (pchan->bone->flag & BONE_SELECTED) {
             copy_v3_v3(vec, pchan->pose_head);

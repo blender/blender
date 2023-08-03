@@ -364,15 +364,13 @@ bActionGroup *get_active_actiongroup(bAction *act)
 
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
-  bActionGroup *grp;
-
   /* sanity checks */
   if (act == nullptr) {
     return;
   }
 
   /* Deactivate all others */
-  for (grp = static_cast<bActionGroup *>(act->groups.first); grp; grp = grp->next) {
+  LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
     if ((grp == agrp) && (select)) {
       grp->flag |= AGRP_ACTIVE;
     }
@@ -598,15 +596,13 @@ bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 
 void action_groups_clear_tempflags(bAction *act)
 {
-  bActionGroup *agrp;
-
   /* sanity checks */
   if (ELEM(nullptr, act, act->groups.first)) {
     return;
   }
 
   /* flag clearing loop */
-  for (agrp = static_cast<bActionGroup *>(act->groups.first); agrp; agrp = agrp->next) {
+  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     agrp->flag &= ~AGRP_TEMP;
   }
 }
@@ -706,14 +702,12 @@ bool BKE_pose_is_layer_visible(const bArmature *arm, const bPoseChannel *pchan)
 bPoseChannel *BKE_pose_channel_active(Object *ob, const bool check_arm_layer)
 {
   bArmature *arm = static_cast<bArmature *>((ob) ? ob->data : nullptr);
-  bPoseChannel *pchan;
-
   if (ELEM(nullptr, ob, ob->pose, arm)) {
     return nullptr;
   }
 
   /* find active */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if ((pchan->bone) && (pchan->bone == arm->act_bone)) {
       if (!check_arm_layer || BKE_pose_is_layer_visible(arm, pchan)) {
         return pchan;
@@ -742,7 +736,7 @@ bPoseChannel *BKE_pose_channel_active_or_first_selected(Object *ob)
     return pchan;
   }
 
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (pchan->bone != nullptr) {
       if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone)) {
         return pchan;
@@ -784,7 +778,6 @@ void BKE_pose_copy_data_ex(bPose **dst,
                            const bool copy_constraints)
 {
   bPose *outPose;
-  bPoseChannel *pchan;
   ListBase listb;
 
   if (!src) {
@@ -810,7 +803,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
   outPose->ikparam = MEM_dupallocN(src->ikparam);
   outPose->avs = src->avs;
 
-  for (pchan = static_cast<bPoseChannel *>(outPose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &outPose->chanbase) {
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)pchan->custom);
     }
@@ -900,12 +893,9 @@ void BKE_pose_ikparam_init(bPose *pose)
 /* only for real IK, not for auto-IK */
 static bool pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
 {
-  bConstraint *con;
-  Bone *bone;
-
   /* No need to check if constraint is active (has influence),
    * since all constraints with CONSTRAINT_IK_AUTO are active */
-  for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
       if ((data->rootbone == 0) || (data->rootbone > level)) {
@@ -915,7 +905,7 @@ static bool pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan, int level)
       }
     }
   }
-  for (bone = static_cast<Bone *>(pchan->bone->childbase.first); bone; bone = bone->next) {
+  LISTBASE_FOREACH (Bone *, bone, &pchan->bone->childbase) {
     pchan = BKE_pose_channel_find_name(ob->pose, bone->name);
     if (pchan && pose_channel_in_IK_chain(ob, pchan, level + 1)) {
       return true;
@@ -932,10 +922,8 @@ bool BKE_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 void BKE_pose_channels_hash_ensure(bPose *pose)
 {
   if (!pose->chanhash) {
-    bPoseChannel *pchan;
-
     pose->chanhash = BLI_ghash_str_new("make_pose_chan gh");
-    for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
       BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
     }
   }
@@ -971,7 +959,6 @@ void BKE_pose_channels_remove(Object *ob,
   /* Erase any associated pose channel, along with any references to them */
   if (ob->pose) {
     bPoseChannel *pchan, *pchan_next;
-    bConstraint *con;
 
     for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan_next)
     {
@@ -988,12 +975,10 @@ void BKE_pose_channels_remove(Object *ob,
       }
       else {
         /* Maybe something the bone references is being removed instead? */
-        for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+        LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
           ListBase targets = {nullptr, nullptr};
-          bConstraintTarget *ct;
-
           if (BKE_constraint_targets_get(con, &targets)) {
-            for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+            LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
               if (ct->tar == ob) {
                 if (ct->subtarget[0]) {
                   if (filter_fn(ct->subtarget, user_data)) {
@@ -1090,10 +1075,8 @@ void BKE_pose_channel_free(bPoseChannel *pchan)
 
 void BKE_pose_channels_free_ex(bPose *pose, bool do_id_user)
 {
-  bPoseChannel *pchan;
-
-  if (pose->chanbase.first) {
-    for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+  if (!BLI_listbase_is_empty(&pose->chanbase)) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
       BKE_pose_channel_free_ex(pchan, do_id_user);
     }
 
@@ -1199,18 +1182,17 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 
 void BKE_pose_update_constraint_flags(bPose *pose)
 {
-  bPoseChannel *pchan, *parchan;
-  bConstraint *con;
+  bPoseChannel *parchan;
 
   /* clear */
-  for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     pchan->constflag = 0;
   }
   pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
 
   /* detect */
-  for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
-    for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+    LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
         bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
@@ -1291,7 +1273,6 @@ bActionGroup *BKE_pose_add_group(bPose *pose, const char *name)
 
 void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
 {
-  bPoseChannel *pchan;
   int idx = index;
 
   if (idx < 1) {
@@ -1304,7 +1285,7 @@ void BKE_pose_remove_group(bPose *pose, bActionGroup *grp, const int index)
    * - firstly, make sure nothing references it
    * - also, make sure that those after this item get corrected
    */
-  for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     if (pchan->agrp_index == idx) {
       pchan->agrp_index = 0;
     }
@@ -1342,11 +1323,9 @@ void BKE_pose_remove_group_index(bPose *pose, const int index)
 
 bool BKE_action_has_motion(const bAction *act)
 {
-  FCurve *fcu;
-
   /* return on the first F-Curve that has some keyframes/samples defined */
   if (act) {
-    for (fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
       if (fcu->totvert) {
         return true;
       }
@@ -1404,12 +1383,11 @@ void BKE_action_frame_range_calc(const bAction *act,
                                  float *r_start,
                                  float *r_end)
 {
-  FCurve *fcu;
   float min = 999999999.0f, max = -999999999.0f;
   short foundvert = 0, foundmod = 0;
 
   if (act) {
-    for (fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcu->next) {
+    LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
       /* if curve has keyframes, consider them first */
       if (fcu->totvert) {
         float nmin, nmax;
@@ -1516,7 +1494,6 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
                                                            ListBase *curves)
 {
   PointerRNA ptr;
-  FCurve *fcu;
   char *basePath = nullptr;
   short flags = 0;
 
@@ -1540,7 +1517,7 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
   /* search F-Curves for the given properties
    * - we cannot use the groups, since they may not be grouped in that way...
    */
-  for (fcu = static_cast<FCurve *>(act->curves.first); fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
     const char *bPtr = nullptr, *pPtr = nullptr;
 
     /* If enough flags have been found,
@@ -1645,8 +1622,6 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
 
 void BKE_pose_rest(bPose *pose, bool selected_bones_only)
 {
-  bPoseChannel *pchan;
-
   if (!pose) {
     return;
   }
@@ -1654,7 +1629,7 @@ void BKE_pose_rest(bPose *pose, bool selected_bones_only)
   memset(pose->stride_offset, 0, sizeof(pose->stride_offset));
   memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 
-  for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     if (selected_bones_only && pchan->bone != nullptr && (pchan->bone->flag & BONE_SELECTED) == 0)
     {
       continue;
@@ -1710,8 +1685,6 @@ void BKE_pose_copy_pchan_result(bPoseChannel *pchanto, const bPoseChannel *pchan
 
 bool BKE_pose_copy_result(bPose *to, bPose *from)
 {
-  bPoseChannel *pchanto, *pchanfrom;
-
   if (to == nullptr || from == nullptr) {
     CLOG_ERROR(
         &LOG, "Pose copy error, pose to:%p from:%p", (void *)to, (void *)from); /* debug temp */
@@ -1723,10 +1696,8 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
     return false;
   }
 
-  for (pchanfrom = static_cast<bPoseChannel *>(from->chanbase.first); pchanfrom;
-       pchanfrom = pchanfrom->next)
-  {
-    pchanto = BKE_pose_channel_find_name(to, pchanfrom->name);
+  LISTBASE_FOREACH (bPoseChannel *, pchanfrom, &from->chanbase) {
+    bPoseChannel *pchanto = BKE_pose_channel_find_name(to, pchanfrom->name);
     if (pchanto != nullptr) {
       BKE_pose_copy_pchan_result(pchanto, pchanfrom);
     }

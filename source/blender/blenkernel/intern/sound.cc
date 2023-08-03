@@ -1133,8 +1133,6 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop)
 
 static void sound_update_base(Scene *scene, Object *object, void *new_set)
 {
-  NlaTrack *track;
-  NlaStrip *strip;
   Speaker *speaker;
   float quat[4];
 
@@ -1145,9 +1143,8 @@ static void sound_update_base(Scene *scene, Object *object, void *new_set)
     return;
   }
 
-  for (track = static_cast<NlaTrack *>(object->adt->nla_tracks.first); track; track = track->next)
-  {
-    for (strip = static_cast<NlaStrip *>(track->strips.first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaTrack *, track, &object->adt->nla_tracks) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &track->strips) {
       if (strip->type != NLASTRIP_TYPE_SOUND) {
         continue;
       }

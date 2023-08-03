@@ -765,7 +765,6 @@ static bool gpencil_select_same_layer(bContext *C)
   bool changed = false;
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
-    bGPDstroke *gps;
     bool found = false;
 
     if (gpf == nullptr) {
@@ -773,7 +772,7 @@ static bool gpencil_select_same_layer(bContext *C)
     }
 
     /* Search for a selected stroke */
-    for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+    LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
       if (ED_gpencil_stroke_can_use(C, gps)) {
         if (gps->flag & GP_STROKE_SELECT) {
           found = true;
@@ -785,7 +784,7 @@ static bool gpencil_select_same_layer(bContext *C)
     /* Select all if found */
     if (found) {
       if (is_curve_edit) {
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           if (gps->editcurve != nullptr && ED_gpencil_stroke_can_use(C, gps)) {
             bGPDcurve *gpc = gps->editcurve;
             for (int i = 0; i < gpc->tot_curve_points; i++) {
@@ -802,7 +801,7 @@ static bool gpencil_select_same_layer(bContext *C)
         }
       }
       else {
-        for (gps = static_cast<bGPDstroke *>(gpf->strokes.first); gps; gps = gps->next) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           if (ED_gpencil_stroke_can_use(C, gps)) {
             bGPDspoint *pt;
             int i;

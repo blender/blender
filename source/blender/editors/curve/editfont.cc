@@ -733,7 +733,6 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 {
   Main *bmain = CTX_data_main(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  const TextLine *line;
   float offset[3];
   int linenum = 0;
 
@@ -742,7 +741,7 @@ void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
   }
 
   if (split_lines) {
-    for (line = static_cast<const TextLine *>(text->lines.first); line; line = line->next) {
+    LISTBASE_FOREACH (const TextLine *, line, &text->lines) {
       /* skip lines with no text, but still make space for them */
       if (line->line[0] == '\0') {
         linenum++;

@@ -68,9 +68,8 @@ static void texfn(
 
 static int count_outputs(bNode *node)
 {
-  bNodeSocket *sock;
   int num = 0;
-  for (sock = static_cast<bNodeSocket *>(node->outputs.first); sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
     num++;
   }
   return num;

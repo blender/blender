@@ -75,9 +75,7 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
 
 static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBase *seqbase)
 {
-  Sequence *cur;
-
-  for (cur = static_cast<Sequence *>(seqbase->first); cur; cur = cur->next) {
+  LISTBASE_FOREACH (Sequence *, cur, seqbase) {
     if (cur == seq) {
       continue;
     }
@@ -251,12 +249,10 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
     return;
   }
 
-  Sequence *seq;
-
   SEQ_cache_cleanup(scene);
   SEQ_prefetch_stop(scene);
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (for_render && SEQ_time_strip_intersects_frame(scene, seq, scene->r.cfra)) {
       continue;
     }
@@ -388,9 +384,7 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
     return true;
   }
 
-  SequenceModifierData *smd;
-  for (smd = static_cast<SequenceModifierData *>(seq_main->modifiers.first); smd; smd = smd->next)
-  {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq_main->modifiers) {
     if (smd->mask_sequence && SEQ_relations_render_loop_check(smd->mask_sequence, seq)) {
       return true;
     }
@@ -453,9 +447,7 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
 
 Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
 {
-  Sequence *iseq;
-
-  for (iseq = static_cast<Sequence *>(seqbase->first); iseq; iseq = iseq->next) {
+  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
     Sequence *rval;
 
     if (seq == iseq) {

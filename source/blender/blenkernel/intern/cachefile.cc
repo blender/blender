@@ -438,9 +438,7 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *s
 
 CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepath[1024])
 {
-  for (CacheFileLayer *layer = static_cast<CacheFileLayer *>(cache_file->layers.first); layer;
-       layer = layer->next)
-  {
+  LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
     if (STREQ(layer->filepath, filepath)) {
       return nullptr;
     }

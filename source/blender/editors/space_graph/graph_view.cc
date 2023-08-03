@@ -52,7 +52,6 @@ void get_graph_keyframe_extents(bAnimContext *ac,
   Scene *scene = ac->scene;
 
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* Get data to filter, from Dopesheet. */
@@ -84,7 +83,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     bool foundBounds = false;
 
     /* Go through channels, finding max extents. */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
       rctf bounds;
@@ -386,7 +385,6 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* Free existing ghost curves. */
@@ -405,7 +403,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
     FCurve *gcu = BKE_fcurve_create();
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);

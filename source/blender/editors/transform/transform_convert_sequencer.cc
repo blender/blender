@@ -152,10 +152,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 
 static int SeqTransCount(TransInfo *t, ListBase *seqbase)
 {
-  Sequence *seq;
   int tot = 0, count, flag;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SeqTransInfo(t, seq, &count, &flag); /* ignore the flag */
     tot += count;
   }
@@ -231,12 +230,11 @@ static TransData *SeqToTransData(Scene *scene,
 static int SeqToTransData_build(
     TransInfo *t, ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
 {
-  Sequence *seq;
   Scene *scene = t->scene;
   int count, flag;
   int tot = 0;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
 
     SeqTransInfo(t, seq, &count, &flag);
 

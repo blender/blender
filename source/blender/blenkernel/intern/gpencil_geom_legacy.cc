@@ -397,7 +397,7 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
     for (j = 0; j < dv->totweight; j++) {
       bool found = false;
       dw = &dv->dw[j];
-      for (ld = (LinkData *)result->first; ld; ld = ld->next) {
+      LISTBASE_FOREACH (LinkData *, ld, result) {
         if (ld->data == POINTER_FROM_INT(dw->def_nr)) {
           found = true;
           break;
@@ -418,7 +418,6 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
 static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase *def_nr_list)
 {
   int i, j;
-  LinkData *ld;
   MDeformVert *dst = (MDeformVert *)MEM_mallocN(count * sizeof(MDeformVert), "new_deformVert");
 
   for (i = 0; i < count; i++) {
@@ -427,7 +426,7 @@ static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase 
     dst[i].totweight = totweight;
     j = 0;
     /* re-assign deform groups */
-    for (ld = (LinkData *)def_nr_list->first; ld; ld = ld->next) {
+    LISTBASE_FOREACH (LinkData *, ld, def_nr_list) {
       dst[i].dw[j].def_nr = POINTER_AS_INT(ld->data);
       j++;
     }

@@ -732,9 +732,7 @@ void ACTION_OT_unlink(wmOperatorType *ot)
 /* Try to find NLA Strip to use for action layer up/down tool */
 static NlaStrip *action_layer_get_nlastrip(ListBase *strips, float ctime)
 {
-  NlaStrip *strip;
-
-  for (strip = static_cast<NlaStrip *>(strips->first); strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* Can we use this? */
     if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
       /* in range - use this one */
