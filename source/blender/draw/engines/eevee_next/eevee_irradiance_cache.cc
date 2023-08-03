@@ -225,6 +225,7 @@ void IrradianceCache::set_view(View & /*view*/)
     draw::Texture irradiance_b_tx = {"irradiance_b_tx"};
     draw::Texture irradiance_c_tx = {"irradiance_c_tx"};
     draw::Texture irradiance_d_tx = {"irradiance_d_tx"};
+    draw::Texture validity_tx = {"validity_tx"};
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
     int3 grid_size = int3(cache->size);
@@ -233,12 +234,32 @@ void IrradianceCache::set_view(View & /*view*/)
       irradiance_b_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_a);
       irradiance_c_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_b);
       irradiance_d_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_c);
+      validity_tx.ensure_3d(GPU_R16F, grid_size, usage, cache->baking.validity);
+      if (cache->baking.validity == nullptr) {
+        /* Avoid displaying garbage data. */
+        validity_tx.clear(float4(0.0));
+      }
     }
     else if (cache->irradiance.L0) {
       irradiance_a_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L0);
       irradiance_b_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_a);
       irradiance_c_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_b);
       irradiance_d_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_c);
+      validity_tx.ensure_3d(GPU_R8, grid_size, usage);
+      if (cache->connectivity.validity) {
+        /* TODO(fclem): Make texture creation API work with different data types. */
+        GPU_texture_update_sub(validity_tx,
+                               GPU_DATA_UBYTE,
+                               cache->connectivity.validity,
+                               0,
+                               0,
+                               0,
+                               UNPACK3(grid_size));
+      }
+      else {
+        /* Avoid displaying garbage data. */
+        validity_tx.clear(float4(0.0));
+      }
     }
     else {
       continue;
@@ -252,11 +273,14 @@ void IrradianceCache::set_view(View & /*view*/)
       irradiance_b_tx.ensure_3d(GPU_RGB16F, int3(1), usage, zero);
       irradiance_c_tx.ensure_3d(GPU_RGB16F, int3(1), usage, zero);
       irradiance_d_tx.ensure_3d(GPU_RGB16F, int3(1), usage, zero);
+      validity_tx.ensure_3d(GPU_R16F, int3(1), usage, zero);
     }
 
     grid_upload_ps_.init();
     grid_upload_ps_.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_LOAD));
 
+    grid_upload_ps_.push_constant("dilation_threshold", grid->dilation_threshold);
+    grid_upload_ps_.push_constant("dilation_radius", grid->dilation_radius);
     grid_upload_ps_.push_constant("grid_index", grid->grid_index);
     grid_upload_ps_.bind_ubo("grids_infos_buf", &grids_infos_buf_);
     grid_upload_ps_.bind_ssbo("bricks_infos_buf", &bricks_infos_buf_);
@@ -264,6 +288,7 @@ void IrradianceCache::set_view(View & /*view*/)
     grid_upload_ps_.bind_texture("irradiance_b_tx", &irradiance_b_tx);
     grid_upload_ps_.bind_texture("irradiance_c_tx", &irradiance_c_tx);
     grid_upload_ps_.bind_texture("irradiance_d_tx", &irradiance_d_tx);
+    grid_upload_ps_.bind_texture("validity_tx", &validity_tx);
     grid_upload_ps_.bind_image("irradiance_atlas_img", &irradiance_atlas_tx_);
 
     /* Note that we take into account the padding border of each brick. */
@@ -358,6 +383,7 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
     draw::Texture irradiance_b_tx = {"irradiance_b_tx"};
     draw::Texture irradiance_c_tx = {"irradiance_c_tx"};
     draw::Texture irradiance_d_tx = {"irradiance_d_tx"};
+    draw::Texture validity_tx = {"validity_tx"};
 
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
     int3 grid_size = int3(cache->size);
@@ -366,12 +392,32 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
       irradiance_b_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_a);
       irradiance_c_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_b);
       irradiance_d_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, (float *)cache->baking.L1_c);
+      validity_tx.ensure_3d(GPU_R16F, grid_size, usage, (float *)cache->baking.validity);
+      if (cache->baking.validity == nullptr) {
+        /* Avoid displaying garbage data. */
+        validity_tx.clear(float4(0.0));
+      }
     }
     else if (cache->irradiance.L0) {
       irradiance_a_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L0);
       irradiance_b_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_a);
       irradiance_c_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_b);
       irradiance_d_tx.ensure_3d(GPU_RGB16F, grid_size, usage, (float *)cache->irradiance.L1_c);
+      validity_tx.ensure_3d(GPU_R8, grid_size, usage);
+      if (cache->connectivity.validity) {
+        /* TODO(fclem): Make texture creation API work with different data types. */
+        GPU_texture_update_sub(validity_tx,
+                               GPU_DATA_UBYTE,
+                               cache->connectivity.validity,
+                               0,
+                               0,
+                               0,
+                               UNPACK3(grid_size));
+      }
+      else {
+        /* Avoid displaying garbage data. */
+        validity_tx.clear(float4(0.0));
+      }
     }
     else {
       continue;
@@ -387,11 +433,14 @@ void IrradianceCache::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
     display_grids_ps_.push_constant("grid_resolution", grid_size);
     display_grids_ps_.push_constant("grid_to_world", grid.object_to_world);
     display_grids_ps_.push_constant("world_to_grid", grid.world_to_object);
+    /* TODO(fclem): Make it an option when display options are moved to probe DNA. */
+    display_grids_ps_.push_constant("display_validity", false);
 
     display_grids_ps_.bind_texture("irradiance_a_tx", &irradiance_a_tx);
     display_grids_ps_.bind_texture("irradiance_b_tx", &irradiance_b_tx);
     display_grids_ps_.bind_texture("irradiance_c_tx", &irradiance_c_tx);
     display_grids_ps_.bind_texture("irradiance_d_tx", &irradiance_d_tx);
+    display_grids_ps_.bind_texture("validity_tx", &validity_tx);
 
     int sample_count = int(BKE_lightprobe_grid_cache_frame_sample_count(cache));
     int triangle_count = sample_count * 2;
@@ -489,6 +538,7 @@ void IrradianceBake::sync()
     pass.bind_image("irradiance_L1_a_img", &irradiance_L1_a_tx_);
     pass.bind_image("irradiance_L1_b_img", &irradiance_L1_b_tx_);
     pass.bind_image("irradiance_L1_c_img", &irradiance_L1_c_tx_);
+    pass.bind_image("validity_img", &validity_tx_);
     pass.barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.dispatch(&dispatch_per_grid_sample_);
   }
@@ -548,10 +598,12 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   irradiance_L1_a_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   irradiance_L1_b_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
   irradiance_L1_c_tx_.ensure_3d(GPU_RGBA32F, grid_resolution, texture_usage);
+  validity_tx_.ensure_3d(GPU_R32F, grid_resolution, texture_usage);
   irradiance_L0_tx_.clear(float4(0.0f));
   irradiance_L1_a_tx_.clear(float4(0.0f));
   irradiance_L1_b_tx_.clear(float4(0.0f));
   irradiance_L1_c_tx_.clear(float4(0.0f));
+  validity_tx_.clear(float4(0.0f));
 
   DRW_stats_group_start("IrradianceBake.SceneBounds");
 
@@ -797,9 +849,7 @@ LightProbeGridCacheFrame *IrradianceBake::read_result_unpacked()
   cache_frame->baking.L1_a = (float(*)[4])irradiance_L1_a_tx_.read<float4>(GPU_DATA_FLOAT);
   cache_frame->baking.L1_b = (float(*)[4])irradiance_L1_b_tx_.read<float4>(GPU_DATA_FLOAT);
   cache_frame->baking.L1_c = (float(*)[4])irradiance_L1_c_tx_.read<float4>(GPU_DATA_FLOAT);
-
-  /* TODO(fclem): Connectivity. */
-  // cache_frame->connectivity.bitmask = connectivity_tx_.read<uint8_t>(GPU_DATA_FLOAT);
+  cache_frame->baking.validity = (float *)validity_tx_.read<float>(GPU_DATA_FLOAT);
 
   return cache_frame;
 }
@@ -820,34 +870,39 @@ LightProbeGridCacheFrame *IrradianceBake::read_result_packed()
   cache_frame->baking.L1_a = (float(*)[4])irradiance_L1_a_tx_.read<float4>(GPU_DATA_FLOAT);
   cache_frame->baking.L1_b = (float(*)[4])irradiance_L1_b_tx_.read<float4>(GPU_DATA_FLOAT);
   cache_frame->baking.L1_c = (float(*)[4])irradiance_L1_c_tx_.read<float4>(GPU_DATA_FLOAT);
+  cache_frame->baking.validity = (float *)validity_tx_.read<float>(GPU_DATA_FLOAT);
 
   int64_t sample_count = irradiance_L0_tx_.width() * irradiance_L0_tx_.height() *
                          irradiance_L0_tx_.depth();
   size_t coefficient_texture_size = sizeof(*cache_frame->irradiance.L0) * sample_count;
+  size_t validity_texture_size = sizeof(*cache_frame->connectivity.validity) * sample_count;
   cache_frame->irradiance.L0 = (float(*)[3])MEM_mallocN(coefficient_texture_size, __func__);
   cache_frame->irradiance.L1_a = (float(*)[3])MEM_mallocN(coefficient_texture_size, __func__);
   cache_frame->irradiance.L1_b = (float(*)[3])MEM_mallocN(coefficient_texture_size, __func__);
   cache_frame->irradiance.L1_c = (float(*)[3])MEM_mallocN(coefficient_texture_size, __func__);
+  cache_frame->connectivity.validity = (uint8_t *)MEM_mallocN(validity_texture_size, __func__);
 
+  /* TODO(fclem): This could be done on GPU if that's faster. */
   for (auto i : IndexRange(sample_count)) {
     copy_v3_v3(cache_frame->irradiance.L0[i], cache_frame->baking.L0[i]);
     copy_v3_v3(cache_frame->irradiance.L1_a[i], cache_frame->baking.L1_a[i]);
     copy_v3_v3(cache_frame->irradiance.L1_b[i], cache_frame->baking.L1_b[i]);
     copy_v3_v3(cache_frame->irradiance.L1_c[i], cache_frame->baking.L1_c[i]);
+    cache_frame->connectivity.validity[i] = unit_float_to_uchar_clamp(
+        cache_frame->baking.validity[i]);
   }
 
   MEM_SAFE_FREE(cache_frame->baking.L0);
   MEM_SAFE_FREE(cache_frame->baking.L1_a);
   MEM_SAFE_FREE(cache_frame->baking.L1_b);
   MEM_SAFE_FREE(cache_frame->baking.L1_c);
+  MEM_SAFE_FREE(cache_frame->baking.validity);
 
   // cache_frame->visibility.L0 = irradiance_only_L0_tx_.read<uint8_t>(GPU_DATA_UBYTE);
   // cache_frame->visibility.L1_a = irradiance_only_L1_a_tx_.read<uint8_t>(GPU_DATA_UBYTE);
   // cache_frame->visibility.L1_b = irradiance_only_L1_b_tx_.read<uint8_t>(GPU_DATA_UBYTE);
   // cache_frame->visibility.L1_c = irradiance_only_L1_c_tx_.read<uint8_t>(GPU_DATA_UBYTE);
-
-  /* TODO(fclem): Connectivity. */
-  // cache_frame->connectivity.bitmask = connectivity_tx_.read<uint8_t>(GPU_DATA_FLOAT);
+  // cache_frame->connectivity.validity = validity_packed_.read<uint8_t>(GPU_DATA_FLOAT);
 
   return cache_frame;
 }

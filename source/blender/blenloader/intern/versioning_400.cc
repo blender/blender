@@ -445,6 +445,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         lightprobe->grid_normal_bias = 0.3f;
         lightprobe->grid_view_bias = 0.0f;
         lightprobe->grid_facing_bias = 0.5f;
+        lightprobe->grid_dilation_threshold = 0.5f;
+        lightprobe->grid_dilation_radius = 1.0f;
       }
     }
 

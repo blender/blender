@@ -42,6 +42,9 @@ struct IrradianceGrid : public LightProbe, IrradianceGridData {
   Vector<IrradianceBrickPacked> bricks;
   /** Index of the grid inside the grid UBO. */
   int grid_index;
+  /** Copy of DNA members. */
+  float dilation_threshold;
+  float dilation_radius;
 };
 
 struct ReflectionCube : public LightProbe {

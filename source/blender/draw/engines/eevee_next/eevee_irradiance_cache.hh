@@ -91,6 +91,8 @@ class IrradianceBake {
   Texture irradiance_L1_a_tx_ = {"irradiance_L1_a_tx_"};
   Texture irradiance_L1_b_tx_ = {"irradiance_L1_b_tx_"};
   Texture irradiance_L1_c_tx_ = {"irradiance_L1_c_tx_"};
+  /** Contains ratio of back-face hits. Allows to get rid of invalid probes. */
+  Texture validity_tx_ = {"validity_tx_"};
 
   /* Bounding sphere of the scene being baked. In world space. */
   float4 scene_bound_sphere_;

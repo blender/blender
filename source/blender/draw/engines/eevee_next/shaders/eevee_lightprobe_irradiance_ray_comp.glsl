@@ -41,6 +41,18 @@ void irradiance_capture(Surfel surfel, vec3 P, inout SphericalHarmonicL1 sh)
   irradiance_capture(L, irradiance, sh);
 }
 
+void validity_capture(Surfel surfel, vec3 P, inout float validity)
+{
+  vec3 L = safe_normalize(surfel.position - P);
+  bool facing = dot(-L, surfel.normal) > 0.0;
+  validity += float(facing);
+}
+
+void validity_capture(vec3 L, inout float validity)
+{
+  validity += 1.0;
+}
+
 vec3 irradiance_sky_sample(vec3 R)
 {
   return reflection_probes_world_sample(R, 0.0).rgb;
@@ -81,6 +93,7 @@ void main()
   sh.L1.Mn1 = imageLoad(irradiance_L1_a_img, grid_coord);
   sh.L1.M0 = imageLoad(irradiance_L1_b_img, grid_coord);
   sh.L1.Mp1 = imageLoad(irradiance_L1_c_img, grid_coord);
+  float validity = imageLoad(validity_img, grid_coord).r;
 
   /* Un-normalize for accumulation. */
   float weight_captured = capture_info_buf.sample_index * 2.0;
@@ -88,23 +101,28 @@ void main()
   sh.L1.Mn1 *= weight_captured;
   sh.L1.M0 *= weight_captured;
   sh.L1.Mp1 *= weight_captured;
+  validity *= weight_captured;
 
   if (surfel_next > -1) {
     Surfel surfel = surfel_buf[surfel_next];
     irradiance_capture(surfel, P, sh);
+    validity_capture(surfel, P, validity);
   }
   else {
     vec3 world_radiance = irradiance_sky_sample(-sky_L);
     irradiance_capture(-sky_L, world_radiance, sh);
+    validity_capture(-sky_L, validity);
   }
 
   if (surfel_prev > -1) {
     Surfel surfel = surfel_buf[surfel_prev];
     irradiance_capture(surfel, P, sh);
+    validity_capture(surfel, P, validity);
   }
   else {
     vec3 world_radiance = irradiance_sky_sample(sky_L);
     irradiance_capture(sky_L, world_radiance, sh);
+    validity_capture(sky_L, validity);
   }
 
   /* Normalize for storage. We accumulated 2 samples. */
@@ -113,9 +131,11 @@ void main()
   sh.L1.Mn1 /= weight_captured;
   sh.L1.M0 /= weight_captured;
   sh.L1.Mp1 /= weight_captured;
+  validity /= weight_captured;
 
   imageStore(irradiance_L0_img, grid_coord, sh.L0.M0);
   imageStore(irradiance_L1_a_img, grid_coord, sh.L1.Mn1);
   imageStore(irradiance_L1_b_img, grid_coord, sh.L1.M0);
   imageStore(irradiance_L1_c_img, grid_coord, sh.L1.Mp1);
+  imageStore(validity_img, grid_coord, vec4(validity));
 }
