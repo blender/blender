@@ -76,7 +76,7 @@ Mesh *MeshComponent::release()
   return mesh;
 }
 
-const Mesh *MeshComponent::get_for_read() const
+const Mesh *MeshComponent::get() const
 {
   return mesh_;
 }

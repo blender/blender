@@ -322,25 +322,6 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
 const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
- * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
- * that they are calculated. The provided vertex normals should be the same as if they were
- * calculated automatically.
- *
- * \note In order to clear the dirty flag, this function should be followed by a call to
- * #BKE_mesh_vert_normals_clear_dirty. This is separate so that normals are still tagged dirty
- * while they are being assigned.
- *
- * \warning The memory returned by this function is not initialized if it was not previously
- * allocated.
- */
-float (*BKE_mesh_vert_normals_for_write(struct Mesh *mesh))[3];
-
-/**
- * Mark the mesh's vertex normals non-dirty, for when they are calculated or assigned manually.
- */
-void BKE_mesh_vert_normals_clear_dirty(struct Mesh *mesh);
-
-/**
  * Return true if the mesh vertex normals either are not stored or are dirty.
  * This can be used to help decide whether to transfer them when copying a mesh.
  */

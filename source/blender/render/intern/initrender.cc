@@ -188,11 +188,27 @@ void RE_GetCameraWindow(Render *re, const Object *camera, float r_winmat[4][4])
 
 void RE_GetCameraWindowWithOverscan(const Render *re, float overscan, float r_winmat[4][4])
 {
+  RE_GetWindowMatrixWithOverscan(
+      re->winmat[3][3] != 0.0f, re->clip_start, re->clip_end, re->viewplane, overscan, r_winmat);
+}
+
+void RE_GetCameraModelMatrix(const Render *re, const Object *camera, float r_modelmat[4][4])
+{
+  BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_modelmat);
+}
+
+void RE_GetWindowMatrixWithOverscan(bool is_ortho,
+                                    float clip_start,
+                                    float clip_end,
+                                    rctf viewplane,
+                                    float overscan,
+                                    float r_winmat[4][4])
+{
   CameraParams params;
-  params.is_ortho = re->winmat[3][3] != 0.0f;
-  params.clip_start = re->clip_start;
-  params.clip_end = re->clip_end;
-  params.viewplane = re->viewplane;
+  params.is_ortho = is_ortho;
+  params.clip_start = clip_start;
+  params.clip_end = clip_end;
+  params.viewplane = viewplane;
 
   overscan *= max_ff(BLI_rctf_size_x(&params.viewplane), BLI_rctf_size_y(&params.viewplane));
 
@@ -202,11 +218,6 @@ void RE_GetCameraWindowWithOverscan(const Render *re, float overscan, float r_wi
   params.viewplane.ymax += overscan;
   BKE_camera_params_compute_matrix(&params);
   copy_m4_m4(r_winmat, params.winmat);
-}
-
-void RE_GetCameraModelMatrix(const Render *re, const Object *camera, float r_modelmat[4][4])
-{
-  BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_modelmat);
 }
 
 void RE_GetViewPlane(Render *re, rctf *r_viewplane, rcti *r_disprect)

@@ -447,7 +447,7 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
     if (!geometry.has(component_type)) {
       continue;
     }
-    const bke::GeometryComponent &component = *geometry.get_component_for_read(component_type);
+    const bke::GeometryComponent &component = *geometry.get_component(component_type);
     const bke::AttributeAccessor attributes = *component.attributes();
     for (const auto item : outputs_by_domain.items()) {
       const eAttrDomain domain = item.key;

@@ -143,7 +143,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");
     MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
         2, "Sample Position");
-    const Mesh &mesh = *source_.get_mesh_for_read();
+    const Mesh &mesh = *source_.get_mesh();
     get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
 
@@ -212,7 +212,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry = params.extract_input<GeometrySet>("Mesh");
   const eCustomDataType data_type = eCustomDataType(params.node().custom1);
-  const Mesh *mesh = geometry.get_mesh_for_read();
+  const Mesh *mesh = geometry.get_mesh();
   if (mesh == nullptr) {
     params.set_default_remaining_outputs();
     return;

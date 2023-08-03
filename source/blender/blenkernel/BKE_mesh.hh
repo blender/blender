@@ -277,6 +277,12 @@ inline int edge_other_vert(const int2 &edge, const int vert)
 
 void mesh_flip_faces(Mesh &mesh, const IndexMask &selection);
 
+/** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
+void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
+
+/** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
+void mesh_vert_normals_assign(Mesh &mesh, Vector<float3> vert_normals);
+
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */

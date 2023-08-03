@@ -4955,7 +4955,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 
   rna_def_space_generic_show_region_toggles(srna,
                                             ((1 << RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_TOOLS) |
-                                             (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD)));
+                                             (1 << RGN_TYPE_UI) | (1 << RGN_TYPE_HUD) |
+                                             (1 << RGN_TYPE_ASSET_SHELF)));
 
   prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -7478,10 +7479,10 @@ static void rna_def_space_node(BlenderRNA *brna)
        0,
        "Modifier",
        "Edit node group from active object's active modifier"},
-      {SNODE_GEOMETRY_OPERATOR,
-       "OPERATOR",
+      {SNODE_GEOMETRY_TOOL,
+       "TOOL",
        0,
-       "Operator",
+       "Tool",
        "Edit any geometry node group for use as an operator"},
       {0, nullptr, 0, nullptr, nullptr},
   };

@@ -297,7 +297,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       return return_default();
     }
 
-    const Curves &curves_id = *geometry_set_.get_curves_for_read();
+    const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     if (curves.points_num() == 0) {
       return return_default();
@@ -434,7 +434,7 @@ class SampleCurveFunction : public mf::MultiFunction {
  private:
   void evaluate_source()
   {
-    const Curves &curves_id = *geometry_set_.get_curves_for_read();
+    const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     source_context_.emplace(bke::CurvesFieldContext{curves, ATTR_DOMAIN_POINT});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
@@ -518,7 +518,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const Curves &curves_id = *geometry_set.get_curves_for_read();
+  const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.points_num() == 0) {
     params.set_default_remaining_outputs();

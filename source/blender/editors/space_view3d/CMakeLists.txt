@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../asset
   ../../asset_system
   ../../blenfont
   ../../blenkernel

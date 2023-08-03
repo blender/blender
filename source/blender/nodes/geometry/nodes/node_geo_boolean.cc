@@ -78,7 +78,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
      * to be a single mesh. */
-    if (const Mesh *mesh_in_a = set_a.get_mesh_for_read()) {
+    if (const Mesh *mesh_in_a = set_a.get_mesh()) {
       meshes.append(mesh_in_a);
       if (mesh_in_a->totcol == 0) {
         /* Necessary for faces using the default material when there are no material slots. */
@@ -94,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<GeometrySet> geometry_sets = params.extract_input<Vector<GeometrySet>>("Mesh 2");
 
   for (const GeometrySet &geometry : geometry_sets) {
-    if (const Mesh *mesh = geometry.get_mesh_for_read()) {
+    if (const Mesh *mesh = geometry.get_mesh()) {
       meshes.append(mesh);
       Array<short> map(mesh->totcol);
       for (const int i : IndexRange(mesh->totcol)) {
@@ -143,7 +143,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     selection.finish();
   }
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(result));
+  params.set_output("Mesh", GeometrySet::from_mesh(result));
 #else
   params.error_message_add(NodeWarningType::Error,
                            TIP_("Disabled, Blender was compiled without GMP"));

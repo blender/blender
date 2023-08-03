@@ -76,7 +76,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   switch (component) {
     case GeometryComponent::Type::Mesh: {
-      if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
+      if (const MeshComponent *component = geometry_set.get_component<MeshComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
         params.set_output("Edge Count", attributes.domain_size(ATTR_DOMAIN_EDGE));
@@ -89,8 +89,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GeometryComponent::Type::Curve: {
-      if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>())
-      {
+      if (const CurveComponent *component = geometry_set.get_component<CurveComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
         params.set_output("Spline Count", attributes.domain_size(ATTR_DOMAIN_CURVE));
@@ -101,8 +100,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GeometryComponent::Type::PointCloud: {
-      if (const PointCloudComponent *component =
-              geometry_set.get_component_for_read<PointCloudComponent>())
+      if (const PointCloudComponent *component = geometry_set.get_component<PointCloudComponent>())
       {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
@@ -113,9 +111,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GeometryComponent::Type::Instance: {
-      if (const InstancesComponent *component =
-              geometry_set.get_component_for_read<InstancesComponent>())
-      {
+      if (const InstancesComponent *component = geometry_set.get_component<InstancesComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Instance Count", attributes.domain_size(ATTR_DOMAIN_INSTANCE));
       }

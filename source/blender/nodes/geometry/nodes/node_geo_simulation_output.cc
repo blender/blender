@@ -410,7 +410,7 @@ static Array<int> create_id_index_map(const AttributeAccessor prev_attributes,
 static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const float factor)
 {
   if (Mesh *mesh_prev = prev.get_mesh_for_write()) {
-    if (const Mesh *mesh_next = next.get_mesh_for_read()) {
+    if (const Mesh *mesh_next = next.get_mesh()) {
       Array<int> vert_map = create_id_index_map(mesh_prev->attributes(), mesh_next->attributes());
       mix_attributes(mesh_prev->attributes_for_write(),
                      mesh_next->attributes(),
@@ -421,7 +421,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
     }
   }
   if (PointCloud *points_prev = prev.get_pointcloud_for_write()) {
-    if (const PointCloud *points_next = next.get_pointcloud_for_read()) {
+    if (const PointCloud *points_next = next.get_pointcloud()) {
       const Array<int> index_map = create_id_index_map(points_prev->attributes(),
                                                        points_next->attributes());
       mix_attributes(points_prev->attributes_for_write(),
@@ -432,7 +432,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
     }
   }
   if (Curves *curves_prev = prev.get_curves_for_write()) {
-    if (const Curves *curves_next = next.get_curves_for_read()) {
+    if (const Curves *curves_next = next.get_curves()) {
       MutableAttributeAccessor prev = curves_prev->geometry.wrap().attributes_for_write();
       const AttributeAccessor next = curves_next->geometry.wrap().attributes();
       const Array<int> index_map = create_id_index_map(prev, next);
@@ -445,7 +445,7 @@ static void mix_geometries(GeometrySet &prev, const GeometrySet &next, const flo
     }
   }
   if (bke::Instances *instances_prev = prev.get_instances_for_write()) {
-    if (const bke::Instances *instances_next = next.get_instances_for_read()) {
+    if (const bke::Instances *instances_next = next.get_instances()) {
       const Array<int> index_map = create_id_index_map(instances_prev->attributes(),
                                                        instances_next->attributes());
       mix_attributes(instances_prev->attributes_for_write(),

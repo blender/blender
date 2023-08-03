@@ -212,7 +212,7 @@ void GeometryDataSource::foreach_default_column_ids(
   }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
-    if (const Mesh *mesh = component.get_for_read()) {
+    if (const Mesh *mesh = component.get()) {
       add_mesh_debug_column_names(*mesh, domain_, fn);
     }
   }
@@ -239,7 +239,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
     if (const bke::Instances *instances =
-            static_cast<const bke::InstancesComponent &>(*component_).get_for_read())
+            static_cast<const bke::InstancesComponent &>(*component_).get())
     {
       if (STREQ(column_id.name, "Name")) {
         Span<int> reference_handles = instances->reference_handles();
@@ -268,7 +268,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   }
   else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
     const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
-    if (const Mesh *mesh = component.get_for_read()) {
+    if (const Mesh *mesh = component.get()) {
       if (std::unique_ptr<ColumnValues> values = build_mesh_debug_columns(
               *mesh, domain_, column_id.name))
       {
@@ -352,7 +352,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
       BLI_assert(object_eval_->type == OB_MESH);
       BLI_assert(object_eval_->mode == OB_MODE_EDIT);
       Object *object_orig = DEG_get_original_object(object_eval_);
-      const Mesh *mesh_eval = geometry_set_.get_mesh_for_read();
+      const Mesh *mesh_eval = geometry_set_.get_mesh();
       const bke::AttributeAccessor attributes_eval = mesh_eval->attributes();
       Mesh *mesh_orig = (Mesh *)object_orig->data;
       BMesh *bm = mesh_orig->edit_mesh->bm;
@@ -398,7 +398,7 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
     case bke::GeometryComponent::Type::Curve: {
       BLI_assert(object_eval_->type == OB_CURVES);
       const bke::CurveComponent &component = static_cast<const bke::CurveComponent &>(*component_);
-      const Curves &curves_id = *component.get_for_read();
+      const Curves &curves_id = *component.get();
       switch (domain_) {
         case ATTR_DOMAIN_POINT:
           return curves::retrieve_selected_points(curves_id, memory);
@@ -437,7 +437,7 @@ void VolumeDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const Volume *volume = component_->get_for_read();
+  const Volume *volume = component_->get();
   if (volume == nullptr) {
     return {};
   }
@@ -485,7 +485,7 @@ std::unique_ptr<ColumnValues> VolumeDataSource::get_column_values(
 
 int VolumeDataSource::tot_rows() const
 {
-  const Volume *volume = component_->get_for_read();
+  const Volume *volume = component_->get();
   if (volume == nullptr) {
     return 0;
   }

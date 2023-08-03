@@ -136,7 +136,7 @@ void separate_geometry(GeometrySet &geometry_set,
   namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
 
   bool some_valid_domain = false;
-  if (const PointCloud *points = geometry_set.get_pointcloud_for_read()) {
+  if (const PointCloud *points = geometry_set.get_pointcloud()) {
     if (domain == ATTR_DOMAIN_POINT) {
       std::optional<PointCloud *> dst_points = file_ns::separate_point_cloud_selection(
           *points, selection, propagation_info);
@@ -146,7 +146,7 @@ void separate_geometry(GeometrySet &geometry_set,
       some_valid_domain = true;
     }
   }
-  if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+  if (const Mesh *mesh = geometry_set.get_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
       std::optional<Mesh *> dst_mesh = file_ns::separate_mesh_selection(
           *mesh, selection, domain, mode, propagation_info);
@@ -156,7 +156,7 @@ void separate_geometry(GeometrySet &geometry_set,
       some_valid_domain = true;
     }
   }
-  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
+  if (const Curves *curves_id = geometry_set.get_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
       std::optional<Curves *> dst_curves = file_ns::separate_curves_selection(
           *curves_id, selection, domain, propagation_info);

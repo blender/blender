@@ -830,7 +830,7 @@ static Mesh *create_applied_mesh_for_modifier(Depsgraph *depsgraph,
     }
 
     if (mti->modify_geometry_set) {
-      bke::GeometrySet geometry_set = bke::GeometrySet::create_with_mesh(
+      bke::GeometrySet geometry_set = bke::GeometrySet::from_mesh(
           mesh_temp, bke::GeometryOwnershipType::Owned);
       mti->modify_geometry_set(md_eval, &mectx, &geometry_set);
       if (!geometry_set.has_mesh()) {
@@ -1068,7 +1068,7 @@ static bool modifier_apply_obdata(
       return false;
     }
 
-    bke::GeometrySet geometry_set = bke::GeometrySet::create_with_curves(
+    bke::GeometrySet geometry_set = bke::GeometrySet::from_curves(
         &curves, bke::GeometryOwnershipType::ReadOnly);
 
     ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
@@ -1093,7 +1093,7 @@ static bool modifier_apply_obdata(
       return false;
     }
 
-    bke::GeometrySet geometry_set = bke::GeometrySet::create_with_pointcloud(
+    bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
         &points, bke::GeometryOwnershipType::ReadOnly);
 
     ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};

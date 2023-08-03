@@ -43,7 +43,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (geometry_set.has(type)) {
         /* First check if the attribute exists before getting write access,
          * to avoid potentially expensive unnecessary copies. */
-        const GeometryComponent &read_only_component = *geometry_set.get_component_for_read(type);
+        const GeometryComponent &read_only_component = *geometry_set.get_component(type);
         if (read_only_component.attributes()->contains(name)) {
           attribute_exists = true;
         }

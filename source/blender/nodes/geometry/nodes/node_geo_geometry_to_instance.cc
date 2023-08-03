@@ -23,7 +23,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     const int handle = instances->add_reference(std::move(geometry));
     instances->add_instance(handle, float4x4::identity());
   }
-  params.set_output("Instances", GeometrySet::create_with_instances(instances.release()));
+  params.set_output("Instances", GeometrySet::from_instances(instances.release()));
 }
 
 }  // namespace blender::nodes::node_geo_geometry_to_instance_cc

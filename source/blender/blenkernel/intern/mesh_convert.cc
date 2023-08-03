@@ -575,7 +575,7 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
-  if (const PointCloud *points = geometry.get_pointcloud_for_read()) {
+  if (const PointCloud *points = geometry.get_pointcloud()) {
     mesh->totvert = points->totpoint;
     CustomData_merge(&points->pdata, &mesh->vert_data, CD_MASK_PROP_ALL, points->totpoint);
   }
@@ -689,7 +689,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
   if (blender::bke::GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
-    return geometry_set_eval->get_curves_for_read();
+    return geometry_set_eval->get_curves();
   }
   return nullptr;
 }

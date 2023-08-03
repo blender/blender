@@ -173,6 +173,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   cache->baking.L1_a = nullptr;
   cache->baking.L1_b = nullptr;
   cache->baking.L1_c = nullptr;
+  cache->baking.virtual_offset = nullptr;
   cache->baking.validity = nullptr;
   cache->surfels = nullptr;
   cache->surfels_len = 0;
@@ -230,6 +231,7 @@ void BKE_lightprobe_grid_cache_frame_free(LightProbeGridCacheFrame *cache)
   MEM_SAFE_FREE(cache->baking.validity);
   MEM_SAFE_FREE(cache->connectivity.validity);
   MEM_SAFE_FREE(cache->surfels);
+  MEM_SAFE_FREE(cache->baking.virtual_offset);
 
   MEM_SAFE_FREE(cache);
 }

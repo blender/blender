@@ -1269,10 +1269,13 @@ class VIEW3D_MT_view(Menu):
     def draw(self, context):
         layout = self.layout
         view = context.space_data
+        prefs = context.preferences
 
         layout.prop(view, "show_region_toolbar")
         layout.prop(view, "show_region_ui")
         layout.prop(view, "show_region_tool_header")
+        if prefs.experimental.use_asset_shelf:
+            layout.prop(view, "show_region_asset_shelf")
         layout.prop(view, "show_region_hud")
 
         layout.separator()
@@ -8283,6 +8286,26 @@ class VIEW3D_PT_viewport_debug(Panel):
         layout.prop(overlay, "use_debug_freeze_view_culling")
 
 
+class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
+    # Experimental: Asset shelf for sculpt brushes, only shows up if both the
+    # "Asset Shelf" and the "Extended Asset Browser" experimental features are
+    # enabled.
+
+    bl_space_type = "VIEW_3D"
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        if not prefs.experimental.use_extended_asset_browser:
+            return False
+
+        return bool(context.object and context.object.mode == 'SCULPT')
+
+    @classmethod
+    def asset_poll(cls, asset):
+        return asset.file_data.id_type == 'BRUSH'
+
+
 classes = (
     VIEW3D_HT_header,
     VIEW3D_HT_tool_header,
@@ -8532,6 +8555,7 @@ classes = (
     VIEW3D_PT_curves_sculpt_parameter_falloff,
     VIEW3D_PT_curves_sculpt_grow_shrink_scaling,
     VIEW3D_PT_viewport_debug,
+    VIEW3D_AST_sculpt_brushes,
 )
 
 

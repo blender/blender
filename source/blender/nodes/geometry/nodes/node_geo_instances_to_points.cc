@@ -33,7 +33,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<bool> selection_field,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const bke::Instances &instances = *geometry_set.get_instances_for_read();
+  const bke::Instances &instances = *geometry_set.get_instances();
 
   const bke::InstancesFieldContext context{instances};
   fn::FieldEvaluator evaluator{context, instances.instances_num()};

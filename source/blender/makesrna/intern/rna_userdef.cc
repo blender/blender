@@ -1968,7 +1968,7 @@ static void rna_def_userdef_theme_asset_shelf(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 }
 
-static void UNUSED_FUNCTION(rna_def_userdef_theme_spaces_asset_shelf_main)(StructRNA *srna)
+static void rna_def_userdef_theme_spaces_asset_shelf_main(StructRNA *srna)
 {
   PropertyRNA *prop = RNA_def_property(srna, "asset_shelf", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -2487,6 +2487,8 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Object Origin Size", "Diameter in pixels for object/light origin display");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  rna_def_userdef_theme_spaces_asset_shelf_main(srna);
 }
 
 static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)

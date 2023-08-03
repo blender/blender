@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+    const Curves &src_curves_id = *geometry_set.get_curves();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
     const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};

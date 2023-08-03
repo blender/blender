@@ -53,7 +53,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         const eAttrDomain domain,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Mesh *mesh = geometry_set.get_mesh_for_read();
+  const Mesh *mesh = geometry_set.get_mesh();
   if (mesh == nullptr) {
     geometry_set.remove_geometry_during_modify();
     return;

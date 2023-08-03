@@ -690,7 +690,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 {
   auto io_geometry = std::make_shared<DictionaryValue>();
   if (geometry.has_mesh()) {
-    const Mesh &mesh = *geometry.get_mesh_for_read();
+    const Mesh &mesh = *geometry.get_mesh();
     auto io_mesh = io_geometry->append_dict("mesh");
 
     io_mesh->append_int("num_vertices", mesh.totvert);
@@ -713,7 +713,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     io_mesh->append("attributes", io_attributes);
   }
   if (geometry.has_pointcloud()) {
-    const PointCloud &pointcloud = *geometry.get_pointcloud_for_read();
+    const PointCloud &pointcloud = *geometry.get_pointcloud();
     auto io_pointcloud = io_geometry->append_dict("pointcloud");
 
     io_pointcloud->append_int("num_points", pointcloud.totpoint);
@@ -726,7 +726,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     io_pointcloud->append("attributes", io_attributes);
   }
   if (geometry.has_curves()) {
-    const Curves &curves_id = *geometry.get_curves_for_read();
+    const Curves &curves_id = *geometry.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
 
     auto io_curves = io_geometry->append_dict("curves");
@@ -751,7 +751,7 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     io_curves->append("attributes", io_attributes);
   }
   if (geometry.has_instances()) {
-    const bke::Instances &instances = *geometry.get_instances_for_read();
+    const bke::Instances &instances = *geometry.get_instances();
     auto io_instances = io_geometry->append_dict("instances");
 
     io_instances->append_int("num_instances", instances.instances_num());

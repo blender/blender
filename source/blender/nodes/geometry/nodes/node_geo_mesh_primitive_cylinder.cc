@@ -124,7 +124,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                             fill,
                                             attribute_outputs);
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_cylinder_cc

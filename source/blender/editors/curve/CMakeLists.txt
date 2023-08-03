@@ -11,7 +11,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../extern/curve_fit_nd
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -38,6 +37,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::intern::guardedalloc
   extern_curve_fit_nd
 )

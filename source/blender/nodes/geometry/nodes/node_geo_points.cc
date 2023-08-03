@@ -83,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   evaluator.evaluate();
 
   output_radii.finish();
-  params.set_output("Geometry", GeometrySet::create_with_pointcloud(points));
+  params.set_output("Geometry", GeometrySet::from_pointcloud(points));
 }
 
 }  // namespace blender::nodes::node_geo_points_cc

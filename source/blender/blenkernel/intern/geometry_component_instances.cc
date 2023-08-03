@@ -81,7 +81,7 @@ void InstancesComponent::ensure_owns_direct_data()
   }
 }
 
-const Instances *InstancesComponent::get_for_read() const
+const Instances *InstancesComponent::get() const
 {
   return instances_;
 }

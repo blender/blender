@@ -756,7 +756,7 @@ static GeometrySet generate_interpolated_curves(
     child_curves_id->totcol = guide_curves_id.totcol;
   }
 
-  return GeometrySet::create_with_curves(child_curves_id);
+  return GeometrySet::from_curves(child_curves_id);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -768,10 +768,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_default_remaining_outputs();
     return;
   }
-  const GeometryComponent *points_component =
-      points_geometry.get_component_for_read<PointCloudComponent>();
+  const GeometryComponent *points_component = points_geometry.get_component<PointCloudComponent>();
   if (points_component == nullptr) {
-    points_component = points_geometry.get_component_for_read<MeshComponent>();
+    points_component = points_geometry.get_component<MeshComponent>();
   }
   if (points_component == nullptr || points_geometry.is_empty()) {
     params.set_default_remaining_outputs();
@@ -794,7 +793,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<int> guide_group_field = params.extract_input<Field<int>>("Guide Group ID");
   Field<int> point_group_field = params.extract_input<Field<int>>("Point Group ID");
 
-  const Curves &guide_curves_id = *guide_curves_geometry.get_curves_for_read();
+  const Curves &guide_curves_id = *guide_curves_geometry.get_curves();
 
   const bke::CurvesFieldContext curves_context{guide_curves_id.geometry.wrap(), ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator curves_evaluator{curves_context, guide_curves_id.geometry.curve_num};
@@ -834,8 +833,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(guide_curves_geometry);
   if (const auto *curve_edit_data =
-          guide_curves_geometry.get_component_for_read<GeometryComponentEditData>())
-  {
+          guide_curves_geometry.get_component<GeometryComponentEditData>()) {
     new_curves.add(*curve_edit_data);
   }
 

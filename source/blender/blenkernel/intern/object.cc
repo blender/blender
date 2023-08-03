@@ -4491,7 +4491,7 @@ Mesh *BKE_object_get_evaluated_mesh_no_subsurf(const Object *object)
      * this should be avoided, or at least protected with a lock, so a const mesh could be returned
      * from this function. We use a const_cast instead of #get_mesh_for_write, because that might
      * result in a copy of the mesh when it is shared. */
-    Mesh *mesh = const_cast<Mesh *>(geometry_set_eval->get_mesh_for_read());
+    Mesh *mesh = const_cast<Mesh *>(geometry_set_eval->get_mesh());
     if (mesh) {
       return mesh;
     }

@@ -244,7 +244,7 @@ class NewGeometryNodeTreeAssign(Operator):
 
     def execute(self, context):
         space = context.space_data
-        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'OPERATOR':
+        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'TOOL':
             group = geometry_node_group_empty_new()
             space.node_tree = group
             return {'FINISHED'}

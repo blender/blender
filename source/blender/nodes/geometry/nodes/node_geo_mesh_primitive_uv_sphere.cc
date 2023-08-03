@@ -318,10 +318,9 @@ static Mesh *create_uv_sphere_mesh(const float radius,
   threading::parallel_invoke(
       1024 < segments * rings,
       [&]() {
-        MutableSpan vert_normals{reinterpret_cast<float3 *>(BKE_mesh_vert_normals_for_write(mesh)),
-                                 mesh->totvert};
+        Vector<float3> vert_normals(mesh->totvert);
         calculate_sphere_vertex_data(positions, vert_normals, radius, segments, rings);
-        BKE_mesh_vert_normals_clear_dirty(mesh);
+        bke::mesh_vert_normals_assign(*mesh, std::move(vert_normals));
       },
       [&]() { calculate_sphere_edge_indices(edges, segments, rings); },
       [&]() { calculate_sphere_faces(face_offsets, segments); },
@@ -361,7 +360,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   AnonymousAttributeIDPtr uv_map_id = params.get_output_anonymous_attribute_id_if_needed("UV Map");
 
   Mesh *mesh = create_uv_sphere_mesh(radius, segments_num, rings_num, uv_map_id.get());
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
 }  // namespace blender::nodes::node_geo_mesh_primitive_uv_sphere_cc

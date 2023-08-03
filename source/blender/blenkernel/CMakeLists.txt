@@ -32,7 +32,6 @@ set(INC
   ../../../intern/memutil
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
-  ../../../extern/curve_fit_nd
   ../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -542,6 +541,7 @@ set(LIB
   bf_depsgraph
   PRIVATE bf::dna
   bf_draw
+  PRIVATE bf::extern::curve_fit_nd
   bf_functions
   bf_gpencil_modifiers_legacy
   bf_gpu

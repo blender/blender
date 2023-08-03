@@ -49,7 +49,7 @@ void GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(
   if (edit_component.curves_edit_hints_->positions.has_value()) {
     return;
   }
-  const Curves *curves_id = geometry.get_curves_for_read();
+  const Curves *curves_id = geometry.get_curves();
   if (curves_id == nullptr) {
     return;
   }

@@ -198,6 +198,18 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, INT_MAX);
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+  prop = RNA_def_property(srna, "grid_surface_bias", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop,
+                           "Capture Surface Bias",
+                           "Moves capture points position away from surfaces to avoid artifacts");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
+  prop = RNA_def_property(srna, "grid_escape_bias", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop, "Capture Escape Bias", "Moves capture points outside objects");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "surfel_density", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(prop,

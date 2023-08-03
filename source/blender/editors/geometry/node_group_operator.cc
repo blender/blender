@@ -206,12 +206,12 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
   switch (object.type) {
     case OB_CURVES: {
       Curves *curves = BKE_curves_copy_for_eval(static_cast<const Curves *>(object.data));
-      return bke::GeometrySet::create_with_curves(curves);
+      return bke::GeometrySet::from_curves(curves);
     }
     case OB_POINTCLOUD: {
       PointCloud *points = BKE_pointcloud_copy_for_eval(
           static_cast<const PointCloud *>(object.data));
-      return bke::GeometrySet::create_with_pointcloud(points);
+      return bke::GeometrySet::from_pointcloud(points);
     }
     case OB_MESH: {
       const Mesh *mesh = static_cast<const Mesh *>(object.data);
@@ -220,9 +220,9 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
         BKE_mesh_wrapper_ensure_mdata(mesh_copy);
         Mesh *final_copy = BKE_mesh_copy_for_eval(mesh_copy);
         BKE_id_free(nullptr, mesh_copy);
-        return bke::GeometrySet::create_with_mesh(final_copy);
+        return bke::GeometrySet::from_mesh(final_copy);
       }
-      return bke::GeometrySet::create_with_mesh(BKE_mesh_copy_for_eval(mesh));
+      return bke::GeometrySet::from_mesh(BKE_mesh_copy_for_eval(mesh));
     }
     default:
       return {};

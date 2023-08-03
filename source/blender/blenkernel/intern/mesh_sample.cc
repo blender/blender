@@ -390,7 +390,7 @@ BaryWeightFromPositionFn::BaryWeightFromPositionFn(GeometrySet geometry)
     return signature;
   }();
   this->set_signature(&signature);
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   vert_positions_ = mesh.vert_positions();
   corner_verts_ = mesh.corner_verts();
   looptris_ = mesh.looptris();
@@ -426,7 +426,7 @@ CornerBaryWeightFromPositionFn::CornerBaryWeightFromPositionFn(GeometrySet geome
     return signature;
   }();
   this->set_signature(&signature);
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   vert_positions_ = mesh.vert_positions();
   corner_verts_ = mesh.corner_verts();
   looptris_ = mesh.looptris();
@@ -478,7 +478,7 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
 
 void BaryWeightSampleFn::evaluate_source(fn::GField src_field)
 {
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   looptris_ = mesh.looptris();
   /* Use the most complex domain for now, ensuring no information is lost. In the future, it should
    * be possible to use the most complex domain required by the field inputs, to simplify sampling

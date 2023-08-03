@@ -71,9 +71,13 @@ void main()
       capture_info_buf.irradiance_grid_size,
       grid_coord);
 
+  /* Add virtual offset to avoid baking inside of geometry as much as possible. */
+  P += imageLoad(virtual_offset_img, grid_coord).xyz;
+
   /* Project to get ray linked list. */
   float irradiance_sample_ray_distance;
-  int list_index = surfel_list_index_get(P, irradiance_sample_ray_distance);
+  int list_index = surfel_list_index_get(
+      list_info_buf.ray_grid_size, P, irradiance_sample_ray_distance);
 
   /* Walk the ray to get which surfels the irradiance sample is between. */
   int surfel_prev = -1;
