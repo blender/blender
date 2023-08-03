@@ -64,8 +64,11 @@ static void eevee_engine_init(void *vedata)
       camera = v3d->camera;
     }
 
-    if (v3d->flag2 & V3D_RENDER_BORDER) {
-      if (camera) {
+    if (camera) {
+      rctf default_border;
+      BLI_rctf_init(&default_border, 0.0f, 1.0f, 0.0f, 1.0f);
+      bool is_default_border = BLI_rctf_compare(&scene->r.border, &default_border, 0.0f);
+      if (!is_default_border) {
         rctf viewborder;
         /* TODO(fclem) Might be better to get it from DRW. */
         ED_view3d_calc_camera_border(scene, depsgraph, region, v3d, rv3d, &viewborder, false);
@@ -76,12 +79,12 @@ static void eevee_engine_init(void *vedata)
         rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
         rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
       }
-      else {
-        rect.xmin = v3d->render_border.xmin * size[0];
-        rect.ymin = v3d->render_border.ymin * size[1];
-        rect.xmax = v3d->render_border.xmax * size[0];
-        rect.ymax = v3d->render_border.ymax * size[1];
-      }
+    }
+    else if (v3d->flag2 & V3D_RENDER_BORDER) {
+      rect.xmin = v3d->render_border.xmin * size[0];
+      rect.ymin = v3d->render_border.ymin * size[1];
+      rect.xmax = v3d->render_border.xmax * size[0];
+      rect.ymax = v3d->render_border.ymax * size[1];
     }
   }
 
