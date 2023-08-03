@@ -2055,9 +2055,6 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 {
   using namespace blender::bke::greasepencil;
 
-  BLO_write_struct(writer, GreasePencilLayer, node);
-  BLO_write_string(writer, node->base.name);
-
   /* Re-create the frames storage only if it was tagged dirty. */
   if ((node->frames_storage.flag & GP_LAYER_FRAMES_STORAGE_DIRTY) != 0) {
     MEM_SAFE_FREE(node->frames_storage.keys);
@@ -2077,6 +2074,9 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
     /* Reset the flag. */
     node->frames_storage.flag &= ~GP_LAYER_FRAMES_STORAGE_DIRTY;
   }
+
+  BLO_write_struct(writer, GreasePencilLayer, node);
+  BLO_write_string(writer, node->base.name);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
   BLO_write_struct_array(
