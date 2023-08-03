@@ -60,8 +60,11 @@ void AmbientOcclusion::sync()
   inst_.hiz_buffer.bind_resources(&render_pass_ps_);
   bind_resources(&render_pass_ps_);
 
-  render_pass_ps_.bind_image("in_normal_img", &rp_normal_tx_);
-  render_pass_ps_.bind_image("out_ao_img", &rp_ao_tx_);
+  render_pass_ps_.bind_image("in_normal_img", &inst_.render_buffers.rp_color_tx);
+  render_pass_ps_.push_constant("in_normal_img_layer_index", &inst_.render_buffers.data.normal_id);
+  render_pass_ps_.bind_image("out_ao_img", &inst_.render_buffers.rp_value_tx);
+  render_pass_ps_.push_constant("out_ao_img_layer_index",
+                                &inst_.render_buffers.data.ambient_occlusion_id);
 
   render_pass_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS & GPU_BARRIER_TEXTURE_FETCH);
   render_pass_ps_.dispatch(
@@ -75,14 +78,6 @@ void AmbientOcclusion::render_pass(View &view)
   }
 
   inst_.hiz_buffer.update();
-
-  RenderBuffers &rb = inst_.render_buffers;
-
-  rb.rp_color_tx.ensure_layer_views();
-  rp_normal_tx_ = rb.rp_color_tx.layer_view(rb.data.normal_id);
-  rb.rp_value_tx.ensure_layer_views();
-  rp_ao_tx_ = rb.rp_value_tx.layer_view(rb.data.ambient_occlusion_id);
-
   inst_.manager->submit(render_pass_ps_, view);
 }
 
