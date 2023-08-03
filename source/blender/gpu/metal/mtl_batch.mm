@@ -913,6 +913,10 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     return;
   }
 
+  /* Unsupported primitive type check. */
+  BLI_assert_msg(this->prim_type != GPU_PRIM_TRI_FAN,
+                 "TriangleFan is not supported in Metal for Indirect draws.");
+
   /* Fetch IndexBuffer and resolve primitive type. */
   MTLIndexBuf *mtl_elem = static_cast<MTLIndexBuf *>(reinterpret_cast<IndexBuf *>(this->elem));
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
@@ -952,6 +956,9 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
     MTLIndexType index_type = MTLIndexBuf::gpu_index_type_to_metal(mtl_elem->index_type_);
     GPUPrimType final_prim_type = this->prim_type;
     uint index_count = 0;
+
+    /* Disable index optimization for indirect draws. */
+    mtl_elem->flag_can_optimize(false);
 
     id<MTLBuffer> index_buffer = mtl_elem->get_index_buffer(final_prim_type, index_count);
     mtl_prim_type = gpu_prim_type_to_metal(final_prim_type);
