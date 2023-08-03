@@ -68,8 +68,11 @@
 #define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
 
 /* Ray-tracing. */
-#define RAYTRACE_GROUP_SIZE 16
-#define RAYTRACE_MAX_TILES (16384 / RAYTRACE_GROUP_SIZE) * (16384 / RAYTRACE_GROUP_SIZE)
+#define RAYTRACE_GROUP_SIZE 8
+/* Keep this as a define to avoid shader variations. */
+#define RAYTRACE_RADIANCE_FORMAT GPU_R11F_G11F_B10F
+#define RAYTRACE_VARIANCE_FORMAT GPU_R16F
+#define RAYTRACE_TILEMASK_FORMAT GPU_R8UI
 
 /* Minimum visibility size. */
 #define LIGHTPROBE_FILTER_VIS_GROUP_SIZE 16

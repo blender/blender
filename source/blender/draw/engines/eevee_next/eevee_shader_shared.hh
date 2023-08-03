@@ -986,6 +986,31 @@ enum eClosureBits : uint32_t {
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
 };
 
+struct RayTraceData {
+  /** ViewProjection matrix used to render the previous frame. */
+  float4x4 history_persmat;
+  /** Input resolution. */
+  int2 full_resolution;
+  /** Inverse of input resolution to get screen UVs. */
+  float2 full_resolution_inv;
+  /** Scale and bias to go from raytrace resolution to input resolution. */
+  int2 resolution_bias;
+  int resolution_scale;
+  /** View space thickness the objects. */
+  float thickness;
+  /** Determine how fast the sample steps are getting bigger. */
+  float quality;
+  /** Maximum brightness during lighting evaluation. */
+  float brightness_clamp;
+  /** Maximum roughness for which we will trace a ray. */
+  float max_trace_roughness;
+  /** If set to true will bypass spatial denoising. */
+  bool1 skip_denoise;
+  /** Closure being ray-traced. */
+  eClosureBits closure_active;
+};
+BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1120,6 +1145,7 @@ using CameraDataBuf = draw::UniformBuffer<CameraData>;
 using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
+using DispatchIndirectBuf = draw::StorageBuffer<DispatchCommand>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
 using HiZDataBuf = draw::UniformBuffer<HiZData>;
 using IrradianceGridDataBuf = draw::UniformArrayBuffer<IrradianceGridData, IRRADIANCE_GRID_MAX>;
@@ -1132,6 +1158,8 @@ using LightCullingZdistBuf = draw::StorageArrayBuffer<float, LIGHT_CHUNK, true>;
 using LightDataBuf = draw::StorageArrayBuffer<LightData, LIGHT_CHUNK>;
 using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
+using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
+using RayTraceDataBuf = draw::UniformBuffer<RayTraceData>;
 using ReflectionProbeDataBuf =
     draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;

@@ -24,7 +24,7 @@ class RenderBuffers {
  public:
   UniformBuffer<RenderBuffersInfoData> data;
 
-  TextureFromPool depth_tx;
+  Texture depth_tx;
   TextureFromPool combined_tx;
 
   // TextureFromPool mist_tx; /* Derived from depth_tx during accumulation. */

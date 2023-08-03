@@ -1,5 +1,6 @@
 
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 
 vec4 reflection_probe_eval(ClosureReflection reflection,
@@ -28,7 +29,7 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
   vec3 T, B;
   make_orthonormal_basis(reflection.N, T, B);
   float pdf;
-  vec3 H = sample_ggx(Xi, roughness, V, reflection.N, T, B, pdf);
+  vec3 H = sample_ggx_reflect(Xi, roughness, V, reflection.N, T, B, pdf);
 
   vec3 L = -reflect(V, H);
   float NL = dot(reflection.N, L);

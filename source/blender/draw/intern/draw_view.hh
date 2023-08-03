@@ -144,6 +144,13 @@ class View {
     return data_[view_id].wininv;
   }
 
+  /* Compute and return the perspective matrix. */
+  const float4x4 persmat(int view_id = 0) const
+  {
+    BLI_assert(view_id < view_len_);
+    return data_[view_id].winmat * data_[view_id].viewmat;
+  }
+
   int visibility_word_per_draw() const
   {
     return (view_len_ == 1) ? 0 : divide_ceil_u(view_len_, 32);

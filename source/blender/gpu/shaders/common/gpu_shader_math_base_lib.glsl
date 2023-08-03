@@ -61,6 +61,18 @@ float square_f(float v)
 {
   return v * v;
 }
+vec2 square_f(vec2 v)
+{
+  return v * v;
+}
+vec3 square_f(vec3 v)
+{
+  return v * v;
+}
+vec4 square_f(vec4 v)
+{
+  return v * v;
+}
 
 int cube_i(int v)
 {

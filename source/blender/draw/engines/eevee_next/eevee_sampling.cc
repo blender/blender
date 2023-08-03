@@ -98,7 +98,10 @@ void Sampling::end_sync()
 void Sampling::step()
 {
   {
-    uint64_t sample_filter = sample_ % interactive_sample_aa_;
+    uint64_t sample_filter = sample_;
+    if (interactive_mode()) {
+      sample_filter = sample_filter % interactive_sample_aa_;
+    }
     /* TODO(fclem) we could use some persistent states to speedup the computation. */
     double2 r, offset = {0, 0};
     /* Using 2,3 primes as per UE4 Temporal AA presentation.
@@ -131,11 +134,15 @@ void Sampling::step()
     data_.dimensions[SAMPLING_CURVES_U] = r[0];
   }
   {
+    uint64_t sample_raytrace = sample_;
+    if (interactive_mode()) {
+      sample_raytrace = sample_raytrace % interactive_sample_raytrace_;
+    }
     /* Using leaped Halton sequence so we can reused the same primes as lens. */
     double3 r, offset = {0, 0, 0};
     uint64_t leap = 11;
     uint3 primes = {5, 4, 7};
-    BLI_halton_3d(primes, offset, sample_ * leap, r);
+    BLI_halton_3d(primes, offset, sample_raytrace * leap, r);
     data_.dimensions[SAMPLING_SHADOW_U] = r[0];
     data_.dimensions[SAMPLING_SHADOW_V] = r[1];
     data_.dimensions[SAMPLING_SHADOW_W] = r[2];
