@@ -544,7 +544,7 @@ static void get_marker_region_rect(View2D *v2d, rctf *rect)
 static void get_marker_clip_frame_range(View2D *v2d, float xscale, int r_range[2])
 {
   float font_width_max = (10 * UI_SCALE_FAC) / xscale;
-  r_range[0] = v2d->cur.xmin - sizeof(((TimeMarker *)nullptr)->name) * font_width_max;
+  r_range[0] = v2d->cur.xmin - sizeof(TimeMarker::name) * font_width_max;
   r_range[1] = v2d->cur.xmax + font_width_max;
 }
 
@@ -1743,12 +1743,8 @@ static void MARKER_OT_rename(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_string(ot->srna,
-                            "name",
-                            "RenamedMarker",
-                            sizeof(((TimeMarker *)nullptr)->name),
-                            "Name",
-                            "New name for marker");
+  ot->prop = RNA_def_string(
+      ot->srna, "name", "RenamedMarker", sizeof(TimeMarker::name), "Name", "New name for marker");
 #if 0
   RNA_def_boolean(ot->srna,
                   "ensure_unique",

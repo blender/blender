@@ -1944,8 +1944,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
   }
 
 #define STRUCT_SIZE_AND_OFFSET(_struct, _member) \
-\
-  sizeof(((_struct *)nullptr)->_member), offsetof(_struct, _member)
+  sizeof(_struct::_member), offsetof(_struct, _member)
 
   switch (type) {
     case SIMEDBONE_CHILDREN:

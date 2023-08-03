@@ -203,7 +203,7 @@ struct SculptUndoNode {
   bool applied;
 
   /* shape keys */
-  char shapeName[sizeof(((KeyBlock *)0))->name];
+  char shapeName[sizeof(KeyBlock::name)];
 
   /* Geometry modification operations.
    *

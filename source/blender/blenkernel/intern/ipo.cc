@@ -1151,8 +1151,8 @@ static char *get_rna_access(ID *id,
   /* NOTE: strings are not escaped and they should be! */
   if ((actname && actname[0]) && (constname && constname[0])) {
     /* Constraint in Pose-Channel */
-    char actname_esc[sizeof(((bActionChannel *)nullptr)->name) * 2];
-    char constname_esc[sizeof(((bConstraint *)nullptr)->name) * 2];
+    char actname_esc[sizeof(bActionChannel::name) * 2];
+    char constname_esc[sizeof(bConstraint::name) * 2];
     BLI_str_escape(actname_esc, actname, sizeof(actname_esc));
     BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
     SNPRINTF(buf, "pose.bones[\"%s\"].constraints[\"%s\"]", actname_esc, constname_esc);
@@ -1169,14 +1169,14 @@ static char *get_rna_access(ID *id,
     }
     else {
       /* Pose-Channel */
-      char actname_esc[sizeof(((bActionChannel *)nullptr)->name) * 2];
+      char actname_esc[sizeof(bActionChannel::name) * 2];
       BLI_str_escape(actname_esc, actname, sizeof(actname_esc));
       SNPRINTF(buf, "pose.bones[\"%s\"]", actname_esc);
     }
   }
   else if (constname && constname[0]) {
     /* Constraint in Object */
-    char constname_esc[sizeof(((bConstraint *)nullptr)->name) * 2];
+    char constname_esc[sizeof(bConstraint::name) * 2];
     BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
     SNPRINTF(buf, "constraints[\"%s\"]", constname_esc);
   }

@@ -150,8 +150,7 @@ struct BPyPropStore {
   } py_data;
 };
 
-#define BPY_PROP_STORE_PY_DATA_SIZE \
-  (sizeof(((BPyPropStore *)nullptr)->py_data) / sizeof(PyObject *))
+#define BPY_PROP_STORE_PY_DATA_SIZE (sizeof(BPyPropStore::py_data) / sizeof(PyObject *))
 
 #define ASSIGN_PYOBJECT_INCREF(a, b) \
   { \

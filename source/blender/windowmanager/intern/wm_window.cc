@@ -483,7 +483,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
     /* this is set to 1 if you don't have startup.blend open */
     const char *blendfile_path = BKE_main_blendfile_path_from_global();
     if (blendfile_path[0] != '\0') {
-      char str[sizeof(((Main *)nullptr)->filepath) + 24];
+      char str[sizeof(Main::filepath) + 24];
       SNPRINTF(str,
                "Blender%s [%s%s]",
                wm->file_saved ? "" : "*",

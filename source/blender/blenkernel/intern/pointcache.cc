@@ -3679,7 +3679,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
   PointCache *cache = pid->cache;
   PTCacheExtra *extra = nullptr;
   int totframes = 0;
-  char mem_info[sizeof(((PointCache *)nullptr)->info) / sizeof(*(((PointCache *)nullptr)->info))];
+  char mem_info[sizeof(PointCache::info) / sizeof(*PointCache::info)];
 
   cache->flag &= ~PTCACHE_FLAG_INFO_DIRTY;
 

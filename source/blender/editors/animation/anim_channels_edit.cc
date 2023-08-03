@@ -1983,7 +1983,7 @@ static void ANIM_OT_channels_group(wmOperatorType *ot)
   ot->prop = RNA_def_string(ot->srna,
                             "name",
                             "New Group",
-                            sizeof(((bActionGroup *)nullptr)->name),
+                            sizeof(bActionGroup::name),
                             "Name",
                             "Name of newly created group");
   /* XXX: still not too sure about this - keeping same text is confusing... */
