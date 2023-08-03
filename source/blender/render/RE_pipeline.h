@@ -468,6 +468,13 @@ void RE_GetCameraModelMatrix(const struct Render *re,
                              const struct Object *camera,
                              float r_modelmat[4][4]);
 
+void RE_GetWindowMatrixWithOverscan(bool is_ortho,
+                                    float clip_start,
+                                    float clip_end,
+                                    rctf viewplane,
+                                    float overscan,
+                                    float r_winmat[4][4]);
+
 struct Scene *RE_GetScene(struct Render *re);
 void RE_SetScene(struct Render *re, struct Scene *sce);
 

@@ -64,6 +64,7 @@ class Film {
   PassSimple cryptomatte_post_ps_ = {"Film.Cryptomatte.Post"};
 
   FilmDataBuf data_;
+  int2 display_offset;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
 
@@ -92,6 +93,12 @@ class Film {
   int2 render_extent_get() const
   {
     return data_.render_extent;
+  }
+
+  /** Returns render output resolution. */
+  int2 display_extent_get() const
+  {
+    return data_.extent;
   }
 
   float2 pixel_jitter_get() const;

@@ -100,6 +100,9 @@ class Camera {
     float radius;
   } bound_sphere;
 
+  float overscan_;
+  bool overscan_changed_;
+
  public:
   Camera(Instance &inst) : inst_(inst){};
   ~Camera(){};
@@ -146,6 +149,14 @@ class Camera {
   const float &bound_radius() const
   {
     return bound_sphere.radius;
+  }
+  float overscan() const
+  {
+    return overscan_;
+  }
+  bool overscan_changed() const
+  {
+    return overscan_changed_;
   }
 
  private:

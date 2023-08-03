@@ -125,7 +125,7 @@ void MotionBlurModule::sync()
 {
   /* Disable motion blur in viewport when changing camera projection type.
    * Avoids really high velocities. */
-  if (inst_.velocity.camera_changed_projection()) {
+  if (inst_.velocity.camera_changed_projection() || inst_.camera.overscan_changed()) {
     motion_blur_fx_enabled_ = false;
   }
 

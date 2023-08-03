@@ -858,10 +858,19 @@ class RENDER_PT_eevee_next_film(RenderButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
+        props = scene.eevee
 
         col = layout.column()
         col.prop(rd, "filter_size")
         col.prop(rd, "film_transparent", text="Transparent")
+
+        col = layout.column(align=False, heading="Overscan")
+        row = col.row(align=True)
+        sub = row.row(align=True)
+        sub.prop(props, "use_overscan", text="")
+        sub = sub.row(align=True)
+        sub.active = props.use_overscan
+        sub.prop(props, "overscan_size", text="")
 
 
 def draw_curves_settings(self, context):
