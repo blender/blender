@@ -130,7 +130,7 @@ void AssetView::build_items()
     if (!show_names) {
       item.hide_label();
     }
-    if (shelf_.type->flag & ASSET_SHELF_TYPE_NO_ASSET_DRAG) {
+    if (shelf_.type->flag & ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG) {
       item.disable_asset_drag();
     }
 

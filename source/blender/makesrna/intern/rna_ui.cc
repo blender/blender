@@ -2078,7 +2078,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem asset_shelf_flag_items[] = {
-      {ASSET_SHELF_TYPE_NO_ASSET_DRAG,
+      {ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG,
        "NO_ASSET_DRAG",
        0,
        "No Asset Dragging",

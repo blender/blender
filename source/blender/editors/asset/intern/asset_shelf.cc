@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -99,7 +101,8 @@ static AssetShelf *create_shelf_from_type(AssetShelfType &type)
 static void activate_shelf(RegionAssetShelf &shelf_regiondata, AssetShelf &shelf)
 {
   shelf_regiondata.active_shelf = &shelf;
-  BLI_remlink_safe(&shelf_regiondata.shelves, &shelf);
+  BLI_assert(BLI_findindex(&shelf_regiondata.shelves, &shelf) > -1);
+  BLI_remlink(&shelf_regiondata.shelves, &shelf);
   BLI_addhead(&shelf_regiondata.shelves, &shelf);
 }
 
@@ -156,6 +159,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
   LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
     if (asset_shelf_type_poll(C, shelf_type)) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
+      BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
       activate_shelf(shelf_regiondata, *new_shelf);
       return new_shelf;

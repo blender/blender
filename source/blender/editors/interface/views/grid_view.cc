@@ -430,7 +430,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
    * they will be upscaled to the button size. Should probably be done by the widget code. */
   const int is_preview_flag = (BKE_icon_is_preview(preview_icon_id) ||
                                BKE_icon_is_image(preview_icon_id)) ?
-                                  UI_BUT_ICON_PREVIEW :
+                                  int(UI_BUT_ICON_PREVIEW) :
                                   0;
   ui_def_but_icon(but,
                   preview_icon_id,

@@ -52,8 +52,8 @@
 
 #include "BLO_read_write.h"
 
-/* TODO(Julian): For asset shelf region reading/writing. Region read/write should be done via a
- * #ARegionType callback. */
+/* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
+ * a #ARegionType callback. */
 #include "../editors/asset/ED_asset_shelf.h"
 
 #ifdef WITH_PYTHON

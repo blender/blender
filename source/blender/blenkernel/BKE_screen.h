@@ -422,7 +422,7 @@ typedef struct Menu {
 typedef enum AssetShelfTypeFlag {
   /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
    * keymap items then. */
-  ASSET_SHELF_TYPE_NO_ASSET_DRAG = (1 << 0),
+  ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG = (1 << 0),
 
   ASSET_SHELF_TYPE_FLAG_MAX
 } AssetShelfTypeFlag;
