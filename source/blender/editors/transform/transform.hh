@@ -396,11 +396,6 @@ struct TransCustomData {
   unsigned int use_free : 1;
 };
 
-struct TransCenterData {
-  float global[3];
-  unsigned int is_set : 1;
-};
-
 /**
  * Rule of thumb for choosing between mode/type:
  * - If transform mode uses the data, assign to `mode`
