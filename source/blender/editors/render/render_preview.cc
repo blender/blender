@@ -1454,12 +1454,6 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     *do_update = true;
   }
-  else if (idtype == ID_SCR) {
-    bScreen *screen = (bScreen *)id;
-
-    ED_screen_preview_render(screen, sp->sizex, sp->sizey, sp->pr_rect);
-    *do_update = true;
-  }
   else {
     /* re-use shader job */
     shader_preview_startjob(customdata, stop, do_update);

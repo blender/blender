@@ -394,13 +394,6 @@ ScrArea *ED_screen_area_find_with_spacedata(const bScreen *screen,
                                             bool only_visible);
 struct wmWindow *ED_screen_window_find(const struct bScreen *screen,
                                        const struct wmWindowManager *wm);
-/**
- * Render the preview for a screen layout in \a screen.
- */
-void ED_screen_preview_render(const struct bScreen *screen,
-                              int size_x,
-                              int size_y,
-                              unsigned int *r_rect) ATTR_NONNULL();
 
 /* workspaces */
 
