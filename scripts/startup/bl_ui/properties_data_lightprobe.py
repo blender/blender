@@ -119,6 +119,11 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
 
             col.separator()
 
+            col.prop(probe, "grid_surface_bias")
+            col.prop(probe, "grid_escape_bias")
+
+            col.separator()
+
             col.prop(probe, "grid_dilation_threshold")
             col.prop(probe, "grid_dilation_radius")
 

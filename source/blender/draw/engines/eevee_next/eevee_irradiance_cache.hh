@@ -49,10 +49,14 @@ class IrradianceBake {
   PassSimple surfel_light_eval_ps_ = {"LightEval"};
   /** Create linked list of surfel to emulated ray-cast. */
   PassSimple surfel_ray_build_ps_ = {"RayBuild"};
+  /** Create linked list of surfel to cluster them in the 3D irradiance grid. */
+  PassSimple surfel_cluster_build_ps_ = {"RayBuild"};
   /** Propagate light from surfel to surfel. */
   PassSimple surfel_light_propagate_ps_ = {"LightPropagate"};
   /** Capture surfel lighting to irradiance samples. */
   PassSimple irradiance_capture_ps_ = {"IrradianceCapture"};
+  /** Compute virtual offset for each irradiance samples. */
+  PassSimple irradiance_offset_ps_ = {"IrradianceOffset"};
   /** Compute scene bounding box. */
   PassSimple irradiance_bounds_ps_ = {"IrradianceBounds"};
   /** Index of source and destination radiance in radiance double-buffer. */
@@ -91,6 +95,10 @@ class IrradianceBake {
   Texture irradiance_L1_a_tx_ = {"irradiance_L1_a_tx_"};
   Texture irradiance_L1_b_tx_ = {"irradiance_L1_b_tx_"};
   Texture irradiance_L1_c_tx_ = {"irradiance_L1_c_tx_"};
+  /** Offset per irradiance point to apply to the baking location. */
+  Texture virtual_offset_tx_ = {"virtual_offset_tx_"};
+  /** List of closest surfels per irradiance sample. */
+  Texture cluster_list_tx_ = {"cluster_list_tx_"};
   /** Contains ratio of back-face hits. Allows to get rid of invalid probes. */
   Texture validity_tx_ = {"validity_tx_"};
 
@@ -98,6 +106,18 @@ class IrradianceBake {
   float4 scene_bound_sphere_;
   /* Surfel per unit distance. */
   float surfel_density_ = 1.0f;
+  /**
+   * Minimum distance a grid sample point should have with a surface.
+   * In minimum grid sample spacing.
+   * Avoids samples to be too close to surface even if they are valid.
+   */
+  float min_distance_to_surface_ = 0.05f;
+  /**
+   * Maximum distance from the grid sample point to the baking location.
+   * In minimum grid sample spacing.
+   * Avoids samples to be too far from their actual origin.
+   */
+  float max_virtual_offset_ = 0.1f;
 
  public:
   IrradianceBake(Instance &inst) : inst_(inst){};
@@ -111,10 +131,22 @@ class IrradianceBake {
   void surfels_create(const Object &probe_object);
   /** Evaluate direct lighting (and also clear the surfels radiance). */
   void surfels_lights_eval();
-  /** Create a surfel lists to emulate ray-casts for the current sample random direction. */
+  /**
+   * Create a surfel lists per irradiance probe in order to compute the virtual baking offset.
+   * NOTE: The resulting lists are only valid until `clusters_build()` or `raylists_build()` are
+   * called since they share the same links inside the Surfel struct.
+   */
+  void clusters_build();
+  /**
+   * Create a surfel lists to emulate ray-casts for the current sample random direction.
+   * NOTE: The resulting lists are only valid until `clusters_build()` or `raylists_build()` are
+   * called since they share the same links inside the Surfel struct.
+   */
   void raylists_build();
   /** Propagate light from surfel to surfel in a random direction over the sphere. */
   void propagate_light();
+  /** Compute offset to bias irradiance capture location. */
+  void irradiance_offset();
   /** Store surfel irradiance inside the irradiance grid samples. */
   void irradiance_capture();
 
@@ -126,6 +158,8 @@ class IrradianceBake {
  private:
   /** Read surfel data back to CPU into \a cache_frame . */
   void read_surfels(LightProbeGridCacheFrame *cache_frame);
+  /** Read virtual offset back to CPU into \a cache_frame . */
+  void read_virtual_offset(LightProbeGridCacheFrame *cache_frame);
 };
 
 /**
@@ -153,8 +187,8 @@ class IrradianceCache {
   /** If true, will trigger the reupload of all grid data instead of just streaming new ones. */
   bool do_full_update_ = true;
 
-  /** Display surfel debug data. */
-  PassSimple debug_surfels_ps_ = {"IrradianceCache.Debug"};
+  /** Display debug data. */
+  PassSimple debug_ps_ = {"IrradianceCache.Debug"};
   /** Debug surfel elements copied from the light cache. */
   draw::StorageArrayBuffer<Surfel> debug_surfels_buf_;
 

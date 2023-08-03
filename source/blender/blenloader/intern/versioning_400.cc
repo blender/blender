@@ -463,6 +463,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
+    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "grid_surface_bias")) {
+      LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
+        lightprobe->grid_surface_bias = 0.05f;
+        lightprobe->grid_escape_bias = 0.1f;
+      }
+    }
+
     /* Clear removed "Z Buffer" flag. */
     {
       const int R_IMF_FLAG_ZBUF_LEGACY = 1 << 0;

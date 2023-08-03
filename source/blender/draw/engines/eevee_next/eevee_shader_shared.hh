@@ -55,6 +55,11 @@ enum eDebugMode : uint32_t {
    */
   DEBUG_IRRADIANCE_CACHE_SURFELS_NORMAL = 3u,
   DEBUG_IRRADIANCE_CACHE_SURFELS_IRRADIANCE = 4u,
+  DEBUG_IRRADIANCE_CACHE_SURFELS_CLUSTER = 5u,
+  /**
+   * Display IrradianceCache virtual offset.
+   */
+  DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET = 6u,
   /**
    * Show tiles depending on their status.
    */
@@ -866,7 +871,8 @@ struct Surfel {
   float ray_distance;
   /** Surface albedo to apply to incoming radiance. */
   packed_float3 albedo_back;
-  int _pad3;
+  /** Cluster this surfel is assigned to. */
+  int cluster_id;
   /** Surface radiance: Emission + Direct Lighting. */
   SurfelRadiance radiance_direct;
   /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */
@@ -889,6 +895,8 @@ struct CaptureInfoData {
   float sample_index;
   /** Transform of the light-probe object. */
   float4x4 irradiance_grid_local_to_world;
+  /** Transform of the light-probe object. */
+  float4x4 irradiance_grid_world_to_local;
   /** Transform vectors from world space to local space. Does not have location component. */
   /** TODO(fclem): This could be a float3x4 or a float3x3 if padded correctly. */
   float4x4 irradiance_grid_world_to_local_rotation;
@@ -899,9 +907,12 @@ struct CaptureInfoData {
   int scene_bound_x_max;
   int scene_bound_y_max;
   int scene_bound_z_max;
-  int _pad0;
-  int _pad1;
-  int _pad2;
+  /** Minimum distance between a grid sample and a surface. Used to compute virtual offset. */
+  float min_distance_to_surface;
+  /** Maximum world scale offset an irradiance grid sample can be baked with. */
+  float max_virtual_offset;
+  /** Radius of surfels. */
+  float surfel_radius;
 };
 BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 

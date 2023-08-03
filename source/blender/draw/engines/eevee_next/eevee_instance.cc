@@ -554,6 +554,9 @@ void Instance::light_bake_irradiance(
 
     irradiance_cache.bake.surfels_create(probe);
     irradiance_cache.bake.surfels_lights_eval();
+
+    irradiance_cache.bake.clusters_build();
+    irradiance_cache.bake.irradiance_offset();
   });
 
   sampling.init(probe);

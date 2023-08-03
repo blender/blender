@@ -57,6 +57,9 @@ typedef struct LightProbe {
   int grid_resolution_z;
   /** Irradiance grid: number of directions to evaluate light transfer in. */
   int grid_bake_samples;
+  /** Irradiance grid: Virtual offset parameters. */
+  float grid_surface_bias;
+  float grid_escape_bias;
   /** Irradiance grid: Sampling biases. */
   float grid_normal_bias;
   float grid_view_bias;
@@ -245,6 +248,8 @@ typedef struct LightProbeBakingData {
   float (*L1_b)[4];
   float (*L1_c)[4];
   float *validity;
+  /* Capture offset. Only for debugging. */
+  float (*virtual_offset)[4];
 } LightProbeBakingData;
 
 /**

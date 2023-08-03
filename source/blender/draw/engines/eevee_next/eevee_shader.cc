@@ -106,6 +106,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_tiles_flatten_rg";
     case DEBUG_SURFELS:
       return "eevee_debug_surfels";
+    case DEBUG_IRRADIANCE_GRID:
+      return "eevee_debug_irradiance_grid";
     case DISPLAY_PROBE_GRID:
       return "eevee_display_probe_grid";
     case DOF_BOKEH_LUT:
@@ -176,6 +178,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_ray_tile_compact";
     case LIGHTPROBE_IRRADIANCE_BOUNDS:
       return "eevee_lightprobe_irradiance_bounds";
+    case LIGHTPROBE_IRRADIANCE_OFFSET:
+      return "eevee_lightprobe_irradiance_offset";
     case LIGHTPROBE_IRRADIANCE_RAY:
       return "eevee_lightprobe_irradiance_ray";
     case LIGHTPROBE_IRRADIANCE_LOAD:
@@ -214,6 +218,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_usage_transparent";
     case SUBSURFACE_EVAL:
       return "eevee_subsurface_eval";
+    case SURFEL_CLUSTER_BUILD:
+      return "eevee_surfel_cluster_build";
     case SURFEL_LIGHT:
       return "eevee_surfel_light";
     case SURFEL_LIST_BUILD:
