@@ -12,6 +12,8 @@
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh_api.hh"
 #include "DEG_depsgraph_query.h"
 #include "DNA_curves_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -19,6 +21,7 @@
 #include "DNA_particle_types.h"
 
 #include "draw_common.hh"
+#include "draw_sculpt.hh"
 
 #include "eevee_instance.hh"
 
@@ -152,6 +155,75 @@ void SyncModule::sync_mesh(Object *ob,
 
   inst_.shadows.sync_object(ob_handle, res_handle, is_shadow_caster, is_alpha_blend);
   inst_.cryptomatte.sync_object(ob, res_handle);
+}
+
+bool SyncModule::sync_sculpt(Object *ob,
+                             ObjectHandle &ob_handle,
+                             ResourceHandle res_handle,
+                             const ObjectRef &ob_ref)
+{
+  bool pbvh_draw = BKE_sculptsession_use_pbvh_draw(ob, inst_.rv3d) && !DRW_state_is_image_render();
+  /* Needed for mesh cache validation, to prevent two copies of
+   * of vertex color arrays from being sent to the GPU (e.g.
+   * when switching from eevee to workbench).
+   */
+  if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
+    BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, pbvh_draw);
+  }
+
+  if (!pbvh_draw) {
+    return false;
+  }
+
+  /* Use a valid bounding box. The PBVH module already does its own culling,
+   * but a valid bounding box is still needed for directional shadow tilemap bounds computation. */
+  float3 min, max;
+  BKE_pbvh_bounding_box(ob_ref.object->sculpt->pbvh, min, max);
+  float3 center = (min + max) * 0.5;
+  float3 half_extent = max - center;
+  res_handle = inst_.manager->resource_handle(ob_ref, nullptr, &center, &half_extent);
+
+  bool has_motion = false;
+  MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
+
+  bool is_shadow_caster = false;
+  bool is_alpha_blend = false;
+  bool do_probe_sync = inst_.do_probe_sync();
+  for (SculptBatch &batch :
+       sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
+  {
+    GPUBatch *geom = batch.batch;
+    if (geom == nullptr) {
+      continue;
+    }
+
+    Material &material = material_array.materials[batch.material_slot];
+
+    geometry_call(material.shading.sub_pass, geom, res_handle);
+    geometry_call(material.prepass.sub_pass, geom, res_handle);
+    geometry_call(material.shadow.sub_pass, geom, res_handle);
+
+    /* TODO(Miguel Pozo): Is this needed ? */
+    geometry_call(material.capture.sub_pass, geom, res_handle);
+    if (do_probe_sync) {
+      geometry_call(material.probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.probe_shading.sub_pass, geom, res_handle);
+    }
+
+    is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
+    is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
+
+    GPUMaterial *gpu_material = material_array.gpu_materials[batch.material_slot];
+    ::Material *mat = GPU_material_get_material(gpu_material);
+    inst_.cryptomatte.sync_material(mat);
+  }
+
+  inst_.manager->extract_object_attributes(res_handle, ob_ref, material_array.gpu_materials);
+
+  inst_.shadows.sync_object(ob_handle, res_handle, is_shadow_caster, is_alpha_blend);
+  inst_.cryptomatte.sync_object(ob, res_handle);
+
+  return true;
 }
 
 /** \} */

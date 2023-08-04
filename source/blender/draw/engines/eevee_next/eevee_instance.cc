@@ -213,7 +213,9 @@ void Instance::object_sync(Object *ob)
         lights.sync_light(ob, ob_handle);
         break;
       case OB_MESH:
-        sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
+        if (!sync.sync_sculpt(ob, ob_handle, res_handle, ob_ref)) {
+          sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
+        }
         break;
       case OB_POINTCLOUD:
         sync.sync_point_cloud(ob, ob_handle, res_handle, ob_ref);
