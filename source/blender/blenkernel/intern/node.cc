@@ -4503,6 +4503,8 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
     ntype->rna_ext.srna = RNA_struct_find(#Category #StructName); \
     BLI_assert(ntype->rna_ext.srna != nullptr); \
     RNA_struct_blender_type_set(ntype->rna_ext.srna, ntype); \
+    ntype->enum_name_legacy = EnumName; \
+    STRNCPY(ntype->ui_description, UIDesc); \
     break;
 
   switch (type) {

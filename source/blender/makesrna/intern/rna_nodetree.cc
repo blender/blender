@@ -784,17 +784,19 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext * /*C*/,
     category = "FunctionNode";
   }
 
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "Node") || STREQ(#Category, category)) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
+  NODE_TYPES_BEGIN (ntype) {
+    if (ntype->enum_name_legacy &&
+        (BLI_str_startswith(ntype->idname, "Node") || BLI_str_startswith(ntype->idname, category)))
+    {
+      tmp.value = ntype->type;
+      tmp.identifier = ntype->enum_name_legacy;
+      tmp.name = ntype->ui_name;
+      tmp.description = ntype->ui_description;
+      tmp.icon = ICON_NONE;
+      RNA_enum_item_add(&item, &totitem, &tmp);
     }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
+  }
+  NODE_TYPES_END;
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
