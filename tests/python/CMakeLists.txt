@@ -665,6 +665,33 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
           -outdir "${TEST_OUT_DIR}/workbench"
         )
       endforeach()
+
+      if(WITH_HYDRA)
+        # Hydra Storm
+        foreach(render_test ${render_tests})
+          add_python_test(
+            storm_hydra_${render_test}_test
+            ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
+            -blender "${TEST_BLENDER_EXE}"
+            -testdir "${TEST_SRC_DIR}/render/${render_test}"
+            -idiff "${OPENIMAGEIO_IDIFF}"
+            -outdir "${TEST_OUT_DIR}/storm_hydra"
+            -export_method "HYDRA"
+          )
+        endforeach()
+
+        foreach(render_test ${render_tests})
+          add_python_test(
+            storm_usd_${render_test}_test
+            ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
+            -blender "${TEST_BLENDER_EXE}"
+            -testdir "${TEST_SRC_DIR}/render/${render_test}"
+            -idiff "${OPENIMAGEIO_IDIFF}"
+            -outdir "${TEST_OUT_DIR}/storm_usd"
+            -export_method "USD"
+          )
+        endforeach()
+      endif()
     endif()
   endif()
 endif()
