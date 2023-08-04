@@ -229,7 +229,10 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
   }
 }
 
-static void store_result_geometry(Main &bmain, Object &object, bke::GeometrySet geometry)
+static void store_result_geometry(Main &bmain,
+                                  Scene &scene,
+                                  Object &object,
+                                  bke::GeometrySet geometry)
 {
   switch (object.type) {
     case OB_CURVES: {
@@ -270,7 +273,7 @@ static void store_result_geometry(Main &bmain, Object &object, bke::GeometrySet 
       if (!new_mesh) {
         BKE_mesh_clear_geometry(&mesh);
         if (object.mode == OB_MODE_EDIT) {
-          EDBM_mesh_make(&object, SCE_SELECT_VERTEX, true);
+          EDBM_mesh_make(&object, scene.toolsettings->selectmode, true);
         }
         break;
       }
@@ -281,7 +284,7 @@ static void store_result_geometry(Main &bmain, Object &object, bke::GeometrySet 
       BKE_object_material_from_eval_data(&bmain, &object, &new_mesh->id);
       BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
       if (object.mode == OB_MODE_EDIT) {
-        EDBM_mesh_make(&object, SCE_SELECT_VERTEX, true);
+        EDBM_mesh_make(&object, scene.toolsettings->selectmode, true);
         BKE_editmesh_looptri_and_normals_calc(mesh.edit_mesh);
       }
       break;
@@ -342,7 +345,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
           user_data.log_socket_values = false;
         });
 
-    store_result_geometry(*bmain, *object, std::move(new_geometry));
+    store_result_geometry(*bmain, *scene, *object, std::move(new_geometry));
 
     DEG_id_tag_update(static_cast<ID *>(object->data), ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, object->data);
