@@ -12,7 +12,7 @@
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "DEG_depsgraph_query.h"
 #include "DNA_curves_types.h"
