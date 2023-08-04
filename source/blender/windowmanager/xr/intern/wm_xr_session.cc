@@ -43,7 +43,7 @@
 
 #include "wm_event_system.h"
 #include "wm_surface.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 #include "wm_xr_intern.h"
 
 static wmSurface *g_xr_surface = nullptr;

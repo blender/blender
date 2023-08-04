@@ -38,7 +38,7 @@
 #include "RNA_define.h"
 
 #include "WM_api.hh"
-#include "wm.h"
+#include "wm.hh"
 
 #include "GHOST_Path-api.hh"
 

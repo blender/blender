@@ -30,7 +30,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "draw_manager.h"
 

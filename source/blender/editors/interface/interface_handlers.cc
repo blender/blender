@@ -72,7 +72,7 @@
 #ifdef WITH_INPUT_IME
 #  include "BLT_lang.h"
 #  include "BLT_translation.h"
-#  include "wm_window.h"
+#  include "wm_window.hh"
 #endif
 
 /* -------------------------------------------------------------------- */

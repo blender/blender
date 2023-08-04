@@ -10,7 +10,7 @@
  * needed to hook up the gizmo system with Blender's window manager. It's
  * mostly the event system that needs to communicate with gizmo code.
  *
- * Only included in wm.h and lower level files.
+ * Only included in wm.hh and lower level files.
  */
 
 #pragma once

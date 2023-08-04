@@ -87,7 +87,7 @@
 
 #include "GPU_context.h"
 #include "WM_api.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"

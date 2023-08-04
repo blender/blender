@@ -81,7 +81,7 @@ void text_drawcache_tag_update(SpaceText *st, bool full);
 void text_free_caches(SpaceText *st);
 
 bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2]);
-void text_pop_suggest_list(void);
+void text_pop_suggest_list();
 
 int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str);
 int text_get_span_wrap(const SpaceText *st, ARegion *region, TextLine *from, TextLine *to);

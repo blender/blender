@@ -129,10 +129,10 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 #include "wm_event_system.h"
 #include "wm_files.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "CLG_log.h"
 

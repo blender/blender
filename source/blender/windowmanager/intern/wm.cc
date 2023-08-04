@@ -42,10 +42,10 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
-#include "wm.h"
-#include "wm_draw.h"
+#include "wm.hh"
+#include "wm_draw.hh"
 #include "wm_event_system.h"
-#include "wm_window.h"
+#include "wm_window.hh"
 #ifdef WITH_XR_OPENXR
 #  include "wm_xr.h"
 #endif

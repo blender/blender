@@ -13,40 +13,41 @@
 #pragma once
 
 struct bContext;
+struct GPUContext;
 
-typedef struct wmSurface {
-  struct wmSurface *next, *prev;
+struct wmSurface {
+  wmSurface *next, *prev;
 
   GHOST_ContextHandle system_gpu_context;
-  struct GPUContext *blender_gpu_context;
+  GPUContext *blender_gpu_context;
 
   void *customdata;
 
-  void (*draw)(struct bContext *);
+  void (*draw)(bContext *);
   /* To evaluate the surface's depsgraph. Called as part of the main loop. */
-  void (*do_depsgraph)(struct bContext *C);
+  void (*do_depsgraph)(bContext *C);
   /** Free customdata, not the surface itself (done by wm_surface API) */
-  void (*free_data)(struct wmSurface *);
+  void (*free_data)(wmSurface *);
 
   /** Called when surface is activated for drawing (made drawable). */
-  void (*activate)(void);
+  void (*activate)();
   /** Called when surface is deactivated for drawing (current drawable cleared). */
-  void (*deactivate)(void);
-} wmSurface;
+  void (*deactivate)();
+};
 
 /* Create/Free */
 void wm_surface_add(wmSurface *surface);
 void wm_surface_remove(wmSurface *surface);
-void wm_surfaces_free(void);
+void wm_surfaces_free();
 
 /* Utils */
-void wm_surfaces_iter(struct bContext *C, void (*cb)(struct bContext *, wmSurface *));
+void wm_surfaces_iter(bContext *C, void (*cb)(bContext *, wmSurface *));
 
 /* Evaluation. */
-void wm_surfaces_do_depsgraph(struct bContext *C);
+void wm_surfaces_do_depsgraph(bContext *C);
 
 /* Drawing */
 void wm_surface_make_drawable(wmSurface *surface);
-void wm_surface_clear_drawable(void);
+void wm_surface_clear_drawable();
 void wm_surface_set_drawable(wmSurface *surface, bool activate);
-void wm_surface_reset_drawable(void);
+void wm_surface_reset_drawable();

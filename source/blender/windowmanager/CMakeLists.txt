@@ -79,14 +79,14 @@ set(SRC
   WM_message.hh
   WM_toolsystem.h
   WM_types.hh
-  wm.h
+  wm.hh
   wm_cursors.hh
-  wm_draw.h
+  wm_draw.hh
   wm_event_system.h
   wm_event_types.hh
   wm_files.hh
   wm_surface.hh
-  wm_window.h
+  wm_window.hh
   intern/wm_platform_support.h
   intern/wm_window_private.h
   gizmo/WM_gizmo_api.h

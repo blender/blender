@@ -528,7 +528,7 @@ using OverrideLibraryStorage = Main;
 /**
  * Initialize an override storage.
  */
-OverrideLibraryStorage *BKE_lib_override_library_operations_store_init(void);
+OverrideLibraryStorage *BKE_lib_override_library_operations_store_init();
 /**
  * Generate suitable 'write' data (this only affects differential override operations).
  *

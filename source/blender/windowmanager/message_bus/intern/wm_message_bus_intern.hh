@@ -11,7 +11,7 @@
 #include "../wm_message_bus.hh"
 
 struct wmMsgBus {
-  struct GSet *messages_gset[WM_MSG_TYPE_NUM];
+  GSet *messages_gset[WM_MSG_TYPE_NUM];
   /** Messages in order of being added. */
   ListBase messages;
   /** Avoid checking messages when no tags exist. */
@@ -21,13 +21,12 @@ struct wmMsgBus {
 /**
  * \note #wmMsgBus.messages_tag_count isn't updated, caller must handle.
  */
-void wm_msg_subscribe_value_free(struct wmMsgSubscribeKey *msg_key,
-                                 struct wmMsgSubscribeValueLink *msg_lnk);
+void wm_msg_subscribe_value_free(wmMsgSubscribeKey *msg_key, wmMsgSubscribeValueLink *msg_lnk);
 
-typedef struct wmMsgSubscribeKey_Generic {
+struct wmMsgSubscribeKey_Generic {
   wmMsgSubscribeKey head;
   wmMsg msg;
-} wmMsgSubscribeKey_Generic;
+};
 
 BLI_INLINE const wmMsg *wm_msg_subscribe_value_msg_cast(const wmMsgSubscribeKey *key)
 {

@@ -12,21 +12,17 @@ struct wmWindow;
 
 #include "gizmo/wm_gizmo_wmapi.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct wmPaintCursor {
-  struct wmPaintCursor *next, *prev;
+struct wmPaintCursor {
+  wmPaintCursor *next, *prev;
 
   void *customdata;
 
-  bool (*poll)(struct bContext *C);
+  bool (*poll)(bContext *C);
   void (*draw)(bContext *C, int, int, void *customdata);
 
   short space_type;
   short region_type;
-} wmPaintCursor;
+};
 
 /**
  * Cause a delayed #WM_exit()
@@ -42,7 +38,7 @@ extern void wm_close_and_free(bContext *C, wmWindowManager *);
 /**
  * On startup, it adds all data, for matching.
  */
-extern void wm_add_default(struct Main *bmain, bContext *C);
+extern void wm_add_default(Main *bmain, bContext *C);
 extern void wm_clear_default_size(bContext *C);
 
 /* Register to window-manager for redo or macro. */
@@ -56,26 +52,26 @@ void wm_operator_register(bContext *C, wmOperator *op);
 
 /* wm_operator.c, for init/exit */
 
-void wm_operatortype_free(void);
+void wm_operatortype_free();
 /**
  * Called on initialize #WM_init().
  */
-void wm_operatortype_init(void);
+void wm_operatortype_init();
 /**
  * Default key-map for windows and screens, only call once per WM.
  */
 void wm_window_keymap(wmKeyConfig *keyconf);
-void wm_operatortypes_register(void);
+void wm_operatortypes_register();
 
 /* `wm_gesture.cc` */
 
 /* Called in `wm_draw.cc`. */
 
-void wm_gesture_draw(struct wmWindow *win);
+void wm_gesture_draw(wmWindow *win);
 /**
  * Use for line gesture.
  */
-void wm_gesture_tag_redraw(struct wmWindow *win);
+void wm_gesture_tag_redraw(wmWindow *win);
 
 /* `wm_jobs.cc` */
 
@@ -93,10 +89,10 @@ void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt);
 /**
  * Run the auto-save timer action.
  */
-void wm_autosave_timer(struct Main *bmain, wmWindowManager *wm, wmTimer *wt);
-void wm_autosave_timer_begin(struct wmWindowManager *wm);
+void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer *wt);
+void wm_autosave_timer_begin(wmWindowManager *wm);
 void wm_autosave_timer_end(wmWindowManager *wm);
-void wm_autosave_delete(void);
+void wm_autosave_delete();
 
 /* `wm_splash_screen.cc` */
 
@@ -124,7 +120,3 @@ void wm_stereo3d_set_cancel(bContext *C, wmOperator *op);
  */
 void wm_open_init_load_ui(wmOperator *op, bool use_prefs);
 void wm_open_init_use_scripts(wmOperator *op, bool use_prefs);
-
-#ifdef __cplusplus
-}
-#endif

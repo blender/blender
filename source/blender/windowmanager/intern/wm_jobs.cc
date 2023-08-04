@@ -25,7 +25,7 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm.h"
+#include "wm.hh"
 #include "wm_event_types.hh"
 
 #include "PIL_time.h"

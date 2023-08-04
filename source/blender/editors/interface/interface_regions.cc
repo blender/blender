@@ -18,7 +18,7 @@
 #include "BKE_screen.h"
 
 #include "WM_api.hh"
-#include "wm_draw.h"
+#include "wm_draw.hh"
 
 #include "ED_screen.hh"
 

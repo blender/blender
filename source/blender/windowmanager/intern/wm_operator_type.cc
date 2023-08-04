@@ -35,7 +35,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 #include "wm_event_system.h"
 
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")

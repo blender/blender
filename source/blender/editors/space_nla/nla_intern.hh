@@ -149,5 +149,5 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 /* --- */
 
-void nla_operatortypes(void);
+void nla_operatortypes();
 void nla_keymap(wmKeyConfig *keyconf);

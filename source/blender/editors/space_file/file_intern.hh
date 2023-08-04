@@ -76,7 +76,7 @@ void FILE_OT_hidedot(wmOperatorType *ot);
 void FILE_OT_execute(wmOperatorType *ot);
 
 void FILE_OT_external_operation(wmOperatorType *ot);
-void file_external_operations_menu_register(void);
+void file_external_operations_menu_register();
 
 /**
  * Variation of #FILE_OT_execute that accounts for some mouse specific handling.
@@ -142,7 +142,7 @@ FileAttributeColumnType file_attribute_column_type_find_isect(const View2D *v2d,
                                                               int x);
 float file_string_width(const char *str);
 
-float file_font_pointsize(void);
+float file_font_pointsize();
 void file_select_deselect_all(SpaceFile *sfile, eDirEntry_SelectFlag flag);
 int file_select_match(SpaceFile *sfile, const char *pattern, char *matched_file);
 int autocomplete_directory(bContext *C, char *str, void *arg_v);
@@ -235,7 +235,7 @@ namespace blender::asset_system {
 class AssetLibrary;
 }
 
-FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings(void);
+FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings();
 void file_delete_asset_catalog_filter_settings(
     FileAssetCatalogFilterSettingsHandle **filter_settings_handle);
 /**

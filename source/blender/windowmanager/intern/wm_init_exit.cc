@@ -86,13 +86,13 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 #include "wm_cursors.hh"
 #include "wm_event_system.h"
 #include "wm_files.hh"
 #include "wm_platform_support.h"
 #include "wm_surface.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"

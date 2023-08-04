@@ -50,7 +50,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 
 static void wm_block_close(bContext *C, void *arg_block, void * /*arg*/)
 {

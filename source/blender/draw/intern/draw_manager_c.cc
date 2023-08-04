@@ -73,7 +73,7 @@
 #include "UI_view2d.h"
 
 #include "WM_api.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "draw_color_management.h"
 #include "draw_manager.h"

@@ -233,8 +233,8 @@ void ED_area_status_text(ScrArea *area, const char *str);
 void ED_area_newspace(struct bContext *C, ScrArea *area, int type, bool skip_region_exit);
 void ED_area_prevspace(struct bContext *C, ScrArea *area);
 void ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
-int ED_area_headersize(void);
-int ED_area_footersize(void);
+int ED_area_headersize();
+int ED_area_footersize();
 /**
  * \return the final height of a global \a area, accounting for DPI.
  */
@@ -248,7 +248,7 @@ bool ED_area_is_global(const ScrArea *area);
  *
  * \return the DPI aware height of a single bar/region in global areas.
  */
-int ED_region_global_size_y(void);
+int ED_region_global_size_y();
 void ED_area_update_region_sizes(struct wmWindowManager *wm,
                                  struct wmWindow *win,
                                  struct ScrArea *area);
@@ -489,13 +489,13 @@ bScreen *ED_screen_animation_no_scrub(const struct wmWindowManager *wm);
 
 /* screen keymaps */
 /* called in spacetypes.cc */
-void ED_operatortypes_screen(void);
+void ED_operatortypes_screen();
 /* called in spacetypes.cc */
 void ED_keymap_screen(struct wmKeyConfig *keyconf);
 /**
  * Workspace key-maps.
  */
-void ED_operatortypes_workspace(void);
+void ED_operatortypes_workspace();
 
 /* operators; context poll callbacks */
 
@@ -637,7 +637,7 @@ void ED_screen_user_menu_item_add_prop(ListBase *lb,
                                        int prop_index);
 
 void ED_screen_user_menu_item_remove(struct ListBase *lb, struct bUserMenuItem *umi);
-void ED_screen_user_menu_register(void);
+void ED_screen_user_menu_register();
 
 /* Cache display helpers */
 

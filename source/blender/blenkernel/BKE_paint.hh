@@ -134,8 +134,8 @@ ENUM_OPERATORS(ePaintSymmetryAreas, PAINT_SYMM_AREA_Z);
 
 void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex);
 void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve);
-void BKE_paint_invalidate_overlay_all(void);
-ePaintOverlayControlFlags BKE_paint_get_overlay_flags(void);
+void BKE_paint_invalidate_overlay_all();
+ePaintOverlayControlFlags BKE_paint_get_overlay_flags();
 void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
 void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
@@ -930,4 +930,4 @@ bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
                                 ImageUser **r_image_user);
 int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Object *ob);
 void BKE_sculpt_check_cavity_curves(Sculpt *sd);
-CurveMapping *BKE_sculpt_default_cavity_curve(void);
+CurveMapping *BKE_sculpt_default_cavity_curve();

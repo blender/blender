@@ -28,7 +28,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 #include "wm_cursors.hh"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 /* Blender custom cursor. */
 struct BCursor {

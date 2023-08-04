@@ -19,7 +19,7 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "wm.h"
+#include "wm.hh"
 
 #include "ED_keyframing.h"
 #include "ED_screen.hh"

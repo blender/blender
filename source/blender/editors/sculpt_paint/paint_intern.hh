@@ -105,7 +105,7 @@ bool PAINT_brush_tool_poll(bContext *C);
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */
-void paint_cursor_delete_textures(void);
+void paint_cursor_delete_textures();
 
 /* `paint_vertex.cc` */
 
@@ -209,7 +209,7 @@ struct ImagePaintPartialRedraw {
 bool image_texture_paint_poll(bContext *C);
 void imapaint_image_update(
     SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint);
-ImagePaintPartialRedraw *get_imapaintpartial(void);
+ImagePaintPartialRedraw *get_imapaintpartial();
 void set_imapaintpartial(ImagePaintPartialRedraw *ippr);
 void imapaint_region_tiles(
     ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);

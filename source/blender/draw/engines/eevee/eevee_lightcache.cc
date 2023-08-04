@@ -36,7 +36,7 @@
 
 #include "BLO_read_write.h"
 
-#include "wm_window.h"
+#include "wm_window.hh"
 
 /* Rounded to nearest PowerOfTwo */
 #if defined(IRRADIANCE_SH_L2)

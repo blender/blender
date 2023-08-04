@@ -33,9 +33,9 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm.h"
-#include "wm_draw.h"
-#include "wm_window.h"
+#include "wm.hh"
+#include "wm_draw.hh"
+#include "wm_window.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

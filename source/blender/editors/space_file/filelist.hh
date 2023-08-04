@@ -69,8 +69,8 @@ void filelist_filter(FileList *filelist);
  */
 void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_library_ref);
 
-void filelist_init_icons(void);
-void filelist_free_icons(void);
+void filelist_init_icons();
+void filelist_free_icons();
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/]);

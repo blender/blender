@@ -26,8 +26,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "wm.h"
-#include "wm_draw.h"
+#include "wm.hh"
+#include "wm_draw.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

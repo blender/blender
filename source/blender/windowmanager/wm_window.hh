@@ -8,11 +8,15 @@
 
 #pragma once
 
-struct wmOperator;
+#include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct bContext;
+struct Main;
+struct PointerRNA;
+struct wmOperator;
+struct wmOperatorType;
+struct wmWindow;
+struct wmWindowManager;
 
 /* *************** internal api ************** */
 
@@ -21,8 +25,8 @@ extern "C" {
  * need to event handling.
  */
 void wm_ghost_init(bContext *C);
-void wm_ghost_init_background(void);
-void wm_ghost_exit(void);
+void wm_ghost_init_background();
+void wm_ghost_exit();
 
 /**
  * This one should correctly check for apple top header...
@@ -37,15 +41,12 @@ void wm_get_desktopsize(int *r_width, int *r_height);
 /**
  * Don't change context itself.
  */
-wmWindow *wm_window_new(const struct Main *bmain,
-                        wmWindowManager *wm,
-                        wmWindow *parent,
-                        bool dialog);
+wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent, bool dialog);
 /**
  * Part of `wm_window.cc` API.
  */
 wmWindow *wm_window_copy(
-    struct Main *bmain, wmWindowManager *wm, wmWindow *win_src, bool duplicate_layout, bool child);
+    Main *bmain, wmWindowManager *wm, wmWindow *win_src, bool duplicate_layout, bool child);
 /**
  * A higher level version of copy that tests the new window can be added.
  * (called from the operator directly).
@@ -88,7 +89,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win);
 /**
  * Reset active the current window gpu drawing context.
  */
-void wm_window_reset_drawable(void);
+void wm_window_reset_drawable();
 
 void wm_window_raise(wmWindow *win);
 void wm_window_lower(wmWindow *win);
@@ -119,11 +120,11 @@ void wm_window_timers_delete_removed(wmWindowManager *wm);
 
 /* *************** window operators ************** */
 
-int wm_window_close_exec(bContext *C, struct wmOperator *op);
+int wm_window_close_exec(bContext *C, wmOperator *op);
 /**
  * Full-screen operator callback.
  */
-int wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
+int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *op);
 /**
  * Call the quit confirmation prompt or exit directly if needed. The use can
  * still cancel via the confirmation popup. Also, this may not quit Blender
@@ -133,12 +134,8 @@ int wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
  */
 void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_NONNULL();
 
-int wm_window_new_exec(bContext *C, struct wmOperator *op);
-int wm_window_new_main_exec(bContext *C, struct wmOperator *op);
+int wm_window_new_exec(bContext *C, wmOperator *op);
+int wm_window_new_main_exec(bContext *C, wmOperator *op);
 
-void wm_test_autorun_revert_action_set(struct wmOperatorType *ot, struct PointerRNA *ptr);
+void wm_test_autorun_revert_action_set(wmOperatorType *ot, PointerRNA *ptr);
 void wm_test_autorun_warning(bContext *C);
-
-#ifdef __cplusplus
-}
-#endif

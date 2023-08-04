@@ -30,7 +30,7 @@
 #include "ED_screen.hh"
 
 /* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
-#include "wm.h"
+#include "wm.hh"
 
 /* own includes */
 #include "wm_gizmo_intern.h"

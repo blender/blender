@@ -49,7 +49,7 @@ void ED_spacedata_id_remap(struct ScrArea *area,
                            struct SpaceLink *sl,
                            const struct IDRemapper *mappings);
 
-void ED_operatortypes_edutils(void);
+void ED_operatortypes_edutils();
 
 /* Drawing */
 

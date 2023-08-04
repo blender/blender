@@ -9,21 +9,21 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct IDProperty;
 struct Main;
 struct PointerRNA;
+struct Scene;
 struct ScrArea;
 struct StructRNA;
 struct WorkSpace;
 struct bContext;
+struct bToolRef;
 struct bToolRef_Runtime;
+struct ViewLayer;
 struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmOperatorType;
+struct wmWindow;
 
 /* `wm_toolsystem.cc` */
 
@@ -35,43 +35,37 @@ struct wmOperatorType;
 #define WM_TOOLSYSTEM_SPACE_MASK_MODE_FROM_SPACE ((1 << SPACE_IMAGE) | (1 << SPACE_SEQ))
 
 /* Values that define a category of active tool. */
-typedef struct bToolKey {
+struct bToolKey {
   int space_type;
   int mode;
-} bToolKey;
+};
 
-struct bToolRef *WM_toolsystem_ref_from_context(struct bContext *C);
-struct bToolRef *WM_toolsystem_ref_find(struct WorkSpace *workspace, const bToolKey *tkey);
-bool WM_toolsystem_ref_ensure(struct WorkSpace *workspace,
-                              const bToolKey *tkey,
-                              struct bToolRef **r_tref);
+bToolRef *WM_toolsystem_ref_from_context(bContext *C);
+bToolRef *WM_toolsystem_ref_find(WorkSpace *workspace, const bToolKey *tkey);
+bool WM_toolsystem_ref_ensure(WorkSpace *workspace, const bToolKey *tkey, bToolRef **r_tref);
 
-struct bToolRef *WM_toolsystem_ref_set_by_id_ex(struct bContext *C,
-                                                struct WorkSpace *workspace,
-                                                const bToolKey *tkey,
-                                                const char *name,
-                                                bool cycle);
-struct bToolRef *WM_toolsystem_ref_set_by_id(struct bContext *C, const char *name);
+bToolRef *WM_toolsystem_ref_set_by_id_ex(
+    bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *name, bool cycle);
+bToolRef *WM_toolsystem_ref_set_by_id(bContext *C, const char *name);
 
-struct bToolRef_Runtime *WM_toolsystem_runtime_from_context(struct bContext *C);
-struct bToolRef_Runtime *WM_toolsystem_runtime_find(struct WorkSpace *workspace,
-                                                    const bToolKey *tkey);
+bToolRef_Runtime *WM_toolsystem_runtime_from_context(bContext *C);
+bToolRef_Runtime *WM_toolsystem_runtime_find(WorkSpace *workspace, const bToolKey *tkey);
 
-void WM_toolsystem_unlink(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
-void WM_toolsystem_refresh(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
-void WM_toolsystem_reinit(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
+void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tkey);
+void WM_toolsystem_refresh(bContext *C, WorkSpace *workspace, const bToolKey *tkey);
+void WM_toolsystem_reinit(bContext *C, WorkSpace *workspace, const bToolKey *tkey);
 
 /**
  * Operate on all active tools.
  */
-void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace);
-void WM_toolsystem_refresh_all(struct bContext *C, struct WorkSpace *workspace);
-void WM_toolsystem_reinit_all(struct bContext *C, struct wmWindow *win);
+void WM_toolsystem_unlink_all(bContext *C, WorkSpace *workspace);
+void WM_toolsystem_refresh_all(bContext *C, WorkSpace *workspace);
+void WM_toolsystem_reinit_all(bContext *C, wmWindow *win);
 
-void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
-                                        struct WorkSpace *workspace,
-                                        struct bToolRef *tref,
-                                        const struct bToolRef_Runtime *tref_rt,
+void WM_toolsystem_ref_set_from_runtime(bContext *C,
+                                        WorkSpace *workspace,
+                                        bToolRef *tref,
+                                        const bToolRef_Runtime *tref_rt,
                                         const char *idname);
 
 /**
@@ -80,63 +74,58 @@ void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
  *
  * \see #toolsystem_ref_link
  */
-void WM_toolsystem_ref_sync_from_context(struct Main *bmain,
-                                         struct WorkSpace *workspace,
-                                         struct bToolRef *tref);
+void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToolRef *tref);
 
-void WM_toolsystem_init(struct bContext *C);
+void WM_toolsystem_init(bContext *C);
 
-int WM_toolsystem_mode_from_spacetype(const struct Scene *scene,
-                                      struct ViewLayer *view_layer,
-                                      struct ScrArea *area,
+int WM_toolsystem_mode_from_spacetype(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      ScrArea *area,
                                       int space_type);
-bool WM_toolsystem_key_from_context(const struct Scene *scene,
-                                    struct ViewLayer *view_layer,
-                                    struct ScrArea *area,
+bool WM_toolsystem_key_from_context(const Scene *scene,
+                                    ViewLayer *view_layer,
+                                    ScrArea *area,
                                     bToolKey *tkey);
 
-void WM_toolsystem_update_from_context_view3d(struct bContext *C);
-void WM_toolsystem_update_from_context(struct bContext *C,
-                                       struct WorkSpace *workspace,
-                                       const struct Scene *scene,
-                                       struct ViewLayer *view_layer,
-                                       struct ScrArea *area);
+void WM_toolsystem_update_from_context_view3d(bContext *C);
+void WM_toolsystem_update_from_context(
+    bContext *C, WorkSpace *workspace, const Scene *scene, ViewLayer *view_layer, ScrArea *area);
 
 /**
  * For paint modes to support non-brush tools.
  */
-bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
+bool WM_toolsystem_active_tool_is_brush(const bContext *C);
 
 /** Follow #wmMsgNotifyFn spec. */
-void WM_toolsystem_do_msg_notify_tag_refresh(struct bContext *C,
-                                             struct wmMsgSubscribeKey *msg_key,
-                                             struct wmMsgSubscribeValue *msg_val);
+void WM_toolsystem_do_msg_notify_tag_refresh(bContext *C,
+                                             wmMsgSubscribeKey *msg_key,
+                                             wmMsgSubscribeValue *msg_val);
 
-struct IDProperty *WM_toolsystem_ref_properties_get_idprops(struct bToolRef *tref);
-struct IDProperty *WM_toolsystem_ref_properties_ensure_idprops(struct bToolRef *tref);
-void WM_toolsystem_ref_properties_ensure_ex(struct bToolRef *tref,
+IDProperty *WM_toolsystem_ref_properties_get_idprops(bToolRef *tref);
+IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref);
+void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref,
                                             const char *idname,
-                                            struct StructRNA *type,
-                                            struct PointerRNA *r_ptr);
+                                            StructRNA *type,
+                                            PointerRNA *r_ptr);
 
 #define WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, r_ptr) \
   WM_toolsystem_ref_properties_ensure_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
 #define WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup, r_ptr) \
   WM_toolsystem_ref_properties_ensure_ex(tref, (gzgroup)->idname, (gzgroup)->srna, r_ptr)
 
-bool WM_toolsystem_ref_properties_get_ex(struct bToolRef *tref,
+bool WM_toolsystem_ref_properties_get_ex(bToolRef *tref,
                                          const char *idname,
-                                         struct StructRNA *type,
-                                         struct PointerRNA *r_ptr);
+                                         StructRNA *type,
+                                         PointerRNA *r_ptr);
 #define WM_toolsystem_ref_properties_get_from_operator(tref, ot, r_ptr) \
   WM_toolsystem_ref_properties_get_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
 #define WM_toolsystem_ref_properties_get_from_gizmo_group(tref, gzgroup, r_ptr) \
   WM_toolsystem_ref_properties_get_ex(tref, (gzgroup)->idname, (gzgroup)->srna, r_ptr)
 
-void WM_toolsystem_ref_properties_init_for_keymap(struct bToolRef *tref,
-                                                  struct PointerRNA *dst_ptr,
-                                                  struct PointerRNA *src_ptr,
-                                                  struct wmOperatorType *ot);
+void WM_toolsystem_ref_properties_init_for_keymap(bToolRef *tref,
+                                                  PointerRNA *dst_ptr,
+                                                  PointerRNA *src_ptr,
+                                                  wmOperatorType *ot);
 
 /**
  * Use to update the active tool (shown in the top bar) in the least disruptive way.
@@ -146,15 +135,11 @@ void WM_toolsystem_ref_properties_init_for_keymap(struct bToolRef *tref,
  *
  * Used when undoing since the active mode may have changed.
  */
-void WM_toolsystem_refresh_active(struct bContext *C);
+void WM_toolsystem_refresh_active(bContext *C);
 
-void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace,
-                                       const struct Scene *scene,
-                                       struct ViewLayer *view_layer,
-                                       struct ScrArea *area);
-void WM_toolsystem_refresh_screen_window(struct wmWindow *win);
-void WM_toolsystem_refresh_screen_all(struct Main *bmain);
-
-#ifdef __cplusplus
-}
-#endif
+void WM_toolsystem_refresh_screen_area(WorkSpace *workspace,
+                                       const Scene *scene,
+                                       ViewLayer *view_layer,
+                                       ScrArea *area);
+void WM_toolsystem_refresh_screen_window(wmWindow *win);
+void WM_toolsystem_refresh_screen_all(Main *bmain);

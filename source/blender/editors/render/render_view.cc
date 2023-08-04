@@ -31,7 +31,7 @@
 #include "ED_screen.hh"
 #include "UI_interface.h"
 
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "render_intern.hh"
 

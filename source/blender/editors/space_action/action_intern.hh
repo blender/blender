@@ -130,5 +130,5 @@ enum eActKeys_Mirror_Mode {
 /* ***************************************** */
 /* `action_ops.cc` */
 
-void action_operatortypes(void);
+void action_operatortypes();
 void action_keymap(wmKeyConfig *keyconf);

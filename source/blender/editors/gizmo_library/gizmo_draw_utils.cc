@@ -24,7 +24,7 @@
 #include "WM_types.hh"
 
 /* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
-#include "wm.h"
+#include "wm.hh"
 
 /* own includes */
 #include "gizmo_library_intern.h"
