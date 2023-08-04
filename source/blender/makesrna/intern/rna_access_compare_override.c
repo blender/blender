@@ -1261,7 +1261,21 @@ static void rna_property_override_check_resync(Main *bmain,
     if (ID_IS_LINKED(id_owner_src)) {
       id_owner_src->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
     }
-    CLOG_INFO(&LOG, 3, "Local override %s detected as needing resync", id_owner_dst->name);
+    CLOG_INFO(&LOG,
+              3,
+              "Local override %s detected as needing resync due to mismatch in its used IDs",
+              id_owner_dst->name);
+  }
+  if ((id_owner_src->override_library->reference->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) != 0) {
+    id_owner_dst->tag |= LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
+    if (ID_IS_LINKED(id_owner_src)) {
+      id_owner_src->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
+    }
+    CLOG_INFO(&LOG,
+              3,
+              "Local override %s detected as needing resync as its liboverride reference is "
+              "already tagged for resync",
+              id_owner_dst->name);
   }
 }
 
