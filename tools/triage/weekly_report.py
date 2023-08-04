@@ -214,7 +214,7 @@ def report_personal_weekly_get(username, start, verbose=True):
                 print(f"https://projects.blender.org/{fullname}")
 
         print("Debug:")
-        print(f"Activities from {start.isoformat()} to {end.isoformat()}:")
+        print(f"Activities from {start.isoformat()} to {date_end.isoformat()}:")
         print()
         print("Pulls Created:")
         print_links(pulls_created)
