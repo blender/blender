@@ -361,7 +361,7 @@ static void asset_shelf_region_snap_height_to_closest(ScrArea *area,
 
   if (region->sizey != new_size_y) {
     region->sizey = new_size_y;
-    area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+    ED_area_tag_region_size_update(area, region);
   }
 }
 
