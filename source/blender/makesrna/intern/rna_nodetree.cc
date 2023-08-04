@@ -613,20 +613,6 @@ extern FunctionRNA rna_Node_draw_label_func;
 
 static void rna_Node_socket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr);
 
-int rna_node_tree_type_to_enum(bNodeTreeType *typeinfo)
-{
-  int i = 0, result = -1;
-  NODE_TREE_TYPES_BEGIN (nt) {
-    if (nt == typeinfo) {
-      result = i;
-      break;
-    }
-    i++;
-  }
-  NODE_TREE_TYPES_END;
-  return result;
-}
-
 int rna_node_tree_idname_to_enum(const char *idname)
 {
   int i = 0, result = -1;
@@ -691,114 +677,6 @@ const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
   *r_free = true;
 
   return item;
-}
-
-int rna_node_type_to_enum(bNodeType *typeinfo)
-{
-  int i = 0, result = -1;
-  NODE_TYPES_BEGIN (ntype) {
-    if (ntype == typeinfo) {
-      result = i;
-      break;
-    }
-    i++;
-  }
-  NODE_TYPES_END;
-  return result;
-}
-
-int rna_node_idname_to_enum(const char *idname)
-{
-  int i = 0, result = -1;
-  NODE_TYPES_BEGIN (ntype) {
-    if (STREQ(ntype->idname, idname)) {
-      result = i;
-      break;
-    }
-    i++;
-  }
-  NODE_TYPES_END;
-  return result;
-}
-
-bNodeType *rna_node_type_from_enum(int value)
-{
-  int i = 0;
-  bNodeType *result = nullptr;
-  NODE_TYPES_BEGIN (ntype) {
-    if (i == value) {
-      result = ntype;
-      break;
-    }
-    i++;
-  }
-  NODE_TYPES_END;
-  return result;
-}
-
-const EnumPropertyItem *rna_node_type_itemf(void *data,
-                                            bool (*poll)(void *data, bNodeType *),
-                                            bool *r_free)
-{
-  EnumPropertyItem *item = nullptr;
-  EnumPropertyItem tmp = {0};
-  int totitem = 0, i = 0;
-
-  NODE_TYPES_BEGIN (ntype) {
-    if (poll && !poll(data, ntype)) {
-      i++;
-      continue;
-    }
-
-    tmp.value = i;
-    tmp.identifier = ntype->idname;
-    tmp.icon = ntype->ui_icon;
-    tmp.name = ntype->ui_name;
-    tmp.description = ntype->ui_description;
-
-    RNA_enum_item_add(&item, &totitem, &tmp);
-
-    i++;
-  }
-  NODE_TYPES_END;
-
-  if (totitem == 0) {
-    *r_free = false;
-    return DummyRNA_NULL_items;
-  }
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
-}
-
-int rna_node_socket_type_to_enum(bNodeSocketType *typeinfo)
-{
-  int i = 0, result = -1;
-  NODE_SOCKET_TYPES_BEGIN (stype) {
-    if (stype == typeinfo) {
-      result = i;
-      break;
-    }
-    i++;
-  }
-  NODE_SOCKET_TYPES_END;
-  return result;
-}
-
-int rna_node_socket_idname_to_enum(const char *idname)
-{
-  int i = 0, result = -1;
-  NODE_SOCKET_TYPES_BEGIN (stype) {
-    if (STREQ(stype->idname, idname)) {
-      result = i;
-      break;
-    }
-    i++;
-  }
-  NODE_SOCKET_TYPES_END;
-  return result;
 }
 
 bNodeSocketType *rna_node_socket_type_from_enum(int value)

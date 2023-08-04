@@ -44,22 +44,12 @@ struct IDFilterEnumPropertyItem {
 extern const struct IDFilterEnumPropertyItem rna_enum_id_type_filter_items[];
 
 /* API calls */
-int rna_node_tree_type_to_enum(struct bNodeTreeType *typeinfo);
 int rna_node_tree_idname_to_enum(const char *idname);
 struct bNodeTreeType *rna_node_tree_type_from_enum(int value);
 const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
                                                  bool (*poll)(void *data, struct bNodeTreeType *),
                                                  bool *r_free);
 
-int rna_node_type_to_enum(struct bNodeType *typeinfo);
-int rna_node_idname_to_enum(const char *idname);
-struct bNodeType *rna_node_type_from_enum(int value);
-const EnumPropertyItem *rna_node_type_itemf(void *data,
-                                            bool (*poll)(void *data, struct bNodeType *),
-                                            bool *r_free);
-
-int rna_node_socket_type_to_enum(struct bNodeSocketType *typeinfo);
-int rna_node_socket_idname_to_enum(const char *idname);
 struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
 const EnumPropertyItem *rna_node_socket_type_itemf(
     void *data, bool (*poll)(void *data, struct bNodeSocketType *), bool *r_free);
