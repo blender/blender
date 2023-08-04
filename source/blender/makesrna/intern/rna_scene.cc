@@ -1197,6 +1197,11 @@ static char *rna_SceneGpencil_path(const PointerRNA * /*ptr*/)
   return BLI_strdup("grease_pencil_settings");
 }
 
+static char *rna_SceneHydra_path(const PointerRNA * /*ptr*/)
+{
+  return BLI_strdup("hydra");
+}
+
 static int rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter, void * /*data*/)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
@@ -8082,6 +8087,36 @@ static void rna_def_scene_gpencil(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
+static void rna_def_scene_hydra(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem hydra_export_method_items[] = {
+      {SCE_HYDRA_EXPORT_HYDRA,
+       "HYDRA",
+       0,
+       "Hydra",
+       "Fast interactive editing through native Hydra integration"},
+      {SCE_HYDRA_EXPORT_USD,
+       "USD",
+       0,
+       "USD",
+       "Export scene through USD file, for accurate comparison with USD file export"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  srna = RNA_def_struct(brna, "SceneHydra", nullptr);
+  RNA_def_struct_path_func(srna, "rna_SceneHydra_path");
+  RNA_def_struct_ui_text(srna, "Scene Hydra", "Scene Hydra render engine settings");
+
+  prop = RNA_def_property(srna, "export_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, hydra_export_method_items);
+  RNA_def_property_ui_text(
+      prop, "Export Method", "How to export the Blender scene to the Hydra render engine");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8573,6 +8608,11 @@ void RNA_def_scene(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "SceneGpencil");
   RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil settings for the scene");
 
+  /* Hydra */
+  prop = RNA_def_property(srna, "hydra", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SceneHydra");
+  RNA_def_property_ui_text(prop, "Hydra", "Hydra settings for the scene");
+
   /* Nestled Data. */
   /* *** Non-Animated *** */
   RNA_define_animate_sdna(false);
@@ -8592,6 +8632,7 @@ void RNA_def_scene(BlenderRNA *brna)
   rna_def_scene_display(brna);
   rna_def_raytrace_eevee(brna);
   rna_def_scene_eevee(brna);
+  rna_def_scene_hydra(brna);
   rna_def_view_layer_aov(brna);
   rna_def_view_layer_lightgroup(brna);
   rna_def_view_layer_eevee(brna);

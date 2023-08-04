@@ -80,12 +80,32 @@ void Engine::sync(Depsgraph *depsgraph, bContext *context)
   context_ = context;
   scene_ = DEG_get_evaluated_scene(depsgraph);
 
-  if (!hydra_scene_delegate_) {
-    pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
-    hydra_scene_delegate_ = std::make_unique<io::hydra::HydraSceneDelegate>(render_index_.get(),
-                                                                            scene_path);
+  if (scene_->hydra.export_method == SCE_HYDRA_EXPORT_HYDRA) {
+    /* Fast path. */
+    usd_scene_delegate_.reset();
+
+    if (!hydra_scene_delegate_) {
+      pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("scene");
+      hydra_scene_delegate_ = std::make_unique<io::hydra::HydraSceneDelegate>(render_index_.get(),
+                                                                              scene_path);
+    }
+    hydra_scene_delegate_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
   }
-  hydra_scene_delegate_->populate(depsgraph, context ? CTX_wm_view3d(context) : nullptr);
+  else {
+    /* Slow USD export for reference. */
+    if (hydra_scene_delegate_) {
+      /* Freeing the Hydra scene delegate crashes as something internal to USD
+       * still holds a pointer to it, only clear it instead. */
+      hydra_scene_delegate_->clear();
+    }
+
+    if (!usd_scene_delegate_) {
+      pxr::SdfPath scene_path = pxr::SdfPath::AbsoluteRootPath().AppendElementString("usd_scene");
+      usd_scene_delegate_ = std::make_unique<io::hydra::USDSceneDelegate>(render_index_.get(),
+                                                                          scene_path);
+    }
+    usd_scene_delegate_->populate(depsgraph);
+  }
 }
 
 void Engine::set_render_setting(const std::string &key, const pxr::VtValue &val)

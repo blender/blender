@@ -153,6 +153,7 @@ if(WITH_HYDRA)
     hydra/material.cc
     hydra/mesh.cc
     hydra/object.cc
+    hydra/usd_scene_delegate.cc
     hydra/volume.cc
     hydra/volume_modifier.cc
     hydra/world.cc
@@ -167,6 +168,7 @@ if(WITH_HYDRA)
     hydra/material.h
     hydra/mesh.h
     hydra/object.h
+    hydra/usd_scene_delegate.h
     hydra/volume.h
     hydra/volume_modifier.h
     hydra/world.h

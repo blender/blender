@@ -1156,6 +1156,25 @@ class RENDER_PT_simplify_greasepencil(RenderButtonsPanel, Panel, GreasePencilSim
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class RENDER_PT_hydra_debug(RenderButtonsPanel, Panel):
+    bl_label = "Hydra Debug"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 200
+    COMPAT_ENGINES = {'HYDRA_STORM'}
+
+    @classmethod
+    def poll(cls, context):
+        prefs = context.preferences
+        return (context.engine in cls.COMPAT_ENGINES) and prefs.view.show_developer_ui
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        hydra = context.scene.hydra
+        layout.prop(hydra, "export_method")
+
+
 classes = (
     RENDER_PT_context,
     RENDER_PT_eevee_sampling,
@@ -1200,6 +1219,7 @@ classes = (
     RENDER_PT_opengl_color,
     RENDER_PT_opengl_options,
     RENDER_PT_opengl_film,
+    RENDER_PT_hydra_debug,
     RENDER_PT_color_management,
     RENDER_PT_color_management_curves,
     RENDER_PT_simplify,

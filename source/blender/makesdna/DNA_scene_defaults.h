@@ -245,6 +245,11 @@
                     SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT, \
   }
 
+#define _DNA_DEFAULT_SceneHydra \
+  { \
+    .export_method = SCE_HYDRA_EXPORT_HYDRA, \
+  }
+
 #define _DNA_DEFAULT_Scene \
   { \
     .cursor = _DNA_DEFAULT_View3DCursor, \
@@ -258,6 +263,8 @@
     .safe_areas = _DNA_DEFAULT_DisplaySafeAreas, \
  \
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
+ \
+    .hydra = _DNA_DEFAULT_SceneHydra, \
   }
 
 /** \} */

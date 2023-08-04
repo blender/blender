@@ -1908,6 +1908,11 @@ typedef struct SceneGpencil {
   char _pad[4];
 } SceneGpencil;
 
+typedef struct SceneHydra {
+  int export_method;
+  int _pad0;
+} SceneHydra;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -2054,6 +2059,7 @@ typedef struct Scene {
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
   struct SceneGpencil grease_pencil_settings;
+  struct SceneHydra hydra;
 } Scene;
 
 /** \} */
@@ -2868,6 +2874,13 @@ enum {
   SCE_DISPLAY_AA_SAMPLES_11 = 11,
   SCE_DISPLAY_AA_SAMPLES_16 = 16,
   SCE_DISPLAY_AA_SAMPLES_32 = 32,
+};
+
+/** #SceneHydra->export_method */
+
+enum {
+  SCE_HYDRA_EXPORT_HYDRA = 0,
+  SCE_HYDRA_EXPORT_USD = 1,
 };
 
 /** \} */
