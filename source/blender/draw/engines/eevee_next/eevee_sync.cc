@@ -512,7 +512,7 @@ void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandle
         continue;
       }
 
-      ObjectHandle particle_sys_handle = {nullptr};
+      ObjectHandle particle_sys_handle = {{nullptr}};
       particle_sys_handle.object_key = ObjectKey(ob_handle.object_key.ob, sub_key++);
       particle_sys_handle.recalc = particle_sys->recalc;
 
