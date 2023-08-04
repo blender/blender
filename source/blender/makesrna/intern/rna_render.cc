@@ -1010,6 +1010,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_define_verify_sdna(true);
 }
 
+static void rna_def_hydra_render_engine(BlenderRNA *brna)
+{
+  /* This is implemented in Python. */
+  StructRNA *srna = RNA_def_struct(brna, "HydraRenderEngine", "RenderEngine");
+  RNA_def_struct_sdna(srna, "RenderEngine");
+  RNA_def_struct_ui_text(srna, "Hydra Render Engine", "Base class from USD Hydra based renderers");
+}
+
 static void rna_def_render_result(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -1238,6 +1246,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
 void RNA_def_render(BlenderRNA *brna)
 {
   rna_def_render_engine(brna);
+  rna_def_hydra_render_engine(brna);
   rna_def_render_result(brna);
   rna_def_render_view(brna);
   rna_def_render_layer(brna);

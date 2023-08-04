@@ -367,6 +367,9 @@ option(WITH_USD                 "Enable Universal Scene Description (USD) Suppor
 # MaterialX
 option(WITH_MATERIALX           "Enable MaterialX Support" ON)
 
+# Hydra render engine
+option(WITH_HYDRA               "Enable Hydra render engine" ON)
+
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
@@ -931,6 +934,9 @@ set_and_warn_dependency(WITH_OPENVDB WITH_NANOVDB       OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_OPENVDB OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_ALEMBIC OFF)
 set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
+
+# Hydra requires USD.
+set_and_warn_dependency(WITH_USD WITH_HYDRA OFF)
 
 # auto enable openimageio for cycles
 if(WITH_CYCLES)

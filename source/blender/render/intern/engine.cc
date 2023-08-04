@@ -853,8 +853,15 @@ static void engine_render_view_layer(Render *re,
 
   /* Sync data to engine, within draw lock so scene data can be accessed safely. */
   if (use_engine) {
+    const bool use_gpu_context = (engine->type->flag & RE_USE_GPU_CONTEXT);
+    if (use_gpu_context) {
+      DRW_render_context_enable(engine->re);
+    }
     if (engine->type->update) {
       engine->type->update(engine, re->main, engine->depsgraph);
+    }
+    if (use_gpu_context) {
+      DRW_render_context_disable(engine->re);
     }
   }
 
