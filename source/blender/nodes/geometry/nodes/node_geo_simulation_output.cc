@@ -546,6 +546,10 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   void execute_impl(lf::Params &params, const lf::Context &context) const final
   {
     GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    if (!user_data.modifier_data) {
+      params.set_default_remaining_outputs();
+      return;
+    }
     GeoNodesModifierData &modifier_data = *user_data.modifier_data;
     EvalData &eval_data = *static_cast<EvalData *>(context.storage);
     BLI_SCOPED_DEFER([&]() { eval_data.is_first_evaluation = false; });

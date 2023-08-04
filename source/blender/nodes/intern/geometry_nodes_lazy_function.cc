@@ -234,6 +234,18 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     std::destroy_at(s);
   }
 
+  static const Object *get_self_object(const GeoNodesLFUserData &user_data)
+  {
+    if (user_data.modifier_data) {
+      return user_data.modifier_data->self_object;
+    }
+    if (user_data.operator_data) {
+      return user_data.operator_data->self_object;
+    }
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     Storage *storage = static_cast<Storage *>(context.storage);
@@ -251,7 +263,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
       const bNodeSocket &bsocket = node_.output_socket(output_bsocket_index);
       AnonymousAttributeIDPtr attribute_id = MEM_new<NodeAnonymousAttributeID>(
           __func__,
-          *user_data->modifier_data->self_object,
+          *this->get_self_object(*user_data),
           *user_data->compute_context,
           node_,
           bsocket.identifier,
@@ -838,6 +850,10 @@ class LazyFunctionForViewerInputUsage : public LazyFunction {
   {
     GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
     BLI_assert(user_data != nullptr);
+    if (!user_data->modifier_data) {
+      params.set_default_remaining_outputs();
+      return;
+    }
     const ComputeContextHash &context_hash = user_data->compute_context->hash();
     const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
     const Span<const lf::FunctionNode *> nodes_with_side_effects =
@@ -861,6 +877,10 @@ class LazyFunctionForSimulationInputsUsage : public LazyFunction {
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
     const GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    if (!user_data.modifier_data) {
+      params.set_default_remaining_outputs();
+      return;
+    }
     const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
 
     params.set_output(0,
@@ -1328,7 +1348,7 @@ class LazyFunctionForSimulationZone : public LazyFunction {
 
     GeoNodesLFUserData zone_user_data = user_data;
     zone_user_data.compute_context = &compute_context;
-    if (user_data.modifier_data->socket_log_contexts) {
+    if (user_data.modifier_data && user_data.modifier_data->socket_log_contexts) {
       zone_user_data.log_socket_values = user_data.modifier_data->socket_log_contexts->contains(
           compute_context.hash());
     }
@@ -1641,7 +1661,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
           user_data.compute_context, repeat_output_bnode_, iteration};
       GeoNodesLFUserData body_user_data = user_data;
       body_user_data.compute_context = &body_compute_context;
-      if (user_data.modifier_data->socket_log_contexts) {
+      if (user_data.modifier_data && user_data.modifier_data->socket_log_contexts) {
         body_user_data.log_socket_values = user_data.modifier_data->socket_log_contexts->contains(
             body_compute_context.hash());
       }

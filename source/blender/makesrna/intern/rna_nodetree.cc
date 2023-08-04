@@ -2120,6 +2120,81 @@ static bool compare_main_operation_supported(const EnumPropertyItem *item)
   return !ELEM(item->value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER);
 }
 
+static bool geometry_node_asset_trait_flag_get(PointerRNA *ptr,
+                                               const GeometryNodeAssetTraitFlag flag)
+{
+  const bNodeTree *ntree = static_cast<const bNodeTree *>(ptr->data);
+  if (!ntree->geometry_node_asset_traits) {
+    return false;
+  }
+  return ntree->geometry_node_asset_traits->flag & flag;
+}
+
+static void geometry_node_asset_trait_flag_set(PointerRNA *ptr,
+                                               const GeometryNodeAssetTraitFlag flag,
+                                               const bool value)
+{
+  bNodeTree *ntree = static_cast<bNodeTree *>(ptr->data);
+  if (!ntree->geometry_node_asset_traits) {
+    ntree->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+  }
+  SET_FLAG_FROM_TEST(ntree->geometry_node_asset_traits->flag, value, flag);
+}
+
+static bool rna_GeometryNodeTree_is_tool_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_TOOL);
+}
+static void rna_GeometryNodeTree_is_tool_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_TOOL, value);
+}
+
+static bool rna_GeometryNodeTree_is_mode_edit_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_EDIT);
+}
+static void rna_GeometryNodeTree_is_mode_edit_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_EDIT, value);
+}
+
+static bool rna_GeometryNodeTree_is_mode_sculpt_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_SCULPT);
+}
+static void rna_GeometryNodeTree_is_mode_sculpt_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_SCULPT, value);
+}
+
+static bool rna_GeometryNodeTree_is_type_mesh_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_MESH);
+}
+static void rna_GeometryNodeTree_is_type_mesh_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_MESH, value);
+}
+
+static bool rna_GeometryNodeTree_is_type_curve_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_CURVE);
+}
+static void rna_GeometryNodeTree_is_type_curve_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_CURVE, value);
+}
+
+static bool rna_GeometryNodeTree_is_type_point_cloud_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_POINT_CLOUD);
+}
+static void rna_GeometryNodeTree_is_type_point_cloud_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_POINT_CLOUD, value);
+}
+
 static bool compare_rgba_operation_supported(const EnumPropertyItem *item)
 {
   return ELEM(item->value,
@@ -12316,12 +12391,56 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
 static void rna_def_geometry_nodetree(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "GeometryNodeTree", "NodeTree");
   RNA_def_struct_ui_text(
       srna, "Geometry Node Tree", "Node tree consisting of linked nodes used for geometries");
   RNA_def_struct_sdna(srna, "bNodeTree");
   RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+
+  prop = RNA_def_property(srna, "is_tool", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_TOOL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Tool", "The node group is used as a tool");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_tool_get", "rna_GeometryNodeTree_is_tool_set");
+
+  prop = RNA_def_property(srna, "is_mode_edit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_EDIT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Edit", "The node group is used in edit mode");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_mode_edit_get", "rna_GeometryNodeTree_is_mode_edit_set");
+
+  prop = RNA_def_property(srna, "is_mode_sculpt", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_SCULPT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Sculpt", "The node group is used in sculpt mode");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_mode_sculpt_get", "rna_GeometryNodeTree_is_mode_sculpt_set");
+
+  prop = RNA_def_property(srna, "is_type_mesh", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_MESH);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Mesh", "The node group is used for meshes");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_type_mesh_get", "rna_GeometryNodeTree_is_type_mesh_set");
+
+  prop = RNA_def_property(srna, "is_type_curve", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_CURVE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Curves", "The node group is used for curves");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_type_curve_get", "rna_GeometryNodeTree_is_type_curve_set");
+
+  prop = RNA_def_property(srna, "is_type_point_cloud", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINT_CLOUD);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Point Cloud", "The node group is used for point clouds");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GeometryNodeTree_is_type_point_cloud_get",
+                                 "rna_GeometryNodeTree_is_type_point_cloud_set");
 }
 
 static StructRNA *define_specific_node(BlenderRNA *brna,
