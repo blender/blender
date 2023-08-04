@@ -432,10 +432,16 @@ class EditGenerator:
 
     # Each subclass must also a default boolean: `is_default`.
     # When false, a detailed explanation must be included for why.
+    #
+    # Declare here to quiet `mypy` warning, `__init_subclass__` ensures this value is never used.
+    # This is done so the creator of edit is forced to make a decision on the reliability of the edit
+    # and document why it might need manual checking.
+    is_default = False
 
     @classmethod
     def __init_subclass__(cls) -> None:
-        if not isinstance(getattr(cls, "is_default", None), bool):
+        # Ensure the sub-class declares this.
+        if (not isinstance(getattr(cls, "is_default", None), bool)) or ("is_default" not in cls.__dict__):
             raise Exception("Class %r missing \"is_default\" boolean!" % cls)
         if getattr(cls, "edit_list_from_file") is EditGenerator.edit_list_from_file:
             raise Exception("Class %r missing \"edit_list_from_file\" callback!" % cls)
