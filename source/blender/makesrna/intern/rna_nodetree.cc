@@ -767,35 +767,25 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext * /*C*/,
   tmp.icon = ICON_NONE;
   RNA_enum_item_add(&item, &totitem, &tmp);
 
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "Node")) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
-    }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
-
+  const char *category = "";
   if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "ShaderNode")) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
-    }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
+    category = "ShaderNode";
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_CompositorNode)) {
+    category = "CompositorNode";
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_TextureNode)) {
+    category = "TextureNode";
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_GeometryNode)) {
+    category = "GeometryNode";
+  }
+  else if (RNA_struct_is_a(ptr->type, &RNA_FunctionNode)) {
+    category = "FunctionNode";
   }
 
-  if (RNA_struct_is_a(ptr->type, &RNA_CompositorNode)) {
 #  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "CompositorNode")) { \
+    if (STREQ(#Category, "Node") || STREQ(#Category, category)) { \
       tmp.value = ID; \
       tmp.identifier = EnumName; \
       tmp.name = UIName; \
@@ -805,49 +795,6 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext * /*C*/,
     }
 #  include "../../nodes/NOD_static_types.h"
 #  undef DefNode
-  }
-
-  if (RNA_struct_is_a(ptr->type, &RNA_TextureNode)) {
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "TextureNode")) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
-    }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
-  }
-
-  if (RNA_struct_is_a(ptr->type, &RNA_GeometryNode)) {
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "GeometryNode")) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
-    }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
-  }
-
-  if (RNA_struct_is_a(ptr->type, &RNA_FunctionNode)) {
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-    if (STREQ(#Category, "FunctionNode")) { \
-      tmp.value = ID; \
-      tmp.identifier = EnumName; \
-      tmp.name = UIName; \
-      tmp.description = UIDesc; \
-      tmp.icon = ICON_NONE; \
-      RNA_enum_item_add(&item, &totitem, &tmp); \
-    }
-#  include "../../nodes/NOD_static_types.h"
-#  undef DefNode
-  }
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;
