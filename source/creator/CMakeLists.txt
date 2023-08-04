@@ -1623,15 +1623,31 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
         ${USD_LIBRARY_DIR}/usd
         DESTINATION ${TARGETDIR_LIB}
       )
+      install(DIRECTORY
+        ${LIBDIR}/usd/plugin/usd/hdStorm
+        ${LIBDIR}/usd/plugin/usd/usdShaders
+        ${LIBDIR}/usd/plugin/usd/hioOiio
+        DESTINATION "./blender.shared/usd"
+      )
     elseif(USD_PYTHON_SUPPORT)
       install(DIRECTORY
         ${USD_LIBRARY_DIR}/usd
         DESTINATION ${TARGETDIR_LIB}
       )
+      install(DIRECTORY
+        ${LIBDIR}/usd/plugin/usd/hdStorm
+        ${LIBDIR}/usd/plugin/usd/usdShaders
+        DESTINATION ${TARGETDIR_LIB}/usd
+      )
     else()
       install(DIRECTORY
         ${USD_LIBRARY_DIR}/usd
         DESTINATION "${TARGETDIR_VER}/datafiles"
+      )
+      install(DIRECTORY
+        ${LIBDIR}/usd/plugin/usd/hdStorm
+        ${LIBDIR}/usd/plugin/usd/usdShaders
+        DESTINATION "${TARGETDIR_VER}/datafiles/usd"
       )
     endif()
   endif()

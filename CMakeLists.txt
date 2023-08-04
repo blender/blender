@@ -365,7 +365,7 @@ option(WITH_ALEMBIC             "Enable Alembic Support" ON)
 option(WITH_USD                 "Enable Universal Scene Description (USD) Support" ON)
 
 # MaterialX
-option(WITH_MATERIALX           "Enable MaterialX Support" OFF)
+option(WITH_MATERIALX           "Enable MaterialX Support" ON)
 
 # 3D format support
 # Disable opencollada when we don't have precompiled libs

@@ -57,7 +57,7 @@ set(WITH_QUADRIFLOW          ON  CACHE BOOL "" FORCE)
 set(WITH_SDL                 ON  CACHE BOOL "" FORCE)
 set(WITH_TBB                 ON  CACHE BOOL "" FORCE)
 set(WITH_USD                 ON  CACHE BOOL "" FORCE)
-set(WITH_MATERIALX           OFF CACHE BOOL "" FORCE)
+set(WITH_MATERIALX           ON  CACHE BOOL "" FORCE)
 
 set(WITH_MEM_JEMALLOC        ON  CACHE BOOL "" FORCE)
 
