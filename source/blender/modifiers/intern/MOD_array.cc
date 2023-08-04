@@ -800,7 +800,9 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   }
   /* done capping */
 
-  blender::bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
+  if (!dst_vert_normals.is_empty()) {
+    blender::bke::mesh_vert_normals_assign(*result, std::move(dst_vert_normals));
+  }
 
   /* Handle merging */
   tot_doubles = 0;
