@@ -55,11 +55,11 @@ class GitCommit:
         ) + args
         # print(" ".join(cmd))
 
-        p = subprocess.Popen(
+        with subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-        )
-        return p.stdout.read()
+        ) as p:
+            return p.stdout.read()
 
     @property
     def sha1_short(self):
@@ -71,11 +71,11 @@ class GitCommit:
             "--short",
             self.sha1,
         )
-        p = subprocess.Popen(
+        with subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-        )
-        return p.stdout.read().strip().decode('ascii')
+        ) as p:
+            return p.stdout.read().strip().decode('ascii')
 
     @property
     def author(self):
