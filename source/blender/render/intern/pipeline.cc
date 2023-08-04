@@ -86,7 +86,7 @@
 #include "SEQ_render.h"
 
 #include "GPU_context.h"
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "wm_window.h"
 
 #ifdef WITH_FREESTYLE

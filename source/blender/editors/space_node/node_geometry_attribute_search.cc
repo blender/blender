@@ -25,7 +25,7 @@
 #include "RNA_enum_types.h"
 
 #include "ED_node.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_undo.h"
 
 #include "BLT_translation.h"

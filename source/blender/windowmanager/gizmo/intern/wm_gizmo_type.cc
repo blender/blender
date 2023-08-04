@@ -24,10 +24,10 @@
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 /* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 #include "wm.h"

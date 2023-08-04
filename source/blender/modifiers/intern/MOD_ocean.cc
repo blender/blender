@@ -38,7 +38,7 @@
 
 #include "BLO_read_write.h"
 
-#include "WM_types.h" /* For UI free bake operator. */
+#include "WM_types.hh" /* For UI free bake operator. */
 
 #include "DEG_depsgraph_query.h"
 

@@ -25,12 +25,12 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_armature.h"
 #include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

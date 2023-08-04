@@ -41,15 +41,15 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_transform.h"
 #include "ED_uvedit.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_view2d.h"
 

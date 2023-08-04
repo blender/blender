@@ -19,7 +19,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd_hierarchy_iterator.h"
 

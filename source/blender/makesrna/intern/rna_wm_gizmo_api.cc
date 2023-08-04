@@ -18,7 +18,7 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "rna_internal.h" /* own include */
 

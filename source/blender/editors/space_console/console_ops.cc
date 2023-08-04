@@ -26,10 +26,10 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"

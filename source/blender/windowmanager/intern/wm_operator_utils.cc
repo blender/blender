@@ -20,13 +20,13 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h" /* Own include. */
-#include "WM_types.h"
+#include "WM_api.hh" /* Own include. */
+#include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Utilities

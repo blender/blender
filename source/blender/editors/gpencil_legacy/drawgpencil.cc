@@ -44,7 +44,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
@@ -54,7 +54,7 @@
 #include "GPU_uniform_buffer.h"
 
 #include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 

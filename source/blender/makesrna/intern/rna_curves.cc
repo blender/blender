@@ -15,7 +15,7 @@
 
 #include "DNA_curves_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_curves_types[] = {
     {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
@@ -51,8 +51,8 @@ const EnumPropertyItem rna_enum_curve_normal_modes[] = {
 
 #  include "ED_curves.hh"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static Curves *rna_curves(const PointerRNA *ptr)
 {

@@ -73,7 +73,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "WM_types.h" /* For skin mark clear operator UI. */
+#include "WM_types.hh" /* For skin mark clear operator UI. */
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"

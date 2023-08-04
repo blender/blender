@@ -50,7 +50,7 @@
 #include "DNA_world_types.h"
 
 #include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
@@ -72,7 +72,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "wm_window.h"
 
 #include "draw_color_management.h"

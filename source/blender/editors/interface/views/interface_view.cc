@@ -28,7 +28,7 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 

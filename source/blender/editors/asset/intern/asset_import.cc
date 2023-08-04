@@ -12,7 +12,7 @@
 
 #include "BLO_readfile.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "ED_asset_import.hh"
 

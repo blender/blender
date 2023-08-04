@@ -26,9 +26,9 @@
 #include "UI_interface.h"
 
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-/* see WM_types.h */
+/* see WM_types.hh */
 const EnumPropertyItem rna_enum_operator_context_items[] = {
     {WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
     {WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_report.h"
 #  include "BKE_screen.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
 {

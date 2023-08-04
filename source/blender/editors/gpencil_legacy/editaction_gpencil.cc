@@ -29,7 +29,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph.h"
 

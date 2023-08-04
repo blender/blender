@@ -19,7 +19,7 @@
 #include "ED_paint.h"
 #include "ED_undo.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "paint_intern.hh"
 

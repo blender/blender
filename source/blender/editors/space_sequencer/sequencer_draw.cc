@@ -47,11 +47,11 @@
 #include "ED_gpencil_legacy.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_sequencer.h"
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 
 #include "BIF_glutil.h"
 
@@ -74,8 +74,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "BLF_api.h"
 

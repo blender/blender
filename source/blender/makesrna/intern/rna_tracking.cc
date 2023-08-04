@@ -27,7 +27,7 @@
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -44,7 +44,7 @@
 
 #  include "IMB_imbuf.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static char *rna_tracking_path(const PointerRNA * /*ptr*/)
 {

@@ -56,8 +56,8 @@
 
 #include "BLT_translation.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::ObjectHeader;

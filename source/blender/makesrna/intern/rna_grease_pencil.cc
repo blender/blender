@@ -16,7 +16,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #ifdef RNA_RUNTIME
 

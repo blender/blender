@@ -6,14 +6,14 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
 
 #include "DNA_brush_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_task.hh"

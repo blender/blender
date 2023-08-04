@@ -37,8 +37,8 @@
 #include "RNA_path.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
 #include "bpy_rna.h"

@@ -15,7 +15,7 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 

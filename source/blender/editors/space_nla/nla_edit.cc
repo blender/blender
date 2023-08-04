@@ -34,7 +34,7 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_transform.h"
 
 #include "RNA_access.h"
@@ -42,8 +42,8 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph_build.h"
 

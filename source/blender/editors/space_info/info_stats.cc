@@ -57,7 +57,7 @@
 
 #include "ED_info.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "UI_resources.h"
 

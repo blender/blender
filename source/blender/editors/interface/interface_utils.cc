@@ -14,7 +14,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -40,8 +40,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "interface_intern.hh"
 

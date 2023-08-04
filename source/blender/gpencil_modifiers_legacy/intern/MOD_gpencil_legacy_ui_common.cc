@@ -30,8 +30,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "MOD_gpencil_legacy_ui_common.h" /* Self include */
 

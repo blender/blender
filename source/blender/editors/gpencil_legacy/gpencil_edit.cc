@@ -55,10 +55,10 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -71,7 +71,7 @@
 #include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"

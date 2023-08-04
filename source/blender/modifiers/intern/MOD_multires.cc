@@ -39,7 +39,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "WM_types.h" /* For subdivide operator UI. */
+#include "WM_types.hh" /* For subdivide operator UI. */
 
 #include "DEG_depsgraph_query.h"
 

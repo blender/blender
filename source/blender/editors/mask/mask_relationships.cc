@@ -18,12 +18,12 @@
 
 #include "DNA_mask_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_clip.h" /* frame remapping functions */
 #include "ED_mask.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "mask_intern.h" /* own include */
 

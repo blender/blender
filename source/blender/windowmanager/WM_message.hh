@@ -8,4 +8,4 @@
 
 #pragma once
 
-#include "message_bus/wm_message_bus.h"
+#include "message_bus/wm_message_bus.hh"

@@ -51,8 +51,8 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static Key *rna_ShapeKey_find_key(ID *id)
 {

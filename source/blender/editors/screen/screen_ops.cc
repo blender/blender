@@ -47,8 +47,8 @@
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -61,11 +61,11 @@
 #include "ED_keyframes_keylist.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_screen_types.h"
 #include "ED_sequencer.h"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 #include "ED_view3d.h"
 
 #include "RNA_access.h"

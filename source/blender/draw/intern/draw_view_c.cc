@@ -13,8 +13,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
@@ -24,7 +24,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "BKE_global.h"
 #include "BKE_object.h"

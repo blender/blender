@@ -52,7 +52,7 @@
 #include "ED_gpencil_legacy.h"
 #include "ED_info.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_screen_types.h"
 #include "ED_transform.h"
 #include "ED_view3d_offscreen.h"
@@ -79,8 +79,8 @@
 
 #include "RE_engine.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 

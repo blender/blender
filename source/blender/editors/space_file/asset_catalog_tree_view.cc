@@ -29,8 +29,8 @@
 #include "UI_resources.h"
 #include "UI_tree_view.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "file_intern.hh"
 #include "filelist.hh"

@@ -25,7 +25,7 @@
 
 #include "DEG_depsgraph_build.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* roles of objects in RigidBody Sims */
 const EnumPropertyItem rna_enum_rigidbody_object_type_items[] = {
@@ -139,7 +139,7 @@ static const EnumPropertyItem rigidbody_mesh_source_items[] = {
 
 #  include "BKE_rigidbody.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 /* ******************************** */
 

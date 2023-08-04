@@ -52,7 +52,7 @@
 
 #include "IMB_colormanagement.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_undo.h"
 
 #include "UI_interface.h"
@@ -65,8 +65,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm_event_system.h"
 
 #ifdef WITH_INPUT_IME

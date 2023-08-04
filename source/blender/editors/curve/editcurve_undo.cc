@@ -32,8 +32,8 @@
 #include "ED_curve.h"
 #include "ED_undo.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "curve_intern.h"
 

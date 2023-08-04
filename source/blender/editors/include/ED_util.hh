@@ -9,11 +9,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
-#include "WM_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "WM_types.hh"
 
 struct IDRemapper;
 struct Main;
@@ -127,7 +123,3 @@ void unpack_menu(struct bContext *C,
                  const char *abs_name,
                  const char *folder,
                  struct PackedFile *pf);
-
-#ifdef __cplusplus
-}
-#endif

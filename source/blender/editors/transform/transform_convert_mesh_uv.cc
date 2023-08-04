@@ -23,7 +23,7 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 
-#include "WM_api.h" /* for WM_event_add_notifier to deal with stabilization nodes */
+#include "WM_api.hh" /* for WM_event_add_notifier to deal with stabilization nodes */
 
 #include "transform.hh"
 #include "transform_convert.hh"

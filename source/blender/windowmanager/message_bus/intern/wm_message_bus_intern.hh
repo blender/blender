@@ -8,11 +8,7 @@
 
 #pragma once
 
-#include "../wm_message_bus.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "../wm_message_bus.hh"
 
 struct wmMsgBus {
   struct GSet *messages_gset[WM_MSG_TYPE_NUM];
@@ -41,7 +37,3 @@ BLI_INLINE wmMsg *wm_msg_subscribe_value_msg_cast_mut(wmMsgSubscribeKey *key)
 {
   return &((wmMsgSubscribeKey_Generic *)key)->msg;
 }
-
-#ifdef __cplusplus
-}
-#endif

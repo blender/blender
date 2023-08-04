@@ -24,7 +24,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_keyframing.h"
 
@@ -113,7 +113,7 @@ const EnumPropertyItem rna_enum_keying_flag_items_api[] = {
 
 #  include "ED_anim_api.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static void rna_AnimData_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {

@@ -47,7 +47,7 @@
 
 #include "ED_image.h"
 #include "ED_mesh.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 #include "ED_uvedit.h"
 
@@ -55,8 +55,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_view2d.h"
 

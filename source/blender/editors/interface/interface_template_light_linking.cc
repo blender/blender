@@ -27,7 +27,7 @@
 #include "UI_resources.h"
 #include "UI_tree_view.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "ED_undo.h"
 

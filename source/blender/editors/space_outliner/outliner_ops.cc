@@ -6,9 +6,9 @@
  * \ingroup spoutliner
  */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "outliner_intern.hh"
 

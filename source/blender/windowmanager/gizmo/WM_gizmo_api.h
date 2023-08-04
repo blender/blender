@@ -8,7 +8,7 @@
  * \name Gizmo API
  * \brief API for external use of wmGizmo types.
  *
- * Only included in WM_api.h
+ * Only included in WM_api.hh
  */
 
 #pragma once

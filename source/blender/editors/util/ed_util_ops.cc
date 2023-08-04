@@ -28,15 +28,15 @@
 #include "ED_asset.h"
 #include "ED_render.h"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name ID Previews

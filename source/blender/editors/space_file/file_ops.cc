@@ -28,7 +28,7 @@
 
 #include "ED_asset.h"
 #include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 
 #include "UI_interface.h"
@@ -42,8 +42,8 @@
 
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "file_intern.hh"
 #include "filelist.hh"

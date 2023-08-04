@@ -13,10 +13,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** #wmEvent.customdata type */
 enum {
   EVT_DATA_TIMER = 2,
@@ -525,7 +521,3 @@ enum {
 };
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

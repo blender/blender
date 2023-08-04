@@ -26,9 +26,9 @@
 
 #include "ED_node.hh" /* own include */
 #include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
@@ -37,8 +37,8 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_state.h"
 

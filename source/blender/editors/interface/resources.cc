@@ -29,7 +29,7 @@
 
 #include "BLF_api.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

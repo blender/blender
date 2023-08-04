@@ -27,8 +27,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_image_generated_type_items[] = {
     {IMA_GENTYPE_BLANK, "BLANK", 0, "Blank", "Generate a blank image"},

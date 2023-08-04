@@ -28,7 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/pxr.h>

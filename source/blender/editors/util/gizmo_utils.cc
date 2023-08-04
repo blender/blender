@@ -16,9 +16,9 @@
 
 #include "DNA_workspace_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_gizmo_utils.h"
 

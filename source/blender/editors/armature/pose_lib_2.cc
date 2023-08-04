@@ -34,15 +34,15 @@
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 
 #include "ED_asset.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
 #include "armature_intern.h"
 

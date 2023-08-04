@@ -74,18 +74,18 @@ set(SRC
   message_bus/intern/wm_message_bus_rna.cc
   message_bus/intern/wm_message_bus_static.cc
 
-  WM_api.h
-  WM_keymap.h
-  WM_message.h
+  WM_api.hh
+  WM_keymap.hh
+  WM_message.hh
   WM_toolsystem.h
-  WM_types.h
+  WM_types.hh
   wm.h
-  wm_cursors.h
+  wm_cursors.hh
   wm_draw.h
   wm_event_system.h
-  wm_event_types.h
-  wm_files.h
-  wm_surface.h
+  wm_event_types.hh
+  wm_files.hh
+  wm_surface.hh
   wm_window.h
   intern/wm_platform_support.h
   intern/wm_window_private.h
@@ -94,8 +94,8 @@ set(SRC
   gizmo/wm_gizmo_fn.h
   gizmo/wm_gizmo_wmapi.h
   gizmo/intern/wm_gizmo_intern.h
-  message_bus/intern/wm_message_bus_intern.h
-  message_bus/wm_message_bus.h
+  message_bus/intern/wm_message_bus_intern.hh
+  message_bus/wm_message_bus.hh
 )
 
 set(LIB

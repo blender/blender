@@ -30,8 +30,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_mesh.h"
 

@@ -25,7 +25,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_object.h"
 

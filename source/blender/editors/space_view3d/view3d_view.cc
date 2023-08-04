@@ -34,10 +34,10 @@
 #include "GPU_select.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "DRW_engine.h"
 

@@ -60,8 +60,8 @@
 #include "ED_render.h"
 #include "ED_transform.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "BLI_threads.h"
 

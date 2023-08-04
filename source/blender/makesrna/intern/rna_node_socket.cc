@@ -14,7 +14,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 const EnumPropertyItem rna_enum_node_socket_type_items[] = {
     {SOCK_CUSTOM, "CUSTOM", 0, "Custom", ""},

@@ -15,7 +15,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_view2d.h"
 
@@ -23,7 +23,7 @@
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"

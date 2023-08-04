@@ -27,7 +27,7 @@
 
 #include "RNA_access.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "NOD_add_node_search.hh"
 

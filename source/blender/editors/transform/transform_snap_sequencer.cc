@@ -15,7 +15,7 @@
 
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_transform.h"
 
 #include "UI_view2d.h"

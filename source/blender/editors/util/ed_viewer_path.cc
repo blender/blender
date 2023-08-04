@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ED_viewer_path.hh"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -19,7 +19,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 namespace blender::ed::viewer_path {
 

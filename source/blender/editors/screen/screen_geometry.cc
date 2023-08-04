@@ -19,11 +19,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "screen_intern.h"
 

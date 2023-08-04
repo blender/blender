@@ -30,10 +30,10 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_mesh.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_uvedit.h" /* Own include. */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "uvedit_clipboard_graph_iso.hh"
 #include "uvedit_intern.h" /* linker, extern "C" */

@@ -16,10 +16,10 @@
 
 #include "PIL_time.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_material_types.h"
@@ -54,7 +54,7 @@
 
 #include "object_intern.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "UI_interface.h"
 

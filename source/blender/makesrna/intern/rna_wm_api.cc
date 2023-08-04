@@ -21,11 +21,11 @@
 
 #include "UI_interface.h"
 
-#include "wm_cursors.h"
-#include "wm_event_types.h"
+#include "wm_cursors.hh"
+#include "wm_event_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "rna_internal.h" /* own include */
 
@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_window_cursor_items[] = {
 #  include "BKE_context.h"
 #  include "BKE_undo_system.h"
 
-#  include "WM_types.h"
+#  include "WM_types.hh"
 
 /* Needed since RNA doesn't use `const` in function signatures. */
 static bool rna_KeyMapItem_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)

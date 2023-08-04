@@ -28,8 +28,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -139,7 +139,7 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 /**
  * Job types for use in the `bpy.app.is_job_running(job_type)` call.
  *
- * This is a subset of the `WM_JOB_TYPE_...` anonymous enum defined in `WM_api.h`. It is
+ * This is a subset of the `WM_JOB_TYPE_...` anonymous enum defined in `WM_api.hh`. It is
  * intentionally kept as a subset, such that by default how jobs are handled is kept as an
  * "internal implementation detail" of Blender, rather than a public, reliable part of the API.
  *
@@ -545,12 +545,12 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_workspace_types.h"
 
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
 #  include "UI_interface.h"
 

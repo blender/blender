@@ -46,8 +46,8 @@
 #include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph_query.h"
 

@@ -20,7 +20,7 @@
 
 #include "ED_clip.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

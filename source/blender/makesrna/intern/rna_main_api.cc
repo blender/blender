@@ -92,7 +92,7 @@
 #  include "DNA_world_types.h"
 
 #  include "ED_node.h"
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
 #  include "BLT_translation.h"
 
@@ -100,8 +100,8 @@
 #    include "BPY_extern.h"
 #  endif
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static void rna_idname_validate(const char *name, char *r_name)
 {

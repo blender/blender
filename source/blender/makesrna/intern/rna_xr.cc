@@ -19,7 +19,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "rna_internal.h"
 
@@ -27,7 +27,7 @@
 
 #  include "BLI_listbase.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 /* -------------------------------------------------------------------- */
 

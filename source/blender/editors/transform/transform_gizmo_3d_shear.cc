@@ -17,8 +17,8 @@
 
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
-#include "ED_screen.h"
-#include "WM_api.h"
+#include "ED_screen.hh"
+#include "WM_api.hh"
 
 #include "UI_resources.h"
 

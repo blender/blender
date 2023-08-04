@@ -41,10 +41,10 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm_event_system.h"
-#include "wm_event_types.h"
+#include "wm_event_types.hh"
 
 struct wmKeyMapItemFind_Params {
   bool (*filter_fn)(const wmKeyMap *km, const wmKeyMapItem *kmi, void *user_data);

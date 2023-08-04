@@ -8,8 +8,8 @@
  * Generic helper utilities that aren't associated with a particular area.
  */
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
 

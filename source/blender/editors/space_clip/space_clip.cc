@@ -34,7 +34,7 @@
 #include "ED_anim_api.h" /* for timeline cursor drawing */
 #include "ED_clip.h"
 #include "ED_mask.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_time_scrub_ui.h"
 #include "ED_uvedit.h" /* just for ED_image_draw_cursor */
@@ -43,8 +43,8 @@
 
 #include "GPU_matrix.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

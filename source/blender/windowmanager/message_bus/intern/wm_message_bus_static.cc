@@ -16,9 +16,9 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "WM_message.h"
-#include "WM_types.h"
-#include "message_bus/intern/wm_message_bus_intern.h"
+#include "WM_message.hh"
+#include "WM_types.hh"
+#include "message_bus/intern/wm_message_bus_intern.hh"
 
 /* -------------------------------------------------------------------------- */
 

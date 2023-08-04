@@ -10,11 +10,7 @@
 
 #include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
-#include "WM_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "WM_types.hh"
 
 struct EnumPropertyItem;
 
@@ -210,7 +206,3 @@ wmKeyMapItem *WM_key_event_operator_from_keymap(struct wmKeyMap *keymap,
                                                 short exclude_mask);
 
 const char *WM_bool_as_string(bool test);
-
-#ifdef __cplusplus
-}
-#endif

@@ -54,7 +54,7 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 struct EffectInfo {
   const char *struct_name;
@@ -96,7 +96,7 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 #  include "BKE_movieclip.h"
 #  include "BKE_report.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

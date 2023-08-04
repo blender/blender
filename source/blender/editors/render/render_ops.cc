@@ -12,7 +12,7 @@
 
 #include "ED_render.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "render_intern.hh" /* own include */
 

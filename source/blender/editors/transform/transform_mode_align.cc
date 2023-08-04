@@ -12,7 +12,7 @@
 
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BLT_translation.h"
 

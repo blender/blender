@@ -38,8 +38,8 @@
 
 #include "UI_interface.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "screen_intern.h"
 

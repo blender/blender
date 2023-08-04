@@ -13,7 +13,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {

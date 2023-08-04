@@ -22,7 +22,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
@@ -38,8 +38,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm_xr_intern.h"
 

@@ -18,7 +18,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -34,7 +34,7 @@
 
 #  include "ED_node.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 {

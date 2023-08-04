@@ -26,11 +26,11 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_anim_api.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_sequencer.h"
 #include "ED_time_scrub_ui.h"
 

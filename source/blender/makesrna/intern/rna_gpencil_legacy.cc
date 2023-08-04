@@ -29,7 +29,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* parent type */
 static const EnumPropertyItem parent_type_items[] = {
@@ -152,7 +152,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"

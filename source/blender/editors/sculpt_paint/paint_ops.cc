@@ -37,11 +37,11 @@
 
 #include "ED_image.h"
 #include "ED_paint.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

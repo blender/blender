@@ -50,7 +50,7 @@
 #include "SEQ_transform.h"
 
 #include "UI_interface.h"
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "screen_intern.h"
 

@@ -26,7 +26,7 @@
 
 #include "DRW_engine.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 
 #include "GHOST_C-api.h"
@@ -38,11 +38,11 @@
 
 #include "PIL_time.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm_event_system.h"
-#include "wm_surface.h"
+#include "wm_surface.hh"
 #include "wm_window.h"
 #include "wm_xr_intern.h"
 

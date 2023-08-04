@@ -16,7 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "BKE_text.h"
 

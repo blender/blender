@@ -22,7 +22,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

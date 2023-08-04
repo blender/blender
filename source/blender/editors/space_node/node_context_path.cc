@@ -21,7 +21,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface.hh"

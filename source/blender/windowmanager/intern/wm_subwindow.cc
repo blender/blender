@@ -17,7 +17,7 @@
 #include "GPU_matrix.h"
 #include "GPU_viewport.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 void wmViewport(const rcti *winrct)
 {

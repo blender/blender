@@ -22,8 +22,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_boidrule_type_items[] = {
     {eBoidRuleType_Goal,

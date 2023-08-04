@@ -27,7 +27,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
     {MOD_DYNAMICPAINT_TYPE_CANVAS, "CANVAS", 0, "Canvas", ""},

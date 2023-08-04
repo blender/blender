@@ -35,7 +35,7 @@
 #include "GHOST_C-api.h"
 
 #include "ED_node.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "GPU_batch_presets.h"
@@ -50,13 +50,13 @@
 
 #include "RE_engine.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_event_system.h"
-#include "wm_surface.h"
+#include "wm_surface.hh"
 #include "wm_window.h"
 
 #include "UI_resources.h"

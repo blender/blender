@@ -18,7 +18,7 @@
 #include "BLI_sys_types.h" /* size_t */
 #include "BLI_utildefines.h"
 #include "UI_interface_icons.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

@@ -20,7 +20,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GHOST_C-api.h"
 
@@ -28,9 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "wm_surface.h"
+#include "wm_surface.hh"
 #include "wm_xr_intern.h"
 
 struct wmXrErrorHandlerData {

@@ -30,7 +30,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_curve.h"
 #include "ED_object.h" /* own include */

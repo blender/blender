@@ -8,11 +8,11 @@
 
 #include "ED_curves.hh"
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "BKE_asset.h"
 #include "BKE_attribute_math.hh"

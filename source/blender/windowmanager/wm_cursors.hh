@@ -11,10 +11,6 @@
 struct wmEvent;
 struct wmWindow;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum WMCursorType {
   WM_CURSOR_DEFAULT = 1,
   WM_CURSOR_TEXT_EDIT,
@@ -67,7 +63,3 @@ typedef enum WMCursorType {
 
 void wm_init_cursor_data(void);
 bool wm_cursor_arrow_move(struct wmWindow *win, const struct wmEvent *event);
-
-#ifdef __cplusplus
-}
-#endif

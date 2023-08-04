@@ -29,7 +29,7 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "MEM_guardedalloc.h"
 

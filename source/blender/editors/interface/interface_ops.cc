@@ -53,8 +53,8 @@
 
 #include "interface_intern.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_object.h"
 #include "ED_paint.h"
@@ -65,7 +65,7 @@
 /* only for UI_OT_editsource */
 #include "BKE_main.h"
 #include "BLI_ghash.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_text.h"
 
 using namespace blender::ui;

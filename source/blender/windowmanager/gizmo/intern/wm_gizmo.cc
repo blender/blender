@@ -23,11 +23,11 @@
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"

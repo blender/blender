@@ -51,11 +51,11 @@
 #include "ED_keyframes_edit.h" /* XXX move the select modes out of there! */
 #include "ED_markers.h"
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Channel helper functions

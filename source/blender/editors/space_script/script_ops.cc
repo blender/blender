@@ -9,7 +9,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "script_intern.h"
 

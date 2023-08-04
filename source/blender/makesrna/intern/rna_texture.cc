@@ -33,8 +33,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem texture_filter_items[] = {

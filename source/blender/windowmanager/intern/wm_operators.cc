@@ -77,7 +77,7 @@
 #include "ED_fileselect.h"
 #include "ED_gpencil_legacy.h"
 #include "ED_numinput.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_undo.h"
 #include "ED_view3d.h"
 
@@ -91,14 +91,14 @@
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_event_system.h"
-#include "wm_event_types.h"
-#include "wm_files.h"
+#include "wm_event_types.hh"
+#include "wm_files.hh"
 #include "wm_window.h"
 #ifdef WITH_XR_OPENXR
 #  include "wm_xr.h"

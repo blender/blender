@@ -40,10 +40,10 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 

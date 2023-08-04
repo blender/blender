@@ -27,7 +27,7 @@
 
 #include "UI_resources.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* Bone and Group Color Sets */
 const EnumPropertyItem rna_enum_color_sets_items[] = {
@@ -80,7 +80,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #  include "ED_armature.h"
 #  include "ED_object.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "RNA_access.h"
 

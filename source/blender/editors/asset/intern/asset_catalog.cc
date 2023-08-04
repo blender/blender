@@ -21,7 +21,7 @@
 #include "ED_asset_catalog.h"
 #include "ED_asset_catalog.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 using namespace blender;
 using namespace blender::asset_system;

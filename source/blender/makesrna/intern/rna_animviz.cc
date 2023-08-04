@@ -21,7 +21,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* Which part of bone(s) get baked */
 /* TODO: icons? */

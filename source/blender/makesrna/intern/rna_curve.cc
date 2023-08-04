@@ -23,7 +23,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem beztriple_handle_type_items[] = {
@@ -161,7 +161,7 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "MEM_guardedalloc.h"
 

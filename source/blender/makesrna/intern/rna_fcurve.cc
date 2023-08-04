@@ -25,7 +25,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
@@ -179,7 +179,7 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
 
 #ifdef RNA_RUNTIME
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
 {

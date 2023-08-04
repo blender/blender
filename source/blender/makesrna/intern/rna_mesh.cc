@@ -30,7 +30,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_mesh_delimit_mode_items[] = {
     {BMO_DELIM_NORMAL, "NORMAL", 0, "Normal", "Delimit by face directions"},
@@ -63,7 +63,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "ED_mesh.h" /* XXX Bad level call */
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "rna_mesh_utils.hh"
 

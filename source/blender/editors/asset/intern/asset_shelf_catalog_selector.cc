@@ -26,7 +26,7 @@
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "asset_shelf.hh"
 

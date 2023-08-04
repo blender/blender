@@ -69,7 +69,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_vfont.h"
 
 #  include "ED_object.h"
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
 #  include "DNA_curve_types.h"
 #  include "DNA_mesh_types.h"

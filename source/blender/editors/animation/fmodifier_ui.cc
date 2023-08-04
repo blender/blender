@@ -30,8 +30,8 @@
 #include "BKE_fcurve.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"

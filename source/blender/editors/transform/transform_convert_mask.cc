@@ -21,8 +21,8 @@
 #include "ED_keyframing.h"
 #include "ED_mask.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

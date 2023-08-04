@@ -12,8 +12,8 @@
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "DNA_space_types.h"
 

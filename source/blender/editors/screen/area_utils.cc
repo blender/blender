@@ -18,9 +18,9 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "WM_message.h"
+#include "WM_message.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"

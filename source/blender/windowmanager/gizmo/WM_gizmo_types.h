@@ -8,7 +8,7 @@
  * \name Gizmo Types
  * \brief Gizmo defines for external use.
  *
- * Only included in WM_types.h and lower level files.
+ * Only included in WM_types.hh and lower level files.
  */
 
 #pragma once

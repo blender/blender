@@ -30,10 +30,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph_query.h"
 

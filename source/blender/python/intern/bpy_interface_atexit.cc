@@ -17,7 +17,7 @@
 #include "bpy.h" /* own include */
 #include "bpy_capi_utils.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 static PyObject *bpy_atexit(PyObject * /*self*/, PyObject * /*args*/, PyObject * /*kw*/)
 {

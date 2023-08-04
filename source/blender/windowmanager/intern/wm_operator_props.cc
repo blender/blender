@@ -27,8 +27,8 @@
 
 #include "ED_select_utils.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 void WM_operator_properties_confirm_or_exec(wmOperatorType *ot)
 {

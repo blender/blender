@@ -20,7 +20,7 @@
 
 #include "ED_armature.h"
 #include "ED_gizmo_library.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_resources.h"
 
@@ -28,9 +28,9 @@
 
 #include "RNA_access.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 

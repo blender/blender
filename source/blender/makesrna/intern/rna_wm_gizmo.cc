@@ -25,7 +25,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 /* enum definitions */
@@ -35,11 +35,11 @@
 
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DNA_workspace_types.h"
 
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
 #  include "UI_interface.h"
 

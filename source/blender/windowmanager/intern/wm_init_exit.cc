@@ -82,16 +82,16 @@
 
 #include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "wm.h"
-#include "wm_cursors.h"
+#include "wm_cursors.hh"
 #include "wm_event_system.h"
-#include "wm_files.h"
+#include "wm_files.hh"
 #include "wm_platform_support.h"
-#include "wm_surface.h"
+#include "wm_surface.hh"
 #include "wm_window.h"
 
 #include "ED_anim_api.h"
@@ -102,10 +102,10 @@
 #include "ED_keyframing.h"
 #include "ED_node.h"
 #include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 #include "ED_view3d.h"
 
 #include "BLF_api.h"

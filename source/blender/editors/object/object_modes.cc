@@ -33,8 +33,8 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -44,7 +44,7 @@
 
 #include "ED_armature.h"
 #include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_transform_snap_object_context.h"
 #include "ED_undo.h"
 #include "ED_view3d.h"

@@ -14,11 +14,11 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "RNA_access.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "PIL_time.h"
 

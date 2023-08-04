@@ -23,8 +23,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"

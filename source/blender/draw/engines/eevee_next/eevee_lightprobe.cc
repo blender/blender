@@ -10,7 +10,7 @@
  */
 
 #include "DNA_lightprobe_types.h"
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "eevee_instance.hh"
 #include "eevee_lightprobe.hh"

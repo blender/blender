@@ -16,13 +16,9 @@
 
 #include "DNA_object_enums.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "BLI_compiler_attrs.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ARegion;
 struct Depsgraph;
@@ -726,7 +722,3 @@ typedef enum eScreenCycle {
   SPACE_CONTEXT_CYCLE_PREV,
   SPACE_CONTEXT_CYCLE_NEXT,
 } eScreenCycle;
-
-#ifdef __cplusplus
-}
-#endif

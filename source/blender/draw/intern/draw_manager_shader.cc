@@ -27,8 +27,8 @@
 #include "GPU_material.h"
 #include "GPU_shader.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm_window.h"
 

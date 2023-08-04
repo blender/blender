@@ -67,7 +67,7 @@
 
 #include "BLT_translation.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -81,7 +81,7 @@
 #include "MOD_ui_common.hh"
 
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_spreadsheet.h"
 #include "ED_undo.h"
 #include "ED_viewer_path.hh"

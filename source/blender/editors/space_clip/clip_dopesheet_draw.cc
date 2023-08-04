@@ -17,9 +17,9 @@
 #include "BKE_movieclip.h"
 
 #include "ED_clip.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

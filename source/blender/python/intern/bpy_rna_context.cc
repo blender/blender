@@ -15,8 +15,8 @@
 
 #include "BKE_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bpy_rna_context.h"
 

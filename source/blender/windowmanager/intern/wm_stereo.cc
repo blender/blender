@@ -24,15 +24,15 @@
 
 #include "GHOST_C-api.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_immediate.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_window.h"

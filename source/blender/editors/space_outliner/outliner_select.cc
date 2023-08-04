@@ -47,7 +47,7 @@
 #include "ED_buttons.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 #include "ED_sequencer.h"
 #include "ED_text.h"
@@ -56,8 +56,8 @@
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"

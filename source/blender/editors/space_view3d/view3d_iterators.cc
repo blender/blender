@@ -38,7 +38,7 @@
 #include "bmesh.h"
 
 #include "ED_armature.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 /* -------------------------------------------------------------------- */

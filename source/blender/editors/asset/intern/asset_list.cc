@@ -27,7 +27,7 @@
 
 #include "BKE_preferences.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* XXX uses private header of file-space. */
 #include "../space_file/file_indexer.hh"
@@ -36,7 +36,7 @@
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "asset_library_reference.hh"
 
 namespace blender::ed::asset {

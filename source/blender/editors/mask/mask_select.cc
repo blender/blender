@@ -22,8 +22,8 @@
 
 #include "DNA_mask_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_clip.h"
 #include "ED_mask.h" /* own include */

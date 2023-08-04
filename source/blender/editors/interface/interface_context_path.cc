@@ -12,7 +12,7 @@
 
 #include "RNA_access.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface.hh"
@@ -20,7 +20,7 @@
 
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 namespace blender::ui {
 

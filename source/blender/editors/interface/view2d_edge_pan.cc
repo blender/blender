@@ -11,7 +11,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -23,8 +23,8 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "view2d_intern.hh"
 

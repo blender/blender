@@ -41,14 +41,14 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_datafiles.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm.h"
 

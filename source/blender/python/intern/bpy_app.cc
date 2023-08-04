@@ -51,8 +51,8 @@
 #include "RNA_enum_types.h" /* For `rna_enum_wm_job_type_items`. */
 
 /* for notifiers */
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"

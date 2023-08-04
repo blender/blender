@@ -26,7 +26,7 @@
 #include "BKE_volume.h"
 #include "BKE_volume_render.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "DEG_depsgraph_query.h"
 

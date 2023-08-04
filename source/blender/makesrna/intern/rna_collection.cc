@@ -19,7 +19,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_collection_color_items[] = {
     {COLLECTION_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
@@ -50,7 +50,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "RNA_access.h"
 

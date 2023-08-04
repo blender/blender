@@ -22,9 +22,9 @@
 #include "BKE_unit.h"
 
 #include "ED_node.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "UI_interface.h"
 

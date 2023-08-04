@@ -38,8 +38,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_path.h"
@@ -47,7 +47,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_undo.h"
 
 #include "UI_interface.h"

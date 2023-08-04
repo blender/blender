@@ -31,8 +31,8 @@
 #include "BKE_scene.h"
 #include "BLI_array_utils.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 
 #include "ED_armature.h"
 #include "ED_curves.hh"
@@ -41,7 +41,7 @@
 #include "ED_gpencil_legacy.h"
 #include "ED_object.h"
 #include "ED_particle.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_resources.h"
 

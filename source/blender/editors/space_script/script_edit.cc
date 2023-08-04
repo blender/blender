@@ -17,14 +17,14 @@
 
 #include "BLT_translation.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm_event_system.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "script_intern.h" /* own include */
 

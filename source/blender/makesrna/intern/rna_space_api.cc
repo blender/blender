@@ -18,7 +18,7 @@
 #  include "BKE_global.h"
 
 #  include "ED_fileselect.h"
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 #  include "ED_text.h"
 
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,

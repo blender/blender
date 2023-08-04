@@ -24,8 +24,8 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 static GHash *menutypes_hash = nullptr;
 

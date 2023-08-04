@@ -34,8 +34,8 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static int rna_Meta_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {

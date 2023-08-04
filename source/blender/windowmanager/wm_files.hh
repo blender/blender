@@ -13,10 +13,6 @@ struct wmFileReadPost_Params;
 struct wmGenericCallback;
 struct wmOperatorType;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* wm_files.cc */
 
 void wm_history_file_read(void);
@@ -121,7 +117,3 @@ void WM_OT_append(struct wmOperatorType *ot);
 
 void WM_OT_lib_relocate(struct wmOperatorType *ot);
 void WM_OT_lib_reload(struct wmOperatorType *ot);
-
-#ifdef __cplusplus
-}
-#endif

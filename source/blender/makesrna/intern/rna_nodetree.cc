@@ -50,7 +50,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -592,7 +592,7 @@ static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
 #  include "RE_pipeline.h"
 
 #  include "DNA_scene_types.h"
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 extern "C" {
 extern FunctionRNA rna_NodeTree_poll_func;

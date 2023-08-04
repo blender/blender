@@ -32,8 +32,8 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "wm.h"
 #include "wm_event_system.h"

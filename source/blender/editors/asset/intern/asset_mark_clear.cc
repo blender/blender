@@ -27,8 +27,8 @@
 #include "ED_asset_mark_clear.h"
 #include "ED_asset_type.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 bool ED_asset_mark_id(ID *id)
 {

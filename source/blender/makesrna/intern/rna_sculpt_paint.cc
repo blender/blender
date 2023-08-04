@@ -31,8 +31,8 @@
 
 #include "ED_image.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
     {PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},

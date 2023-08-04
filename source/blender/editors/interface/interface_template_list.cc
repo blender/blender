@@ -22,7 +22,7 @@
 #include "BLT_translation.h"
 
 #include "ED_asset.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -33,7 +33,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "interface_intern.hh"
 

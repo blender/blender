@@ -23,7 +23,7 @@
 
 #include "ED_clip.h"
 #include "ED_mask.h" /* own include */
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 
 #include "BIF_glutil.h"

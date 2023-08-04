@@ -36,8 +36,8 @@
 #include "BKE_paint.hh"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_path.h"
@@ -51,7 +51,7 @@
 #  include "BPY_extern_run.h"
 #endif
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"

@@ -19,7 +19,7 @@
 #include "BKE_particle.h"
 
 #include "ED_image.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_batch.h"
 #include "GPU_debug.h"

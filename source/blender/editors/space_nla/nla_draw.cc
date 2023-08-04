@@ -37,7 +37,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

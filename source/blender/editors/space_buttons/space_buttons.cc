@@ -23,13 +23,13 @@
 #include "BKE_shader_fx.h"
 
 #include "ED_buttons.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_view3d.h" /* To draw toolbar UI. */
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -31,7 +31,7 @@
 
 #include "UI_interface.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 struct bContext;
 struct uiBlock;

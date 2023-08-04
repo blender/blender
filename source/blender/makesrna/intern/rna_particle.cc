@@ -34,8 +34,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem part_from_items[] = {

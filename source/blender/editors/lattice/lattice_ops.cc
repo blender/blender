@@ -8,10 +8,10 @@
 
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "ED_lattice.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "lattice_intern.h"
 

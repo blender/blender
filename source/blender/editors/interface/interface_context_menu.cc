@@ -28,7 +28,7 @@
 
 #include "ED_asset.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 #include "UI_interface.hh"
@@ -44,8 +44,8 @@
 #  include "BPY_extern_run.h"
 #endif
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* This hack is needed because we don't have a good way to
  * re-reference keymap items once added: #42944 */

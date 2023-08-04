@@ -31,8 +31,8 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "FX_ui_common.h" /* Self include */
 

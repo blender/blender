@@ -33,12 +33,12 @@
 
 #include "ED_lattice.h"
 #include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 

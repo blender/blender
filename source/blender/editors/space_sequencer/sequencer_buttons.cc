@@ -20,7 +20,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_sequencer.h"
 
 #include "IMB_imbuf.h"

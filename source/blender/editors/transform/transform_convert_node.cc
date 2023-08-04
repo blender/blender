@@ -29,7 +29,7 @@
 #include "transform_convert.hh"
 #include "transform_snap.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 struct TransCustomDataNode {
   View2DEdgePanData edgepan_data;

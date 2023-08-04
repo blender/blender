@@ -36,14 +36,14 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 

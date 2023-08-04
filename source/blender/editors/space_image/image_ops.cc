@@ -69,10 +69,10 @@
 #include "ED_mask.h"
 #include "ED_paint.h"
 #include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
 
@@ -80,8 +80,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "PIL_time.h"
 

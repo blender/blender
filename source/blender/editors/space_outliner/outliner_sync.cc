@@ -32,8 +32,8 @@
 
 #include "SEQ_select.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "outliner_intern.hh"
 

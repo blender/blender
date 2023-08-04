@@ -30,14 +30,14 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "BLF_api.h"
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "draw_manager_text.h"
 #include "intern/bmesh_polygon.h"

@@ -27,7 +27,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_view3d.h"
@@ -38,7 +38,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #define STATE_INTERN_GET(state) \
 \

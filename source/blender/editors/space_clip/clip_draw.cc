@@ -30,8 +30,8 @@
 #include "ED_clip.h"
 #include "ED_gpencil_legacy.h"
 #include "ED_mask.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
 #include "BIF_glutil.h"
 
@@ -40,7 +40,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

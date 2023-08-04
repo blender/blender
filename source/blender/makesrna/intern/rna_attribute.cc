@@ -25,7 +25,7 @@
 
 #include "BLT_translation.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating-point value"},
@@ -142,7 +142,7 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #  include "BLT_translation.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 /* Attribute */
 

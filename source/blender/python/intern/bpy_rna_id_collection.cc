@@ -27,8 +27,8 @@
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
 #include "bpy_rna_id_collection.h"

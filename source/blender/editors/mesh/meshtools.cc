@@ -52,8 +52,8 @@
 #include "ED_object.h"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 using blender::float3;
 using blender::int2;

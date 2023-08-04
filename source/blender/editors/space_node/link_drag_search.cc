@@ -24,7 +24,7 @@
 
 #include "RNA_access.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DEG_depsgraph_build.h"
 

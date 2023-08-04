@@ -24,8 +24,8 @@
 
 #include "ED_asset.h"
 #include "ED_asset_catalog.hh"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.h"
 
@@ -35,7 +35,7 @@
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "DNA_space_types.h"
 

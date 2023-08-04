@@ -17,7 +17,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd.h"
 

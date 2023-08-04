@@ -35,8 +35,8 @@
 
 #include "NOD_texture.h"
 
-#include "WM_api.h"
-#include "wm_cursors.h"
+#include "WM_api.hh"
+#include "wm_cursors.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"

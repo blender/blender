@@ -23,8 +23,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"

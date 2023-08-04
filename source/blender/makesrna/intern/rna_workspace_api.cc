@@ -27,7 +27,7 @@
 
 #  include "BKE_paint.hh"
 
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
 static void rna_WorkSpaceTool_setup(ID *id,
                                     bToolRef *tref,

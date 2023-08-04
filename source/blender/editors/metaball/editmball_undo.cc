@@ -34,10 +34,10 @@
 #include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.mball"};

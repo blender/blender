@@ -27,7 +27,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

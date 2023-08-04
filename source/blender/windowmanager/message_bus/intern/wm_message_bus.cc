@@ -17,10 +17,10 @@
 
 #include "BLI_ghash.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "message_bus/intern/wm_message_bus_intern.h"
-#include "message_bus/wm_message_bus.h"
+#include "message_bus/intern/wm_message_bus_intern.hh"
+#include "message_bus/wm_message_bus.hh"
 
 /* -------------------------------------------------------------------------- */
 /** \name Public API

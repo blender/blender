@@ -39,9 +39,9 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_event_system.h"
@@ -51,7 +51,7 @@
 #endif
 
 #include "BKE_undo_system.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

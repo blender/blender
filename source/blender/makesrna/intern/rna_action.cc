@@ -26,7 +26,7 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -38,7 +38,7 @@
 
 #  include "ED_keyframing.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 {

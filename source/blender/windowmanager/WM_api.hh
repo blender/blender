@@ -17,12 +17,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "DNA_windowmanager_types.h"
-#include "WM_keymap.h"
-#include "WM_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "WM_keymap.hh"
+#include "WM_types.hh"
 
 struct ARegion;
 struct GHashIterator;
@@ -1465,13 +1461,11 @@ struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short id
  */
 bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
-#ifdef __cplusplus
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
                                        int /* #eAssetImportMethod */ import_type);
-#endif
 
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int idcode);
@@ -1500,13 +1494,11 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
 
 struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *drag);
 
-#ifdef __cplusplus
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 void WM_drag_add_asset_list_item(wmDrag *drag,
                                  const blender::asset_system::AssetRepresentation *asset);
-#endif
 
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
@@ -2050,7 +2042,3 @@ XrActionMapBinding *WM_xr_actionmap_binding_add_copy(XrActionMapItem *ami,
 bool WM_xr_actionmap_binding_remove(XrActionMapItem *ami, XrActionMapBinding *amb);
 XrActionMapBinding *WM_xr_actionmap_binding_find(XrActionMapItem *ami, const char *name);
 #endif /* WITH_XR_OPENXR */
-
-#ifdef __cplusplus
-}
-#endif

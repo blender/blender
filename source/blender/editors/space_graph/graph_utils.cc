@@ -24,7 +24,7 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "UI_interface.h"
 
 #include "RNA_access.h"

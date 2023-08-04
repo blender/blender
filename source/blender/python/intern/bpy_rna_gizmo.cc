@@ -16,8 +16,8 @@
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
 #include "bpy_rna_gizmo.h"

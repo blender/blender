@@ -98,9 +98,9 @@
 #include "ED_image.h"
 #include "ED_outliner.h"
 #include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 #include "ED_view3d.h"
 #include "ED_view3d_offscreen.h"
 
@@ -124,14 +124,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "wm.h"
 #include "wm_event_system.h"
-#include "wm_files.h"
+#include "wm_files.hh"
 #include "wm_window.h"
 
 #include "CLG_log.h"

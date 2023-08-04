@@ -25,13 +25,13 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "ED_mesh.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "intern/bmesh_private.h"
 

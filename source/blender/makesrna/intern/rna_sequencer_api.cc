@@ -50,7 +50,7 @@
 #  include "SEQ_sequencer.h"
 #  include "SEQ_time.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static StripElem *rna_Sequence_strip_elem_from_frame(ID *id, Sequence *self, int timeline_frame)
 {

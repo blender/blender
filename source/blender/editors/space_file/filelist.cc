@@ -64,7 +64,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -72,8 +72,8 @@
 
 #include "PIL_time.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_interface_icons.h"
 #include "UI_resources.h"

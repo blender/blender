@@ -17,7 +17,7 @@
 #include "BKE_nla.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "UI_interface.h"
 

@@ -33,8 +33,8 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  ifdef WITH_ALEMBIC
 #    include "ABC_alembic.h"

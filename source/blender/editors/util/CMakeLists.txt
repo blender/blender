@@ -74,7 +74,7 @@ set(SRC
   ../include/ED_physics.h
   ../include/ED_render.h
   ../include/ED_scene.h
-  ../include/ED_screen.h
+  ../include/ED_screen.hh
   ../include/ED_screen_types.h
   ../include/ED_sculpt.h
   ../include/ED_select_utils.h
@@ -89,7 +89,7 @@ set(SRC
   ../include/ED_transverts.h
   ../include/ED_undo.h
   ../include/ED_userpref.h
-  ../include/ED_util.h
+  ../include/ED_util.hh
   ../include/ED_util_imbuf.h
   ../include/ED_uvedit.h
   ../include/ED_view3d.h

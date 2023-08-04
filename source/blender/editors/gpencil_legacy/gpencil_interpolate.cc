@@ -41,15 +41,15 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
 #include "ED_gpencil_legacy.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "DEG_depsgraph.h"
 

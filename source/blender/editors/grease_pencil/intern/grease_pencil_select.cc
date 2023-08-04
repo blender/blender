@@ -17,14 +17,14 @@
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 namespace blender::ed::greasepencil {
 

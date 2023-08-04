@@ -33,12 +33,12 @@
 #include "ED_keyframes_edit.h"
 #include "ED_keyframing.h"
 #include "ED_particle.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_screen_types.h"
 
 #include "UI_view2d.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph_build.h"
 

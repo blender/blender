@@ -17,7 +17,7 @@
 #include "BKE_image.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "RNA_access.h"
 

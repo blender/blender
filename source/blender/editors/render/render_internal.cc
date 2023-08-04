@@ -48,12 +48,12 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
 #include "BIF_glutil.h"
 

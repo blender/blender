@@ -17,7 +17,7 @@
  * to the scene buffer. We softly blend between SMAA and TAA to avoid really harsh transitions.
  */
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BLI_jitter_2d.h"
 

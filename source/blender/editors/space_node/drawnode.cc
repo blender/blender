@@ -51,8 +51,8 @@
 #include "ED_node.h"
 #include "ED_space_api.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

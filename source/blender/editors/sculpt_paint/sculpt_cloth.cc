@@ -34,8 +34,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "sculpt_intern.hh"
 

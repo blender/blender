@@ -51,7 +51,7 @@
 
 #include "DRW_engine.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "pipeline.hh"
 #include "render_result.h"

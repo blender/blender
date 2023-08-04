@@ -14,14 +14,14 @@
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
 #  include "BKE_idprop.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DEG_depsgraph_build.h"
 

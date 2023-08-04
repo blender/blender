@@ -21,7 +21,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_view3d.h"
 

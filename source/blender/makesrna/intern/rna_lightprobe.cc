@@ -15,7 +15,7 @@
 
 #include "DNA_lightprobe_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -27,7 +27,7 @@
 #  include "DNA_collection_types.h"
 #  include "DNA_object_types.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static void rna_LightProbe_recalc(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {

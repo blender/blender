@@ -18,10 +18,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "curves_sculpt_intern.hh"
 

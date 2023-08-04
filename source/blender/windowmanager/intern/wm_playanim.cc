@@ -66,7 +66,7 @@
 
 #include "wm_window_private.h"
 
-#include "WM_api.h" /* only for WM_main_playanim */
+#include "WM_api.hh" /* only for WM_main_playanim */
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Device.h>

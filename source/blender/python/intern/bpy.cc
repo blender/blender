@@ -31,7 +31,7 @@
 
 #include "GPU_state.h"
 
-#include "WM_api.h" /* For #WM_ghost_backend */
+#include "WM_api.hh" /* For #WM_ghost_backend */
 
 #include "bpy.h"
 #include "bpy_app.h"

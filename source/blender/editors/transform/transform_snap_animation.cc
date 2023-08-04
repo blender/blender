@@ -14,7 +14,7 @@
 #include "BKE_nla.h"
 
 #include "ED_markers.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"

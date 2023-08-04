@@ -25,8 +25,8 @@
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 static const EnumPropertyItem effector_shape_items[] = {
     {PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},

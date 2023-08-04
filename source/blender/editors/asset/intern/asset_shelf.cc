@@ -20,7 +20,7 @@
 #include "DNA_screen_types.h"
 
 #include "ED_asset_list.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "RNA_prototypes.h"
 
@@ -30,7 +30,7 @@
 #include "UI_tree_view.hh"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "ED_asset_shelf.h"
 #include "asset_shelf.hh"

@@ -48,8 +48,8 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static char *rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {

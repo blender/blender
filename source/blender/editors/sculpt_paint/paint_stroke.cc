@@ -32,13 +32,13 @@
 #include "BKE_image.h"
 #include "BKE_paint.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "IMB_imbuf_types.h"

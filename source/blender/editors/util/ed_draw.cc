@@ -28,9 +28,9 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
-#include "ED_util.h"
+#include "ED_util.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -40,8 +40,8 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Slider

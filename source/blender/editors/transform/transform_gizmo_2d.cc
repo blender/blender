@@ -29,14 +29,14 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_image.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_uvedit.h"
 
 #include "SEQ_channels.h"

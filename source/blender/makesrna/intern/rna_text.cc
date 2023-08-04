@@ -23,7 +23,7 @@
 
 #include "DNA_text_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 

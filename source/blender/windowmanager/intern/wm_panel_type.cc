@@ -23,7 +23,7 @@
 
 #include "BKE_screen.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 static GHash *g_paneltypes_hash = nullptr;
 

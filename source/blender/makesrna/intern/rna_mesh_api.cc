@@ -33,7 +33,7 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float threshold)
 {

@@ -18,7 +18,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 namespace blender::ed::greasepencil {
 

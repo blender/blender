@@ -32,7 +32,7 @@
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_particle_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include <iostream>
 

@@ -37,10 +37,10 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h" /* own include */
-#include "WM_types.h"
+#include "WM_types.hh"
 
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace * /*workspace*/, bToolRef *tref);
 static bToolRef *toolsystem_reinit_ensure_toolref(bContext *C,

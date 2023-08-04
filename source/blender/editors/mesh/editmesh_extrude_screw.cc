@@ -20,10 +20,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "ED_mesh.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h" /* own include */

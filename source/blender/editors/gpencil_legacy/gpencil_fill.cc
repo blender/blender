@@ -41,7 +41,7 @@
 
 #include "ED_gpencil_legacy.h"
 #include "ED_keyframing.h"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
@@ -58,8 +58,8 @@
 
 #include "UI_interface.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

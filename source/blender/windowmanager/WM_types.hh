@@ -112,24 +112,16 @@ struct wmWindowManager;
 
 /* exported types for WM */
 #include "gizmo/WM_gizmo_types.h"
-#include "wm_cursors.h"
-#include "wm_event_types.h"
+#include "wm_cursors.hh"
+#include "wm_event_types.hh"
 
 /* Include external gizmo API's */
 #include "gizmo/WM_gizmo_api.h"
 
-#ifdef __cplusplus
 namespace blender::asset_system {
 class AssetRepresentation;
 }
 using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
-#else
-typedef struct AssetRepresentationHandle AssetRepresentationHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef void (*wmGenericUserDataFreeFn)(void *data);
 
@@ -264,7 +256,7 @@ enum {
 
 /**
  * #wmKeyMapItem.type
- * NOTE: most types are defined in `wm_event_types.h`.
+ * NOTE: most types are defined in `wm_event_types.hh`.
  */
 enum {
   KM_TEXTINPUT = -2,
@@ -732,7 +724,7 @@ typedef struct wmEvent {
 
   /* Custom data. */
 
-  /** Custom data type, stylus, 6-DOF, see `wm_event_types.h`. */
+  /** Custom data type, stylus, 6-DOF, see `wm_event_types.hh`. */
   short custom;
   short customdata_free;
   /**
@@ -1326,7 +1318,3 @@ extern struct CLG_LogRef *WM_LOG_KEYMAPS;
 extern struct CLG_LogRef *WM_LOG_TOOLS;
 extern struct CLG_LogRef *WM_LOG_MSGBUS_PUB;
 extern struct CLG_LogRef *WM_LOG_MSGBUS_SUB;
-
-#ifdef __cplusplus
-}
-#endif

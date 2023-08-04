@@ -26,7 +26,7 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "RNA_define.h"
 

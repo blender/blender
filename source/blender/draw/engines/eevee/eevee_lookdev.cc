@@ -18,7 +18,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_material.h"
 
