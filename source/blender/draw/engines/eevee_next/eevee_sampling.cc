@@ -150,6 +150,10 @@ void Sampling::step()
     data_.dimensions[SAMPLING_RAYTRACE_U] = r[0];
     data_.dimensions[SAMPLING_RAYTRACE_V] = r[1];
     data_.dimensions[SAMPLING_RAYTRACE_W] = r[2];
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_VOLUME_U] = r[0];
+    data_.dimensions[SAMPLING_VOLUME_V] = r[1];
+    data_.dimensions[SAMPLING_VOLUME_W] = r[2];
   }
   {
     /* Using leaped Halton sequence so we can reused the same primes. */

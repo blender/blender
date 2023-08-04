@@ -113,6 +113,10 @@
 #define IRRADIANCE_GRID_BRICK_SIZE 4 /* In each dimension, so 4x4x4 brick size. */
 #define IRRADIANCE_BOUNDS_GROUP_SIZE 64
 
+/* Volumes. */
+#define VOLUME_GROUP_SIZE 4
+#define VOLUME_INTEGRATION_GROUP_SIZE 8
+
 /* Resource bindings. */
 
 /* Textures. */
@@ -125,6 +129,8 @@
 #define SSS_TRANSMITTANCE_TEX_SLOT 6
 #define IRRADIANCE_ATLAS_TEX_SLOT 7
 #define REFLECTION_PROBE_TEX_SLOT 8
+#define VOLUME_SCATTERING_TEX_SLOT 9
+#define VOLUME_TRANSMITTANCE_TEX_SLOT 10
 /* Only during shadow rendering. */
 #define SHADOW_RENDER_MAP_SLOT 4
 
@@ -134,6 +140,11 @@
 #define RBUFS_CRYPTOMATTE_SLOT 2
 #define GBUF_CLOSURE_SLOT 3
 #define GBUF_COLOR_SLOT 4
+/* Volume properties pass do not write to rbufs. Reuse the same bind points. */
+#define VOLUME_PROP_SCATTERING_IMG_SLOT 0
+#define VOLUME_PROP_EXTINCTION_IMG_SLOT 1
+#define VOLUME_PROP_EMISSION_IMG_SLOT 2
+#define VOLUME_PROP_PHASE_IMG_SLOT 3
 
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
@@ -143,6 +154,7 @@
 #define HIZ_BUF_SLOT 3
 #define IRRADIANCE_GRID_BUF_SLOT 4
 #define AO_BUF_SLOT 5
+#define VOLUMES_INFO_BUF_SLOT 6
 /* SLOT 6 is used by render shaders (Film, DoF and Motion Blur). Need to check if it should be
  * assigned a different slot. */
 #define REFLECTION_PROBE_BUF_SLOT 7

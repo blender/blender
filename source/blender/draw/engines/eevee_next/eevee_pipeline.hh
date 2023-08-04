@@ -73,6 +73,26 @@ class WorldPipeline {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name World Volume Pipeline
+ *
+ * \{ */
+
+class WorldVolumePipeline {
+ private:
+  Instance &inst_;
+
+  PassSimple world_ps_ = {"World.Volume"};
+
+ public:
+  WorldVolumePipeline(Instance &inst) : inst_(inst){};
+
+  void sync(GPUMaterial *gpumat);
+  void render(View &view);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Shadow Pass
  *
  * \{ */
@@ -222,6 +242,28 @@ class DeferredPipeline {
               int2 extent,
               RayTraceBuffer &rt_buffer_opaque_layer,
               RayTraceBuffer &rt_buffer_refract_layer);
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Pass
+ *
+ * \{ */
+
+class VolumePipeline {
+ private:
+  Instance &inst_;
+
+  PassMain volume_ps_ = {"Volume.Objects"};
+
+ public:
+  VolumePipeline(Instance &inst) : inst_(inst){};
+
+  PassMain::Sub *volume_material_add(GPUMaterial *gpumat);
+
+  void sync();
+  void render(View &view);
 };
 
 /** \} */
@@ -385,10 +427,12 @@ class PipelineModule {
  public:
   BackgroundPipeline background;
   WorldPipeline world;
+  WorldVolumePipeline world_volume;
   DeferredProbePipeline probe;
   DeferredPipeline deferred;
   ForwardPipeline forward;
   ShadowPipeline shadow;
+  VolumePipeline volume;
   CapturePipeline capture;
 
   UtilityTexture utility_tx;
@@ -397,10 +441,12 @@ class PipelineModule {
   PipelineModule(Instance &inst)
       : background(inst),
         world(inst),
+        world_volume(inst),
         probe(inst),
         deferred(inst),
         forward(inst),
         shadow(inst),
+        volume(inst),
         capture(inst){};
 
   void begin_sync()
@@ -409,6 +455,7 @@ class PipelineModule {
     deferred.begin_sync();
     forward.sync();
     shadow.sync();
+    volume.sync();
     capture.sync();
   }
 
@@ -459,10 +506,8 @@ class PipelineModule {
           return forward.material_transparent_add(ob, blender_mat, gpumat);
         }
         return forward.material_opaque_add(blender_mat, gpumat);
-
       case MAT_PIPE_VOLUME:
-        /* TODO(fclem) volume pass. */
-        return nullptr;
+        return volume.volume_material_add(gpumat);
       case MAT_PIPE_SHADOW:
         return shadow.surface_material_add(gpumat);
       case MAT_PIPE_CAPTURE:

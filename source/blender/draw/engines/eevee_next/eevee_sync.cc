@@ -53,6 +53,8 @@ ObjectHandle &SyncModule::sync_object(Object *ob)
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
   if ((eevee_dd.recalc & recalc_flags) != 0) {
+    /** WARNING: Some objects are always created "on the fly" (ie. Geometry Nodes volumes),
+     * so this causes to redraw the sample 1 forever. */
     inst_.sampling.reset();
   }
 
@@ -125,6 +127,13 @@ void SyncModule::sync_mesh(Object *ob,
     return;
   }
 
+  if ((ob->dt < OB_SOLID) && !DRW_state_is_scene_render()) {
+    /** NOTE:
+     * EEVEE doesn't render meshes with bounds or wire display type in the viewport,
+     * but Cycles does. */
+    return;
+  }
+
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
   bool do_probe_sync = inst_.do_probe_sync();
@@ -133,7 +142,20 @@ void SyncModule::sync_mesh(Object *ob,
     if (geom == nullptr) {
       continue;
     }
+
     Material &material = material_array.materials[i];
+    GPUMaterial *gpu_material = material_array.gpu_materials[i];
+
+    if (material.volume.gpumat && i == 0) {
+      /* Only support single volume material for now. */
+      inst_.volume.sync_object(ob, ob_handle, res_handle, &material.volume);
+      /* Do not render surface if we are rendering a volume object
+       * and do not have a surface closure. */
+      if (gpu_material && !GPU_material_has_surface_output(gpu_material)) {
+        continue;
+      }
+    }
+
     geometry_call(material.shading.sub_pass, geom, res_handle);
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
@@ -146,7 +168,6 @@ void SyncModule::sync_mesh(Object *ob,
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
 
-    GPUMaterial *gpu_material = material_array.gpu_materials[i];
     ::Material *mat = GPU_material_get_material(gpu_material);
     inst_.cryptomatte.sync_material(mat);
   }

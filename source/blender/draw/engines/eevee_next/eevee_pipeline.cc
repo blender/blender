@@ -14,6 +14,8 @@
 
 #include "eevee_pipeline.hh"
 
+#include "draw_common.hh"
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
@@ -103,6 +105,38 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
 void WorldPipeline::render(View &view)
 {
   inst_.manager->submit(cubemap_face_ps_, view);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name World Volume Pipeline
+ *
+ * \{ */
+
+void WorldVolumePipeline::sync(GPUMaterial *gpumat)
+{
+  world_ps_.init();
+  world_ps_.state_set(DRW_STATE_WRITE_COLOR);
+  inst_.volume.bind_properties_buffers(world_ps_);
+  inst_.sampling.bind_resources(&world_ps_);
+
+  if (GPU_material_status(gpumat) != GPU_MAT_SUCCESS) {
+    /* Skip if the material has not compiled yet. */
+    return;
+  }
+
+  world_ps_.material_set(*inst_.manager, gpumat);
+  volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
+
+  world_ps_.dispatch(math::divide_ceil(inst_.volume.grid_size(), int3(VOLUME_GROUP_SIZE)));
+  /* Sync with object property pass. */
+  world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+}
+
+void WorldVolumePipeline::render(View &view)
+{
+  inst_.manager->submit(world_ps_, view);
 }
 
 /** \} */
@@ -229,6 +263,7 @@ void ForwardPipeline::sync()
 
     inst_.lights.bind_resources(&sub);
     inst_.shadows.bind_resources(&sub);
+    inst_.volume.bind_resources(sub);
     inst_.sampling.bind_resources(&sub);
     inst_.hiz_buffer.bind_resources(&sub);
     inst_.ambient_occlusion.bind_resources(&sub);
@@ -292,11 +327,9 @@ void ForwardPipeline::render(View &view,
                              Framebuffer &combined_fb,
                              GPUTexture * /*combined_tx*/)
 {
-  UNUSED_VARS(view);
-
   DRW_stats_group_start("Forward.Opaque");
 
-  GPU_framebuffer_bind(prepass_fb);
+  prepass_fb.bind();
   inst_.manager->submit(prepass_ps_, view);
 
   // if (!DRW_pass_is_empty(prepass_ps_)) {
@@ -311,10 +344,12 @@ void ForwardPipeline::render(View &view,
   inst_.shadows.set_view(view);
   inst_.irradiance_cache.set_view(view);
 
-  GPU_framebuffer_bind(combined_fb);
+  combined_fb.bind();
   inst_.manager->submit(opaque_ps_, view);
 
   DRW_stats_group_end();
+
+  inst_.volume.draw_resolve(view);
 
   inst_.manager->submit(transparent_ps_, view);
 
@@ -495,7 +530,8 @@ void DeferredLayer::render(View &main_view,
       rt_buffer, closure_bits_, CLOSURE_REFLECTION, main_view, render_view);
   indirect_reflection_tx_ = reflect_result.get();
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                           GPU_TEXTURE_USAGE_ATTACHMENT;
   diffuse_light_tx_.acquire(extent, GPU_RGBA16F, usage);
   diffuse_light_tx_.clear(float4(0.0f));
   specular_light_tx_.acquire(extent, GPU_RGBA16F, usage);
@@ -575,6 +611,31 @@ void DeferredPipeline::render(View &main_view,
   refraction_layer_.render(
       main_view, render_view, prepass_fb, combined_fb, extent, rt_buffer_refract_layer);
   DRW_stats_group_end();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Pipeline
+ *
+ * \{ */
+
+void VolumePipeline::sync()
+{
+  volume_ps_.init();
+  volume_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  inst_.volume.bind_properties_buffers(volume_ps_);
+  inst_.sampling.bind_resources(&volume_ps_);
+}
+
+PassMain::Sub *VolumePipeline::volume_material_add(GPUMaterial *gpumat)
+{
+  return &volume_ps_.sub(GPU_material_get_name(gpumat));
+}
+
+void VolumePipeline::render(View &view)
+{
+  inst_.manager->submit(volume_ps_, view);
 }
 
 /** \} */

@@ -227,7 +227,7 @@ float attr_load_float(samplerBuffer cd_buf)
 
 /** \} */
 
-#elif defined(MAT_GEOM_VOLUME)
+#elif defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
 
 /* -------------------------------------------------------------------- */
 /** \name Volume
@@ -236,20 +236,19 @@ float attr_load_float(samplerBuffer cd_buf)
  * Per grid transform order is following loading order.
  * \{ */
 
-#  ifndef OBINFO_LIB
-#    error draw_object_infos is mandatory for volume objects
-#  endif
-
-vec3 g_orco;
+vec3 g_lP = vec3(0.0);
+vec3 g_orco = vec3(0.0);
 int g_attr_id = 0;
 
 vec3 grid_coordinates()
 {
   vec3 co = g_orco;
+#  ifdef MAT_GEOM_VOLUME_OBJECT
   /* Optional per-grid transform. */
   if (drw_volume.grids_xform[g_attr_id][3][3] != 0.0) {
-    co = (drw_volume.grids_xform[g_attr_id] * vec4(objectPosition, 1.0)).xyz;
+    co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0)).xyz;
   }
+#  endif
   g_attr_id += 1;
   return co;
 }
@@ -261,7 +260,7 @@ vec3 attr_load_orco(sampler3D tex)
 }
 vec4 attr_load_tangent(sampler3D tex)
 {
-  attr_id += 1;
+  g_attr_id += 1;
   return vec4(0);
 }
 vec4 attr_load_vec4(sampler3D tex)
@@ -286,7 +285,7 @@ vec4 attr_load_color(sampler3D tex)
 }
 vec3 attr_load_uv(sampler3D attr)
 {
-  attr_id += 1;
+  g_attr_id += 1;
   return vec3(0);
 }
 

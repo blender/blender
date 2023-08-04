@@ -115,6 +115,11 @@ enum eShaderType {
   SURFEL_LIST_SORT,
   SURFEL_RAY,
 
+  VOLUME_INTEGRATION,
+  VOLUME_RESOLVE,
+  VOLUME_SCATTER,
+  VOLUME_SCATTER_WITH_LIGHTS,
+
   MAX_SHADER_TYPE,
 };
 
@@ -138,7 +143,9 @@ class ShaderModule {
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool deferred_compilation);
-  GPUMaterial *world_shader_get(::World *blender_world, bNodeTree *nodetree);
+  GPUMaterial *world_shader_get(::World *blender_world,
+                                bNodeTree *nodetree,
+                                eMaterialPipeline pipeline_type);
   GPUMaterial *material_shader_get(const char *name,
                                    ListBase &materials,
                                    bNodeTree *nodetree,

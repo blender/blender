@@ -38,6 +38,7 @@
 #include "eevee_subsurface.hh"
 #include "eevee_sync.hh"
 #include "eevee_view.hh"
+#include "eevee_volume.hh"
 #include "eevee_world.hh"
 
 namespace blender::eevee {
@@ -77,6 +78,7 @@ class Instance {
   LookdevModule lookdev;
   LightProbeModule light_probes;
   IrradianceCache irradiance_cache;
+  VolumeModule volume;
 
   /** Input data. */
   Depsgraph *depsgraph;
@@ -131,7 +133,8 @@ class Instance {
         world(*this),
         lookdev(*this),
         light_probes(*this),
-        irradiance_cache(*this){};
+        irradiance_cache(*this),
+        volume(*this){};
   ~Instance(){};
 
   /* Render & Viewport. */
