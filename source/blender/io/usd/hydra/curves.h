@@ -47,8 +47,8 @@ class CurvesData : public ObjectData {
   void write_materials() override;
 
  private:
-  void write_curves(const Curves *curves);
-  void write_uv_maps(const Curves *curves);
+  void write_curves(const Curves *curves_id);
+  void write_uv_maps(const Curves *curves_id);
 };
 
 }  // namespace blender::io::hydra

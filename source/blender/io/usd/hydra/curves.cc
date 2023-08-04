@@ -141,45 +141,41 @@ void CurvesData::write_materials()
   mat_data_ = get_or_create_material(mat);
 }
 
-void CurvesData::write_curves(const Curves *curves)
+void CurvesData::write_curves(const Curves *curves_id)
 {
-  curve_vertex_counts_.clear();
-  widths_.clear();
-  vertices_.clear();
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
-  const float *radii = (const float *)CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius");
-  const float(*positions)[3] = (const float(*)[3])CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT3, "position");
+  curve_vertex_counts_.resize(curves.curves_num());
+  offset_indices::copy_group_sizes(
+      curves.points_by_curve(),
+      curves.curves_range(),
+      MutableSpan(curve_vertex_counts_.data(), curve_vertex_counts_.size()));
 
-  vertices_.reserve(curves->geometry.curve_num);
+  const Span<float3> positions = curves.positions();
+  vertices_.resize(curves.points_num());
+  MutableSpan(vertices_.data(), vertices_.size()).copy_from(positions.cast<pxr::GfVec3f>());
 
-  for (int i = 0; i < curves->geometry.curve_num; i++) {
-    int first_point_index = *(curves->geometry.curve_offsets + i);
-    int num_points = *(curves->geometry.curve_offsets + i + 1) - first_point_index;
-    curve_vertex_counts_.push_back(num_points);
-
-    /* Set radius similar to Cycles if isn't set */
-    for (int j = 0; j < num_points; j++) {
-      int ind = first_point_index + j;
-      widths_.push_back(radii ? radii[ind] * 2 : 0.01f);
-      vertices_.push_back(pxr::GfVec3f(positions[ind][0], positions[ind][1], positions[ind][2]));
-    }
+  const VArray<float> radii = *curves.attributes().lookup_or_default<float>(
+      "radius", ATTR_DOMAIN_POINT, 0.01f);
+  widths_.resize(curves.points_num());
+  for (const int i : curves.points_range()) {
+    widths_[i] = radii[i] * 2.0f;
   }
-  write_uv_maps(curves);
+
+  write_uv_maps(curves_id);
 }
 
-void CurvesData::write_uv_maps(const Curves *curves)
+void CurvesData::write_uv_maps(const Curves *curves_id)
 {
-  uvs_.clear();
-
-  const float(*uvs)[2] = (const float(*)[2])CustomData_get_layer_named(
-      &curves->geometry.curve_data, CD_PROP_FLOAT2, "surface_uv_coordinate");
-  if (uvs) {
-    for (int i = 0; i < curves->geometry.curve_num; i++) {
-      uvs_.push_back(pxr::GfVec2f(uvs[i][0], uvs[i][1]));
-    }
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  const Span<float2> surface_uv_coords = curves.surface_uv_coords();
+  if (surface_uv_coords.is_empty()) {
+    uvs_.clear();
+    return;
   }
+
+  uvs_.resize(curves.curves_num());
+  MutableSpan(uvs_.data(), uvs_.size()).copy_from(surface_uv_coords.cast<pxr::GfVec2f>());
 }
 
 }  // namespace blender::io::hydra

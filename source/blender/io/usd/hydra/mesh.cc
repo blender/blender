@@ -193,7 +193,8 @@ void MeshData::write_materials()
   const Object *object = (const Object *)id;
   for (int i = 0; i < submeshes_.size(); ++i) {
     SubMesh &m = submeshes_[i];
-    Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object), m.mat_index + 1);
+    const Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object),
+                                                       m.mat_index + 1);
     m.mat_data = get_or_create_material(mat);
   }
 }
@@ -231,11 +232,14 @@ void MeshData::write_submeshes(const Mesh *mesh)
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<MLoopTri> looptris = mesh->looptris();
 
-  BKE_mesh_calc_normals_split(const_cast<Mesh *>(mesh));
-  const float(*lnors)[3] = (float(*)[3])CustomData_get_layer(&mesh->loop_data, CD_NORMAL);
-  const float(*luvs)[2] = (float(*)[2])CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2);
+  Array<float3> corner_normals(mesh->totloop);
+  BKE_mesh_calc_normals_split_ex(
+      mesh, nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
 
-  for (size_t i = 0; i < looptris.size(); ++i) {
+  const float2 *uv_map = static_cast<const float2 *>(
+      CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2));
+
+  for (const int i : looptris.index_range()) {
     int mat_ind = material_indices ? material_indices[looptri_faces[i]] : 0;
     const MLoopTri &lt = looptris[i];
     SubMesh &sm = submeshes_[mat_ind];
@@ -245,16 +249,16 @@ void MeshData::write_submeshes(const Mesh *mesh)
     sm.face_vertex_indices.push_back(corner_verts[lt.tri[1]]);
     sm.face_vertex_indices.push_back(corner_verts[lt.tri[2]]);
 
-    if (lnors) {
-      sm.normals.push_back(pxr::GfVec3f(lnors[lt.tri[0]]));
-      sm.normals.push_back(pxr::GfVec3f(lnors[lt.tri[1]]));
-      sm.normals.push_back(pxr::GfVec3f(lnors[lt.tri[2]]));
+    if (!corner_normals.is_empty()) {
+      sm.normals.push_back(pxr::GfVec3f(&corner_normals[lt.tri[0]].x));
+      sm.normals.push_back(pxr::GfVec3f(&corner_normals[lt.tri[1]].x));
+      sm.normals.push_back(pxr::GfVec3f(&corner_normals[lt.tri[2]].x));
     }
 
-    if (luvs) {
-      sm.uvs.push_back(pxr::GfVec2f(luvs[lt.tri[0]]));
-      sm.uvs.push_back(pxr::GfVec2f(luvs[lt.tri[1]]));
-      sm.uvs.push_back(pxr::GfVec2f(luvs[lt.tri[2]]));
+    if (uv_map) {
+      sm.uvs.push_back(pxr::GfVec2f(&uv_map[lt.tri[0]].x));
+      sm.uvs.push_back(pxr::GfVec2f(&uv_map[lt.tri[1]].x));
+      sm.uvs.push_back(pxr::GfVec2f(&uv_map[lt.tri[2]].x));
     }
   }
 
@@ -272,13 +276,9 @@ void MeshData::write_submeshes(const Mesh *mesh)
     return;
   }
 
-  /* vertices */
-  const blender::Span<blender::float3> verts = mesh->vert_positions();
   pxr::VtVec3fArray vertices(mesh->totvert);
-  int i = 0;
-  for (blender::float3 v : verts) {
-    vertices[i++] = pxr::GfVec3f(v.x, v.y, v.z);
-  }
+  const Span<float3> positions = mesh->vert_positions();
+  MutableSpan(vertices.data(), vertices.size()).copy_from(positions.cast<pxr::GfVec3f>());
 
   if (submeshes_.size() == 1) {
     submeshes_[0].vertices = std::move(vertices);
