@@ -14,6 +14,7 @@
 #include "NOD_node_declaration.hh"
 
 struct bContext;
+struct SpaceNode;
 
 namespace blender::nodes {
 
@@ -73,6 +74,7 @@ class GatherLinkSearchOpParams {
   /** The current node type. */
   const bNodeType &node_type_;
 
+  const SpaceNode &snode_;
   const bNodeTree &node_tree_;
 
   const bNodeSocket &other_socket_;
@@ -82,10 +84,15 @@ class GatherLinkSearchOpParams {
 
  public:
   GatherLinkSearchOpParams(const bNodeType &node_type,
+                           const SpaceNode &snode,
                            const bNodeTree &node_tree,
                            const bNodeSocket &other_socket,
                            Vector<SocketLinkOperation> &items)
-      : node_type_(node_type), node_tree_(node_tree), other_socket_(other_socket), items_(items)
+      : node_type_(node_type),
+        snode_(snode),
+        node_tree_(node_tree),
+        other_socket_(other_socket),
+        items_(items)
   {
   }
 
@@ -93,6 +100,11 @@ class GatherLinkSearchOpParams {
    * The node on the other side of the dragged link.
    */
   const bNodeSocket &other_socket() const;
+
+  /**
+   * The currently active node editor.
+   */
+  const SpaceNode &space_node() const;
 
   /**
    * The node tree the user is editing when the search menu is created.

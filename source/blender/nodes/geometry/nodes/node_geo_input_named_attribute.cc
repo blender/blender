@@ -90,33 +90,6 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class AttributeExistsFieldInput final : public bke::GeometryFieldInput {
- private:
-  std::string name_;
-
- public:
-  AttributeExistsFieldInput(std::string name, const CPPType &type)
-      : GeometryFieldInput(type, name), name_(std::move(name))
-  {
-    category_ = Category::Generated;
-  }
-
-  static Field<bool> Create(std::string name)
-  {
-    const CPPType &type = CPPType::get<bool>();
-    auto field_input = std::make_shared<AttributeExistsFieldInput>(std::move(name), type);
-    return Field<bool>(field_input);
-  }
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask & /*mask*/) const final
-  {
-    const bool exists = context.attributes()->contains(name_);
-    const int domain_size = context.attributes()->domain_size(context.domain());
-    return VArray<bool>::ForSingle(exists, domain_size);
-  }
-};
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const NodeGeometryInputNamedAttribute &storage = node_storage(params.node());
@@ -159,7 +132,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
-  params.set_output("Exists", AttributeExistsFieldInput::Create(std::move(name)));
+  params.set_output("Exists", bke::AttributeExistsFieldInput::Create(std::move(name)));
 }
 
 }  // namespace blender::nodes::node_geo_input_named_attribute_cc

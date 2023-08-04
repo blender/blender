@@ -32,6 +32,11 @@ const bNodeSocket &GatherLinkSearchOpParams::other_socket() const
   return other_socket_;
 }
 
+const SpaceNode &GatherLinkSearchOpParams::space_node() const
+{
+  return snode_;
+}
+
 const bNodeTree &GatherLinkSearchOpParams::node_tree() const
 {
   return node_tree_;

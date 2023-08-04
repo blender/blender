@@ -271,6 +271,14 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
   return {};
 }
 
+GVArray AttributeExistsFieldInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                          const IndexMask & /*mask*/) const
+{
+  const bool exists = context.attributes()->contains(name_);
+  const int domain_size = context.attributes()->domain_size(context.domain());
+  return VArray<bool>::ForSingle(exists, domain_size);
+}
+
 std::string AttributeFieldInput::socket_inspection_name() const
 {
   return fmt::format(TIP_("\"{}\" attribute from geometry"), name_);

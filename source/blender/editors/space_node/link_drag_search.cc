@@ -286,6 +286,7 @@ static void gather_socket_link_operations(const bContext &C,
                                           const bNodeSocket &socket,
                                           Vector<SocketLinkOperation> &search_link_ops)
 {
+  const SpaceNode &snode = *CTX_wm_space_node(&C);
   NODE_TYPES_BEGIN (node_type) {
     const char *disabled_hint;
     if (node_type->poll && !node_type->poll(node_type, &node_tree, &disabled_hint)) {
@@ -298,7 +299,8 @@ static void gather_socket_link_operations(const bContext &C,
       continue;
     }
     if (node_type->gather_link_search_ops) {
-      nodes::GatherLinkSearchOpParams params{*node_type, node_tree, socket, search_link_ops};
+      nodes::GatherLinkSearchOpParams params{
+          *node_type, snode, node_tree, socket, search_link_ops};
       node_type->gather_link_search_ops(params);
     }
   }

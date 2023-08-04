@@ -168,6 +168,11 @@ void register_geometry_nodes()
   register_node_type_geo_string_to_curves();
   register_node_type_geo_subdivision_surface();
   register_node_type_geo_switch();
+  register_node_type_geo_tool_3d_cursor();
+  register_node_type_geo_tool_face_set();
+  register_node_type_geo_tool_selection();
+  register_node_type_geo_tool_set_face_set();
+  register_node_type_geo_tool_set_selection();
   register_node_type_geo_transform_geometry();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();

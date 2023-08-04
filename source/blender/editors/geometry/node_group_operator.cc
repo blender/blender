@@ -332,6 +332,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     nodes::GeoNodesOperatorData operator_eval_data{};
     operator_eval_data.depsgraph = depsgraph;
     operator_eval_data.self_object = object;
+    operator_eval_data.scene = scene;
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object);
 
