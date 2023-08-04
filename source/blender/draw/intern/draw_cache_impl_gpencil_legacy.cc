@@ -28,7 +28,7 @@
 #include "BLI_polyfill_2d.h"
 
 #include "draw_cache.h"
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "../engines/gpencil/gpencil_defines.h"
 #include "../engines/gpencil/gpencil_shader_shared.h"

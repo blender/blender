@@ -39,7 +39,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_impl.hh" /* own include */
 #include "draw_hair_private.h"
 
 static void particle_batch_cache_clear(ParticleSystem *psys);

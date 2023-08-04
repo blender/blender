@@ -38,7 +38,7 @@
 #include "DRW_render.h"
 
 #include "draw_attributes.hh"
-#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_impl.hh" /* own include */
 #include "draw_cache_inline.h"
 #include "draw_curves_private.hh" /* own include */
 #include "draw_shader.h"

@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "overlay_private.hh"
 

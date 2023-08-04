@@ -7,7 +7,7 @@
  */
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
 
 #include "BKE_customdata.h"

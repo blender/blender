@@ -17,7 +17,7 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager.h"
 
 #include "select_engine.h"

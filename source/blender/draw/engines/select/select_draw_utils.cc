@@ -22,7 +22,7 @@
 
 #include "DRW_select_buffer.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "select_private.h"
 

@@ -85,7 +85,7 @@
 #include "draw_texture_pool.h"
 
 /* only for callbacks */
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "engines/basic/basic_engine.h"
 #include "engines/compositor/compositor_engine.h"

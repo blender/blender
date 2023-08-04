@@ -16,7 +16,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
 
 #include "overlay_private.hh"

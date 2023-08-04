@@ -242,7 +242,7 @@ set(SRC
   intern/draw_attributes.hh
   intern/draw_cache.h
   intern/draw_cache_extract.hh
-  intern/draw_cache_impl.h
+  intern/draw_cache_impl.hh
   intern/draw_cache_inline.h
   intern/draw_color_management.h
   intern/draw_command.hh

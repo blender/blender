@@ -246,7 +246,7 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 #  define sizeVertexGpencil globalsBlock.size_vertex_gpencil
 #endif
 
-/* See: 'draw_cache_impl.h' for matching includes. */
+/* See: 'draw_cache_impl.hh' for matching includes. */
 #define VERT_GPENCIL_BEZT_HANDLE (1u << 30)
 /* data[0] (1st byte flags) */
 #define FACE_ACTIVE (1u << 0)

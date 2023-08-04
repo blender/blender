@@ -25,7 +25,7 @@
 
 #include "gpencil_engine.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "DEG_depsgraph.h"
 

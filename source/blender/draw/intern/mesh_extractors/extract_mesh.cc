@@ -16,7 +16,7 @@
 
 #include "extract_mesh.hh"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
 {

@@ -22,7 +22,7 @@
 #include "BKE_geometry_set.hh"
 
 #include "draw_cache_extract.hh"
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "overlay_private.hh"
 
 void OVERLAY_viewer_attribute_cache_init(OVERLAY_Data *vedata)

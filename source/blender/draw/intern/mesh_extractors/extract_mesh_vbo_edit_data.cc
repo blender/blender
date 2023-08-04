@@ -8,7 +8,7 @@
 
 #include "extract_mesh.hh"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 #include "draw_subdivision.h"
 

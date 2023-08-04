@@ -24,7 +24,7 @@
 
 #include "GPU_batch.h"
 
-#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_impl.hh" /* own include */
 
 #define SELECT 1
 
