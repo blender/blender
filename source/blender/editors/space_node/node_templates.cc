@@ -255,7 +255,8 @@ static void node_socket_add_replace(const bContext *C,
           continue;
         }
 
-        if (STREQ(sock_prev->name, sock_from->name) && sock_prev->type == sock_from->type) {
+        if (STREQ(sock_prev->identifier, sock_from->identifier) &&
+            sock_prev->type == sock_from->type) {
           bNodeLink *link = sock_prev->link;
 
           if (link && link->fromnode) {
