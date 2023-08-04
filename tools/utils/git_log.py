@@ -16,10 +16,12 @@ class GitCommit:
 
         # cached values
         "_author",
+        "_email",
         "_date",
         "_body",
         "_files",
         "_files_status",
+        "_diff",
     )
 
     def __init__(self, sha1, git_dir):
@@ -27,16 +29,21 @@ class GitCommit:
         self._git_dir = git_dir
 
         self._author = \
+            self._email = \
             self._date = \
             self._body = \
             self._files = \
             self._files_status = \
+            self._diff = \
             None
 
     def cache(self):
-        """ Cache all properties
+        """
+        Cache all properties
+        (except for diff as it's significantly larger than other members).
         """
         self.author
+        self.email
         self.date
         self.body
         self.files
@@ -87,6 +94,15 @@ class GitCommit:
         return ret
 
     @property
+    def email(self):
+        ret = self._email
+        if ret is None:
+            content = self._log_format("%ae")[:-1]
+            ret = content.decode("utf8", errors="ignore")
+            self._email = ret
+        return ret
+
+    @property
     def date(self):
         ret = self._date
         if ret is None:
@@ -122,6 +138,15 @@ class GitCommit:
         if ret is None:
             ret = [f.split(None, 1) for f in self._log_format("format:", args=("--name-status",)).split(b"\n") if f]
             self._files_status = ret
+        return ret
+
+    @property
+    def diff(self):
+        ret = self._diff
+        if ret is None:
+            content = self._log_format("", args=("-p",))
+            ret = content.decode("utf8", errors="ignore")
+            self._diff = ret
         return ret
 
 
