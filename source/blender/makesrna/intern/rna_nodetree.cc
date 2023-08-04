@@ -12240,6 +12240,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Tool", "The node group is used as a tool");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_tool_get", "rna_GeometryNodeTree_is_tool_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "is_mode_edit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_EDIT);
@@ -12247,6 +12248,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Edit", "The node group is used in edit mode");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_mode_edit_get", "rna_GeometryNodeTree_is_mode_edit_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "is_mode_sculpt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_SCULPT);
@@ -12254,6 +12256,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Sculpt", "The node group is used in sculpt mode");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_mode_sculpt_get", "rna_GeometryNodeTree_is_mode_sculpt_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "is_type_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_MESH);
@@ -12261,6 +12264,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mesh", "The node group is used for meshes");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_type_mesh_get", "rna_GeometryNodeTree_is_type_mesh_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "is_type_curve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_CURVE);
@@ -12268,6 +12272,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Curves", "The node group is used for curves");
   RNA_def_property_boolean_funcs(
       prop, "rna_GeometryNodeTree_is_type_curve_get", "rna_GeometryNodeTree_is_type_curve_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 
   prop = RNA_def_property(srna, "is_type_point_cloud", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_POINT_CLOUD);
@@ -12276,6 +12281,7 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop,
                                  "rna_GeometryNodeTree_is_type_point_cloud_get",
                                  "rna_GeometryNodeTree_is_type_point_cloud_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 }
 
 static StructRNA *define_specific_node(BlenderRNA *brna,
