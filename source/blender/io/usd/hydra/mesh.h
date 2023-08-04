@@ -31,7 +31,7 @@ class MeshData : public ObjectData {
   int submeshes_count_ = 0;
 
  public:
-  MeshData(HydraSceneDelegate *scene_delegate, Object *object, pxr::SdfPath const &prim_id);
+  MeshData(HydraSceneDelegate *scene_delegate, const Object *object, pxr::SdfPath const &prim_id);
 
   void init() override;
   void insert() override;
@@ -56,7 +56,7 @@ class MeshData : public ObjectData {
  private:
   pxr::SdfPath submesh_prim_id(int index) const;
   const SubMesh &submesh(pxr::SdfPath const &id) const;
-  void write_submeshes(Mesh *mesh);
+  void write_submeshes(const Mesh *mesh);
   void update_prims();
 };
 

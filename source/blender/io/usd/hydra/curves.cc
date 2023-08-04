@@ -9,12 +9,14 @@
 #include "BKE_customdata.h"
 #include "BKE_material.h"
 
+#include "BKE_curves.hh"
+
 #include "hydra_scene_delegate.h"
 
 namespace blender::io::hydra {
 
 CurvesData::CurvesData(HydraSceneDelegate *scene_delegate,
-                       Object *object,
+                       const Object *object,
                        pxr::SdfPath const &prim_id)
     : ObjectData(scene_delegate, object, prim_id)
 {
@@ -24,8 +26,8 @@ void CurvesData::init()
 {
   ID_LOGN(1, "");
 
-  Object *object = (Object *)id;
-  write_curves((Curves *)object->data);
+  const Object *object = (const Object *)id;
+  write_curves((const Curves *)object->data);
   write_transform();
   write_materials();
 }
@@ -45,7 +47,7 @@ void CurvesData::remove()
 
 void CurvesData::update()
 {
-  Object *object = (Object *)id;
+  const Object *object = (const Object *)id;
   pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
   if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
     init();
@@ -130,16 +132,16 @@ pxr::HdPrimvarDescriptorVector CurvesData::primvar_descriptors(
 
 void CurvesData::write_materials()
 {
-  Object *object = (Object *)id;
-  Material *mat = nullptr;
+  const Object *object = (const Object *)id;
+  const Material *mat = nullptr;
   /* TODO: Using only first material. Add support for multimaterial. */
   if (BKE_object_material_count_eval(object) > 0) {
-    mat = BKE_object_material_get_eval(object, 0);
+    mat = BKE_object_material_get_eval(const_cast<Object *>(object), 0);
   }
   mat_data_ = get_or_create_material(mat);
 }
 
-void CurvesData::write_curves(Curves *curves)
+void CurvesData::write_curves(const Curves *curves)
 {
   curve_vertex_counts_.clear();
   widths_.clear();
@@ -167,7 +169,7 @@ void CurvesData::write_curves(Curves *curves)
   write_uv_maps(curves);
 }
 
-void CurvesData::write_uv_maps(Curves *curves)
+void CurvesData::write_uv_maps(const Curves *curves)
 {
   uvs_.clear();
 

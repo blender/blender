@@ -18,7 +18,9 @@ PXR_NAMESPACE_CLOSE_SCOPE
 
 namespace blender::io::hydra {
 
-MeshData::MeshData(HydraSceneDelegate *scene_delegate, Object *object, pxr::SdfPath const &prim_id)
+MeshData::MeshData(HydraSceneDelegate *scene_delegate,
+                   const Object *object,
+                   pxr::SdfPath const &prim_id)
     : ObjectData(scene_delegate, object, prim_id)
 {
 }
@@ -188,10 +190,10 @@ pxr::SdfPathVector MeshData::submesh_paths() const
 
 void MeshData::write_materials()
 {
-  Object *object = (Object *)id;
+  const Object *object = (const Object *)id;
   for (int i = 0; i < submeshes_.size(); ++i) {
     SubMesh &m = submeshes_[i];
-    Material *mat = BKE_object_material_get_eval(object, m.mat_index + 1);
+    Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object), m.mat_index + 1);
     m.mat_data = get_or_create_material(mat);
   }
 }
@@ -210,12 +212,12 @@ const MeshData::SubMesh &MeshData::submesh(pxr::SdfPath const &id) const
   return submeshes_[index];
 }
 
-void MeshData::write_submeshes(Mesh *mesh)
+void MeshData::write_submeshes(const Mesh *mesh)
 {
   submeshes_.clear();
 
   /* Insert base submeshes */
-  int mat_count = BKE_object_material_count_eval((Object *)id);
+  const int mat_count = BKE_object_material_count_eval((const Object *)id);
   for (int i = 0; i < std::max(mat_count, 1); ++i) {
     SubMesh sm;
     sm.mat_index = i;
@@ -225,11 +227,11 @@ void MeshData::write_submeshes(Mesh *mesh)
   /* Fill submeshes data */
   const int *material_indices = BKE_mesh_material_indices(mesh);
 
-  blender::Span<int> looptri_faces = mesh->looptri_faces();
-  blender::Span<int> corner_verts = mesh->corner_verts();
-  blender::Span<MLoopTri> looptris = mesh->looptris();
+  const Span<int> looptri_faces = mesh->looptri_faces();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<MLoopTri> looptris = mesh->looptris();
 
-  BKE_mesh_calc_normals_split(mesh);
+  BKE_mesh_calc_normals_split(const_cast<Mesh *>(mesh));
   const float(*lnors)[3] = (float(*)[3])CustomData_get_layer(&mesh->loop_data, CD_NORMAL);
   const float(*luvs)[2] = (float(*)[2])CustomData_get_layer(&mesh->loop_data, CD_PROP_FLOAT2);
 
@@ -271,7 +273,7 @@ void MeshData::write_submeshes(Mesh *mesh)
   }
 
   /* vertices */
-  blender::Span<blender::float3> verts = mesh->vert_positions();
+  const blender::Span<blender::float3> verts = mesh->vert_positions();
   pxr::VtVec3fArray vertices(mesh->totvert);
   int i = 0;
   for (blender::float3 v : verts) {

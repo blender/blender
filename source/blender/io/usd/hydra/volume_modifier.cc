@@ -22,19 +22,19 @@ PXR_NAMESPACE_CLOSE_SCOPE
 namespace blender::io::hydra {
 
 VolumeModifierData::VolumeModifierData(HydraSceneDelegate *scene_delegate,
-                                       Object *object,
+                                       const Object *object,
                                        pxr::SdfPath const &prim_id)
     : VolumeData(scene_delegate, object, prim_id)
 {
 }
 
-bool VolumeModifierData::is_volume_modifier(Object *object)
+bool VolumeModifierData::is_volume_modifier(const Object *object)
 {
   if (object->type != OB_MESH) {
     return false;
   }
 
-  FluidModifierData *modifier = (FluidModifierData *)BKE_modifiers_findby_type(
+  const FluidModifierData *modifier = (const FluidModifierData *)BKE_modifiers_findby_type(
       object, eModifierType_Fluid);
   return modifier && modifier->type & MOD_FLUID_TYPE_DOMAIN &&
          modifier->domain->type == FLUID_DOMAIN_TYPE_GAS;
@@ -44,10 +44,10 @@ void VolumeModifierData::init()
 {
   field_descriptors_.clear();
 
-  Object *object = (Object *)this->id;
-  ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluid);
-  modifier_ = (FluidModifierData *)BKE_modifier_get_evaluated(
-      scene_delegate_->depsgraph, object, md);
+  const Object *object = (const Object *)this->id;
+  const ModifierData *md = BKE_modifiers_findby_type(object, eModifierType_Fluid);
+  modifier_ = (const FluidModifierData *)BKE_modifier_get_evaluated(
+      scene_delegate_->depsgraph, const_cast<Object *>(object), const_cast<ModifierData *>(md));
 
   if ((modifier_->domain->cache_data_format & FLUID_DOMAIN_FILE_OPENVDB) == 0) {
     CLOG_WARN(LOG_HYDRA_SCENE,

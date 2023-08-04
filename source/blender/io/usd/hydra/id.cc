@@ -7,7 +7,7 @@
 
 namespace blender::io::hydra {
 
-IdData::IdData(HydraSceneDelegate *scene_delegate, ID *id, pxr::SdfPath const &prim_id)
+IdData::IdData(HydraSceneDelegate *scene_delegate, const ID *id, pxr::SdfPath const &prim_id)
     : id(id), prim_id(prim_id), scene_delegate_(scene_delegate)
 {
 }

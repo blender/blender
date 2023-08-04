@@ -16,7 +16,7 @@
 namespace blender::io::hydra {
 
 LightData::LightData(HydraSceneDelegate *scene_delegate,
-                     Object *object,
+                     const Object *object,
                      pxr::SdfPath const &prim_id)
     : ObjectData(scene_delegate, object, prim_id)
 {
@@ -26,7 +26,7 @@ void LightData::init()
 {
   ID_LOGN(1, "");
 
-  Light *light = (Light *)((Object *)id)->data;
+  const Light *light = (const Light *)((const Object *)id)->data;
   data_.clear();
 
   switch (light->type) {
@@ -109,8 +109,8 @@ void LightData::remove()
 
 void LightData::update()
 {
-  Object *object = (Object *)id;
-  Light *light = (Light *)object->data;
+  const Object *object = (const Object *)id;
+  const Light *light = (const Light *)object->data;
   pxr::HdDirtyBits bits = pxr::HdLight::Clean;
   if (id->recalc & ID_RECALC_GEOMETRY || light->id.recalc & ID_RECALC_GEOMETRY) {
     if (prim_type(light) != prim_type_) {
@@ -143,7 +143,7 @@ pxr::VtValue LightData::get_data(pxr::TfToken const &key) const
   return pxr::VtValue();
 }
 
-pxr::TfToken LightData::prim_type(Light *light)
+pxr::TfToken LightData::prim_type(const Light *light)
 {
   switch (light->type) {
     case LA_AREA:

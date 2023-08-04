@@ -48,7 +48,7 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   };
 
   Depsgraph *depsgraph = nullptr;
-  View3D *view3d = nullptr;
+  const View3D *view3d = nullptr;
   Main *bmain = nullptr;
   Scene *scene = nullptr;
   ShadingSettings shading_settings;
@@ -88,9 +88,9 @@ class HydraSceneDelegate : public pxr::HdSceneDelegate {
   void clear();
 
  private:
-  pxr::SdfPath prim_id(ID *id, const char *prefix) const;
-  pxr::SdfPath object_prim_id(Object *object) const;
-  pxr::SdfPath material_prim_id(Material *mat) const;
+  pxr::SdfPath prim_id(const ID *id, const char *prefix) const;
+  pxr::SdfPath object_prim_id(const Object *object) const;
+  pxr::SdfPath material_prim_id(const Material *mat) const;
   pxr::SdfPath instancer_prim_id() const;
   pxr::SdfPath world_prim_id() const;
 

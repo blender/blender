@@ -18,7 +18,7 @@ namespace blender::io::hydra {
 class MaterialData : public IdData {
  public:
   MaterialData(HydraSceneDelegate *scene_delegate,
-               Material *material,
+               const Material *material,
                pxr::SdfPath const &prim_id);
 
   void init() override;

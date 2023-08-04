@@ -31,14 +31,14 @@ class HydraSceneDelegate;
 
 class IdData {
  public:
-  ID *id;
+  const ID *id;
   pxr::SdfPath prim_id;
 
  protected:
   HydraSceneDelegate *scene_delegate_;
 
  public:
-  IdData(HydraSceneDelegate *scene_delegate, ID *id, pxr::SdfPath const &prim_id);
+  IdData(HydraSceneDelegate *scene_delegate, const ID *id, pxr::SdfPath const &prim_id);
   virtual ~IdData() = default;
 
   virtual void init() = 0;

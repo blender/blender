@@ -26,9 +26,9 @@
 namespace blender::io::hydra {
 
 MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
-                           Material *material,
+                           const Material *material,
                            pxr::SdfPath const &prim_id)
-    : IdData(scene_delegate, (ID *)material, prim_id)
+    : IdData(scene_delegate, (const ID *)material, prim_id)
 {
 }
 

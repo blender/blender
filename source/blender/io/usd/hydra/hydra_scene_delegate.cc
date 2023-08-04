@@ -234,7 +234,7 @@ void HydraSceneDelegate::clear()
   view3d = nullptr;
 }
 
-pxr::SdfPath HydraSceneDelegate::prim_id(ID *id, const char *prefix) const
+pxr::SdfPath HydraSceneDelegate::prim_id(const ID *id, const char *prefix) const
 {
   /* Making id of object in form like <prefix>_<pointer in 16 hex digits format> */
   char name[32];
@@ -242,12 +242,12 @@ pxr::SdfPath HydraSceneDelegate::prim_id(ID *id, const char *prefix) const
   return GetDelegateID().AppendElementString(name);
 }
 
-pxr::SdfPath HydraSceneDelegate::object_prim_id(Object *object) const
+pxr::SdfPath HydraSceneDelegate::object_prim_id(const Object *object) const
 {
   return prim_id((ID *)object, "O");
 }
 
-pxr::SdfPath HydraSceneDelegate::material_prim_id(Material *mat) const
+pxr::SdfPath HydraSceneDelegate::material_prim_id(const Material *mat) const
 {
   return prim_id((ID *)mat, "M");
 }

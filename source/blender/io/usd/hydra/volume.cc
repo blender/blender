@@ -19,7 +19,7 @@
 namespace blender::io::hydra {
 
 VolumeData::VolumeData(HydraSceneDelegate *scene_delegate,
-                       Object *object,
+                       const Object *object,
                        pxr::SdfPath const &prim_id)
     : ObjectData(scene_delegate, object, prim_id)
 {
@@ -29,7 +29,7 @@ void VolumeData::init()
 {
   field_descriptors_.clear();
 
-  Volume *volume = (Volume *)((Object *)this->id)->data;
+  Volume *volume = (Volume *)((const Object *)this->id)->data;
   if (!BKE_volume_load(volume, scene_delegate_->bmain)) {
     return;
   }
@@ -81,7 +81,7 @@ void VolumeData::remove()
 
 void VolumeData::update()
 {
-  Object *object = (Object *)id;
+  const Object *object = (const Object *)id;
   pxr::HdDirtyBits bits = pxr::HdChangeTracker::Clean;
   if ((id->recalc & ID_RECALC_GEOMETRY) || (((ID *)object->data)->recalc & ID_RECALC_GEOMETRY)) {
     init();
@@ -150,11 +150,11 @@ pxr::HdVolumeFieldDescriptorVector VolumeData::field_descriptors() const
 
 void VolumeData::write_materials()
 {
-  Object *object = (Object *)id;
-  Material *mat = nullptr;
+  const Object *object = (Object *)id;
+  const Material *mat = nullptr;
   /* TODO: Using only first material. Add support for multimaterial. */
   if (BKE_object_material_count_eval(object) > 0) {
-    mat = BKE_object_material_get_eval(object, 0);
+    mat = BKE_object_material_get_eval(const_cast<Object *>(object), 0);
   }
   mat_data_ = get_or_create_material(mat);
 }

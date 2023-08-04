@@ -16,7 +16,9 @@ class VolumeData : public ObjectData {
   MaterialData *mat_data_ = nullptr;
 
  public:
-  VolumeData(HydraSceneDelegate *scene_delegate, Object *object, pxr::SdfPath const &prim_id);
+  VolumeData(HydraSceneDelegate *scene_delegate,
+             const Object *object,
+             pxr::SdfPath const &prim_id);
 
   void init() override;
   void insert() override;

@@ -13,14 +13,14 @@
 namespace blender::io::hydra {
 
 ObjectData::ObjectData(HydraSceneDelegate *scene_delegate,
-                       Object *object,
+                       const Object *object,
                        pxr::SdfPath const &prim_id)
-    : IdData(scene_delegate, (ID *)object, prim_id), transform(pxr::GfMatrix4d(1.0))
+    : IdData(scene_delegate, &object->id, prim_id), transform(pxr::GfMatrix4d(1.0))
 {
 }
 
 std::unique_ptr<ObjectData> ObjectData::create(HydraSceneDelegate *scene_delegate,
-                                               Object *object,
+                                               const Object *object,
                                                pxr::SdfPath const &prim_id)
 {
   std::unique_ptr<ObjectData> obj_data;
@@ -53,7 +53,7 @@ std::unique_ptr<ObjectData> ObjectData::create(HydraSceneDelegate *scene_delegat
   return obj_data;
 }
 
-bool ObjectData::is_supported(Object *object)
+bool ObjectData::is_supported(const Object *object)
 {
   switch (object->type) {
     case OB_MESH:
@@ -72,7 +72,7 @@ bool ObjectData::is_supported(Object *object)
   return false;
 }
 
-bool ObjectData::is_mesh(Object *object)
+bool ObjectData::is_mesh(const Object *object)
 {
   switch (object->type) {
     case OB_MESH:
@@ -90,7 +90,7 @@ bool ObjectData::is_mesh(Object *object)
   return false;
 }
 
-bool ObjectData::is_visible(HydraSceneDelegate *scene_delegate, Object *object, int mode)
+bool ObjectData::is_visible(HydraSceneDelegate *scene_delegate, const Object *object, int mode)
 {
   eEvaluationMode deg_mode = DEG_get_mode(scene_delegate->depsgraph);
   bool ret = BKE_object_visibility(object, deg_mode) & mode;
@@ -120,12 +120,12 @@ void ObjectData::available_materials(Set<pxr::SdfPath> & /* paths */) const {}
 
 void ObjectData::write_transform()
 {
-  transform = gf_matrix_from_transform(((Object *)id)->object_to_world);
+  transform = gf_matrix_from_transform(((const Object *)id)->object_to_world);
 }
 
 void ObjectData::write_materials() {}
 
-MaterialData *ObjectData::get_or_create_material(Material *mat)
+MaterialData *ObjectData::get_or_create_material(const Material *mat)
 {
   if (!mat) {
     return nullptr;
@@ -143,7 +143,7 @@ MaterialData *ObjectData::get_or_create_material(Material *mat)
   return mat_data;
 }
 
-pxr::GfMatrix4d gf_matrix_from_transform(float m[4][4])
+pxr::GfMatrix4d gf_matrix_from_transform(const float m[4][4])
 {
   pxr::GfMatrix4d ret;
   for (int i = 0; i < 4; i++) {

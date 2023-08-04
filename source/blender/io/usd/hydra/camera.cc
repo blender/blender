@@ -12,9 +12,9 @@
 
 namespace blender::io::hydra {
 
-CameraData::CameraData(View3D *v3d, ARegion *region)
+CameraData::CameraData(const View3D *v3d, const ARegion *region)
 {
-  RegionView3D *region_data = (RegionView3D *)region->regiondata;
+  const RegionView3D *region_data = (const RegionView3D *)region->regiondata;
 
   /* TODO: refactor use BKE_camera_params API. */
   float VIEWPORT_SENSOR_SIZE = DEFAULT_SENSOR_WIDTH * 2.0f;
@@ -86,9 +86,9 @@ CameraData::CameraData(View3D *v3d, ARegion *region)
   }
 }
 
-CameraData::CameraData(Object *camera_obj, pxr::GfVec2i res, pxr::GfVec4f tile)
+CameraData::CameraData(const Object *camera_obj, pxr::GfVec2i res, pxr::GfVec4f tile)
 {
-  Camera *camera = (Camera *)camera_obj->data;
+  const Camera *camera = (const Camera *)camera_obj->data;
 
   float t_pos[2] = {tile[0], tile[1]};
   float t_size[2] = {tile[2], tile[3]};
@@ -113,7 +113,7 @@ CameraData::CameraData(Object *camera_obj, pxr::GfVec2i res, pxr::GfVec4f tile)
         std::max(focus_distance, 0.001f), camera->dof.aperture_fstop, camera->dof.aperture_blades);
   }
 
-  float ratio = (float)res[0] / res[1];
+  float ratio = float(res[0]) / res[1];
 
   switch (camera->sensor_fit) {
     case CAMERA_SENSOR_FIT_VERT:

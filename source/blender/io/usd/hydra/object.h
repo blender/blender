@@ -25,15 +25,17 @@ class ObjectData : public IdData {
   bool visible = true;
 
  public:
-  ObjectData(HydraSceneDelegate *scene_delegate, Object *object, pxr::SdfPath const &prim_id);
+  ObjectData(HydraSceneDelegate *scene_delegate,
+             const Object *object,
+             pxr::SdfPath const &prim_id);
 
   static std::unique_ptr<ObjectData> create(HydraSceneDelegate *scene_delegate,
-                                            Object *object,
+                                            const Object *object,
                                             pxr::SdfPath const &prim_id);
-  static bool is_supported(Object *object);
-  static bool is_mesh(Object *object);
+  static bool is_supported(const Object *object);
+  static bool is_mesh(const Object *object);
   static bool is_visible(HydraSceneDelegate *scene_delegate,
-                         Object *object,
+                         const Object *object,
                          int mode = OB_VISIBLE_SELF);
 
   using IdData::get_data;
@@ -45,11 +47,11 @@ class ObjectData : public IdData {
  protected:
   virtual void write_transform();
   virtual void write_materials();
-  MaterialData *get_or_create_material(Material *mat);
+  MaterialData *get_or_create_material(const Material *mat);
 };
 
 using ObjectDataMap = Map<pxr::SdfPath, std::unique_ptr<ObjectData>>;
 
-pxr::GfMatrix4d gf_matrix_from_transform(float m[4][4]);
+pxr::GfMatrix4d gf_matrix_from_transform(const float m[4][4]);
 
 }  // namespace blender::io::hydra

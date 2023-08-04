@@ -49,7 +49,7 @@ void WorldData::init()
   pxr::SdfAssetPath texture_file;
 
   if (scene_delegate_->shading_settings.use_scene_world) {
-    World *world = scene_delegate_->scene->world;
+    const World *world = scene_delegate_->scene->world;
     ID_LOG(1, "%s", world->id.name);
 
     exposure = world->exposure;
@@ -57,7 +57,7 @@ void WorldData::init()
       /* TODO: Create nodes parsing system */
 
       bNode *output_node = ntreeShaderOutputNode(world->nodetree, SHD_OUTPUT_ALL);
-      blender::Span<bNodeSocket *> input_sockets = output_node->input_sockets();
+      const Span<bNodeSocket *> input_sockets = output_node->input_sockets();
       bNodeSocket *input_socket = nullptr;
 
       for (auto socket : input_sockets) {
