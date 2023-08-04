@@ -452,11 +452,6 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 
 static const char *node_get_static_idname(int type, int treetype)
 {
-  /* use static type info header to map static int type to identifier string */
-#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-  case ID: \
-    return #Category #StructName;
-
   /* XXX hack, group types share a single static integer identifier,
    * but are registered as separate types */
   if (type == NODE_GROUP) {
@@ -471,7 +466,382 @@ static const char *node_get_static_idname(int type, int treetype)
   }
   else {
     switch (type) {
-#include "NOD_static_types.h"
+      case NODE_FRAME:
+        return "NodeFrame";
+      case NODE_GROUP:
+        return "NodeGroup";
+      case NODE_GROUP_INPUT:
+        return "NodeGroupInput";
+      case NODE_GROUP_OUTPUT:
+        return "NodeGroupOutput";
+      case NODE_REROUTE:
+        return "NodeReroute";
+      case /*SH_NODE_OUTPUT*/ 1:
+        return "ShaderNodeOutput";
+      case /*SH_NODE_MATERIAL*/ 100:
+        return "ShaderNodeMaterial";
+      case SH_NODE_RGB:
+        return "ShaderNodeRGB";
+      case SH_NODE_VALUE:
+        return "ShaderNodeValue";
+      case SH_NODE_MIX_RGB_LEGACY:
+        return "ShaderNodeMixRGB";
+      case SH_NODE_VALTORGB:
+        return "ShaderNodeValToRGB";
+      case SH_NODE_RGBTOBW:
+        return "ShaderNodeRGBToBW";
+      case /*SH_NODE_TEXTURE*/ 106:
+        return "ShaderNodeTexture";
+      case SH_NODE_NORMAL:
+        return "ShaderNodeNormal";
+      case SH_NODE_GAMMA:
+        return "ShaderNodeGamma";
+      case SH_NODE_BRIGHTCONTRAST:
+        return "ShaderNodeBrightContrast";
+      case /*SH_NODE_GEOMETRY*/ 108:
+        return "ShaderNodeGeometry";
+      case SH_NODE_MAPPING:
+        return "ShaderNodeMapping";
+      case SH_NODE_CURVE_VEC:
+        return "ShaderNodeVectorCurve";
+      case SH_NODE_CURVE_RGB:
+        return "ShaderNodeRGBCurve";
+      case SH_NODE_CAMERA:
+        return "ShaderNodeCameraData";
+      case SH_NODE_MATH:
+        return "ShaderNodeMath";
+      case SH_NODE_VECTOR_MATH:
+        return "ShaderNodeVectorMath";
+      case SH_NODE_SQUEEZE:
+        return "ShaderNodeSqueeze";
+      case /*SH_NODE_MATERIAL_EXT*/ 118:
+        return "ShaderNodeExtendedMaterial";
+      case SH_NODE_INVERT:
+        return "ShaderNodeInvert";
+      case SH_NODE_SEPRGB_LEGACY:
+        return "ShaderNodeSeparateRGB";
+      case SH_NODE_COMBRGB_LEGACY:
+        return "ShaderNodeCombineRGB";
+      case SH_NODE_HUE_SAT:
+        return "ShaderNodeHueSaturation";
+      case SH_NODE_OUTPUT_MATERIAL:
+        return "ShaderNodeOutputMaterial";
+      case SH_NODE_OUTPUT_LIGHT:
+        return "ShaderNodeOutputLamp";
+      case SH_NODE_OUTPUT_WORLD:
+        return "ShaderNodeOutputWorld";
+      case SH_NODE_FRESNEL:
+        return "ShaderNodeFresnel";
+      case SH_NODE_LAYER_WEIGHT:
+        return "ShaderNodeLayerWeight";
+      case SH_NODE_MIX_SHADER:
+        return "ShaderNodeMixShader";
+      case SH_NODE_ADD_SHADER:
+        return "ShaderNodeAddShader";
+      case SH_NODE_ATTRIBUTE:
+        return "ShaderNodeAttribute";
+      case SH_NODE_AMBIENT_OCCLUSION:
+        return "ShaderNodeAmbientOcclusion";
+      case SH_NODE_BACKGROUND:
+        return "ShaderNodeBackground";
+      case SH_NODE_HOLDOUT:
+        return "ShaderNodeHoldout";
+      case /*SH_NODE_BSDF_ANISOTROPIC*/ 131:
+        return "ShaderNodeBsdfAnisotropic";
+      case SH_NODE_BSDF_DIFFUSE:
+        return "ShaderNodeBsdfDiffuse";
+      case /*SH_NODE_BSDF_GLOSSY*/ 133:
+        return "ShaderNodeBsdfGlossy";
+      case SH_NODE_BSDF_GLASS:
+        return "ShaderNodeBsdfGlass";
+      case SH_NODE_BSDF_REFRACTION:
+        return "ShaderNodeBsdfRefraction";
+      case SH_NODE_BSDF_TRANSLUCENT:
+        return "ShaderNodeBsdfTranslucent";
+      case SH_NODE_BSDF_TRANSPARENT:
+        return "ShaderNodeBsdfTransparent";
+      case /*SH_NODE_BSDF_VELVET*/ 139:
+        return "ShaderNodeBsdfVelvet";
+      case /*SH_NODE_VOLUME_TRANSPARENT*/ 161:
+        return "ShaderNodeVolumeTransparent";
+      case /*SH_NODE_VOLUME_ISOTROPIC*/ 162:
+        return "ShaderNodeVolumeIsotropic";
+      case SH_NODE_EMISSION:
+        return "ShaderNodeEmission";
+      case SH_NODE_NEW_GEOMETRY:
+        return "ShaderNodeNewGeometry";
+      case SH_NODE_LIGHT_PATH:
+        return "ShaderNodeLightPath";
+      case SH_NODE_LIGHT_FALLOFF:
+        return "ShaderNodeLightFalloff";
+      case SH_NODE_OBJECT_INFO:
+        return "ShaderNodeObjectInfo";
+      case SH_NODE_PARTICLE_INFO:
+        return "ShaderNodeParticleInfo";
+      case SH_NODE_HAIR_INFO:
+        return "ShaderNodeHairInfo";
+      case SH_NODE_BUMP:
+        return "ShaderNodeBump";
+      case SH_NODE_NORMAL_MAP:
+        return "ShaderNodeNormalMap";
+      case SH_NODE_TANGENT:
+        return "ShaderNodeTangent";
+      case SH_NODE_SCRIPT:
+        return "ShaderNodeScript";
+      case SH_NODE_TEX_IMAGE:
+        return "ShaderNodeTexImage";
+      case SH_NODE_TEX_ENVIRONMENT:
+        return "ShaderNodeTexEnvironment";
+      case SH_NODE_TEX_SKY:
+        return "ShaderNodeTexSky";
+      case SH_NODE_TEX_GRADIENT:
+        return "ShaderNodeTexGradient";
+      case SH_NODE_TEX_NOISE:
+        return "ShaderNodeTexNoise";
+      case SH_NODE_TEX_MAGIC:
+        return "ShaderNodeTexMagic";
+      case SH_NODE_TEX_WAVE:
+        return "ShaderNodeTexWave";
+      case SH_NODE_TEX_MUSGRAVE:
+        return "ShaderNodeTexMusgrave";
+      case SH_NODE_TEX_VORONOI:
+        return "ShaderNodeTexVoronoi";
+      case SH_NODE_TEX_CHECKER:
+        return "ShaderNodeTexChecker";
+      case SH_NODE_TEX_BRICK:
+        return "ShaderNodeTexBrick";
+      case SH_NODE_TEX_COORD:
+        return "ShaderNodeTexCoord";
+      case CMP_NODE_VIEWER:
+        return "CompositorNodeViewer";
+      case CMP_NODE_RGB:
+        return "CompositorNodeRGB";
+      case CMP_NODE_VALUE:
+        return "CompositorNodeValue";
+      case CMP_NODE_MIX_RGB:
+        return "CompositorNodeMixRGB";
+      case CMP_NODE_VALTORGB:
+        return "CompositorNodeValToRGB";
+      case CMP_NODE_RGBTOBW:
+        return "CompositorNodeRGBToBW";
+      case CMP_NODE_NORMAL:
+        return "CompositorNodeNormal";
+      case CMP_NODE_CURVE_VEC:
+        return "CompositorNodeCurveVec";
+      case CMP_NODE_CURVE_RGB:
+        return "CompositorNodeCurveRGB";
+      case CMP_NODE_ALPHAOVER:
+        return "CompositorNodeAlphaOver";
+      case CMP_NODE_BLUR:
+        return "CompositorNodeBlur";
+      case CMP_NODE_FILTER:
+        return "CompositorNodeFilter";
+      case CMP_NODE_MAP_VALUE:
+        return "CompositorNodeMapValue";
+      case CMP_NODE_MAP_RANGE:
+        return "CompositorNodeMapRange";
+      case CMP_NODE_TIME:
+        return "CompositorNodeTime";
+      case CMP_NODE_VECBLUR:
+        return "CompositorNodeVecBlur";
+      case CMP_NODE_SEPRGBA_LEGACY:
+        return "CompositorNodeSepRGBA";
+      case CMP_NODE_SEPHSVA_LEGACY:
+        return "CompositorNodeSepHSVA";
+      case CMP_NODE_SETALPHA:
+        return "CompositorNodeSetAlpha";
+      case CMP_NODE_HUE_SAT:
+        return "CompositorNodeHueSat";
+      case CMP_NODE_IMAGE:
+        return "CompositorNodeImage";
+      case CMP_NODE_R_LAYERS:
+        return "CompositorNodeRLayers";
+      case CMP_NODE_COMPOSITE:
+        return "CompositorNodeComposite";
+      case CMP_NODE_OUTPUT_FILE:
+        return "CompositorNodeOutputFile";
+      case CMP_NODE_TEXTURE:
+        return "CompositorNodeTexture";
+      case CMP_NODE_TRANSLATE:
+        return "CompositorNodeTranslate";
+      case CMP_NODE_ZCOMBINE:
+        return "CompositorNodeZcombine";
+      case CMP_NODE_COMBRGBA_LEGACY:
+        return "CompositorNodeCombRGBA";
+      case CMP_NODE_DILATEERODE:
+        return "CompositorNodeDilateErode";
+      case CMP_NODE_INPAINT:
+        return "CompositorNodeInpaint";
+      case CMP_NODE_DESPECKLE:
+        return "CompositorNodeDespeckle";
+      case CMP_NODE_ROTATE:
+        return "CompositorNodeRotate";
+      case CMP_NODE_SCALE:
+        return "CompositorNodeScale";
+      case CMP_NODE_SEPYCCA_LEGACY:
+        return "CompositorNodeSepYCCA";
+      case CMP_NODE_COMBYCCA_LEGACY:
+        return "CompositorNodeCombYCCA";
+      case CMP_NODE_SEPYUVA_LEGACY:
+        return "CompositorNodeSepYUVA";
+      case CMP_NODE_COMBYUVA_LEGACY:
+        return "CompositorNodeCombYUVA";
+      case CMP_NODE_DIFF_MATTE:
+        return "CompositorNodeDiffMatte";
+      case CMP_NODE_COLOR_SPILL:
+        return "CompositorNodeColorSpill";
+      case CMP_NODE_CHROMA_MATTE:
+        return "CompositorNodeChromaMatte";
+      case CMP_NODE_CHANNEL_MATTE:
+        return "CompositorNodeChannelMatte";
+      case CMP_NODE_FLIP:
+        return "CompositorNodeFlip";
+      case CMP_NODE_SPLITVIEWER:
+        return "CompositorNodeSplitViewer";
+      case CMP_NODE_MAP_UV:
+        return "CompositorNodeMapUV";
+      case CMP_NODE_ID_MASK:
+        return "CompositorNodeIDMask";
+      case CMP_NODE_DOUBLEEDGEMASK:
+        return "CompositorNodeDoubleEdgeMask";
+      case CMP_NODE_DEFOCUS:
+        return "CompositorNodeDefocus";
+      case CMP_NODE_DISPLACE:
+        return "CompositorNodeDisplace";
+      case CMP_NODE_COMBHSVA_LEGACY:
+        return "CompositorNodeCombHSVA";
+      case CMP_NODE_MATH:
+        return "CompositorNodeMath";
+      case CMP_NODE_LUMA_MATTE:
+        return "CompositorNodeLumaMatte";
+      case CMP_NODE_BRIGHTCONTRAST:
+        return "CompositorNodeBrightContrast";
+      case CMP_NODE_GAMMA:
+        return "CompositorNodeGamma";
+      case CMP_NODE_INVERT:
+        return "CompositorNodeInvert";
+      case CMP_NODE_NORMALIZE:
+        return "CompositorNodeNormalize";
+      case CMP_NODE_CROP:
+        return "CompositorNodeCrop";
+      case CMP_NODE_DBLUR:
+        return "CompositorNodeDBlur";
+      case CMP_NODE_BILATERALBLUR:
+        return "CompositorNodeBilateralblur";
+      case CMP_NODE_PREMULKEY:
+        return "CompositorNodePremulKey";
+      case CMP_NODE_GLARE:
+        return "CompositorNodeGlare";
+      case CMP_NODE_TONEMAP:
+        return "CompositorNodeTonemap";
+      case CMP_NODE_LENSDIST:
+        return "CompositorNodeLensdist";
+      case CMP_NODE_VIEW_LEVELS:
+        return "CompositorNodeLevels";
+      case CMP_NODE_COLOR_MATTE:
+        return "CompositorNodeColorMatte";
+      case CMP_NODE_DIST_MATTE:
+        return "CompositorNodeDistanceMatte";
+      case CMP_NODE_COLORBALANCE:
+        return "CompositorNodeColorBalance";
+      case CMP_NODE_HUECORRECT:
+        return "CompositorNodeHueCorrect";
+      case CMP_NODE_MOVIECLIP:
+        return "CompositorNodeMovieClip";
+      case CMP_NODE_TRANSFORM:
+        return "CompositorNodeTransform";
+      case CMP_NODE_STABILIZE2D:
+        return "CompositorNodeStabilize";
+      case CMP_NODE_MOVIEDISTORTION:
+        return "CompositorNodeMovieDistortion";
+      case CMP_NODE_MASK_BOX:
+        return "CompositorNodeBoxMask";
+      case CMP_NODE_MASK_ELLIPSE:
+        return "CompositorNodeEllipseMask";
+      case CMP_NODE_BOKEHIMAGE:
+        return "CompositorNodeBokehImage";
+      case CMP_NODE_BOKEHBLUR:
+        return "CompositorNodeBokehBlur";
+      case CMP_NODE_SWITCH:
+        return "CompositorNodeSwitch";
+      case CMP_NODE_COLORCORRECTION:
+        return "CompositorNodeColorCorrection";
+      case CMP_NODE_MASK:
+        return "CompositorNodeMask";
+      case CMP_NODE_KEYINGSCREEN:
+        return "CompositorNodeKeyingScreen";
+      case CMP_NODE_KEYING:
+        return "CompositorNodeKeying";
+      case CMP_NODE_TRACKPOS:
+        return "CompositorNodeTrackPos";
+      case CMP_NODE_PIXELATE:
+        return "CompositorNodePixelate";
+      case TEX_NODE_OUTPUT:
+        return "TextureNodeOutput";
+      case TEX_NODE_CHECKER:
+        return "TextureNodeChecker";
+      case TEX_NODE_TEXTURE:
+        return "TextureNodeTexture";
+      case TEX_NODE_BRICKS:
+        return "TextureNodeBricks";
+      case TEX_NODE_MATH:
+        return "TextureNodeMath";
+      case TEX_NODE_MIX_RGB:
+        return "TextureNodeMixRGB";
+      case TEX_NODE_RGBTOBW:
+        return "TextureNodeRGBToBW";
+      case TEX_NODE_VALTORGB:
+        return "TextureNodeValToRGB";
+      case TEX_NODE_IMAGE:
+        return "TextureNodeImage";
+      case TEX_NODE_CURVE_RGB:
+        return "TextureNodeCurveRGB";
+      case TEX_NODE_INVERT:
+        return "TextureNodeInvert";
+      case TEX_NODE_HUE_SAT:
+        return "TextureNodeHueSaturation";
+      case TEX_NODE_CURVE_TIME:
+        return "TextureNodeCurveTime";
+      case TEX_NODE_ROTATE:
+        return "TextureNodeRotate";
+      case TEX_NODE_VIEWER:
+        return "TextureNodeViewer";
+      case TEX_NODE_TRANSLATE:
+        return "TextureNodeTranslate";
+      case TEX_NODE_COORD:
+        return "TextureNodeCoordinates";
+      case TEX_NODE_DISTANCE:
+        return "TextureNodeDistance";
+      case TEX_NODE_COMPOSE_LEGACY:
+        return "TextureNodeCompose";
+      case TEX_NODE_DECOMPOSE_LEGACY:
+        return "TextureNodeDecompose";
+      case TEX_NODE_VALTONOR:
+        return "TextureNodeValToNor";
+      case TEX_NODE_SCALE:
+        return "TextureNodeScale";
+      case TEX_NODE_AT:
+        return "TextureNodeAt";
+      case TEX_NODE_PROC + TEX_VORONOI:
+        return "TextureNodeTexVoronoi";
+      case TEX_NODE_PROC + TEX_BLEND:
+        return "TextureNodeTexBlend";
+      case TEX_NODE_PROC + TEX_MAGIC:
+        return "TextureNodeTexMagic";
+      case TEX_NODE_PROC + TEX_MARBLE:
+        return "TextureNodeTexMarble";
+      case TEX_NODE_PROC + TEX_CLOUDS:
+        return "TextureNodeTexClouds";
+      case TEX_NODE_PROC + TEX_WOOD:
+        return "TextureNodeTexWood";
+      case TEX_NODE_PROC + TEX_MUSGRAVE:
+        return "TextureNodeTexMusgrave";
+      case TEX_NODE_PROC + TEX_NOISE:
+        return "TextureNodeTexNoise";
+      case TEX_NODE_PROC + TEX_STUCCI:
+        return "TextureNodeTexStucci";
+      case TEX_NODE_PROC + TEX_DISTNOISE:
+        return "TextureNodeTexDistNoise";
     }
   }
   return "";
