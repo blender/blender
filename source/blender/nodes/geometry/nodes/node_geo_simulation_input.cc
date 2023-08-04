@@ -64,14 +64,15 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       return;
     }
     const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
-    if (modifier_data.current_simulation_state == nullptr) {
-      params.set_default_remaining_outputs();
-      return;
-    }
 
     if (!params.output_was_set(0)) {
       const float delta_time = modifier_data.simulation_time_delta;
       params.set_output(0, fn::ValueOrField<float>(delta_time));
+    }
+
+    if (modifier_data.current_simulation_state == nullptr) {
+      this->pass_through(params, user_data);
+      return;
     }
 
     const std::optional<bke::sim::SimulationZoneID> zone_id = get_simulation_zone_id(
@@ -98,22 +99,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       }
     }
 
-    /* When there is no previous state already, create the initial state. */
-    Array<void *> input_values(simulation_items_.size(), nullptr);
-    for (const int i : simulation_items_.index_range()) {
-      input_values[i] = params.try_get_input_data_ptr_or_request(i);
-    }
-    if (input_values.as_span().contains(nullptr)) {
-      /* Wait until all inputs are available. */
-      return;
-    }
-
-    /* Instead of outputting the initial values directly, convert them to a simulation state and
-     * then back. This ensures that the first frame behaves consistently with all other frames
-     * which are necessarily stored in the simulation cache. */
-    bke::sim::SimulationZoneState initial_zone_state;
-    move_values_to_simulation_state(simulation_items_, input_values, initial_zone_state);
-    this->output_simulation_state_move(params, user_data, initial_zone_state);
+    this->pass_through(params, user_data);
   }
 
   void output_simulation_state_copy(lf::Params &params,
@@ -152,6 +138,24 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
     }
+  }
+
+  void pass_through(lf::Params &params, const GeoNodesLFUserData &user_data) const
+  {
+    Array<void *> input_values(inputs_.size());
+    for (const int i : inputs_.index_range()) {
+      input_values[i] = params.try_get_input_data_ptr_or_request(i);
+    }
+    if (input_values.as_span().contains(nullptr)) {
+      /* Wait for inputs to be computed. */
+      return;
+    }
+    /* Instead of outputting the initial values directly, convert them to a simulation state and
+     * then back. This ensures that some geometry processing happens on the data consistently (e.g.
+     * removing anonymous attributes). */
+    bke::sim::SimulationZoneState state;
+    move_values_to_simulation_state(simulation_items_, input_values, state);
+    this->output_simulation_state_move(params, user_data, state);
   }
 };
 
