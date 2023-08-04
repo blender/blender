@@ -1778,7 +1778,7 @@ static float (*ensure_corner_normal_layer(Mesh &mesh))[3]
   return r_loop_normals;
 }
 
-void BKE_mesh_calc_normals_split_ex(Mesh *mesh,
+void BKE_mesh_calc_normals_split_ex(const Mesh *mesh,
                                     MLoopNorSpaceArray *r_lnors_spacearr,
                                     float (*r_corner_normals)[3])
 {

@@ -469,7 +469,7 @@ void BKE_mesh_calc_normals_split(struct Mesh *mesh);
  * That data, among other things, contains 'smooth fan' info, useful e.g.
  * to split geometry along sharp edges.
  */
-void BKE_mesh_calc_normals_split_ex(struct Mesh *mesh,
+void BKE_mesh_calc_normals_split_ex(const struct Mesh *mesh,
                                     struct MLoopNorSpaceArray *r_lnors_spacearr,
                                     float (*r_corner_normals)[3]);
 

@@ -336,7 +336,7 @@ static void compute_normal_outputs(const Mesh &mesh,
 {
   Array<float3> corner_normals(mesh.totloop);
   BKE_mesh_calc_normals_split_ex(
-      const_cast<Mesh *>(&mesh), nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+      &mesh, nullptr, reinterpret_cast<float(*)[3]>(corner_normals.data()));
 
   const Span<MLoopTri> looptris = mesh.looptris();
   threading::parallel_for(bary_coords.index_range(), 512, [&](const IndexRange range) {
