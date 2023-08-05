@@ -137,7 +137,7 @@ int multitex_nodes(struct Tex *tex,
                    struct TexResult *texres,
                    short thread,
                    short which_output,
-                   struct MTex *mtex,
+                   const struct MTex *mtex,
                    struct ImagePool *pool);
 
 #ifdef __cplusplus

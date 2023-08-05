@@ -69,7 +69,7 @@ struct TexCallData {
   short which_output;
   int cfra;
 
-  MTex *mtex;
+  const MTex *mtex;
 };
 
 struct TexParams {
@@ -81,7 +81,7 @@ struct TexParams {
 
   /* optional. we don't really want these here, but image
    * textures need to do mapping & color correction */
-  MTex *mtex;
+  const MTex *mtex;
 };
 
 typedef void (*TexFn)(float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);
