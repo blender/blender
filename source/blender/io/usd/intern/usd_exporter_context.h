@@ -20,8 +20,9 @@ struct USDExporterContext {
   Depsgraph *depsgraph;
   const pxr::UsdStageRefPtr stage;
   const pxr::SdfPath usd_path;
-  const USDHierarchyIterator *hierarchy_iterator;
+  pxr::UsdTimeCode time_code;
   const USDExportParams &export_params;
+  std::string export_file_path;
 };
 
 }  // namespace blender::io::usd

@@ -108,14 +108,11 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
                                 pxr::UsdShadeMaterial &usd_material,
                                 pxr::UsdShadeShader &usd_tex_shader,
                                 const pxr::TfToken &default_uv);
-static void export_texture(bNode *node,
-                           const pxr::UsdStageRefPtr stage,
-                           const bool allow_overwrite = false);
+static void export_texture(const USDExporterContext &usd_export_context, bNode *node);
 static bNode *find_bsdf_node(Material *material);
 static void get_absolute_path(Image *ima, char *r_path);
-static std::string get_tex_image_asset_filepath(bNode *node,
-                                                const pxr::UsdStageRefPtr stage,
-                                                const USDExportParams &export_params);
+static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
+                                                bNode *node);
 static InputSpecMap &preview_surface_input_map();
 static bNodeLink *traverse_channel(bNodeSocket *input, short target_type);
 
@@ -189,9 +186,7 @@ void create_usd_preview_surface_material(const USDExporterContext &usd_export_co
 
       /* Export the texture, if necessary. */
       if (usd_export_context.export_params.export_textures) {
-        export_texture(input_node,
-                       usd_export_context.stage,
-                       usd_export_context.export_params.overwrite_textures);
+        export_texture(usd_export_context, input_node);
       }
 
       /* Look for a connected uv node. */
@@ -270,6 +265,7 @@ void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &
   bias_attr.Set(pxr::GfVec4f(-1.0f, -1.0f, -1.0f, -1.0f));
 }
 
+/* Create USD Shade Material network from Blender viewport display settings. */
 void create_usd_viewport_material(const USDExporterContext &usd_export_context,
                                   Material *material,
                                   pxr::UsdShadeMaterial &usd_material)
@@ -581,8 +577,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
   }
 
   /* For texture image nodes we set the image path and color space. */
-  std::string imagePath = get_tex_image_asset_filepath(
-      node, usd_export_context.stage, usd_export_context.export_params);
+  std::string imagePath = get_tex_image_asset_filepath(usd_export_context, node);
   if (!imagePath.empty()) {
     shader.CreateInput(usdtokens::file, pxr::SdfValueTypeNames->Asset)
         .Set(pxr::SdfAssetPath(imagePath));
@@ -611,9 +606,8 @@ static std::string get_tex_image_asset_filepath(Image *ima)
  * generated based on the image name for in-memory textures when exporting textures.
  * This function may return an empty string if the image does not have a filepath
  * assigned and no asset path could be determined. */
-static std::string get_tex_image_asset_filepath(bNode *node,
-                                                const pxr::UsdStageRefPtr stage,
-                                                const USDExportParams &export_params)
+static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_export_context,
+                                                bNode *node)
 {
   Image *ima = reinterpret_cast<Image *>(node->id);
   if (!ima) {
@@ -626,7 +620,7 @@ static std::string get_tex_image_asset_filepath(bNode *node,
     /* Get absolute path. */
     path = get_tex_image_asset_filepath(ima);
   }
-  else if (export_params.export_textures) {
+  else if (usd_export_context.export_params.export_textures) {
     /* Image has no filepath, but since we are exporting textures,
      * check if this is an in-memory texture for which we can
      * generate a file name. */
@@ -637,7 +631,7 @@ static std::string get_tex_image_asset_filepath(bNode *node,
     return path;
   }
 
-  if (export_params.export_textures) {
+  if (usd_export_context.export_params.export_textures) {
     /* The texture is exported to a 'textures' directory next to the
      * USD root layer. */
 
@@ -645,37 +639,35 @@ static std::string get_tex_image_asset_filepath(bNode *node,
     char file_path[FILE_MAX];
     BLI_path_split_file_part(path.c_str(), file_path, FILE_MAX);
 
-    if (export_params.relative_paths) {
+    if (usd_export_context.export_params.relative_paths) {
       BLI_path_join(exp_path, FILE_MAX, ".", "textures", file_path);
     }
     else {
       /* Create absolute path in the textures directory. */
-      pxr::SdfLayerHandle layer = stage->GetRootLayer();
-      std::string stage_path = layer->GetRealPath();
-      if (stage_path.empty()) {
+      std::string export_path = usd_export_context.export_file_path;
+      if (export_path.empty()) {
         return path;
       }
 
       char dir_path[FILE_MAX];
-      BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
+      BLI_path_split_dir_part(export_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
     BLI_string_replace_char(exp_path, '\\', '/');
     return exp_path;
   }
 
-  if (export_params.relative_paths) {
+  if (usd_export_context.export_params.relative_paths) {
     /* Get the path relative to the USD. */
-    pxr::SdfLayerHandle layer = stage->GetRootLayer();
-    std::string stage_path = layer->GetRealPath();
-    if (stage_path.empty()) {
+    std::string export_path = usd_export_context.export_file_path;
+    if (export_path.empty()) {
       return path;
     }
 
     char rel_path[FILE_MAX];
     STRNCPY(rel_path, path.c_str());
 
-    BLI_path_rel(rel_path, stage_path.c_str());
+    BLI_path_rel(rel_path, export_path.c_str());
     if (!BLI_path_is_rel(rel_path)) {
       return path;
     }
@@ -770,12 +762,9 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   }
 }
 
-/* Export the given texture node's image to a 'textures' directory
- * next to given stage's root layer USD.
+/* Export the given texture node's image to a 'textures' directory in the export path.
  * Based on ImagesExporter::export_UV_Image() */
-static void export_texture(bNode *node,
-                           const pxr::UsdStageRefPtr stage,
-                           const bool allow_overwrite)
+static void export_texture(const USDExporterContext &usd_export_context, bNode *node)
 {
   if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
     return;
@@ -786,14 +775,13 @@ static void export_texture(bNode *node,
     return;
   }
 
-  pxr::SdfLayerHandle layer = stage->GetRootLayer();
-  std::string stage_path = layer->GetRealPath();
-  if (stage_path.empty()) {
+  std::string export_path = usd_export_context.export_file_path;
+  if (export_path.empty()) {
     return;
   }
 
   char usd_dir_path[FILE_MAX];
-  BLI_path_split_dir_part(stage_path.c_str(), usd_dir_path, FILE_MAX);
+  BLI_path_split_dir_part(export_path.c_str(), usd_dir_path, FILE_MAX);
 
   char tex_dir_path[FILE_MAX];
   BLI_path_join(tex_dir_path, FILE_MAX, usd_dir_path, "textures", SEP_STR);
@@ -803,6 +791,7 @@ static void export_texture(bNode *node,
   const bool is_dirty = BKE_image_is_dirty(ima);
   const bool is_generated = ima->source == IMA_SRC_GENERATED;
   const bool is_packed = BKE_image_has_packedfile(ima);
+  const bool allow_overwrite = usd_export_context.export_params.overwrite_textures;
 
   std::string dest_dir(tex_dir_path);
 

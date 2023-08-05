@@ -53,13 +53,13 @@ bool USDAbstractWriter::is_supported(const HierarchyContext * /*context*/) const
 
 std::string USDAbstractWriter::get_export_file_path() const
 {
-  return usd_export_context_.hierarchy_iterator->get_export_file_path();
+  return usd_export_context_.export_file_path;
 }
 
 pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
 {
   if (is_animated_) {
-    return usd_export_context_.hierarchy_iterator->get_export_time_code();
+    return usd_export_context_.time_code;
   }
   /* By using the default timecode USD won't even write a single `timeSample` for non-animated
    * data. Instead, it writes it as non-timesampled. */
@@ -107,7 +107,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
-  pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
+  pxr::TfToken material_name(pxr::TfMakeValidIdentifier(material->id.name + 2));
   pxr::SdfPath usd_path = get_material_library_path().AppendChild(material_name);
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
