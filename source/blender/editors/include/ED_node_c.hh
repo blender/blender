@@ -8,6 +8,7 @@
 
 #pragma once
 
+struct ARegion;
 struct ID;
 struct Main;
 struct Scene;
@@ -39,79 +40,73 @@ ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 
 /* clipboard.cc */
 
-void ED_node_clipboard_free(void);
+void ED_node_clipboard_free();
 
 /* space_node.cc */
 
-void ED_node_cursor_location_get(const struct SpaceNode *snode, float value[2]);
-void ED_node_cursor_location_set(struct SpaceNode *snode, const float value[2]);
+void ED_node_cursor_location_get(const SpaceNode *snode, float value[2]);
+void ED_node_cursor_location_set(SpaceNode *snode, const float value[2]);
 
-int ED_node_tree_path_length(struct SpaceNode *snode);
+int ED_node_tree_path_length(SpaceNode *snode);
 /**
  * \param value: The path output at least the size of `ED_node_tree_path_length(snode) + 1`.
  */
-void ED_node_tree_path_get(struct SpaceNode *snode, char *value);
+void ED_node_tree_path_get(SpaceNode *snode, char *value);
 
-void ED_node_tree_start(struct SpaceNode *snode,
-                        struct bNodeTree *ntree,
-                        struct ID *id,
-                        struct ID *from);
-void ED_node_tree_push(struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *gnode);
-void ED_node_tree_pop(struct SpaceNode *snode);
-int ED_node_tree_depth(struct SpaceNode *snode);
-struct bNodeTree *ED_node_tree_get(struct SpaceNode *snode, int level);
+void ED_node_tree_start(SpaceNode *snode, bNodeTree *ntree, ID *id, ID *from);
+void ED_node_tree_push(SpaceNode *snode, bNodeTree *ntree, bNode *gnode);
+void ED_node_tree_pop(SpaceNode *snode);
+int ED_node_tree_depth(SpaceNode *snode);
+bNodeTree *ED_node_tree_get(SpaceNode *snode, int level);
 
-void ED_node_set_active_viewer_key(struct SpaceNode *snode);
+void ED_node_set_active_viewer_key(SpaceNode *snode);
 
 /* drawnode.cc */
 
-void ED_node_init_butfuncs(void);
-void ED_init_custom_node_type(struct bNodeType *ntype);
-void ED_init_custom_node_socket_type(struct bNodeSocketType *stype);
-void ED_init_standard_node_socket_type(struct bNodeSocketType *stype);
-void ED_init_node_socket_type_virtual(struct bNodeSocketType *stype);
+void ED_node_init_butfuncs();
+void ED_init_custom_node_type(bNodeType *ntype);
+void ED_init_custom_node_socket_type(bNodeSocketType *stype);
+void ED_init_standard_node_socket_type(bNodeSocketType *stype);
+void ED_init_node_socket_type_virtual(bNodeSocketType *stype);
 void ED_node_sample_set(const float col[4]);
 void ED_node_draw_snap(
-    struct View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned int pos);
+    View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned int pos);
 void ED_node_type_draw_color(const char *idname, float *r_color);
 
 /* node_draw.cc */
 
-void ED_node_tree_update(const struct bContext *C);
-void ED_node_tag_update_id(struct ID *id);
+void ED_node_tree_update(const bContext *C);
+void ED_node_tag_update_id(ID *id);
 
-float ED_node_grid_size(void);
+float ED_node_grid_size();
 
 /* node_edit.cc */
 
-void ED_node_set_tree_type(struct SpaceNode *snode, struct bNodeTreeType *typeinfo);
-bool ED_node_is_compositor(struct SpaceNode *snode);
-bool ED_node_is_shader(struct SpaceNode *snode);
-bool ED_node_is_texture(struct SpaceNode *snode);
-bool ED_node_is_geometry(struct SpaceNode *snode);
-bool ED_node_supports_preview(struct SpaceNode *snode);
+void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo);
+bool ED_node_is_compositor(SpaceNode *snode);
+bool ED_node_is_shader(SpaceNode *snode);
+bool ED_node_is_texture(SpaceNode *snode);
+bool ED_node_is_geometry(SpaceNode *snode);
+bool ED_node_supports_preview(SpaceNode *snode);
 
 /**
  * Assumes nothing being done in ntree yet, sets the default in/out node.
  * Called from shading buttons or header.
  */
-void ED_node_shader_default(const struct bContext *C, struct ID *id);
+void ED_node_shader_default(const bContext *C, ID *id);
 /**
  * Assumes nothing being done in ntree yet, sets the default in/out node.
  * Called from shading buttons or header.
  */
-void ED_node_composit_default(const struct bContext *C, struct Scene *scene);
+void ED_node_composit_default(const bContext *C, Scene *scene);
 /**
  * Assumes nothing being done in ntree yet, sets the default in/out node.
  * Called from shading buttons or header.
  */
-void ED_node_texture_default(const struct bContext *C, struct Tex *tex);
-void ED_node_post_apply_transform(struct bContext *C, struct bNodeTree *ntree);
-void ED_node_set_active(struct Main *bmain,
-                        struct SpaceNode *snode,
-                        struct bNodeTree *ntree,
-                        struct bNode *node,
-                        bool *r_active_texture_changed);
+void ED_node_texture_default(const bContext *C, Tex *tex);
+void ED_node_post_apply_transform(bContext *C, bNodeTree *ntree);
+void ED_node_set_active(
+    Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed);
 
 /**
  * Call after one or more node trees have been changed and tagged accordingly.
@@ -129,9 +124,7 @@ void ED_node_set_active(struct Main *bmain,
  *   for other things that have to be changed. It may still scan #bmain if the interface of the
  *   node tree has changed.
  */
-void ED_node_tree_propagate_change(const struct bContext *C,
-                                   struct Main *bmain,
-                                   struct bNodeTree *ntree);
+void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ntree);
 
 /**
  * \param scene_owner: is the owner of the job,
@@ -140,30 +133,22 @@ void ED_node_tree_propagate_change(const struct bContext *C,
  *
  * \note only call from spaces `refresh` callbacks, not direct! - use with care.
  */
-void ED_node_composite_job(const struct bContext *C,
-                           struct bNodeTree *nodetree,
-                           struct Scene *scene_owner);
+void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner);
 
 /* node_ops.cc */
 
-void ED_operatormacros_node(void);
+void ED_operatormacros_node();
 
 /* node_view.cc */
 
 /**
  * Returns mouse position in image space.
  */
-bool ED_space_node_get_position(struct Main *bmain,
-                                struct SpaceNode *snode,
-                                struct ARegion *region,
-                                const int mval[2],
-                                float fpos[2]);
+bool ED_space_node_get_position(
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float fpos[2]);
 /**
  * Returns color in linear space, matching #ED_space_image_color_sample().
  * And here we've got recursion in the comments tips...
  */
-bool ED_space_node_color_sample(struct Main *bmain,
-                                struct SpaceNode *snode,
-                                struct ARegion *region,
-                                const int mval[2],
-                                float r_col[3]);
+bool ED_space_node_color_sample(
+    Main *bmain, SpaceNode *snode, ARegion *region, const int mval[2], float r_col[3]);

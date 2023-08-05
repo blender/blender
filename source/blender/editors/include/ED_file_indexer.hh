@@ -25,7 +25,7 @@ struct LinkNode;
 /**
  * Result code of the `read_index` callback.
  */
-typedef enum eFileIndexerResult {
+enum eFileIndexerResult {
   /**
    * File listing entries are loaded from the index. Reading entries from the blend file itself
    * should be skipped.
@@ -37,36 +37,36 @@ typedef enum eFileIndexerResult {
    * `update_index` must be called to update the index.
    */
   FILE_INDEXER_NEEDS_UPDATE,
-} eFileIndexerResult;
+};
 
 /**
  * FileIndexerEntry contains all data that is required to create a file listing entry.
  */
-typedef struct FileIndexerEntry {
-  struct BLODataBlockInfo datablock_info;
+struct FileIndexerEntry {
+  BLODataBlockInfo datablock_info;
   short idcode;
-} FileIndexerEntry;
+};
 
 /**
  * Contains all entries of a blend file.
  */
-typedef struct FileIndexerEntries {
-  struct LinkNode /* FileIndexerEntry */ *entries;
-} FileIndexerEntries;
+struct FileIndexerEntries {
+  LinkNode /* FileIndexerEntry */ *entries;
+};
 
-typedef void *(*FileIndexerInitUserDataFunc)(const char *root_directory,
-                                             size_t root_directory_maxlen);
-typedef void (*FileIndexerFreeUserDataFunc)(void *);
-typedef void (*FileIndexerFinishedFunc)(void *);
-typedef eFileIndexerResult (*FileIndexerReadIndexFunc)(const char *file_name,
-                                                       FileIndexerEntries *entries,
-                                                       int *r_read_entries_len,
-                                                       void *user_data);
-typedef void (*FileIndexerUpdateIndexFunc)(const char *file_name,
-                                           FileIndexerEntries *entries,
-                                           void *user_data);
+using FileIndexerInitUserDataFunc = void *(*)(const char *root_directory,
+                                              size_t root_directory_maxlen);
+using FileIndexerFreeUserDataFunc = void (*)(void *);
+using FileIndexerFinishedFunc = void (*)(void *);
+using FileIndexerReadIndexFunc = eFileIndexerResult (*)(const char *file_name,
+                                                        FileIndexerEntries *entries,
+                                                        int *r_read_entries_len,
+                                                        void *user_data);
+using FileIndexerUpdateIndexFunc = void (*)(const char *file_name,
+                                            FileIndexerEntries *entries,
+                                            void *user_data);
 
-typedef struct FileIndexerType {
+struct FileIndexerType {
   /**
    * Is called at the beginning of the file listing process. An indexer can
    * setup needed data. The result of this function will be passed around as `user_data` parameter.
@@ -115,7 +115,7 @@ typedef struct FileIndexerType {
    * next time that read_index is called it will read the entries from the index.
    */
   FileIndexerUpdateIndexFunc update_index;
-} FileIndexerType;
+};
 
 /* file_indexer.cc */
 
@@ -132,5 +132,5 @@ void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries);
  */
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
-    struct LinkNode * /*BLODataBlockInfo*/ datablock_infos,
+    LinkNode * /*BLODataBlockInfo*/ datablock_infos,
     int idcode);

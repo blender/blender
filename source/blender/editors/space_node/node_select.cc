@@ -28,7 +28,6 @@
 #include "BKE_workspace.h"
 
 #include "ED_node.hh" /* own include */
-#include "ED_node.hh" /* own include */
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"

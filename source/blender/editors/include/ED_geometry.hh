@@ -18,7 +18,7 @@
 struct Mesh;
 struct ReportList;
 
-void ED_operatortypes_geometry(void);
+void ED_operatortypes_geometry();
 
 /**
  * Convert an attribute with the given name to a new type and domain.
@@ -26,7 +26,7 @@ void ED_operatortypes_geometry(void);
  *
  * \note Does not support meshes in edit mode.
  */
-bool ED_geometry_attribute_convert(struct Mesh *mesh,
+bool ED_geometry_attribute_convert(Mesh *mesh,
                                    const char *name,
                                    eCustomDataType dst_type,
                                    eAttrDomain dst_domain,

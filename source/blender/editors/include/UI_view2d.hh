@@ -137,21 +137,21 @@ struct wmOperatorType;
  *   this is called before #UI_view2d_size_update(),
  *   as this one checks that the rects are properly initialized.
  */
-void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy);
+void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy);
 
-void UI_view2d_curRect_validate(struct View2D *v2d);
+void UI_view2d_curRect_validate(View2D *v2d);
 /**
  * Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot).
  * This does not take into account if zooming the view on an axis
  * will improve the view (if allowed).
  */
-void UI_view2d_curRect_reset(struct View2D *v2d);
-bool UI_view2d_area_supports_sync(struct ScrArea *area);
+void UI_view2d_curRect_reset(View2D *v2d);
+bool UI_view2d_area_supports_sync(ScrArea *area);
 /**
  * Called by menus to activate it, or by view2d operators
  * to make sure 'related' views stay in synchrony.
  */
-void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D *v2dcur, int flag);
+void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag);
 
 /**
  * Perform all required updates after `v2d->cur` as been modified.
@@ -159,19 +159,19 @@ void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D 
  *
  * Current intent is to use it from user code, such as view navigation and zoom operations.
  */
-void UI_view2d_curRect_changed(const struct bContext *C, struct View2D *v2d);
+void UI_view2d_curRect_changed(const bContext *C, View2D *v2d);
 
-void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
+void UI_view2d_totRect_set(View2D *v2d, int width, int height);
 
-void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
+void UI_view2d_mask_from_win(const View2D *v2d, rcti *r_mask);
 
-void UI_view2d_zoom_cache_reset(void);
+void UI_view2d_zoom_cache_reset();
 
 /**
  * Clamp view2d area to what's visible, preventing
  * scrolling vertically to infinity.
  */
-void UI_view2d_curRect_clamp_y(struct View2D *v2d);
+void UI_view2d_curRect_clamp_y(View2D *v2d);
 
 /** \} */
 
@@ -182,18 +182,18 @@ void UI_view2d_curRect_clamp_y(struct View2D *v2d);
 /**
  * Set view matrices to use 'cur' rect as viewing frame for View2D drawing.
  */
-void UI_view2d_view_ortho(const struct View2D *v2d);
+void UI_view2d_view_ortho(const View2D *v2d);
 /**
  * Set view matrices to only use one axis of 'cur' only
  *
  * \param xaxis: if non-zero, only use cur x-axis,
  * otherwise use cur-yaxis (mostly this will be used for x).
  */
-void UI_view2d_view_orthoSpecial(struct ARegion *region, struct View2D *v2d, bool xaxis);
+void UI_view2d_view_orthoSpecial(ARegion *region, View2D *v2d, bool xaxis);
 /**
  * Restore view matrices after drawing.
  */
-void UI_view2d_view_restore(const struct bContext *C);
+void UI_view2d_view_restore(const bContext *C);
 
 /** \} */
 
@@ -205,7 +205,7 @@ void UI_view2d_view_restore(const struct bContext *C);
  * Draw a multi-level grid in given 2d-region.
  */
 void UI_view2d_multi_grid_draw(
-    const struct View2D *v2d, int colorid, float step, int level_size, int totlevels);
+    const View2D *v2d, int colorid, float step, int level_size, int totlevels);
 /**
  * Draw a multi-level grid of dots, with a dynamic number of levels based on the fading.
  *
@@ -214,51 +214,51 @@ void UI_view2d_multi_grid_draw(
  * a larger step size.
  * \param grid_subdivisions: The maximum number of sub-levels drawn at once.
  */
-void UI_view2d_dot_grid_draw(const struct View2D *v2d,
+void UI_view2d_dot_grid_draw(const View2D *v2d,
                              int grid_color_id,
                              float min_step,
                              int grid_subdivisions);
 
-void UI_view2d_draw_lines_y__values(const struct View2D *v2d);
-void UI_view2d_draw_lines_x__values(const struct View2D *v2d);
-void UI_view2d_draw_lines_x__discrete_values(const struct View2D *v2d, bool display_minor_lines);
-void UI_view2d_draw_lines_x__discrete_time(const struct View2D *v2d,
-                                           const struct Scene *scene,
+void UI_view2d_draw_lines_y__values(const View2D *v2d);
+void UI_view2d_draw_lines_x__values(const View2D *v2d);
+void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d, bool display_minor_lines);
+void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d,
+                                           const Scene *scene,
                                            bool display_minor_lines);
-void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const struct View2D *v2d,
-                                                        const struct Scene *scene,
+void UI_view2d_draw_lines_x__discrete_frames_or_seconds(const View2D *v2d,
+                                                        const Scene *scene,
                                                         bool display_seconds,
                                                         bool display_minor_lines);
-void UI_view2d_draw_lines_x__frames_or_seconds(const struct View2D *v2d,
-                                               const struct Scene *scene,
+void UI_view2d_draw_lines_x__frames_or_seconds(const View2D *v2d,
+                                               const Scene *scene,
                                                bool display_seconds);
 
-float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
-                                                     const struct Scene *scene,
+float UI_view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d,
+                                                     const Scene *scene,
                                                      bool display_seconds);
-float UI_view2d_grid_resolution_y__values(const struct View2D *v2d);
+float UI_view2d_grid_resolution_y__values(const View2D *v2d);
 
 /**
  * Scale indicator text drawing.
  */
-void UI_view2d_draw_scale_y__values(const struct ARegion *region,
-                                    const struct View2D *v2d,
-                                    const struct rcti *rect,
+void UI_view2d_draw_scale_y__values(const ARegion *region,
+                                    const View2D *v2d,
+                                    const rcti *rect,
                                     int colorid);
-void UI_view2d_draw_scale_y__block(const struct ARegion *region,
-                                   const struct View2D *v2d,
-                                   const struct rcti *rect,
+void UI_view2d_draw_scale_y__block(const ARegion *region,
+                                   const View2D *v2d,
+                                   const rcti *rect,
                                    int colorid);
-void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
-                                                        const struct View2D *v2d,
-                                                        const struct rcti *rect,
-                                                        const struct Scene *scene,
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
+                                                        const View2D *v2d,
+                                                        const rcti *rect,
+                                                        const Scene *scene,
                                                         bool display_seconds,
                                                         int colorid);
-void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
-                                               const struct View2D *v2d,
-                                               const struct rcti *rect,
-                                               const struct Scene *scene,
+void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
+                                               const View2D *v2d,
+                                               const rcti *rect,
+                                               const Scene *scene,
                                                bool display_seconds,
                                                int colorid);
 
@@ -271,10 +271,8 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
 /**
  * Draw scroll-bars in the given 2D-region.
  */
-void UI_view2d_scrollers_draw_ex(struct View2D *v2d,
-                                 const struct rcti *mask_custom,
-                                 bool use_full_hide);
-void UI_view2d_scrollers_draw(struct View2D *v2d, const struct rcti *mask_custom);
+void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide);
+void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom);
 
 /** \} */
 
@@ -309,8 +307,8 @@ void UI_view2d_listview_view_to_cell(float columnwidth,
 /** \name Coordinate Conversion
  * \{ */
 
-float UI_view2d_region_to_view_x(const struct View2D *v2d, float x);
-float UI_view2d_region_to_view_y(const struct View2D *v2d, float y);
+float UI_view2d_region_to_view_x(const View2D *v2d, float x);
+float UI_view2d_region_to_view_y(const View2D *v2d, float y);
 /**
  * Convert from screen/region space to 2d-View space
  *
@@ -318,13 +316,12 @@ float UI_view2d_region_to_view_y(const struct View2D *v2d, float y);
  * \param r_view_x, r_view_y: resultant coordinates
  */
 void UI_view2d_region_to_view(
-    const struct View2D *v2d, float x, float y, float *r_view_x, float *r_view_y) ATTR_NONNULL();
-void UI_view2d_region_to_view_rctf(const struct View2D *v2d,
-                                   const struct rctf *rect_src,
-                                   struct rctf *rect_dst) ATTR_NONNULL();
+    const View2D *v2d, float x, float y, float *r_view_x, float *r_view_y) ATTR_NONNULL();
+void UI_view2d_region_to_view_rctf(const View2D *v2d, const rctf *rect_src, rctf *rect_dst)
+    ATTR_NONNULL();
 
-float UI_view2d_view_to_region_x(const struct View2D *v2d, float x);
-float UI_view2d_view_to_region_y(const struct View2D *v2d, float y);
+float UI_view2d_view_to_region_x(const View2D *v2d, float x);
+float UI_view2d_view_to_region_y(const View2D *v2d, float y);
 /**
  * Convert from 2d-View space to screen/region space
  * \note Coordinates are clamped to lie within bounds of region
@@ -333,7 +330,7 @@ float UI_view2d_view_to_region_y(const struct View2D *v2d, float y);
  * \param r_region_x, r_region_y: Resultant coordinates.
  */
 bool UI_view2d_view_to_region_clip(
-    const struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
+    const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
 
 bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
                                            const float xy_a[2],
@@ -350,19 +347,14 @@ bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
  * \param r_region_x, r_region_y: Resultant coordinates.
  */
 void UI_view2d_view_to_region(
-    const struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
-void UI_view2d_view_to_region_fl(const struct View2D *v2d,
-                                 float x,
-                                 float y,
-                                 float *r_region_x,
-                                 float *r_region_y) ATTR_NONNULL();
-void UI_view2d_view_to_region_m4(const struct View2D *v2d, float matrix[4][4]) ATTR_NONNULL();
-void UI_view2d_view_to_region_rcti(const struct View2D *v2d,
-                                   const struct rctf *rect_src,
-                                   struct rcti *rect_dst) ATTR_NONNULL();
-bool UI_view2d_view_to_region_rcti_clip(const struct View2D *v2d,
-                                        const struct rctf *rect_src,
-                                        struct rcti *rect_dst) ATTR_NONNULL();
+    const View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
+void UI_view2d_view_to_region_fl(
+    const View2D *v2d, float x, float y, float *r_region_x, float *r_region_y) ATTR_NONNULL();
+void UI_view2d_view_to_region_m4(const View2D *v2d, float matrix[4][4]) ATTR_NONNULL();
+void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+    ATTR_NONNULL();
+bool UI_view2d_view_to_region_rcti_clip(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
+    ATTR_NONNULL();
 
 /** \} */
 
@@ -373,11 +365,11 @@ bool UI_view2d_view_to_region_rcti_clip(const struct View2D *v2d,
 /**
  * View2D data by default resides in region, so get from region stored in context.
  */
-struct View2D *UI_view2d_fromcontext(const struct bContext *C);
+View2D *UI_view2d_fromcontext(const bContext *C);
 /**
  * Same as above, but it returns region-window. Utility for pull-downs or buttons.
  */
-struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
+View2D *UI_view2d_fromcontext_rwin(const bContext *C);
 
 /**
  * Get scroll-bar sizes of the current 2D view.
@@ -385,7 +377,7 @@ struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
  *
  * \param mapped: whether to use view2d_scroll_mapped which changes flags
  */
-void UI_view2d_scroller_size_get(const struct View2D *v2d, bool mapped, float *r_x, float *r_y);
+void UI_view2d_scroller_size_get(const View2D *v2d, bool mapped, float *r_x, float *r_y);
 /**
  * Calculate the scale per-axis of the drawing-area
  *
@@ -394,20 +386,20 @@ void UI_view2d_scroller_size_get(const struct View2D *v2d, bool mapped, float *r
  *
  * \param r_x, r_y: scale on each axis
  */
-void UI_view2d_scale_get(const struct View2D *v2d, float *r_x, float *r_y);
-float UI_view2d_scale_get_x(const struct View2D *v2d);
-float UI_view2d_scale_get_y(const struct View2D *v2d);
+void UI_view2d_scale_get(const View2D *v2d, float *r_x, float *r_y);
+float UI_view2d_scale_get_x(const View2D *v2d);
+float UI_view2d_scale_get_y(const View2D *v2d);
 /**
  * Same as `UI_view2d_scale_get() - 1.0f / x, y`.
  */
-void UI_view2d_scale_get_inverse(const struct View2D *v2d, float *r_x, float *r_y);
+void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y);
 
 /**
  * Simple functions for consistent center offset access.
  * Used by node editor to shift view center for each individual node tree.
  */
-void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y);
-void UI_view2d_center_set(struct View2D *v2d, float x, float y);
+void UI_view2d_center_get(const View2D *v2d, float *r_x, float *r_y);
+void UI_view2d_center_set(View2D *v2d, float x, float y);
 
 /**
  * Simple pan function
@@ -415,12 +407,12 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
  *  (0.5, 0.5) center
  *  (1.0, 1.0) top right.
  */
-void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
+void UI_view2d_offset(View2D *v2d, float xfac, float yfac);
 
 /**
  * Scrolls the view so that the upper edge is at a multiple of the page size.
  */
-void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d);
+void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d);
 
 /**
  * Check if mouse is within scrollers
@@ -433,39 +425,33 @@ void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d);
  * - 'v' = in vertical scroller.
  * - 0 = not in scroller.
  */
-char UI_view2d_mouse_in_scrollers_ex(const struct ARegion *region,
-                                     const struct View2D *v2d,
+char UI_view2d_mouse_in_scrollers_ex(const ARegion *region,
+                                     const View2D *v2d,
                                      const int xy[2],
                                      int *r_scroll) ATTR_NONNULL(1, 2, 3, 4);
-char UI_view2d_mouse_in_scrollers(const struct ARegion *region,
-                                  const struct View2D *v2d,
-                                  const int xy[2]) ATTR_NONNULL(1, 2, 3);
-char UI_view2d_rect_in_scrollers_ex(const struct ARegion *region,
-                                    const struct View2D *v2d,
-                                    const struct rcti *rect,
+char UI_view2d_mouse_in_scrollers(const ARegion *region, const View2D *v2d, const int xy[2])
+    ATTR_NONNULL(1, 2, 3);
+char UI_view2d_rect_in_scrollers_ex(const ARegion *region,
+                                    const View2D *v2d,
+                                    const rcti *rect,
                                     int *r_scroll) ATTR_NONNULL(1, 2, 3);
-char UI_view2d_rect_in_scrollers(const struct ARegion *region,
-                                 const struct View2D *v2d,
-                                 const struct rcti *rect) ATTR_NONNULL(1, 2, 3);
+char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const rcti *rect)
+    ATTR_NONNULL(1, 2, 3);
 
 /**
  * Cached text drawing in v2d, to allow pixel-aligned draw as post process.
  */
-void UI_view2d_text_cache_add(struct View2D *v2d,
-                              float x,
-                              float y,
-                              const char *str,
-                              size_t str_len,
-                              const unsigned char col[4]);
+void UI_view2d_text_cache_add(
+    View2D *v2d, float x, float y, const char *str, size_t str_len, const unsigned char col[4]);
 /**
  * No clip (yet).
  */
-void UI_view2d_text_cache_add_rectf(struct View2D *v2d,
-                                    const struct rctf *rect_view,
+void UI_view2d_text_cache_add_rectf(View2D *v2d,
+                                    const rctf *rect_view,
                                     const char *str,
                                     size_t str_len,
                                     const unsigned char col[4]);
-void UI_view2d_text_cache_draw(struct ARegion *region);
+void UI_view2d_text_cache_draw(ARegion *region);
 
 /** \} */
 
@@ -473,17 +459,14 @@ void UI_view2d_text_cache_draw(struct ARegion *region);
 /** \name Operators
  * \{ */
 
-void ED_operatortypes_view2d(void);
-void ED_keymap_view2d(struct wmKeyConfig *keyconf);
+void ED_operatortypes_view2d();
+void ED_keymap_view2d(wmKeyConfig *keyconf);
 
 /**
  * Will start timer if appropriate.
  * the arguments are the desired situation.
  */
-void UI_view2d_smooth_view(const struct bContext *C,
-                           struct ARegion *region,
-                           const struct rctf *cur,
-                           int smooth_viewtx);
+void UI_view2d_smooth_view(const bContext *C, ARegion *region, const rctf *cur, int smooth_viewtx);
 
 #define UI_MARKER_MARGIN_Y (42 * UI_SCALE_FAC)
 #define UI_TIME_SCRUB_MARGIN_Y (23 * UI_SCALE_FAC)
@@ -499,7 +482,7 @@ void UI_view2d_smooth_view(const struct bContext *C,
 /**
  * Caller defines the name for gizmo group.
  */
-void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname);
+void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname);
 
 /** \} */
 
@@ -510,7 +493,7 @@ void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname)
 /**
  * Custom-data for view panning operators.
  */
-typedef struct View2DEdgePanData {
+struct View2DEdgePanData {
   /** Screen where view pan was initiated. */
   struct bScreen *screen;
   /** Area where view pan was initiated. */
@@ -554,10 +537,10 @@ typedef struct View2DEdgePanData {
   /* Timers. */
   double edge_pan_last_time;
   double edge_pan_start_time_x, edge_pan_start_time_y;
-} View2DEdgePanData;
+};
 
-void UI_view2d_edge_pan_init(struct bContext *C,
-                             struct View2DEdgePanData *vpd,
+void UI_view2d_edge_pan_init(bContext *C,
+                             View2DEdgePanData *vpd,
                              float inside_pad,
                              float outside_pad,
                              float speed_ramp,
@@ -569,28 +552,26 @@ void UI_view2d_edge_pan_init(struct bContext *C,
  * Set area which can be panned
  */
 void UI_view2d_edge_pan_set_limits(
-    struct View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax);
+    View2DEdgePanData *vpd, float xmin, float xmax, float ymin, float ymax);
 
-void UI_view2d_edge_pan_reset(struct View2DEdgePanData *vpd);
+void UI_view2d_edge_pan_reset(View2DEdgePanData *vpd);
 
 /**
  * Apply transform to view (i.e. adjust 'cur' rect).
  */
-void UI_view2d_edge_pan_apply(struct bContext *C, struct View2DEdgePanData *vpd, const int xy[2])
+void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[2])
     ATTR_NONNULL(1, 2, 3);
 
 /**
  * Apply transform to view using mouse events.
  */
-void UI_view2d_edge_pan_apply_event(struct bContext *C,
-                                    struct View2DEdgePanData *vpd,
-                                    const struct wmEvent *event);
+void UI_view2d_edge_pan_apply_event(bContext *C, View2DEdgePanData *vpd, const wmEvent *event);
 
-void UI_view2d_edge_pan_cancel(struct bContext *C, struct View2DEdgePanData *vpd);
+void UI_view2d_edge_pan_cancel(bContext *C, View2DEdgePanData *vpd);
 
-void UI_view2d_edge_pan_operator_properties(struct wmOperatorType *ot);
+void UI_view2d_edge_pan_operator_properties(wmOperatorType *ot);
 
-void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
+void UI_view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
                                                float inside_pad,
                                                float outside_pad,
                                                float speed_ramp,
@@ -601,8 +582,6 @@ void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
 /**
  * Initialize panning data with operator settings.
  */
-void UI_view2d_edge_pan_operator_init(struct bContext *C,
-                                      struct View2DEdgePanData *vpd,
-                                      struct wmOperator *op);
+void UI_view2d_edge_pan_operator_init(bContext *C, View2DEdgePanData *vpd, wmOperator *op);
 
 /** \} */

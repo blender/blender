@@ -14,7 +14,7 @@
 /* Barely anything here. Just general editor level functions. Actual asset level code is in
  * dedicated headers. */
 
-void ED_operatortypes_asset(void);
+void ED_operatortypes_asset();
 
 #include "../asset/ED_asset_catalog.h"
 #include "../asset/ED_asset_handle.h"

@@ -10,24 +10,26 @@
 
 #include "BLI_sys_types.h"
 
+struct bTheme;
+
 /* Define icon enum. */
 #define DEF_ICON(name) ICON_##name,
 #define DEF_ICON_VECTOR(name) ICON_##name,
 #define DEF_ICON_COLOR(name) ICON_##name,
 #define DEF_ICON_BLANK(name) ICON_BLANK_##name,
 
-typedef enum {
+enum BIFIconID {
 /* ui */
 #include "UI_icons.hh"
   BIFICONID_LAST,
-} BIFIconID;
+};
 
 #define BIFICONID_FIRST (ICON_NONE)
 
 /* use to denote intentionally unset theme color */
 #define TH_UNDEFINED -1
 
-typedef enum ThemeColorID {
+enum ThemeColorID {
   TH_REDALERT,
 
   TH_THEMEUI,
@@ -339,14 +341,12 @@ typedef enum ThemeColorID {
 
   TH_EDGE_BEVEL,
   TH_VERTEX_BEVEL,
-} ThemeColorID;
+};
 
 /* Specific defines per space should have higher define values. */
 
-struct bTheme;
-
 struct bThemeState {
-  struct bTheme *theme;
+  bTheme *theme;
   int spacetype, regionid;
 };
 
@@ -474,13 +474,13 @@ void UI_SetTheme(int spacetype, int regionid);
 /**
  * Get current theme.
  */
-struct bTheme *UI_GetTheme(void);
+bTheme *UI_GetTheme(void);
 
 /**
  * For the rare case we need to temp swap in a different theme (off-screen render).
  */
-void UI_Theme_Store(struct bThemeState *theme_state);
-void UI_Theme_Restore(struct bThemeState *theme_state);
+void UI_Theme_Store(bThemeState *theme_state);
+void UI_Theme_Restore(bThemeState *theme_state);
 
 /**
  * Return shadow width outside menus and popups.
@@ -490,6 +490,6 @@ int UI_ThemeMenuShadowWidth(void);
 /**
  * Only for buttons in theme editor!
  */
-const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
+const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid);
 
 void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], char axis);

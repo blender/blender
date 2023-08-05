@@ -26,7 +26,7 @@ enum {
 };
 
 /* Draw Scene-Markers in time window */
-void ED_markers_draw(const struct bContext *C, int flag);
+void ED_markers_draw(const bContext *C, int flag);
 
 /** \} */
 
@@ -37,11 +37,11 @@ void ED_markers_draw(const struct bContext *C, int flag);
 /**
  * Public API for getting markers from context.
  */
-ListBase *ED_context_get_markers(const struct bContext *C);
+ListBase *ED_context_get_markers(const bContext *C);
 /**
  * Public API for getting markers from "animation" context.
  */
-ListBase *ED_animcontext_get_markers(const struct bAnimContext *ac);
+ListBase *ED_animcontext_get_markers(const bAnimContext *ac);
 
 /**
  * Apply some transformation to markers after the fact
@@ -55,13 +55,13 @@ ListBase *ED_animcontext_get_markers(const struct bAnimContext *ac);
  * \param side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */
 int ED_markers_post_apply_transform(
-    ListBase *markers, struct Scene *scene, int mode, float value, char side);
+    ListBase *markers, Scene *scene, int mode, float value, char side);
 
 /**
  * Get the marker that is closest to this point.
  * XXX: for select, the min_dist should be small.
  */
-struct TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x);
+TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x);
 /**
  * Return the time of the marker that occurs on a frame closest to the given time.
  */
@@ -81,7 +81,7 @@ void ED_markers_deselect_all(ListBase *markers, int action);
 /**
  * Get the first selected marker.
  */
-struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
+TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 
 /** \} */
 
@@ -92,15 +92,15 @@ struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 /**
  * Called in `screen_ops.cc`, #ED_operatortypes_screen().
  */
-void ED_operatortypes_marker(void);
+void ED_operatortypes_marker();
 /**
  * Called in `screen_ops.cc`, #ED_keymap_screen().
  */
-void ED_keymap_marker(struct wmKeyConfig *keyconf);
+void ED_keymap_marker(wmKeyConfig *keyconf);
 
 /**
  * Debugging only: print debugging prints of list of markers.
  */
-void debug_markers_print_list(struct ListBase *markers);
+void debug_markers_print_list(ListBase *markers);
 
 /** \} */

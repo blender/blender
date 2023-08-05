@@ -17,7 +17,7 @@ struct ARegion;
 /**
  * For animation playback operator, stored in #bScreen.animtimer.customdata.
  */
-typedef struct ScreenAnimData {
+struct ScreenAnimData {
   ARegion *region; /* do not read from this, only for comparing if region exists */
   short redraws;
   short flag;                 /* flags for playback */
@@ -25,7 +25,7 @@ typedef struct ScreenAnimData {
   int nextfra;                /* next frame to go to (when ANIMPLAY_FLAG_USE_NEXT_FRAME is set) */
   double lagging_frame_count; /* used for frame dropping */
   bool from_anim_edit;        /* playback was invoked from animation editor */
-} ScreenAnimData;
+};
 
 /** #ScreenAnimData.flag */
 enum {
@@ -48,17 +48,17 @@ enum {
 /**
  * For playback frame-rate info stored during runtime as `scene->fps_info`.
  */
-typedef struct ScreenFrameRateInfo {
+struct ScreenFrameRateInfo {
   double redrawtime;
   double lredrawtime;
   float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
   short redrawtime_index;
-} ScreenFrameRateInfo;
+};
 
 /* ----------------------------------------------------- */
 
 /* Enum for Action Zone Edges. Which edge of area is action zone. */
-typedef enum {
+enum AZEdge {
   /** Region located on the left, _right_ edge is action zone.
    * Region minimized to the top left */
   AE_RIGHT_TO_TOPLEFT,
@@ -71,15 +71,15 @@ typedef enum {
   /** Region located at the top, _bottom_ edge is action zone.
    * Region minimized to the top left */
   AE_BOTTOM_TO_TOPLEFT,
-} AZEdge;
+};
 
-typedef enum {
+enum AZScrollDirection {
   AZ_SCROLL_VERT,
   AZ_SCROLL_HOR,
-} AZScrollDirection;
+};
 
 /* for editing areas/regions */
-typedef struct AZone {
+struct AZone {
   struct AZone *next, *prev;
   ARegion *region;
   int type;
@@ -95,7 +95,7 @@ typedef struct AZone {
   rcti rect;
   /* for fade in/out */
   float alpha;
-} AZone;
+};
 
 /** Action-Zone Type: #AZone.type */
 enum {

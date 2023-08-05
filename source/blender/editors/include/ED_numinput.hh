@@ -12,8 +12,9 @@
 #define NUM_MAX_ELEMENTS 3
 
 struct wmEvent;
+struct UnitSettings;
 
-typedef struct NumInput {
+struct NumInput {
   /** idx_max < NUM_MAX_ELEMENTS */
   short idx_max;
   int unit_sys;
@@ -39,7 +40,7 @@ typedef struct NumInput {
   /** Current position of cursor in edited value str
    * (first byte of "current" letter, so 0 for an empty str) */
   int str_cur;
-} NumInput;
+};
 
 /** #NumInput.flag */
 enum {
@@ -56,8 +57,6 @@ enum {
   NUM_NO_FRACTION = (1 << 3),
   /* (1 << 9) and above are reserved for internal flags! */
 };
-
-struct UnitSettings;
 
 /* -------------------------------------------------------------------- */
 /** \name NumInput
@@ -81,13 +80,13 @@ void initNumInput(NumInput *n);
 /**
  * \param str: Must be NUM_STR_REP_LEN * (idx_max + 1) length.
  */
-void outputNumInput(NumInput *n, char *str, struct UnitSettings *unit_settings);
+void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings);
 bool hasNumInput(const NumInput *n);
 /**
  * \warning \a vec must be set beforehand otherwise we risk uninitialized vars.
  */
 bool applyNumInput(NumInput *n, float *vec);
-bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event);
+bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event);
 
 /** Share with `TFM_MODAL_CANCEL` in `transform.h`. */
 #define NUM_MODAL_INCREMENT_UP 18
@@ -95,7 +94,7 @@ bool handleNumInput(struct bContext *C, NumInput *n, const struct wmEvent *event
 
 bool user_string_to_number(bContext *C,
                            const char *str,
-                           const struct UnitSettings *unit,
+                           const UnitSettings *unit,
                            int type,
                            double *r_value,
                            bool use_single_line_error,

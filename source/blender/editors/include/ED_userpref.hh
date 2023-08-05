@@ -8,4 +8,4 @@
 
 #pragma once
 
-void ED_operatortypes_userpref(void);
+void ED_operatortypes_userpref();

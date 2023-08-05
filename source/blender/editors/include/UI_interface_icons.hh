@@ -15,20 +15,21 @@
 
 struct Collection;
 struct ID;
+struct ImBuf;
 struct PointerRNA;
 struct PreviewImage;
 struct Scene;
 struct bContext;
 
-typedef struct IconFile {
-  struct IconFile *next, *prev;
+struct IconFile {
+  IconFile *next, *prev;
   char filename[256]; /* FILE_MAXFILE size */
   int index;
-} IconFile;
+};
 
-typedef struct IconTextOverlay {
+struct IconTextOverlay {
   char text[5];
-} IconTextOverlay;
+};
 
 #define UI_NO_ICON_OVERLAY_TEXT NULL
 
@@ -42,26 +43,26 @@ typedef struct IconTextOverlay {
 
 #define PREVIEW_DEFAULT_HEIGHT 128
 
-typedef enum eAlertIcon {
+enum eAlertIcon {
   ALERT_ICON_WARNING = 0,
   ALERT_ICON_QUESTION = 1,
   ALERT_ICON_ERROR = 2,
   ALERT_ICON_INFO = 3,
   ALERT_ICON_BLENDER = 4,
   ALERT_ICON_MAX,
-} eAlertIcon;
+};
 
-struct ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon);
+ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon);
 
 /**
  * Resizable Icons for Blender
  */
-void UI_icons_init(void);
+void UI_icons_init();
 /**
  * Reload the textures for internal icons.
  * This function will release the previous textures.
  */
-void UI_icons_reload_internal_textures(void);
+void UI_icons_reload_internal_textures();
 
 /**
  * NOTE: returns unscaled by DPI.
@@ -75,21 +76,18 @@ bool UI_icon_get_theme_color(int icon_id, unsigned char color[4]);
  *
  * Note that if an ID doesn't support jobs for preview creation, \a use_job will be ignored.
  */
-void UI_icon_render_id(const struct bContext *C,
-                       struct Scene *scene,
-                       struct ID *id,
-                       enum eIconSizes size,
-                       bool use_job);
+void UI_icon_render_id(
+    const bContext *C, Scene *scene, ID *id, enum eIconSizes size, bool use_job);
 
 /**
  * Render the data block into the provided #PreviewImage.
  */
-void UI_icon_render_id_ex(const struct bContext *C,
-                          struct Scene *scene,
-                          struct ID *id_to_render,
+void UI_icon_render_id_ex(const bContext *C,
+                          Scene *scene,
+                          ID *id_to_render,
                           const enum eIconSizes size,
                           const bool use_job,
-                          struct PreviewImage *r_preview_image);
+                          PreviewImage *r_preview_image);
 
 /**
  * Render size for preview images and icons
@@ -111,24 +109,24 @@ void UI_icon_draw_ex(float x,
                      float desaturate,
                      const uchar mono_color[4],
                      bool mono_border,
-                     const struct IconTextOverlay *text_overlay);
+                     const IconTextOverlay *text_overlay);
 
-void UI_icons_free(void);
+void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 
-void UI_icon_draw_cache_begin(void);
-void UI_icon_draw_cache_end(void);
+void UI_icon_draw_cache_begin();
+void UI_icon_draw_cache_end();
 
-struct ListBase *UI_iconfile_list(void);
+ListBase *UI_iconfile_list();
 int UI_iconfile_get_index(const char *filename);
 
-struct PreviewImage *UI_icon_to_preview(int icon_id);
+PreviewImage *UI_icon_to_preview(int icon_id);
 
-int UI_icon_from_rnaptr(const struct bContext *C, struct PointerRNA *ptr, int rnaicon, bool big);
+int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, bool big);
 int UI_icon_from_idcode(int idcode);
-int UI_icon_from_library(const struct ID *id);
+int UI_icon_from_library(const ID *id);
 int UI_icon_from_object_mode(int mode);
-int UI_icon_color_from_collection(const struct Collection *collection);
+int UI_icon_color_from_collection(const Collection *collection);
 
-void UI_icon_text_overlay_init_from_count(struct IconTextOverlay *text_overlay,
+void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,
                                           const int icon_indicator_number);

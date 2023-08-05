@@ -11,28 +11,28 @@
 struct Object;
 struct bContext;
 
-typedef struct TransVert {
+struct TransVert {
   float *loc;
   float oldloc[3], maploc[3];
   float normal[3];
   int flag;
-} TransVert;
+};
 
-typedef struct TransVertStore {
-  struct TransVert *transverts;
+struct TransVertStore {
+  TransVert *transverts;
   int transverts_tot;
   int mode;
-} TransVertStore;
+};
 
 /**
  * \param obedit: When `mode` has the #TM_CALC_MAPLOC flag set, `obedit` must be evaluated,
  * to access evaluated vertices.
  */
-void ED_transverts_create_from_obedit(TransVertStore *tvs, const struct Object *obedit, int mode);
-void ED_transverts_update_obedit(TransVertStore *tvs, struct Object *obedit);
+void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit, int mode);
+void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit);
 void ED_transverts_free(TransVertStore *tvs);
-bool ED_transverts_check_obedit(const struct Object *obedit);
-bool ED_transverts_poll(struct bContext *C);
+bool ED_transverts_check_obedit(const Object *obedit);
+bool ED_transverts_poll(bContext *C);
 
 /* currently only used for bmesh index values */
 enum {

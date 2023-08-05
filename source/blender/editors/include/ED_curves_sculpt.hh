@@ -8,4 +8,4 @@
 
 #pragma once
 
-void ED_operatortypes_sculpt_curves(void);
+void ED_operatortypes_sculpt_curves();

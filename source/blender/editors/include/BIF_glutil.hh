@@ -16,13 +16,14 @@ struct ColorManagedDisplaySettings;
 struct ColorManagedViewSettings;
 struct ImBuf;
 struct bContext;
+struct GPUShader;
 
-typedef struct IMMDrawPixelsTexState {
-  struct GPUShader *shader;
+struct IMMDrawPixelsTexState {
+  GPUShader *shader;
   unsigned int pos;
   unsigned int texco;
   bool do_shader_unbind;
-} IMMDrawPixelsTexState;
+};
 
 /* To be used before calling immDrawPixelsTex
  * Default shader is GPU_SHADER_2D_IMAGE_COLOR
@@ -158,23 +159,23 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
  * For better performance clipping coordinates can be specified so parts of the
  * image outside the view are skipped. */
 
-void ED_draw_imbuf(struct ImBuf *ibuf,
+void ED_draw_imbuf(ImBuf *ibuf,
                    float x,
                    float y,
                    bool use_filter,
-                   const struct ColorManagedViewSettings *view_settings,
-                   const struct ColorManagedDisplaySettings *display_settings,
+                   const ColorManagedViewSettings *view_settings,
+                   const ColorManagedDisplaySettings *display_settings,
                    float zoom_x,
                    float zoom_y);
 /**
  * Draw given image buffer on a screen using GLSL for display transform.
  */
-void ED_draw_imbuf_clipping(struct ImBuf *ibuf,
+void ED_draw_imbuf_clipping(ImBuf *ibuf,
                             float x,
                             float y,
                             bool use_filter,
-                            const struct ColorManagedViewSettings *view_settings,
-                            const struct ColorManagedDisplaySettings *display_settings,
+                            const ColorManagedViewSettings *view_settings,
+                            const ColorManagedDisplaySettings *display_settings,
                             float clip_min_x,
                             float clip_min_y,
                             float clip_max_x,
@@ -182,15 +183,10 @@ void ED_draw_imbuf_clipping(struct ImBuf *ibuf,
                             float zoom_x,
                             float zoom_y);
 
-void ED_draw_imbuf_ctx(const struct bContext *C,
-                       struct ImBuf *ibuf,
-                       float x,
-                       float y,
-                       bool use_filter,
-                       float zoom_x,
-                       float zoom_y);
-void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
-                                struct ImBuf *ibuf,
+void ED_draw_imbuf_ctx(
+    const bContext *C, ImBuf *ibuf, float x, float y, bool use_filter, float zoom_x, float zoom_y);
+void ED_draw_imbuf_ctx_clipping(const bContext *C,
+                                ImBuf *ibuf,
                                 float x,
                                 float y,
                                 bool use_filter,
@@ -201,9 +197,9 @@ void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
                                 float zoom_x,
                                 float zoom_y);
 
-int ED_draw_imbuf_method(const struct ImBuf *ibuf);
+int ED_draw_imbuf_method(const ImBuf *ibuf);
 
 /**
  * Don't move to `GPU_immediate_util.h` because this uses user-prefs and isn't very low level.
  */
-void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoomx, float zoomy);
+void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy);

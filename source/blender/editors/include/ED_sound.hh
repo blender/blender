@@ -8,4 +8,4 @@
 
 #pragma once
 
-void ED_operatortypes_sound(void);
+void ED_operatortypes_sound();

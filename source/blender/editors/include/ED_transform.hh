@@ -12,13 +12,21 @@
 
 /* ******************* Registration Function ********************** */
 
-struct Object;
+struct ARegion;
 struct bContext;
+struct Scene;
+struct ReportList;
+struct TransformOrientation;
+struct Object;
+struct RegionView3D;
+struct View3D;
+struct ViewLayer;
+struct wmGizmoGroupType;
 struct wmKeyConfig;
 struct wmOperatorType;
 
-void ED_keymap_transform(struct wmKeyConfig *keyconf);
-void transform_operatortypes(void);
+void ED_keymap_transform(wmKeyConfig *keyconf);
+void transform_operatortypes();
 
 /* ******************** Macros & Prototypes *********************** */
 
@@ -66,42 +74,31 @@ enum eTfmMode {
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
  * (if false is returns, `cent3d` is unmodified). */
-bool calculateTransformCenter(struct bContext *C,
-                              int centerMode,
-                              float cent3d[3],
-                              float cent2d[2]);
-
-struct Object;
-struct Scene;
-struct wmGizmoGroupType;
+bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2]);
 
 /* UNUSED */
 // int BIF_snappingSupported(struct Object *obedit);
 
-struct ReportList;
-struct TransformOrientation;
-struct bContext;
-
-void BIF_clearTransformOrientation(struct bContext *C);
-void BIF_removeTransformOrientation(struct bContext *C, struct TransformOrientation *target);
-void BIF_removeTransformOrientationIndex(struct bContext *C, int index);
-bool BIF_createTransformOrientation(struct bContext *C,
-                                    struct ReportList *reports,
+void BIF_clearTransformOrientation(bContext *C);
+void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target);
+void BIF_removeTransformOrientationIndex(bContext *C, int index);
+bool BIF_createTransformOrientation(bContext *C,
+                                    ReportList *reports,
                                     const char *name,
                                     bool use_view,
                                     bool activate,
                                     bool overwrite);
-void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *target);
+void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target);
 
-void ED_getTransformOrientationMatrix(const struct Scene *scene,
-                                      struct ViewLayer *view_layer,
-                                      const struct View3D *v3d,
-                                      struct Object *ob,
-                                      struct Object *obedit,
+void ED_getTransformOrientationMatrix(const Scene *scene,
+                                      ViewLayer *view_layer,
+                                      const View3D *v3d,
+                                      Object *ob,
+                                      Object *obedit,
                                       short around,
                                       float r_orientation_mat[3][3]);
 
-int BIF_countTransformOrientation(const struct bContext *C);
+int BIF_countTransformOrientation(const bContext *C);
 
 /* to be able to add operator properties to other operators */
 
@@ -128,10 +125,10 @@ int BIF_countTransformOrientation(const struct bContext *C);
 /* For properties performed when confirming the transformation. */
 #define P_POST_TRANSFORM (1 << 20)
 
-void Transform_Properties(struct wmOperatorType *ot, int flags);
+void Transform_Properties(wmOperatorType *ot, int flags);
 
 /* `transform_orientations.cc` */
-void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_mat[3][3]);
+void ED_transform_calc_orientation_from_type(const bContext *C, float r_mat[3][3]);
 /**
  * \note The resulting matrix may not be orthogonal,
  * callers that depend on `r_mat` to be orthogonal should use #orthogonalize_m3.
@@ -141,38 +138,36 @@ void ED_transform_calc_orientation_from_type(const struct bContext *C, float r_m
  * - #V3D_ORIENT_LOCAL may contain shear from non-uniform scale in parent/child relationships.
  * - #V3D_ORIENT_CUSTOM may have been created from #V3D_ORIENT_LOCAL.
  */
-short ED_transform_calc_orientation_from_type_ex(const struct Scene *scene,
-                                                 struct ViewLayer *view_layer,
-                                                 const struct View3D *v3d,
-                                                 const struct RegionView3D *rv3d,
-                                                 struct Object *ob,
-                                                 struct Object *obedit,
+short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
+                                                 ViewLayer *view_layer,
+                                                 const View3D *v3d,
+                                                 const RegionView3D *rv3d,
+                                                 Object *ob,
+                                                 Object *obedit,
                                                  short orientation_index,
                                                  int pivot_point,
                                                  float r_mat[3][3]);
 
-bool ED_transform_calc_pivot_pos(const struct bContext *C,
-                                 const short pivot_type,
-                                 float r_pivot_pos[3]);
+bool ED_transform_calc_pivot_pos(const bContext *C, const short pivot_type, float r_pivot_pos[3]);
 
 /* transform gizmos */
 
-void VIEW3D_GGT_xform_gizmo(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt);
 /**
  * Only poll, flag & gzmap_params differ.
  */
-void VIEW3D_GGT_xform_gizmo_context(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_xform_shear(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_gizmo_context(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt);
 
 /* `transform_gizmo_extrude_3d.cc` */
-void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_extrude(wmGizmoGroupType *gzgt);
 
 /* Generic 2D transform gizmo callback assignment. */
-void ED_widgetgroup_gizmo2d_xform_callbacks_set(struct wmGizmoGroupType *gzgt);
-void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(struct wmGizmoGroupType *gzgt);
-void ED_widgetgroup_gizmo2d_resize_callbacks_set(struct wmGizmoGroupType *gzgt);
-void ED_widgetgroup_gizmo2d_rotate_callbacks_set(struct wmGizmoGroupType *gzgt);
+void ED_widgetgroup_gizmo2d_xform_callbacks_set(wmGizmoGroupType *gzgt);
+void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(wmGizmoGroupType *gzgt);
+void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt);
+void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt);
 
 #define SNAP_INCREMENTAL_ANGLE DEG2RAD(5.0)
 
@@ -203,10 +198,10 @@ struct TransformCalcParams {
  *
  * Returns total items selected.
  */
-int ED_transform_calc_gizmo_stats(const struct bContext *C,
-                                  const struct TransformCalcParams *params,
-                                  struct TransformBounds *tbounds,
-                                  struct RegionView3D *rv3d);
+int ED_transform_calc_gizmo_stats(const bContext *C,
+                                  const TransformCalcParams *params,
+                                  TransformBounds *tbounds,
+                                  RegionView3D *rv3d);
 
 /**
  * Iterates over all the strips and finds the closest snapping candidate of either \a frame_1 or \a
@@ -214,11 +209,11 @@ int ED_transform_calc_gizmo_stats(const struct bContext *C,
  * strip.
  * \returns True if there was anything to snap to.
  */
-bool ED_transform_snap_sequencer_to_closest_strip_calc(struct Scene *scene,
-                                                       struct ARegion *region,
+bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
+                                                       ARegion *region,
                                                        int frame_1,
                                                        int frame_2,
                                                        int *r_snap_distance,
                                                        float *r_snap_frame);
 
-void ED_draw_sequencer_snap_point(struct bContext *C, float snap_point);
+void ED_draw_sequencer_snap_point(bContext *C, float snap_point);

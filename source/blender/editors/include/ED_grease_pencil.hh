@@ -17,12 +17,9 @@
 #include "ED_keyframes_edit.hh"
 
 struct bContext;
-
 struct Main;
 struct Object;
-
 struct KeyframeEditData;
-
 struct wmKeyConfig;
 
 enum {
@@ -34,17 +31,17 @@ enum {
 /** \name C Wrappers
  * \{ */
 
-void ED_operatortypes_grease_pencil(void);
-void ED_operatortypes_grease_pencil_draw(void);
-void ED_operatortypes_grease_pencil_frames(void);
-void ED_operatortypes_grease_pencil_layers(void);
-void ED_operatortypes_grease_pencil_select(void);
-void ED_operatortypes_grease_pencil_edit(void);
-void ED_keymap_grease_pencil(struct wmKeyConfig *keyconf);
+void ED_operatortypes_grease_pencil();
+void ED_operatortypes_grease_pencil_draw();
+void ED_operatortypes_grease_pencil_frames();
+void ED_operatortypes_grease_pencil_layers();
+void ED_operatortypes_grease_pencil_select();
+void ED_operatortypes_grease_pencil_edit();
+void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
-eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
+eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C);
 
 /** \} */
 
@@ -64,7 +61,7 @@ bool select_frame_at(bke::greasepencil::Layer &layer,
 
 void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode);
 
-void select_frames_region(struct KeyframeEditData *ked,
+void select_frames_region(KeyframeEditData *ked,
                           bke::greasepencil::Layer &layer,
                           const short tool,
                           const short select_mode);

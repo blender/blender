@@ -7,4 +7,4 @@
 struct ID;
 struct SpaceSpreadsheet;
 
-struct ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet);
+ID *ED_spreadsheet_get_current_id(const SpaceSpreadsheet *sspreadsheet);

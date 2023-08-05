@@ -11,6 +11,7 @@
 #include "BLI_compiler_attrs.h"
 
 struct KDTree_1d;
+struct PointerRNA;
 struct wmOperatorType;
 
 enum {
@@ -20,28 +21,28 @@ enum {
   SEL_INVERT = 3,
 };
 
-typedef enum WalkSelectDirection {
+enum WalkSelectDirection {
   UI_SELECT_WALK_UP,
   UI_SELECT_WALK_DOWN,
   UI_SELECT_WALK_LEFT,
   UI_SELECT_WALK_RIGHT,
-} WalkSelectDirections;
+};
 
 /** See #WM_operator_properties_select_operation */
-typedef enum {
+enum eSelectOp {
   SEL_OP_ADD = 1,
   SEL_OP_SUB,
   SEL_OP_SET,
   SEL_OP_AND,
   SEL_OP_XOR,
-} eSelectOp;
+};
 
 /* Select Similar */
-typedef enum {
+enum eSimilarCmp {
   SIM_CMP_EQ = 0,
   SIM_CMP_GT,
   SIM_CMP_LT,
-} eSimilarCmp;
+};
 
 #define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))
 #define SEL_OP_USE_PRE_DESELECT(sel_op) (ELEM(sel_op, SEL_OP_SET))
@@ -61,7 +62,7 @@ int ED_select_op_action(eSelectOp sel_op, bool is_select, bool is_inside);
 int ED_select_op_action_deselected(eSelectOp sel_op, bool is_select, bool is_inside);
 
 bool ED_select_similar_compare_float(float delta, float thresh, eSimilarCmp compare);
-bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
+bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
                                           float length,
                                           float thresh,
                                           eSimilarCmp compare);
@@ -94,19 +95,18 @@ struct SelectPick_Params {
 /**
  * Utility to get #eSelectPickMode from booleans for convenience.
  */
-eSelectOp ED_select_op_from_operator(struct PointerRNA *ptr)
-    ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+eSelectOp ED_select_op_from_operator(PointerRNA *ptr) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Initialize `params` from `op`,
  * these properties are defined by #WM_operator_properties_mouse_select.
  */
-void ED_select_pick_params_from_operator(struct PointerRNA *ptr, struct SelectPick_Params *params)
+void ED_select_pick_params_from_operator(PointerRNA *ptr, SelectPick_Params *params)
     ATTR_NONNULL(1, 2);
 
 /**
  * Get-name callback for #wmOperatorType.get_name, this is mainly useful so the selection
  * action is shown in the status-bar.
  */
-const char *ED_select_pick_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
-const char *ED_select_circle_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
+const char *ED_select_pick_get_name(wmOperatorType *ot, PointerRNA *ptr);
+const char *ED_select_circle_get_name(wmOperatorType *ot, PointerRNA *ptr);
