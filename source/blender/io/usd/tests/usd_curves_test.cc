@@ -109,7 +109,7 @@ TEST_F(UsdCurvesTest, usd_export_curves)
   /* File sanity check. */
   EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 6);
 
-  USDExportParams params{};
+  USDExportParams params;
 
   const bool result = USD_export(context, output_filename.c_str(), &params, false);
   EXPECT_TRUE(result) << "USD export should succed.";

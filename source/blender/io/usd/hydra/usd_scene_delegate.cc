@@ -44,19 +44,11 @@ USDSceneDelegate::~USDSceneDelegate()
 
 void USDSceneDelegate::populate(Depsgraph *depsgraph)
 {
-  USDExportParams params = {};
-  params.export_hair = true;
-  params.export_uvmaps = true;
-  params.export_normals = true;
-  params.export_materials = true;
-  params.selected_objects_only = false;
-  params.visible_objects_only = true;
+  USDExportParams params;
   params.use_instancing = true;
+  params.relative_paths = false;  /* Unnecessary. */
+  params.export_textures = false; /* Don't copy all textures, is slow. */
   params.evaluation_mode = DEG_get_mode(depsgraph);
-  params.generate_preview_surface = true;
-  params.export_textures = true;
-  params.overwrite_textures = true;
-  params.relative_paths = true;
 
   /* Create clean directory for export. */
   BLI_delete(temp_dir_.c_str(), true, true);

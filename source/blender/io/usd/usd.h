@@ -38,20 +38,20 @@ typedef enum eUSDTexNameCollisionMode {
 } eUSDTexNameCollisionMode;
 
 struct USDExportParams {
-  bool export_animation;
-  bool export_hair;
-  bool export_uvmaps;
-  bool export_normals;
-  bool export_materials;
-  bool selected_objects_only;
-  bool visible_objects_only;
-  bool use_instancing;
-  enum eEvaluationMode evaluation_mode;
-  bool generate_preview_surface;
-  bool export_textures;
-  bool overwrite_textures;
-  bool relative_paths;
-  char root_prim_path[1024]; /* FILE_MAX */
+  bool export_animation = false;
+  bool export_hair = true;
+  bool export_uvmaps = true;
+  bool export_normals = true;
+  bool export_materials = true;
+  bool selected_objects_only = false;
+  bool visible_objects_only = true;
+  bool use_instancing = false;
+  enum eEvaluationMode evaluation_mode = DAG_EVAL_VIEWPORT;
+  bool generate_preview_surface = true;
+  bool export_textures = true;
+  bool overwrite_textures = true;
+  bool relative_paths = true;
+  char root_prim_path[1024] = ""; /* FILE_MAX */
 };
 
 struct USDImportParams {

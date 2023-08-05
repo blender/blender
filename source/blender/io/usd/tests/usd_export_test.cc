@@ -209,10 +209,11 @@ TEST_F(UsdExportTest, usd_export_rain_mesh)
   /* File sanity check. */
   EXPECT_EQ(BLI_listbase_count(&bfile->main->objects), 3);
 
-  USDExportParams params{};
+  USDExportParams params;
+  params.export_materials = false;
   params.export_normals = true;
+  params.export_uvmaps = false;
   params.visible_objects_only = true;
-  params.evaluation_mode = eEvaluationMode::DAG_EVAL_VIEWPORT;
 
   bool result = USD_export(context, output_filename.c_str(), &params, false);
   ASSERT_TRUE(result) << "Writing to " << output_filename << " failed!";
@@ -272,12 +273,13 @@ TEST_F(UsdExportTest, usd_export_material)
 
   EXPECT_TRUE(bool(material));
 
-  USDExportParams params{};
-  params.export_normals = true;
+  USDExportParams params;
   params.export_materials = true;
-  params.generate_preview_surface = true;
+  params.export_normals = true;
+  params.export_textures = false;
   params.export_uvmaps = true;
-  params.evaluation_mode = eEvaluationMode::DAG_EVAL_VIEWPORT;
+  params.generate_preview_surface = true;
+  params.relative_paths = false;
 
   const bool result = USD_export(context, output_filename.c_str(), &params, false);
   ASSERT_TRUE(result) << "Unable to export stage to " << output_filename;
