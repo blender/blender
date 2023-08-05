@@ -21,9 +21,9 @@
 
 #include "wm.hh"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 /* own includes */
 #include "wm_gizmo_intern.h"

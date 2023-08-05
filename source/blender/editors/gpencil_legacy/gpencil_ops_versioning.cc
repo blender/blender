@@ -33,7 +33,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

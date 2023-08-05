@@ -16,7 +16,7 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 struct bContext;
 struct Curves;
@@ -157,7 +157,7 @@ void apply_selection_operation_at_index(GMutableSpan selection, int index, eSele
  * (De)select all the curves.
  *
  * \param action: One of SEL_TOGGLE, SEL_SELECT, SEL_DESELECT, or SEL_INVERT. See
- * "ED_select_utils.h".
+ * "ED_select_utils.hh".
  */
 void select_all(bke::CurvesGeometry &curves, eAttrDomain selection_domain, int action);
 

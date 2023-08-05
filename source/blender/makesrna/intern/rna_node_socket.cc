@@ -46,7 +46,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
 extern "C" {
 extern FunctionRNA rna_NodeSocket_draw_func;

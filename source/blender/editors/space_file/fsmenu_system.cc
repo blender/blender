@@ -27,7 +27,7 @@
 
 #include "BKE_appdir.h"
 
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -39,7 +39,7 @@
 #  include <shlwapi.h>
 #endif
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #ifdef __APPLE__
 #  include <Carbon/Carbon.h>

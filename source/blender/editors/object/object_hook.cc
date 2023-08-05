@@ -44,14 +44,14 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "ED_curve.h"
-#include "ED_mesh.h"
+#include "ED_curve.hh"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "object_intern.h"
 

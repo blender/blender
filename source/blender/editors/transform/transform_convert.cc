@@ -30,13 +30,13 @@
 #include "BKE_nla.h"
 #include "BKE_scene.h"
 
-#include "ED_keyframes_edit.h"
-#include "ED_keyframing.h"
-#include "ED_particle.h"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframing.hh"
+#include "ED_particle.hh"
 #include "ED_screen.hh"
-#include "ED_screen_types.h"
+#include "ED_screen_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "WM_types.hh"
 

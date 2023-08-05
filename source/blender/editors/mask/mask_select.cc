@@ -25,9 +25,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_mask.h" /* own include */
-#include "ED_select_utils.h"
+#include "ED_clip.hh"
+#include "ED_mask.hh" /* own include */
+#include "ED_select_utils.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

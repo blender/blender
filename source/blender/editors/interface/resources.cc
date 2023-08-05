@@ -31,8 +31,8 @@
 
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
 #include "GPU_framebuffer.h"
 #include "interface_intern.hh"

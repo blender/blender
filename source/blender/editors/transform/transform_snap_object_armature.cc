@@ -14,7 +14,7 @@
 #include "BKE_mesh.hh"
 #include "DNA_armature_types.h"
 
-#include "ED_transform_snap_object_context.h"
+#include "ED_transform_snap_object_context.hh"
 
 #include "ANIM_bone_collections.h"
 

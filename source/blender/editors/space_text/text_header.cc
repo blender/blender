@@ -19,7 +19,7 @@
 
 #include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "text_intern.hh"
 

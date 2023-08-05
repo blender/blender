@@ -42,10 +42,10 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"

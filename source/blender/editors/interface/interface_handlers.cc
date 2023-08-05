@@ -53,10 +53,10 @@
 #include "IMB_colormanagement.h"
 
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLF_api.h"
 

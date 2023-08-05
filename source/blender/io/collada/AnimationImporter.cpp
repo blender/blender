@@ -13,7 +13,7 @@
 
 #include "DNA_armature_types.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"

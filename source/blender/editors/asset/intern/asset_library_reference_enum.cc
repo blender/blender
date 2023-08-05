@@ -17,7 +17,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_define.h"
 

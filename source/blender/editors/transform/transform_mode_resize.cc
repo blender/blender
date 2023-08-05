@@ -21,7 +21,7 @@
 
 #include "RNA_access.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "transform.hh"
 #include "transform_constraints.hh"

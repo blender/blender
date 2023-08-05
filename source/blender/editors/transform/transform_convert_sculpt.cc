@@ -16,7 +16,7 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

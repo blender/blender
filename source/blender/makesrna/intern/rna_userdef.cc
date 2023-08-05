@@ -37,7 +37,7 @@
 
 #include "GPU_platform.h"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #include "rna_internal.h"
 
@@ -185,7 +185,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "MEM_CacheLimiterC-Api.h"
 #  include "MEM_guardedalloc.h"
 
-#  include "UI_interface.h"
+#  include "UI_interface.hh"
 
 #  ifdef WITH_SDL_DYNLOAD
 #    include "sdlew.h"

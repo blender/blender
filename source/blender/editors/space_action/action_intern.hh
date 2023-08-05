@@ -108,7 +108,7 @@ void ACTION_OT_layer_prev(wmOperatorType *ot);
 void ACTION_OT_markers_make_local(wmOperatorType *ot);
 
 /* defines for snap keyframes
- * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.hh)
  */
 enum eActKeys_Snap_Mode {
   ACTKEYS_SNAP_CFRA = 1,
@@ -118,7 +118,7 @@ enum eActKeys_Snap_Mode {
 };
 
 /* defines for mirror keyframes
- * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.hh)
  */
 enum eActKeys_Mirror_Mode {
   ACTKEYS_MIRROR_CFRA = 1,

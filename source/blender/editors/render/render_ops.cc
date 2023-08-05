@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 
 #include "WM_api.hh"
 

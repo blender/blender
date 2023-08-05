@@ -28,7 +28,7 @@
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include <functional>
 

@@ -38,7 +38,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "object_intern.h"
 

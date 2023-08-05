@@ -10,7 +10,7 @@
 
 #include "WM_api.hh"
 
-#include "ED_lattice.h"
+#include "ED_lattice.hh"
 #include "ED_screen.hh"
 
 #include "lattice_intern.h"

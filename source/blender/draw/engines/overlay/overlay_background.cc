@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_manager_text.h"
 #include "overlay_private.hh"

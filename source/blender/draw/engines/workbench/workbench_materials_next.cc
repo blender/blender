@@ -8,7 +8,7 @@
 /* get_image */
 #include "BKE_node.hh"
 #include "DNA_node_types.h"
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 /* get_image */
 
 namespace blender::workbench {

@@ -37,10 +37,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_asset.h"
-#include "ED_keyframing.h"
+#include "ED_asset.hh"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_util.hh"
 

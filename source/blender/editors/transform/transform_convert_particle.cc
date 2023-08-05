@@ -18,7 +18,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "ED_particle.h"
+#include "ED_particle.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"

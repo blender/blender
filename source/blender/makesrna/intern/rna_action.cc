@@ -36,7 +36,7 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_keyframing.h"
+#  include "ED_keyframing.hh"
 
 #  include "WM_api.hh"
 

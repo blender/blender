@@ -17,7 +17,7 @@
 #include "BKE_curves.hh"
 
 #include "ED_curves.hh"
-#include "ED_curves_sculpt.h"
+#include "ED_curves_sculpt.hh"
 
 struct ARegion;
 struct RegionView3D;

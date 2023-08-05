@@ -48,7 +48,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 
 #include "sculpt_intern.hh"
 

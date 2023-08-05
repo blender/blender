@@ -13,7 +13,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 #include "interface_intern.hh"
 
 #include "UI_abstract_view.hh"

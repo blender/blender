@@ -33,7 +33,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "MEM_guardedalloc.h"
 

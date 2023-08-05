@@ -38,10 +38,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_outliner.h"
+#include "ED_armature.hh"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.h"
 

@@ -60,21 +60,21 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_node.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_scene.h"
+#include "ED_node.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
-#include "ED_sequencer.h"
-#include "ED_undo.h"
+#include "ED_sequencer.hh"
+#include "ED_undo.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "../../blender/blenloader/BLO_readfile.h"
 

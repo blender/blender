@@ -27,7 +27,7 @@
 #include "DRW_engine.h"
 
 #include "ED_screen.hh"
-#include "ED_space_api.h"
+#include "ED_space_api.hh"
 
 #include "GHOST_C-api.h"
 

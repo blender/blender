@@ -28,9 +28,9 @@
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

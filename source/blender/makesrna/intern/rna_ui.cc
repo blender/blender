@@ -23,7 +23,7 @@
 #include "RNA_enum_types.h"
 #include "rna_internal.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_toolsystem.h"
 #include "WM_types.hh"

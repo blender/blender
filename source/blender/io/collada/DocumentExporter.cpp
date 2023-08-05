@@ -81,7 +81,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 #ifdef WITH_BUILDINFO
 extern "C" char build_commit_date[];
 extern "C" char build_commit_time[];

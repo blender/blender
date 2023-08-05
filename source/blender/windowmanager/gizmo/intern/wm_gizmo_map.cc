@@ -21,8 +21,8 @@
 #include "BKE_main.h"
 
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
@@ -38,7 +38,7 @@
 #include "wm_event_system.h"
 
 /* for tool-tips */
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "DEG_depsgraph.h"
 

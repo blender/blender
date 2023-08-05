@@ -54,11 +54,11 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 /* For IMB_BlendMode only. */
 #include "IMB_imbuf.h"

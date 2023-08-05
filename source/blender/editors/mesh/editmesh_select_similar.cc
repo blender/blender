@@ -32,9 +32,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "mesh_intern.h" /* own include */
 

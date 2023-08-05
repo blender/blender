@@ -29,7 +29,7 @@
 #  include "BKE_mesh_tangent.hh"
 #  include "BKE_report.h"
 
-#  include "ED_mesh.h"
+#  include "ED_mesh.hh"
 
 #  include "DEG_depsgraph.h"
 

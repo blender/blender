@@ -18,9 +18,9 @@
 
 #include "DNA_screen_types.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
 #include "rna_internal.h"
 
@@ -29,7 +29,7 @@
 #define DEF_ICON_COLOR(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_ICON_BLANK(name)
 const EnumPropertyItem rna_enum_icon_items[] = {
-#include "UI_icons.h"
+#include "UI_icons.hh"
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -37,7 +37,7 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 
 #  include "DNA_asset_types.h"
 
-#  include "ED_geometry.h"
+#  include "ED_geometry.hh"
 
 const char *rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate)

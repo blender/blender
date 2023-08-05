@@ -27,7 +27,7 @@
 
 #include "RNA_access.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 #include "gpencil_intern.h"
 

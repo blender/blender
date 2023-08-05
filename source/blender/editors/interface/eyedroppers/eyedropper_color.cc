@@ -32,7 +32,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
@@ -44,9 +44,9 @@
 
 #include "interface_intern.hh"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_node.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "RE_pipeline.h"

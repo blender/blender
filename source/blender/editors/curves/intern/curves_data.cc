@@ -10,7 +10,7 @@
 #include "DNA_object_types.h"
 
 #include "ED_curves.hh"
-#include "ED_transverts.h"
+#include "ED_transverts.hh"
 
 namespace blender::ed::curves {
 

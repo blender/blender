@@ -15,12 +15,12 @@
 #include "BKE_context.h"
 #include "BKE_scene.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
 #include "WM_api.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 

@@ -37,8 +37,8 @@ const EnumPropertyItem rna_enum_aset_library_type_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_uuid.h"
 
-#  include "ED_asset.h"
-#  include "ED_fileselect.h"
+#  include "ED_asset.hh"
+#  include "ED_fileselect.hh"
 
 #  include "RNA_access.h"
 

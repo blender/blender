@@ -143,7 +143,7 @@ void GRAPH_OT_equalize_handles(struct wmOperatorType *ot);
 void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
 /* defines for snap keyframes
- * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.hh)
  */
 enum eGraphKeys_Snap_Mode {
   GRAPHKEYS_SNAP_CFRA = 1,
@@ -155,7 +155,7 @@ enum eGraphKeys_Snap_Mode {
 };
 
 /* Defines for equalize keyframe handles.
- * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.h).
+ * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.hh).
  */
 enum eGraphKeys_Equalize_Mode {
   GRAPHKEYS_EQUALIZE_LEFT = 1,
@@ -164,7 +164,7 @@ enum eGraphKeys_Equalize_Mode {
 };
 
 /* defines for mirror keyframes
- * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.hh)
  */
 enum eGraphKeys_Mirror_Mode {
   GRAPHKEYS_MIRROR_CFRA = 1,

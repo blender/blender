@@ -13,7 +13,7 @@
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 

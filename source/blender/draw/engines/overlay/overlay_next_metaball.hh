@@ -11,7 +11,7 @@
 #include "overlay_next_private.hh"
 #include "overlay_shader_shared.h"
 
-#include "ED_mball.h"
+#include "ED_mball.hh"
 
 namespace blender::draw::overlay {
 

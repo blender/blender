@@ -25,10 +25,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_curve.h"
+#include "ED_curve.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
@@ -39,7 +39,7 @@
 
 #include "curve_intern.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

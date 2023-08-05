@@ -88,7 +88,7 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject * /*self*/, PyObject *value)
   return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
 
-extern "C" void EDBM_update_extern(Mesh *me, const bool do_tessface, const bool is_destructive);
+void EDBM_update_extern(Mesh *me, const bool do_tessface, const bool is_destructive);
 
 PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
              ".. method:: update_edit_mesh(mesh, loop_triangles=True, destructive=True)\n"

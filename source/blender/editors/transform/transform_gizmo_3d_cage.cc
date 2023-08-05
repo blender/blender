@@ -16,8 +16,8 @@
 #include "BKE_global.h"
 #include "BKE_scene.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
 #include "WM_api.hh"
 

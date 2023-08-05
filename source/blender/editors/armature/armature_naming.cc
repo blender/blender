@@ -46,7 +46,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 #include "ED_screen.hh"
 
 #include "armature_intern.h"

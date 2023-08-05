@@ -33,18 +33,18 @@
 
 #include "SEQ_transform.h"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_object.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_uvedit.h"
+#include "ED_space_api.hh"
+#include "ED_uvedit.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "SEQ_sequencer.h"
 

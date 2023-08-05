@@ -63,7 +63,7 @@
 #include "DNA_space_types.h"
 
 #include "ED_datafiles.h"
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
 #include "IMB_imbuf.h"
@@ -75,8 +75,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
 #include "atomic_ops.h"
 

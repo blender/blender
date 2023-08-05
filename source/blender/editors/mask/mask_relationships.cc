@@ -21,8 +21,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.h" /* frame remapping functions */
-#include "ED_mask.h"
+#include "ED_clip.hh" /* frame remapping functions */
+#include "ED_mask.hh"
 #include "ED_screen.hh"
 
 #include "mask_intern.h" /* own include */

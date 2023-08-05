@@ -55,8 +55,8 @@
 
 #include "DRW_render.h"
 
-#include "ED_mesh.h"
-#include "ED_uvedit.h"
+#include "ED_mesh.hh"
+#include "ED_uvedit.hh"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.h"

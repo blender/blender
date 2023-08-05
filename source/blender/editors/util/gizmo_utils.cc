@@ -20,7 +20,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_utils.hh"
 
 bool ED_gizmo_poll_or_unlink_delayed_from_operator(const bContext *C,
                                                    wmGizmoGroupType *gzgt,

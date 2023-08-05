@@ -42,9 +42,9 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "ANIM_bone_collections.h"
 

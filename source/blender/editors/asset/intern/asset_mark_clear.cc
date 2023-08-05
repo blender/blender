@@ -18,7 +18,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"

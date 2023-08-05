@@ -14,9 +14,9 @@
 #include "DNA_userdef_types.h"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "GPU_uniform_buffer.h"
 

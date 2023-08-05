@@ -52,10 +52,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

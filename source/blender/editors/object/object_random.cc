@@ -24,7 +24,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_transverts.h"
+#include "ED_transverts.hh"
 
 #include "object_intern.h"
 

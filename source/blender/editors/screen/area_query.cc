@@ -18,8 +18,8 @@
 
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 bool ED_region_overlap_isect_x(const ARegion *region, const int event_x)
 {

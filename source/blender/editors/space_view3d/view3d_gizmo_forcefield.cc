@@ -14,10 +14,10 @@
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_gizmo_library.h"
+#include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 

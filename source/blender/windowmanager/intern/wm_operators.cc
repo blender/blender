@@ -74,12 +74,12 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_fileselect.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_numinput.h"
+#include "ED_fileselect.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_numinput.hh"
 #include "ED_screen.hh"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -87,9 +87,9 @@
 #include "RNA_path.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

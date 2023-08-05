@@ -26,7 +26,7 @@
 
 #include "WM_types.hh"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 /* exported for use in API */
 const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
@@ -111,7 +111,7 @@ const EnumPropertyItem rna_enum_keying_flag_items_api[] = {
 
 #  include "DNA_object_types.h"
 
-#  include "ED_anim_api.h"
+#  include "ED_anim_api.hh"
 
 #  include "WM_api.hh"
 

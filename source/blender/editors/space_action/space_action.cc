@@ -33,15 +33,15 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "BLO_read_write.h"
 

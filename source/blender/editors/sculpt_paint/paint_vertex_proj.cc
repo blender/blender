@@ -26,7 +26,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "paint_intern.hh" /* own include */
 

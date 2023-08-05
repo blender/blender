@@ -13,9 +13,9 @@
 #include "BKE_fcurve.h"
 #include "BKE_material.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_keyframing.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframing.hh"
 
 typedef float(TangentPoint)[2];
 

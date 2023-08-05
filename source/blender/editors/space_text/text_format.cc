@@ -16,7 +16,7 @@
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
-#include "ED_text.h"
+#include "ED_text.hh"
 
 #include "text_format.hh"
 

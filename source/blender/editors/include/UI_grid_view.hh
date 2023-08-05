@@ -16,7 +16,7 @@
 #include "BLI_vector.hh"
 
 #include "UI_abstract_view.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 struct bContext;
 struct uiBlock;

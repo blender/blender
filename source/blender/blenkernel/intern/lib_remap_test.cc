@@ -28,7 +28,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include "MEM_guardedalloc.h"
 

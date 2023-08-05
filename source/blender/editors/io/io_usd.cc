@@ -23,8 +23,8 @@
 
 #  include "BLT_translation.h"
 
-#  include "ED_fileselect.h"
-#  include "ED_object.h"
+#  include "ED_fileselect.hh"
+#  include "ED_object.hh"
 
 #  include "MEM_guardedalloc.h"
 
@@ -33,8 +33,8 @@
 
 #  include "RNA_enum_types.h"
 
-#  include "UI_interface.h"
-#  include "UI_resources.h"
+#  include "UI_interface.hh"
+#  include "UI_resources.hh"
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"

@@ -35,8 +35,8 @@
 #include "BKE_subdiv_modifier.hh"
 #include "BKE_subsurf.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RE_engine.h"
 

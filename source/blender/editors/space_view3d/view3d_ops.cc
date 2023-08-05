@@ -29,9 +29,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_outliner.h"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
 #include "view3d_intern.h"
 #include "view3d_navigate.hh"

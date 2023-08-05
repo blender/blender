@@ -21,7 +21,7 @@
 #include "GPU_debug.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_manager_profiling.hh"
 

@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "tree_element.hh"
 

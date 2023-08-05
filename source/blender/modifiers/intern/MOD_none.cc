@@ -10,7 +10,7 @@
 
 #include "MOD_modifiertypes.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_prototypes.h"
 

@@ -47,7 +47,7 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -57,12 +57,12 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_keyframing.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

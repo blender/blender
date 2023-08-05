@@ -27,7 +27,7 @@
 
 #include "BLF_api.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

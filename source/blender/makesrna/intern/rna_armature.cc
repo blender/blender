@@ -36,7 +36,7 @@
 #  include "BKE_main.h"
 
 #  include "BKE_armature.h"
-#  include "ED_armature.h"
+#  include "ED_armature.hh"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

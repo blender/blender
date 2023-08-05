@@ -12,7 +12,7 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
 #include "extract_mesh.hh"
 

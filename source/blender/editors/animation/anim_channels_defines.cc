@@ -63,13 +63,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframing.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframing.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -4136,7 +4136,7 @@ static void ANIM_init_channel_typeinfo_data()
     ACF_INIT = 0;
 
     /* NOTE: need to keep the order of these synchronized with the definition of
-     * channel types (eAnim_ChannelType) in ED_anim_api.h
+     * channel types (eAnim_ChannelType) in ED_anim_api.hh
      */
     animchannelTypeInfo[type++] = nullptr; /* None */
     animchannelTypeInfo[type++] = nullptr; /* AnimData */

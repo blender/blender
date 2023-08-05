@@ -13,9 +13,9 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"

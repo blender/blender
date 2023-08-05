@@ -30,8 +30,8 @@
 
 #include "RNA_define.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 

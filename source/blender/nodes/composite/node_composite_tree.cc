@@ -21,7 +21,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "node_common.h"
 #include "node_util.hh"

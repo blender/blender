@@ -10,9 +10,9 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "ED_numinput.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
+#include "ED_numinput.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
@@ -252,7 +252,7 @@ enum {
   TFM_MODAL_ADD_SNAP = 16,
   TFM_MODAL_REMOVE_SNAP = 17,
 
-  /* 18 and 19 used by number-input, defined in `ED_numinput.h`. */
+  /* 18 and 19 used by number-input, defined in `ED_numinput.hh`. */
   // NUM_MODAL_INCREMENT_UP = 18,
   // NUM_MODAL_INCREMENT_DOWN = 19,
 

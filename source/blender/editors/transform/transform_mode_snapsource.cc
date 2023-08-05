@@ -15,7 +15,7 @@
 #include "BKE_context.h"
 
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.h"
+#include "ED_transform_snap_object_context.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

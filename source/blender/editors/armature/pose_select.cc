@@ -37,14 +37,14 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
+#include "ED_armature.hh"
+#include "ED_keyframing.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 #include "armature_intern.h"
 

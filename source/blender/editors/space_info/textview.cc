@@ -19,8 +19,8 @@
 
 #include "DNA_userdef_types.h" /* For 'UI_SCALE_FAC' */
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
 #include "textview.hh"
 

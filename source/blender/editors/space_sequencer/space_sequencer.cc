@@ -26,13 +26,13 @@
 
 #include "GPU_state.h"
 
-#include "ED_markers.h"
+#include "ED_markers.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h" /* Only for sequencer view3d drawing callback. */
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh" /* Only for sequencer view3d drawing callback. */
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -42,8 +42,8 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 

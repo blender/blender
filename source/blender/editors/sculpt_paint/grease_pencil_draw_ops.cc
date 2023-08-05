@@ -10,10 +10,10 @@
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 
-#include "ED_grease_pencil.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_object.h"
+#include "ED_grease_pencil.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.h"

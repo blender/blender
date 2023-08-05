@@ -18,11 +18,11 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 #include "ED_screen.hh"
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
 #include "graph_intern.h"
 

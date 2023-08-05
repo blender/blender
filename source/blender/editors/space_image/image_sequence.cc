@@ -26,7 +26,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 struct ImageFrame {
   ImageFrame *next, *prev;

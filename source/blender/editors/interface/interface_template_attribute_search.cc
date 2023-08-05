@@ -20,9 +20,8 @@
 
 #include "NOD_geometry_nodes_log.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 

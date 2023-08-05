@@ -25,7 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 /* -------------------------------------------------------------------- */

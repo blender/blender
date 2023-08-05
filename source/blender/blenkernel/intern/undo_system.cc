@@ -5,7 +5,7 @@
 /** \file
  * \ingroup bke
  *
- * Used by ED_undo.h, internal implementation.
+ * Used by ED_undo.hh, internal implementation.
  */
 
 #include <cstdio>

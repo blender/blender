@@ -21,12 +21,12 @@
 #include "WM_toolsystem.h"
 
 #include "ED_curves.hh"
-#include "ED_curves_sculpt.h"
-#include "ED_image.h"
-#include "ED_object.h"
+#include "ED_curves_sculpt.hh"
+#include "ED_image.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -42,8 +42,8 @@
 #include "curves_sculpt_intern.hh"
 #include "paint_intern.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

@@ -18,7 +18,7 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 #include "GPU_batch.h"
 
 #include "DEG_depsgraph_query.h"

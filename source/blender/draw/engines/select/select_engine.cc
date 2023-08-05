@@ -10,9 +10,9 @@
 
 #include "DNA_screen_types.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"

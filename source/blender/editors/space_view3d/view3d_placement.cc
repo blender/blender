@@ -22,12 +22,12 @@
 #include "WM_api.hh"
 #include "WM_toolsystem.h"
 
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_view3d.h"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "GPU_immediate.h"
 

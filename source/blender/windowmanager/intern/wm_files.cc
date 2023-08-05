@@ -92,27 +92,26 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 #include "ED_datafiles.h"
-#include "ED_fileselect.h"
-#include "ED_image.h"
-#include "ED_outliner.h"
-#include "ED_render.h"
+#include "ED_fileselect.hh"
+#include "ED_image.hh"
+#include "ED_outliner.hh"
+#include "ED_render.hh"
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 #include "ED_util.hh"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.hh"
 
 #include "GPU_context.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 /* only to report a missing engine */
 #include "RE_engine.h"

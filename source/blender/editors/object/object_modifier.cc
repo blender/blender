@@ -83,15 +83,15 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "ED_armature.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_armature.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 
 #include "ANIM_bone_collections.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

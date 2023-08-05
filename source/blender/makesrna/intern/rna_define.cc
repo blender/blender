@@ -26,7 +26,7 @@
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h" /* For things like UI_PRECISION_FLOAT_MAX... */
+#include "UI_interface.hh" /* For things like UI_PRECISION_FLOAT_MAX... */
 
 #include "RNA_define.h"
 

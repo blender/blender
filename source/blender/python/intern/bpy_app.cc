@@ -44,7 +44,7 @@
 
 #include "DNA_ID.h"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #include "MEM_guardedalloc.h"
 

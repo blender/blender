@@ -23,7 +23,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "GPU_batch.h"
 

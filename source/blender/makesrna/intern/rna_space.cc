@@ -23,9 +23,9 @@
 #include "BKE_studiolight.h"
 #include "BKE_viewer_path.h"
 
-#include "ED_asset.h"
-#include "ED_spreadsheet.h"
-#include "ED_text.h"
+#include "ED_asset.hh"
+#include "ED_spreadsheet.hh"
+#include "ED_text.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -564,24 +564,24 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_anim_api.h"
-#  include "ED_asset.h"
-#  include "ED_buttons.h"
-#  include "ED_clip.h"
-#  include "ED_fileselect.h"
-#  include "ED_image.h"
-#  include "ED_node.h"
+#  include "ED_anim_api.hh"
+#  include "ED_asset.hh"
+#  include "ED_buttons.hh"
+#  include "ED_clip.hh"
+#  include "ED_fileselect.hh"
+#  include "ED_image.hh"
+#  include "ED_node.hh"
 #  include "ED_screen.hh"
-#  include "ED_sequencer.h"
-#  include "ED_transform.h"
-#  include "ED_view3d.h"
+#  include "ED_sequencer.hh"
+#  include "ED_transform.hh"
+#  include "ED_view3d.hh"
 
 #  include "GPU_material.h"
 
 #  include "IMB_imbuf_types.h"
 
-#  include "UI_interface.h"
-#  include "UI_view2d.h"
+#  include "UI_interface.hh"
+#  include "UI_view2d.hh"
 
 static StructRNA *rna_Space_refine(PointerRNA *ptr)
 {

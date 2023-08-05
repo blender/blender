@@ -23,7 +23,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_undo_system.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

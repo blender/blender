@@ -35,10 +35,9 @@
 #include "BKE_fcurve.h"
 #include "BKE_grease_pencil.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_keylist.hh"
 
-extern "C" {
 /* *************************** Keyframe Processing *************************** */
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
@@ -1201,5 +1200,4 @@ void mask_to_keylist(bDopeSheet * /*ads*/, MaskLayer *masklay, AnimKeylist *keyl
 
     update_keyblocks(keylist, nullptr, 0);
   }
-}
 }

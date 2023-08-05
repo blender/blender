@@ -26,7 +26,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
@@ -37,7 +37,7 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #include "object_intern.h"
 

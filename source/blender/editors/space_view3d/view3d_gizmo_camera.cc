@@ -18,11 +18,11 @@
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_armature.h"
-#include "ED_gizmo_library.h"
+#include "ED_armature.hh"
+#include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 

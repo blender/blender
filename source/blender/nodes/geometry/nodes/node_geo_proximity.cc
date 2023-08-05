@@ -11,8 +11,8 @@
 #include "BKE_bvhutils.h"
 #include "BKE_geometry_set.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 

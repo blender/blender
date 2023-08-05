@@ -13,7 +13,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_mball.h"
+#include "ED_mball.hh"
 #include "ED_screen.hh"
 
 #include "mball_intern.h"

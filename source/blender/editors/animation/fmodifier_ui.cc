@@ -36,11 +36,11 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "ED_anim_api.h"
-#include "ED_undo.h"
+#include "ED_anim_api.hh"
+#include "ED_undo.hh"
 
 #include "DEG_depsgraph.h"
 

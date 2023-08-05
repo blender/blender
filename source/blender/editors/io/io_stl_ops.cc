@@ -16,7 +16,7 @@
 
 #  include "DNA_space_types.h"
 
-#  include "ED_outliner.h"
+#  include "ED_outliner.hh"
 
 #  include "RNA_access.h"
 #  include "RNA_define.h"

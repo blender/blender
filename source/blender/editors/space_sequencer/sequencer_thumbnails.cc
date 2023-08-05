@@ -19,7 +19,7 @@
 
 #include "ED_screen.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "SEQ_relations.h"
 #include "SEQ_render.h"

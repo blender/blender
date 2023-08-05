@@ -21,20 +21,20 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "mesh_intern.h" /* own include */
 
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_undo.h"
+#include "ED_gizmo_library.hh"
+#include "ED_undo.hh"
 
 /**
  * Orient the handles towards the selection (can be slow with high-poly mesh!).

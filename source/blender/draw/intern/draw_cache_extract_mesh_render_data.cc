@@ -22,7 +22,7 @@
 
 #include "GPU_batch.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 #include "mesh_extractors/extract_mesh.hh"
 

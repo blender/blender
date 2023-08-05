@@ -31,13 +31,13 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_anim_api.h" /* for timeline cursor drawing */
-#include "ED_clip.h"
-#include "ED_mask.h"
+#include "ED_anim_api.hh" /* for timeline cursor drawing */
+#include "ED_clip.hh"
+#include "ED_mask.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
-#include "ED_uvedit.h" /* just for ED_image_draw_cursor */
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
+#include "ED_uvedit.hh" /* just for ED_image_draw_cursor */
 
 #include "IMB_imbuf.h"
 
@@ -46,9 +46,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 

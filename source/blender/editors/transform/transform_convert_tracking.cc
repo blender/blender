@@ -18,7 +18,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
 #include "WM_api.hh"
 

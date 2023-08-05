@@ -27,7 +27,7 @@
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "ED_datafiles.h"
 

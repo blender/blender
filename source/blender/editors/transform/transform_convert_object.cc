@@ -22,8 +22,8 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#include "ED_keyframing.h"
-#include "ED_object.h"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
 
 #include "DEG_depsgraph_query.h"
 

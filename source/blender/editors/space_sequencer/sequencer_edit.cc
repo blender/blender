@@ -56,17 +56,17 @@
 #include "RNA_prototypes.h"
 
 /* For menu, popup, icons, etc. */
-#include "ED_fileselect.h"
-#include "ED_keyframing.h"
-#include "ED_numinput.h"
-#include "ED_outliner.h"
-#include "ED_scene.h"
+#include "ED_fileselect.hh"
+#include "ED_keyframing.hh"
+#include "ED_numinput.hh"
+#include "ED_outliner.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
-#include "ED_sequencer.h"
+#include "ED_sequencer.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

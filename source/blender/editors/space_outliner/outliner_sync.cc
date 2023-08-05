@@ -26,9 +26,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_armature.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
+#include "ED_armature.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
 
 #include "SEQ_select.h"
 

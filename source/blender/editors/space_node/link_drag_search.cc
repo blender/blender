@@ -28,8 +28,8 @@
 
 #include "DEG_depsgraph_build.h"
 
-#include "ED_asset.h"
-#include "ED_node.h"
+#include "ED_asset.hh"
+#include "ED_node.hh"
 
 #include "node_intern.hh"
 

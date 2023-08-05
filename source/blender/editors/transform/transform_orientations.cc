@@ -39,7 +39,7 @@
 
 #include "BLT_translation.h"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 
 #include "ANIM_bone_collections.h"
 

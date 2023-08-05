@@ -23,7 +23,7 @@
 #include "DEG_depsgraph_query.h"
 #include "DNA_brush_enums.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

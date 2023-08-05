@@ -57,7 +57,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"

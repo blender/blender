@@ -15,7 +15,7 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

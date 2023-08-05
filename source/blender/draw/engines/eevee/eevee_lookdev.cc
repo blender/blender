@@ -22,7 +22,7 @@
 
 #include "GPU_material.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "eevee_lightcache.h"
 #include "eevee_private.h"

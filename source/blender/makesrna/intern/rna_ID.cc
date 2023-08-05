@@ -227,7 +227,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
 
-#  include "ED_asset.h"
+#  include "ED_asset.hh"
 
 #  include "WM_api.hh"
 

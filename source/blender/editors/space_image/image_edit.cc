@@ -28,12 +28,12 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_image.h" /* own include */
-#include "ED_mesh.h"
+#include "ED_image.hh" /* own include */
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

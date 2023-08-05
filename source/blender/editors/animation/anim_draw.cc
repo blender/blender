@@ -30,17 +30,17 @@
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_draw.h"
-#include "ED_keyframes_edit.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_draw.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframes_keylist.hh"
 
 #include "RNA_access.h"
 #include "RNA_path.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

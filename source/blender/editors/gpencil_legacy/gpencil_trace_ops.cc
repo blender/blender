@@ -37,8 +37,8 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
 
 #include "gpencil_intern.h"
 #include "gpencil_trace.h"

@@ -26,11 +26,10 @@
 #include "BKE_idprop.h"
 #include "BKE_screen.h"
 
-#include "ED_asset.h"
-#include "ED_keyframing.h"
+#include "ED_asset.hh"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"

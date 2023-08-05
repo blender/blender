@@ -19,7 +19,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_curves.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 #include "MEM_guardedalloc.h"
 

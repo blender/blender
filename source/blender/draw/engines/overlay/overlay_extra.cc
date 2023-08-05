@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
@@ -38,7 +38,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "overlay_private.hh"
 

@@ -27,11 +27,11 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_workspace.h"
 
-#include "ED_node.h"  /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_node.hh" /* own include */
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_access.h"
@@ -40,9 +40,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 

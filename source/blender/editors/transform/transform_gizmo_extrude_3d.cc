@@ -23,12 +23,12 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 

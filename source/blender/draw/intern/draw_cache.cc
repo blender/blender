@@ -19,7 +19,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

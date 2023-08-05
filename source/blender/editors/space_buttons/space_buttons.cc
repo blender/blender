@@ -22,10 +22,10 @@
 #include "BKE_screen.h"
 #include "BKE_shader_fx.h"
 
-#include "ED_buttons.h"
+#include "ED_buttons.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_view3d.h" /* To draw toolbar UI. */
+#include "ED_space_api.hh"
+#include "ED_view3d.hh" /* To draw toolbar UI. */
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -35,8 +35,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLO_read_write.h"
 

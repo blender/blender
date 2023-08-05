@@ -17,7 +17,7 @@
 
 #include "ED_screen.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_sequencer.h"

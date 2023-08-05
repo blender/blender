@@ -19,9 +19,9 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Ring Pre-Select

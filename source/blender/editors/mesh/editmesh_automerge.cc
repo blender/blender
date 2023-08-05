@@ -15,7 +15,7 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 #include "tools/bmesh_intersect_edges.h"
 

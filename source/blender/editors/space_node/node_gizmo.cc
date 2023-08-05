@@ -17,7 +17,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "ED_gizmo_library.h"
+#include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
 
 #include "IMB_imbuf_types.h"

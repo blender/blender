@@ -46,9 +46,9 @@
 
 #include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_armature.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "MEM_guardedalloc.h"
 

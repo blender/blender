@@ -24,7 +24,7 @@
 #  include "BKE_nla.h"
 #  include "BKE_report.h"
 
-#  include "ED_keyframing.h"
+#  include "ED_keyframing.hh"
 
 static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList *reports)
 {

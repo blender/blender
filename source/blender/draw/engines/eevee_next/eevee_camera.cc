@@ -15,7 +15,7 @@
 
 #include "BKE_camera.h"
 #include "DEG_depsgraph_query.h"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 #include "RE_pipeline.h"
 #include "render_types.h"
 

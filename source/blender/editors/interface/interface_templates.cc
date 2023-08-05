@@ -72,12 +72,12 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_fileselect.h"
-#include "ED_info.h"
-#include "ED_object.h"
-#include "ED_render.h"
+#include "ED_fileselect.hh"
+#include "ED_info.hh"
+#include "ED_object.hh"
+#include "ED_render.hh"
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 #include "RE_engine.h"
 
@@ -87,9 +87,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 #include "interface_intern.hh"
 
 #include "PIL_time.h"

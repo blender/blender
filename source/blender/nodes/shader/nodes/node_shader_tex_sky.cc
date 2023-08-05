@@ -10,8 +10,8 @@
 #include "BKE_context.h"
 #include "BKE_scene.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 

@@ -34,13 +34,13 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 #include "ED_asset_shelf.h"
-#include "ED_buttons.h"
+#include "ED_buttons.hh"
 #include "ED_screen.hh"
-#include "ED_screen_types.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_screen_types.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -53,10 +53,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "screen_intern.h"
 

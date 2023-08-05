@@ -51,14 +51,14 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "ANIM_bone_collections.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "view3d_intern.h" /* own include */
 

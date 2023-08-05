@@ -24,11 +24,10 @@
 
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 #include "UI_tree_view.hh"
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 

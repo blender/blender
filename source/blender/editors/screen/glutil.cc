@@ -17,7 +17,7 @@
 
 #include "BKE_context.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
@@ -31,7 +31,7 @@
 #  include "GPU_state.h"
 #endif
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 /* ******************************************** */
 

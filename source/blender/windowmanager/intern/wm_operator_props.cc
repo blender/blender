@@ -18,14 +18,14 @@
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

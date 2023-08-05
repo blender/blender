@@ -9,7 +9,7 @@
 #include "BKE_paint.hh"
 #include "DRW_render.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "overlay_private.hh"
 

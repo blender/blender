@@ -39,7 +39,7 @@
 #include "SEQ_sequencer.h"
 #include "SEQ_utils.h"
 
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 
 /* **************************** depsgraph tagging ******************************** */
 

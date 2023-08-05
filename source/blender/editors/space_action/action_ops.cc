@@ -11,8 +11,8 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_anim_api.h"
-#include "ED_transform.h"
+#include "ED_anim_api.hh"
+#include "ED_transform.hh"
 
 #include "action_intern.hh"
 

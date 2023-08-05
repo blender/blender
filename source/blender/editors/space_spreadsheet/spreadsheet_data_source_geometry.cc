@@ -30,7 +30,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_curves.hh"
-#include "ED_spreadsheet.h"
+#include "ED_spreadsheet.hh"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_geometry_nodes_log.hh"

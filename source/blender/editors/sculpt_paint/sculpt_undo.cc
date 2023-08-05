@@ -74,10 +74,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_geometry.h"
-#include "ED_object.h"
-#include "ED_sculpt.h"
-#include "ED_undo.h"
+#include "ED_geometry.hh"
+#include "ED_object.hh"
+#include "ED_sculpt.hh"
+#include "ED_undo.hh"
 
 #include "bmesh.h"
 #include "sculpt_intern.hh"

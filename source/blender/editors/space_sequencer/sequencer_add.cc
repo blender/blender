@@ -56,12 +56,12 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "ED_scene.h"
+#include "ED_scene.hh"
 /* For menu, popup, icons, etc. */
 #include "ED_screen.hh"
-#include "ED_sequencer.h"
+#include "ED_sequencer.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Sequence.h>

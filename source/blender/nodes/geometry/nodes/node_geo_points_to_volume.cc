@@ -17,8 +17,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_volume.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #ifdef WITH_OPENVDB
 namespace blender::nodes {

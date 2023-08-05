@@ -22,7 +22,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_curves.hh"
-#include "ED_grease_pencil.h"
+#include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"

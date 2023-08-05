@@ -16,7 +16,7 @@
 
 #include "DRW_render.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "GPU_context.h"
 #include "GPU_shader.h"

@@ -22,14 +22,14 @@
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 
-#include "ED_text.h"
+#include "ED_text.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "text_format.hh"
 #include "text_intern.hh"

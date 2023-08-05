@@ -16,8 +16,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "ED_grease_pencil.h"
-#include "ED_keyframes_edit.h"
+#include "ED_grease_pencil.hh"
+#include "ED_keyframes_edit.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

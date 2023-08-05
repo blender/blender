@@ -8,7 +8,7 @@
 
 #include "WM_api.hh"
 
-#include "ED_geometry.h"
+#include "ED_geometry.hh"
 
 #include "geometry_intern.hh"
 

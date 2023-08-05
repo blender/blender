@@ -141,8 +141,8 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
-#  include "ED_render.h"
+#  include "ED_node.hh"
+#  include "ED_render.hh"
 
 static StructRNA *rna_Texture_refine(PointerRNA *ptr)
 {

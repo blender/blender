@@ -4,8 +4,8 @@
 
 #include <atomic>
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RNA_enum_types.h"
 

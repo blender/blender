@@ -12,7 +12,7 @@
 #include <optional>
 
 #include "BLI_string_ref.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 struct ListBase;
 struct SpaceOutliner;

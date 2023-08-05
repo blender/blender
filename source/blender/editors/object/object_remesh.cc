@@ -47,13 +47,13 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_sculpt.hh"
+#include "ED_space_api.hh"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -69,7 +69,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLF_api.h"
 

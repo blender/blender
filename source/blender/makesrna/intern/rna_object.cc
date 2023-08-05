@@ -43,8 +43,8 @@
 
 #include "rna_internal.h"
 
-#include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
-#include "ED_mesh.h"
+#include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.hh */
+#include "ED_mesh.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -343,10 +343,10 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_curve.h"
-#  include "ED_lattice.h"
-#  include "ED_object.h"
-#  include "ED_particle.h"
+#  include "ED_curve.hh"
+#  include "ED_lattice.hh"
+#  include "ED_object.hh"
+#  include "ED_particle.hh"
 
 static void rna_Object_internal_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {

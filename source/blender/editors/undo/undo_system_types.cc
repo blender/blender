@@ -10,17 +10,17 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_armature.h"
-#include "ED_curve.h"
+#include "ED_armature.hh"
+#include "ED_curve.hh"
 #include "ED_curves.hh"
-#include "ED_lattice.h"
-#include "ED_mball.h"
-#include "ED_mesh.h"
-#include "ED_paint.h"
-#include "ED_particle.h"
-#include "ED_sculpt.h"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_lattice.hh"
+#include "ED_mball.hh"
+#include "ED_mesh.hh"
+#include "ED_paint.hh"
+#include "ED_particle.hh"
+#include "ED_sculpt.hh"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 #include "undo_intern.hh"
 
 /* Keep last */

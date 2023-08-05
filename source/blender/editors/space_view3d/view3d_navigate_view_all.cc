@@ -20,8 +20,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_mesh.h"
-#include "ED_particle.h"
+#include "ED_mesh.hh"
+#include "ED_particle.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"

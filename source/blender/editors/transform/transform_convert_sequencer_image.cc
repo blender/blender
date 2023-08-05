@@ -24,9 +24,9 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"

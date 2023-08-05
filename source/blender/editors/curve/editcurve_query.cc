@@ -21,8 +21,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_curve.h"
-#include "ED_view3d.h"
+#include "ED_curve.hh"
+#include "ED_view3d.hh"
 
 #include "curve_intern.h"
 

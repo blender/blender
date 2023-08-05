@@ -27,7 +27,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.h"

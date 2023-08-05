@@ -23,7 +23,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_particle.h"
+#include "ED_particle.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -25,7 +25,7 @@
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "CLG_log.h"
 

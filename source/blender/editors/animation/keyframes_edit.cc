@@ -25,9 +25,9 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_markers.hh"
 
 /* This file defines an API and set of callback-operators for
  * non-destructive editing of keyframe data.

@@ -3565,6 +3565,7 @@ class VIEW3D_MT_mask(Menu):
 
         layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
+
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
 

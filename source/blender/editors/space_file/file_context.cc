@@ -8,7 +8,7 @@
 
 #include "BKE_context.h"
 
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
 #include "RNA_prototypes.h"

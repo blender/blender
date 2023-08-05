@@ -30,7 +30,7 @@
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

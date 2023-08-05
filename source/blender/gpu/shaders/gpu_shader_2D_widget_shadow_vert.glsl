@@ -1,7 +1,7 @@
 #define BIT_RANGE(x) uint((1 << x) - 1)
 
 /* 2 bits for corner */
-/* Attention! Not the same order as in UI_interface.h!
+/* Attention! Not the same order as in UI_interface.hh!
  * Ordered by drawing order. */
 #define BOTTOM_LEFT 0u
 #define BOTTOM_RIGHT 1u

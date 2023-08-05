@@ -72,7 +72,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_shader.h"
 
@@ -84,12 +84,12 @@
 #include "WM_types.hh"
 
 #include "ED_datafiles.h"
-#include "ED_render.h"
+#include "ED_render.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_view3d.hh"
+#include "ED_view3d_offscreen.hh"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
 #ifndef NDEBUG
 /* Used for database init assert(). */

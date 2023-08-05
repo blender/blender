@@ -21,12 +21,12 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "ED_gizmo_library.h"
+#include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

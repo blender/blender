@@ -24,7 +24,7 @@
 
 #include "MOD_modifiertypes.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 static void deform_verts(ModifierData * /*md*/,
                          const ModifierEvalContext *ctx,

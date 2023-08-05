@@ -56,7 +56,7 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 namespace blender::ed::object::bake_simulation {
 

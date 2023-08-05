@@ -26,13 +26,13 @@
 
 #include "GPU_state.h"
 
-#include "ED_clip.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_node.h"
+#include "ED_clip.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_node.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
+#include "ED_space_api.hh"
 
 #include "SEQ_transform.h"
 
@@ -40,9 +40,9 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "RNA_access.h"
 

@@ -15,14 +15,14 @@
 
 #include "ED_screen.hh"
 #include "ED_util.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "WM_types.hh"
 

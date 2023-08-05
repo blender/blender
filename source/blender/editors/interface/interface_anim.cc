@@ -32,9 +32,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "RNA_access.h"
 #include "RNA_path.h"

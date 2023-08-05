@@ -20,7 +20,7 @@
 #include "BKE_mesh.hh"
 #include "BLI_kdtree.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Spatial Mirror API

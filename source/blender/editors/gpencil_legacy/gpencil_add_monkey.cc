@@ -24,7 +24,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 void ED_gpencil_stroke_init_data(bGPDstroke *gps,
                                  const float *array,

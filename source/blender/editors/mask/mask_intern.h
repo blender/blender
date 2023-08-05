@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
 struct Mask;
 struct bContext;

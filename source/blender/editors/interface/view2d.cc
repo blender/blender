@@ -41,8 +41,8 @@
 
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "interface_intern.hh"
 #include "view2d_intern.hh"
@@ -228,7 +228,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
   do_init = (v2d->flag & V2D_IS_INIT) == 0;
 
-  /* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+  /* see eView2D_CommonViewTypes in UI_view2d.hh for available view presets */
   switch (type) {
     /* 'standard view' - optimum setup for 'standard' view behavior,
      * that should be used new views as basis for their

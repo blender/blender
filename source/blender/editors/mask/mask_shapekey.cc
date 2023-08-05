@@ -27,7 +27,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_mask.h" /* own include */
+#include "ED_mask.hh" /* own include */
 
 #include "mask_intern.h" /* own include */
 

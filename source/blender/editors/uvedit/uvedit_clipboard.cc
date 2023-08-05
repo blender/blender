@@ -29,9 +29,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_uvedit.h" /* Own include. */
+#include "ED_uvedit.hh" /* Own include. */
 
 #include "WM_api.hh"
 

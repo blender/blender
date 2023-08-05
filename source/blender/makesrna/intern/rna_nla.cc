@@ -81,7 +81,7 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 
 #  include "DNA_object_types.h"
 
-#  include "ED_anim_api.h"
+#  include "ED_anim_api.hh"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

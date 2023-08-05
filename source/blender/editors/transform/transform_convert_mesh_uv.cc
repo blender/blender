@@ -19,9 +19,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_mesh_mapping.hh"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_uvedit.hh"
 
 #include "WM_api.hh" /* for WM_event_add_notifier to deal with stabilization nodes */
 

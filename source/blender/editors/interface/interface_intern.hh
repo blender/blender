@@ -16,8 +16,8 @@
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 struct AnimationEvalContext;
 struct ARegion;
@@ -82,7 +82,7 @@ enum {
    * active button can be polled on non-active buttons to (e.g. for disabling). */
   UI_BUT_ACTIVE_OVERRIDE = (1 << 7),
 
-  /* WARNING: rest of #uiBut.flag in UI_interface.h */
+  /* WARNING: rest of #uiBut.flag in UI_interface.hh */
 };
 
 /** #uiBut.pie_dir */
@@ -855,7 +855,7 @@ struct uiPopupBlockHandle {
 
 /* `interface_region_tooltip.cc` */
 
-/* exposed as public API in UI_interface.h */
+/* exposed as public API in UI_interface.hh */
 
 /* `interface_region_color_picker.cc` */
 

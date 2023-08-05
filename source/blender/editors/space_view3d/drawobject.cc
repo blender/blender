@@ -29,9 +29,9 @@
 #include "GPU_shader.h"
 #include "GPU_state.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DRW_engine.h"
 

@@ -26,7 +26,7 @@
 #include "RNA_path.h"
 #include "RNA_prototypes.h"
 
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 
 /* ----------------------- Getter functions ----------------------- */
 

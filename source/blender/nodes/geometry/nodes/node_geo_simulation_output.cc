@@ -15,7 +15,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "NOD_common.h"
 #include "NOD_socket.hh"

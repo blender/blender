@@ -63,7 +63,7 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
 static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {

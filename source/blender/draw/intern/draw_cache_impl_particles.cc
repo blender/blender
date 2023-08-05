@@ -30,7 +30,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-#include "ED_particle.h"
+#include "ED_particle.hh"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"

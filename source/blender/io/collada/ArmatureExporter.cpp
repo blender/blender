@@ -20,7 +20,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 
 #include "BLI_listbase.h"
 

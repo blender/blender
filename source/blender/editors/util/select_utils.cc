@@ -20,7 +20,7 @@
 
 #include "WM_types.hh"
 
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside)
 {

@@ -34,16 +34,16 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 #include "ED_curves.hh"
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
-#include "ED_particle.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
+#include "ED_particle.hh"
 #include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

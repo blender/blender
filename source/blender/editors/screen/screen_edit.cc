@@ -34,12 +34,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_node.h"
+#include "ED_clip.hh"
+#include "ED_node.hh"
 #include "ED_screen.hh"
-#include "ED_screen_types.h"
+#include "ED_screen_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_message.hh"
 #include "WM_toolsystem.h"

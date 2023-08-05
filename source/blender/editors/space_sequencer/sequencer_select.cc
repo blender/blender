@@ -37,12 +37,12 @@
 
 /* For menu, popup, icons, etc. */
 
-#include "ED_outliner.h"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
-#include "ED_sequencer.h"
+#include "ED_select_utils.hh"
+#include "ED_sequencer.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 /* Own include. */
 #include "sequencer_intern.h"

@@ -33,7 +33,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 #include "PIL_time.h"
 

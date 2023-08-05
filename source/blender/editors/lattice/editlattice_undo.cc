@@ -32,9 +32,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_lattice.h"
-#include "ED_object.h"
-#include "ED_undo.h"
+#include "ED_lattice.hh"
+#include "ED_object.hh"
+#include "ED_undo.hh"
 #include "ED_util.hh"
 
 #include "WM_api.hh"

@@ -31,11 +31,11 @@
 
 #include "BKE_context.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_numinput.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_numinput.hh"
 #include "ED_screen.hh"
 #include "ED_util.hh"
 

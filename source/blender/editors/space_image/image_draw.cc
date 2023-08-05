@@ -39,7 +39,7 @@
 #include "BKE_image.h"
 #include "BKE_paint.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -49,16 +49,16 @@
 
 #include "BLF_api.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_image.h"
-#include "ED_mask.h"
-#include "ED_render.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
+#include "ED_mask.hh"
+#include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

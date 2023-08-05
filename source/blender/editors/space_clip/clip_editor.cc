@@ -41,15 +41,15 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_clip.h"
-#include "ED_mask.h"
+#include "ED_clip.hh"
+#include "ED_mask.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "clip_intern.h" /* own include */
 

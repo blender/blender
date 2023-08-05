@@ -39,9 +39,9 @@
 #include "WM_toolsystem.h"
 #include "WM_types.hh"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 

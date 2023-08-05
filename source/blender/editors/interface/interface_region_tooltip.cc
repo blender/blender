@@ -42,7 +42,7 @@
 #include "RNA_access.h"
 #include "RNA_path.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"

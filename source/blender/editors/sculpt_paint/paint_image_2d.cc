@@ -30,7 +30,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_paint.h"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
 
 #include "IMB_colormanagement.h"
@@ -40,7 +40,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "paint_intern.hh"
 

@@ -19,7 +19,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_grease_pencil.h"
+#include "ED_grease_pencil.hh"
 
 namespace blender::ed::greasepencil {
 

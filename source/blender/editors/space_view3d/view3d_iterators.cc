@@ -37,9 +37,9 @@
 
 #include "bmesh.h"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Clipping Utilities

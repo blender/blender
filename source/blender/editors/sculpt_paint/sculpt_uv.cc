@@ -29,10 +29,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -43,7 +43,7 @@
 #include "paint_intern.hh"
 #include "uvedit_intern.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 /* When set, the UV element is on the boundary of the graph.
  * i.e. Instead of a 2-dimensional laplace operator, use a 1-dimensional version.

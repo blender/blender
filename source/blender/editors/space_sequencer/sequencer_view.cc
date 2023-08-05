@@ -20,7 +20,7 @@
 
 #include "RNA_define.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_select.h"
@@ -29,10 +29,10 @@
 #include "SEQ_transform.h"
 
 /* For menu, popup, icons, etc. */
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 #include "ED_screen.hh"
-#include "ED_time_scrub_ui.h"
-#include "ED_util_imbuf.h"
+#include "ED_time_scrub_ui.hh"
+#include "ED_util_imbuf.hh"
 
 /* Own include. */
 #include "sequencer_intern.h"

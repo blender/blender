@@ -32,12 +32,12 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_armature.h"
-#include "ED_view3d.h"
+#include "ED_armature.hh"
+#include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_common.h"
 #include "draw_manager_text.h"

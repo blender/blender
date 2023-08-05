@@ -17,7 +17,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_curve.h"
+#include "ED_curve.hh"
 #include "ED_screen.hh"
 
 #include "curve_intern.h"

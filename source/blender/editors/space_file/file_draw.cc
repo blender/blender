@@ -22,7 +22,7 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
@@ -40,13 +40,13 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

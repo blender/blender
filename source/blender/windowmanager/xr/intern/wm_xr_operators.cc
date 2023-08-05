@@ -23,9 +23,9 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_space_api.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
 #include "GHOST_Types.h"
 

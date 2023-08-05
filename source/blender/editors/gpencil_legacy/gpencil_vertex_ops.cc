@@ -29,7 +29,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
 
 #include "DEG_depsgraph.h"

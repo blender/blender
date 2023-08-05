@@ -21,7 +21,6 @@
 
 #include "WM_api.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 
 using namespace blender::ui;

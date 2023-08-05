@@ -23,15 +23,15 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_mask.h"
+#include "ED_clip.hh"
+#include "ED_mask.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 

@@ -29,9 +29,9 @@
 #include "BKE_nla.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_draw.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_draw.hh"
+#include "ED_keyframes_keylist.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -39,9 +39,9 @@
 
 #include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */
 #include "nla_private.h"

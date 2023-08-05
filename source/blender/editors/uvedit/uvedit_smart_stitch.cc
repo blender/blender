@@ -34,12 +34,12 @@
 
 #include "DEG_depsgraph.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_uvedit.h"
+#include "ED_space_api.hh"
+#include "ED_uvedit.hh"
 
 #include "GPU_batch.h"
 #include "GPU_state.h"
@@ -51,8 +51,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "uvedit_intern.h"
 

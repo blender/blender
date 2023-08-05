@@ -24,15 +24,14 @@
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "NOD_geometry_nodes_log.hh"
 

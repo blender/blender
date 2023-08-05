@@ -19,7 +19,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "wm_cursors.hh"
 #include "wm_event_types.hh"

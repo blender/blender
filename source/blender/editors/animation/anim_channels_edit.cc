@@ -43,16 +43,16 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_armature.h"
-#include "ED_keyframes_edit.h" /* XXX move the select modes out of there! */
-#include "ED_markers.h"
-#include "ED_object.h"
+#include "ED_anim_api.hh"
+#include "ED_armature.hh"
+#include "ED_keyframes_edit.hh" /* XXX move the select modes out of there! */
+#include "ED_markers.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

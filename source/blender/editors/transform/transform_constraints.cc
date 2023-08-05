@@ -28,12 +28,12 @@
 
 #include "BKE_context.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_gizmo.hh"

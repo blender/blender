@@ -24,7 +24,7 @@
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 #include "DEG_depsgraph_query.h"
 

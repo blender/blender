@@ -33,9 +33,9 @@
 
 #include "DEG_depsgraph_build.h"
 
-#include "ED_asset.h"
-#include "ED_node.h" /* own include */
-#include "ED_render.h"
+#include "ED_asset.hh"
+#include "ED_node.hh" /* own include */
+#include "ED_render.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.h"
@@ -46,7 +46,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "node_intern.hh" /* own include */
 

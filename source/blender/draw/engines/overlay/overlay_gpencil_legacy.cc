@@ -10,13 +10,13 @@
 
 #include "BKE_gpencil_legacy.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "overlay_private.hh"
 

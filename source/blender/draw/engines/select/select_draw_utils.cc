@@ -15,7 +15,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

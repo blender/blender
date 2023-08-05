@@ -43,7 +43,7 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 
 #include "GPU_matrix.h"
 #include "GPU_state.h"
@@ -51,10 +51,9 @@
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
 #include "IMB_imbuf.h"
 
@@ -68,7 +67,7 @@
 #  include "BPY_extern_run.h"
 #endif
 
-#include "ED_numinput.h"
+#include "ED_numinput.hh"
 #include "ED_screen.hh"
 
 #include "IMB_colormanagement.h"
@@ -4222,7 +4221,7 @@ static uiBut *ui_def_but(uiBlock *block,
     but->flag |= UI_BUT_DISABLED;
   }
 
-  /* keep track of UI_interface.h */
+  /* keep track of UI_interface.hh */
   if (ELEM(but->type,
            UI_BTYPE_BLOCK,
            UI_BTYPE_BUT,

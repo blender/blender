@@ -21,7 +21,7 @@
 
 #include "GPU_matrix.h"
 
-#include "ED_view3d.h" /* own include */
+#include "ED_view3d.hh" /* own include */
 
 #define BL_ZERO_CLIP 0.001
 

@@ -10,7 +10,7 @@
 
 #include "WM_api.hh"
 
-#include "ED_physics.h"
+#include "ED_physics.hh"
 
 #include "physics_intern.h" /* own include */
 

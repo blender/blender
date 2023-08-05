@@ -41,7 +41,7 @@
 
 #  include "ED_screen.hh"
 
-#  include "UI_interface.h"
+#  include "UI_interface.hh"
 
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"

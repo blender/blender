@@ -45,9 +45,9 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
-#include "ED_paint.h"
-#include "ED_undo.h"
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_undo.hh"
 #include "ED_util.hh"
 
 #include "WM_api.hh"

@@ -31,8 +31,8 @@
 
 #include "NOD_add_node_search.hh"
 
-#include "ED_asset.h"
-#include "ED_node.h"
+#include "ED_asset.hh"
+#include "ED_node.hh"
 
 #include "node_intern.hh"
 

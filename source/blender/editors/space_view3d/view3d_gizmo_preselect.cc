@@ -12,10 +12,10 @@
 
 #include "BKE_context.h"
 
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

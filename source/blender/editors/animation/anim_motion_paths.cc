@@ -30,8 +30,8 @@
 #include "GPU_batch.h"
 #include "GPU_vertex_buffer.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_keylist.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_keylist.hh"
 
 #include "ANIM_bone_collections.h"
 

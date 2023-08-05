@@ -36,9 +36,9 @@
 
 #  include "DEG_depsgraph_query.h"
 
-#  include "ED_transform.h"
-#  include "ED_transform_snap_object_context.h"
-#  include "ED_uvedit.h"
+#  include "ED_transform.hh"
+#  include "ED_transform_snap_object_context.hh"
+#  include "ED_uvedit.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

@@ -13,7 +13,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_handle.hh"
 

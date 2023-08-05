@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #ifdef __cplusplus
 extern "C" {

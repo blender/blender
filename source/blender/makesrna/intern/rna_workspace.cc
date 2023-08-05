@@ -12,7 +12,7 @@
 
 #include "BKE_workspace.h"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 
 #include "RE_engine.h"
 
@@ -33,8 +33,8 @@
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
 
-#  include "ED_asset.h"
-#  include "ED_paint.h"
+#  include "ED_asset.hh"
+#  include "ED_paint.hh"
 
 #  include "RNA_access.h"
 

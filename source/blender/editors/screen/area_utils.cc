@@ -22,8 +22,8 @@
 
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Tool System Region Callbacks

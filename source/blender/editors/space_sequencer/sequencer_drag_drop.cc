@@ -24,14 +24,14 @@
 #include "SEQ_sequencer.h"
 #include "SEQ_transform.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
 #include "ED_screen.hh"
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

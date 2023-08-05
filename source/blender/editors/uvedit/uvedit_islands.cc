@@ -19,7 +19,7 @@
 
 #include "DNA_image_types.h"
 
-#include "ED_uvedit.h" /* Own include. */
+#include "ED_uvedit.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name UDIM packing helper functions

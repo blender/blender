@@ -20,8 +20,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_keyframes_edit.h"
-#include "ED_keyframing.h"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframing.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

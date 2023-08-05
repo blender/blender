@@ -10,7 +10,7 @@
 
 namespace blender::string_search::tests {
 
-/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
+/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.hh`. */
 #define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
 
 TEST(string_search, damerau_levenshtein_distance)

@@ -33,7 +33,7 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent *event, int type)
 {

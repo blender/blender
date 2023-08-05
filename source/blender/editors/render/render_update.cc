@@ -40,10 +40,10 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "ED_node.h"
-#include "ED_paint.h"
-#include "ED_render.h"
-#include "ED_view3d.h"
+#include "ED_node.hh"
+#include "ED_paint.hh"
+#include "ED_render.hh"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

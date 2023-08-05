@@ -32,7 +32,7 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
 #  include "WM_api.hh"
 

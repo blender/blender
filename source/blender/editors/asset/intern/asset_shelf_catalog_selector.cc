@@ -22,7 +22,6 @@
 #include "ED_asset_filter.hh"
 #include "ED_asset_list.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 

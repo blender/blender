@@ -35,8 +35,8 @@
 #include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "ED_image.h"
-#include "ED_paint.h"
+#include "ED_image.hh"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"

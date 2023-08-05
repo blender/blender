@@ -55,11 +55,11 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_info.h"
+#include "ED_info.hh"
 
 #include "WM_api.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "GPU_capabilities.h"
 

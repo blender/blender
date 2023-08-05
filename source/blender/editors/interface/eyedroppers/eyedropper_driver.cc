@@ -27,12 +27,12 @@
 #include "RNA_define.h"
 #include "RNA_path.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 #include "eyedropper_intern.hh"
 #include "interface_intern.hh"

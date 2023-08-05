@@ -39,7 +39,7 @@
 #include "GPU_state.h"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "IMB_imbuf_types.h"
 

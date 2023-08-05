@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "BKE_vfont.h"
 

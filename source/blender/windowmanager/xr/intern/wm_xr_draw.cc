@@ -17,7 +17,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "ED_view3d_offscreen.h"
+#include "ED_view3d_offscreen.hh"
 
 #include "GHOST_C-api.h"
 #include "GPU_batch_presets.h"

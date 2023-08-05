@@ -31,12 +31,12 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_armature.h"
+#include "ED_armature.hh"
 #include "ED_curves.hh"
 
 #include "ANIM_bone_collections.h"
 
-#include "ED_transverts.h" /* own include */
+#include "ED_transverts.hh" /* own include */
 
 void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
 {

@@ -40,10 +40,10 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_transform.h"
-#include "ED_uvedit.h"
+#include "ED_transform.hh"
+#include "ED_uvedit.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -51,7 +51,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "intern/bmesh_marking.h"
 #include "uvedit_intern.h"

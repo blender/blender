@@ -49,13 +49,13 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_info.h"
-#include "ED_keyframing.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_info.hh"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
-#include "ED_screen_types.h"
-#include "ED_transform.h"
-#include "ED_view3d_offscreen.h"
+#include "ED_screen_types.hh"
+#include "ED_transform.hh"
+#include "ED_view3d_offscreen.hh"
 #include "ED_viewer_path.hh"
 
 #include "ANIM_bone_collections.h"
@@ -74,8 +74,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RE_engine.h"
 

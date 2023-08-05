@@ -10,7 +10,7 @@
 
 #include "BKE_context.h"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_screen.hh"
 
 #include "RNA_access.h"

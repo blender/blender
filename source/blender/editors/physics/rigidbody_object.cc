@@ -36,8 +36,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_object.h"
-#include "ED_physics.h"
+#include "ED_object.hh"
+#include "ED_physics.hh"
 #include "ED_screen.hh"
 
 #include "physics_intern.h"

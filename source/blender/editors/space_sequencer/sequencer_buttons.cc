@@ -21,7 +21,7 @@
 #include "BKE_screen.h"
 
 #include "ED_screen.hh"
-#include "ED_sequencer.h"
+#include "ED_sequencer.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

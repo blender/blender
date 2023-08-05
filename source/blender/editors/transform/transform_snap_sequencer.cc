@@ -16,9 +16,9 @@
 #include "BKE_context.h"
 
 #include "ED_screen.hh"
-#include "ED_transform.h"
+#include "ED_transform.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_effects.h"

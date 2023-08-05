@@ -14,7 +14,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "DNA_scene_types.h"
 
@@ -470,7 +470,7 @@ void PAINT_OT_hide_show(wmOperatorType *ot);
 /* `paint_mask.cc` */
 
 /* The gesture API doesn't write to this enum type,
- * it writes to eSelectOp from ED_select_utils.h.
+ * it writes to eSelectOp from ED_select_utils.hh.
  * We must thus map the modes here to the desired
  * eSelectOp modes.
  *

@@ -33,7 +33,7 @@
 
 #include "ED_screen.hh"
 #include "ED_util.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
@@ -42,8 +42,8 @@
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "bmesh.h"
 

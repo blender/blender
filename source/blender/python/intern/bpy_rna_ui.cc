@@ -14,7 +14,7 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "RNA_types.h"
 

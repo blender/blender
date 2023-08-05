@@ -31,7 +31,7 @@
 
 #include "bmesh.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 extern "C" {
 Global G;
@@ -59,7 +59,7 @@ extern "C" struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of UI_resources.h
+/** \name Stubs of UI_resources.hh
  * \{ */
 
 extern "C" void UI_GetThemeColor4fv(int /*colorid*/, float[4] /*col*/)

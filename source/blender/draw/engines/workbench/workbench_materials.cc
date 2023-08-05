@@ -21,7 +21,7 @@
 
 #include "GPU_uniform_buffer.h"
 
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
 #define HSV_SATURATION 0.5
 #define HSV_VALUE 0.8

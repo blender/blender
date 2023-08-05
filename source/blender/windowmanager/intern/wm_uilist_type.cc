@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_string.h"

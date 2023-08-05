@@ -25,10 +25,10 @@
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
-#include "ED_text.h"
-#include "ED_undo.h"
+#include "ED_text.hh"
+#include "ED_undo.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "text_format.hh"
 #include "text_intern.hh" /* own include */

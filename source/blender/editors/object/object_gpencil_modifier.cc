@@ -42,12 +42,12 @@
 #include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

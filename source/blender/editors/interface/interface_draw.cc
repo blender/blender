@@ -33,7 +33,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BLF_api.h"
 
@@ -46,7 +46,7 @@
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 /* own include */
 #include "interface_intern.hh"

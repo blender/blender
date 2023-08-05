@@ -32,7 +32,7 @@
 #include "BKE_fcurve.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 #include "COLLADASWAsset.h"
 #include "COLLADASWBaseInputElement.h"

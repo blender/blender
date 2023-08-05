@@ -28,8 +28,8 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "SkinInfo.h"
 #include "collada_utils.h"

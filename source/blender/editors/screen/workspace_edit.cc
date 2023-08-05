@@ -29,14 +29,14 @@
 #include "DNA_workspace_types.h"
 
 #include "ED_datafiles.h"
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 

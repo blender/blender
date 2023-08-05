@@ -20,8 +20,8 @@
 #include "BKE_context.h"
 #include "BKE_nla.h"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

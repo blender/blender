@@ -34,9 +34,9 @@
 
 #include "GHOST_C-api.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "GPU_batch_presets.h"
 #include "GPU_context.h"
@@ -59,7 +59,7 @@
 #include "wm_surface.hh"
 #include "wm_window.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.hh"

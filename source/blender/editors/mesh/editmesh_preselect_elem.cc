@@ -18,8 +18,8 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_mesh.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_view3d.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Element Pre-Select

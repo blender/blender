@@ -43,17 +43,17 @@
 #include "GPU_vertex_buffer.h"
 #include "GPU_viewport.h"
 
-#include "ED_anim_api.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_markers.h"
-#include "ED_mask.h"
+#include "ED_anim_api.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_markers.hh"
+#include "ED_mask.hh"
 #include "ED_screen.hh"
-#include "ED_sequencer.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_sequencer.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 #include "ED_util.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "RNA_prototypes.h"
 
@@ -70,9 +70,9 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

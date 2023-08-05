@@ -24,7 +24,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
@@ -32,8 +32,8 @@
 
 #include "RNA_access.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 

@@ -61,7 +61,7 @@ static const EnumPropertyItem rna_enum_mesh_remesh_mode_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_mesh.h" /* XXX Bad level call */
+#  include "ED_mesh.hh" /* XXX Bad level call */
 
 #  include "WM_api.hh"
 

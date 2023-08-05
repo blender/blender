@@ -36,19 +36,19 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_matrix.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "view3d_intern.h" /* own include */
 

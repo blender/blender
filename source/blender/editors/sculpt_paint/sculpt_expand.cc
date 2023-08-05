@@ -43,7 +43,7 @@
 #include "RNA_define.h"
 
 #include "ED_screen.hh"
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 

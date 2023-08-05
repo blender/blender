@@ -36,21 +36,21 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "ED_armature.h"
-#include "ED_asset.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_paint.h"
+#include "ED_armature.hh"
+#include "ED_asset.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
+#include "ED_space_api.hh"
 #include "ED_util.hh"
 
 #include "GPU_immediate.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "WM_api.hh"

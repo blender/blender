@@ -20,7 +20,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "obj_export_mesh.hh"
 #include "obj_export_nurbs.hh"

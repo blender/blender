@@ -48,9 +48,9 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_armature.h"
-#include "ED_fileselect.h"
-#include "ED_outliner.h"
+#include "ED_armature.hh"
+#include "ED_fileselect.hh"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
@@ -60,10 +60,10 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "RNA_access.h"
 

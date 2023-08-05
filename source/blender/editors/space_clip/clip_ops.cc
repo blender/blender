@@ -46,16 +46,16 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "PIL_time.h"
 

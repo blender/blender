@@ -40,8 +40,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_transform_snap_object_context.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_transform_snap_object_context.hh"
 
 #include "gpencil_intern.h"
 

@@ -30,8 +30,8 @@
 #  include "BPY_extern_run.h"
 #endif
 
-#include "ED_numinput.h"
-#include "UI_interface.h"
+#include "ED_numinput.hh"
+#include "UI_interface.hh"
 
 /* Numeric input which isn't allowing full numeric editing. */
 #define USE_FAKE_EDIT

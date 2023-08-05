@@ -41,8 +41,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_image.h"
-#include "ED_view3d.h"
+#include "ED_image.hh"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -52,7 +52,7 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "paint_intern.hh"
 /* still needed for sculpt_stroke_get_location, should be

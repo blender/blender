@@ -48,7 +48,6 @@
 #include "RNA_prototypes.h"
 #include "RNA_types.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
@@ -56,17 +55,17 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_object.h"
-#include "ED_paint.h"
+#include "ED_object.hh"
+#include "ED_paint.hh"
 
 /* for Copy As Driver */
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
 #include "BKE_main.h"
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
-#include "ED_text.h"
+#include "ED_text.hh"
 
 using namespace blender::ui;
 

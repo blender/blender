@@ -14,7 +14,7 @@
 
 #include "rna_internal_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #ifdef __cplusplus
 extern "C" {

@@ -31,11 +31,11 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_curve.h"
+#include "ED_curve.hh"
 #include "ED_screen.hh"
-#include "ED_text.h"
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "ED_text.hh"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

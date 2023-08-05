@@ -32,7 +32,7 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_lattice.h"
+#  include "ED_lattice.hh"
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 

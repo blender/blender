@@ -48,8 +48,8 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "ED_node.h"
-#include "ED_object.h"
+#include "ED_node.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh" /* XXX hrm, see if we can do without this */

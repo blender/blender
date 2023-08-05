@@ -10,7 +10,7 @@
 
 #include "DRW_render.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph_query.h"
 

@@ -11,13 +11,13 @@
 #include "BKE_context.h"
 #include "BKE_light_linking.h"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DNA_collection_types.h"
 

@@ -8,7 +8,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DRW_render.h"
 

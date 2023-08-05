@@ -91,7 +91,7 @@
 #  include "DNA_volume_types.h"
 #  include "DNA_world_types.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 #  include "ED_screen.hh"
 
 #  include "BLT_translation.h"

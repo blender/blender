@@ -27,12 +27,12 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_userpref.h"
+#include "ED_userpref.hh"
 
 #include "MEM_guardedalloc.h"
 

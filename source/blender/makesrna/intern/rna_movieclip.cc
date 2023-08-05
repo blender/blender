@@ -32,7 +32,7 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_clip.h"
+#  include "ED_clip.hh"
 
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"

@@ -32,7 +32,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 
 /* Deprecated, only provided for API compatibility. */
 const EnumPropertyItem rna_enum_render_pass_type_items[] = {

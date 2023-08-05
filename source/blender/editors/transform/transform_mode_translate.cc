@@ -21,12 +21,12 @@
 #include "BKE_report.h"
 #include "BKE_unit.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 

@@ -75,19 +75,19 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_curve.h"
-#include "ED_mesh.h"
-#include "ED_node.h"
-#include "ED_object.h"
-#include "ED_paint.h"
-#include "ED_render.h"
-#include "ED_scene.h"
+#include "ED_curve.hh"
+#include "ED_mesh.hh"
+#include "ED_node.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
+#include "ED_render.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 
 #include "RNA_define.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

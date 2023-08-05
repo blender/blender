@@ -52,14 +52,14 @@
 #include "BKE_workspace.h"
 
 #include "ED_asset_shelf.h"
-#include "ED_geometry.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_render.h"
+#include "ED_geometry.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_render.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
-#include "ED_transform.h"
-#include "ED_undo.h"
+#include "ED_space_api.hh"
+#include "ED_transform.hh"
+#include "ED_undo.hh"
 #include "ED_viewer_path.hh"
 
 #include "GPU_matrix.h"
@@ -76,8 +76,8 @@
 
 #include "RNA_access.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLO_read_write.h"
 

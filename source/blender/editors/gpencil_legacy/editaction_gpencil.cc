@@ -24,10 +24,10 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_report.h"
 
-#include "ED_anim_api.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_keyframes_edit.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_markers.hh"
 
 #include "WM_api.hh"
 

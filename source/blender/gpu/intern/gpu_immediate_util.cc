@@ -16,7 +16,7 @@
 
 #include "GPU_immediate.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 static const float cube_coords[8][3] = {
     {-1, -1, -1},

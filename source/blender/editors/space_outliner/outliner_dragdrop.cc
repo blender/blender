@@ -32,12 +32,12 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_object.h"
-#include "ED_outliner.h"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "RNA_access.h"
 

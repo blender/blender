@@ -46,12 +46,12 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "ED_image.h"
-#include "ED_object.h"
-#include "ED_paint.h"
+#include "ED_image.hh"
+#include "ED_object.hh"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"

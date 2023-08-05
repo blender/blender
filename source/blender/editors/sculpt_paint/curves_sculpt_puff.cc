@@ -11,7 +11,7 @@
 #include "BKE_mesh_runtime.hh"
 
 #include "ED_screen.hh"
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.h"
 

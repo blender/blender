@@ -31,10 +31,10 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -17,9 +17,9 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
+#include "ED_space_api.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
@@ -31,7 +31,7 @@
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -39,7 +39,7 @@
 #include "sequencer_intern.h"
 
 /* Own define. */
-#include "ED_util_imbuf.h"
+#include "ED_util_imbuf.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Image Pixel Sample Struct (Operator Custom Data)

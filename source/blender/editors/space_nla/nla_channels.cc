@@ -27,9 +27,9 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_object.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.h"
@@ -38,12 +38,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */
 

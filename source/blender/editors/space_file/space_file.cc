@@ -31,17 +31,17 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 #include "ED_asset_indexer.h"
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.h"
+#include "ED_space_api.hh"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 

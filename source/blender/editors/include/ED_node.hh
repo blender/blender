@@ -5,7 +5,7 @@
 #pragma once
 
 #include "BLI_vector_set.hh"
-#include "ED_node.h"
+#include "ED_node_c.hh"
 
 struct SpaceNode;
 struct ARegion;

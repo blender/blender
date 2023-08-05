@@ -32,8 +32,8 @@
 
 #include "WM_types.hh"
 
-#include "ED_curve.h"
-#include "ED_object.h" /* own include */
+#include "ED_curve.hh"
+#include "ED_object.hh" /* own include */
 
 #include "MEM_guardedalloc.h"
 

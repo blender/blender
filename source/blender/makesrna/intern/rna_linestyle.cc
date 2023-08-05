@@ -119,7 +119,7 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
 #  include "RNA_access.h"
 

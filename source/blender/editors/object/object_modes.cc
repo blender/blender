@@ -42,16 +42,16 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_armature.h"
-#include "ED_gpencil_legacy.h"
+#include "ED_armature.hh"
+#include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
 #include "WM_toolsystem.h"
 
-#include "ED_object.h" /* own include */
+#include "ED_object.hh" /* own include */
 #include "object_intern.h"
 
 /* -------------------------------------------------------------------- */

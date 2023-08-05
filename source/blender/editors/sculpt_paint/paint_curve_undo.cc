@@ -16,8 +16,8 @@
 #include "BKE_paint.hh"
 #include "BKE_undo_system.h"
 
-#include "ED_paint.h"
-#include "ED_undo.h"
+#include "ED_paint.hh"
+#include "ED_undo.hh"
 
 #include "WM_api.hh"
 

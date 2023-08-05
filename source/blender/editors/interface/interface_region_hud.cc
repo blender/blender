@@ -28,13 +28,13 @@
 
 #include "RNA_access.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 #include "GPU_framebuffer.h"
 #include "interface_intern.hh"

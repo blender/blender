@@ -18,8 +18,8 @@
 #include "BKE_paint.hh"
 #include "BKE_undo_system.h"
 
-#include "ED_paint.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_view3d.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "paint_intern.hh"
 

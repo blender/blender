@@ -36,12 +36,12 @@
 #include "NOD_socket_declarations.hh"
 
 #include "../interface/interface_intern.hh" /* XXX bad level */
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "node_intern.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 using blender::nodes::NodeDeclaration;
 

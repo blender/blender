@@ -20,7 +20,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "IMB_imbuf_types.h"
 

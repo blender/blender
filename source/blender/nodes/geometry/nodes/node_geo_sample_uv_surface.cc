@@ -7,8 +7,8 @@
 #include "BKE_mesh_sample.hh"
 #include "BKE_type_conversions.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
 

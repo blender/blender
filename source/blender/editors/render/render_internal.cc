@@ -51,11 +51,11 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

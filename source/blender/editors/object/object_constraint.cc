@@ -55,12 +55,12 @@
 #include "RNA_path.h"
 #include "RNA_prototypes.h"
 
-#include "ED_keyframing.h"
-#include "ED_object.h"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "object_intern.h"
 

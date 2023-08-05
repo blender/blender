@@ -31,7 +31,7 @@
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "DRW_render.h"
 

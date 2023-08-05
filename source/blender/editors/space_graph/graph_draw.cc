@@ -34,13 +34,13 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 
 #include "graph_intern.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
 

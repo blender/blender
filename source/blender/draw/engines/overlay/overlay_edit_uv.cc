@@ -23,14 +23,14 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "IMB_imbuf_types.h"
 
 #include "GPU_batch.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 

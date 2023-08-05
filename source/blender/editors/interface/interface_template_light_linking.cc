@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include <cstdio>
 #include <memory>
@@ -22,14 +22,13 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 #include "UI_tree_view.hh"
 
 #include "WM_api.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 namespace blender::ui::light_linking {
 

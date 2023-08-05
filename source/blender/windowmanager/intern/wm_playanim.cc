@@ -47,7 +47,7 @@
 
 #include "BKE_image.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_context.h"
 #include "GPU_framebuffer.h"

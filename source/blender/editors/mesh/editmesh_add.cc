@@ -23,8 +23,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "mesh_intern.h" /* own include */

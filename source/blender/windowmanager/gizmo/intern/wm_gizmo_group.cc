@@ -34,7 +34,7 @@
 #include "wm_event_system.h"
 
 #include "ED_screen.hh"
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 /* own includes */
 #include "wm_gizmo_intern.h"

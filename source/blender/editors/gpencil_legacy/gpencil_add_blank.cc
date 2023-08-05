@@ -24,7 +24,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
 /* Definition of the most important info from a color */
 struct ColorTemplate {

@@ -15,8 +15,8 @@
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DEG_depsgraph_query.h"
 

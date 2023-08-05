@@ -10,7 +10,7 @@
 
 #include "DNA_vec_types.h"
 
-#include "ED_numinput.h"
+#include "ED_numinput.hh"
 
 #define DEPTH_INVALID 1.0f
 

@@ -27,7 +27,7 @@
 #include "DRW_render.h"
 #include "GPU_shader.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "overlay_private.hh"
 

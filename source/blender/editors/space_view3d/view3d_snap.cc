@@ -36,10 +36,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_keyframing.h"
-#include "ED_object.h"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_transverts.h"
+#include "ED_transverts.hh"
 
 #include "ANIM_bone_collections.h"
 

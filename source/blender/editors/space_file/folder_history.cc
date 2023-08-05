@@ -18,7 +18,7 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -37,9 +37,9 @@
 #include "BKE_paint.hh"
 #include "BKE_volume.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
-#include "ED_uvedit.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
+#include "ED_uvedit.hh"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
@@ -57,8 +57,8 @@
 #  include <libavformat/avformat.h>
 #endif
 
-#include "ED_render.h"
-#include "ED_transform.h"
+#include "ED_render.hh"
+#include "ED_transform.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -736,13 +736,13 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 
 #  include "NOD_composite.h"
 
-#  include "ED_image.h"
-#  include "ED_info.h"
-#  include "ED_keyframing.h"
-#  include "ED_mesh.h"
-#  include "ED_node.h"
-#  include "ED_scene.h"
-#  include "ED_view3d.h"
+#  include "ED_image.hh"
+#  include "ED_info.hh"
+#  include "ED_keyframing.hh"
+#  include "ED_mesh.hh"
+#  include "ED_node.hh"
+#  include "ED_scene.hh"
+#  include "ED_view3d.hh"
 
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
