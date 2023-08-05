@@ -322,7 +322,7 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi);
 /* cleanup on exit */
 /* --------------- */
 
-void ANIM_keyingset_infos_exit(void);
+void ANIM_keyingset_infos_exit();
 
 /* -------- */
 
@@ -491,20 +491,20 @@ bool ANIM_remove_driver(
  * Clear copy-paste buffer for drivers.
  * \note This function frees any MEM_calloc'ed copy/paste buffer data.
  */
-void ANIM_drivers_copybuf_free(void);
+void ANIM_drivers_copybuf_free();
 
 /**
  * Clear copy-paste buffer for driver variable sets.
  * \note This function frees any MEM_calloc'ed copy/paste buffer data.
  */
-void ANIM_driver_vars_copybuf_free(void);
+void ANIM_driver_vars_copybuf_free();
 
 /* -------- */
 
 /**
  * Returns whether there is a driver in the copy/paste buffer to paste.
  */
-bool ANIM_driver_can_paste(void);
+bool ANIM_driver_can_paste();
 
 /**
  * \brief Main Driver Management API calls.
@@ -528,7 +528,7 @@ bool ANIM_paste_driver(
 /**
  * Checks if there are driver variables in the copy/paste buffer.
  */
-bool ANIM_driver_vars_can_paste(void);
+bool ANIM_driver_vars_can_paste();
 
 /**
  * Copy the given driver's variables to the buffer.

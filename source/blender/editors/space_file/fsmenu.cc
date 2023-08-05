@@ -6,10 +6,10 @@
  * \ingroup spfile
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -42,7 +42,7 @@ struct FSMenu {
 
 static FSMenu *g_fsmenu = nullptr;
 
-FSMenu *ED_fsmenu_get(void)
+FSMenu *ED_fsmenu_get()
 {
   if (!g_fsmenu) {
     g_fsmenu = MEM_cnew<FSMenu>(__func__);

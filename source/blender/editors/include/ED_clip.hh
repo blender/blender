@@ -153,4 +153,4 @@ void ED_clip_view_lock_state_store(const bContext *C, ClipViewLockState *state);
 void ED_clip_view_lock_state_restore_no_jump(const bContext *C, const ClipViewLockState *state);
 
 /* `clip_ops.cc` */
-void ED_operatormacros_clip(void);
+void ED_operatormacros_clip();

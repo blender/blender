@@ -474,7 +474,7 @@ void UI_SetTheme(int spacetype, int regionid);
 /**
  * Get current theme.
  */
-bTheme *UI_GetTheme(void);
+bTheme *UI_GetTheme();
 
 /**
  * For the rare case we need to temp swap in a different theme (off-screen render).
@@ -485,7 +485,7 @@ void UI_Theme_Restore(bThemeState *theme_state);
 /**
  * Return shadow width outside menus and popups.
  */
-int UI_ThemeMenuShadowWidth(void);
+int UI_ThemeMenuShadowWidth();
 
 /**
  * Only for buttons in theme editor!

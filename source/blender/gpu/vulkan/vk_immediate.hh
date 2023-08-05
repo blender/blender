@@ -37,8 +37,8 @@ class VKImmediate : public Immediate, VKResourceTracker<VKBuffer> {
   VKImmediate();
   virtual ~VKImmediate();
 
-  uchar *begin(void) override;
-  void end(void) override;
+  uchar *begin() override;
+  void end() override;
 
   friend class VKVertexAttributeObject;
 

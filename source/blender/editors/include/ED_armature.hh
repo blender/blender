@@ -122,8 +122,8 @@ void ED_armature_bones_flip_names(Main *bmain,
 
 /* `armature_ops.cc` */
 
-void ED_operatortypes_armature(void);
-void ED_operatormacros_armature(void);
+void ED_operatortypes_armature();
+void ED_operatormacros_armature();
 void ED_keymap_armature(wmKeyConfig *keyconf);
 
 /* `armature_relations.cc` */

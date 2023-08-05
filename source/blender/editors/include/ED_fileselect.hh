@@ -132,7 +132,7 @@ bool ED_fileselect_layout_isect_rect(const FileLayout *layout,
                                      rcti *r_dst);
 void ED_fileselect_layout_tilepos(const FileLayout *layout, int tile, int *x, int *y);
 
-void ED_operatormacros_file(void);
+void ED_operatormacros_file();
 
 void ED_fileselect_clear(wmWindowManager *wm, SpaceFile *sfile);
 
@@ -241,7 +241,7 @@ enum FSMenuInsert {
   FS_INSERT_NO_VALIDATE = (1 << 4),
 };
 
-FSMenu *ED_fsmenu_get(void);
+FSMenu *ED_fsmenu_get();
 FSMenuEntry *ED_fsmenu_get_category(FSMenu *fsmenu, FSMenuCategory category);
 void ED_fsmenu_set_category(FSMenu *fsmenu, FSMenuCategory category, FSMenuEntry *fsm_head);
 

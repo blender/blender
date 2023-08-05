@@ -114,6 +114,6 @@ void draw_masklay_channel(AnimKeylistDrawList *draw_list,
                           float yscale_fac,
                           int saction_flag);
 
-AnimKeylistDrawList *ED_keylist_draw_list_create(void);
+AnimKeylistDrawList *ED_keylist_draw_list_create();
 void ED_keylist_draw_list_flush(AnimKeylistDrawList *draw_list, View2D *v2d);
 void ED_keylist_draw_list_free(AnimKeylistDrawList *draw_list);

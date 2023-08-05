@@ -49,9 +49,9 @@ bool ED_maskedit_mask_visible_splines_poll(bContext *C);
 
 void ED_mask_deselect_all(const bContext *C);
 
-void ED_operatortypes_mask(void);
+void ED_operatortypes_mask();
 void ED_keymap_mask(wmKeyConfig *keyconf);
-void ED_operatormacros_mask(void);
+void ED_operatormacros_mask();
 
 /* `mask_query.cc` */
 
@@ -168,9 +168,9 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer);
 void ED_masklayer_snap_frames(MaskLayer *mask_layer, Scene *scene, short mode);
 
 #if 0
-void free_gpcopybuf(void);
-void copy_gpdata(void);
-void paste_gpdata(void);
+void free_gpcopybuf();
+void copy_gpdata();
+void paste_gpdata();
 
 void mirror_masklayer_frames( MaskLayer *mask_layer, short mode);
 #endif
