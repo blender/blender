@@ -1166,6 +1166,134 @@ class edit_generators:
 
             return edits
 
+    class use_listbase_foreach_macro(EditGenerator):
+        """
+        Use macro ``LISTBASE_FOREACH`` or ``LISTBASE_FOREACH_BACKWARD``:
+
+        Replace:
+          for (var = static_cast<SomeType *>(list_base.first); var; var = var->next) {}
+        With:
+          LISTBASE_FOREACH(SomeType *, var, &list_base) {}
+        """
+        # This may be default but can generate shadow variable warnings that need
+        # to be manually corrected (typically by removing the local variable in the outer scope).
+        is_default = False
+
+        @staticmethod
+        def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+            edits = []
+
+            re_cxx_cast = re.compile(r"[a-z_]+<([^\>]+)>\((.*)\)")
+            re_c_cast = re.compile(r"\(([^\)]+\*)\)(.*)")
+
+            # Note that this replacement is only valid in some cases,
+            # so only apply with validation that binary output matches.
+            for match in re.finditer(r"->(next|prev)\)\s+{", data, flags=re.MULTILINE):
+                # Chances are this is a for loop over a listbase.
+                is_forward = match.group(1) == "next"
+                for_paren_end = match.span()[0] + 6
+                for_paren_beg = for_paren_end
+
+                limit = max(0, for_paren_end - 2000)
+
+                i = for_paren_end - 1
+                level = 1
+                while True:
+                    if data[i] == ")":
+                        level += 1
+                    elif data[i] == "(":
+                        level -= 1
+                        if level == 0:
+                            for_paren_beg = i
+                            break
+                    i -= 1
+                    if i < limit:
+                        break
+                if for_paren_beg == for_paren_end:
+                    continue
+
+                content = data[for_paren_beg:for_paren_end + 1]
+                if content.count("=") != 2:
+                    continue
+                if content.count(";") != 2:
+                    continue
+                # It just so happens we expect the first element,
+                # not a strict check, the compile test will filter out errors.
+                if is_forward:
+                    if "first" not in content:
+                        continue
+                else:
+                    if "last" not in content:
+                        continue
+
+                # It just so happens that this case should be ignored (no check in the middle of the string).
+                if ";;" in content:
+                    continue
+                for_beg = for_paren_beg - 4
+                prefix = data[for_beg: for_paren_beg]
+                if prefix != "for ":
+                    continue
+
+                # Now we surely have a for-loop.
+                content_beg, content_mid, _content_end = content.split(";")
+                if "=" not in content_beg:
+                    continue
+
+                base = content_beg.rsplit("=", 1)[1].strip()
+
+                if match_cast := re_cxx_cast.match(base):
+                    ty = match_cast.group(1)
+                    base = match_cast.group(2)
+                else:
+                    if match_cast := re_c_cast.match(base):
+                        ty = match_cast.group(1)
+                        base = match_cast.group(2)
+                    else:
+                        continue
+                del match_cast
+
+                # There may be extra parens.
+                while base.startswith("(") and base.endswith(")"):
+                    base = base[1:-1]
+
+                if is_forward:
+                    if base.endswith("->first"):
+                        base = base[:-7]
+                        base_is_pointer = True
+                    elif base.endswith(".first"):
+                        base = base[:-6]
+                        base_is_pointer = False
+                    else:
+                        continue
+                else:
+                    if base.endswith("->last"):
+                        base = base[:-6]
+                        base_is_pointer = True
+                    elif base.endswith(".last"):
+                        base = base[:-5]
+                        base_is_pointer = False
+                    else:
+                        continue
+
+                # Get the variable, most likely it's a single value
+                # but may be `var != nullptr`, in this case only the first term is needed.
+                var = content_mid.strip().split(" ", 1)[0].strip()
+
+                edits.append(Edit(
+                    # Span covers `for (...)` {
+                    span=(for_beg, for_paren_end + 1),
+                    content='%s (%s, %s, %s%s)' % (
+                        "LISTBASE_FOREACH" if is_forward else "LISTBASE_FOREACH_BACKWARD",
+                        ty,
+                        var,
+                        "" if base_is_pointer else "&",
+                        base,
+                    ),
+                    content_fail='__ALWAYS_FAIL__',
+                ))
+
+            return edits
+
     class parenthesis_cleanup(EditGenerator):
         """
         Use macro for an error checked array size:
