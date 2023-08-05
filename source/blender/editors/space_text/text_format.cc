@@ -32,10 +32,10 @@ static void flatten_string_append(FlattenString *fs, const char *c, int accum, i
     fs->len *= 2;
 
     nbuf = static_cast<char *>(MEM_callocN(sizeof(*fs->buf) * fs->len, "fs->buf"));
-    naccum = static_cast<int *>(MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum"));
+    memcpy(nbuf, fs->buf, sizeof(*fs->buf) * fs->pos);
 
-    memcpy(nbuf, fs->buf, fs->pos * sizeof(*fs->buf));
-    memcpy(naccum, fs->accum, fs->pos * sizeof(*fs->accum));
+    naccum = static_cast<int *>(MEM_callocN(sizeof(*fs->accum) * fs->len, "fs->accum"));
+    memcpy(naccum, fs->accum, sizeof(*fs->accum) * fs->pos);
 
     if (fs->buf != fs->fixedbuf) {
       MEM_freeN(fs->buf);

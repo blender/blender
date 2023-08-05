@@ -174,7 +174,7 @@ static bool stroke_dash(const bGPDstroke *gps,
       for (int di = 0; di < stroke->totpoints; di++) {
         MDeformVert *dv = &gps->dvert[new_stroke_offset + di];
         if (dv && dv->totweight && dv->dw) {
-          MDeformWeight *dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * dv->totweight,
+          MDeformWeight *dw = (MDeformWeight *)MEM_mallocN(sizeof(MDeformWeight) * dv->totweight,
                                                            __func__);
           memcpy(dw, dv->dw, sizeof(MDeformWeight) * dv->totweight);
           stroke->dvert[di].dw = dw;

@@ -209,8 +209,8 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
   cu.str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), __func__));
-  cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
   memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
+  cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
 
   CharTrans *chartransdata = nullptr;
   int text_len;
