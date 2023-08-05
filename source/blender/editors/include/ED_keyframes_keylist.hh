@@ -13,13 +13,17 @@
 struct AnimData;
 struct CacheFile;
 struct FCurve;
+struct GreasePencilLayer;
+struct ListBase;
 struct MaskLayer;
 struct Object;
 struct Scene;
+struct bAction;
+struct bActionGroup;
 struct bAnimContext;
 struct bDopeSheet;
 struct bGPDlayer;
-struct GreasePencilLayer;
+struct bGPdata;
 
 /* ****************************** Base Structs ****************************** */
 
