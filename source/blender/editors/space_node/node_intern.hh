@@ -104,7 +104,7 @@ struct SpaceNode_Runtime {
 
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
-  struct NodeInsertOfsData *iofsd;
+  NodeInsertOfsData *iofsd;
 
   /**
    * Temporary data for node add menu in order to provide longer-term storage for context pointers.

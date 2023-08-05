@@ -15,7 +15,7 @@
    SCE_SNAP_TO_EDGE_PERPENDICULAR)
 
 struct SnapObjectContext {
-  struct Scene *scene;
+  Scene *scene;
 
   struct SnapCache {
     virtual ~SnapCache(){};

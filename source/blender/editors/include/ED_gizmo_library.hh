@@ -14,22 +14,23 @@
 
 #include "DNA_scene_types.h"
 
-/* initialize gizmos */
-void ED_gizmotypes_arrow_3d(void);
-void ED_gizmotypes_button_2d(void);
-void ED_gizmotypes_cage_2d(void);
-void ED_gizmotypes_cage_3d(void);
-void ED_gizmotypes_dial_3d(void);
-void ED_gizmotypes_move_3d(void);
-void ED_gizmotypes_facemap_3d(void);
-void ED_gizmotypes_preselect_3d(void);
-void ED_gizmotypes_primitive_3d(void);
-void ED_gizmotypes_blank_3d(void);
-void ED_gizmotypes_snap_3d(void);
-
 struct Object;
 struct bContext;
 struct wmGizmo;
+struct SnapObjectContext;
+
+/* initialize gizmos */
+void ED_gizmotypes_arrow_3d();
+void ED_gizmotypes_button_2d();
+void ED_gizmotypes_cage_2d();
+void ED_gizmotypes_cage_3d();
+void ED_gizmotypes_dial_3d();
+void ED_gizmotypes_move_3d();
+void ED_gizmotypes_facemap_3d();
+void ED_gizmotypes_preselect_3d();
+void ED_gizmotypes_primitive_3d();
+void ED_gizmotypes_blank_3d();
+void ED_gizmotypes_snap_3d();
 
 /* -------------------------------------------------------------------- */
 /* Shape Presets
@@ -39,12 +40,9 @@ struct wmGizmo;
 
 /* `gizmo_library_presets.cc` */
 
-void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, const float mat[4][4], int select_id);
-void ED_gizmo_draw_preset_arrow(const struct wmGizmo *gz,
-                                const float mat[4][4],
-                                int axis,
-                                int select_id);
-void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
+void ED_gizmo_draw_preset_box(const wmGizmo *gz, const float mat[4][4], int select_id);
+void ED_gizmo_draw_preset_arrow(const wmGizmo *gz, const float mat[4][4], int axis, int select_id);
+void ED_gizmo_draw_preset_circle(const wmGizmo *gz,
                                  const float mat[4][4],
                                  int axis,
                                  int select_id);
@@ -80,13 +78,13 @@ enum {
  *
  * \note Needs to be called before #WM_gizmo_target_property_def_rna!
  */
-void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *gz, float min, float max);
+void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, float min, float max);
 /**
  * Define a custom factor for arrow min/max distance.
  *
  * \note Needs to be called before #WM_gizmo_target_property_def_rna!
  */
-void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *gz, float range_fac);
+void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, float range_fac);
 
 /* -------------------------------------------------------------------- */
 /* Cage Gizmo */
@@ -237,15 +235,14 @@ enum {
 
 /* `snap3d_gizmo.cc` */
 
-struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *scene,
-                                                               struct wmGizmo *gz);
+SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene, wmGizmo *gz);
 
-void ED_gizmotypes_snap_3d_flag_set(struct wmGizmo *gz, int flag);
+void ED_gizmotypes_snap_3d_flag_set(wmGizmo *gz, int flag);
 
-bool ED_gizmotypes_snap_3d_is_enabled(const struct wmGizmo *gz);
+bool ED_gizmotypes_snap_3d_is_enabled(const wmGizmo *gz);
 
-void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
-                                    struct wmGizmo *gz,
+void ED_gizmotypes_snap_3d_data_get(const bContext *C,
+                                    wmGizmo *gz,
                                     float r_loc[3],
                                     float r_nor[3],
                                     int r_elem_index[3],

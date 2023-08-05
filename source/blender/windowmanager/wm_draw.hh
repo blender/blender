@@ -17,8 +17,8 @@ struct bContext;
 struct wmWindow;
 
 struct wmDrawBuffer {
-  struct GPUOffScreen *offscreen;
-  struct GPUViewport *viewport;
+  GPUOffScreen *offscreen;
+  GPUViewport *viewport;
   bool stereo;
   int bound_view;
 };

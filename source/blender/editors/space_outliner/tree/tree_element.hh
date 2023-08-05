@@ -111,13 +111,13 @@ class AbstractTreeElement {
  *                noise, and can be expensive to add in big scenes. So prefer setting this to
  *                false.
  */
-struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
-                                         ListBase *lb,
-                                         void *idv,
-                                         struct TreeElement *parent,
-                                         short type,
-                                         short index,
-                                         const bool expand = true);
+TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
+                                  ListBase *lb,
+                                  void *idv,
+                                  TreeElement *parent,
+                                  short type,
+                                  short index,
+                                  const bool expand = true);
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
 

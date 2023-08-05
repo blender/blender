@@ -125,9 +125,9 @@ struct TransData {
   float smtx[3][3];
   /** Axis orientation matrix of the data. */
   float axismtx[3][3];
-  struct Object *ob;
+  Object *ob;
   /** For objects/bones, the first constraint in its constraint stack. */
-  struct bConstraint *con;
+  bConstraint *con;
   /** For objects, poses. 1 single allocation per #TransInfo! */
   TransDataExtension *ext;
   /** for curves, stores handle flags for modification/cancel. */

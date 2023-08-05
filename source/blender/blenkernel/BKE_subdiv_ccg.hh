@@ -99,14 +99,14 @@ struct SubdivCCGAdjacentEdge {
   int num_adjacent_faces;
   /* Indexed by adjacent face index, then by point index on the edge.
    * points to a coordinate into the grids. */
-  struct SubdivCCGCoord **boundary_coords;
+  SubdivCCGCoord **boundary_coords;
 };
 
 /* Definition of a vertex which is adjacent to at least one of the faces. */
 struct SubdivCCGAdjacentVertex {
   int num_adjacent_faces;
   /* Indexed by adjacent face index, points to a coordinate in the grids. */
-  struct SubdivCCGCoord *corner_coords;
+  SubdivCCGCoord *corner_coords;
 };
 
 /* Representation of subdivision surface which uses CCG grids. */

@@ -227,8 +227,8 @@ bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSet
 /* Construct new subdivision surface descriptor, from scratch, using given
  * settings and topology. */
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
-                                      struct OpenSubdiv_Converter *converter);
-Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const struct Mesh *mesh);
+                                      OpenSubdiv_Converter *converter);
+Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh);
 
 /* Similar to above, but will not re-create descriptor if it was created for the
  * same settings and topology.
@@ -240,10 +240,10 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const struct Me
  */
 Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
                                          const SubdivSettings *settings,
-                                         struct OpenSubdiv_Converter *converter);
+                                         OpenSubdiv_Converter *converter);
 Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
                                     const SubdivSettings *settings,
-                                    const struct Mesh *mesh);
+                                    const Mesh *mesh);
 
 void BKE_subdiv_free(Subdiv *subdiv);
 
@@ -252,8 +252,8 @@ void BKE_subdiv_free(Subdiv *subdiv);
  */
 
 void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
-                                                  struct Mesh *mesh,
-                                                  const struct MultiresModifierData *mmd);
+                                                  Mesh *mesh,
+                                                  const MultiresModifierData *mmd);
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv);
 

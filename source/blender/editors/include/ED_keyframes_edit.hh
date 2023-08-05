@@ -161,7 +161,7 @@ ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
  * Used for example by `columnselect_action_keys` to select all keyframes in a column.
  */
 struct CfraElem {
-  struct CfraElem *next, *prev;
+  CfraElem *next, *prev;
   float cfra;
   int sel;
 };
@@ -171,7 +171,7 @@ struct KeyframeEditData {
   /** temp list for storing custom list of data to check */
   ListBase list;
   /** pointer to current scene - many tools need access to cfra/etc. */
-  struct Scene *scene;
+  Scene *scene;
   /** pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
   void *data;
   /** storage of times/values as 'decimals' */
@@ -181,7 +181,7 @@ struct KeyframeEditData {
 
   /* current iteration data */
   /** F-Curve that is being iterated over */
-  struct FCurve *fcu;
+  FCurve *fcu;
   /** index of current keyframe being iterated over */
   int curIndex;
   /** y-position of midpoint of the channel (for the dopesheet) */
@@ -201,9 +201,9 @@ struct KeyframeEditData {
  * \{ */
 
 /* callback function that refreshes the F-Curve after use */
-using FcuEditFunc = void (*)(struct FCurve *fcu);
+using FcuEditFunc = void (*)(FCurve *fcu);
 /* callback function that operates on the given BezTriple */
-using KeyframeEditFunc = short (*)(KeyframeEditData *ked, struct BezTriple *bezt);
+using KeyframeEditFunc = short (*)(KeyframeEditData *ked, BezTriple *bezt);
 
 /** \} */
 

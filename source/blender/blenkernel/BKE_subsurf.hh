@@ -80,7 +80,7 @@ struct CCGDerivedMesh {
 
   struct {
     int startVert;
-    struct CCGVert *vert;
+    CCGVert *vert;
   } * vertMap;
   struct {
     int startVert;

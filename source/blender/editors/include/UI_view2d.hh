@@ -495,13 +495,13 @@ void VIEW2D_GGT_navigate_impl(wmGizmoGroupType *gzgt, const char *idname);
  */
 struct View2DEdgePanData {
   /** Screen where view pan was initiated. */
-  struct bScreen *screen;
+  bScreen *screen;
   /** Area where view pan was initiated. */
-  struct ScrArea *area;
+  ScrArea *area;
   /** Region where view pan was initiated. */
-  struct ARegion *region;
+  ARegion *region;
   /** View2d we're operating in. */
-  struct View2D *v2d;
+  View2D *v2d;
   /** Limit maximum pannable area. */
   struct rctf limit;
 

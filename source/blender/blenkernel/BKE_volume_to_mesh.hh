@@ -39,10 +39,10 @@ struct OpenVDBMeshData {
   }
 };
 
-struct Mesh *volume_to_mesh(const openvdb::GridBase &grid,
-                            const VolumeToMeshResolution &resolution,
-                            float threshold,
-                            float adaptivity);
+Mesh *volume_to_mesh(const openvdb::GridBase &grid,
+                     const VolumeToMeshResolution &resolution,
+                     float threshold,
+                     float adaptivity);
 
 /**
  * Convert an OpenVDB volume grid to corresponding mesh data: vertex positions and quad and

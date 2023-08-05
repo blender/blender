@@ -77,7 +77,7 @@ enum eTfmMode {
 bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2]);
 
 /* UNUSED */
-// int BIF_snappingSupported(struct Object *obedit);
+// int BIF_snappingSupported(Object *obedit);
 
 void BIF_clearTransformOrientation(bContext *C);
 void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target);

@@ -17,37 +17,32 @@ struct bContext;
 
 /* ed_util.cc */
 
-void ED_editors_init_for_undo(struct Main *bmain);
-void ED_editors_init(struct bContext *C);
+void ED_editors_init_for_undo(Main *bmain);
+void ED_editors_init(bContext *C);
 /**
  * Frees all edit-mode stuff.
  */
-void ED_editors_exit(struct Main *bmain, bool do_undo_system);
+void ED_editors_exit(Main *bmain, bool do_undo_system);
 
-bool ED_editors_flush_edits_for_object_ex(struct Main *bmain,
-                                          struct Object *ob,
+bool ED_editors_flush_edits_for_object_ex(Main *bmain,
+                                          Object *ob,
                                           bool for_render,
                                           bool check_needs_flush);
-bool ED_editors_flush_edits_for_object(struct Main *bmain, struct Object *ob);
+bool ED_editors_flush_edits_for_object(Main *bmain, Object *ob);
 
 /**
  * Flush any temp data from object editing to DNA before writing files, rendering, copying, etc.
  */
-bool ED_editors_flush_edits_ex(struct Main *bmain, bool for_render, bool check_needs_flush);
-bool ED_editors_flush_edits(struct Main *bmain);
+bool ED_editors_flush_edits_ex(Main *bmain, bool for_render, bool check_needs_flush);
+bool ED_editors_flush_edits(Main *bmain);
 
 /**
  * Use to free ID references within runtime data (stored outside of DNA)
  *
  * \param new_id: may be NULL to unlink \a old_id.
  */
-void ED_spacedata_id_remap_single(struct ScrArea *area,
-                                  struct SpaceLink *sl,
-                                  struct ID *old_id,
-                                  struct ID *new_id);
-void ED_spacedata_id_remap(struct ScrArea *area,
-                           struct SpaceLink *sl,
-                           const struct IDRemapper *mappings);
+void ED_spacedata_id_remap_single(ScrArea *area, SpaceLink *sl, ID *old_id, ID *new_id);
+void ED_spacedata_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings);
 
 void ED_operatortypes_edutils();
 
@@ -56,55 +51,53 @@ void ED_operatortypes_edutils();
 /**
  * Callback that draws a line between the mouse and a position given as the initial argument.
  */
-void ED_region_draw_mouse_line_cb(const struct bContext *C,
-                                  struct ARegion *region,
-                                  void *arg_info);
+void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_info);
 
 /**
  * \note Keep in sync with #BKE_image_stamp_buf.
  */
 void ED_region_image_metadata_draw(
-    int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
+    int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 
 /* Slider */
 
 struct tSlider;
-typedef enum SliderMode { SLIDER_MODE_PERCENT = 0, SLIDER_MODE_FLOAT = 1 } SliderMode;
+enum SliderMode { SLIDER_MODE_PERCENT = 0, SLIDER_MODE_FLOAT = 1 };
 
-struct tSlider *ED_slider_create(struct bContext *C);
+tSlider *ED_slider_create(bContext *C);
 /**
  * For modal operations so the percentage doesn't pop on the first mouse movement.
  */
-void ED_slider_init(struct tSlider *slider, const struct wmEvent *event);
+void ED_slider_init(tSlider *slider, const wmEvent *event);
 /**
  * Calculate slider factor based on mouse position.
  */
-bool ED_slider_modal(struct tSlider *slider, const struct wmEvent *event);
-void ED_slider_destroy(struct bContext *C, struct tSlider *slider);
+bool ED_slider_modal(tSlider *slider, const wmEvent *event);
+void ED_slider_destroy(bContext *C, tSlider *slider);
 
 /**
  * Return string based on the current state of the slider.
  */
-void ED_slider_status_string_get(const struct tSlider *slider,
+void ED_slider_status_string_get(const tSlider *slider,
                                  char *status_string,
                                  size_t size_of_status_string);
 
-float ED_slider_factor_get(struct tSlider *slider);
-void ED_slider_factor_set(struct tSlider *slider, float factor);
+float ED_slider_factor_get(tSlider *slider);
+void ED_slider_factor_set(tSlider *slider, float factor);
 
 /* One bool value for each side of the slider. Allows to enable overshoot only on one side. */
-void ED_slider_allow_overshoot_set(struct tSlider *slider, bool lower, bool upper);
+void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);
 
 /**
  * Set the soft limits for the slider, which are applied until the user enables overshooting.
  */
-void ED_slider_factor_bounds_set(struct tSlider *slider, float lower_bound, float upper_bound);
+void ED_slider_factor_bounds_set(tSlider *slider, float lower_bound, float upper_bound);
 
-bool ED_slider_allow_increments_get(struct tSlider *slider);
-void ED_slider_allow_increments_set(struct tSlider *slider, bool value);
+bool ED_slider_allow_increments_get(tSlider *slider);
+void ED_slider_allow_increments_set(tSlider *slider, bool value);
 
-void ED_slider_mode_set(struct tSlider *slider, SliderMode unit);
-void ED_slider_unit_set(struct tSlider *slider, const char *unit);
+void ED_slider_mode_set(tSlider *slider, SliderMode unit);
+void ED_slider_unit_set(tSlider *slider, const char *unit);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 
@@ -117,9 +110,9 @@ void apply_keyb_grid(
     bool shift, bool ctrl, float *val, float fac1, float fac2, float fac3, int invert);
 
 /* where else to go ? */
-void unpack_menu(struct bContext *C,
+void unpack_menu(bContext *C,
                  const char *opname,
                  const char *id_name,
                  const char *abs_name,
                  const char *folder,
-                 struct PackedFile *pf);
+                 PackedFile *pf);

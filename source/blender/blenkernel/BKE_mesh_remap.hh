@@ -34,7 +34,7 @@ struct MeshPairRemap {
   int items_num;
   MeshPairRemapItem *items; /* Array, one item per destination element. */
 
-  struct MemArena *mem; /* memory arena, internal use only. */
+  MemArena *mem; /* memory arena, internal use only. */
 };
 
 /* Helpers! */

@@ -118,5 +118,5 @@ void ED_font_undosys_type(UndoType *ut);
 
 #if 0
 /* debug only */
-void printknots(struct Object *obedit);
+void printknots(Object *obedit);
 #endif

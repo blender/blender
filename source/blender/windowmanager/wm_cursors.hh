@@ -62,4 +62,4 @@ typedef enum WMCursorType {
 } WMCursorType;
 
 void wm_init_cursor_data();
-bool wm_cursor_arrow_move(struct wmWindow *win, const struct wmEvent *event);
+bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event);

@@ -80,7 +80,7 @@ enum AZScrollDirection {
 
 /* for editing areas/regions */
 struct AZone {
-  struct AZone *next, *prev;
+  AZone *next, *prev;
   ARegion *region;
   int type;
 

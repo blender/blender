@@ -1287,7 +1287,7 @@ struct wmTooltipState {
 /* *************** migrated stuff, clean later? ************** */
 
 struct RecentFile {
-  struct RecentFile *next, *prev;
+  RecentFile *next, *prev;
   char *filepath;
 };
 

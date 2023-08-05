@@ -143,7 +143,7 @@ struct ViewOpsData {
     float mousevec[3];
 
     /** Used for roll */
-    struct Dial *dial;
+    Dial *dial;
   } init;
 
   /** Previous state (previous modal event handled). */

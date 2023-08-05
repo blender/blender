@@ -369,12 +369,12 @@ struct uiButColorBand : public uiBut {
 
 /** Derived struct for #UI_BTYPE_CURVEPROFILE. */
 struct uiButCurveProfile : public uiBut {
-  struct CurveProfile *edit_profile = nullptr;
+  CurveProfile *edit_profile = nullptr;
 };
 
 /** Derived struct for #UI_BTYPE_CURVE. */
 struct uiButCurveMapping : public uiBut {
-  struct CurveMapping *edit_cumap = nullptr;
+  CurveMapping *edit_cumap = nullptr;
   eButGradientType gradient_type = UI_GRAD_SV;
 };
 
@@ -397,7 +397,7 @@ struct uiButExtraOpIcon {
 };
 
 struct ColorPicker {
-  struct ColorPicker *next, *prev;
+  ColorPicker *next, *prev;
 
   /** Color in HSV or HSL, in color picking color space. Used for HSV cube,
    * circle and slider widgets. The color picking space is perceptually

@@ -34,9 +34,7 @@ struct wmMsgBus;
 
 #define GIZMO_AXIS_LINE_WIDTH 2.0f
 
-void gizmo_prepare_mat(const bContext *C,
-                       struct RegionView3D *rv3d,
-                       const TransformBounds *tbounds);
+void gizmo_prepare_mat(const bContext *C, RegionView3D *rv3d, const TransformBounds *tbounds);
 void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
                                    wmMsgBus *mbus,
                                    Scene *scene,

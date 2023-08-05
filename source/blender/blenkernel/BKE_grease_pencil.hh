@@ -640,9 +640,7 @@ void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
 GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
-void BKE_grease_pencil_data_update(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
-                                   struct Object *object);
+void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,

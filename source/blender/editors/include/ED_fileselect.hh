@@ -212,7 +212,7 @@ void ED_file_path_button(bScreen *screen,
 
 /* FSMenuEntry's without paths indicate separators */
 struct FSMenuEntry {
-  struct FSMenuEntry *next;
+  FSMenuEntry *next;
 
   char *path;
   char name[256]; /* FILE_MAXFILE */

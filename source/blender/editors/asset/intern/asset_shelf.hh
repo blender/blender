@@ -33,7 +33,7 @@ void build_asset_view(uiLayout &layout,
                       const bContext &C,
                       ARegion &region);
 
-void catalog_selector_panel_register(struct ARegionType *region_type);
+void catalog_selector_panel_register(ARegionType *region_type);
 
 AssetShelf *active_shelf_from_context(const bContext *C);
 
@@ -43,13 +43,11 @@ void send_redraw_notifier(const bContext &C);
  * Deep-copies \a shelf_regiondata into newly allocated memory. Must be freed using
  * #regiondata_free().
  */
-struct RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata);
+RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata);
 /** Frees the contained data and \a shelf_regiondata itself. */
 void regiondata_free(RegionAssetShelf **shelf_regiondata);
-void regiondata_blend_write(struct BlendWriter *writer,
-                            const struct RegionAssetShelf *shelf_regiondata);
-void regiondata_blend_read_data(struct BlendDataReader *reader,
-                                struct RegionAssetShelf **shelf_regiondata);
+void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_regiondata);
+void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shelf_regiondata);
 
 /**
  * Frees the contained data, not \a shelf_settings itself.

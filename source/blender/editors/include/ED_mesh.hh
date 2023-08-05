@@ -333,7 +333,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
 /* `editmesh_preselect_edgering.cc` */
 
 struct EditMesh_PreSelEdgeRing;
-struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create();
+EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create();
 void EDBM_preselect_edgering_destroy(EditMesh_PreSelEdgeRing *psel);
 void EDBM_preselect_edgering_clear(EditMesh_PreSelEdgeRing *psel);
 void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float matrix[4][4]);

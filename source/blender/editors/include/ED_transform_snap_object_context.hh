@@ -35,7 +35,7 @@ enum eSnapEditType {
 
 /** used for storing multiple hits */
 struct SnapObjectHitDepth {
-  struct SnapObjectHitDepth *next, *prev;
+  SnapObjectHitDepth *next, *prev;
 
   float depth;
   float co[3];
