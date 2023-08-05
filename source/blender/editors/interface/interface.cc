@@ -6431,16 +6431,14 @@ static void operator_enum_search_update_fn(
     const EnumPropertyItem *all_items;
     RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &all_items, nullptr, &do_free);
 
-    StringSearch *search = BLI_string_search_new();
+    blender::string_search::StringSearch<const EnumPropertyItem> search;
+
     for (const EnumPropertyItem *item = all_items; item->identifier; item++) {
-      BLI_string_search_add(search, item->name, (void *)item, 0);
+      search.add(item->name, item);
     }
 
-    const EnumPropertyItem **filtered_items;
-    const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
-
-    for (int i = 0; i < filtered_amount; i++) {
-      const EnumPropertyItem *item = filtered_items[i];
+    const blender::Vector<const EnumPropertyItem *> filtered_items = search.query(str);
+    for (const EnumPropertyItem *item : filtered_items) {
       /* NOTE: need to give the index rather than the
        * identifier because the enum can be freed */
       if (!UI_search_item_add(items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0))
@@ -6448,9 +6446,6 @@ static void operator_enum_search_update_fn(
         break;
       }
     }
-
-    MEM_freeN((void *)filtered_items);
-    BLI_string_search_free(search);
 
     if (do_free) {
       MEM_freeN((void *)all_items);

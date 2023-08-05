@@ -425,26 +425,22 @@ static void id_search_cb(const bContext *C,
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
-  StringSearch *search = BLI_string_search_new();
+  blender::string_search::StringSearch<ID> search;
 
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
     if (id_search_allows_id(template_ui, flag, id, str)) {
-      BLI_string_search_add(search, id->name + 2, id, 0);
+      search.add(id->name + 2, id);
     }
   }
 
-  ID **filtered_ids;
-  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_ids);
+  const blender::Vector<ID *> filtered_ids = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    if (!id_search_add(C, template_ui, items, filtered_ids[i])) {
+  for (ID *id : filtered_ids) {
+    if (!id_search_add(C, template_ui, items, id)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_ids);
-  BLI_string_search_free(search);
 }
 
 /**
@@ -459,29 +455,25 @@ static void id_search_cb_tagged(const bContext *C,
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
-  StringSearch *search = BLI_string_search_new();
+  blender::string_search::StringSearch<ID> search;
 
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
     if (id->tag & LIB_TAG_DOIT) {
       if (id_search_allows_id(template_ui, flag, id, str)) {
-        BLI_string_search_add(search, id->name + 2, id, 0);
+        search.add(id->name + 2, id);
       }
       id->tag &= ~LIB_TAG_DOIT;
     }
   }
 
-  ID **filtered_ids;
-  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_ids);
+  blender::Vector<ID *> filtered_ids = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    if (!id_search_add(C, template_ui, items, filtered_ids[i])) {
+  for (ID *id : filtered_ids) {
+    if (!id_search_add(C, template_ui, items, id)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_ids);
-  BLI_string_search_free(search);
 }
 
 /**

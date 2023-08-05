@@ -520,7 +520,7 @@ void ui_rna_collection_search_update_fn(
   char *name;
   bool has_id_icon = false;
 
-  StringSearch *search = skip_filter ? nullptr : BLI_string_search_new();
+  blender::string_search::StringSearch<CollItemSearch> search;
 
   if (data->search_prop != nullptr) {
     /* build a temporary list of relevant items first */
@@ -577,7 +577,7 @@ void ui_rna_collection_search_update_fn(
         cis->name_prefix_offset = name_prefix_offset;
         cis->has_sep_char = has_sep_char;
         if (!skip_filter) {
-          BLI_string_search_add(search, name, cis, 0);
+          search.add(name, cis);
         }
         BLI_addtail(items_list, cis);
         if (name != name_buf) {
@@ -596,14 +596,14 @@ void ui_rna_collection_search_update_fn(
     BLI_assert(search_flag & PROP_STRING_SEARCH_SUPPORTED);
 
     struct SearchVisitUserData {
-      StringSearch *search;
+      blender::string_search::StringSearch<CollItemSearch> *search;
       bool skip_filter;
       int item_index;
       ListBase *items_list;
       const char *func_id;
     } user_data = {nullptr};
 
-    user_data.search = search;
+    user_data.search = &search;
     user_data.skip_filter = skip_filter;
     user_data.items_list = items_list;
     user_data.func_id = __func__;
@@ -632,7 +632,7 @@ void ui_rna_collection_search_update_fn(
           cis->name_prefix_offset = 0;
           cis->has_sep_char = visit_params->info != nullptr;
           if (!search_data->skip_filter) {
-            BLI_string_search_add(search_data->search, visit_params->text, cis, 0);
+            search_data->search->add(visit_params->text, cis);
           }
           BLI_addtail(search_data->items_list, cis);
           search_data->item_index++;
@@ -661,18 +661,12 @@ void ui_rna_collection_search_update_fn(
     }
   }
   else {
-    CollItemSearch **filtered_items;
-    int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
-
-    for (int i = 0; i < filtered_amount; i++) {
-      CollItemSearch *cis = filtered_items[i];
+    const blender::Vector<CollItemSearch *> filtered_items = search.query(str);
+    for (CollItemSearch *cis : filtered_items) {
       if (!add_collection_search_item(cis, requires_exact_data_name, has_id_icon, items)) {
         break;
       }
     }
-
-    MEM_freeN(filtered_items);
-    BLI_string_search_free(search);
   }
 
   LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {

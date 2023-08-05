@@ -1356,28 +1356,23 @@ static void node_find_update_fn(const bContext *C,
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
-  StringSearch *search = BLI_string_search_new();
+  string_search::StringSearch<bNode> search;
 
   for (bNode *node : snode->edittree->all_nodes()) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
-    BLI_string_search_add(search, name, node, 0);
+    search.add(name, node);
   }
 
-  bNode **filtered_nodes;
-  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_nodes);
+  const Vector<bNode *> filtered_nodes = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    bNode *node = filtered_nodes[i];
+  for (bNode *node : filtered_nodes) {
     char name[256];
     node_find_create_label(node, name, ARRAY_SIZE(name));
     if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_nodes);
-  BLI_string_search_free(search);
 }
 
 static void node_find_exec_fn(bContext *C, void * /*arg1*/, void *arg2)

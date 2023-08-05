@@ -91,26 +91,21 @@ void attribute_search_add_items(StringRefNull str,
    * so the items are in the same order they will appear in while searching. */
   const char *string = is_first ? "" : str.c_str();
 
-  StringSearch *search = BLI_string_search_new();
+  string_search::StringSearch<const GeometryAttributeInfo> search;
   for (const GeometryAttributeInfo *item : infos) {
     if (!bke::allow_procedural_attribute_access(item->name)) {
       continue;
     }
-    BLI_string_search_add(search, item->name.c_str(), (void *)item, 0);
+    search.add(item->name, item);
   }
 
-  GeometryAttributeInfo **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
+  const Vector<const GeometryAttributeInfo *> filtered_items = search.query(string);
 
-  for (const int i : IndexRange(filtered_amount)) {
-    const GeometryAttributeInfo *item = filtered_items[i];
+  for (const GeometryAttributeInfo *item : filtered_items) {
     if (!attribute_search_item_add(seach_items, *item)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
 }
 
 }  // namespace blender::ui

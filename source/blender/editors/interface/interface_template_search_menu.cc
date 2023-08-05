@@ -1005,24 +1005,19 @@ static void menu_search_update_fn(const bContext * /*C*/,
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
-  StringSearch *search = BLI_string_search_new();
+  blender::string_search::StringSearch<MenuSearch_Item> search;
 
   LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    BLI_string_search_add(search, item->drawwstr_full, item, 0);
+    search.add(item->drawwstr_full, item);
   }
 
-  MenuSearch_Item **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
+  const blender::Vector<MenuSearch_Item *> filtered_items = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    MenuSearch_Item *item = filtered_items[i];
+  for (MenuSearch_Item *item : filtered_items) {
     if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
 }
 
 /** \} */
