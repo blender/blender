@@ -113,18 +113,8 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   if (usd_material) {
     return usd_material;
   }
-  usd_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
-
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
-    std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-    create_usd_preview_surface_material(
-        this->usd_export_context_, material, usd_material, active_uv);
-  }
-  else {
-    create_usd_viewport_material(this->usd_export_context_, material, usd_material);
-  }
-
-  return usd_material;
+  std::string active_uv = get_mesh_active_uvlayer_name(context.object);
+  return create_usd_material(usd_export_context_, usd_path, material, active_uv);
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,

@@ -120,10 +120,10 @@ template<typename T1, typename T2>
 void create_input(pxr::UsdShadeShader &shader, const InputSpec &spec, const void *value);
 
 void set_normal_texture_range(pxr::UsdShadeShader &usd_shader, const InputSpec &input_spec);
-void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
-                                         Material *material,
-                                         pxr::UsdShadeMaterial &usd_material,
-                                         const std::string &default_uv)
+static void create_usd_preview_surface_material(const USDExporterContext &usd_export_context,
+                                                Material *material,
+                                                pxr::UsdShadeMaterial &usd_material,
+                                                const std::string &default_uv)
 {
   if (!material) {
     return;
@@ -564,7 +564,15 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
   return shader;
 }
 
-/* Creates a USD Preview Surface shader based on the given cycles shading node. */
+/* Creates a USD Preview Surface shader based on the given cycles shading node.
+ * Due to the limited nodes in the USD Preview Surface specification, only the following nodes
+ * are supported:
+ * - UVMap
+ * - Texture Coordinate
+ * - Image Texture
+ * - Principled BSDF
+ * More may be added in the future.
+ */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      pxr::UsdShadeMaterial &material,
                                                      bNode *node)
@@ -816,6 +824,24 @@ const pxr::TfToken token_for_input(const char *input_name)
   }
 
   return it->second.input_name;
+}
+
+pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_context,
+                                          pxr::SdfPath usd_path,
+                                          Material *material,
+                                          const std::string &active_uv)
+{
+  pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Define(usd_export_context.stage,
+                                                                     usd_path);
+
+  if (material->use_nodes && usd_export_context.export_params.generate_preview_surface) {
+    create_usd_preview_surface_material(usd_export_context, material, usd_material, active_uv);
+  }
+  else {
+    create_usd_viewport_material(usd_export_context, material, usd_material);
+  }
+
+  return usd_material;
 }
 
 }  // namespace blender::io::usd
