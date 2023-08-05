@@ -35,7 +35,9 @@
 
 #include "render_intern.hh"
 
-/*********************** utilities for finding areas *************************/
+/* -------------------------------------------------------------------- */
+/** \name Utilities for Finding Areas
+ * \{ */
 
 /**
  * Returns biggest area that is not uv/image editor. Note that it uses buttons
@@ -69,32 +71,36 @@ static ScrArea *biggest_non_image_area(bContext *C)
   return big;
 }
 
-static ScrArea *find_area_showing_r_result(bContext *C, Scene *scene, wmWindow **win)
+static ScrArea *find_area_showing_render_result(bContext *C, Scene *scene, wmWindow **r_win)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  ScrArea *area = nullptr;
-  SpaceImage *sima;
+  ScrArea *area_render = nullptr;
+  wmWindow *win_render = nullptr;
 
   /* find an image-window showing render result */
-  for (*win = static_cast<wmWindow *>(wm->windows.first); *win; *win = (*win)->next) {
-    if (WM_window_get_active_scene(*win) == scene) {
-      const bScreen *screen = WM_window_get_active_screen(*win);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    if (WM_window_get_active_scene(win) != scene) {
+      continue;
+    }
 
-      for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-        if (area->spacetype == SPACE_IMAGE) {
-          sima = static_cast<SpaceImage *>(area->spacedata.first);
-          if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
-            break;
-          }
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype == SPACE_IMAGE) {
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
+        if (sima->image && sima->image->type == IMA_TYPE_R_RESULT) {
+          area_render = area;
+          win_render = win;
+          break;
         }
       }
-      if (area) {
-        break;
-      }
+    }
+    if (area_render) {
+      break;
     }
   }
 
-  return area;
+  *r_win = win_render;
+  return area_render;
 }
 
 static ScrArea *find_area_image_empty(bContext *C)
@@ -116,13 +122,16 @@ static ScrArea *find_area_image_empty(bContext *C)
   return area;
 }
 
-/********************** open image editor for render *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Open Image Editor for Render
+ * \{ */
 
 ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  wmWindow *win = nullptr;
   ScrArea *area = nullptr;
   SpaceImage *sima;
   bool area_was_image = false;
@@ -194,14 +203,16 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   }
 
   if (!area) {
-    area = find_area_showing_r_result(C, scene, &win);
+    wmWindow *win_show = nullptr;
+    area = find_area_showing_render_result(C, scene, &win_show);
     if (area == nullptr) {
+      /* No need to set `win_show` as the area selected will be from the active window. */
       area = find_area_image_empty(C);
     }
 
     /* if area found in other window, we make that one show in front */
-    if (win && win != CTX_wm_window(C)) {
-      wm_window_raise(win);
+    if (win_show && win_show != CTX_wm_window(C)) {
+      wm_window_raise(win_show);
     }
 
     if (area == nullptr) {
@@ -262,7 +273,11 @@ ScrArea *render_view_open(bContext *C, int mx, int my, ReportList *reports)
   return area;
 }
 
-/*************************** cancel render viewer **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Cancel Render Viewer Operator
+ * \{ */
 
 static int render_view_cancel_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -314,7 +329,11 @@ void RENDER_OT_view_cancel(wmOperatorType *ot)
   ot->poll = ED_operator_image_active;
 }
 
-/************************* show render viewer *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Show Render Viewer Operator
+ * \{ */
 
 static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -325,8 +344,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
     wm_window_lower(wincur);
   }
   else {
-    wmWindow *winshow;
-    ScrArea *area = find_area_showing_r_result(C, CTX_data_scene(C), &winshow);
+    wmWindow *win_show = nullptr;
+    ScrArea *area = find_area_showing_render_result(C, CTX_data_scene(C), &win_show);
 
     /* is there another window on current scene showing result? */
     LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
@@ -334,7 +353,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
       if ((WM_window_is_temp_screen(win) &&
            ((ScrArea *)screen->areabase.first)->spacetype == SPACE_IMAGE) ||
-          (win == winshow && winshow != wincur))
+          (win == win_show && win_show != wincur))
       {
         wm_window_raise(win);
         return OPERATOR_FINISHED;
@@ -379,3 +398,5 @@ void RENDER_OT_view_show(wmOperatorType *ot)
   ot->invoke = render_view_show_invoke;
   ot->poll = ED_operator_screenactive;
 }
+
+/** \} */
