@@ -4498,14 +4498,17 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
    * since bNodeTypes are registered afterward ...
    */
 #define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-  case ID: \
+  case ID: { \
     STRNCPY(ntype->idname, #Category #StructName); \
-    ntype->rna_ext.srna = RNA_struct_find(#Category #StructName); \
-    BLI_assert(ntype->rna_ext.srna != nullptr); \
-    RNA_struct_blender_type_set(ntype->rna_ext.srna, ntype); \
+    StructRNA *srna = RNA_struct_find(#Category #StructName); \
+    BLI_assert(srna != nullptr); \
+    ntype->rna_ext.srna = srna; \
+    RNA_struct_blender_type_set(srna, ntype); \
+    RNA_def_struct_ui_text(srna, UIName, UIDesc); \
     ntype->enum_name_legacy = EnumName; \
     STRNCPY(ntype->ui_description, UIDesc); \
-    break;
+    break; \
+  }
 
   switch (type) {
 #include "NOD_static_types.h"
