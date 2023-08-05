@@ -62,46 +62,43 @@ extern "C" struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
 /** \name Stubs of UI_resources.hh
  * \{ */
 
-extern "C" void UI_GetThemeColor4fv(int /*colorid*/, float[4] /*col*/)
+void UI_GetThemeColor4fv(int /*colorid*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" void UI_GetThemeColor3fv(int /*colorid*/, float[3] /*col*/)
+void UI_GetThemeColor3fv(int /*colorid*/, float[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" void UI_GetThemeColorShade4fv(int /*colorid*/, int /*offset*/, float[4] /*col*/)
+void UI_GetThemeColorShade4fv(int /*colorid*/, int /*offset*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" void UI_GetThemeColorShadeAlpha4fv(int /*colorid*/,
-                                              int /*coloffset*/,
-                                              int /*alphaoffset*/,
-                                              float[4] /*col*/)
+void UI_GetThemeColorShadeAlpha4fv(int /*colorid*/,
+                                   int /*coloffset*/,
+                                   int /*alphaoffset*/,
+                                   float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
-extern "C" void UI_GetThemeColorBlendShade4fv(
+void UI_GetThemeColorBlendShade4fv(
     int /*colorid1*/, int /*colorid2*/, float /*fac*/, int /*offset*/, float[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" void UI_GetThemeColorBlend3ubv(int /*colorid1*/,
-                                          int /*colorid2*/,
-                                          float /*fac*/,
-                                          uchar[3] /*col*/)
+void UI_GetThemeColorBlend3ubv(int /*colorid1*/, int /*colorid2*/, float /*fac*/, uchar[3] /*col*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
-                                               int /*coloffset*/,
-                                               int /*alphaoffset*/,
-                                               uchar[4] /*col*/)
+void UI_GetThemeColorShadeAlpha4ubv(int /*colorid*/,
+                                    int /*coloffset*/,
+                                    int /*alphaoffset*/,
+                                    uchar[4] /*col*/)
 {
   BLI_assert_unreachable();
 }
