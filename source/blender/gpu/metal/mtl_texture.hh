@@ -64,11 +64,11 @@ struct TextureUpdateRoutineSpecialisation {
  * 1 = 24 bit integer (0 - 2^24)
  * 2 = 32 bit integer (0 - 2^32) */
 
-typedef enum {
+enum DepthTextureUpdateMode {
   MTL_DEPTH_UPDATE_MODE_FLOAT = 0,
   MTL_DEPTH_UPDATE_MODE_INT24 = 1,
   MTL_DEPTH_UPDATE_MODE_INT32 = 2
-} DepthTextureUpdateMode;
+};
 
 struct DepthTextureUpdateRoutineSpecialisation {
   DepthTextureUpdateMode data_mode;

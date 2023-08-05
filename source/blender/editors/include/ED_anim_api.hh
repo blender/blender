@@ -735,14 +735,14 @@ bool ANIM_remove_empty_action_from_animdata(AnimData *adt);
  * \{ */
 
 /* flags for Current Frame Drawing */
-typedef enum eAnimEditDraw_CurrentFrame {
+enum eAnimEditDraw_CurrentFrame {
   /** Plain time indicator with no special indicators. */
   /* DRAWCFRA_PLAIN = 0, */ /* UNUSED */
   /** Time indication in seconds or frames. */
   DRAWCFRA_UNIT_SECONDS = (1 << 0),
   /** Draw indicator extra wide (for timeline). */
   DRAWCFRA_WIDE = (1 << 1),
-} eAnimEditDraw_CurrentFrame;
+};
 
 /**
  * General call for drawing current frame indicator in animation editor.

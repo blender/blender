@@ -252,18 +252,18 @@ struct KeyingSetInfo {
 void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *srna, void *data);
 
 /* mode for modify_keyframes */
-typedef enum eModifyKey_Modes {
+enum eModifyKey_Modes {
   MODIFYKEY_MODE_INSERT = 0,
   MODIFYKEY_MODE_DELETE,
-} eModifyKey_Modes;
+};
 
 /* return codes for errors (with Relative KeyingSets) */
-typedef enum eModifyKey_Returns {
+enum eModifyKey_Returns {
   /** Context info was invalid for using the Keying Set. */
   MODIFYKEY_INVALID_CONTEXT = -1,
   /** There isn't any type-info for generating paths from context. */
   MODIFYKEY_MISSING_TYPEINFO = -2,
-} eModifyKey_Returns;
+};
 
 /**
  * Given a #KeyingSet and context info, validate Keying Set's paths.
@@ -418,12 +418,12 @@ extern EnumPropertyItem prop_driver_create_mapping_types[];
 
 /* -------- */
 
-typedef enum eDriverFCurveCreationMode {
+enum eDriverFCurveCreationMode {
   DRIVER_FCURVE_LOOKUP_ONLY = 0, /* Don't add anything if not found. */
   DRIVER_FCURVE_KEYFRAMES = 1,   /* Add with keyframes, for visual tweaking. */
   DRIVER_FCURVE_GENERATOR = 2,   /* Add with generator, for script backwards compatibility. */
   DRIVER_FCURVE_EMPTY = 3        /* Add without data, for pasting. */
-} eDriverFCurveCreationMode;
+};
 
 /**
  * Get (or add relevant data to be able to do so) F-Curve from the driver stack,

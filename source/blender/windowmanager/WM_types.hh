@@ -189,18 +189,18 @@ enum {
 };
 
 /** For #WM_cursor_grab_enable wrap axis. */
-typedef enum eWM_CursorWrapAxis {
+enum eWM_CursorWrapAxis {
   WM_CURSOR_WRAP_NONE = 0,
   WM_CURSOR_WRAP_X,
   WM_CURSOR_WRAP_Y,
   WM_CURSOR_WRAP_XY,
-} eWM_CursorWrapAxis;
+};
 
 /**
  * Context to call operator in for #WM_operator_name_call.
  * rna_ui.cc contains EnumPropertyItem's of these, keep in sync.
  */
-typedef enum wmOperatorCallContext {
+enum wmOperatorCallContext {
   /* if there's invoke, call it, otherwise exec */
   WM_OP_INVOKE_DEFAULT,
   WM_OP_INVOKE_REGION_WIN,
@@ -215,7 +215,7 @@ typedef enum wmOperatorCallContext {
   WM_OP_EXEC_REGION_PREVIEW,
   WM_OP_EXEC_AREA,
   WM_OP_EXEC_SCREEN,
-} wmOperatorCallContext;
+};
 
 #define WM_OP_CONTEXT_HAS_AREA(type) \
   (CHECK_TYPE_INLINE(type, wmOperatorCallContext), \
@@ -224,9 +224,9 @@ typedef enum wmOperatorCallContext {
   (WM_OP_CONTEXT_HAS_AREA(type) && !ELEM(type, WM_OP_INVOKE_AREA, WM_OP_EXEC_AREA))
 
 /* property tags for RNA_OperatorProperties */
-typedef enum eOperatorPropTags {
+enum eOperatorPropTags {
   OP_PROP_TAG_ADVANCED = (1 << 0),
-} eOperatorPropTags;
+};
 #define OP_PROP_TAG_ADVANCED ((eOperatorPropTags)OP_PROP_TAG_ADVANCED)
 
 /* -------------------------------------------------------------------- */
@@ -607,7 +607,7 @@ struct wmGesture {
 
 /* ************** wmEvent ************************ */
 
-typedef enum eWM_EventFlag {
+enum eWM_EventFlag {
   /**
    * True if the operating system inverted the delta x/y values and resulting
    * `prev_xy` values, for natural scroll direction.
@@ -634,7 +634,7 @@ typedef enum eWM_EventFlag {
    * even when the threshold has not been met.
    */
   WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
-} eWM_EventFlag;
+};
 ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 
 struct wmTabletData {
@@ -871,7 +871,7 @@ struct wmXrActionData {
 #endif
 
 /** Timer flags. */
-typedef enum {
+enum wmTimerFlags {
   /** Do not attempt to free custom-data pointer even if non-NULL. */
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
 
@@ -879,7 +879,7 @@ typedef enum {
   /** This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
    * deleted in a safe context. */
   WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
-} wmTimerFlags;
+};
 ENUM_OPERATORS(wmTimerFlags, WM_TIMER_TAGGED_FOR_REMOVAL)
 
 struct wmTimer {

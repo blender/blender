@@ -11,7 +11,7 @@
 struct wmEvent;
 struct wmWindow;
 
-typedef enum WMCursorType {
+enum WMCursorType {
   WM_CURSOR_DEFAULT = 1,
   WM_CURSOR_TEXT_EDIT,
   WM_CURSOR_WAIT,
@@ -59,7 +59,7 @@ typedef enum WMCursorType {
 
   /* --- ALWAYS LAST ----- */
   WM_CURSOR_NUM,
-} WMCursorType;
+};
 
 void wm_init_cursor_data();
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event);
