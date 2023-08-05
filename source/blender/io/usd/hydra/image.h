@@ -13,6 +13,8 @@ struct ImageUser;
 
 namespace blender::io::hydra {
 
+std::string image_cache_file_path();
+
 std::string cache_or_get_image_file(Main *bmain, Scene *Scene, Image *image, ImageUser *iuser);
 std::string cache_image_color(float color[4]);
 

@@ -21,16 +21,22 @@
 
 namespace blender::io::hydra {
 
-static std::string get_cache_file(const std::string &file_name, bool mkdir = true)
+std::string image_cache_file_path()
 {
   char dir_path[FILE_MAX];
   BLI_path_join(dir_path, sizeof(dir_path), BKE_tempdir_session(), "hydra", "image_cache");
+  return dir_path;
+}
+
+static std::string get_cache_file(const std::string &file_name, bool mkdir = true)
+{
+  std::string dir_path = image_cache_file_path();
   if (mkdir) {
-    BLI_dir_create_recursive(dir_path);
+    BLI_dir_create_recursive(dir_path.c_str());
   }
 
   char file_path[FILE_MAX];
-  BLI_path_join(file_path, sizeof(file_path), dir_path, file_name.c_str());
+  BLI_path_join(file_path, sizeof(file_path), dir_path.c_str(), file_name.c_str());
   return file_path;
 }
 

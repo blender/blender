@@ -18,6 +18,12 @@ namespace blender::io::hydra {
 
 class MaterialData : public IdData {
  public:
+  bool double_sided = true;
+
+ private:
+  pxr::VtValue material_network_map_;
+
+ public:
   MaterialData(HydraSceneDelegate *scene_delegate,
                const Material *material,
                pxr::SdfPath const &prim_id);
@@ -30,8 +36,6 @@ class MaterialData : public IdData {
   pxr::VtValue get_data(pxr::TfToken const &key) const override;
   pxr::VtValue get_material_resource() const;
   pxr::HdCullStyle cull_style() const;
-
-  bool double_sided = true;
 };
 
 using MaterialDataMap = Map<pxr::SdfPath, std::unique_ptr<MaterialData>>;
