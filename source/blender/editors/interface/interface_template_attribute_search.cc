@@ -7,7 +7,7 @@
  */
 
 #include "BLI_string_ref.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_customdata_types.h"
 

@@ -8,7 +8,7 @@
 #include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"

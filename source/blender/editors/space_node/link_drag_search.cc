@@ -5,7 +5,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_space_types.h"
 

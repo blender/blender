@@ -4,13 +4,14 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_linear_allocator.hh"
+#include "BLI_span.hh"
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
-typedef struct StringSearch StringSearch;
+struct StringSearch;
 
-StringSearch *BLI_string_search_new(void);
+StringSearch *BLI_string_search_new();
 /**
  * Add a new possible result to the search.
  * The caller keeps ownership of all parameters.
@@ -26,17 +27,6 @@ void BLI_string_search_add(StringSearch *search, const char *str, void *user_dat
  */
 int BLI_string_search_query(StringSearch *search, const char *query, void ***r_data);
 void BLI_string_search_free(StringSearch *search);
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
-#  include "BLI_linear_allocator.hh"
-#  include "BLI_span.hh"
-#  include "BLI_string_ref.hh"
-#  include "BLI_vector.hh"
 
 namespace blender::string_search {
 
@@ -63,5 +53,3 @@ void extract_normalized_words(StringRef str,
                               Vector<StringRef, 64> &r_words);
 
 }  // namespace blender::string_search
-
-#endif

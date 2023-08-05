@@ -33,7 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_string_utils.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"

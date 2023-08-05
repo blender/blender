@@ -30,7 +30,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 

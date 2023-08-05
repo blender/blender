@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 
 #include "BLI_array.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_vector.hh"
 
 namespace blender::string_search::tests {
