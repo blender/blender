@@ -4,7 +4,7 @@
 
 #pragma once
 
-/* Used for shaders that need the final accumulated volume transmittance and scaterring. */
+/* Used for shaders that need the final accumulated volume transmittance and scattering. */
 GPU_SHADER_CREATE_INFO(eevee_volume_lib)
     .additional_info("eevee_shared")
     .additional_info("draw_view")

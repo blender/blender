@@ -199,7 +199,7 @@ int delete_keyframe(Main *bmain,
 /** \name Keying Sets
  * \{ */
 
-/* forward decl. for this struct which is declared a bit later... */
+/* Forward declaration. For this struct which is declared a bit later. */
 struct ExtensionRNA;
 struct KeyingSetInfo;
 
@@ -218,7 +218,7 @@ struct KeyingSetInfo {
   KeyingSetInfo *next, *prev;
 
   /* info */
-  /* identifier used for class name, which KeyingSet instances reference as "Typeinfo Name" */
+  /* identifier used for class name, which KeyingSet instances reference as "Type-info Name" */
   char idname[64];
   /* identifier so that user can hook this up to a KeyingSet (used as label). */
   char name[64];
@@ -259,9 +259,9 @@ typedef enum eModifyKey_Modes {
 
 /* return codes for errors (with Relative KeyingSets) */
 typedef enum eModifyKey_Returns {
-  /* context info was invalid for using the Keying Set */
+  /** Context info was invalid for using the Keying Set. */
   MODIFYKEY_INVALID_CONTEXT = -1,
-  /* there isn't any typeinfo for generating paths from context */
+  /** There isn't any type-info for generating paths from context. */
   MODIFYKEY_MISSING_TYPEINFO = -2,
 } eModifyKey_Returns;
 
@@ -389,7 +389,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks);
 enum eCreateDriverFlags {
   /** create drivers with a default variable for nicer UI */
   CREATEDRIVER_WITH_DEFAULT_DVAR = (1 << 0),
-  /** create drivers with Generator FModifier (for backwards compat) */
+  /** Create drivers with Generator FModifier (for backwards compatibility). */
   CREATEDRIVER_WITH_FMODIFIER = (1 << 1),
 };
 

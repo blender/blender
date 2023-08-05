@@ -339,7 +339,7 @@ PassType *volume_object_grids_init(PassType &ps,
     const GPUTexture *grid_tex = (drw_grid)    ? drw_grid->texture :
                                  (volume_grid) ? g_data.dummy_zero :
                                                  grid_default_texture(attr->default_value);
-    /* TODO (Miguel Pozo): bind_texture const support ? */
+    /* TODO(@pragma37): bind_texture const support ? */
     sub->bind_texture(attr->input_name, (GPUTexture *)grid_tex);
 
     volume_infos.grids_xform[grid_id++] = float4x4(drw_grid ? drw_grid->object_to_texture :

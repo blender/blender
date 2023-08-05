@@ -2025,7 +2025,7 @@ enum eUI_Item_Flag {
   /**
    * Don't attempt to use an icon when the icon is set to #ICON_NONE.
    *
-   * Use for boolean's, causes the buttons to always show as a checkbox
+   * Use for booleans, causes the buttons to always show as a checkbox
    * even when there is an icon (which would normally show the button as a toggle).
    */
   UI_ITEM_R_ICON_NEVER = 1 << 4,

@@ -1410,7 +1410,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
   }
-  /* File listing is now async, only reset renaming if matching entry is not found
+  /* File listing is now asynchronous, only reset renaming if matching entry is not found
    * when file listing is not done. */
   else if (filelist_is_ready(sfile->files)) {
     file_params_renamefile_clear(params);

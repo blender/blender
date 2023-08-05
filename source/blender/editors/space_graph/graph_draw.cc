@@ -1028,7 +1028,7 @@ static void add_extrapolation_point_right(FCurve *fcu,
 static blender::float2 calculate_resolution_scale(View2D *v2d)
 {
   /* The resolution for bezier forward diff in frame/value space. This ensures a constant
-   * resolution in screenspace. */
+   * resolution in screen-space. */
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const int window_height = BLI_rcti_size_y(&v2d->mask);
   const float points_per_pixel = 0.25f;

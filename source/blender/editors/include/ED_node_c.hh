@@ -38,11 +38,11 @@ ENUM_OPERATORS(NodeBorder, NODE_RIGHT)
 #define NODE_EDGE_PAN_DELAY 0.5f
 #define NODE_EDGE_PAN_ZOOM_INFLUENCE 0.5f
 
-/* clipboard.cc */
+/* `clipboard.cc` */
 
 void ED_node_clipboard_free();
 
-/* space_node.cc */
+/* `space_node.cc` */
 
 void ED_node_cursor_location_get(const SpaceNode *snode, float value[2]);
 void ED_node_cursor_location_set(SpaceNode *snode, const float value[2]);
@@ -61,7 +61,7 @@ bNodeTree *ED_node_tree_get(SpaceNode *snode, int level);
 
 void ED_node_set_active_viewer_key(SpaceNode *snode);
 
-/* drawnode.cc */
+/* `drawnode.cc` */
 
 void ED_node_init_butfuncs();
 void ED_init_custom_node_type(bNodeType *ntype);
@@ -73,14 +73,14 @@ void ED_node_draw_snap(
     View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned int pos);
 void ED_node_type_draw_color(const char *idname, float *r_color);
 
-/* node_draw.cc */
+/* `node_draw.cc` */
 
 void ED_node_tree_update(const bContext *C);
 void ED_node_tag_update_id(ID *id);
 
 float ED_node_grid_size();
 
-/* node_edit.cc */
+/* `node_edit.cc` */
 
 void ED_node_set_tree_type(SpaceNode *snode, bNodeTreeType *typeinfo);
 bool ED_node_is_compositor(SpaceNode *snode);
@@ -135,11 +135,11 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *nt
  */
 void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_owner);
 
-/* node_ops.cc */
+/* `node_ops.cc` */
 
 void ED_operatormacros_node();
 
-/* node_view.cc */
+/* `node_view.cc` */
 
 /**
  * Returns mouse position in image space.

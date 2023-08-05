@@ -2750,7 +2750,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 66)) {
-    /* Shader node tree changes. After lib linking so we have all the typeinfo
+    /* Shader node tree changes. After lib linking so we have all the type-info
      * pointers and updated sockets and we can use the high level node API to
      * manipulate nodes. */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {

@@ -361,7 +361,7 @@ static void rna_Object_internal_update_draw(Main * /*bmain*/, Scene * /*scene*/,
 
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  /* don't use compat so we get predictable rotation */
+  /* Don't use compatibility so we get predictable rotation. */
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   BKE_object_apply_mat4(ob, ob->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);

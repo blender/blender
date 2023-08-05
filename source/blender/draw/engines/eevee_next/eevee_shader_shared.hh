@@ -1082,7 +1082,7 @@ struct RayTraceData {
   int2 full_resolution;
   /** Inverse of input resolution to get screen UVs. */
   float2 full_resolution_inv;
-  /** Scale and bias to go from raytrace resolution to input resolution. */
+  /** Scale and bias to go from ray-trace resolution to input resolution. */
   int2 resolution_bias;
   int resolution_scale;
   /** View space thickness the objects. */

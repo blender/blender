@@ -382,7 +382,7 @@ void ED_asset_shelf_region_layout(const bContext *C, ARegion *region)
 
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
   if (!shelf_regiondata) {
-    /* Regiondata should've been created by a previously called ED_asset_shelf_region_init(). */
+    /* Region-data should've been created by a previously called #ED_asset_shelf_region_init(). */
     BLI_assert_unreachable();
     return;
   }

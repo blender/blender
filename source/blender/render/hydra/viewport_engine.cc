@@ -10,7 +10,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_vec_types.h" /* this include must be before BKE_camera.h due to "rctf" type */
+#include "DNA_vec_types.h" /* This include must be before `BKE_camera.h` due to `rctf` type. */
 #include "DNA_view3d_types.h"
 
 #include "BLI_math_matrix.h"

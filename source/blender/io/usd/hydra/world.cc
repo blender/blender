@@ -26,7 +26,7 @@
 #include "hydra_scene_delegate.h"
 #include "image.h"
 
-/* TODO : add custom tftoken "transparency"? */
+/* TODO: add custom `tftoken` "transparency"? */
 
 /* NOTE: opacity and blur aren't supported by USD */
 

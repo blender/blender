@@ -5,7 +5,7 @@
 /** \file
  * \ingroup eevee
  *
- * The raytracing module class handles ray generation, scheduling, tracing and denoising.
+ * The ray-tracing module class handles ray generation, scheduling, tracing and denoising.
  */
 
 #include <fstream>
@@ -312,9 +312,9 @@ RayTraceResult RayTraceModule::trace(RayTraceBuffer &rt_buffer,
     TextureFromPool::swap(tile_mask_tx_, denoise_buf->tilemask_history_tx);
     /* Save view-projection matrix for next reprojection. */
     denoise_buf->history_persmat = main_view.persmat();
-    /* Radiance will be swapped with history in RayTraceResult::release().
+    /* Radiance will be swapped with history in #RayTraceResult::release().
      * Variance is swapped with history after bilateral denoise.
-     * It keeps dataflow easier to follow. */
+     * It keeps data-flow easier to follow. */
     result = {denoise_buf->denoised_temporal_tx, denoise_buf->radiance_history_tx};
     /* Not referenced by result anymore. */
     denoise_buf->denoised_spatial_tx.release();

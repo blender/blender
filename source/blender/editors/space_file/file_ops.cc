@@ -2362,7 +2362,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator * /*op*/, const wmEv
 
   const int numfiles = filelist_files_ensure(sfile->files);
 
-  /* Due to async nature of file listing, we may execute this code before `file_refresh()`
+  /* Due to asynchronous nature of file listing, we may execute this code before `file_refresh()`
    * editing entry is available in our listing,
    * so we also have to handle switching to rename mode here. */
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);

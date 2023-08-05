@@ -141,7 +141,7 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
-/* space_node.cc */
+/* `space_node.cc` */
 
 /**
  * Transform between View2Ds in the tree path.
@@ -159,7 +159,7 @@ void node_socket_color_get(const bContext &C,
                            const bNodeSocket &sock,
                            float r_color[4]);
 
-/* node_draw.cc */
+/* `node_draw.cc` */
 
 void node_draw_space(const bContext &C, ARegion &region);
 
@@ -177,12 +177,12 @@ float2 node_to_view(const bNode &node, const float2 &co);
 void node_to_updated_rect(const bNode &node, rctf &r_rect);
 float2 node_from_view(const bNode &node, const float2 &co);
 
-/* node_ops.cc */
+/* `node_ops.cc` */
 
 void node_operatortypes();
 void node_keymap(wmKeyConfig *keyconf);
 
-/* node_select.cc */
+/* `node_select.cc` */
 
 rctf node_frame_rect_inside(const SpaceNode &snode, const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
@@ -209,7 +209,7 @@ void NODE_OT_select_grouped(wmOperatorType *ot);
 void NODE_OT_select_same_type_step(wmOperatorType *ot);
 void NODE_OT_find_node(wmOperatorType *ot);
 
-/* node_view.cc */
+/* `node_view.cc` */
 
 bool space_node_view_flag(
     bContext &C, SpaceNode &snode, ARegion &region, int node_flag, int smooth_viewtx);
@@ -222,7 +222,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot);
 void NODE_OT_backimage_fit(wmOperatorType *ot);
 void NODE_OT_backimage_sample(wmOperatorType *ot);
 
-/* drawnode.cc */
+/* `drawnode.cc` */
 
 NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
                                               const bNode *node,
@@ -268,7 +268,7 @@ void draw_nodespace_back_pix(const bContext &C,
                              SpaceNode &snode,
                              bNodeInstanceKey parent_key);
 
-/* node_add.cc */
+/* `node_add.cc` */
 
 bNode *add_node(const bContext &C, StringRef idname, const float2 &location);
 bNode *add_static_node(const bContext &C, int type, const float2 &location);
@@ -283,7 +283,7 @@ void NODE_OT_add_file(wmOperatorType *ot);
 void NODE_OT_add_mask(wmOperatorType *ot);
 void NODE_OT_new_node_tree(wmOperatorType *ot);
 
-/* node_group.cc */
+/* `node_group.cc` */
 
 const char *node_group_idname(bContext *C);
 void NODE_OT_group_make(wmOperatorType *ot);
@@ -292,7 +292,7 @@ void NODE_OT_group_ungroup(wmOperatorType *ot);
 void NODE_OT_group_separate(wmOperatorType *ot);
 void NODE_OT_group_edit(wmOperatorType *ot);
 
-/* node_relationships.cc */
+/* `node_relationships.cc` */
 
 void update_multi_input_indices_for_removed_links(bNode &node);
 bool all_links_muted(const bNodeSocket &socket);
@@ -314,7 +314,7 @@ void NODE_OT_insert_offset(wmOperatorType *ot);
 
 wmKeyMap *node_link_modal_keymap(wmKeyConfig *keyconf);
 
-/* node_edit.cc */
+/* `node_edit.cc` */
 
 float2 node_link_calculate_multi_input_position(const float2 &socket_position,
                                                 int index,
@@ -381,14 +381,14 @@ void NODE_OT_clear_viewer_border(wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot);
 void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot);
 
-/* node_gizmo.cc */
+/* `node_gizmo.cc` */
 
 void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
 
-/* node_geometry_attribute_search.cc */
+/* `node_geometry_attribute_search.cc` */
 
 void node_geometry_add_attribute_search_button(const bContext &C,
                                                const bNode &node,
@@ -399,18 +399,18 @@ void node_geometry_add_attribute_search_button(const bContext &C,
 
 Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C);
 
-/* link_drag_search.cc */
+/* `link_drag_search.cc` */
 
 void invoke_node_link_drag_add_menu(bContext &C,
                                     bNode &node,
                                     bNodeSocket &socket,
                                     const float2 &cursor);
 
-/* add_node_search.cc */
+/* `add_node_search.cc` */
 
 void invoke_add_node_search_menu(bContext &C, const float2 &cursor, bool use_transform);
 
-/* add_menu_assets.cc */
+/* `add_menu_assets.cc` */
 
 MenuType add_catalog_assets_menu_type();
 MenuType add_root_catalogs_menu_type();

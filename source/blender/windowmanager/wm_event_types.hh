@@ -339,8 +339,8 @@ enum {
 /* Timer max (287). */
 #define _TIMER_MAX 0x011F
 
-  /* Actionzones, tweak, gestures: 0x500x, 0x501x */
-  /* Keep in sync with IS_EVENT_ACTIONZONE(...). */
+  /* Action-zones, tweak, gestures: 0x500x, 0x501x
+   * Keep in sync with #IS_EVENT_ACTIONZONE(...). */
   EVT_ACTIONZONE_AREA = 0x5000,       /* 20480 */
   EVT_ACTIONZONE_REGION = 0x5001,     /* 20481 */
   EVT_ACTIONZONE_FULLSCREEN = 0x5011, /* 20497 */

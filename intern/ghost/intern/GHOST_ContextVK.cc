@@ -247,8 +247,8 @@ class GHOST_DeviceVK {
 
     generic_queue_family = 0;
     for (const auto &queue_family : queue_families) {
-      /* Every vulkan implementation by spec must have one queue family that support both graphics
-       * and compute pipelines. We select this one; compute only queue family hints at async
+      /* Every VULKAN implementation by spec must have one queue family that support both graphics
+       * and compute pipelines. We select this one; compute only queue family hints at asynchronous
        * compute implementations. */
       if ((queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) &&
           (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT))

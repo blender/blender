@@ -21,7 +21,7 @@ namespace blender::eevee {
 class Instance;
 
 /* -------------------------------------------------------------------- */
-/** \name Raytracing Buffers
+/** \name Ray-tracing Buffers
  *
  * Contain persistent data used for temporal denoising. Similar to \class GBuffer but only contains
  * persistent data.
@@ -66,7 +66,7 @@ class RayTraceResult {
  private:
   /** Result is in a temporary texture that needs to be released. */
   TextureFromPool *result_ = nullptr;
-  /** History buffer to swap the tmp texture that does not need to be released. */
+  /** History buffer to swap the temporary texture that does not need to be released. */
   Texture *history_ = nullptr;
 
  public:
@@ -94,7 +94,7 @@ class RayTraceResult {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Raytracing
+/** \name Ray-tracing
  * \{ */
 
 class RayTraceModule {
@@ -119,14 +119,15 @@ class RayTraceModule {
   int3 tile_compact_dispatch_size_ = int3(1);
   /** 2D tile mask to check which unused adjacent tile we need to clear. */
   TextureFromPool tile_mask_tx_ = {"tile_mask_tx"};
-  /** Indirect dispatch rays. Avoid dispatching workgroups that ultimately won't do any tracing. */
+  /** Indirect dispatch rays. Avoid dispatching work-groups that ultimately won't do any tracing.
+   */
   DispatchIndirectBuf ray_dispatch_buf_ = {"ray_dispatch_buf_"};
   /** Indirect dispatch denoise full-resolution tiles. */
   DispatchIndirectBuf denoise_dispatch_buf_ = {"denoise_dispatch_buf_"};
   /** Tile buffer that contains tile coordinates. */
   RayTraceTileBuf ray_tiles_buf_ = {"ray_tiles_buf_"};
   RayTraceTileBuf denoise_tiles_buf_ = {"denoise_tiles_buf_"};
-  /** Texture containing the ray direction and pdf. */
+  /** Texture containing the ray direction and PDF. */
   TextureFromPool ray_data_tx_ = {"ray_data_tx"};
   /** Texture containing the ray hit time. */
   TextureFromPool ray_time_tx_ = {"ray_data_tx"};
@@ -149,9 +150,9 @@ class RayTraceModule {
 
   /** Dummy texture when the tracing is disabled. */
   TextureFromPool dummy_result_tx_ = {"dummy_result_tx"};
-  /** Pointer to inst_.render_buffers.depth_tx.stencil_view() updated before submission. */
+  /** Pointer to `inst_.render_buffers.depth_tx.stencil_view()` updated before submission. */
   GPUTexture *renderbuf_stencil_view_ = nullptr;
-  /** Pointer to inst_.render_buffers.depth_tx updated before submission. */
+  /** Pointer to `inst_.render_buffers.depth_tx` updated before submission. */
   GPUTexture *renderbuf_depth_view_ = nullptr;
 
   /** Copy of the scene options to avoid changing parameters during motion blur. */

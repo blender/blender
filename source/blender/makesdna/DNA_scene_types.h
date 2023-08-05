@@ -1810,7 +1810,7 @@ typedef struct SceneDisplay {
 } SceneDisplay;
 
 /**
- * Raytracing parameters.
+ * Ray-tracing parameters.
  */
 typedef struct RaytraceEEVEE {
   /** Higher values will take lower strides and have less blurry intersections. */
@@ -2847,7 +2847,7 @@ typedef enum RaytraceEEVEE_DenoiseStages {
 typedef enum RaytraceEEVEE_Method {
   RAYTRACE_EEVEE_METHOD_NONE = 0,
   RAYTRACE_EEVEE_METHOD_SCREEN = 1,
-  /* TODO(fclem): Hardware raytracing. */
+  /* TODO(fclem): Hardware ray-tracing. */
   // RAYTRACE_EEVEE_METHOD_HARDWARE = 2,
 } RaytraceEEVEE_Method;
 

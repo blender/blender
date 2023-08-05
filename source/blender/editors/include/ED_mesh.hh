@@ -156,7 +156,7 @@ int *BM_uv_element_map_ensure_unique_index(UvElementMap *element_map);
  */
 bool EDBM_uv_check(BMEditMesh *em);
 /**
- * last_sel, use em->act_face otherwise get the last selected face in the editselections
+ * last_sel, use em->act_face otherwise get the last selected face in the edit-selections
  * at the moment, last_sel is mainly useful for making sure the space image doesn't flicker.
  */
 BMFace *EDBM_uv_active_face_get(BMEditMesh *em, bool sloppy, bool selected);
@@ -376,7 +376,7 @@ void ED_operatormacros_mesh();
  */
 void ED_keymap_mesh(wmKeyConfig *keyconf);
 
-/* editface.cc */
+/* `editface.cc` */
 
 /**
  * Copy the face flags, most importantly selection from the mesh to the final derived mesh,

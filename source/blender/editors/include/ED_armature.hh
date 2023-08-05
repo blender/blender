@@ -252,7 +252,7 @@ void ED_armature_edit_free(bArmature *arm);
 void ED_armature_ebone_listbase_temp_clear(ListBase *lb);
 
 /**
- * Free's bones and their properties.
+ * Free list of bones and their properties.
  */
 void ED_armature_ebone_listbase_free(ListBase *lb, bool do_id_user);
 void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, bool do_id_user);

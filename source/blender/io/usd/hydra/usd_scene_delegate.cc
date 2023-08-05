@@ -65,7 +65,7 @@ void USDSceneDelegate::populate(Depsgraph *depsgraph)
   delegate_.reset();
   stage_.Reset();
 
-  /* Convert depsgraph to stage + aditional file in temp directory. */
+  /* Convert depsgraph to stage + additional file in temp directory. */
   stage_ = io::usd::export_to_stage(params, depsgraph, temp_file_.c_str());
   delegate_ = std::make_unique<pxr::UsdImagingDelegate>(render_index_, delegate_id_);
   delegate_->Populate(stage_->GetPseudoRoot());

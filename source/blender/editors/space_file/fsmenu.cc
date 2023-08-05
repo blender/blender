@@ -594,9 +594,10 @@ int fsmenu_get_active_indices(FSMenu *fsmenu, enum FSMenuCategory category, cons
   return -1;
 }
 
-/* Thanks to some bookmarks sometimes being network drives that can have tens of seconds of delay
- * before being defined as unreachable by the OS, we need to validate the bookmarks in an async
- * job...
+/**
+ * Thanks to some bookmarks sometimes being network drives that can have tens of seconds of delay
+ * before being defined as unreachable by the OS, we need to validate the bookmarks in an
+ * asynchronous job.
  */
 static void fsmenu_bookmark_validate_job_startjob(
     void *fsmenuv,

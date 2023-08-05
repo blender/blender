@@ -9,7 +9,7 @@ void PreviewEngine::notify_status(float /* progress */,
                                   const std::string & /* title */,
                                   const std::string & /* info */)
 {
-  /* Empty fucntion */
+  /* Empty function. */
 }
 
 }  // namespace blender::render::hydra

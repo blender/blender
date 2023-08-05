@@ -261,7 +261,7 @@ pxr::GfCamera CameraData::gf_camera(pxr::GfVec4f tile)
     case CAM_ORTHO: {
       gf_camera.SetProjection(pxr::GfCamera::Projection::Orthographic);
 
-      /* Use tenths of a world unit accorging to USD docs
+      /* Use tenths of a world unit according to USD docs
        * https://graphics.pixar.com/usd/docs/api/class_gf_camera.html */
       float o_size[2] = {ortho_size_[0] * t_size[0] * 10, ortho_size_[1] * t_size[1] * 10};
 
