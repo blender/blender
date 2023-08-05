@@ -84,7 +84,7 @@ def main():
     else:
         report = render_report.Report("Storm USD", output_dir, idiff)
         report.set_reference_dir("storm_usd_renders")
-        report.set_compare_engine('hydra_storm')
+        report.set_compare_engine('storm_hydra')
 
     report.set_pixelated(True)
 
