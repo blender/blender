@@ -175,18 +175,18 @@ void IrradianceCache::set_view(View & /*view*/)
     std::sort(grid_loaded.begin(),
               grid_loaded.end(),
               [](const IrradianceGrid *a, const IrradianceGrid *b) {
-                float volume_a = math::determinant(float3x3(a->world_to_grid_transposed));
-                float volume_b = math::determinant(float3x3(b->world_to_grid_transposed));
+                float volume_a = math::determinant(float3x3(a->object_to_world));
+                float volume_b = math::determinant(float3x3(b->object_to_world));
                 if (volume_a != volume_b) {
                   /* Smallest first. */
-                  return volume_a > volume_b;
+                  return volume_a < volume_b;
                 }
                 /* Volumes are identical. Any arbitrary criteria can be used to sort them.
                  * Use position to avoid unstable result caused by depsgraph non deterministic eval
                  * order. This could also become a priority parameter. */
-                return a->world_to_grid_transposed[0][0] < b->world_to_grid_transposed[0][0] ||
-                       a->world_to_grid_transposed[0][1] < b->world_to_grid_transposed[0][1] ||
-                       a->world_to_grid_transposed[0][2] < b->world_to_grid_transposed[0][2];
+                return a->object_to_world.location()[0] < b->object_to_world.location()[0] ||
+                       a->object_to_world.location()[1] < b->object_to_world.location()[1] ||
+                       a->object_to_world.location()[2] < b->object_to_world.location()[2];
               });
 
     /* Insert grids in UBO in sorted order. */
