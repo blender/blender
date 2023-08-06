@@ -844,7 +844,7 @@ static const bUserAssetLibrary *selected_asset_library(wmOperator *op)
 {
   const int enum_value = RNA_enum_get(op->ptr, "asset_library_ref");
   const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
-  const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_from_index(
+  const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_index(
       &U, lib_ref.custom_library_index);
   return lib;
 }

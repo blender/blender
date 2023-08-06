@@ -79,13 +79,13 @@ void BKE_preferences_asset_library_path_set(bUserAssetLibrary *library, const ch
   }
 }
 
-bUserAssetLibrary *BKE_preferences_asset_library_find_from_index(const UserDef *userdef, int index)
+bUserAssetLibrary *BKE_preferences_asset_library_find_index(const UserDef *userdef, int index)
 {
   return static_cast<bUserAssetLibrary *>(BLI_findlink(&userdef->asset_libraries, index));
 }
 
-bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(const UserDef *userdef,
-                                                                const char *name)
+bUserAssetLibrary *BKE_preferences_asset_library_find_by_name(const UserDef *userdef,
+                                                              const char *name)
 {
   return static_cast<bUserAssetLibrary *>(
       BLI_findstring(&userdef->asset_libraries, name, offsetof(bUserAssetLibrary, name)));

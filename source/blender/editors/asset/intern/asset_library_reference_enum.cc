@@ -32,7 +32,7 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
 
   /* Note that the path isn't checked for validity here. If an invalid library path is used, the
    * Asset Browser can give a nice hint on what's wrong. */
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
       &U, library->custom_library_index);
   if (user_library) {
     return ASSET_LIBRARY_CUSTOM + library->custom_library_index;
@@ -53,7 +53,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
     return library;
   }
 
-  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_from_index(
+  const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
       &U, value - ASSET_LIBRARY_CUSTOM);
 
   /* Note that there is no check if the path exists here. If an invalid library path is used, the

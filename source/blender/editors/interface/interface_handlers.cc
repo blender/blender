@@ -9596,7 +9596,7 @@ static int ui_list_handle_click_drag(bContext *C,
 static void ui_list_activate_row_from_index(
     bContext *C, ARegion *region, uiBut *listbox, uiList *ui_list, int index)
 {
-  uiBut *new_active_row = ui_list_row_find_from_index(region, index, listbox);
+  uiBut *new_active_row = ui_list_row_find_index(region, index, listbox);
   if (new_active_row) {
     /* Preferred way to update the active item, also calls the custom activate operator
      * (#uiListDyn::custom_activate_optype). */

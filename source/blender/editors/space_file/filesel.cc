@@ -424,8 +424,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
-    user_library = BKE_preferences_asset_library_find_from_index(&U,
-                                                                 library->custom_library_index);
+    user_library = BKE_preferences_asset_library_find_index(&U, library->custom_library_index);
     if (!user_library) {
       library->type = ASSET_LIBRARY_ALL;
     }

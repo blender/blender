@@ -1347,9 +1347,9 @@ uiBut *ui_list_find_mouse_over(const ARegion *region,
 uiBut *ui_list_find_from_row(const ARegion *region, const uiBut *row_but) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_list_row_find_mouse_over(const ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
-uiBut *ui_list_row_find_from_index(const ARegion *region,
-                                   int index,
-                                   uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
+uiBut *ui_list_row_find_index(const ARegion *region,
+                              int index,
+                              uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2]) ATTR_NONNULL(1, 2);
 uiBut *ui_view_item_find_active(const ARegion *region);
 

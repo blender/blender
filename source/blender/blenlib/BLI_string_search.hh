@@ -36,7 +36,7 @@ class StringSearchBase {
  * of type T attached that is used to identify it.
  *
  * When querying, the a match score is computed between the query string and each item. Items that
- * don't match are fitered out, the rest is sorted by the score. Elements with the same score are
+ * don't match are filtered out, the rest is sorted by the score. Elements with the same score are
  * further sorted based on the optionally provided weight and other heuristics.
  *
  * The usage is simple. First #add all the search items and then use the #query method.
