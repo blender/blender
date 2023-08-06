@@ -34,6 +34,9 @@ typedef struct LightProbe {
   char attenuation_type;
   /** Parallax type. */
   char parallax_type;
+  /** Grid specific flags. */
+  char grid_flag;
+  char _pad0[3];
 
   /** Influence Radius. */
   float distinf;
@@ -68,6 +71,7 @@ typedef struct LightProbe {
   /** Irradiance grid: Dilation. */
   float grid_dilation_threshold;
   float grid_dilation_radius;
+  char _pad1[4];
 
   /** Surface element density for scene surface cache. In surfel per unit distance. */
   float surfel_density;
@@ -110,6 +114,13 @@ enum {
   LIGHTPROBE_FLAG_SHOW_CLIP_DIST = (1 << 3),
   LIGHTPROBE_FLAG_SHOW_DATA = (1 << 4),
   LIGHTPROBE_FLAG_INVERT_GROUP = (1 << 5),
+};
+
+/* Probe->grid_flag */
+enum {
+  LIGHTPROBE_GRID_CAPTURE_WORLD = (1 << 0),
+  LIGHTPROBE_GRID_CAPTURE_INDIRECT = (1 << 1),
+  LIGHTPROBE_GRID_CAPTURE_EMISSION = (1 << 2),
 };
 
 /* Probe->display */

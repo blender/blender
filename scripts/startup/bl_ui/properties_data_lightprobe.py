@@ -130,6 +130,12 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
 
             col.separator()
 
+            col.prop(probe, "grid_capture_world")
+            col.prop(probe, "grid_capture_indirect")
+            col.prop(probe, "grid_capture_emission")
+
+            col.separator()
+
             row = col.row(align=True)
             row.prop(probe, "visibility_collection")
             row.prop(probe, "invert_visibility_collection", text="", icon='ARROW_LEFTRIGHT')

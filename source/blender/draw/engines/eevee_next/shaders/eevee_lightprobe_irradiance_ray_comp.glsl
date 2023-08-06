@@ -15,47 +15,59 @@
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
-void irradiance_capture(vec3 L, vec3 irradiance, inout SphericalHarmonicL1 sh)
+void irradiance_capture(vec3 L, vec3 irradiance, float visibility, inout SphericalHarmonicL1 sh)
 {
   vec3 lL = transform_direction(capture_info_buf.irradiance_grid_world_to_local_rotation, L);
 
   /* Spherical harmonics need to be weighted by sphere area. */
   irradiance *= 4.0 * M_PI;
+  visibility *= 4.0 * M_PI;
 
-  spherical_harmonics_encode_signal_sample(lL, vec4(irradiance, 1.0), sh);
+  spherical_harmonics_encode_signal_sample(lL, vec4(irradiance, visibility), sh);
 }
 
-void irradiance_capture(Surfel surfel, vec3 P, inout SphericalHarmonicL1 sh)
+void irradiance_capture_surfel(Surfel surfel, vec3 P, inout SphericalHarmonicL1 sh)
 {
   vec3 L = safe_normalize(surfel.position - P);
   bool facing = dot(-L, surfel.normal) > 0.0;
   SurfelRadiance surfel_radiance_indirect = surfel.radiance_indirect[radiance_src];
 
-  vec3 irradiance = vec3(0.0);
-  irradiance += facing ? surfel.radiance_direct.front.rgb : surfel.radiance_direct.back.rgb;
+  vec4 irradiance_vis = vec4(0.0);
+  irradiance_vis += facing ? surfel.radiance_direct.front : surfel.radiance_direct.back;
   /* NOTE: The indirect radiance is already normalized and this is wanted, because we are not
    * integrating the same signal and we would have the SH lagging behind the surfel integration
    * otherwise. */
-  irradiance += facing ? surfel_radiance_indirect.front.rgb : surfel_radiance_indirect.back.rgb;
+  irradiance_vis += facing ? surfel_radiance_indirect.front : surfel_radiance_indirect.back;
 
-  irradiance_capture(L, irradiance, sh);
+  irradiance_capture(L, irradiance_vis.rgb, irradiance_vis.a, sh);
 }
 
-void validity_capture(Surfel surfel, vec3 P, inout float validity)
+void validity_capture_surfel(Surfel surfel, vec3 P, inout float validity)
 {
   vec3 L = safe_normalize(surfel.position - P);
   bool facing = dot(-L, surfel.normal) > 0.0;
   validity += float(facing);
 }
 
-void validity_capture(vec3 L, inout float validity)
+void validity_capture_world(vec3 L, inout float validity)
 {
   validity += 1.0;
 }
 
-vec3 irradiance_sky_sample(vec3 R)
+void irradiance_capture_world(vec3 L, inout SphericalHarmonicL1 sh)
 {
-  return reflection_probes_world_sample(R, 0.0).rgb;
+  vec3 radiance = vec3(0.0);
+  float visibility = 0.0;
+
+  if (capture_info_buf.capture_world_direct) {
+    radiance = reflection_probes_world_sample(L, 0.0).rgb;
+  }
+
+  if (capture_info_buf.capture_visibility_direct) {
+    visibility = 1.0;
+  }
+
+  irradiance_capture(L, radiance, visibility, sh);
 }
 
 void main()
@@ -109,24 +121,22 @@ void main()
 
   if (surfel_next > -1) {
     Surfel surfel = surfel_buf[surfel_next];
-    irradiance_capture(surfel, P, sh);
-    validity_capture(surfel, P, validity);
+    irradiance_capture_surfel(surfel, P, sh);
+    validity_capture_surfel(surfel, P, validity);
   }
   else {
-    vec3 world_radiance = irradiance_sky_sample(-sky_L);
-    irradiance_capture(-sky_L, world_radiance, sh);
-    validity_capture(-sky_L, validity);
+    irradiance_capture_world(-sky_L, sh);
+    validity_capture_world(-sky_L, validity);
   }
 
   if (surfel_prev > -1) {
     Surfel surfel = surfel_buf[surfel_prev];
-    irradiance_capture(surfel, P, sh);
-    validity_capture(surfel, P, validity);
+    irradiance_capture_surfel(surfel, P, sh);
+    validity_capture_surfel(surfel, P, validity);
   }
   else {
-    vec3 world_radiance = irradiance_sky_sample(sky_L);
-    irradiance_capture(sky_L, world_radiance, sh);
-    validity_capture(sky_L, validity);
+    irradiance_capture_world(sky_L, sh);
+    validity_capture_world(sky_L, validity);
   }
 
   /* Normalize for storage. We accumulated 2 samples. */

@@ -594,5 +594,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "grid_flag")) {
+      LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
+        /* Keep old behavior of baking the whole lighting. */
+        lightprobe->grid_flag = LIGHTPROBE_GRID_CAPTURE_WORLD | LIGHTPROBE_GRID_CAPTURE_INDIRECT |
+                                LIGHTPROBE_GRID_CAPTURE_EMISSION;
+      }
+    }
   }
 }

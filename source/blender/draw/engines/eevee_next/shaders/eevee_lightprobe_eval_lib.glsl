@@ -6,32 +6,42 @@
  * - irradiance_atlas_tx
  */
 
+#pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
 /**
- * Return sample coordinates of the first SH coef in unormalized texture space.
+ * Return the brick coordinate inside the grid.
  */
-vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
-                                            vec3 lP,
-                                            vec3 lV,
-                                            vec3 lNg)
+ivec3 lightprobe_irradiance_grid_brick_coord(vec3 lP)
 {
-  /* Shading point bias. */
-  lP += lNg * grid_data.normal_bias;
-  lP += lV * grid_data.view_bias;
-
   ivec3 brick_coord = ivec3((lP - 0.5) / float(IRRADIANCE_GRID_BRICK_SIZE - 1));
   /* Avoid sampling adjacent bricks. */
-  brick_coord = max(brick_coord, ivec3(0));
-  /* Avoid sampling adjacent bricks. */
+  return max(brick_coord, ivec3(0));
+}
+
+/**
+ * Return the local coordinated of the shading point inside the brick in unormalized coordinate.
+ */
+vec3 lightprobe_irradiance_grid_brick_local_coord(IrradianceGridData grid_data,
+                                                  vec3 lP,
+                                                  ivec3 brick_coord)
+{
+  /* Avoid sampling adjacent bricks around the origin. */
   lP = max(lP, vec3(0.5));
   /* Local position inside the brick (still in grid sample spacing unit). */
   vec3 brick_lP = lP - vec3(brick_coord) * float(IRRADIANCE_GRID_BRICK_SIZE - 1);
+  return brick_lP;
+}
 
-  int brick_index = lightprobe_irradiance_grid_brick_index_get(grid_data, brick_coord);
-  IrradianceBrick brick = irradiance_brick_unpack(bricks_infos_buf[brick_index]);
-
+/**
+ * Return the biased local brick local coordinated.
+ */
+vec3 lightprobe_irradiance_grid_bias_sample_coord(IrradianceGridData grid_data,
+                                                  uvec2 brick_atlas_coord,
+                                                  vec3 brick_lP,
+                                                  vec3 lNg)
+{
   /* A cell is the interpolation region between 8 texels. */
   vec3 cell_lP = brick_lP - 0.5;
   vec3 cell_start = floor(cell_lP);
@@ -40,7 +50,7 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
   /* NOTE(fclem): Use uint to avoid signed int modulo. */
   uint vis_comp = uint(cell_start.z) % 4u;
   /* Visibility is stored after the irradiance. */
-  ivec3 vis_coord = ivec3(brick.atlas_coord, IRRADIANCE_GRID_BRICK_SIZE * 4) + ivec3(cell_start);
+  ivec3 vis_coord = ivec3(brick_atlas_coord, IRRADIANCE_GRID_BRICK_SIZE * 4) + ivec3(cell_start);
   /* Visibility is stored packed 1 cell per channel. */
   vis_coord.z -= int(vis_comp);
   float cell_visibility = texelFetch(irradiance_atlas_tx, vis_coord, 0)[vis_comp];
@@ -75,7 +85,7 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
 
     /* Biases. See McGuire's presentation. */
     positional_weight += 0.001;
-    geometry_weight = sqr(geometry_weight) + 0.2 + grid_data.facing_bias;
+    geometry_weight = square_f(geometry_weight) + 0.2 + grid_data.facing_bias;
 
     trilinear_weights[i] = saturate(positional_weight * geometry_weight * validity_weight);
     total_weight += trilinear_weights[i];
@@ -88,23 +98,18 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
     trilinear_coord += sample_position * trilinear_weights[i] * total_weight_inv;
   }
   /* Replace sampling coordinates with manually weighted trilinear coordinates. */
-  brick_lP = 0.5 + cell_start + trilinear_coord;
-
-  vec3 output_coord = vec3(vec2(brick.atlas_coord), 0.0) + brick_lP;
-
-  return output_coord;
+  return 0.5 + cell_start + trilinear_coord;
 }
 
-vec4 textureUnormalizedCoord(sampler3D tx, vec3 co)
-{
-  return texture(tx, co / vec3(textureSize(tx, 0)));
-}
-
-SphericalHarmonicL1 lightprobe_irradiance_sample(sampler3D atlas_tx, vec3 P, vec3 V, vec3 Ng)
+SphericalHarmonicL1 lightprobe_irradiance_sample(
+    sampler3D atlas_tx, vec3 P, vec3 V, vec3 Ng, const bool do_bias)
 {
   vec3 lP;
-  int grid_index;
-  for (grid_index = 0; grid_index < IRRADIANCE_GRID_MAX; grid_index++) {
+  int grid_index = 0;
+#ifdef IRRADIANCE_GRID_UPLOAD
+  grid_index = grid_start_index;
+#endif
+  for (; grid_index < IRRADIANCE_GRID_MAX; grid_index++) {
     /* Last grid is tagged as invalid to stop the iteration. */
     if (grids_infos_buf[grid_index].grid_size.x == -1) {
       /* Sample the last grid instead. */
@@ -117,13 +122,33 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(sampler3D atlas_tx, vec3 P, vec
     }
   }
 
+  IrradianceGridData grid_data = grids_infos_buf[grid_index];
+
   /* TODO(fclem): Make sure this is working as expected. */
-  mat3x3 world_to_grid_transposed = mat3x3(grids_infos_buf[grid_index].world_to_grid_transposed);
+  mat3x3 world_to_grid_transposed = mat3x3(grid_data.world_to_grid_transposed);
   vec3 lNg = safe_normalize(world_to_grid_transposed * Ng);
   vec3 lV = safe_normalize(V * world_to_grid_transposed);
 
-  vec3 atlas_coord = lightprobe_irradiance_grid_atlas_coord(
-      grids_infos_buf[grid_index], lP, lV, lNg);
+  if (do_bias) {
+    /* Shading point bias. */
+    lP += lNg * grid_data.normal_bias;
+    lP += lV * grid_data.view_bias;
+  }
+  else {
+    lNg = vec3(0.0);
+  }
+
+  ivec3 brick_coord = lightprobe_irradiance_grid_brick_coord(lP);
+  int brick_index = lightprobe_irradiance_grid_brick_index_get(grid_data, brick_coord);
+  IrradianceBrick brick = irradiance_brick_unpack(bricks_infos_buf[brick_index]);
+
+  vec3 brick_lP = lightprobe_irradiance_grid_brick_local_coord(grid_data, lP, brick_coord);
+
+  /* Sampling point bias. */
+  brick_lP = lightprobe_irradiance_grid_bias_sample_coord(
+      grid_data, brick.atlas_coord, brick_lP, lNg);
+
+  vec3 atlas_coord = vec3(vec2(brick.atlas_coord), 0.0) + brick_lP;
 
   vec4 texture_coord = vec4(atlas_coord, float(IRRADIANCE_GRID_BRICK_SIZE)) /
                        vec3(textureSize(atlas_tx, 0)).xyzz;
@@ -138,6 +163,14 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(sampler3D atlas_tx, vec3 P, vec
   return sh;
 }
 
+/**
+ * Shorter version without bias.
+ */
+SphericalHarmonicL1 lightprobe_irradiance_sample(vec3 P)
+{
+  return lightprobe_irradiance_sample(irradiance_atlas_tx, P, vec3(0), vec3(0), false);
+}
+
 void lightprobe_eval(ClosureDiffuse diffuse,
                      ClosureReflection reflection,
                      vec3 P,
@@ -149,7 +182,7 @@ void lightprobe_eval(ClosureDiffuse diffuse,
   /* NOTE: Use the diffuse normal for biasing the probe sampling location since it is smoother than
    * geometric normal. Could also try to use interp.N. */
   SphericalHarmonicL1 irradiance = lightprobe_irradiance_sample(
-      irradiance_atlas_tx, P, V, diffuse.N);
+      irradiance_atlas_tx, P, V, diffuse.N, true);
 
   out_diffuse += spherical_harmonics_evaluate_lambert(diffuse.N, irradiance);
 }

@@ -113,6 +113,7 @@ class ReflectionProbeModule {
    * NOTE: TextureFromPool doesn't support cube-maps.
    */
   Texture cubemap_tx_ = {"Probe.Cubemap"};
+  /** Index of the probe being updated. */
   int reflection_probe_index_ = 0;
 
   bool update_probes_next_sample_ = false;

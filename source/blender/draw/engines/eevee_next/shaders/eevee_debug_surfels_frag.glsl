@@ -12,10 +12,10 @@ void main()
 {
   Surfel surfel = surfels_buf[surfel_index];
 
-  vec3 radiance = vec3(0.0);
-  radiance += gl_FrontFacing ? surfel.radiance_direct.front.rgb : surfel.radiance_direct.back.rgb;
-  radiance += gl_FrontFacing ? surfel.radiance_indirect[1].front.rgb :
-                               surfel.radiance_indirect[1].back.rgb;
+  vec4 radiance_vis = vec4(0.0);
+  radiance_vis += gl_FrontFacing ? surfel.radiance_direct.front : surfel.radiance_direct.back;
+  radiance_vis += gl_FrontFacing ? surfel.radiance_indirect[1].front :
+                                   surfel.radiance_indirect[1].back;
 
   switch (eDebugMode(debug_mode)) {
     default:
@@ -26,7 +26,10 @@ void main()
       out_color = vec4(pow(debug_random_color(surfel.cluster_id), vec3(2.2)), 0.0);
       break;
     case DEBUG_IRRADIANCE_CACHE_SURFELS_IRRADIANCE:
-      out_color = vec4(radiance, 0.0);
+      out_color = vec4(radiance_vis.rgb, 0.0);
+      break;
+    case DEBUG_IRRADIANCE_CACHE_SURFELS_VISIBILITY:
+      out_color = vec4(radiance_vis.aaa, 0.0);
       break;
   }
 

@@ -77,7 +77,9 @@ void main()
 
   light_eval_surfel(diffuse_data, surfel.position, surfel.normal, thickness, diffuse_light);
 
-  surfel_buf[index].radiance_direct.front.rgb += diffuse_light * surfel.albedo_front;
+  if (capture_info_buf.capture_indirect) {
+    surfel_buf[index].radiance_direct.front.rgb += diffuse_light * surfel.albedo_front;
+  }
 
   diffuse_data.N = -surfel.normal;
   diffuse_light = vec3(0.0);
@@ -85,5 +87,7 @@ void main()
 
   light_eval_surfel(diffuse_data, surfel.position, -surfel.normal, thickness, diffuse_light);
 
-  surfel_buf[index].radiance_direct.back.rgb += diffuse_light * surfel.albedo_back;
+  if (capture_info_buf.capture_indirect) {
+    surfel_buf[index].radiance_direct.back.rgb += diffuse_light * surfel.albedo_back;
+  }
 }
