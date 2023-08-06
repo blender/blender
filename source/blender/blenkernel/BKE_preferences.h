@@ -17,6 +17,10 @@ extern "C" {
 struct UserDef;
 struct bUserAssetLibrary;
 
+/* -------------------------------------------------------------------- */
+/** \name Assert Libraries
+ * \{ */
+
 /** Name of the asset library added by default. Needs translation with `DATA_()` still. */
 #define BKE_PREFS_ASSET_LIBRARY_DEFAULT_NAME N_("User Library")
 
@@ -55,7 +59,8 @@ struct bUserAssetLibrary *BKE_preferences_asset_library_find_from_name(
  * When more than one asset libraries match, the first matching one is returned (no smartness when
  * there nested asset libraries).
  *
- * Return NULL when no such asset library is found. */
+ * Return NULL when no such asset library is found.
+ */
 struct bUserAssetLibrary *BKE_preferences_asset_library_containing_path(
     const struct UserDef *userdef, const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
@@ -64,6 +69,8 @@ int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
+
+/** \} */
 
 #ifdef __cplusplus
 }

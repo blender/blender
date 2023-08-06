@@ -39,9 +39,7 @@ bUserAssetLibrary *BKE_preferences_asset_library_add(UserDef *userdef,
                                                      const char *name,
                                                      const char *dirpath)
 {
-  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(
-      MEM_mallocN(sizeof(*library), "bUserAssetLibrary"));
-  memcpy(library, DNA_struct_default_get(bUserAssetLibrary), sizeof(*library));
+  bUserAssetLibrary *library = DNA_struct_default_alloc(bUserAssetLibrary);
 
   BLI_addtail(&userdef->asset_libraries, library);
 
