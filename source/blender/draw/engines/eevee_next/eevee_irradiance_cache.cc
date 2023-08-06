@@ -34,6 +34,9 @@ void IrradianceCache::init()
   int texel_byte_size = 8; /* Assumes GPU_RGBA16F. */
   int3 atlas_extent(IRRADIANCE_GRID_BRICK_SIZE);
   atlas_extent.z *= sh_coef_len;
+  /* Add space for validity bits. */
+  atlas_extent.z += IRRADIANCE_GRID_BRICK_SIZE / 4;
+
   int atlas_col_count = 256;
   atlas_extent.x *= atlas_col_count;
   /* Determine the row count depending on the scene settings. */
@@ -279,6 +282,7 @@ void IrradianceCache::set_view(View & /*view*/)
     grid_upload_ps_.init();
     grid_upload_ps_.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_LOAD));
 
+    grid_upload_ps_.push_constant("validity_threshold", grid->validity_threshold);
     grid_upload_ps_.push_constant("dilation_threshold", grid->dilation_threshold);
     grid_upload_ps_.push_constant("dilation_radius", grid->dilation_radius);
     grid_upload_ps_.push_constant("grid_index", grid->grid_index);
@@ -326,6 +330,9 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_IRRADIANCE:
       inst_.info = "Debug Mode: Surfels Irradiance";
       break;
+    case eDebugMode::DEBUG_IRRADIANCE_CACHE_VALIDITY:
+      inst_.info = "Debug Mode: Irradiance Validity";
+      break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET:
       inst_.info = "Debug Mode: Virtual Offset";
       break;
@@ -370,10 +377,8 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
         break;
       }
 
+      case eDebugMode::DEBUG_IRRADIANCE_CACHE_VALIDITY:
       case eDebugMode::DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET: {
-        if (cache->baking.virtual_offset == nullptr) {
-          continue;
-        }
         int3 grid_size = int3(cache->size);
         debug_ps_.init();
         debug_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
@@ -383,14 +388,45 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
         debug_ps_.push_constant("debug_mode", int(inst_.debug_mode));
         debug_ps_.push_constant("grid_mat", grid.object_to_world);
 
-        float4 *data = (float4 *)cache->baking.virtual_offset;
-
+        eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
         Texture debug_data_tx = {"debug_data_tx"};
-        debug_data_tx.ensure_3d(
-            GPU_RGBA16F, grid_size, GPU_TEXTURE_USAGE_SHADER_READ, (float *)data);
 
-        debug_ps_.bind_texture("debug_data_tx", debug_data_tx);
-        debug_ps_.draw_procedural(GPU_PRIM_LINES, 1, grid_size.x * grid_size.y * grid_size.z * 2);
+        if (inst_.debug_mode == eDebugMode::DEBUG_IRRADIANCE_CACHE_VALIDITY) {
+          float *data;
+          if (cache->baking.validity) {
+            data = (float *)cache->baking.validity;
+            debug_data_tx.ensure_3d(GPU_R16F, grid_size, usage, (float *)data);
+          }
+          else if (cache->connectivity.validity) {
+            debug_data_tx.ensure_3d(GPU_R8, grid_size, usage);
+            /* TODO(fclem): Make texture creation API work with different data types. */
+            GPU_texture_update_sub(debug_data_tx,
+                                   GPU_DATA_UBYTE,
+                                   cache->connectivity.validity,
+                                   0,
+                                   0,
+                                   0,
+                                   UNPACK3(grid_size));
+          }
+          else {
+            continue;
+          }
+          debug_ps_.push_constant("debug_value", grid.validity_threshold);
+          debug_ps_.bind_texture("debug_data_tx", debug_data_tx);
+          debug_ps_.draw_procedural(GPU_PRIM_POINTS, 1, grid_size.x * grid_size.y * grid_size.z);
+        }
+        else {
+          if (cache->baking.virtual_offset) {
+            float *data = (float *)cache->baking.virtual_offset;
+            debug_data_tx.ensure_3d(GPU_RGBA16F, grid_size, usage, data);
+          }
+          else {
+            continue;
+          }
+          debug_ps_.bind_texture("debug_data_tx", debug_data_tx);
+          debug_ps_.draw_procedural(
+              GPU_PRIM_LINES, 1, grid_size.x * grid_size.y * grid_size.z * 2);
+        }
 
         inst_.manager->submit(debug_ps_, view);
         break;

@@ -24,12 +24,17 @@ GPU_SHADER_CREATE_INFO(eevee_debug_surfels)
     .push_constant(Type::INT, "debug_mode")
     .do_static_compilation(true);
 
+GPU_SHADER_INTERFACE_INFO(eevee_debug_irradiance_grid_iface, "")
+    .smooth(Type::VEC4, "interp_color");
+
 GPU_SHADER_CREATE_INFO(eevee_debug_irradiance_grid)
     .additional_info("eevee_shared", "draw_view")
     .fragment_out(0, Type::VEC4, "out_color")
+    .vertex_out(eevee_debug_irradiance_grid_iface)
     .sampler(0, ImageType::FLOAT_3D, "debug_data_tx")
     .push_constant(Type::MAT4, "grid_mat")
     .push_constant(Type::INT, "debug_mode")
+    .push_constant(Type::FLOAT, "debug_value")
     .vertex_source("eevee_debug_irradiance_grid_vert.glsl")
     .fragment_source("eevee_debug_irradiance_grid_frag.glsl")
     .do_static_compilation(true);
@@ -166,6 +171,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
                       IRRADIANCE_GRID_BRICK_SIZE)
     .additional_info("eevee_shared")
     .push_constant(Type::INT, "grid_index")
+    .push_constant(Type::FLOAT, "validity_threshold")
     .push_constant(Type::FLOAT, "dilation_threshold")
     .push_constant(Type::FLOAT, "dilation_radius")
     .uniform_buf(0, "IrradianceGridData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")

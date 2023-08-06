@@ -60,6 +60,7 @@ enum eDebugMode : uint32_t {
    * Display IrradianceCache virtual offset.
    */
   DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET = 6u,
+  DEBUG_IRRADIANCE_CACHE_VALIDITY = 7u,
   /**
    * Show tiles depending on their status.
    */

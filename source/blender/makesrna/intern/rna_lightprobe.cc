@@ -217,6 +217,14 @@ static void rna_def_lightprobe(BlenderRNA *brna)
                            "Number of surfels per unit distance (higher values improve quality)");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+  prop = RNA_def_property(srna, "grid_validity_threshold", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop,
+                           "Validity Threshold",
+                           "Ratio of front-facing surface hits under which a grid sample will "
+                           "not be considered for lighting");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "grid_dilation_threshold", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(prop,
                            "Dilation Threshold",

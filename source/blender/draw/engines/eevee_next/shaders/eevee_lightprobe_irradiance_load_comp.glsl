@@ -94,4 +94,23 @@ void main()
   atlas_store(sh.L1.Mn1, output_coord, 1);
   atlas_store(sh.L1.M0, output_coord, 2);
   atlas_store(sh.L1.Mp1, output_coord, 3);
+
+  if (gl_LocalInvocationID.z % 4 == 0u) {
+    /* Encode 4 cells into one volume sample. */
+    ivec4 cell_validity_bits = ivec4(0);
+    /* Encode validty of each samples in the grid cell. */
+    for (int cell = 0; cell < 4; cell++) {
+      for (int i = 0; i < 8; i++) {
+        ivec3 offset = lightprobe_irradiance_grid_cell_corner(i);
+        ivec3 coord = input_coord + offset + ivec3(0, 0, cell);
+        float validity = texelFetch(validity_tx, coord, 0).r;
+        if (validity > validity_threshold) {
+          cell_validity_bits[cell] |= (1 << i);
+        }
+      }
+    }
+    /* NOTE: We could use another sampler to reduce the memory overhead, but that would take
+     * another sampler slot for forward materials. */
+    atlas_store(vec4(cell_validity_bits), output_coord, 4);
+  }
 }

@@ -64,7 +64,7 @@ typedef struct LightProbe {
   float grid_normal_bias;
   float grid_view_bias;
   float grid_facing_bias;
-  float _pad0;
+  float grid_validity_threshold;
   /** Irradiance grid: Dilation. */
   float grid_dilation_threshold;
   float grid_dilation_radius;

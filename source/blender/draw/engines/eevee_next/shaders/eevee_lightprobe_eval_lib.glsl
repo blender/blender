@@ -36,6 +36,15 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
   vec3 cell_lP = brick_lP - 0.5;
   vec3 cell_start = floor(cell_lP);
   vec3 cell_fract = cell_lP - cell_start;
+
+  /* NOTE(fclem): Use uint to avoid signed int modulo. */
+  uint vis_comp = uint(cell_start.z) % 4u;
+  /* Visibility is stored after the irradiance. */
+  ivec3 vis_coord = ivec3(brick.atlas_coord, IRRADIANCE_GRID_BRICK_SIZE * 4) + ivec3(cell_start);
+  /* Visibility is stored packed 1 cell per channel. */
+  vis_coord.z -= int(vis_comp);
+  float cell_visibility = texelFetch(irradiance_atlas_tx, vis_coord, 0)[vis_comp];
+  int cell_visibility_bits = int(cell_visibility);
   /**
    * References:
    *
@@ -51,7 +60,7 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
   float trilinear_weights[8];
   float total_weight = 0.0;
   for (int i = 0; i < 8; i++) {
-    ivec3 sample_position = (ivec3(i) >> ivec3(0, 1, 2)) & 1;
+    ivec3 sample_position = lightprobe_irradiance_grid_cell_corner(i);
 
     vec3 trilinear = select(1.0 - cell_fract, cell_fract, bvec3(sample_position));
     float positional_weight = trilinear.x * trilinear.y * trilinear.z;
@@ -62,8 +71,7 @@ vec3 lightprobe_irradiance_grid_atlas_coord(IrradianceGridData grid_data,
     float cos_theta = (len > 1e-8) ? dot(lNg, corner_dir) : 1.0;
     float geometry_weight = saturate(cos_theta * 0.5 + 0.5);
 
-    /* TODO(fclem): Need to bake validity. */
-    float validity_weight = 1.0;
+    float validity_weight = float((cell_visibility_bits >> i) & 1);
 
     /* Biases. See McGuire's presentation. */
     positional_weight += 0.001;

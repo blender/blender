@@ -35,3 +35,9 @@ int lightprobe_irradiance_grid_brick_index_get(IrradianceGridData grid_data, ive
   brick_index += brick_coord.z * grid_size_in_bricks.x * grid_size_in_bricks.y;
   return brick_index;
 }
+
+/* Return cell corner from a corner ID [0..7]. */
+ivec3 lightprobe_irradiance_grid_cell_corner(int cell_corner_id)
+{
+  return (ivec3(cell_corner_id) >> ivec3(0, 1, 2)) & 1;
+}
