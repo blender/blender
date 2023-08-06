@@ -56,7 +56,7 @@ bool BKE_blender_version_is_alpha(void);
  * `file_version` is used.
  */
 void BKE_blender_version_blendfile_string_from_values(char *str_buff,
-                                                      const size_t str_buff_len,
+                                                      const size_t str_buff_maxncpy,
                                                       const short file_version,
                                                       const short file_subversion);
 
