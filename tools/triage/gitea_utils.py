@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Simple module for inspecting gitea users, pulls and issues
+# Simple module for inspecting GITEA users, pulls and issues.
 
 import json
 import urllib.error
