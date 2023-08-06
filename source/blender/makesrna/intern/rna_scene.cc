@@ -7470,7 +7470,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem eevee_shadow_pool_size_items[] = {
+  static const EnumPropertyItem eevee_pool_size_items[] = {
       {16, "16", 0, "16 MB", ""},
       {32, "32", 0, "32 MB", ""},
       {64, "64", 0, "64 MB", ""},
@@ -7612,6 +7612,16 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "light_cache_info");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Light Cache Info", "Info on current cache status");
+
+  prop = RNA_def_property(srna, "gi_irradiance_pool_size", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, eevee_pool_size_items);
+  RNA_def_property_ui_text(prop,
+                           "Irradiance Pool Size",
+                           "Size of the irradiance pool, "
+                           "a bigger pool size allows for more irradiance grid in the scene "
+                           "but might not fit into GPU memory and decrease performance");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   /* Temporal Anti-Aliasing (super sampling) */
   prop = RNA_def_property(srna, "taa_samples", PROP_INT, PROP_NONE);
@@ -8004,7 +8014,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   prop = RNA_def_property(srna, "shadow_pool_size", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, eevee_shadow_pool_size_items);
+  RNA_def_property_enum_items(prop, eevee_pool_size_items);
   RNA_def_property_ui_text(prop,
                            "Shadow Pool Size",
                            "Size of the shadow pool, "

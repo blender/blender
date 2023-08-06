@@ -811,6 +811,8 @@ class RENDER_PT_eevee_next_indirect_lighting(RenderButtonsPanel, Panel):
         col.operator("object.lightprobe_cache_bake", text="Bake Light Caches", icon='RENDER_STILL').subset = "ALL"
         col.operator("object.lightprobe_cache_free", text="Delete Light Caches").subset = "ALL"
 
+        col.prop(props, "gi_irradiance_pool_size", text="Pool Size")
+
 
 class RENDER_PT_eevee_indirect_lighting_display(RenderButtonsPanel, Panel):
     bl_label = "Display"

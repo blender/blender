@@ -1835,6 +1835,7 @@ typedef struct SceneEEVEE {
   float gi_irradiance_smoothing;
   float gi_glossy_clamp;
   float gi_filter_quality;
+  int gi_irradiance_pool_size;
 
   float gi_cubemap_draw_size;
   float gi_irradiance_draw_size;
@@ -1889,7 +1890,6 @@ typedef struct SceneEEVEE {
 
   int ray_split_settings;
   int ray_tracing_method;
-  char _pad0[4];
 
   struct RaytraceEEVEE reflection_options;
   struct RaytraceEEVEE refraction_options;
