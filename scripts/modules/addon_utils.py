@@ -44,14 +44,16 @@ def _initialize():
 
 
 def paths():
-    # RELEASE SCRIPTS: official scripts distributed in Blender releases
-    addon_paths = _bpy.utils.script_paths(subdir="addons")
-
-    # CONTRIB SCRIPTS: good for testing but not official scripts yet
-    # if folder addons_contrib/ exists, scripts in there will be loaded too
-    addon_paths += _bpy.utils.script_paths(subdir="addons_contrib")
-
-    return addon_paths
+    return [
+        path for subdir in (
+            # RELEASE SCRIPTS: official scripts distributed in Blender releases.
+            "addons",
+            # CONTRIB SCRIPTS: good for testing but not official scripts yet
+            # if folder addons_contrib/ exists, scripts in there will be loaded too.
+            "addons_contrib",
+        )
+        for path in _bpy.utils.script_paths(subdir=subdir)
+    ]
 
 
 def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
@@ -156,11 +158,8 @@ def modules_refresh(*, module_cache=addons_fake_modules):
 
     for path in path_list:
 
-        # force all contrib addons to be 'TESTING'
-        if path.endswith(("addons_contrib", )):
-            force_support = 'TESTING'
-        else:
-            force_support = None
+        # Force all user contributed add-ons to be 'TESTING'.
+        force_support = 'TESTING' if path.endswith("addons_contrib") else None
 
         for mod_name, mod_path in _bpy.path.module_names(path):
             modules_stale.discard(mod_name)
