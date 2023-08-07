@@ -260,82 +260,6 @@ class NODE_OT_tree_path_parent(Operator):
         return {'FINISHED'}
 
 
-class NodePanelOperator():
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree:
-            return False
-        if space.edit_tree.is_embedded_data:
-            return False
-        return True
-
-
-class NODE_OT_panel_add(NodePanelOperator, Operator):
-    '''Add a new panel to the tree'''
-    bl_idname = "node.panel_add"
-    bl_label = "Add Panel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        snode = context.space_data
-        tree = snode.edit_tree
-        panels = tree.panels
-
-        # Remember index to move the item.
-        dst_index = min(panels.active_index + 1, len(panels))
-        panels.new("Panel")
-        panels.move(len(panels) - 1, dst_index)
-        panels.active_index = dst_index
-
-        return {'FINISHED'}
-
-
-class NODE_OT_panel_remove(NodePanelOperator, Operator):
-    '''Remove a panel from the tree'''
-    bl_idname = "node.panel_remove"
-    bl_label = "Remove Panel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        snode = context.space_data
-        tree = snode.edit_tree
-        panels = tree.panels
-
-        if panels.active:
-            panels.remove(panels.active)
-            panels.active_index = min(panels.active_index, len(panels) - 1)
-
-        return {'FINISHED'}
-
-
-class NODE_OT_panel_move(NodePanelOperator, Operator):
-    '''Move a panel to another position'''
-    bl_idname = "node.panel_move"
-    bl_label = "Move Panel"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    direction: EnumProperty(
-        name="Direction",
-        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
-        default='UP',
-    )
-
-    def execute(self, context):
-        snode = context.space_data
-        tree = snode.edit_tree
-        panels = tree.panels
-
-        if self.direction == 'UP' and panels.active_index > 0:
-            panels.move(panels.active_index, panels.active_index - 1)
-            panels.active_index -= 1
-        elif self.direction == 'DOWN' and panels.active_index < len(panels) - 1:
-            panels.move(panels.active_index, panels.active_index + 1)
-            panels.active_index += 1
-
-        return {'FINISHED'}
-
-
 classes = (
     NodeSetting,
 
@@ -343,8 +267,5 @@ classes = (
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
     NODE_OT_collapse_hide_unused_toggle,
-    NODE_OT_panel_add,
-    NODE_OT_panel_remove,
-    NODE_OT_panel_move,
     NODE_OT_tree_path_parent,
 )

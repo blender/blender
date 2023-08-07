@@ -181,9 +181,6 @@ typedef struct bNodeSocket {
   /** Custom data for inputs, only UI writes in this. */
   bNodeStack ns DNA_DEPRECATED;
 
-  /* UI panel of the socket. */
-  struct bNodePanel *panel;
-
   bNodeSocketRuntimeHandle *runtime;
 
 #ifdef __cplusplus
@@ -566,12 +563,6 @@ enum {
   NTREE_CHUNKSIZE_1024 = 1024,
 };
 
-/** Panel in node tree for grouping sockets. */
-typedef struct bNodePanel {
-  /** UI name of the panel (not unique). */
-  char *name;
-} bNodePanel;
-
 typedef struct bNestedNodePath {
   /** ID of the node that is or contains the nested node. */
   int32_t node_id;
@@ -669,11 +660,6 @@ typedef struct bNodeTree {
   /** Image representing what the node group does. */
   struct PreviewImage *preview;
 
-  /* UI panels */
-  struct bNodePanel **panels_array;
-  int panels_num;
-  int active_panel;
-
   bNodeTreeRuntimeHandle *runtime;
 
 #ifdef __cplusplus
@@ -750,8 +736,6 @@ typedef struct bNodeTree {
   blender::Span<const bNodeSocket *> interface_inputs() const;
   blender::Span<const bNodeSocket *> interface_outputs() const;
 
-  blender::Span<const bNodePanel *> panels() const;
-  blender::MutableSpan<bNodePanel *> panels_for_write();
   /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
   const blender::bke::bNodeTreeZones *zones() const;
 #endif

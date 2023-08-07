@@ -528,16 +528,6 @@ inline blender::Span<const bNodeLink *> bNodeTree::all_links() const
   return this->runtime->links;
 }
 
-inline blender::Span<const bNodePanel *> bNodeTree::panels() const
-{
-  return blender::Span(panels_array, panels_num);
-}
-
-inline blender::MutableSpan<bNodePanel *> bNodeTree::panels_for_write()
-{
-  return blender::MutableSpan(panels_array, panels_num);
-}
-
 inline blender::MutableSpan<bNestedNodeRef> bNodeTree::nested_node_refs_span()
 {
   return {this->nested_node_refs, this->nested_node_refs_num};

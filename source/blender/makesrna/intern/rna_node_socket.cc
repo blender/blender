@@ -504,30 +504,6 @@ static IDProperty **rna_NodeSocketInterface_idprops(PointerRNA *ptr)
   return &sock->prop;
 }
 
-static void rna_NodeSocketInterface_panel_set(PointerRNA *ptr,
-                                              PointerRNA value,
-                                              ReportList *reports)
-{
-  bNodeSocket *socket = (bNodeSocket *)ptr->data;
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNodePanel *panel = (bNodePanel *)value.data;
-
-  if (panel && !ntreeContainsPanel(ntree, panel)) {
-    BKE_report(reports, RPT_ERROR, "Panel is not in the node tree interface");
-    return;
-  }
-
-  ntreeSetSocketInterfacePanel(ntree, socket, panel);
-}
-
-static bool rna_NodeSocketInterface_panel_poll(PointerRNA *ptr, PointerRNA value)
-{
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNodePanel *panel = (bNodePanel *)value.data;
-
-  return panel == nullptr || ntreeContainsPanel(ntree, panel);
-}
-
 static void rna_NodeSocketInterface_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -889,17 +865,6 @@ static void rna_def_node_socket_interface(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Hide in Modifier",
                            "Don't show the input value in the geometry nodes modifier interface");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
-
-  prop = RNA_def_property(srna, "panel", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_funcs(prop,
-                                 nullptr,
-                                 "rna_NodeSocketInterface_panel_set",
-                                 nullptr,
-                                 "rna_NodeSocketInterface_panel_poll");
-  RNA_def_property_struct_type(prop, "NodePanel");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Panel", "Panel to group sockets together in the UI");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketInterface_update");
 
   prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
