@@ -481,7 +481,7 @@ static void flushTransTracking(TransInfo *t)
 
       if (t->flag & T_ALT_TRANSFORM) {
         if (t->mode == TFM_RESIZE) {
-          if (tdt->area != TRACK_AREA_PAT) {
+          if (tdt->area != TRACK_AREA_PAT && !(t->state == TRANS_CANCEL)) {
             continue;
           }
         }
