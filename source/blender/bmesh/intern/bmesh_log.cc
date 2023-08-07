@@ -541,8 +541,6 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
 
 void BM_log_free(BMLog *log)
 {
-  BMLogEntry *entry;
-
   if (log->unused_ids) {
     range_tree_uint_free(log->unused_ids);
   }
@@ -557,7 +555,7 @@ void BM_log_free(BMLog *log)
 
   /* Clear the BMLog references within each entry, but do not free
    * the entries themselves */
-  for (entry = static_cast<BMLogEntry *>(log->entries.first); entry; entry = entry->next) {
+  LISTBASE_FOREACH (BMLogEntry *, entry, &log->entries) {
     entry->log = nullptr;
   }
 

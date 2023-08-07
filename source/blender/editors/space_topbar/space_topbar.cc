@@ -188,12 +188,10 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 
 static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
 {
-  RecentFile *recent;
   uiLayout *layout = menu->layout;
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   if (!BLI_listbase_is_empty(&G.recent_files)) {
-    for (recent = static_cast<RecentFile *>(G.recent_files.first); (recent); recent = recent->next)
-    {
+    LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
       const char *file = BLI_path_basename(recent->filepath);
       const int icon = BKE_blendfile_extension_check(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
       PointerRNA ptr;

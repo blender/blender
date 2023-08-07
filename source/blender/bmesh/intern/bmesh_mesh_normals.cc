@@ -2033,7 +2033,6 @@ static void bm_loop_normal_mark_indiv_do_loop(BMLoop *l,
 /* Mark the individual clnors to be edited, if multiple selection methods are used. */
 static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do_all_loops_of_vert)
 {
-  BMEditSelection *ese, *ese_prev;
   int totloopsel = 0;
 
   const bool sel_verts = (bm->selectmode & SCE_SELECT_VERTEX) != 0;
@@ -2052,11 +2051,11 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
      * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most. */
     /* Goes from last selected to the first selected element. */
-    for (ese = static_cast<BMEditSelection *>(bm->selected.last); ese; ese = ese->prev) {
+    LISTBASE_FOREACH_BACKWARD (BMEditSelection *, ese, &bm->selected) {
       if (ese->htype == BM_FACE) {
         /* If current face is selected,
          * then any verts to be edited must have been selected before it. */
-        for (ese_prev = ese->prev; ese_prev; ese_prev = ese_prev->prev) {
+        for (BMEditSelection *ese_prev = ese->prev; ese_prev; ese_prev = ese_prev->prev) {
           if (ese_prev->htype == BM_VERT) {
             bm_loop_normal_mark_indiv_do_loop(
                 BM_face_vert_share_loop((BMFace *)ese->ele, (BMVert *)ese_prev->ele),

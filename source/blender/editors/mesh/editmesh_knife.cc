@@ -2843,7 +2843,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   KnifeEdge *kfe;
   KnifeVert *v;
   ListBase *list;
-  Ref *ref;
   KnifeLineHit *linehits = nullptr;
   BLI_array_declare(linehits);
   SmallHashIter hiter;
@@ -2956,7 +2955,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     BLI_smallhash_insert(&fobs, uintptr_t(f), (void *)uintptr_t(ob_index));
 
     list = knife_get_face_kedges(kcd, ob, ob_index, f);
-    for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
+    LISTBASE_FOREACH (Ref *, ref, list) {
       kfe = static_cast<KnifeEdge *>(ref->ref);
       if (kfe->is_invalid) {
         continue;
