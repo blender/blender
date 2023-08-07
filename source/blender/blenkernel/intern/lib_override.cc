@@ -4521,6 +4521,9 @@ void BKE_lib_override_library_id_unused_cleanup(ID *local)
             BKE_lib_override_library_property_operation_delete(op, opop);
           }
         }
+        if (BLI_listbase_is_empty(&op->operations)) {
+          BKE_lib_override_library_property_delete(local->override_library, op);
+        }
       }
     }
   }
