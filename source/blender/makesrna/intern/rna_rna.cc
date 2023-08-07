@@ -1624,6 +1624,18 @@ static void rna_property_override_diff_propptr(Main *bmain,
                                                      &ptrdiff_ctx.rnadiff_ctx.report_flag);
       ptrdiff_ctx.rnadiff_ctx.comparison = !match;
 
+      /* Regardless of whether the data from both pointers matches or not, a potentially existing
+       * operation on current extended rna path should be removed. This is done by tagging said
+       * operation as unused, while clearing the property tag (see also
+       * #RNA_struct_override_matches handling of #LIBOVERRIDE_PROP_OP_TAG_UNUSED). Note that a
+       * property with no operations will also be cleared by
+       * #BKE_lib_override_library_id_unused_cleanup. */
+      IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride,
+                                                                             extended_rna_path);
+      if (op != nullptr) {
+        op->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
+      }
+
       if (!ELEM(extended_rna_path, extended_rna_path_buffer, rna_path)) {
         MEM_freeN(extended_rna_path);
       }
