@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -479,6 +479,10 @@ msgid "Cube"
 msgstr "Kuboa"
 
 
+msgid "Edit"
+msgstr "Editatu"
+
+
 msgid "Cylinder"
 msgstr "Zilindroa"
 
@@ -572,10 +576,6 @@ msgid "Show/Hide Faces"
 msgstr "Aurpegiak erakutsi/ezkutatu"
 
 
-msgid "Edit"
-msgstr "Editatu"
-
-
 msgid "Text"
 msgstr "Testua"
 
@@ -639,6 +639,10 @@ msgstr "Y Ardatza"
 
 msgid "Original"
 msgstr "Jatorrizkoa"
+
+
+msgid "Selection"
+msgstr "Hautaketa"
 
 
 msgid "Reflection"
@@ -819,10 +823,6 @@ msgstr "Arbeletik itsatsi"
 
 msgid "Paste text from clipboard"
 msgstr "Arbeletik testua itsatsi"
-
-
-msgid "Selection"
-msgstr "Hautaketa"
 
 
 msgid "Console output type"
@@ -1685,6 +1685,10 @@ msgid "Save System Info"
 msgstr "Sistemaren Informazioa Gorde"
 
 
+msgid "Refraction"
+msgstr "Errefrakzioa"
+
+
 msgctxt "Operator"
 msgid "Scale"
 msgstr "Eskalatu"
@@ -1915,10 +1919,6 @@ msgstr "Baxua"
 
 msgid "Upper"
 msgstr "Altua"
-
-
-msgid "Refraction"
-msgstr "Errefrakzioa"
 
 
 msgctxt "Image"

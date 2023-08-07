@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -485,6 +485,26 @@ msgstr "Активна кост"
 
 msgid "Description"
 msgstr "Опис"
+
+
+msgid "ID Name"
+msgstr "ID имена"
+
+
+msgid "Options"
+msgstr "Опције"
+
+
+msgid "Space Type"
+msgstr "Врста размака"
+
+
+msgid "Display Filter"
+msgstr "Филтер приказа"
+
+
+msgid "Show Names"
+msgstr "Прикажи имена"
 
 
 msgid "Data Type"
@@ -4893,10 +4913,6 @@ msgid "Basis Matrix"
 msgstr "Основна матрица"
 
 
-msgid "Options"
-msgstr "Опције"
-
-
 msgid "Persistent"
 msgstr "Трајно"
 
@@ -4923,10 +4939,6 @@ msgstr "Алатке"
 
 msgid "Tool Properties"
 msgstr "Особине алатке"
-
-
-msgid "Space Type"
-msgstr "Врста размака"
 
 
 msgid "Modifier name"
@@ -6578,10 +6590,6 @@ msgid "Loops"
 msgstr "Петље"
 
 
-msgid "Loops of the mesh (polygon corners)"
-msgstr "Одређује тврдоћу сјаја"
-
-
 msgid "Polygons of the mesh"
 msgstr "Одређује тврдоћу сјаја"
 
@@ -6714,10 +6722,6 @@ msgid "Index of the active output"
 msgstr "Индекс активног излаза"
 
 
-msgid "ID Name"
-msgstr "ID имена"
-
-
 msgid "Label"
 msgstr "Назив"
 
@@ -6820,6 +6824,22 @@ msgstr "Два пролаза"
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
 msgstr "Користи оквир за чворове приказа и сложену позадину"
+
+
+msgid "Edit"
+msgstr "Уреди"
+
+
+msgid "Sculpt"
+msgstr "Вајање"
+
+
+msgid "Tool"
+msgstr "Алатка"
+
+
+msgid "Mesh"
+msgstr "Меш"
 
 
 msgid "Shader Node Tree"
@@ -9163,10 +9183,6 @@ msgid "Vertex Group Specials"
 msgstr "Специјална група темена"
 
 
-msgid "Edit"
-msgstr "Уреди"
-
-
 msgid "Converter"
 msgstr "Претварач"
 
@@ -9181,10 +9197,6 @@ msgstr "Математика"
 
 msgid "Attribute"
 msgstr "Атрибут"
-
-
-msgid "Mesh"
-msgstr "Меш"
 
 
 msgid "Node"
@@ -9337,10 +9349,6 @@ msgstr "У међувремену"
 
 msgid "Clear Transform"
 msgstr "Очисти трансформације"
-
-
-msgid "Sculpt"
-msgstr "Вајање"
 
 
 msgid "Clone Layer"
@@ -11639,6 +11647,10 @@ msgid "Z Up"
 msgstr "Горе по Z"
 
 
+msgid "Selection"
+msgstr "Избор"
+
+
 msgid "Angle Based"
 msgstr "На основу угла"
 
@@ -12344,11 +12356,6 @@ msgstr "На доле"
 
 
 msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Преименуј канале"
-
-
-msgctxt "Operator"
 msgid "Disable Channel Setting"
 msgstr "Омогући рендеровање парних и непарних линија"
 
@@ -12868,10 +12875,6 @@ msgstr "Скалар"
 
 msgid "Factor to scale brush size by"
 msgstr "Фактор увећања величине четкице"
-
-
-msgid "Tool"
-msgstr "Алатка"
 
 
 msgid "Translation"
@@ -13518,10 +13521,6 @@ msgstr "Убаци из оставе"
 
 msgid "Paste text from clipboard"
 msgstr "Убаци текст из оставе"
-
-
-msgid "Selection"
-msgstr "Избор"
 
 
 msgctxt "Operator"
@@ -15288,11 +15287,6 @@ msgstr "Уклони маркере"
 
 
 msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "На сцену..."
-
-
-msgctxt "Operator"
 msgid "Rename Marker"
 msgstr "Преименуј маркер"
 
@@ -16400,10 +16394,6 @@ msgstr "Дуплирај траке"
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "Дуплирај повезано"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "Удвостручи и премести изабране траке"
 
 
 msgid "Duplicate Strips"
@@ -18803,6 +18793,10 @@ msgid "Duplicate the selected strips"
 msgstr "Дуплирај изабране траке"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "Удвостручи и премести изабране траке"
+
+
 msgctxt "Operator"
 msgid "Add Effect Strip"
 msgstr "Додај траку са ефектом"
@@ -20663,6 +20657,14 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
+msgid "Film"
+msgstr "Филм"
+
+
+msgid "Passes"
+msgstr "Пролаза"
+
+
 msgid "Bone Constraints"
 msgstr "Ограничења костију"
 
@@ -20724,10 +20726,6 @@ msgid "Post Processing"
 msgstr "Накнадна обрада"
 
 
-msgid "Film"
-msgstr "Филм"
-
-
 msgid "Pixel Filter"
 msgstr "Филтер пиксела"
 
@@ -20742,10 +20740,6 @@ msgstr "Зракова светлости"
 
 msgid "Max Bounces"
 msgstr "Макс. одбијања"
-
-
-msgid "Passes"
-msgstr "Пролаза"
 
 
 msgid "Performance"
@@ -22767,14 +22761,6 @@ msgid "Wipe Sequence"
 msgstr "Очисти секвенцу"
 
 
-msgid "Edge angle"
-msgstr "Угао ивице"
-
-
-msgid "Wipe direction"
-msgstr "Смер брисања"
-
-
 msgid "Mask Sequence"
 msgstr "Мета секвенца"
 
@@ -23084,10 +23070,6 @@ msgid "Show grid showing lens distortion"
 msgstr "Прикажи мрежу која приказује кривљење сочива"
 
 
-msgid "Show Names"
-msgstr "Прикажи имена"
-
-
 msgid "Show track names and status"
 msgstr "Приказује имена стаза и стаус"
 
@@ -23355,10 +23337,6 @@ msgstr "Поновно рендеруј и сложи измењене слој�
 
 msgid "Blender File"
 msgstr "Blender датотека"
-
-
-msgid "Display Filter"
-msgstr "Филтер приказа"
 
 
 msgid "Filter method"
@@ -25427,11 +25405,6 @@ msgstr "Распакуј"
 msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "Редослед праћења..."
-
-
-msgctxt "Operator"
-msgid "Linked Duplicate"
-msgstr "Дуплирај повезано"
 
 
 msgctxt "Operator"

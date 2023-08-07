@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -907,6 +907,14 @@ msgstr "Tags"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Tag kustom (token nama) untuk aset, digunakan untuk pemfilteran dan manajemen aset umum"
+
+
+msgid "ID Name"
+msgstr "Nama ID"
+
+
+msgid "Space Type"
+msgstr "Tipe Spasi"
 
 
 msgid "Asset Tag"
@@ -4123,10 +4131,6 @@ msgstr "Memasukkan Ruang Warna"
 
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Ruang warna dalam dokumen gambar, untuk mengubahnya ke dan dari saat menyimpan atau memuat gambar"
-
-
-msgid "Raw"
-msgstr "Raw"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -8661,10 +8665,6 @@ msgid "Tool Header"
 msgstr "Header Alat"
 
 
-msgid "Space Type"
-msgstr "Tipe Spasi"
-
-
 msgid "Has Reports"
 msgstr "Punya Laporan"
 
@@ -9863,10 +9863,6 @@ msgid "Index of the active output"
 msgstr "Indeks keluaran aktif"
 
 
-msgid "ID Name"
-msgstr "Nama ID"
-
-
 msgid "Inputs"
 msgstr "Masukan"
 
@@ -9901,6 +9897,14 @@ msgstr "Partikel"
 
 msgid "Quality when rendering"
 msgstr "Partikel"
+
+
+msgid "Edit"
+msgstr "Edit"
+
+
+msgid "Tool"
+msgstr "Alat"
 
 
 msgid "Active Material"
@@ -11648,10 +11652,6 @@ msgstr "Menu Konteks Saluran NLA"
 
 msgid "NLA Context Menu"
 msgstr "Menu Konteks NLA"
-
-
-msgid "Edit"
-msgstr "Edit"
 
 
 msgid "Converter"
@@ -14613,11 +14613,6 @@ msgstr "Saluran"
 
 
 msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Saluran"
-
-
-msgctxt "Operator"
 msgid "Toggle Channel Setting"
 msgstr "Partikel"
 
@@ -14853,10 +14848,6 @@ msgstr "Ganti ukuran kuas oleh skalar"
 
 msgid "Scalar"
 msgstr "Skalar"
-
-
-msgid "Tool"
-msgstr "Alat"
 
 
 msgid "Translation"
@@ -16678,10 +16669,6 @@ msgid "Delete Strips"
 msgstr "Hapus Titik"
 
 
-msgid "Duplicate selected strips and move them"
-msgstr "Tekstur"
-
-
 msgid "Duplicate Strips"
 msgstr "Modus Pahat"
 
@@ -18375,6 +18362,10 @@ msgid "Deinterlace Movies"
 msgstr "Modus Sunting"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "Tekstur"
+
+
 msgid "Replace the current selection"
 msgstr "Data Objek"
 
@@ -19896,6 +19887,10 @@ msgid "Sampling Presets"
 msgstr "Contoh Tersedia"
 
 
+msgid "Film"
+msgstr "Film"
+
+
 msgid "Custom Shape"
 msgstr "Bentuk Kustom"
 
@@ -19942,10 +19937,6 @@ msgstr "Selesaikan"
 
 msgid "Tracking Presets"
 msgstr "Kamera"
-
-
-msgid "Film"
-msgstr "Film"
 
 
 msgid "Pixel Filter"
@@ -20906,10 +20897,6 @@ msgstr "Ukuran teks"
 
 msgid "Location of the text"
 msgstr "Lokasi teks"
-
-
-msgid "Edge angle"
-msgstr "Ujung sudut"
 
 
 msgid "Blur Width"
@@ -24124,6 +24111,10 @@ msgid "%14s"
 msgstr "%14s"
 
 
+msgid "Raw"
+msgstr "Raw"
+
+
 msgid "Storage"
 msgstr "Gudang"
 
@@ -25447,10 +25438,6 @@ msgstr "Penyunting Teks"
 
 
 msgid "Cannot add loops in edit mode"
-msgstr "Penyunting Teks"
-
-
-msgid "Cannot add polygons in edit mode"
 msgstr "Penyunting Teks"
 
 

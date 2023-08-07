@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -276,6 +276,10 @@ msgstr "Auteur"
 
 msgid "Description"
 msgstr "Beschrijving"
+
+
+msgid "Options"
+msgstr "Opties"
 
 
 msgid "Data Type"
@@ -1670,10 +1674,6 @@ msgid "Select Background"
 msgstr "Selecteer Achtergrond"
 
 
-msgid "Options"
-msgstr "Opties"
-
-
 msgid "Window"
 msgstr "Scherm"
 
@@ -2239,6 +2239,18 @@ msgid "Undefined"
 msgstr "Niet Gedefinieerd"
 
 
+msgid "Edit"
+msgstr "Bewerken"
+
+
+msgid "Sculpt"
+msgstr "Beeldhouwen"
+
+
+msgid "Tool"
+msgstr "Gereedschap"
+
+
 msgid "Active Material"
 msgstr "Actieve Materiaal"
 
@@ -2700,10 +2712,6 @@ msgid "Add"
 msgstr "Toevoegen"
 
 
-msgid "Edit"
-msgstr "Bewerken"
-
-
 msgid "Converter"
 msgstr "Converteerder"
 
@@ -2807,10 +2815,6 @@ msgstr "Star Lichaam"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Sculpt"
-msgstr "Beeldhouwen"
 
 
 msgid "Local View"
@@ -3314,11 +3318,6 @@ msgstr "Verplaats Kanalen"
 
 
 msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Hernoem Kanalen"
-
-
-msgctxt "Operator"
 msgid "Disable Channel Setting"
 msgstr "Zet Kanaal Instellingen Uit"
 
@@ -3512,10 +3511,6 @@ msgstr "Rond"
 msgctxt "Operator"
 msgid "Reset Brush"
 msgstr "Reset Kwast"
-
-
-msgid "Tool"
-msgstr "Gereedschap"
 
 
 msgctxt "Operator"

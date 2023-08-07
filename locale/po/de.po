@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1016,6 +1016,22 @@ msgstr "Schilder"
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Benutzerdefiniertes Schild (Namenskürzel) für das Vermögen, verwendet für das Filtern und das generelle Vermögensmanagement"
+
+
+msgid "ID Name"
+msgstr "ID Name"
+
+
+msgid "Options"
+msgstr "Optionen"
+
+
+msgid "Display Filter"
+msgstr "Anzeigefilter"
+
+
+msgid "Show Names"
+msgstr "Namen anzeigen"
 
 
 msgid "Asset Tag"
@@ -5156,10 +5172,6 @@ msgstr "Eingabe-Farbraum"
 
 msgid "Color space in the image file, to convert to and from when saving and loading the image"
 msgstr "Farbraum in der Bilddatei, von dem oder in das Bild konvertiert wird, wenn das Bild gespeichert und geladen wird"
-
-
-msgid "Raw"
-msgstr "Raw"
 
 
 msgid "XYZ"
@@ -11577,10 +11589,6 @@ msgid "GizmoGroup"
 msgstr "GizmoGruppe"
 
 
-msgid "Options"
-msgstr "Optionen"
-
-
 msgid "Use in 3D viewport"
 msgstr "3D Ansichtsfenster verwenden"
 
@@ -11609,8 +11617,8 @@ msgid "Temporary"
 msgstr "Temporär"
 
 
-msgid "UI"
-msgstr "UI"
+msgid "Sidebar"
+msgstr "Seitenleiste"
 
 
 msgid "Tools"
@@ -15283,10 +15291,6 @@ msgid "Loops"
 msgstr "Schleifen"
 
 
-msgid "Loops of the mesh (polygon corners)"
-msgstr "Masse des Objekts"
-
-
 msgid "Polygons"
 msgstr "Polygone"
 
@@ -15479,10 +15483,6 @@ msgid "Index of the active output"
 msgstr "Index, der aktiven Ausgabe"
 
 
-msgid "ID Name"
-msgstr "ID Name"
-
-
 msgid "Label"
 msgstr "Beschriftung"
 
@@ -15597,6 +15597,26 @@ msgstr "GPU-Berechnung zulassen"
 
 msgid "Viewer Region"
 msgstr "Ansichtsregion"
+
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+
+msgid "Sculpt"
+msgstr "Skulptur"
+
+
+msgid "Tool"
+msgstr "Werkzeug"
+
+
+msgid "Mesh"
+msgstr "Masche"
+
+
+msgid "Point Cloud"
+msgstr "Punkt Wolke"
 
 
 msgid "Shader Node Tree"
@@ -16700,10 +16720,6 @@ msgstr "Partikel/Fläche"
 
 msgid "Virtual Parents"
 msgstr "Virtuelle Eltern"
-
-
-msgid "Point Cloud"
-msgstr "Punkt Wolke"
 
 
 msgid "Point cloud data-block"
@@ -20501,10 +20517,6 @@ msgid "NLA Context Menu"
 msgstr "NLA-Kontextmenü"
 
 
-msgid "Edit"
-msgstr "Bearbeiten"
-
-
 msgid "Converter"
 msgstr "Konverter"
 
@@ -20547,10 +20559,6 @@ msgstr "Schreiben"
 
 msgid "Instances"
 msgstr "Instanzen"
-
-
-msgid "Mesh"
-msgstr "Masche"
 
 
 msgid "Node"
@@ -20852,10 +20860,6 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Random Mask"
 msgstr "Zufällige Maske"
-
-
-msgid "Sculpt"
-msgstr "Skulptur"
 
 
 msgid "Mask Edit"
@@ -25012,10 +25016,6 @@ msgid "Despill Factor"
 msgstr "Dichte-Faktor"
 
 
-msgid "Matte dilate/erode side"
-msgstr "Maske Seite erweitern/verkleinern"
-
-
 msgid "Edge Kernel Radius"
 msgstr "Kantenradius"
 
@@ -25944,6 +25944,10 @@ msgstr "Oben rechts"
 
 msgid "Subdivide Mesh"
 msgstr "Masche unterteilen"
+
+
+msgid "Selection"
+msgstr "Auswahl"
 
 
 msgid "Translate Instances"
@@ -27381,8 +27385,8 @@ msgstr "Nach Unten"
 
 
 msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Kanäle umbenennen"
+msgid "Rename Channel"
+msgstr "Kanal umbenennen"
 
 
 msgid "Extend selection instead of deselecting everything first"
@@ -28120,10 +28124,6 @@ msgstr "Pinsel auf Voreinstellung, basierend auf aktivem Werkzeug, zurücksetzen
 
 msgid "Scalar"
 msgstr "Skalar"
-
-
-msgid "Tool"
-msgstr "Werkzeug"
 
 
 msgid "Translation"
@@ -29197,10 +29197,6 @@ msgstr "Aus Zwischenablage einfügen"
 
 msgid "Paste text from clipboard"
 msgstr "Text aus der Zwischenablage einfügen"
-
-
-msgid "Selection"
-msgstr "Auswahl"
 
 
 msgid "Information"
@@ -31551,14 +31547,6 @@ msgid "Grease Pencil Box Shape"
 msgstr "Wachsstift Feldform"
 
 
-msgid "Number of points by edge"
-msgstr "Anzahl der Punkte nach Kante"
-
-
-msgid "Number of subdivision by edges"
-msgstr "Anzahl der Unterteilung nach Kanten"
-
-
 msgid "Type of shape"
 msgstr "Typ der Form"
 
@@ -32874,11 +32862,6 @@ msgstr "Zeitmarker duplizieren"
 
 msgid "Duplicate selected time marker(s)"
 msgstr "Dupliziert ausgewählte Zeitmarker"
-
-
-msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "Verknüpfungen zu Szene erzeugen"
 
 
 msgid "Copy selected markers to another scene"
@@ -34205,10 +34188,6 @@ msgid "Select Faces by Sides"
 msgstr "Berichte nach Index auswählen"
 
 
-msgid "Select vertices or faces by the number of polygon sides"
-msgstr "Auswahl von Punkt, Kanten oder Flächen an der Begrenzung jeder ausgewählten Region aufheben"
-
-
 msgid "Number of Vertices"
 msgstr "Anzahl von Punkten"
 
@@ -34598,10 +34577,6 @@ msgstr "Streifen duplizieren"
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "Verknüpfte duplizieren"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "Ausgewählte Objekte duplizieren"
 
 
 msgid "Duplicate Strips"
@@ -39115,6 +39090,10 @@ msgid "Delete Data"
 msgstr "Daten löschen"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "Ausgewählte Objekte duplizieren"
+
+
 msgctxt "Operator"
 msgid "Add Effect Strip"
 msgstr "Effektstreifen hinzufügen"
@@ -39265,11 +39244,6 @@ msgstr "Streifen neu laden"
 
 msgid "Adjust Length"
 msgstr "Länge anpassen"
-
-
-msgctxt "Operator"
-msgid "Rename Channel"
-msgstr "Kanal umbenennen"
 
 
 msgctxt "Operator"
@@ -42547,6 +42521,14 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Refraction"
+msgstr "Strahlenbrechnung"
+
+
+msgid "Denoising"
+msgstr "Rauschreduzierung"
+
+
 msgid "Integrator Presets"
 msgstr "Integrator-Voreinstellungen"
 
@@ -42561,6 +42543,14 @@ msgstr "Viewport-Sampling-Vorgabe"
 
 msgid "View Object Types"
 msgstr "Objekttypen anzeigen"
+
+
+msgid "Film"
+msgstr "Film"
+
+
+msgid "Passes"
+msgstr "Durchgänge"
 
 
 msgid "Asset Metadata"
@@ -42684,10 +42674,6 @@ msgid "Post Processing"
 msgstr "Nachbearbeitung"
 
 
-msgid "Film"
-msgstr "Film"
-
-
 msgid "Pixel Filter"
 msgstr "Pixel Filter"
 
@@ -42710,10 +42696,6 @@ msgstr "Maximaler Aufprall"
 
 msgid "Shutter Curve"
 msgstr "Verschlusskurve"
-
-
-msgid "Passes"
-msgstr "Durchgänge"
 
 
 msgid "Performance"
@@ -48456,16 +48438,8 @@ msgid "Wipe Sequence"
 msgstr "Sequenzblende"
 
 
-msgid "Edge angle"
-msgstr "Kantenwinkel"
-
-
 msgid "Blur Width"
 msgstr "Skripte filtern"
-
-
-msgid "Wipe direction"
-msgstr "Blendenrichtung"
 
 
 msgctxt "Sequence"
@@ -49274,10 +49248,6 @@ msgid "Show search boundbox for markers"
 msgstr "Suchbegrenzung für Marker anzeigen"
 
 
-msgid "Show Names"
-msgstr "Namen anzeigen"
-
-
 msgid "Show track names and status"
 msgstr "Spurnamen und Zustand anzeigen"
 
@@ -49292,10 +49262,6 @@ msgstr "Rotkanal im Einzelbild anzeigen"
 
 msgid "Toolbar"
 msgstr "Werkzeugleiste"
-
-
-msgid "Sidebar"
-msgstr "Seitenleiste"
 
 
 msgid "Show Seconds"
@@ -49807,10 +49773,6 @@ msgstr "Nur aktives Objekt anzeigen"
 
 msgid "Show only selectable objects"
 msgstr "Nur selektierbare Objekte anzeigen"
-
-
-msgid "Display Filter"
-msgstr "Anzeigefilter"
 
 
 msgid "Live search filtering string"
@@ -53578,10 +53540,6 @@ msgid "Surfaces"
 msgstr "Oberfläche"
 
 
-msgid "Denoising"
-msgstr "Rauschreduzierung"
-
-
 msgid "Denoising Data"
 msgstr "Rauschreduzierungsdaten"
 
@@ -55688,10 +55646,6 @@ msgid "Auto-Step"
 msgstr "Auto-Schritt"
 
 
-msgid "Refraction"
-msgstr "Strahlenbrechnung"
-
-
 msgctxt "Operator"
 msgid "Bake Indirect Lighting"
 msgstr "Indirekte Beleuchtung backen"
@@ -56663,11 +56617,6 @@ msgstr "Umbenennen..."
 
 
 msgctxt "Operator"
-msgid "Linked Duplicate"
-msgstr "Verknüpftes Duplikat"
-
-
-msgctxt "Operator"
 msgid "Add Tracks Above Selected"
 msgstr "Spur über Auswahl hinzufügen"
 
@@ -56964,6 +56913,10 @@ msgstr "Position X"
 
 msgid "Convert to Float"
 msgstr "In Float umwandeln"
+
+
+msgid "Raw"
+msgstr "Raw"
 
 
 msgid "Storage"
@@ -61157,10 +61110,6 @@ msgstr "Kurven können im Bearbeitungsmodus nicht hinzugefügt werden"
 
 msgid "Cannot add loops in edit mode"
 msgstr "Schleifen können im Bearbeitungsmodus nicht hinzugefügt werden"
-
-
-msgid "Cannot add polygons in edit mode"
-msgstr "Polygone können im Bearbeitungsmodus nicht hinzugefügt werden"
 
 
 msgid "Cannot remove vertices in edit mode"

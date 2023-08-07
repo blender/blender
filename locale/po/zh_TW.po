@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -977,6 +977,26 @@ msgstr "骨架作用中編輯骨骼"
 
 msgid "Description"
 msgstr "描述"
+
+
+msgid "ID Name"
+msgstr "ID 名稱"
+
+
+msgid "Options"
+msgstr "選項"
+
+
+msgid "Space Type"
+msgstr "空間類型"
+
+
+msgid "Display Filter"
+msgstr "顯示過濾"
+
+
+msgid "Show Names"
+msgstr "顯示名稱"
 
 
 msgid "Data Type"
@@ -10633,10 +10653,6 @@ msgid "Basis Matrix"
 msgstr "基礎矩陣"
 
 
-msgid "Options"
-msgstr "選項"
-
-
 msgid "Persistent"
 msgstr "永恆"
 
@@ -10663,10 +10679,6 @@ msgstr "工具"
 
 msgid "Tool Properties"
 msgstr "工具屬性"
-
-
-msgid "Space Type"
-msgstr "空間類型"
 
 
 msgid "Modifier name"
@@ -13962,10 +13974,6 @@ msgid "Loops"
 msgstr "迴圈"
 
 
-msgid "Loops of the mesh (polygon corners)"
-msgstr "網格的迴圈 (多角形角落)"
-
-
 msgid "Polygons"
 msgstr "多角形"
 
@@ -14230,10 +14238,6 @@ msgid "Index of the active output"
 msgstr "作用中輸出的索引"
 
 
-msgid "ID Name"
-msgstr "ID 名稱"
-
-
 msgid "Label"
 msgstr "標籤"
 
@@ -14372,6 +14376,22 @@ msgstr "編輯時使用兩道通遞執行：第一道通遞計算快速節點，
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
 msgstr "為檢視器節點與合成背幕設定邊界"
+
+
+msgid "Edit"
+msgstr "編輯"
+
+
+msgid "Sculpt"
+msgstr "雕塑"
+
+
+msgid "Tool"
+msgstr "工具"
+
+
+msgid "Mesh"
+msgstr "網格"
 
 
 msgid "Shader Node Tree"
@@ -15859,10 +15879,6 @@ msgstr "序段編輯器色彩空間設定"
 
 msgid "Settings of color space sequencer is working in"
 msgstr "序段編輯器要在怎樣的色彩空間下運作之設定"
-
-
-msgid "Only Keyframes from Selected Channels"
-msgstr "僅顯示所選通道的鍵幀"
 
 
 msgid "Show Subframe"
@@ -18974,10 +18990,6 @@ msgid "Vertex Group Specials"
 msgstr "頂點群組特殊項"
 
 
-msgid "Edit"
-msgstr "編輯"
-
-
 msgid "Converter"
 msgstr "轉換器"
 
@@ -19016,10 +19028,6 @@ msgstr "特性"
 
 msgid "Instances"
 msgstr "實例化"
-
-
-msgid "Mesh"
-msgstr "網格"
 
 
 msgid "Node"
@@ -19222,10 +19230,6 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Sculpt"
-msgstr "雕塑"
-
-
 msgid "Automasking"
 msgstr "自動遮罩"
 
@@ -19362,44 +19366,20 @@ msgid "Polygon Area"
 msgstr "多角形區域"
 
 
-msgid "Read only area of this polygon"
-msgstr "此多角形的唯讀區域"
-
-
 msgid "Polygon Center"
 msgstr "多角形中心"
-
-
-msgid "Center of this polygon"
-msgstr "此多角形的中心"
-
-
-msgid "Index of this polygon"
-msgstr "此多角形的索引"
 
 
 msgid "Loop Start"
 msgstr "迴圈開始"
 
 
-msgid "Index of the first loop of this polygon"
-msgstr "此多角形的第一個迴圈索引"
-
-
 msgid "Loop Total"
 msgstr "迴圈總計"
 
 
-msgid "Number of loops used by this polygon"
-msgstr "此多角形使用的迴圈數"
-
-
 msgid "Polygon Normal"
 msgstr "多角形法向"
-
-
-msgid "Local space unit length normal vector for this polygon"
-msgstr "此多角形的區域空間單位長度法線向量"
 
 
 msgid "Freestyle Face Mark"
@@ -20136,10 +20116,6 @@ msgstr "傳輸 UV 分層"
 
 msgid "Poly Data Types"
 msgstr "Poly 資料類型"
-
-
-msgid "Which poly data layers to transfer"
-msgstr "要傳輸的 Poly 資料分層"
 
 
 msgid "Transfer flat/smooth mark"
@@ -24294,10 +24270,6 @@ msgid "Factor of despilling screen color from image"
 msgstr "從影像去除畫面色彩溢灑的係數"
 
 
-msgid "Matte dilate/erode side"
-msgstr "遮景片膨脹/腐蝕側"
-
-
 msgid "Edge Kernel Radius"
 msgstr "邊線內核半徑"
 
@@ -24901,6 +24873,10 @@ msgstr "Z 向上"
 
 msgid "Subdivide Mesh"
 msgstr "細分網格"
+
+
+msgid "Selection"
+msgstr "選取項"
 
 
 msgid "Angle Based"
@@ -26486,11 +26462,6 @@ msgid "To Bottom"
 msgstr "至底部"
 
 
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "重新命名通道"
-
-
 msgid "Rename animation channel under mouse"
 msgstr "重新命名在滑鼠之下的動畫通道"
 
@@ -26804,10 +26775,6 @@ msgstr "要設為可見的骨架分層"
 
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "根據其傾向的目標軸向自動重新命名所選骨骼"
-
-
-msgid "Axis tag names with"
-msgstr "要標記名稱用的軸"
 
 
 msgid "X-Axis"
@@ -27393,10 +27360,6 @@ msgid "Control the stencil brush"
 msgstr "控制油印蠟紙筆刷"
 
 
-msgid "Tool"
-msgstr "工具"
-
-
 msgid "Translation"
 msgstr "平移"
 
@@ -27583,10 +27546,6 @@ msgstr "清理軌道"
 
 msgid "Clean tracks with high error values or few frames"
 msgstr "清理具高錯誤值或極少幀數的軌道"
-
-
-msgid "Effect on tracks which are tracked less than specified amount of frames"
-msgstr "對追蹤少於指定幀數的軌道有作用"
 
 
 msgctxt "Operator"
@@ -28621,10 +28580,6 @@ msgstr "從剪貼簿貼上"
 
 msgid "Paste text from clipboard"
 msgstr "從剪貼簿貼上文字"
-
-
-msgid "Selection"
-msgstr "選取項"
 
 
 msgctxt "Operator"
@@ -31068,10 +31023,6 @@ msgid "Bakes a sound wave to selected F-Curves"
 msgstr "將聲音波形烘焙至選取的 F 曲線"
 
 
-msgid "Value for the hull curve calculation that tells how fast the hull curve can rise (the lower the value the steeper it can rise)"
-msgstr "殼曲線計算的值，用來描述殼曲線升起的速度有多快 (值越低，上升越陡)"
-
-
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
 msgstr "低通遞過濾器的切去頻率，會套用至音訊資料"
 
@@ -31080,28 +31031,12 @@ msgid "Cutoff frequency of a high-pass filter that is applied to the audio data"
 msgstr "高通遞過濾器的切去頻率，會套用至音訊資料"
 
 
-msgid "Value for the hull curve calculation that tells how fast the hull curve can fall (the lower the value the steeper it can fall)"
-msgstr "殼曲線計算的值，用來描述殼曲線落下的速度有多快 (值越低，落下越陡)"
-
-
 msgid "Square Threshold"
 msgstr "平方閾值"
 
 
 msgid "Square only: all values with an absolute amplitude lower than that result in 0"
 msgstr "僅平方：所有值的絕對振幅低於該值皆會為 0"
-
-
-msgid "Minimum amplitude value needed to influence the hull curve"
-msgstr "影響殼曲線的最小振幅值"
-
-
-msgid "Only the positive differences of the hull curve amplitudes are summarized to produce the output"
-msgstr "僅殼曲線振幅的正差異會總結並產生輸出"
-
-
-msgid "The amplitudes of the hull curve are summarized (or, when Accumulate is enabled, both positive and negative differences are accumulated)"
-msgstr "殼曲線的振幅會總結 (或者，當啟用「累加」時，正差異與負差異皆會積累)"
 
 
 msgid "The output is a square curve (negative values always result in -1, and positive ones in 1)"
@@ -31716,11 +31651,6 @@ msgstr "製作時間標記複本"
 
 msgid "Duplicate selected time marker(s)"
 msgstr "製作所選時間標記的複本"
-
-
-msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "建立至場景的連結"
 
 
 msgid "Copy selected markers to another scene"
@@ -33353,10 +33283,6 @@ msgid "Select Faces by Sides"
 msgstr "根據側面數選取面"
 
 
-msgid "Select vertices or faces by the number of polygon sides"
-msgstr "依多角形的側面數選取頂點或面"
-
-
 msgid "Number of Vertices"
 msgstr "頂點數量"
 
@@ -33945,17 +33871,9 @@ msgid "Duplicate Strips"
 msgstr "製作片段複本"
 
 
-msgid "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals"
-msgstr "製作所選 NLA 片段的複本，並在新的軌道中將新的片段置於原片段之前"
-
-
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "製作連結複本"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "製作所選片段的複本並移動它們"
 
 
 msgid "Duplicate Strips"
@@ -39245,6 +39163,10 @@ msgid "Duplicate the selected strips"
 msgstr "為選取的片段製作複本"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "製作所選片段的複本並移動它們"
+
+
 msgid "Slide a sequence strip in time"
 msgstr "在一定時間內滑動序段片段"
 
@@ -40395,10 +40317,6 @@ msgstr "序段滑動"
 msgctxt "Operator"
 msgid "Shear"
 msgstr "切變"
-
-
-msgid "Shear selected items along the horizontal screen axis"
-msgstr "沿著水平螢幕軸讓所選項目發生切變"
 
 
 msgctxt "Operator"
@@ -43126,10 +43044,6 @@ msgid "Use only deformation modifiers (temporary disable all constructive modifi
 msgstr "僅使用變形修改器 (暫時停用所有建立性修改器，多解析度修改器除外)"
 
 
-msgid "Show faces in dynamic-topology mode with smooth shading rather than flat shaded"
-msgstr "在動態拓樸模式中以平滑著色方式而非扁平著色方式來顯示面"
-
-
 msgid "UV Sculpting"
 msgstr "UV 雕塑"
 
@@ -43150,12 +43064,24 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Refraction"
+msgstr "折射"
+
+
 msgid "Integrator Presets"
 msgstr "整合器預置"
 
 
 msgid "Sampling Presets"
 msgstr "取樣預置"
+
+
+msgid "Film"
+msgstr "底片"
+
+
+msgid "Passes"
+msgstr "通遞數"
 
 
 msgid "Chain Scaling"
@@ -43255,10 +43181,6 @@ msgid "Post Processing"
 msgstr "後製"
 
 
-msgid "Film"
-msgstr "底片"
-
-
 msgid "Pixel Filter"
 msgstr "像素過濾器"
 
@@ -43273,10 +43195,6 @@ msgstr "光徑"
 
 msgid "Max Bounces"
 msgstr "最大反彈數"
-
-
-msgid "Passes"
-msgstr "通遞數"
 
 
 msgid "Performance"
@@ -48158,20 +48076,8 @@ msgid "Sequence strip creating a wipe transition"
 msgstr "建立一個擦除過渡效果的序段片段"
 
 
-msgid "Edge angle"
-msgstr "邊線角度"
-
-
 msgid "Blur Width"
 msgstr "模糊寬度"
-
-
-msgid "Width of the blur edge, in percentage relative to the image size"
-msgstr "模糊邊線的寬度，採相對於影像大小的百分比"
-
-
-msgid "Wipe direction"
-msgstr "擦除方向"
 
 
 msgid "Sequence strip to load one or more images"
@@ -49119,10 +49025,6 @@ msgid "Show Mask Overlay"
 msgstr "顯示遮罩疊層"
 
 
-msgid "Show Names"
-msgstr "顯示名稱"
-
-
 msgid "Show track names and status"
 msgstr "顯示軌道名稱與狀態"
 
@@ -49816,10 +49718,6 @@ msgstr "資料 API"
 
 msgid "Orphan Data"
 msgstr "孤兒資料"
-
-
-msgid "Display Filter"
-msgstr "顯示過濾"
 
 
 msgid "Live search filtering string"
@@ -53966,10 +53864,6 @@ msgid "Auto-Step"
 msgstr "自動步進"
 
 
-msgid "Refraction"
-msgstr "折射"
-
-
 msgid "Paths:"
 msgstr "路徑："
 
@@ -54409,11 +54303,6 @@ msgstr "切換全螢幕區域"
 msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "軌道排序處理..."
-
-
-msgctxt "Operator"
-msgid "Linked Duplicate"
-msgstr "已連結複本"
 
 
 msgctxt "Operator"
@@ -57385,10 +57274,6 @@ msgstr "無法在編輯模式中添加邊線"
 
 msgid "Cannot add loops in edit mode"
 msgstr "無法在編輯中添加線圈"
-
-
-msgid "Cannot add polygons in edit mode"
-msgstr "無法在編輯模式中添加多角形"
 
 
 msgid "Cannot remove vertices in edit mode"

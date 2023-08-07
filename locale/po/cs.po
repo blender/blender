@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -984,6 +984,26 @@ msgstr "Popis"
 
 msgid "Tags"
 msgstr "Tagy"
+
+
+msgid "ID Name"
+msgstr "Zobrazit tvar"
+
+
+msgid "Options"
+msgstr "Nastavení"
+
+
+msgid "Space Type"
+msgstr "Stejné typy"
+
+
+msgid "Display Filter"
+msgstr "Filtr Zobrazení"
+
+
+msgid "Show Names"
+msgstr "Zobrazit tvar"
 
 
 msgid "Geometry attribute"
@@ -7896,10 +7916,6 @@ msgid "GizmoGroup"
 msgstr "GizmoSkupina"
 
 
-msgid "Options"
-msgstr "Nastavení"
-
-
 msgid "Region Type"
 msgstr "Typ oblasti"
 
@@ -7916,6 +7932,10 @@ msgid "Temporary"
 msgstr "Dočasné"
 
 
+msgid "Sidebar"
+msgstr "Postranní panel"
+
+
 msgid "Tools"
 msgstr "Nástroje"
 
@@ -7926,10 +7946,6 @@ msgstr "Vlastnosti"
 
 msgid "Footer"
 msgstr "Zápatí"
-
-
-msgid "Space Type"
-msgstr "Stejné typy"
 
 
 msgid "Modifier name"
@@ -10516,10 +10532,6 @@ msgid "Proxy Custom Directory"
 msgstr "Adresář zvuků"
 
 
-msgid "ID Name"
-msgstr "Zobrazit tvar"
-
-
 msgid "Label"
 msgstr "Úroveň"
 
@@ -10630,6 +10642,26 @@ msgstr "Dva průchody"
 
 msgid "Geometry Node Tree"
 msgstr "Větvení Geometrických Uzlů"
+
+
+msgid "Edit"
+msgstr "Upravit"
+
+
+msgid "Sculpt"
+msgstr "Tesat"
+
+
+msgid "Tool"
+msgstr "Nástroje"
+
+
+msgid "Mesh"
+msgstr "Síť"
+
+
+msgid "Point Cloud"
+msgstr "Bodový Mrak"
 
 
 msgid "Shader Node Tree"
@@ -11601,10 +11633,6 @@ msgstr "Virtuální Nadřazený"
 
 msgid "Relative amount of virtual parents"
 msgstr "Normální rodičovská vazba"
-
-
-msgid "Point Cloud"
-msgstr "Bodový Mrak"
 
 
 msgid "Active Movie Clip"
@@ -14302,10 +14330,6 @@ msgid "Vertex Group Specials"
 msgstr "Skupina vertexů"
 
 
-msgid "Edit"
-msgstr "Upravit"
-
-
 msgid "Converter"
 msgstr "Převodník"
 
@@ -14340,10 +14364,6 @@ msgstr "Atribut"
 
 msgid "Instances"
 msgstr "Instance"
-
-
-msgid "Mesh"
-msgstr "Síť"
 
 
 msgid "Node"
@@ -14515,10 +14535,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Sculpt"
-msgstr "Tesat"
-
-
 msgid "Clone Layer"
 msgstr "Vyberte renderovanou vrstvu"
 
@@ -14609,10 +14625,6 @@ msgstr "Mnohoúhelník"
 
 msgid "Polygon Center"
 msgstr "Střed Polygonu"
-
-
-msgid "Center of this polygon"
-msgstr "Střed tohoto polygonu"
 
 
 msgid "Loop Start"
@@ -17976,6 +17988,10 @@ msgid "Z Up"
 msgstr "Posun nahoru"
 
 
+msgid "Selection"
+msgstr "Výběr"
+
+
 msgid "Angle Based"
 msgstr "Přivlastnění"
 
@@ -19258,11 +19274,6 @@ msgid "To Bottom"
 msgstr "Dole"
 
 
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Odstranit uzly"
-
-
 msgid "Rename animation channel under mouse"
 msgstr "Vytvořit nový soubor"
 
@@ -20008,10 +20019,6 @@ msgstr "Prohlížet štětce"
 
 msgid "Scalar"
 msgstr "Změna velikosti"
-
-
-msgid "Tool"
-msgstr "Nástroje"
 
 
 msgid "Translation"
@@ -20921,10 +20928,6 @@ msgstr "Kopírovat barvu"
 
 msgid "Paste text from clipboard"
 msgstr "Vložit text ze schránky"
-
-
-msgid "Selection"
-msgstr "Výběr"
 
 
 msgctxt "Operator"
@@ -23564,11 +23567,6 @@ msgid "Duplicate selected time marker(s)"
 msgstr "Odstranit označené Objekt(y)"
 
 
-msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "Vytvořit propojení ke scéně"
-
-
 msgid "Copy selected markers to another scene"
 msgstr "Konvertuje označené trojúhlníky na čtyřúhelníky"
 
@@ -24904,10 +24902,6 @@ msgid "Select Faces by Sides"
 msgstr "Vyberte typ textury"
 
 
-msgid "Select vertices or faces by the number of polygon sides"
-msgstr "Odznačit vertexy patřící do aktuální skupiny vertexů"
-
-
 msgid "Equal To"
 msgstr "Rovná se"
 
@@ -25347,10 +25341,6 @@ msgstr "Duplikovat značku"
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "Zdvojit připojené"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "Zdvojí vybrané objekty"
 
 
 msgid "Duplicate Strips"
@@ -29446,6 +29436,10 @@ msgid "Duplicate the selected strips"
 msgstr "Odstranit označené značky"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "Zdvojí vybrané objekty"
+
+
 msgctxt "Operator"
 msgid "Add Effect Strip"
 msgstr "NLA Proužky"
@@ -30414,10 +30408,6 @@ msgstr "Vybrat orientaci transformací"
 msgctxt "Operator"
 msgid "Shear"
 msgstr "Zkosit"
-
-
-msgid "Shear selected items along the horizontal screen axis"
-msgstr "Zkosí vybrané předměty podél vodorovné osy obrazovky"
 
 
 msgctxt "Operator"
@@ -32532,6 +32522,14 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Refraction"
+msgstr "Lom"
+
+
+msgid "Denoising"
+msgstr "Odstranění šumu"
+
+
 msgid "Integrator Presets"
 msgstr "Generátory"
 
@@ -32542,6 +32540,14 @@ msgstr "Přednastavení vzorkování"
 
 msgid "View Object Types"
 msgstr "Zobrazit Typy Objektů"
+
+
+msgid "Film"
+msgstr "Film"
+
+
+msgid "Passes"
+msgstr "Průchody"
 
 
 msgid "Asset Metadata"
@@ -32665,10 +32671,6 @@ msgid "Ray Visibility"
 msgstr "Viditelnost Ray paprsku"
 
 
-msgid "Film"
-msgstr "Film"
-
-
 msgid "Pixel Filter"
 msgstr "Filter Pixelů"
 
@@ -32691,10 +32693,6 @@ msgstr "Maximální Počet Odrazů"
 
 msgid "Shutter Curve"
 msgstr "Křivka Závěrky"
-
-
-msgid "Passes"
-msgstr "Průchody"
 
 
 msgid "Performance"
@@ -36979,16 +36977,8 @@ msgid "Sequence strip creating a wipe transition"
 msgstr "Přidat vazbu aktivní kosti"
 
 
-msgid "Edge angle"
-msgstr "Zobrazit nastaveni hran"
-
-
 msgid "Blur Width"
 msgstr "Filtr skriptů"
-
-
-msgid "Wipe direction"
-msgstr "Překlopit směr"
 
 
 msgid "Mask Sequence"
@@ -37585,10 +37575,6 @@ msgid "Show Marker Search"
 msgstr "Vybrat klíče"
 
 
-msgid "Show Names"
-msgstr "Zobrazit tvar"
-
-
 msgid "Show track names and status"
 msgstr "Ukáže čísla snímků na cestě pohybu"
 
@@ -37607,10 +37593,6 @@ msgstr "Upravit poslední operaci"
 
 msgid "Toolbar"
 msgstr "Panelu nástrojů"
-
-
-msgid "Sidebar"
-msgstr "Postranní panel"
 
 
 msgid "Show Seconds"
@@ -38043,10 +38025,6 @@ msgstr "Otevřít Blender soubor"
 msgctxt "ID"
 msgid "Filter by Type"
 msgstr "Filtrovat podle Typu"
-
-
-msgid "Display Filter"
-msgstr "Filtr Zobrazení"
 
 
 msgid "Show Object Children"
@@ -40380,10 +40358,6 @@ msgid "Surfaces"
 msgstr "Povrchy"
 
 
-msgid "Denoising"
-msgstr "Odstranění šumu"
-
-
 msgid "Pipeline"
 msgstr "Pipeline"
 
@@ -41524,10 +41498,6 @@ msgstr "Automaticky"
 
 msgid "Light Clamping"
 msgstr "Svorka Světla"
-
-
-msgid "Refraction"
-msgstr "Lom"
 
 
 msgid "Cascade Size"
@@ -45398,10 +45368,6 @@ msgid "Cannot add loops in edit mode"
 msgstr "Nelze přidat smyčky v režimu úprav"
 
 
-msgid "Cannot add polygons in edit mode"
-msgstr "Nelze přidat mnohoúhelníky v režimu úprav"
-
-
 msgid "Cannot remove vertices in edit mode"
 msgstr "Nelze odebrat vrcholy v režimu úprav"
 
@@ -45965,12 +45931,12 @@ msgid "No active camera set"
 msgstr "Přidat primitivum"
 
 
-msgid "No active vertex group for painting, aborting"
-msgstr "Odstranit skupinu vertexů"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Skupina pro akce je zamčena"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Odstranit skupinu vertexů"
 
 
 msgid "Warning!"

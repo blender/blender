@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -1173,6 +1173,10 @@ msgstr "Varlık Temsili"
 
 msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
 msgstr "Varlık sisteminin bu mülkü bir varlık olarak ele almasını olanaklı kılan varlık bilgisi"
+
+
+msgid "Options"
+msgstr "Seçenekler"
 
 
 msgid "Asset Tag"
@@ -5385,10 +5389,6 @@ msgid "UV Scale"
 msgstr "UV Ölçek"
 
 
-msgid "Options"
-msgstr "Seçenekler"
-
-
 msgid "Window"
 msgstr "Pencere"
 
@@ -5815,6 +5815,22 @@ msgid "Edit Quality"
 msgstr "Kaliteyi Düzenle"
 
 
+msgid "Edit"
+msgstr "Düzen"
+
+
+msgid "Tool"
+msgstr "Araç"
+
+
+msgid "Mesh"
+msgstr "Örgü"
+
+
+msgid "Point Cloud"
+msgstr "Nokta Bulutu"
+
+
 msgid "Data"
 msgstr "Veri"
 
@@ -5985,10 +6001,6 @@ msgstr "Hale"
 
 msgid "Twist"
 msgstr "Bük"
-
-
-msgid "Point Cloud"
-msgstr "Nokta Bulutu"
 
 
 msgid "3D Cursor"
@@ -6332,10 +6344,6 @@ msgid "Add"
 msgstr "Ekle"
 
 
-msgid "Edit"
-msgstr "Düzen"
-
-
 msgid "Distort"
 msgstr "Çarpıt"
 
@@ -6354,10 +6362,6 @@ msgstr "Düğüm Bağlam Menüsü"
 
 msgid "Instances"
 msgstr "Örnekler"
-
-
-msgid "Mesh"
-msgstr "Örgü"
 
 
 msgctxt "Operator"
@@ -6796,8 +6800,8 @@ msgstr "Etkin"
 
 
 msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Kanalları Yeniden Adlandır"
+msgid "Rename Channel"
+msgstr "Kanalı Yeniden Adlandır"
 
 
 msgid "Rename animation channel under mouse"
@@ -6854,10 +6858,6 @@ msgstr "Etkin varlığı içeren harman dosyasını aç"
 msgctxt "Operator"
 msgid "Curve Falloff Preset"
 msgstr "Eğri Düşüş Önayarı"
-
-
-msgid "Tool"
-msgstr "Araç"
 
 
 msgid "Translation"
@@ -7828,11 +7828,6 @@ msgstr "Sekans düzenleyicisini yenile"
 
 
 msgctxt "Operator"
-msgid "Rename Channel"
-msgstr "Kanalı Yeniden Adlandır"
-
-
-msgctxt "Operator"
 msgid "Update Scene Frame Range"
 msgstr "Sahne Kare Erimini Güncelle"
 
@@ -8467,6 +8462,10 @@ msgid "UV Sculpting"
 msgstr "UV Yontması"
 
 
+msgid "Refraction"
+msgstr "Kırılma"
+
+
 msgid "Viewport Sampling Presets"
 msgstr "Görüş Alanı Örnekleme Önayarları"
 
@@ -9064,13 +9063,13 @@ msgid "Display general information"
 msgstr "Genel bilgiyi görüntüle"
 
 
-msgid "Show Grease Pencil"
-msgstr "Gres Kalemini Göster"
-
-
 msgctxt "ID"
 msgid "Tool"
 msgstr "Araç"
+
+
+msgid "Show Grease Pencil"
+msgstr "Gres Kalemini Göster"
 
 
 msgid "Active Tool and Workspace settings"
@@ -9584,10 +9583,6 @@ msgstr "Yeni"
 
 msgid "Date"
 msgstr "Tarih"
-
-
-msgid "Refraction"
-msgstr "Kırılma"
 
 
 msgid "Render Engine"

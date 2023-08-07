@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2453,10 +2453,6 @@ msgid "Non-Color"
 msgstr "Väritön"
 
 
-msgid "Raw"
-msgstr "Raaka"
-
-
 msgid "XYZ"
 msgstr "XYZ"
 
@@ -4717,6 +4713,14 @@ msgid "Normals"
 msgstr "Normaalit"
 
 
+msgid "Sculpt"
+msgstr "Veistä"
+
+
+msgid "Mesh"
+msgstr "Muoto"
+
+
 msgid "Mirror Object"
 msgstr "Peilaa objekti"
 
@@ -4785,10 +4789,6 @@ msgstr "Kirjoita"
 
 msgid "Instances"
 msgstr "Instanssit"
-
-
-msgid "Mesh"
-msgstr "Muoto"
 
 
 msgid "Node"
@@ -4890,10 +4890,6 @@ msgstr "Valoluotain"
 
 msgid "Random Mask"
 msgstr "Satunnainen maski"
-
-
-msgid "Sculpt"
-msgstr "Veistä"
 
 
 msgid "UV Mapping"
@@ -6358,6 +6354,10 @@ msgid "Join Strings"
 msgstr "Yhdistä merkkijonot"
 
 
+msgid "Selection"
+msgstr "Valinta"
+
+
 msgid "Pack UV Islands"
 msgstr "Pakkaa UV-saaret"
 
@@ -6705,10 +6705,6 @@ msgstr "Aktiivinen muunnin"
 
 msgid "Only Channel"
 msgstr "Vain kanava"
-
-
-msgid "Selection"
-msgstr "Valinta"
 
 
 msgid "Output A"
@@ -8358,6 +8354,10 @@ msgid "Empties"
 msgstr "Tyhjät"
 
 
+msgid "Raw"
+msgstr "Raaka"
+
+
 msgctxt "Operator"
 msgid "Mask..."
 msgstr "Maski..."
@@ -9448,10 +9448,6 @@ msgstr "Reunoja ei voida lisätä muokkaustilassa"
 
 msgid "Cannot add loops in edit mode"
 msgstr "Silmukoita ei voida lisätä muokkaustilassa"
-
-
-msgid "Cannot add polygons in edit mode"
-msgstr "Monikulmioita ei voida lisätä muokkaustilassa"
 
 
 msgid "Cannot remove vertices in edit mode"
@@ -11578,46 +11574,6 @@ msgstr "16:9"
 
 msgid "4:3 in 16:9"
 msgstr "4:3 in 16:9"
-
-
-msgid "apple"
-msgstr "omena"
-
-
-msgid "chicken"
-msgstr "kana"
-
-
-msgid "cream"
-msgstr "kerma"
-
-
-msgid "ketchup"
-msgstr "ketsuppi"
-
-
-msgid "marble"
-msgstr "marmori"
-
-
-msgid "potato"
-msgstr "peruna"
-
-
-msgid "skim milk"
-msgstr "rasvaton maito"
-
-
-msgid "skin1"
-msgstr "iho1"
-
-
-msgid "skin2"
-msgstr "iho2"
-
-
-msgid "whole milk"
-msgstr "täysmaito"
 
 
 msgid "Blurry Footage"

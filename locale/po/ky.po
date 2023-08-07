@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -1128,6 +1128,18 @@ msgid "OpenCL"
 msgstr "OpenCL"
 
 
+msgid "Edit"
+msgstr "Оңдоо"
+
+
+msgid "Tool"
+msgstr "Аспап"
+
+
+msgid "Mesh"
+msgstr "Политор"
+
+
 msgid "Active Material"
 msgstr "Активдүү материал"
 
@@ -1403,16 +1415,8 @@ msgid "Add"
 msgstr "Кошуу"
 
 
-msgid "Edit"
-msgstr "Оңдоо"
-
-
 msgid "Text"
 msgstr "Текст"
-
-
-msgid "Mesh"
-msgstr "Политор"
 
 
 msgid "Node"
@@ -1634,11 +1638,6 @@ msgid "Move Channels"
 msgstr "Каналдарды ташуу"
 
 
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Каналдардын аттарын өзгөртүү"
-
-
 msgid "Move"
 msgstr "Ташуу"
 
@@ -1656,10 +1655,6 @@ msgstr "Бөлүү"
 msgctxt "Curve"
 msgid "Mode"
 msgstr "Режим"
-
-
-msgid "Tool"
-msgstr "Аспап"
 
 
 msgctxt "Operator"
@@ -2673,6 +2668,10 @@ msgid "New World"
 msgstr "Жаңы дүйнө"
 
 
+msgid "Film"
+msgstr "Тасма"
+
+
 msgid "Solve"
 msgstr "Чечим"
 
@@ -2683,10 +2682,6 @@ msgstr "Трекингдин ырастоолору"
 
 msgid "Post Processing"
 msgstr "Постиштетүү"
-
-
-msgid "Film"
-msgstr "Тасма"
 
 
 msgid "Performance"

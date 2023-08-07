@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -848,6 +848,26 @@ msgstr "Autore"
 
 msgid "Description"
 msgstr "Descrizione"
+
+
+msgid "ID Name"
+msgstr "Nome ID"
+
+
+msgid "Options"
+msgstr "Opzioni"
+
+
+msgid "Space Type"
+msgstr "Tipo Spazio"
+
+
+msgid "Display Filter"
+msgstr "Mostra Filtro"
+
+
+msgid "Show Names"
+msgstr "Mostra Nomi"
 
 
 msgid "Data Type"
@@ -9625,10 +9645,6 @@ msgid "Grab Cursor"
 msgstr "Muovi Cursore"
 
 
-msgid "Options"
-msgstr "Opzioni"
-
-
 msgid "Use in 3D viewport"
 msgstr "Usa nella vista 3D"
 
@@ -9653,16 +9669,16 @@ msgid "Temporary"
 msgstr "Temporaneo"
 
 
+msgid "Sidebar"
+msgstr "Barra Laterale"
+
+
 msgid "Tools"
 msgstr "Strumenti"
 
 
 msgid "Tool Properties"
 msgstr "Proprietà Strumento"
-
-
-msgid "Space Type"
-msgstr "Tipo Spazio"
 
 
 msgid "Modifier name"
@@ -12706,10 +12722,6 @@ msgid "Loops"
 msgstr "Cicli"
 
 
-msgid "Loops of the mesh (polygon corners)"
-msgstr "Anelli della mesh"
-
-
 msgid "Polygons"
 msgstr "Poligoni"
 
@@ -12898,10 +12910,6 @@ msgid "Index of the active output"
 msgstr "Indice dell'output attivo"
 
 
-msgid "ID Name"
-msgstr "Nome ID"
-
-
 msgid "Label"
 msgstr "Etichetta"
 
@@ -13028,6 +13036,22 @@ msgstr "Usa l'esecuzione di due passaggi durante la modifica: il primo passaggio
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
 msgstr "Usa i bordi per i nodi di visualizzazione e la composizione sullo sfondo"
+
+
+msgid "Edit"
+msgstr "Modifica"
+
+
+msgid "Sculpt"
+msgstr "Scultura"
+
+
+msgid "Tool"
+msgstr "Strumento"
+
+
+msgid "Mesh"
+msgstr "Mesh"
 
 
 msgid "Shader Node Tree"
@@ -14511,10 +14535,6 @@ msgstr "Editor Sequenza"
 
 msgid "Sequencer Color Space Settings"
 msgstr "Impostazioni Spazio Colore Sequencer"
-
-
-msgid "Only Keyframes from Selected Channels"
-msgstr "Solo Fotogrammi Chiave dai Canali Selezionati"
 
 
 msgid "Show Subframe"
@@ -18206,10 +18226,6 @@ msgid "Vertex Group Specials"
 msgstr "Gruppo Vertici Speciali"
 
 
-msgid "Edit"
-msgstr "Modifica"
-
-
 msgid "Converter"
 msgstr "Converti"
 
@@ -18240,10 +18256,6 @@ msgstr "Primitive"
 
 msgid "Attribute"
 msgstr "Attributo"
-
-
-msgid "Mesh"
-msgstr "Mesh"
 
 
 msgid "Node"
@@ -18495,10 +18507,6 @@ msgid "Proportional Editing Falloff"
 msgstr "Decadimento Modifica Proporzionale"
 
 
-msgid "Sculpt"
-msgstr "Scultura"
-
-
 msgid "Clone Layer"
 msgstr "Livello Clone"
 
@@ -18663,20 +18671,8 @@ msgid "Polygon Area"
 msgstr "Area Poligono"
 
 
-msgid "Read only area of this polygon"
-msgstr "Area del poligono in sola lettura"
-
-
 msgid "Polygon Center"
 msgstr "Centro Poligono"
-
-
-msgid "Center of this polygon"
-msgstr "Centro di questo poligono"
-
-
-msgid "Index of this polygon"
-msgstr "Indice di questo poligono"
 
 
 msgid "Loop Start"
@@ -18701,10 +18697,6 @@ msgstr "Poligoni Mesh"
 
 msgid "Active Polygon"
 msgstr "Poligono Attivo"
-
-
-msgid "The active polygon for this mesh"
-msgstr "Il poligono attivo di questa mesh"
 
 
 msgid "Skin Vertex"
@@ -19503,10 +19495,6 @@ msgid "Poly Data Types"
 msgstr "Tipi Dati Poly"
 
 
-msgid "Which poly data layers to transfer"
-msgstr "Quali livelli di dati poly trasferire"
-
-
 msgid "Transfer flat/smooth mark"
 msgstr "Trasferisce la marcatura piatta/levigata"
 
@@ -19651,24 +19639,12 @@ msgid "Copy from nearest corner which has the face with the best matching normal
 msgstr "Copia dall'angolo più vicino che ha la normale della faccia più corrispondente a quella degli angoli della faccia di destinazione"
 
 
-msgid "Copy from nearest corner of nearest polygon"
-msgstr "Copia dall'angolo più vicino del poligono più vicino"
-
-
 msgid "Nearest Face Interpolated"
 msgstr "Faccia Più Vicina Interpolata"
 
 
-msgid "Copy from interpolated corners of the nearest source polygon"
-msgstr "Usa il punto più vicino della faccia più vicina della sorgente, interpolando i dati da tutti quegli angoli delle facce della sorgente"
-
-
 msgid "Projected Face Interpolated"
 msgstr "Faccia Proiettata Interpolata"
-
-
-msgid "Copy from interpolated corners of the source polygon hit by corner normal projection"
-msgstr "Usa il punto della faccia sulla sorgente colpito dalla proiezione dell'angolo di destinazione lungo la propria normale, interpolando i dati da tutti quegli angoli delle facce della sorgente"
 
 
 msgid "Max Distance"
@@ -19735,16 +19711,8 @@ msgid "Nearest Face"
 msgstr "Faccia Più Vicina"
 
 
-msgid "Copy from nearest polygon (using center points)"
-msgstr "Copia dal poligono più vicino (usando punti centrali)"
-
-
 msgid "Best Normal-Matching"
 msgstr "Miglior Corrispondenza Normali"
-
-
-msgid "Copy from source polygon which normal is the closest to destination one"
-msgstr "Copia dal poligono della sorgente la cui normale è la più vicina a quella di destinazione"
 
 
 msgid "Interpolate all source polygons intersected by the projection of destination one along its own normal"
@@ -23660,6 +23628,10 @@ msgid "Z Up"
 msgstr "Z In Alto"
 
 
+msgid "Selection"
+msgstr "Selezione"
+
+
 msgid "Pack UV Islands"
 msgstr "Compatta Isole UV"
 
@@ -25197,11 +25169,6 @@ msgid "To Bottom"
 msgstr "Al Fondo"
 
 
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "Rinomina Canali"
-
-
 msgid "Rename animation channel under mouse"
 msgstr "Rinomina il canale di animazione sotto il mouse"
 
@@ -25491,10 +25458,6 @@ msgstr "Livelli armatura da rendere visibili"
 
 msgid "Automatically renames the selected bones according to which side of the target axis they fall on"
 msgstr "Rinomina automaticamente le ossa selezionate in accordo a quale lato dell'asse bersaglio cadono"
-
-
-msgid "Axis tag names with"
-msgstr "Contrassegna nomi degli assi con"
 
 
 msgid "X-Axis"
@@ -26151,10 +26114,6 @@ msgstr "Fattore di scala di grandezza del pennello"
 msgctxt "Operator"
 msgid "Stencil Brush Control"
 msgstr "Controllo Stencil Pennello"
-
-
-msgid "Tool"
-msgstr "Strumento"
 
 
 msgid "Translation"
@@ -27186,10 +27145,6 @@ msgstr "Incolla dagli Appunti"
 
 msgid "Paste text from clipboard"
 msgstr "Incolla il testo dagli appunti"
-
-
-msgid "Selection"
-msgstr "Selezione"
 
 
 msgctxt "Operator"
@@ -29428,10 +29383,6 @@ msgid "Set Cyclical State"
 msgstr "Imposta Stato Ciclico"
 
 
-msgid "Close or open the selected stroke adding an edge from last to first point"
-msgstr "Chiude o apre il tratto selezionato aggiungendo uno spigolo fra l'ultimo ed il primo punto"
-
-
 msgctxt "Operator"
 msgid "Flip Stroke"
 msgstr "Ribalta Tratto"
@@ -30505,11 +30456,6 @@ msgstr "Duplica Marcatore Tempo"
 
 msgid "Duplicate selected time marker(s)"
 msgstr "Duplica il marcatore(i) del tempo selezionato"
-
-
-msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "Crea Collegamento alla Scena"
 
 
 msgid "Copy selected markers to another scene"
@@ -32151,10 +32097,6 @@ msgid "Select Faces by Sides"
 msgstr "Seleziona Facce per N° di Lati"
 
 
-msgid "Select vertices or faces by the number of polygon sides"
-msgstr "Seleziona vertici o facce con lo stesso numero di lati poligonali"
-
-
 msgid "Number of Vertices"
 msgstr "Numero di Vertici"
 
@@ -32753,17 +32695,9 @@ msgid "Duplicate Strips"
 msgstr "Duplica Spezzoni"
 
 
-msgid "Duplicate selected NLA-Strips, adding the new strips in new tracks above the originals"
-msgstr "Duplica le NLA-Strips selezionate, aggiungendo le strips duplicate in nuove tracce sopra le originali"
-
-
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "Duplica e Collega"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "Duplica gli spezzoni selezionati e muovili"
 
 
 msgid "Duplicate Strips"
@@ -37917,6 +37851,10 @@ msgid "Duplicate the selected strips"
 msgstr "Duplica gli spezzoni selezionati"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "Duplica gli spezzoni selezionati e muovili"
+
+
 msgid "Slide a sequence strip in time"
 msgstr "Scorre lungo il tempo una strip di sequenza"
 
@@ -39109,10 +39047,6 @@ msgstr "Scorri Sequenza"
 msgctxt "Operator"
 msgid "Shear"
 msgstr "Inclina"
-
-
-msgid "Shear selected items along the horizontal screen axis"
-msgstr "Inclina gli elementi selezionati lungo l'asse orizzontale dello schermo"
 
 
 msgctxt "Operator"
@@ -41873,12 +41807,28 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Refraction"
+msgstr "Rifrazione"
+
+
+msgid "Denoising"
+msgstr "Riduzione Rumore"
+
+
 msgid "Integrator Presets"
 msgstr "Preimpostazioni Integratore"
 
 
 msgid "Sampling Presets"
 msgstr "Preimpostazioni Campionatura"
+
+
+msgid "Film"
+msgstr "Film"
+
+
+msgid "Passes"
+msgstr "Passaggi"
 
 
 msgid "Bone Constraints"
@@ -41970,10 +41920,6 @@ msgid "Post Processing"
 msgstr "Post Elaborazione"
 
 
-msgid "Film"
-msgstr "Film"
-
-
 msgid "Pixel Filter"
 msgstr "Filtro Pixel"
 
@@ -41992,10 +41938,6 @@ msgstr "Rimbalzi Massimi"
 
 msgid "Shutter Curve"
 msgstr "Curva Otturatore"
-
-
-msgid "Passes"
-msgstr "Passaggi"
 
 
 msgid "Performance"
@@ -42328,16 +42270,16 @@ msgid "Shadows"
 msgstr "Ombre"
 
 
-msgid "Screen Space Reflections"
-msgstr "Riflessioni Spazio Schermo"
-
-
 msgid "Volumetrics"
 msgstr "Volumetrie"
 
 
 msgid "Volumetric Lighting"
 msgstr "Illuminazione Volumetrica"
+
+
+msgid "Screen Space Reflections"
+msgstr "Riflessioni Spazio Schermo"
 
 
 msgid "Volumetric Shadows"
@@ -47100,16 +47042,8 @@ msgid "Sequence strip creating a wipe transition"
 msgstr "Spezzone di sequenza che crea un effetto tendina"
 
 
-msgid "Edge angle"
-msgstr "Angolo spigolo"
-
-
 msgid "Blur Width"
 msgstr "Larghezza Sfocatura"
-
-
-msgid "Wipe direction"
-msgstr "Direzione tendina"
 
 
 msgid "Mask Sequence"
@@ -47817,10 +47751,6 @@ msgid "Show search boundbox for markers"
 msgstr "Mostra l'area di ricerca per i marcatori"
 
 
-msgid "Show Names"
-msgstr "Mostra Nomi"
-
-
 msgid "Show track names and status"
 msgstr "Mostra il nome del tracciatore e lo stato"
 
@@ -47835,10 +47765,6 @@ msgstr "Mostra canale rosso nel fotogramma"
 
 msgid "Toolbar"
 msgstr "Barra Strumenti"
-
-
-msgid "Sidebar"
-msgstr "Barra Laterale"
 
 
 msgid "Show Seconds"
@@ -48466,10 +48392,6 @@ msgstr "Dati Orfani"
 
 msgid "Display data-blocks which are unused and/or will be lost when the file is reloaded"
 msgstr "Mostra i blocchi -dati inutilizzati e/o che verranno persi quando il file sarà ricaricato"
-
-
-msgid "Display Filter"
-msgstr "Mostra Filtro"
 
 
 msgid "Live search filtering string"
@@ -51356,10 +51278,6 @@ msgid "Surfaces"
 msgstr "Superfici"
 
 
-msgid "Denoising"
-msgstr "Riduzione Rumore"
-
-
 msgid "No output node"
 msgstr "Nessun Nodo Uscita"
 
@@ -52302,10 +52220,6 @@ msgid "Auto-Step"
 msgstr "Passo Automatico"
 
 
-msgid "Refraction"
-msgstr "Rifrazione"
-
-
 msgid "Render Engine"
 msgstr "Motore di Rendering"
 
@@ -52903,11 +52817,6 @@ msgstr "Ordinamento Traccia..."
 msgctxt "Operator"
 msgid "Rename..."
 msgstr "Rinomina..."
-
-
-msgctxt "Operator"
-msgid "Linked Duplicate"
-msgstr "Duplicato Collegato"
 
 
 msgctxt "Operator"
@@ -56418,10 +56327,6 @@ msgstr "Impossibile aggiungere spigoli in Modalità Modifica"
 
 msgid "Cannot add loops in edit mode"
 msgstr "Impossibile aggiungere anelli (loops) in edit mode"
-
-
-msgid "Cannot add polygons in edit mode"
-msgstr "Impossibile aggiungere poligoni in Modalità Modifica"
 
 
 msgid "Cannot remove vertices in edit mode"

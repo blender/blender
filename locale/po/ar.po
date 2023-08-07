@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -689,6 +689,22 @@ msgstr "ﺔﻘﻄﻨﻤﻠﻟ ﻲﺒﺴﻨﻟﺍ ﻲﻘﻓﻻ﻿ﺍ ﺓﺬﻓﺎ
 
 msgid "Description"
 msgstr "ﻒﻳﺮﻌﺗ"
+
+
+msgid "ID Name"
+msgstr "ﻲﻔﻳﺮﻌﺘﻟﺍ ﻢﺳﻹ﻿ﺍ"
+
+
+msgid "Options"
+msgstr "ﺕﺍﺭﺎﻴﺧ"
+
+
+msgid "Space Type"
+msgstr "ءﺎﻀﻔﻟﺍ ﻉﻮﻧ"
+
+
+msgid "Show Names"
+msgstr "ءﺎﻤﺳﻷ﻿ﺍ ﺮﻬﻇﺃ"
 
 
 msgid "Data Type"
@@ -8577,10 +8593,6 @@ msgid "Basis Matrix"
 msgstr "ﺔﻴﺋﺪﺒﻟﺍ ﺔﻓﻮﻔﺼﻤﻟﺍ"
 
 
-msgid "Options"
-msgstr "ﺕﺍﺭﺎﻴﺧ"
-
-
 msgid "Persistent"
 msgstr "ﺮﻤﺘﺴﻣ"
 
@@ -8607,10 +8619,6 @@ msgstr "ﺕﺍﻭﺩﺃ"
 
 msgid "Tool Properties"
 msgstr "ﺓﺍﺩﻷ﻿ﺍ ﺺﺋﺎﺼﺧ"
-
-
-msgid "Space Type"
-msgstr "ءﺎﻀﻔﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Modifier name"
@@ -11687,10 +11695,6 @@ msgid "Loops"
 msgstr "ﺕﻼ﻿ﺴﻠﺴﺗ"
 
 
-msgid "Loops of the mesh (polygon corners)"
-msgstr "(ﻪﺟﻮﻟﺍ ﺎﻳﺍﻭﺯ) ﻢﺴﺠﻤﻟﺍ ﺕﻼ﻿ﺴﻠﺴﺗ"
-
-
 msgid "Polygons"
 msgstr "ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻣ"
 
@@ -11935,10 +11939,6 @@ msgid "Index of the active output"
 msgstr "ﻝﺎﻌّﻔﻟﺍ ﺝﺮﺨﻟﺍ ﻞﻴﻟﺩ"
 
 
-msgid "ID Name"
-msgstr "ﻲﻔﻳﺮﻌﺘﻟﺍ ﻢﺳﻹ﻿ﺍ"
-
-
 msgid "Label"
 msgstr "ﻖﺼﻠﻣ"
 
@@ -12077,6 +12077,22 @@ msgstr "ﺪﻘﻌﻟﺍ ﻞﻛ ﺐﺴﺤﻳ ﻲﻧﺎﺜﻟﺍ ,ﺔﻌﻳﺮﺴ�
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
 msgstr "ﺐﻛّﺮﻤﻟﺍ ﺔﻴﻔﻠﺧ ﻭ ﺽﺭﺎﻌﻟﺍ ﺪﻘﻌُﻟ ﺩﻭﺪﺣ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "Edit"
+msgstr "ﺭﺮﺣ"
+
+
+msgid "Sculpt"
+msgstr "ﺖﺤﻧ"
+
+
+msgid "Tool"
+msgstr "ﺓﺍﺩﺃ"
+
+
+msgid "Mesh"
+msgstr "ﻢﺴﺠﻣ"
 
 
 msgid "Shader Node Tree"
@@ -13589,10 +13605,6 @@ msgstr "ﻞﺴﻠﺴﺘﻠﻟ ﻥﻮﻠﻟﺍ ﻥﺯﺍﻮﺗ ﺕﺎﻧﺎﻴﺑ
 
 msgid "Settings of color space sequencer is working in"
 msgstr "ءﺎﻀﻔﻟﺍ ﺔﻤﺋﺎﻗ ﺕﺍﺩﺍﺪﻋﺍ"
-
-
-msgid "Only Keyframes from Selected Channels"
-msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﺕﺍﻮﻨﻘﻟﺍ ﻦﻣ ﺢﻴﺗﺎﻔﻤﻟﺍ ﻂﻘﻓ"
 
 
 msgid "Sync Mode"
@@ -16756,10 +16768,6 @@ msgid "Vertex Group Specials"
 msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺕﺎﻓﺎﺿﺇ"
 
 
-msgid "Edit"
-msgstr "ﺭﺮﺣ"
-
-
 msgid "Converter"
 msgstr "ﻝﻮّﺤﻣ"
 
@@ -16786,10 +16794,6 @@ msgstr "ﺏﺎﺴﺣ"
 
 msgid "Attribute"
 msgstr "ﺔﻤﺳ"
-
-
-msgid "Mesh"
-msgstr "ﻢﺴﺠﻣ"
 
 
 msgid "Node"
@@ -16944,10 +16948,6 @@ msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 
-msgid "Sculpt"
-msgstr "ﺖﺤﻧ"
-
-
 msgid "UV Mapping"
 msgstr "UV ءﺎﺴﻛﺇ"
 
@@ -17044,20 +17044,12 @@ msgid "Mesh Polygon"
 msgstr "ﻢﺴﺠﻤﻟﺍ ﻪﺟﻭﺍ"
 
 
-msgid "Read only area of this polygon"
-msgstr "ﻊﻠﻀﻤﻟﺍ ﺍﺬﻬﻟ ﻂﻘﻓ ﺓءﺍﺮﻘﻟﺍ ﺔﺣﺎﺴﻣ"
-
-
 msgid "Loop Start"
 msgstr "ﻞﺴﻠﺴﺘﻟﺍ ﺔﻳﺍﺪﺑ"
 
 
 msgid "Polygon Normal"
 msgstr "ﻊﻠّﻀﻤﻟﺍ ﻢﻇﺎﻧ"
-
-
-msgid "Local space unit length normal vector for this polygon"
-msgstr "ﻪﺟﻮﻟﺍ ﺍﺬﻬﻟ ﻲﻠﺤﻤﻟﺍ ءﺎﻀﻔﻟﺍ ﻲﻓ ﺓﺪﺣﻮﻟﺍ ﻝﻮﻄﻟ ﻢﻇﺎﻨﻟﺍ ﻪﺠﺘﻣ"
 
 
 msgid "Skin Vertex"
@@ -20088,10 +20080,6 @@ msgid "Despill Factor"
 msgstr "Despill ﻞﻣﺎﻌﻣ"
 
 
-msgid "Matte dilate/erode side"
-msgstr "ءﺎﻄﻐﻠﻟ ﺐﻧﺎﺠﻟﺍ ﺺﻠّﻗ/ﻊﺳّﻭ"
-
-
 msgid "Edge Kernel Radius"
 msgstr "ﺔﻓﺎﺤﻠﻟ ﺓﺍﻮﻨﻟﺍ ﺮﻄﻗ ﻒﺼﻧ"
 
@@ -21356,11 +21344,6 @@ msgid "Down"
 msgstr "ﺖﺤﺗ"
 
 
-msgctxt "Operator"
-msgid "Rename Channels"
-msgstr "ﺕﺍﻮﻨﻘﻟﺍ ﺔﻴﻤﺴﺗ ﺪﻋﺍ"
-
-
 msgid "Rename animation channel under mouse"
 msgstr "ﺓﺭﺄﻔﻟﺍ ﺖﺤﺗ ﻙﺮﺤﺘﻟﺍ ﺓﺎﻨﻗ ﺔﻴﻤﺴﺗ ﺪﻋﺍ"
 
@@ -21865,10 +21848,6 @@ msgid "Factor to scale brush size by"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﻢﺠﺣ ﻢﻴﺠﺤﺗ ﻞﻣﺎﻌﻣ"
 
 
-msgid "Tool"
-msgstr "ﺓﺍﺩﺃ"
-
-
 msgid "Translation"
 msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ"
 
@@ -21982,10 +21961,6 @@ msgstr "ﺔﻘﺣﻼ﻿ﻤﻟﺍ ﺍﺮﻴﻣﺎﻛ ﺕﺎﻳﺮﻫﻮﺠﻟ ﻖ
 msgctxt "Operator"
 msgid "Clean Tracks"
 msgstr "ﺕﺍﺭﺎﺴﻤﻟﺍ ﻒﻈﻧ"
-
-
-msgid "Effect on tracks which are tracked less than specified amount of frames"
-msgstr "ﺮﻃﻷ﻿ﺍ ﺔﻴﻤﻛ ﻦﻣ ﻞﻗﺃ ﺖﻘﺣﻮﻟ ﻲﺘﻟﺍ ﺕﺍﺭﺎﺴﻤﻟﺍ ﻰﻠﻋ ﺮﻴﺛﺄﺘﻟﺍ"
 
 
 msgctxt "Operator"
@@ -24183,11 +24158,6 @@ msgstr "ﻦﻣﺰﻟﺍ ﺔﻣﻼ﻿ﻋ ﺭﺮﻛ"
 
 
 msgctxt "Operator"
-msgid "Make Links to Scene"
-msgstr "ﺪﻬﺸﻤﻠﻟ ﻂﺑﺍﻭﺭ ﻞﻌﺟﺇ"
-
-
-msgctxt "Operator"
 msgid "Move Time Marker"
 msgstr "ﻦﻣﺰﻟﺍ ﺔﻣﻼ﻿ﻋ ﻙﺮّﺣ"
 
@@ -25425,10 +25395,6 @@ msgstr "ﺔﻃﺮﺷﻻ﻿ﺍ ﺭﺮﻛ"
 msgctxt "Operator"
 msgid "Duplicate Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺮﻛ"
-
-
-msgid "Duplicate selected strips and move them"
-msgstr "ﺎﻬﻛﺮّﺣﻭ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺔﻃﺮﺷﻷ﻿ﺍ ﺭﺮﻛ"
 
 
 msgid "Duplicate Strips"
@@ -28054,6 +28020,10 @@ msgid "Deinterlace Movies"
 msgstr "ﻡﻼ﻿ﻓﻷ﻿ﺍ ﻲﻓ ﻚﺑﺎﺸﺘﻟﺍ ﻞﻴﻠﻘﺗ"
 
 
+msgid "Duplicate selected strips and move them"
+msgstr "ﺎﻬﻛﺮّﺣﻭ ﺓﺭﺎﺘﺨﻤﻟﺍ ﺔﻃﺮﺷﻷ﻿ﺍ ﺭﺮﻛ"
+
+
 msgid "Slide a sequence strip in time"
 msgstr "ﺖﻗﻮﻟﺍ ﻲﻓ ﻞﺴﻠﺴﺗ ﻂﻳﺮﺷ ﻖﻟﺯﺍ"
 
@@ -29961,12 +29931,20 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
+msgid "Refraction"
+msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ"
+
+
 msgid "Integrator Presets"
 msgstr "ﻞﻣﺎﻜﻤﻠﻟ ﺔﻘﺒﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻹ﻿ﺍ"
 
 
 msgid "Sampling Presets"
 msgstr "ﺔﻨﻳﺎﻌﻤﻠﻟ ﺔﻘﺒﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﻹ﻿ﺍ"
+
+
+msgid "Passes"
+msgstr "ﺕﺍﺮﻤﻣ"
 
 
 msgid "Bone Constraints"
@@ -30056,10 +30034,6 @@ msgstr "ءﻮﻀﻟﺍ ﺕﺍﺭﺎﺴﻣ"
 
 msgid "Max Bounces"
 msgstr "ﺕﺍﺩﺍﺪﺗﺭﺇ ﺮﺜﻛﺍ"
-
-
-msgid "Passes"
-msgstr "ﺕﺍﺮﻤﻣ"
 
 
 msgid "Performance"
@@ -33835,16 +33809,8 @@ msgid "Sequence strip creating a wipe transition"
 msgstr "ﻞﺴﻠﺴﺘﻟﺍ ﻂﻳﺮﺸﻟ ﻲﺤﺴﻣ ﻝﺎﻘﺘﻧﺍ ءﺎﺸﻧﺍ"
 
 
-msgid "Edge angle"
-msgstr "ﺔﻓﺎﺤﻟﺍ ﺔﻳﻭﺍﺯ"
-
-
 msgid "Blur Width"
 msgstr "ﺏﺎﺒﻀﻟﺍ ﺽﺮﻋ"
-
-
-msgid "Wipe direction"
-msgstr "ﺢﺴﻤﻟﺍ ﻩﺎﺠﺗﺇ"
 
 
 msgid "Mask Sequence"
@@ -34182,10 +34148,6 @@ msgstr "ﺭﺎﻃﻻ﻿ﺍ ﻲﻓ ءﺍﺮﻀﺨﻟﺍ ﺓﺎﻨﻘﻟﺍ ﺮﻬ
 
 msgid "Show Marker Pattern"
 msgstr "ﺔﻣﻼ﻿ﻌﻟﺍ ﻂﻤﻧ ﺮﻬﻇﺍ"
-
-
-msgid "Show Names"
-msgstr "ءﺎﻤﺳﻷ﻿ﺍ ﺮﻬﻇﺃ"
 
 
 msgid "Show track names and status"
@@ -36834,10 +36796,6 @@ msgid "Auto-Step"
 msgstr "ﻲﺋﺎﻘﻠﺗ ﻡﺪﻘﺗ"
 
 
-msgid "Refraction"
-msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ"
-
-
 msgid "Paths:"
 msgstr ":ﺕﺍﺭﺎﺴﻤﻟﺍ"
 
@@ -37260,11 +37218,6 @@ msgstr "ﺔﻠﻣﺎﻜﻟﺍ ﺔﺷﺎﺸﻟﺍ ﺔﻘﻄﻨﻣ ﺐﻠﻗﺇ"
 msgctxt "Operator"
 msgid "Track Ordering..."
 msgstr "...ﺕﺍﺭﺎﺴﻤﻟﺍ ﺐﻴﺗﺮﺗ"
-
-
-msgctxt "Operator"
-msgid "Linked Duplicate"
-msgstr "ﺔﻄﺒﺗﺮﻣ ﺓﺭﺍﺮﻜﺗ"
 
 
 msgctxt "Operator"
@@ -39089,10 +39042,6 @@ msgid "Cannot add loops in edit mode"
 msgstr "ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ ﻲﻓ ﻰﻨﺤﻨﻤﻟﺍ ﺍﺬﻫ ﻲﻔﺧﺍ"
 
 
-msgid "Cannot add polygons in edit mode"
-msgstr "ﺮﻳﺮﺤﺘﻟﺍ ﻊﺿﻭ ﻲﻓ ﻰﻨﺤﻨﻤﻟﺍ ﺍﺬﻫ ﻲﻔﺧﺍ"
-
-
 msgid "Cannot remove vertices in edit mode"
 msgstr "ءﻱﺰﺠﻟﺍ ﺮﻳﺮﺤﺗ ﻊﺿﻭ ﺐﻠﻗﺍ"
 
@@ -39367,12 +39316,12 @@ msgid "No active camera set"
 msgstr "ﻞﻌﻔﻣ ﺭﺎﺴﻣ ﻻ﻿"
 
 
-msgid "No active vertex group for painting, aborting"
-msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
-
-
 msgid "Active group is locked, aborting"
 msgstr "ﺔﻠﻔﻘﻣ ﺙﺪﺤﻟﺍ ﺔﻋﻮﻤﺠﻣ"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "ﻂﻘﻨﻟﺍ ﺖﻴﺒﺜﺘﻟ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 
 msgid "Warning!"

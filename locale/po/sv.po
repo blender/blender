@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -115,6 +115,10 @@ msgstr "Egenskaper"
 
 msgid "Width"
 msgstr "Bredd"
+
+
+msgid "Options"
+msgstr "Alternativ"
 
 
 msgid "Quaternion"
@@ -801,10 +805,6 @@ msgid "Grid"
 msgstr "Rutnät"
 
 
-msgid "Options"
-msgstr "Alternativ"
-
-
 msgid "Window"
 msgstr "Fönster"
 
@@ -1045,6 +1045,18 @@ msgid "Nodes"
 msgstr "Noder"
 
 
+msgid "Sculpt"
+msgstr "Skulptera"
+
+
+msgid "Tool"
+msgstr "Verktyg"
+
+
+msgid "Mesh"
+msgstr "Mesh"
+
+
 msgid "Cylinder"
 msgstr "Cylinder"
 
@@ -1241,10 +1253,6 @@ msgid "Instances"
 msgstr "Instanser"
 
 
-msgid "Mesh"
-msgstr "Mesh"
-
-
 msgid "Node"
 msgstr "Nod"
 
@@ -1299,10 +1307,6 @@ msgstr "Ljus"
 
 msgid "Rigid Body"
 msgstr "Rigid kropp"
-
-
-msgid "Sculpt"
-msgstr "Skulptera"
 
 
 msgid "Root"
@@ -1520,10 +1524,6 @@ msgstr "Dela upp"
 msgctxt "Operator"
 msgid "Preset"
 msgstr "Förinställning"
-
-
-msgid "Tool"
-msgstr "Verktyg"
 
 
 msgid "Name of the preset, used to make the path name"

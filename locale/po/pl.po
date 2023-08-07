@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'4f56261f768e')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-24 15:42:18\n"
+"POT-Creation-Date: 2023-08-07 09:03:59\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -6156,6 +6156,14 @@ msgid "Cube"
 msgstr "Sześcian"
 
 
+msgid "Edit"
+msgstr "Edytuj"
+
+
+msgid "Mesh"
+msgstr "Siatka"
+
+
 msgid "Faces"
 msgstr "Ściany"
 
@@ -6241,20 +6249,12 @@ msgid "Key"
 msgstr "Klucz"
 
 
-msgid "Edit"
-msgstr "Edytuj"
-
-
 msgid "Distort"
 msgstr "Zniekształć"
 
 
 msgid "Text"
 msgstr "Tekst"
-
-
-msgid "Mesh"
-msgstr "Siatka"
 
 
 msgid "Python"
@@ -8184,10 +8184,6 @@ msgid "Cannot add loops in edit mode"
 msgstr "Nie można dodać pętli w trybie edycji"
 
 
-msgid "Cannot add polygons in edit mode"
-msgstr "Nie można dodać poligonów w trybie edycji"
-
-
 msgid "Cannot remove vertices in edit mode"
 msgstr "Nie można usunąć wierzchołków w trybie edycji"
 
@@ -9046,12 +9042,12 @@ msgid "The modifier used does not support deformed locations"
 msgstr "Użyty modyfikator nie obsługuje deformowanych lokacji"
 
 
-msgid "No active vertex group for painting, aborting"
-msgstr "Brak aktywnej grupy wierzchołków do malowania, rezygnuję"
-
-
 msgid "Active group is locked, aborting"
 msgstr "Aktywna grupa jest zablokowana, rezygnuję"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Brak aktywnej grupy wierzchołków do malowania, rezygnuję"
 
 
 msgid "Warning!"
