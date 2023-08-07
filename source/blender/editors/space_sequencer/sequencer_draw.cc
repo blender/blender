@@ -150,9 +150,15 @@ void color3ubv_from_seq(const Scene *curscene,
     case SEQ_TYPE_CROSS:
     case SEQ_TYPE_GAMCROSS:
     case SEQ_TYPE_WIPE:
-      r_col[0] = 130;
-      r_col[1] = 130;
-      r_col[2] = 130;
+      UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, r_col);
+
+      /* Slightly offset hue to distinguish different transition types. */
+      if (seq->type == SEQ_TYPE_GAMCROSS) {
+        rgb_byte_set_hue_float_offset(r_col, 0.03);
+      }
+      else if (seq->type == SEQ_TYPE_WIPE) {
+        rgb_byte_set_hue_float_offset(r_col, 0.06);
+      }
       break;
 
     /* Effects. */
@@ -642,7 +648,7 @@ static void draw_seq_handle(const Scene *scene,
                             uint pos,
                             bool seq_active,
                             float pixelx,
-                            bool y_threshold)
+                            const bool draw_strip_preview)
 {
   float rx1 = 0, rx2 = 0;
   float x1, x2, y1, y2;
@@ -693,7 +699,7 @@ static void draw_seq_handle(const Scene *scene,
   }
 
   /* Draw numbers for start and end of the strip next to its handles. */
-  if (y_threshold &&
+  if (draw_strip_preview &&
       (((seq->flag & SELECT) && (G.moving & G_TRANSFORM_SEQ)) || (seq->flag & whichsel)))
   {
 
@@ -988,6 +994,21 @@ static void draw_sequence_extensions_overlay(
   GPU_blend(GPU_BLEND_NONE);
 }
 
+static uchar mute_overlap_alpha_factor_get(const ListBase *channels, const Sequence *seq)
+{
+  /* Draw muted strips semi-transparent. */
+  if (SEQ_render_is_muted(channels, seq)) {
+    return MUTE_ALPHA;
+  }
+  /* Draw background semi-transparent when overlapping strips. */
+  else if (seq->flag & SEQ_OVERLAP) {
+    return OVERLAP_ALPHA;
+  }
+  else {
+    return 255;
+  }
+}
+
 static void draw_color_strip_band(
     const Scene *scene, ListBase *channels, Sequence *seq, uint pos, float text_margin_y, float y1)
 {
@@ -997,17 +1018,7 @@ static void draw_color_strip_band(
   GPU_blend(GPU_BLEND_ALPHA);
   rgb_float_to_uchar(col, colvars->col);
 
-  /* Draw muted strips semi-transparent. */
-  if (SEQ_render_is_muted(channels, seq)) {
-    col[3] = MUTE_ALPHA;
-  }
-  /* Draw background semi-transparent when overlapping strips. */
-  else if (seq->flag & SEQ_OVERLAP) {
-    col[3] = OVERLAP_ALPHA;
-  }
-  else {
-    col[3] = 255;
-  }
+  col[3] = mute_overlap_alpha_factor_get(channels, seq);
 
   immUniformColor4ubv(col);
 
@@ -1044,32 +1055,9 @@ static void draw_seq_background(Scene *scene,
   uchar col[4];
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* Get the correct color per strip type, transitions use their inputs ones. */
-  if (ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE)) {
-    Sequence *seq1 = seq->seq1;
-    if (seq1->type == SEQ_TYPE_COLOR) {
-      SolidColorVars *colvars = (SolidColorVars *)seq1->effectdata;
-      rgb_float_to_uchar(col, colvars->col);
-    }
-    else {
-      color3ubv_from_seq(scene, seq1, show_strip_color_tag, col);
-    }
-  }
-  else {
-    color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
-  }
+  color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
 
-  /* Draw muted strips semi-transparent. */
-  if (SEQ_render_is_muted(channels, seq)) {
-    col[3] = MUTE_ALPHA;
-  }
-  /* Draw background semi-transparent when overlapping strips. */
-  else if (seq->flag & SEQ_OVERLAP) {
-    col[3] = OVERLAP_ALPHA;
-  }
-  else {
-    col[3] = 255;
-  }
+  col[3] = mute_overlap_alpha_factor_get(channels, seq);
 
   immUniformColor4ubv(col);
 
@@ -1102,37 +1090,93 @@ static void draw_seq_background(Scene *scene,
     }
   }
 
-  /* Draw right half of transition strips. */
-  if (ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE)) {
-    float vert_pos[3][2];
-    Sequence *seq1 = seq->seq1;
-    Sequence *seq2 = seq->seq2;
+  GPU_blend(GPU_BLEND_NONE);
+}
 
-    if (seq2->type == SEQ_TYPE_COLOR) {
-      SolidColorVars *colvars = (SolidColorVars *)seq2->effectdata;
-      rgb_float_to_uchar(col, colvars->col);
-    }
-    else {
-      color3ubv_from_seq(scene, seq2, show_strip_color_tag, col);
-      /* If the transition inputs are of the same type, draw the right side slightly darker. */
-      if (seq1->type == seq2->type) {
-        UI_GetColorPtrShade3ubv(col, col, -15);
-      }
-    }
-    immUniformColor4ubv(col);
+typedef enum {
+  STRIP_TRANSITION_IN,
+  STRIP_TRANSITION_OUT,
+} TransitionType;
 
+static void draw_seq_transition_strip_half(const Scene *scene,
+                                           const Sequence *transition_seq,
+                                           const float x1,
+                                           const float x2,
+                                           const float y1,
+                                           const float y2,
+                                           const int timeline_overlay_flags,
+                                           const TransitionType transition_type)
+{
+  Editing *ed = SEQ_editing_get(scene);
+  const ListBase *channels = SEQ_channels_displayed_get(ed);
+
+  const Sequence *seq1 = transition_seq->seq1;
+  const Sequence *seq2 = transition_seq->seq2;
+  const Sequence *target_seq = (transition_type == STRIP_TRANSITION_IN) ? seq1 : seq2;
+
+  const bool show_strip_color_tag = (timeline_overlay_flags & SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
+
+  float col[4];
+  if (target_seq->type == SEQ_TYPE_COLOR) {
+    SolidColorVars *colvars = (SolidColorVars *)target_seq->effectdata;
+    memcpy(col, colvars->col, sizeof(colvars->col));
+  }
+  else {
+    uchar ucol[3];
+    color3ubv_from_seq(scene, target_seq, show_strip_color_tag, ucol);
+    /* If the transition inputs are of the same type, draw the right side slightly darker. */
+    if ((seq1->type == seq2->type) && (transition_type == STRIP_TRANSITION_OUT)) {
+      UI_GetColorPtrShade3ubv(ucol, ucol, -15);
+    }
+    rgb_uchar_to_float(col, ucol);
+  }
+
+  col[3] = mute_overlap_alpha_factor_get(channels, transition_seq) / 255.0f;
+
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  immUniformColor4fv(col);
+
+  float vert_pos[3][2];
+
+  if (transition_type == STRIP_TRANSITION_IN) {
+    copy_v2_fl2(vert_pos[0], x1, y1);
+    copy_v2_fl2(vert_pos[1], x1, y2);
+    copy_v2_fl2(vert_pos[2], x2, y1);
+  }
+  else {
     copy_v2_fl2(vert_pos[0], x1, y2);
     copy_v2_fl2(vert_pos[1], x2, y2);
     copy_v2_fl2(vert_pos[2], x2, y1);
-
-    immBegin(GPU_PRIM_TRIS, 3);
-    immVertex2fv(pos, vert_pos[0]);
-    immVertex2fv(pos, vert_pos[1]);
-    immVertex2fv(pos, vert_pos[2]);
-    immEnd();
   }
 
+  immBegin(GPU_PRIM_TRIS, 3);
+  immVertex2fv(pos, vert_pos[0]);
+  immVertex2fv(pos, vert_pos[1]);
+  immVertex2fv(pos, vert_pos[2]);
+  immEnd();
+
+  immUnbindProgram();
+
   GPU_blend(GPU_BLEND_NONE);
+}
+
+static void draw_seq_transition_strip(const Scene *scene,
+                                      const Sequence *seq,
+                                      const float x1,
+                                      const float x2,
+                                      const float y1,
+                                      const float y2,
+                                      const int timeline_overlay_flags)
+{
+  draw_seq_transition_strip_half(
+      scene, seq, x1, x2, y1, y2, timeline_overlay_flags, STRIP_TRANSITION_IN);
+  draw_seq_transition_strip_half(
+      scene, seq, x1, x2, y1, y2, timeline_overlay_flags, STRIP_TRANSITION_OUT);
 }
 
 static void draw_seq_locked(float x1, float y1, float x2, float y2)
@@ -1327,7 +1371,14 @@ static void draw_seq_strip(const bContext *C,
   x2 = max_ff(x2, SEQ_time_left_handle_frame_get(scene, seq));
 
   float text_margin_y;
-  bool y_threshold;
+  /* Whether there is enough space for the strip preview. */
+  const bool draw_strip_preview = ((y2 - y1) / pixely) > 20 * UI_SCALE_FAC;
+  /* If there is not enough vertical space, don't draw any previews nor the title. */
+  const bool strip_content_none = (y2 - y1) < 8 * pixely * UI_SCALE_FAC;
+  /* Only a single vertical element is drawn on the strip: the waveform in the case of
+   * sound strips, or the strip title for most other strip types. */
+  bool strip_content_single;
+
   if ((sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_NAME) ||
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_SOURCE) ||
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION))
@@ -1336,13 +1387,16 @@ static void draw_seq_strip(const bContext *C,
     /* Calculate height needed for drawing text on strip. */
     text_margin_y = y2 - min_ff(0.40f, 20 * UI_SCALE_FAC * pixely);
 
-    /* Is there enough space for drawing something else than text? */
-    y_threshold = ((y2 - y1) / pixely) > 20 * UI_SCALE_FAC;
+    strip_content_single = !draw_strip_preview;
   }
   else {
     text_margin_y = y2;
-    y_threshold = false;
+    strip_content_single = true;
   }
+  /* When a text overlay is enabled and there is space for both the text and the strip content,
+   * draw below the text. */
+  /* When text is disabled or there is space for only one or the other, use entire strip area. */
+  const float strip_preview_y2 = strip_content_single ? y2 : text_margin_y;
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1350,8 +1404,8 @@ static void draw_seq_strip(const bContext *C,
   draw_seq_background(scene, seq, pos, x1, x2, y1, y2, is_single_image, show_strip_color_tag);
 
   /* Draw a color band inside color strip. */
-  if (seq->type == SEQ_TYPE_COLOR && y_threshold) {
-    draw_color_strip_band(scene, channels, seq, pos, text_margin_y, y1);
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) && (seq->type == SEQ_TYPE_COLOR)) {
+    draw_color_strip_band(scene, channels, seq, pos, strip_preview_y2, y1);
   }
 
   /* Draw strip offsets when flag is enabled or during "solo preview". */
@@ -1365,32 +1419,41 @@ static void draw_seq_strip(const bContext *C,
   }
   immUnbindProgram();
 
+  if (draw_strip_preview && (sseq->flag & SEQ_SHOW_OVERLAY) &&
+      ELEM(seq->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE))
+  {
+    draw_seq_transition_strip(
+        scene, seq, x1, x2, y1, strip_preview_y2, sseq->timeline_overlay.flag);
+  }
+
   x1 = SEQ_time_left_handle_frame_get(scene, seq);
   x2 = SEQ_time_right_handle_frame_get(scene, seq);
 
-  if ((seq->type == SEQ_TYPE_META) ||
-      ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
-  {
-    drawmeta_contents(scene, seq, x1, y1, x2, y2, show_strip_color_tag);
+  if (draw_strip_preview && (sseq->flag & SEQ_SHOW_OVERLAY)) {
+    if ((seq->type == SEQ_TYPE_META) ||
+        ((seq->type == SEQ_TYPE_SCENE) && (seq->flag & SEQ_SCENE_STRIPS)))
+    {
+      drawmeta_contents(scene, seq, x1, y1, x2, strip_preview_y2, show_strip_color_tag);
+    }
   }
 
   if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
       (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_THUMBNAILS) &&
       ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE))
   {
-    draw_seq_strip_thumbnail(
-        v2d, C, scene, seq, y1, y_threshold ? text_margin_y : y2, pixelx, pixely);
+    draw_seq_strip_thumbnail(v2d, C, scene, seq, y1, strip_preview_y2, pixelx, pixely);
   }
 
-  if ((sseq->flag & SEQ_SHOW_OVERLAY) && (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_FCURVES))
+  if (draw_strip_preview && (sseq->flag & SEQ_SHOW_OVERLAY) &&
+      (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_FCURVES))
   {
-    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, y2, pixelx);
+    draw_seq_fcurve_overlay(scene, v2d, seq, x1, y1, x2, strip_preview_y2, pixelx);
   }
 
   /* Draw sound strip waveform. */
-  if (seq_draw_waveforms_poll(C, sseq, seq)) {
+  if (seq_draw_waveforms_poll(C, sseq, seq) && !strip_content_none) {
     draw_seq_waveform_overlay(
-        C, region, seq, x1, y_threshold ? y1 + 0.05f : y1, x2, y_threshold ? text_margin_y : y2);
+        C, region, seq, x1, strip_content_single ? y1 : y1 + 0.05f, x2, strip_preview_y2);
   }
   /* Draw locked state. */
   if (SEQ_transform_is_locked(channels, seq)) {
@@ -1406,34 +1469,51 @@ static void draw_seq_strip(const bContext *C,
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   if (!SEQ_transform_is_locked(channels, seq)) {
-    draw_seq_handle(
-        scene, v2d, seq, handsize_clamped, SEQ_LEFTHANDLE, pos, seq_active, pixelx, y_threshold);
-    draw_seq_handle(
-        scene, v2d, seq, handsize_clamped, SEQ_RIGHTHANDLE, pos, seq_active, pixelx, y_threshold);
+    draw_seq_handle(scene,
+                    v2d,
+                    seq,
+                    handsize_clamped,
+                    SEQ_LEFTHANDLE,
+                    pos,
+                    seq_active,
+                    pixelx,
+                    draw_strip_preview);
+    draw_seq_handle(scene,
+                    v2d,
+                    seq,
+                    handsize_clamped,
+                    SEQ_RIGHTHANDLE,
+                    pos,
+                    seq_active,
+                    pixelx,
+                    draw_strip_preview);
   }
 
   draw_seq_outline(scene, seq, pos, x1, x2, y1, y2, pixelx, pixely, seq_active);
 
   immUnbindProgram();
 
-  calculate_seq_text_offsets(scene, v2d, seq, &x1, &x2, pixelx);
-
-  /* If a waveform is drawn, avoid drawing text when there is not enough vertical space. */
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (!y_threshold && (sseq->timeline_overlay.flag & SEQ_TIMELINE_NO_WAVEFORMS) == 0 &&
-        ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) ||
-         (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM)))
-    {
-      return;
-    }
+  /* If a waveform or a color strip is drawn,
+   * avoid drawing text when there is not enough vertical space. */
+  if (strip_content_single &&
+      (seq_draw_waveforms_poll(C, sseq, seq) || seq->type == SEQ_TYPE_COLOR)) {
+    return;
   }
 
   if (sseq->flag & SEQ_SHOW_OVERLAY) {
-    /* Don't draw strip if there is not enough vertical or horizontal space. */
-    if (((x2 - x1) > 32 * pixelx * UI_SCALE_FAC) && ((y2 - y1) > 8 * pixely * UI_SCALE_FAC)) {
+    /* Draw text only if there is enough horizontal or vertical space. */
+    if (((x2 - x1) > 32 * pixelx * UI_SCALE_FAC) && !strip_content_none) {
+      calculate_seq_text_offsets(scene, v2d, seq, &x1, &x2, pixelx);
       /* Depending on the vertical space, draw text on top or in the center of strip. */
-      draw_seq_text_overlay(
-          scene, v2d, seq, sseq, x1, x2, y_threshold ? text_margin_y : y1, y2, seq_active);
+      draw_seq_text_overlay(scene,
+                            v2d,
+                            seq,
+                            sseq,
+                            x1,
+                            x2,
+                            strip_content_single ? y1 : text_margin_y,
+                            y2,
+                            seq_active);
     }
   }
 }

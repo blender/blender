@@ -819,6 +819,7 @@
         scene_strip="#828f50"
         audio_strip="#4c8f8f"
         effect_strip="#4c456c"
+        transition_strip="#50458F"
         color_strip="#8f8f8f"
         meta_strip="#5b4d91"
         mask_strip="#8f5656"
