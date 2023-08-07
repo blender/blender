@@ -6,6 +6,7 @@
 
 #include "usd.h"
 #include "usd_exporter_context.h"
+#include "usd_hook.h"
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -840,6 +841,8 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   else {
     create_usd_viewport_material(usd_export_context, material, usd_material);
   }
+
+  call_material_export_hooks(usd_export_context.stage, material, usd_material);
 
   return usd_material;
 }

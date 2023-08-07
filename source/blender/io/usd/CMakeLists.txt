@@ -86,6 +86,7 @@ set(SRC
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
+  intern/usd_hook.cc
   intern/usd_writer_abstract.cc
   intern/usd_writer_camera.cc
   intern/usd_writer_curves.cc
@@ -116,6 +117,7 @@ set(SRC
   intern/usd_asset_utils.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
+  intern/usd_hook.h
   intern/usd_writer_abstract.h
   intern/usd_writer_camera.h
   intern/usd_writer_curves.h

@@ -202,6 +202,7 @@ void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_timeline_marker(struct BlenderRNA *brna);
 void RNA_def_sound(struct BlenderRNA *brna);
 void RNA_def_ui(struct BlenderRNA *brna);
+void RNA_def_usd(struct BlenderRNA *brna);
 void RNA_def_userdef(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
 void RNA_def_volume(struct BlenderRNA *brna);
