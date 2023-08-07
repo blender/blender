@@ -55,8 +55,14 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("compositor_renders")
 
-    # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
     if os.path.basename(test_dir) == 'filter':
+        # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
+        report.set_fail_threshold(0.05)
+    elif os.path.basename(test_dir) == 'matte':
+        # The node_keying_matte.blend test is very sensitive to the exact values in the
+        # input image. It makes it hard to precisely match results on different systems
+        # (with and without SSE, i.e.), especially when OCIO has different precision for
+        # the exponent transform on different platforms.
         report.set_fail_threshold(0.05)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)
