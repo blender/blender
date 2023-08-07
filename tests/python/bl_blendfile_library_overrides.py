@@ -294,7 +294,8 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
             relative_path=False,
         )
 
-        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(self.test_output_path)]
+        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(
+            self.test_output_path)]
         assert linked_collection_container.library is not None
         assert linked_collection_container.override_library is not None
         assert len(bpy.data.collections) == num_collections
@@ -413,14 +414,17 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
         # unexpected garbage IDs along the line.
         bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path_recursive))
 
-        override_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(self.test_output_path)]
+        override_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(
+            self.test_output_path)]
         assert override_collection_container.library is not None
         assert override_collection_container.override_library is not None
         test_output_path_lib = override_collection_container.library
         assert len(bpy.data.collections) == 0 + 5
-        assert all((id_.override_library is not None) for id_ in bpy.data.collections if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.collections if id_.library == test_output_path_lib)
         assert len(bpy.data.objects) == 0 + 8
-        assert all((id_.override_library is not None) for id_ in bpy.data.objects if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.objects if id_.library == test_output_path_lib)
         assert len(bpy.data.meshes) == 0 + 1
         assert len(bpy.data.armatures) == 0 + 1
 
@@ -444,9 +448,9 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
             num_armatures=0 + 1)
 
         override_collection_containers = [linked_collection_container.override_hierarchy_create(
-                bpy.context.scene,
-                bpy.context.view_layer,
-            ) for i in range(3)]
+            bpy.context.scene,
+            bpy.context.view_layer,
+        ) for i in range(3)]
         for override_container in override_collection_containers:
             assert override_container.library is None
             assert override_container.override_library is not None
@@ -528,15 +532,18 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
         # unexpected garbage IDs along the line.
         bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path_recursive))
 
-        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(self.test_output_path)]
+        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(
+            self.test_output_path)]
         assert linked_collection_container.library is not None
         assert linked_collection_container.override_library is not None
         test_output_path_lib = linked_collection_container.library
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
         assert len(bpy.data.collections) == 0 + 5
-        assert all((id_.override_library is not None) for id_ in bpy.data.collections if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.collections if id_.library == test_output_path_lib)
         assert len(bpy.data.objects) == 0 + 8
-        assert all((id_.override_library is not None) for id_ in bpy.data.objects if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.objects if id_.library == test_output_path_lib)
         assert len(bpy.data.meshes) == 0 + 1
         assert len(bpy.data.armatures) == 0 + 1
 
@@ -694,9 +701,9 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
             num_armatures=0 + 1)
 
         override_collection_containers = [linked_collection_container.override_hierarchy_create(
-                bpy.context.scene,
-                bpy.context.view_layer,
-            ) for i in range(3)]
+            bpy.context.scene,
+            bpy.context.view_layer,
+        ) for i in range(3)]
         for override_container in override_collection_containers:
             assert override_container.library is None
             assert override_container.override_library is not None
@@ -713,7 +720,8 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
 
         bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_0].override_library.reference.name == self.__class__.DATA_NAME_SAMENAME_0
         bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_3].override_library.reference.name == self.__class__.DATA_NAME_SAMENAME_3
-        # These names will be used by the second created liboverride, due to how naming is currently handled when original name is already used.
+        # These names will be used by the second created liboverride, due to how
+        # naming is currently handled when original name is already used.
         bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_1].override_library.reference.name == self.__class__.DATA_NAME_SAMENAME_0
         bpy.data.objects[self.__class__.DATA_NAME_SAMENAME_2].override_library.reference.name == self.__class__.DATA_NAME_SAMENAME_3
 
@@ -798,18 +806,21 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
         # unexpected garbage IDs along the line.
         bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path_recursive))
 
-        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(self.test_output_path)]
+        linked_collection_container = bpy.data.collections[self.__class__.DATA_NAME_CONTAINER, str(
+            self.test_output_path)]
         assert linked_collection_container.library is not None
         assert linked_collection_container.override_library is not None
 
         test_output_path_lib = linked_collection_container.library
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
         assert len(bpy.data.collections) == 3 + 6
-        assert all((id_.override_library is not None) for id_ in bpy.data.collections if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.collections if id_.library == test_output_path_lib)
         # Note that the 'missing' renamed objects from the library are still here as empty placeholders,
         # hence the 8 + 6 linked ones instead of 6 + 6.
         assert len(bpy.data.objects) == 6 + 14
-        assert all((id_.override_library is not None) for id_ in bpy.data.objects if id_.library == test_output_path_lib)
+        assert all((id_.override_library is not None)
+                   for id_ in bpy.data.objects if id_.library == test_output_path_lib)
         assert len(bpy.data.meshes) == 0 + 1
         assert len(bpy.data.armatures) == 0 + 1
 
