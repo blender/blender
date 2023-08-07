@@ -114,8 +114,7 @@ colorspaces:
     description: |
       sRGB display space
     isdata: false
-    to_reference: !<FileTransform> {src: srgb.spi1d, interpolation: linear}
-    from_reference: !<FileTransform> {src: srgb_inv.spi1d, interpolation: linear}
+    from_reference: !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0.055, direction: inverse}
 
   - !<ColorSpace>
     name: Non-Color
