@@ -59,6 +59,7 @@ class GLContext : public Context {
   static bool layered_rendering_support;
   static bool native_barycentric_support;
   static bool multi_bind_support;
+  static bool multi_bind_image_support;
   static bool multi_draw_indirect_support;
   static bool shader_draw_parameters_support;
   static bool stencil_texturing_support;
