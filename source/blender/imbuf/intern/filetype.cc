@@ -239,6 +239,8 @@ void imb_filetypes_init()
 {
   const ImFileType *type;
 
+  OIIO_init();
+
   for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->init) {
       type->init();

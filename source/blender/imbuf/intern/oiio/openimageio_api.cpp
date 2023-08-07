@@ -7,11 +7,23 @@
  */
 
 #include "openimageio_api.h"
+
 #include <OpenImageIO/imageio.h>
+
+#include "BLI_threads.h"
 
 OIIO_NAMESPACE_USING
 
 extern "C" {
+
+void OIIO_init()
+{
+  /* Make OIIO thread pool follow Blender number of threads override. */
+  const int threads_override = BLI_system_num_threads_override_get();
+  if (threads_override) {
+    OIIO::attribute("threads", threads_override);
+  }
+}
 
 int OIIO_getVersionHex()
 {
