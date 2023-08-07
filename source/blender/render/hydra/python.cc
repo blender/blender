@@ -188,19 +188,19 @@ static PyMethodDef methods[] = {
 
     {"cache_or_get_image_file", cache_or_get_image_file_func, METH_VARARGS, ""},
 
-    {NULL, NULL, 0, NULL},
+    {nullptr, nullptr, 0, nullptr},
 };
 
-static struct PyModuleDef module = {
+static PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
     "_bpy_hydra",
     "Hydra render API",
     -1,
     methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 
 }  // namespace blender::render::hydra

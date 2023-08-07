@@ -145,7 +145,7 @@ void InstancerData::update_instance(DupliObject *dupli)
     else {
       m_inst->data->update();
     }
-    ID_LOG(2, "Mesh %s %d", m_inst->data->id->name, (int)mesh_transforms_.size());
+    ID_LOG(2, "Mesh %s %d", m_inst->data->id->name, int(mesh_transforms_.size()));
     m_inst->indices.push_back(mesh_transforms_.size());
     mesh_transforms_.push_back(gf_matrix_from_transform(dupli->mat));
   }
@@ -155,7 +155,7 @@ void InstancerData::update_instance(DupliObject *dupli)
       nm_inst = &nonmesh_instances_.lookup_or_add_default(p_id);
       nm_inst->data = ObjectData::create(scene_delegate_, object, p_id);
     }
-    ID_LOG(2, "Light %s %d", nm_inst->data->id->name, (int)nm_inst->transforms.size());
+    ID_LOG(2, "Light %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
     nm_inst->transforms.push_back(gf_matrix_from_transform(dupli->mat));
   }
 }

@@ -23,7 +23,7 @@ USDSceneDelegate::USDSceneDelegate(pxr::HdRenderIndex *render_index,
 {
   /* Temporary directory to write any additional files to, like image or VDB files. */
   char unique_name[FILE_MAXFILE];
-  BLI_snprintf(unique_name, sizeof(unique_name), "%p", this);
+  SNPRINTF(unique_name, "%p", this);
 
   char dir_path[FILE_MAX];
   BLI_path_join(

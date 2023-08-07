@@ -537,7 +537,7 @@ static void fsmenu_free_ex(FSMenu **fsmenu)
   *fsmenu = nullptr;
 }
 
-void fsmenu_free(void)
+void fsmenu_free()
 {
   fsmenu_free_ex(&g_fsmenu);
 }
