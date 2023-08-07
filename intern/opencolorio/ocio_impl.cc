@@ -503,7 +503,7 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
     if (!compare_floats(v, out_v, 1e-6f, 64)) {
       is_scene_linear = false;
     }
-    if (!compare_floats(srgb_to_linearrgb(v), out_v, 1e-6f, 64)) {
+    if (!compare_floats(srgb_to_linearrgb(v), out_v, 1e-5f, 64)) {
       is_srgb = false;
     }
   }
