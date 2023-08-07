@@ -227,7 +227,7 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace,
     if (!compare_floats(v, out_v, 1e-6f, 64)) {
       is_scene_linear = false;
     }
-    if (!compare_floats(color_srgb_to_linear(v), out_v, 1e-5f, 64)) {
+    if (!compare_floats(color_srgb_to_linear(v), out_v, 1e-4f, 64)) {
       is_srgb = false;
     }
   }
