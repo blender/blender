@@ -504,14 +504,19 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
   float min_coord = FLT_MAX;
   fcurve_scene_coord_range_get(scene, fcu, &min_coord, &max_coord);
 
-  if (max_coord > min_coord) {
+  /* We use an ulps-based floating point comparison here, with the
+   * rationale that if there are too few possible values between
+   * `min_coord` and `max_coord`, then after display normalization it
+   * will certainly be a weird quantized experience for the user anyway.
+   */
+  if (min_coord < max_coord && ulp_diff_ff(min_coord, max_coord) > 256) {
+    /* Normalize. */
     const float range = max_coord - min_coord;
-    if (range > FLT_EPSILON) {
-      factor = 2.0f / range;
-    }
+    factor = 2.0f / range;
     offset = -min_coord - range / 2.0f;
   }
-  else if (max_coord == min_coord) {
+  else {
+    /* Skip normalization. */
     factor = 1.0f;
     offset = -min_coord;
   }

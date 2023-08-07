@@ -171,6 +171,26 @@ MINLINE size_t clamp_z(size_t value, size_t min, size_t max);
  */
 MINLINE int compare_ff(float a, float b, float max_diff);
 /**
+ * Computes the distance between two floats in ulps.
+ *
+ * In other words, returns zero if the floats are exactly equal, and
+ * otherwise returns 1 plus the number of (unique) representable floats
+ * between `a` and `b` on the number line.
+ *
+ * Notes:
+ * - The order of `a` and `b` doesn't matter.  The returned value is the
+ *   absolute difference.
+ * - Unlike many ulp difference functions, this function handles the
+ *   difference between positive and negative floats in a meaningful way.
+ *   It returns the number (plus 1) of representable floats between those
+ *   two values as they would be arranged on a number line.
+ * - Zero and negative zero are *not* considered unique from each other.
+ *   They are counted together as a single float in the difference.
+ * - NaNs are not handled meaningfully.  If either number is NaN, this
+ *   function returns uint max (0xffffffff).
+ */
+MINLINE uint ulp_diff_ff(float a, float b);
+/**
  * Almost-equal for IEEE floats, using their integer representation
  * (mixing ULP and absolute difference methods).
  *

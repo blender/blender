@@ -644,26 +644,48 @@ MINLINE int compare_ff(float a, float b, const float max_diff)
   return fabsf(a - b) <= max_diff;
 }
 
-MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
+MINLINE uint ulp_diff_ff(float a, float b)
 {
+  BLI_assert(sizeof(float) == sizeof(uint));
+
+  const uint sign_bit = 0x80000000;
+  const uint infinity = 0x7f800000;
+
   union {
     float f;
-    int i;
+    uint i;
   } ua, ub;
+  ua.f = a;
+  ub.f = b;
 
-  BLI_assert(sizeof(float) == sizeof(int));
-  BLI_assert(max_ulps < (1 << 22));
+  const uint a_sign = ua.i & sign_bit;
+  const uint b_sign = ub.i & sign_bit;
+  const uint a_abs = ua.i & ~sign_bit;
+  const uint b_abs = ub.i & ~sign_bit;
+
+  if (a_abs > infinity || b_abs > infinity) {
+    /* NaNs always return maximum ulps apart. */
+    return 0xffffffff;
+  }
+  else if (a_sign == b_sign) {
+    const uint min_abs = a_abs < b_abs ? a_abs : b_abs;
+    const uint max_abs = a_abs > b_abs ? a_abs : b_abs;
+    return max_abs - min_abs;
+  }
+  else {
+    return a_abs + b_abs;
+  }
+}
+
+MINLINE int compare_ff_relative(float a, float b, const float max_diff, const int max_ulps)
+{
+  BLI_assert(max_ulps >= 0 && max_ulps < (1 << 22));
 
   if (fabsf(a - b) <= max_diff) {
     return 1;
   }
 
-  ua.f = a;
-  ub.f = b;
-
-  /* Important to compare sign from integers, since (-0.0f < 0) is false
-   * (though this shall not be an issue in common cases)... */
-  return ((ua.i < 0) != (ub.i < 0)) ? 0 : (abs(ua.i - ub.i) <= max_ulps) ? 1 : 0;
+  return (ulp_diff_ff(a, b) <= (uint)max_ulps) ? 1 : 0;
 }
 
 MINLINE bool compare_threshold_relative(const float value1, const float value2, const float thresh)
