@@ -58,8 +58,7 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
   const float q = 3.0;
   const float EPS = 1.0e-10;
 
-  /* For now use green channel to compute orientation. */
-  /* TODO: convert to HSV and compute orientation and strength on luminance channel */
+  /* All channels are identical. Take first channel for simplicity. */
   float tmp[4];
   s_xx_reader_->read(tmp, x, y, nullptr);
   const float a = tmp[1];
