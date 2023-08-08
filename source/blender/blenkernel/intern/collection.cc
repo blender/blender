@@ -393,7 +393,6 @@ void BKE_collection_compat_blend_read_expand(BlendExpander *expander, SceneColle
 
 void BKE_collection_blend_read_expand(BlendExpander *expander, Collection *collection)
 {
-  BLI_assert(collection->runtime.gobject_hash == nullptr);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BLO_expand(expander, cob->ob);
   }
