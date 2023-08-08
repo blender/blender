@@ -18,7 +18,7 @@ luma: [0.2126, 0.7152, 0.0722]
 description: RRT version ut33
 
 roles:
-  reference: Linear
+  reference: Linear CIE-XYZ E
 
   # Internal scene linear space
   scene_linear: Linear
@@ -41,6 +41,7 @@ roles:
 
   # For interop between configs, and to determine XYZ for rendering
   aces_interchange: Linear ACES
+  cie_xyz_d65_interchange: Linear CIE-XYZ D65
 
   # Specified by OCIO, not used in Blender
   color_timing: Filmic Log
@@ -62,6 +63,27 @@ active_views: [Standard, Filmic, Filmic Log, False Color, Raw]
 
 colorspaces:
   - !<ColorSpace>
+    name: Linear CIE-XYZ E
+    aliases: ["FilmLight: Linear - XYZ", Linear CIE-XYZ I-E]
+    family: Chromaticity
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      1931 CIE XYZ standard with assumed illuminant E white point
+    isdata: false
+
+  - !<ColorSpace>
+    name: Linear CIE-XYZ D65
+    aliases: [cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ D65]
+    family: Chromaticity
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      1931 CIE XYZ with adapted illuminant D65 white point
+    isdata: false
+    from_scene_reference: !<FileTransform> {src: xyz_E_to_D65.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
     name: Linear
     family: linear
     equalitygroup:
@@ -69,6 +91,10 @@ colorspaces:
     description: |
       Rec. 709 (Full Range), Blender native linear space
     isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
+        - !<MatrixTransform> {matrix: [ 3.2410032329763587, -1.5373989694887855, -0.4986158819963629, 0, -0.9692242522025164, 1.8759299836951759, 0.0415542263400847, 0, 0.0556394198519755, -0.2040112061239099, 1.0571489771875333, 0, 0, 0, 0, 1]}
 
   - !<ColorSpace>
     name: Linear ACES
@@ -80,7 +106,7 @@ colorspaces:
     isdata: false
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD", direction: inverse}
 
   - !<ColorSpace>
@@ -93,18 +119,8 @@ colorspaces:
     isdata: false
     from_reference: !<GroupTransform>
       children:
-        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP1_to_CIE-XYZ-D65_BFD", direction: inverse}
-
-  - !<ColorSpace>
-    name: XYZ
-    family: linear
-    equalitygroup:
-    bitdepth: 32f
-    isdata: false
-    from_reference: !<GroupTransform>
-      children:
-        - !<FileTransform> {src: srgb_to_xyz.spimtx, interpolation: linear}
 
   - !<ColorSpace>
     name: sRGB
@@ -114,7 +130,10 @@ colorspaces:
     description: |
       sRGB display space
     isdata: false
-    from_reference: !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0.055, direction: inverse}
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear}
+        - !<ExponentWithLinearTransform> {gamma: 2.4, offset: 0.055, direction: inverse}
 
   - !<ColorSpace>
     name: Non-Color
@@ -135,11 +154,15 @@ colorspaces:
       Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range
     isdata: false
     from_reference: !<GroupTransform>
-        children:
-            - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
-            - !<FileTransform> {src: filmic_desat65cube.spi3d, interpolation: best}
-            - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
-    to_reference: !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 4.026068812], direction: inverse}
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
+        - !<FileTransform> {src: filmic_desat65cube.spi3d, interpolation: best}
+        - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 4.026068812], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear, direction: inverse}
 
   - !<ColorSpace>
     name: Filmic sRGB
@@ -150,9 +173,9 @@ colorspaces:
       sRGB display space with Filmic view transform
     isdata: false
     from_reference: !<GroupTransform>
-        children:
-            - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Filmic Log}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
 
   - !<ColorSpace>
     name: False Color
@@ -163,61 +186,61 @@ colorspaces:
       Filmic false color view transform
     isdata: false
     from_reference: !<GroupTransform>
-        children:
-            - !<ColorSpaceTransform> {src: Linear, dst: Filmic Log}
-            - !<MatrixTransform> {matrix: [0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0, 0, 0, 1]}
-            - !<FileTransform> {src: filmic_false_color.spi3d, interpolation: best}
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Filmic Log}
+        - !<MatrixTransform> {matrix: [0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0, 0, 0, 1]}
+        - !<FileTransform> {src: filmic_false_color.spi3d, interpolation: best}
 looks:
   - !<Look>
     name: Very High Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_1.20_1-00.spi1d, interpolation: linear}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_1.20_1-00.spi1d, interpolation: linear}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
     name: High Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_0.99_1-0075.spi1d, interpolation: linear}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_0.99_1-0075.spi1d, interpolation: linear}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
     name: Medium High Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: best}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: best}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
     name: Medium Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
+      children:
 
   - !<Look>
     name: Medium Low Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_0-60_1-04.spi1d, interpolation: linear}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_0-60_1-04.spi1d, interpolation: linear}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
     name: Low Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_0-48_1-09.spi1d, interpolation: linear}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_0-48_1-09.spi1d, interpolation: linear}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
     name: Very Low Contrast
     process_space: Filmic Log
     transform: !<GroupTransform>
-        children:
-            - !<FileTransform> {src: filmic_to_0-35_1-30.spi1d, interpolation: linear}
-            - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+      children:
+        - !<FileTransform> {src: filmic_to_0-35_1-30.spi1d, interpolation: linear}
+        - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
