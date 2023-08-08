@@ -235,6 +235,8 @@ bool BKE_scene_uses_blender_eevee(const struct Scene *scene);
 bool BKE_scene_uses_blender_workbench(const struct Scene *scene);
 bool BKE_scene_uses_cycles(const struct Scene *scene);
 
+bool BKE_scene_uses_shader_previews(const struct Scene *scene);
+
 /**
  * Return whether the Cycles experimental feature is enabled. It is invalid to call without first
  * ensuring that Cycles is the active render engine (e.g. with #BKE_scene_uses_cycles).

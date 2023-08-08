@@ -24,6 +24,7 @@
 #include "BKE_screen.h"
 
 #include "ED_node.hh"
+#include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -327,6 +328,15 @@ static void node_init(wmWindowManager * /*wm*/, ScrArea *area)
 
   if (snode->runtime == nullptr) {
     snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
+  }
+}
+
+static void node_exit(wmWindowManager *wm, ScrArea *area)
+{
+  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+
+  if (snode->runtime) {
+    free_previews(*wm, *snode);
   }
 }
 
@@ -1131,6 +1141,7 @@ void ED_spacetype_node()
   st->create = node_create;
   st->free = node_free;
   st->init = node_init;
+  st->exit = node_exit;
   st->duplicate = node_duplicate;
   st->operatortypes = node_operatortypes;
   st->keymap = node_keymap;

@@ -170,6 +170,12 @@ static bool do_write_image_or_movie(Render *re,
 static void result_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
 static void result_rcti_nothing(void * /*arg*/, RenderResult * /*rr*/, rcti * /*rect*/) {}
 static void current_scene_nothing(void * /*arg*/, Scene * /*scene*/) {}
+static bool prepare_viewlayer_nothing(void * /*arg*/,
+                                      ViewLayer * /*vl*/,
+                                      Depsgraph * /*depsgraph*/)
+{
+  return true;
+}
 static void stats_nothing(void * /*arg*/, RenderStats * /*rs*/) {}
 static void float_nothing(void * /*arg*/, float /*val*/) {}
 static bool default_break(void * /*arg*/)
@@ -548,6 +554,7 @@ void RE_InitRenderCB(Render *re)
   re->display_clear = result_nothing;
   re->display_update = result_rcti_nothing;
   re->current_scene_update = current_scene_nothing;
+  re->prepare_viewlayer = prepare_viewlayer_nothing;
   re->progress = float_nothing;
   re->test_break = default_break;
   if (G.background) {
@@ -914,6 +921,14 @@ void RE_test_break_cb(Render *re, void *handle, bool (*f)(void *handle))
 {
   re->test_break = f;
   re->tbh = handle;
+}
+
+void RE_prepare_viewlayer_cb(Render *re,
+                             void *handle,
+                             bool (*f)(void *handle, ViewLayer *vl, Depsgraph *depsgraph))
+{
+  re->prepare_viewlayer = f;
+  re->prepare_vl_handle = handle;
 }
 
 /** \} */

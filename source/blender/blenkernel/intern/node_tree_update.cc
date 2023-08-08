@@ -478,6 +478,7 @@ class NodeTreeMainUpdater {
     this->update_internal_links(ntree);
     this->update_generic_callback(ntree);
     this->remove_unused_previews_when_necessary(ntree);
+    this->make_node_previews_dirty(ntree);
 
     this->propagate_runtime_flags(ntree);
     if (ntree.type == NTREE_GEOMETRY) {
@@ -721,6 +722,19 @@ class NodeTreeMainUpdater {
       return;
     }
     blender::bke::node_preview_remove_unused(&ntree);
+  }
+
+  void make_node_previews_dirty(bNodeTree &ntree)
+  {
+    ntree.runtime->previews_refresh_state++;
+    for (bNode *node : ntree.all_nodes()) {
+      if (node->type != NODE_GROUP) {
+        continue;
+      }
+      if (bNodeTree *nested_tree = reinterpret_cast<bNodeTree *>(node->id)) {
+        this->make_node_previews_dirty(*nested_tree);
+      }
+    }
   }
 
   void propagate_runtime_flags(const bNodeTree &ntree)

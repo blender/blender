@@ -501,6 +501,7 @@ class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
         col = layout.column()
         col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
         col.prop(edit, "node_margin", text="Node Auto-Offset Margin")
+        col.prop(edit, "node_preview_resolution", text="Node Preview Resolution")
 
 
 # -----------------------------------------------------------------------------
@@ -2407,6 +2408,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
                 ({"property": "use_rotation_socket"}, ("/blender/blender/issues/92967", "#92967")),
                 ({"property": "use_node_group_operators"}, ("/blender/blender/issues/101778", "#101778")),
+                ({"property": "use_shader_node_previews"}, ("blender/blender/issues/110353", "#110353")),
             ),
         )
 

@@ -692,7 +692,9 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_rotation_socket;
   char use_node_group_operators;
+  char use_shader_node_previews;
   char use_asset_shelf;
+  char _pad[7];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -794,7 +796,7 @@ typedef struct UserDef {
   int scrollback;
   /** Node insert offset (aka auto-offset) margin, but might be useful for later stuff as well. */
   char node_margin;
-  char _pad2[1];
+  char node_preview_res;
   /** #eUserpref_Translation_Flags. */
   short transopts;
   short menuthreshold1, menuthreshold2;

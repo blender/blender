@@ -170,6 +170,13 @@ struct Render : public BaseRender {
   bool (*test_break)(void *handle) = nullptr;
   void *tbh = nullptr;
 
+  /**
+   * Executed right before the initialisation of the depsgraph, in order to modify some stuff in
+   * the viewlayer. The modified ids must be tagged in the depsgraph.
+   */
+  bool (*prepare_viewlayer)(void *handle, struct ViewLayer *vl, struct Depsgraph *depsgraph);
+  void *prepare_vl_handle;
+
   RenderStats i = {};
 
   /**

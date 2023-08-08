@@ -849,6 +849,14 @@ static void engine_render_view_layer(Render *re,
   /* Create depsgraph with scene evaluated at render resolution. */
   ViewLayer *view_layer = static_cast<ViewLayer *>(
       BLI_findstring(&re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name)));
+  if (re->prepare_viewlayer) {
+    if (!re->prepare_viewlayer(re->prepare_vl_handle, view_layer, engine->depsgraph)) {
+      if (re->draw_lock) {
+        re->draw_lock(re->dlh, false);
+      }
+      return;
+    }
+  }
   engine_depsgraph_init(engine, view_layer);
 
   /* Sync data to engine, within draw lock so scene data can be accessed safely. */

@@ -3024,6 +3024,11 @@ bool BKE_scene_uses_cycles(const Scene *scene)
   return STREQ(scene->r.engine, RE_engine_id_CYCLES);
 }
 
+bool BKE_scene_uses_shader_previews(const Scene *scene)
+{
+  return BKE_scene_uses_blender_eevee(scene) || BKE_scene_uses_cycles(scene);
+}
+
 /* This enumeration has to match the one defined in the Cycles addon. */
 enum eCyclesFeatureSet {
   CYCLES_FEATURES_SUPPORTED = 0,

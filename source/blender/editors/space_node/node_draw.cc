@@ -45,6 +45,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_type_conversions.hh"
 
 #include "IMB_imbuf.h"
@@ -68,6 +69,7 @@
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_node.hh"
+#include "ED_node_preview.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_viewer_path.hh"
@@ -98,6 +100,7 @@
 namespace geo_log = blender::nodes::geo_eval_log;
 using blender::bke::bNodeTreeZone;
 using blender::bke::bNodeTreeZones;
+using blender::ed::space_node::NestedTreePreviews;
 
 /**
  * This is passed to many functions which draw the node editor.
@@ -116,6 +119,8 @@ struct TreeDrawContext {
    * currently drawn node tree can be retrieved from the log below.
    */
   blender::Map<const bNodeTreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
+
+  NestedTreePreviews *nested_group_infos = nullptr;
   /**
    * True if there is an active realtime compositor using the node tree, false otherwise.
    */
@@ -351,8 +356,7 @@ static void node_update_basis(const bContext &C,
   RNA_pointer_create(&ntree.id, &RNA_Node, &node, &nodeptr);
 
   const bool node_options = node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS);
-  const bool inputs_first = node.inputs.first &&
-                            !(node.outputs.first || (node.flag & NODE_PREVIEW) || node_options);
+  const bool inputs_first = node.inputs.first && !(node.outputs.first || node_options);
 
   /* Get "global" coordinates. */
   float2 loc = node_to_view(node, float2(0));
@@ -529,7 +533,7 @@ static void node_update_basis(const bContext &C,
   }
 
   /* Little bit of space in end. */
-  if (node.inputs.first || (node.flag & (NODE_OPTIONS | NODE_PREVIEW)) == 0) {
+  if (node.inputs.first || (node.flag & NODE_OPTIONS) == 0) {
     dy -= NODE_DYS / 2;
   }
 
@@ -2107,6 +2111,10 @@ static void node_draw_extra_info_panel(const Scene *scene,
   if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS)) {
     return;
   }
+  if (preview && !(preview->x > 0 && preview->y > 0)) {
+    /* If the preview has an non-drawable size, just dont draw it. */
+    preview = nullptr;
+  }
   Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(tree_draw_ctx, snode, node);
   if (extra_info_rows.size() == 0 && !preview) {
     return;
@@ -2205,12 +2213,14 @@ static void node_draw_basis(const bContext &C,
                             bNodeInstanceKey key)
 {
   const float iconbutw = NODE_HEADER_ICON_SIZE;
-  bNodeInstanceHash *previews = static_cast<bNodeInstanceHash *>(
-      CTX_data_pointer_get(&C, "node_previews").data);
+  const bool show_preview = (snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) &&
+                            (node.flag & NODE_PREVIEW) &&
+                            (U.experimental.use_shader_node_previews ||
+                             ntree.type != NTREE_SHADER);
 
   /* Skip if out of view. */
   rctf rect_with_preview = node.runtime->totr;
-  if (node.flag & NODE_PREVIEW && previews && snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) {
+  if (show_preview) {
     rect_with_preview.ymax += NODE_WIDTH(node);
   }
   if (BLI_rctf_isect(&rect_with_preview, &v2d.cur, nullptr) == false) {
@@ -2234,19 +2244,36 @@ static void node_draw_basis(const bContext &C,
 
   GPU_line_width(1.0f);
 
-  ImBuf *preview = nullptr;
-  if (node.flag & NODE_PREVIEW && previews && snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) {
-    bNodePreview *preview_compositor = static_cast<bNodePreview *>(
-        BKE_node_instance_hash_lookup(previews, key));
-    if (preview_compositor) {
-      preview = preview_compositor->ibuf;
+  /* Overlay atop the node. */
+  {
+    bool drawn_with_previews = false;
+
+    if (show_preview) {
+      bNodeInstanceHash *previews_compo = static_cast<bNodeInstanceHash *>(
+          CTX_data_pointer_get(&C, "node_previews").data);
+      NestedTreePreviews *previews_shader = tree_draw_ctx.nested_group_infos;
+
+      if (previews_shader) {
+        ImBuf *preview = node_preview_acquire_ibuf(ntree, *previews_shader, node);
+        node_draw_extra_info_panel(CTX_data_scene(&C), tree_draw_ctx, snode, node, preview, block);
+        node_release_preview_ibuf(*previews_shader);
+        drawn_with_previews = true;
+      }
+      else if (previews_compo) {
+        bNodePreview *preview_compositor = static_cast<bNodePreview *>(
+            BKE_node_instance_hash_lookup(previews_compo, key));
+        if (preview_compositor) {
+          node_draw_extra_info_panel(
+              CTX_data_scene(&C), tree_draw_ctx, snode, node, preview_compositor->ibuf, block);
+          drawn_with_previews = true;
+        }
+      }
+    }
+
+    if (drawn_with_previews == false) {
+      node_draw_extra_info_panel(CTX_data_scene(&C), tree_draw_ctx, snode, node, nullptr, block);
     }
   }
-  if (!preview || !(preview->x && preview->y)) {
-    preview = nullptr;
-  }
-
-  node_draw_extra_info_panel(CTX_data_scene(&C), tree_draw_ctx, snode, node, preview, block);
 
   /* Header. */
   {
@@ -2275,7 +2302,7 @@ static void node_draw_basis(const bContext &C,
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
   /* Preview. */
-  if (node.typeinfo->flag & NODE_PREVIEW) {
+  if (node_is_previewable(ntree, node)) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(&block,
@@ -3481,6 +3508,12 @@ static void draw_nodetree(const bContext &C,
   }
   else if (ntree.type == NTREE_COMPOSIT) {
     tree_draw_ctx.used_by_realtime_compositor = realtime_compositor_is_in_use(C);
+  }
+  else if (ntree.type == NTREE_SHADER && U.experimental.use_shader_node_previews &&
+           BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
+           U.experimental.use_shader_node_previews)
+  {
+    tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
   }
 
   node_update_nodetree(C, tree_draw_ctx, ntree, nodes, blocks);

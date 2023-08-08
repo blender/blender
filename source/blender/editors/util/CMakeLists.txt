@@ -66,6 +66,7 @@ set(SRC
   ../include/ED_mesh.hh
   ../include/ED_node_c.hh
   ../include/ED_node.hh
+  ../include/ED_node_preview.hh
   ../include/ED_numinput.hh
   ../include/ED_object.hh
   ../include/ED_outliner.hh

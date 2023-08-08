@@ -57,6 +57,7 @@ void BKE_object_material_from_eval_data(struct Main *bmain,
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_gpencil_material_attr_init(struct Material *ma);
+void BKE_material_make_node_previews_dirty(struct Material *ma);
 
 /* UNUSED */
 // void automatname(struct Material *);

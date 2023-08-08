@@ -847,6 +847,10 @@ void blo_do_versions_userdef(UserDef *userdef)
 #endif
   }
 
+  if (!USER_VERSION_ATLEAST(400, 15)) {
+    userdef->node_preview_res = 120;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

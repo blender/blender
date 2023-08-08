@@ -846,7 +846,7 @@ class NODE_PT_overlay(Panel):
         col.prop(overlay, "show_context_path", text="Context Path")
         col.prop(snode, "show_annotation", text="Annotations")
 
-        if snode.supports_preview:
+        if snode.supports_previews:
             col.separator()
             col.prop(overlay, "show_previews", text="Previews")
 

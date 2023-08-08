@@ -30,6 +30,12 @@ typedef struct Global {
    */
   struct Main *main;
 
+  /**
+   * Preview main is stored to avoid loading the preview file in multiple scenarios.
+   * It is actually shared between shader node previews and asset previews.
+   */
+  struct Main *pr_main;
+
   /** Last saved location for images. */
   char ima[1024]; /* 1024 = FILE_MAX */
   /** Last used location for library link/append. */

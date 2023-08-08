@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_compute_context.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
@@ -39,6 +40,7 @@ struct AssetItemTree;
 }
 
 namespace blender::ed::space_node {
+struct NestedTreePreviews;
 
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
@@ -105,6 +107,13 @@ struct SpaceNode_Runtime {
   /* XXX hack for translate_attach op-macros to pass data from transform op to insert_offset op */
   /** Temporary data for node insert offset (in UI called Auto-offset). */
   NodeInsertOfsData *iofsd;
+
+  /**
+   * Use this to store data for the displayed node tree. It has an entry for every distinct
+   * nested nodegroup.
+   */
+  Map<ComputeContextHash, std::unique_ptr<space_node::NestedTreePreviews>>
+      tree_previews_per_context;
 
   /**
    * Temporary data for node add menu in order to provide longer-term storage for context pointers.
@@ -330,6 +339,7 @@ bool composite_node_editable(bContext *C);
 
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(bNode *node, int set);
+bool node_is_previewable(const bNodeTree &ntree, const bNode &node);
 int node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         const float2 &cursor,
