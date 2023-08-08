@@ -175,6 +175,16 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       break;
     }
 
+    case NODE_MATH_FLOORED_MODULO: {
+      if (in1 == 0.0f) {
+        *out = 0.0f;
+      }
+      else {
+        *out = in0 - floorf(in0 / in1) * in1;
+      }
+      break;
+    }
+
     case NODE_MATH_ABSOLUTE: {
       *out = fabsf(in0);
       break;

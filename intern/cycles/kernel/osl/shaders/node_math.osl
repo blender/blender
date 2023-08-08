@@ -52,6 +52,8 @@ shader node_math(string math_type = "add",
     Value = Value1 - floor(Value1);
   else if (math_type == "modulo")
     Value = safe_modulo(Value1, Value2);
+  else if (math_type == "floored_modulo")
+    Value = safe_floored_modulo(Value1, Value2);
   else if (math_type == "trunc")
     Value = trunc(Value1);
   else if (math_type == "snap")

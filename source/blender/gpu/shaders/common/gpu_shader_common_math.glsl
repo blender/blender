@@ -111,6 +111,11 @@ void math_modulo(float a, float b, float c, out float result)
   result = compatible_fmod(a, b);
 }
 
+void math_floored_modulo(float a, float b, float c, out float result)
+{
+  result = (b != 0.0) ? a - floor(a / b) * b : 0.0;
+}
+
 void math_trunc(float a, float b, float c, out float result)
 {
   result = trunc(a);

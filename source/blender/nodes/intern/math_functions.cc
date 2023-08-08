@@ -53,6 +53,8 @@ const FloatMathOperationInfo *get_float_math_operation_info(const int operation)
       RETURN_OPERATION_INFO("Greater Than", "math_greater_than");
     case NODE_MATH_MODULO:
       RETURN_OPERATION_INFO("Modulo", "math_modulo");
+    case NODE_MATH_FLOORED_MODULO:
+      RETURN_OPERATION_INFO("Floored Modulo", "math_floored_modulo");
     case NODE_MATH_ABSOLUTE:
       RETURN_OPERATION_INFO("Absolute", "math_absolute");
     case NODE_MATH_ARCTAN2:

@@ -224,6 +224,14 @@ class MathModuloOperation : public MathBaseOperation {
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
+class MathFlooredModuloOperation : public MathBaseOperation {
+ public:
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
+};
+
 class MathAbsoluteOperation : public MathBaseOperation {
  public:
   void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;

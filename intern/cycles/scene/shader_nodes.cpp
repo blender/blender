@@ -6292,6 +6292,7 @@ NODE_DEFINE(MathNode)
   type_enum.insert("less_than", NODE_MATH_LESS_THAN);
   type_enum.insert("greater_than", NODE_MATH_GREATER_THAN);
   type_enum.insert("modulo", NODE_MATH_MODULO);
+  type_enum.insert("floored_modulo", NODE_MATH_FLOORED_MODULO);
   type_enum.insert("absolute", NODE_MATH_ABSOLUTE);
   type_enum.insert("arctan2", NODE_MATH_ARCTAN2);
   type_enum.insert("floor", NODE_MATH_FLOOR);

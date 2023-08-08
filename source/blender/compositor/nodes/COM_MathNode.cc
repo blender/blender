@@ -76,6 +76,9 @@ void MathNode::convert_to_operations(NodeConverter &converter,
     case NODE_MATH_MODULO:
       operation = new MathModuloOperation();
       break;
+    case NODE_MATH_FLOORED_MODULO:
+      operation = new MathFlooredModuloOperation();
+      break;
     case NODE_MATH_ABSOLUTE:
       operation = new MathAbsoluteOperation();
       break;
