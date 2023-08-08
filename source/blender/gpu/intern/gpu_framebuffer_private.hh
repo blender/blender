@@ -81,8 +81,9 @@ class FrameBuffer {
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
   /** Frame-buffer state. */
-  int viewport_[4] = {0};
+  int viewport_[GPU_MAX_VIEWPORTS][4] = {{0}};
   int scissor_[4] = {0};
+  bool multi_viewport_ = false;
   bool scissor_test_ = false;
   bool dirty_state_ = true;
 
@@ -157,10 +158,22 @@ class FrameBuffer {
 
   inline void viewport_set(const int viewport[4])
   {
-    if (!equals_v4v4_int(viewport_, viewport)) {
-      copy_v4_v4_int(viewport_, viewport);
+    if (!equals_v4v4_int(viewport_[0], viewport)) {
+      copy_v4_v4_int(viewport_[0], viewport);
       dirty_state_ = true;
     }
+    multi_viewport_ = false;
+  }
+
+  inline void viewport_multi_set(const int viewports[GPU_MAX_VIEWPORTS][4])
+  {
+    for (size_t i = 0; i < GPU_MAX_VIEWPORTS; i++) {
+      if (!equals_v4v4_int(viewport_[i], viewports[i])) {
+        copy_v4_v4_int(viewport_[i], viewports[i]);
+        dirty_state_ = true;
+      }
+    }
+    multi_viewport_ = true;
   }
 
   inline void scissor_set(const int scissor[4])
@@ -178,7 +191,7 @@ class FrameBuffer {
 
   inline void viewport_get(int r_viewport[4]) const
   {
-    copy_v4_v4_int(r_viewport, viewport_);
+    copy_v4_v4_int(r_viewport, viewport_[0]);
   }
 
   inline void scissor_get(int r_scissor[4]) const

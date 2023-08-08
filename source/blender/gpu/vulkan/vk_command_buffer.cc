@@ -376,7 +376,7 @@ void VKCommandBuffer::ensure_active_framebuffer()
     render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     render_pass_begin_info.renderPass = state.framebuffer_->vk_render_pass_get();
     render_pass_begin_info.framebuffer = state.framebuffer_->vk_framebuffer_get();
-    render_pass_begin_info.renderArea = state.framebuffer_->vk_render_area_get();
+    render_pass_begin_info.renderArea = state.framebuffer_->vk_render_areas_get()[0];
     /* We don't use clear ops, but vulkan wants to have at least one. */
     VkClearValue clear_value = {};
     render_pass_begin_info.clearValueCount = 1;

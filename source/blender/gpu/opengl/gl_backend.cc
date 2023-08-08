@@ -592,7 +592,8 @@ void GLBackend::capabilities_init()
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
   GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
-  GLContext::layered_rendering_support = epoxy_has_gl_extension("GL_AMD_vertex_shader_layer");
+  GLContext::layered_rendering_support = epoxy_has_gl_extension(
+      "GL_ARB_shader_viewport_layer_array");
   GLContext::native_barycentric_support = epoxy_has_gl_extension(
       "GL_AMD_shader_explicit_vertex_parameter");
   GLContext::multi_bind_support = GLContext::multi_bind_image_support = epoxy_has_gl_extension(

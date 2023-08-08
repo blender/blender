@@ -500,6 +500,11 @@ static char *glsl_patch_get()
 
   STR_CONCAT(patch, slen, "#define gl_InstanceID gpu_InstanceIndex\n");
 
+  /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
+  STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
+  STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+  STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
+
   STR_CONCAT(patch, slen, "#define DFDX_SIGN 1.0\n");
   STR_CONCAT(patch, slen, "#define DFDY_SIGN 1.0\n");
 
@@ -526,6 +531,7 @@ Vector<uint32_t> VKShader::compile_glsl_to_spirv(Span<const char *> sources,
   shaderc::Compiler &compiler = backend.get_shaderc_compiler();
   shaderc::CompileOptions options;
   options.SetOptimizationLevel(shaderc_optimization_level_performance);
+  options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     options.SetOptimizationLevel(shaderc_optimization_level_zero);
     options.SetGenerateDebugInfo();

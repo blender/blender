@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -107,8 +108,8 @@ class VKFrameBuffer : public FrameBuffer {
     BLI_assert(vk_render_pass_ != VK_NULL_HANDLE);
     return vk_render_pass_;
   }
-  VkViewport vk_viewport_get() const;
-  VkRect2D vk_render_area_get() const;
+  Array<VkViewport, 16> vk_viewports_get() const;
+  Array<VkRect2D, 16> vk_render_areas_get() const;
   VkImage vk_image_get() const
   {
     BLI_assert(vk_image_ != VK_NULL_HANDLE);

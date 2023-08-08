@@ -219,6 +219,7 @@ class GHOST_DeviceVK {
     device_features.dualSrcBlend = VK_TRUE;
     device_features.logicOp = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
+    device_features.multiViewport = VK_TRUE;
 #endif
 
     VkDeviceCreateInfo device_create_info = {};

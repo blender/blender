@@ -71,52 +71,53 @@ void VKFrameBuffer::bind(bool /*enabled_srgb*/)
   context.activate_framebuffer(*this);
 }
 
-VkViewport VKFrameBuffer::vk_viewport_get() const
+Array<VkViewport, 16> VKFrameBuffer::vk_viewports_get() const
 {
-  VkViewport viewport;
-  int viewport_rect[4];
-  viewport_get(viewport_rect);
+  Array<VkViewport, 16> viewports(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 
-  viewport.x = viewport_rect[0];
-  viewport.y = viewport_rect[1];
-  viewport.width = viewport_rect[2];
-  viewport.height = viewport_rect[3];
-  viewport.minDepth = 0.0f;
-  viewport.maxDepth = 1.0f;
-
-  /*
-   * Vulkan has origin to the top left, Blender bottom left. We counteract this by using a negative
-   * viewport when flip_viewport_ is set. This flips the viewport making any draw/blit use the
-   * correct orientation.
-   */
-  if (flip_viewport_) {
-    viewport.y = height_ - viewport_rect[1];
-    viewport.height = -viewport_rect[3];
+  int index = 0;
+  for (VkViewport &viewport : viewports) {
+    viewport.x = viewport_[index][0];
+    viewport.y = viewport_[index][1];
+    viewport.width = viewport_[index][2];
+    viewport.height = viewport_[index][3];
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    /*
+     * Vulkan has origin to the top left, Blender bottom left. We counteract this by using a
+     * negative viewport when flip_viewport_ is set. This flips the viewport making any draw/blit
+     * use the correct orientation.
+     */
+    if (flip_viewport_) {
+      viewport.y = height_ - viewport_[index][1];
+      viewport.height = -viewport_[index][3];
+    }
+    index++;
   }
-
-  return viewport;
+  return viewports;
 }
 
-VkRect2D VKFrameBuffer::vk_render_area_get() const
+Array<VkRect2D, 16> VKFrameBuffer::vk_render_areas_get() const
 {
-  VkRect2D render_area = {};
+  Array<VkRect2D, 16> render_areas(this->multi_viewport_ ? GPU_MAX_VIEWPORTS : 1);
 
-  if (scissor_test_get()) {
-    int scissor_rect[4];
-    scissor_get(scissor_rect);
-    render_area.offset.x = scissor_rect[0];
-    render_area.offset.y = scissor_rect[1];
-    render_area.extent.width = scissor_rect[2];
-    render_area.extent.height = scissor_rect[3];
+  for (VkRect2D &render_area : render_areas) {
+    if (scissor_test_get()) {
+      int scissor_rect[4];
+      scissor_get(scissor_rect);
+      render_area.offset.x = scissor_rect[0];
+      render_area.offset.y = scissor_rect[1];
+      render_area.extent.width = scissor_rect[2];
+      render_area.extent.height = scissor_rect[3];
+    }
+    else {
+      render_area.offset.x = 0;
+      render_area.offset.y = 0;
+      render_area.extent.width = width_;
+      render_area.extent.height = height_;
+    }
   }
-  else {
-    render_area.offset.x = 0;
-    render_area.offset.y = 0;
-    render_area.extent.width = width_;
-    render_area.extent.height = height_;
-  }
-
-  return render_area;
+  return render_areas;
 }
 
 bool VKFrameBuffer::check(char /*err_out*/[256])
@@ -170,7 +171,7 @@ void VKFrameBuffer::clear(const Vector<VkClearAttachment> &attachments) const
     return;
   }
   VkClearRect clear_rect = {};
-  clear_rect.rect = vk_render_area_get();
+  clear_rect.rect = vk_render_areas_get()[0];
   clear_rect.baseArrayLayer = 0;
   clear_rect.layerCount = 1;
 

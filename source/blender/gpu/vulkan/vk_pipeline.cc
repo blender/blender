@@ -164,12 +164,12 @@ void VKPipeline::finalize(VKContext &context,
   /* Viewport state. */
   VkPipelineViewportStateCreateInfo viewport_state = {};
   viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  VkViewport viewport = framebuffer.vk_viewport_get();
-  viewport_state.pViewports = &viewport;
-  viewport_state.viewportCount = 1;
-  VkRect2D scissor = framebuffer.vk_render_area_get();
-  viewport_state.pScissors = &scissor;
-  viewport_state.scissorCount = 1;
+  Array<VkViewport, 16> viewports = framebuffer.vk_viewports_get();
+  viewport_state.pViewports = &viewports[0];
+  viewport_state.viewportCount = viewports.size();
+  Array<VkRect2D, 16> scissors = framebuffer.vk_render_areas_get();
+  viewport_state.pScissors = &scissors[0];
+  viewport_state.scissorCount = scissors.size();
   pipeline_create_info.pViewportState = &viewport_state;
 
   /* Multi-sample state. */
