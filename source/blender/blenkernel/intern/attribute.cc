@@ -31,6 +31,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
@@ -223,13 +224,14 @@ bool BKE_id_attribute_rename(ID *id,
   return true;
 }
 
-struct AttrUniqueData {
-  ID *id;
-};
-
-static bool unique_name_cb(void *arg, const char *name)
+bool BKE_id_attribute_and_defgroup_unique_name_check(void *arg, const char *name)
 {
-  AttrUniqueData *data = (AttrUniqueData *)arg;
+  AttributeAndDefgroupUniqueNameData *data = static_cast<AttributeAndDefgroupUniqueNameData *>(
+      arg);
+
+  if (BKE_defgroup_unique_name_check(data, name)) {
+    return true;
+  }
 
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(data->id, info);
@@ -254,15 +256,18 @@ static bool unique_name_cb(void *arg, const char *name)
 
 bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
-  AttrUniqueData data{id};
+  AttributeAndDefgroupUniqueNameData data{id, nullptr};
+
   const int name_maxncpy = CustomData_name_maxncpy_calc(name);
 
   /* Set default name if none specified.
    * NOTE: We only call IFACE_() if needed to avoid locale lookup overhead. */
   BLI_strncpy_utf8(outname, (name && name[0]) ? name : IFACE_("Attribute"), name_maxncpy);
 
+  /* Avoid name collisions with vertex groups and other attributes. */
   const char *defname = ""; /* Dummy argument, never used as `name` is never zero length. */
-  return BLI_uniquename_cb(unique_name_cb, &data, defname, '.', outname, name_maxncpy);
+  return BLI_uniquename_cb(
+      BKE_id_attribute_and_defgroup_unique_name_check, &data, defname, '.', outname, name_maxncpy);
 }
 
 CustomDataLayer *BKE_id_attribute_new(ID *id,
@@ -301,6 +306,10 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
   attributes->add(uniquename, domain, eCustomDataType(type), AttributeInitDefaultValue());
 
   const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
+  if (index == -1) {
+    BKE_reportf(reports, RPT_WARNING, "Layer '%s' could not be created", uniquename);
+  }
+
   return (index == -1) ? nullptr : &(customdata->layers[index]);
 }
 
