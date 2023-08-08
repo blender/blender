@@ -394,7 +394,6 @@ void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
 
 void BKE_collection_blend_read_expand(BlendExpander *expander, Collection *collection)
 {
-  BLI_assert(collection->runtime.gobject_hash == NULL);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BLO_expand(expander, cob->ob);
   }
