@@ -21,6 +21,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_smallhash.h"
 #include "BLI_stack.h"
@@ -63,6 +64,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "mesh_intern.h" /* Own include. */
+
+using namespace blender;
 
 /* Detect isolated holes and fill them. */
 #define USE_NET_ISLAND_CONNECT
@@ -147,8 +150,8 @@ struct KnifeLineHit {
 };
 
 struct KnifePosData {
-  float co[3];
-  float cage[3];
+  float3 co;
+  float3 cage;
 
   /* At most one of vert, edge, or bmface should be non-null,
    * saying whether the point is snapped to a vertex, edge, or in a face.
@@ -1493,13 +1496,13 @@ static void knife_project_v2(const KnifeTool_OpData *kcd, const float co[3], flo
 /* Ray is returned in world space. */
 static void knife_input_ray_segment(KnifeTool_OpData *kcd,
                                     const float mval[2],
-                                    const float ofs,
                                     float r_origin[3],
-                                    float r_origin_ofs[3])
+                                    float r_end[3])
 {
   /* Unproject to find view ray. */
-  ED_view3d_unproject_v3(kcd->vc.region, mval[0], mval[1], 0.0f, r_origin);
-  ED_view3d_unproject_v3(kcd->vc.region, mval[0], mval[1], ofs, r_origin_ofs);
+  ED_view3d_win_to_segment_clipped(
+      kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, mval, r_origin, r_end, false);
+  add_v3_v3(r_end, r_origin);
 }
 
 /* No longer used, but may be useful in the future. */
@@ -1512,7 +1515,7 @@ static void UNUSED_FUNCTION(knifetool_recast_cageco)(KnifeTool_OpData *kcd,
   float ray[3], ray_normal[3];
   float co[3]; /* Unused. */
 
-  knife_input_ray_segment(kcd, mval, 1.0f, origin, origin_ofs);
+  knife_input_ray_segment(kcd, mval, origin, origin_ofs);
 
   sub_v3_v3v3(ray, origin_ofs, origin);
   normalize_v3_v3(ray_normal, ray);
@@ -2850,7 +2853,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   void *val;
   void **val_p;
   float s[2], se1[2], se2[2], sint[2];
-  float r1[3], r2[3];
   float d1, d2, lambda;
   float vert_tol, vert_tol_sq;
   float line_tol, line_tol_sq;
@@ -3089,12 +3091,14 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       d1 = len_v2v2(sint, se1);
       d2 = len_v2v2(se2, se1);
       if (!(d1 <= line_tol || d2 <= line_tol || fabsf(d1 - d2) <= line_tol)) {
+        float3 r1, r2;
         float p_cage[3], p_cage_tmp[3];
         lambda = d1 / d2;
         /* Can't just interpolate between ends of kfe because
          * that doesn't work with perspective transformation.
          * Need to find 3d intersection of ray through sint. */
-        knife_input_ray_segment(kcd, sint, 1.0f, r1, r2);
+        knife_input_ray_segment(kcd, sint, r1, r2);
+
         isect_kind = isect_line_line_v3(
             kfe->v1->cageco, kfe->v2->cageco, r1, r2, p_cage, p_cage_tmp);
         if (isect_kind >= 1 && point_is_visible(kcd, p_cage, sint, bm_elem_from_knife_edge(kfe))) {
@@ -3210,19 +3214,16 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
                                        Object **r_ob,
                                        uint *r_ob_index,
                                        bool *is_space,
-                                       float r_co[3],
-                                       float r_cageco[3])
+                                       float3 &r_co,
+                                       float3 &r_cageco)
 {
   BMFace *f;
   float dist = KMAXDIST;
-  float origin[3];
-  float origin_ofs[3];
-  float ray[3], ray_normal[3];
+  float3 origin;
+  float3 ray_normal;
 
-  /* Unproject to find view ray. */
-  knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
-  sub_v3_v3v3(ray, origin_ofs, origin);
-  normalize_v3_v3(ray_normal, ray);
+  ED_view3d_win_to_ray_clipped(
+      kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, kcd->curr.mval, origin, ray_normal, false);
 
   f = knife_bvh_raycast(kcd, origin, ray_normal, 0.0f, nullptr, r_co, r_cageco, r_ob_index);
 
@@ -3252,9 +3253,9 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
       /* Cheat for now; just put in the origin instead
        * of a true coordinate on the face.
        * This just puts a point 1.0f in front of the view. */
-      add_v3_v3v3(r_co, origin, ray);
+      r_co = origin + ray_normal;
       /* Use this value for the cage location too as it's used to find near edges/vertices. */
-      copy_v3_v3(r_cageco, r_co);
+      r_cageco = r_co;
     }
   }
 
@@ -3639,7 +3640,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   float ray_hit[3];
   float lambda;
 
-  knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, curr_origin, curr_origin_ofs);
+  knife_input_ray_segment(kcd, kcd->curr.mval, curr_origin, curr_origin_ofs);
   sub_v3_v3v3(curr_ray, curr_origin_ofs, curr_origin);
   normalize_v3_v3(curr_ray_normal, curr_ray);
 
@@ -3709,7 +3710,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     float prev_ray[3], prev_ray_normal[3];
     float prev_co[3], prev_cage[3]; /* Unused. */
 
-    knife_input_ray_segment(kcd, kcd->prev.mval, 1.0f, prev_origin, prev_origin_ofs);
+    knife_input_ray_segment(kcd, kcd->prev.mval, prev_origin, prev_origin_ofs);
 
     sub_v3_v3v3(prev_ray, prev_origin_ofs, prev_origin);
     normalize_v3_v3(prev_ray_normal, prev_ray);
@@ -3771,7 +3772,7 @@ static int knife_calculate_snap_ref_edges(KnifeTool_OpData *kcd)
   float curr_ray[3], curr_ray_normal[3];
   float curr_co[3], curr_cage[3]; /* Unused. */
 
-  knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, curr_origin, curr_origin_ofs);
+  knife_input_ray_segment(kcd, kcd->curr.mval, curr_origin, curr_origin_ofs);
   sub_v3_v3v3(curr_ray, curr_origin_ofs, curr_origin);
   normalize_v3_v3(curr_ray_normal, curr_ray);
 
@@ -4274,7 +4275,7 @@ static int knife_update_active(KnifeTool_OpData *kcd)
     float origin[3];
     float origin_ofs[3];
 
-    knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, origin, origin_ofs);
+    knife_input_ray_segment(kcd, kcd->curr.mval, origin, origin_ofs);
 
     if (!isect_line_plane_v3(
             kcd->curr.cage, origin, origin_ofs, kcd->prev.cage, kcd->vc.rv3d->viewinv[2]))
