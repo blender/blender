@@ -1767,7 +1767,7 @@ static size_t animdata_filter_grease_pencil_layers_data(ListBase *anim_data,
     }
 
     /* Only if the layer is active. */
-    if ((filter_mode & ANIMFILTER_ACTIVE) && (grease_pencil->active_layer == layer)) {
+    if ((filter_mode & ANIMFILTER_ACTIVE) && grease_pencil->is_layer_active(layer)) {
       continue;
     }
 
