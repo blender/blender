@@ -31,7 +31,7 @@ static bool rna_USDHook_unregister(Main * /* bmain */, StructRNA *type)
 {
   USDHook *hook = static_cast<USDHook *>(RNA_struct_blender_type_get(type));
 
-  if (hook == NULL) {
+  if (hook == nullptr) {
     return false;
   }
 
@@ -39,7 +39,7 @@ static bool rna_USDHook_unregister(Main * /* bmain */, StructRNA *type)
   RNA_struct_free_extension(type, &hook->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   /* unlink Blender-side data */
   USD_unregister_hook(hook);
@@ -60,14 +60,14 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   const char *error_prefix = "Registering USD hook class:";
   USDHook dummy_hook = {{0}};
   USDHook *hook;
-  PointerRNA dummy_hook_ptr = {NULL};
+  PointerRNA dummy_hook_ptr = {nullptr};
 
   /* setup dummy type info to store static properties in */
-  RNA_pointer_create(NULL, &RNA_USDHook, &dummy_hook, &dummy_hook_ptr);
+  RNA_pointer_create(nullptr, &RNA_USDHook, &dummy_hook, &dummy_hook_ptr);
 
   /* validate the python class */
-  if (validate(&dummy_hook_ptr, data, NULL) != 0) {
-    return NULL;
+  if (validate(&dummy_hook_ptr, data, nullptr) != 0) {
+    return nullptr;
   }
 
   if (strlen(identifier) >= sizeof(dummy_hook.idname)) {
@@ -77,7 +77,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
                 error_prefix,
                 identifier,
                 (int)sizeof(dummy_hook.idname));
-    return NULL;
+    return nullptr;
   }
 
   /* check if we have registered this hook before, and remove it */
@@ -92,7 +92,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
                   identifier,
                   dummy_hook.idname,
                   "could not be unregistered");
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -110,7 +110,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   /* add and register with other info as needed */
   USD_register_hook(hook);
 
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   /* return the struct-rna added */
   return hook->rna_ext.srna;
@@ -123,29 +123,29 @@ static void rna_def_usd_hook(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "USDHook", NULL);
+  srna = RNA_def_struct(brna, "USDHook", nullptr);
   RNA_def_struct_ui_text(srna, "USD Hook", "Defines callback functions to extend USD IO");
   RNA_def_struct_sdna(srna, "USDHook");
   RNA_def_struct_refine_func(srna, "rna_USDHook_refine");
-  RNA_def_struct_register_funcs(srna, "rna_USDHook_register", "rna_USDHook_unregister", NULL);
+  RNA_def_struct_register_funcs(srna, "rna_USDHook_register", "rna_USDHook_unregister", nullptr);
 
   ///* Properties --------------------- */
 
   RNA_define_verify_sdna(0); /* not in sdna */
 
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "idname");
+  RNA_def_property_string_sdna(prop, nullptr, "idname");
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "ID Name", "");
 
   prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "name");
+  RNA_def_property_string_sdna(prop, nullptr, "name");
   RNA_def_property_ui_text(prop, "UI Name", "");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_flag(prop, PROP_REGISTER);
 
   prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "description");
+  RNA_def_property_string_sdna(prop, nullptr, "description");
   RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Description", "A short description of the USD hook");
