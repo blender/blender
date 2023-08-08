@@ -123,6 +123,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: XYZ
+    aliases: [Linear CIE-XYZ D65]
     family: linear
     equalitygroup:
     bitdepth: 32f
