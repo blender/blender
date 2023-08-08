@@ -83,7 +83,6 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
   }
 
   /* write root bone URLs */
-  Bone *bone;
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     write_bone_URLs(ins, ob_arm, bone);
   }

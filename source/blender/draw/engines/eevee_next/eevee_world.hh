@@ -49,7 +49,6 @@ class World {
   Instance &inst_;
 
   DefaultWorldNodeTree default_tree;
-  bool has_volume_ = false;
 
   /* Used to detect if world change. */
   ::World *prev_original_world = nullptr;

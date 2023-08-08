@@ -198,7 +198,6 @@ void SceneExporter::writeNode(Object *ob)
 
           ListBase targets = {nullptr, nullptr};
           if (BKE_constraint_targets_get(con, &targets)) {
-            bConstraintTarget *ct;
             Object *obtar;
 
             LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {

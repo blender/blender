@@ -27,7 +27,7 @@ static StructRNA *rna_USDHook_refine(PointerRNA *ptr)
   return (hook->rna_ext.srna) ? hook->rna_ext.srna : &RNA_USDHook;
 }
 
-static bool rna_USDHook_unregister(Main *bmain, StructRNA *type)
+static bool rna_USDHook_unregister(Main * /* bmain */, StructRNA *type)
 {
   USDHook *hook = static_cast<USDHook *>(RNA_struct_blender_type_get(type));
 
@@ -58,7 +58,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
                                        StructFreeFunc free)
 {
   const char *error_prefix = "Registering USD hook class:";
-  USDHook dummy_hook = {NULL};
+  USDHook dummy_hook = {{0}};
   USDHook *hook;
   PointerRNA dummy_hook_ptr = {NULL};
 
@@ -122,8 +122,6 @@ static void rna_def_usd_hook(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  FunctionRNA *func;
-  PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "USDHook", NULL);
   RNA_def_struct_ui_text(srna, "USD Hook", "Defines callback functions to extend USD IO");

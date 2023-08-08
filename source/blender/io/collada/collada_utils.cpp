@@ -253,7 +253,6 @@ Object *bc_get_assigned_armature(Object *ob)
     ob_arm = ob->parent;
   }
   else {
-    ModifierData *mod;
     LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
       if (mod->type == eModifierType_Armature) {
         ob_arm = ((ArmatureModifierData *)mod)->object;
@@ -435,8 +434,6 @@ bool bc_is_leaf_bone(Bone *bone)
 
 EditBone *bc_get_edit_bone(bArmature *armature, char *name)
 {
-  EditBone *eBone;
-
   LISTBASE_FOREACH (EditBone *, eBone, armature->edbo) {
     if (STREQ(name, eBone->name)) {
       return eBone;
@@ -765,7 +762,6 @@ static bool has_custom_props(Bone *bone, bool enabled, std::string key)
 
 void bc_enable_fcurves(bAction *act, char *bone_name)
 {
-  FCurve *fcu;
   char prefix[200];
 
   if (bone_name) {
