@@ -107,7 +107,7 @@ typedef struct ViewLayerEngineData {
 typedef struct LayerCollection {
   struct LayerCollection *next, *prev;
   struct Collection *collection;
-  struct SceneCollection *scene_collection DNA_DEPRECATED;
+  void *_pad1;
   short flag;
   short runtime_flag;
   char _pad[4];
@@ -278,27 +278,6 @@ enum {
   VIEW_LAYER_FREESTYLE = (1 << 2),
   VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
-
-/****************************** Deprecated ******************************/
-
-/* Compatibility with collections saved in early 2.8 versions,
- * used in file reading and versioning code. */
-#define USE_COLLECTION_COMPAT_28
-
-typedef struct SceneCollection {
-  struct SceneCollection *next, *prev;
-  /** MAX_NAME. */
-  char name[64];
-  /** For UI. */
-  int active_object_index;
-  short flag;
-  char type;
-  char _pad;
-  /** (Object *)LinkData->data. */
-  ListBase objects;
-  /** Nested collections. */
-  ListBase scene_collections;
-} SceneCollection;
 
 #ifdef __cplusplus
 }

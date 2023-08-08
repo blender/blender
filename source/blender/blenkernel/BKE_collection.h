@@ -34,7 +34,6 @@ struct Library;
 struct Main;
 struct Object;
 struct Scene;
-struct SceneCollection;
 struct ViewLayer;
 
 typedef struct CollectionParent {
@@ -321,14 +320,6 @@ void BKE_collection_blend_read_data(struct BlendDataReader *reader,
 void BKE_collection_blend_read_lib(struct BlendLibReader *reader, struct Collection *collection);
 void BKE_collection_blend_read_expand(struct BlendExpander *expander,
                                       struct Collection *collection);
-
-void BKE_collection_compat_blend_read_data(struct BlendDataReader *reader,
-                                           struct SceneCollection *sc);
-void BKE_collection_compat_blend_read_lib(struct BlendLibReader *reader,
-                                          struct ID *self_id,
-                                          struct SceneCollection *sc);
-void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
-                                             struct SceneCollection *sc);
 
 /* Iteration callbacks. */
 

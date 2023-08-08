@@ -44,7 +44,6 @@ struct Image;
 struct MovieClip;
 struct Object;
 struct Scene;
-struct SceneCollection;
 struct World;
 struct bGPdata;
 struct bNodeTree;
@@ -2050,11 +2049,9 @@ typedef struct Scene {
   ListBase view_layers;
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection;
-  struct SceneCollection *collection DNA_DEPRECATED;
 
   /** Settings to be override by work-spaces. */
   IDProperty *layer_properties;
-  void *_pad9;
 
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
