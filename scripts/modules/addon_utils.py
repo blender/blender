@@ -23,7 +23,7 @@ addons_fake_modules = {}
 
 
 # called only once at startup, avoids calling 'reset_all', correct but slower.
-def _initialize():
+def _initialize_once():
     path_list = paths()
     for path in path_list:
         _bpy.utils._sys_path_ensure_append(path)
