@@ -3634,6 +3634,19 @@ static int click_select_channel_gplayer(bContext *C,
   return (ND_ANIMCHAN | NA_EDITED); /* Animation Editors updates */
 }
 
+static int click_select_channel_grease_pencil_datablock(bAnimListElem *ale)
+{
+  GreasePencil *grease_pencil = static_cast<GreasePencil *>(ale->data);
+
+  /* Toggle expand:
+   * - Although the triangle widget already allows this,
+   *   the whole channel can also be used for this purpose.
+   */
+  grease_pencil->flag ^= GREASE_PENCIL_ANIM_CHANNEL_EXPANDED;
+
+  return (ND_ANIMCHAN | NA_EDITED);
+}
+
 static int click_select_channel_grease_pencil_layer(bContext *C,
                                                     bAnimContext *ac,
                                                     bAnimListElem *ale,
@@ -3800,7 +3813,7 @@ static int mouse_anim_channels(bContext *C,
       notifierFlags |= click_select_channel_gplayer(C, ac, ale, selectmode, filter);
       break;
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
-      /*todo*/
+      notifierFlags |= click_select_channel_grease_pencil_datablock(ale);
       break;
     case ANIMTYPE_GREASE_PENCIL_LAYER:
       notifierFlags |= click_select_channel_grease_pencil_layer(C, ac, ale, selectmode, filter);
