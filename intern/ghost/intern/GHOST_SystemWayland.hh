@@ -89,10 +89,19 @@ void ghost_wl_dynload_libraries_exit();
 #endif
 
 struct GWL_Output {
+
+  /** Wayland core types. */
+  struct {
+    wl_output *output = nullptr;
+  } wl;
+
+  /** XDG native types. */
+  struct {
+    struct zxdg_output_v1 *output = nullptr;
+  } xdg;
+
   GHOST_SystemWayland *system = nullptr;
 
-  struct wl_output *wl_output = nullptr;
-  struct zxdg_output_v1 *xdg_output = nullptr;
   /** Dimensions in pixels. */
   int32_t size_native[2] = {0, 0};
   /** Dimensions in millimeter. */
