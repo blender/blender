@@ -54,6 +54,15 @@ char *BLI_strdupn(const char *str, size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESU
 char *BLI_strdup(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1) ATTR_MALLOC;
 
 /**
+ * Duplicates the C-string \a str into a newly mallocN'd
+ * string and returns it.
+ *
+ * \param str: The string to be duplicated, can be null
+ * \retval Returns the duplicated string or null if \a str is null
+ */
+char *BLI_strdup_null(const char *str) ATTR_WARN_UNUSED_RESULT ATTR_MALLOC;
+
+/**
  * Appends the two strings, and returns new mallocN'ed string
  * \param str1: first string for copy
  * \param str2: second string for append

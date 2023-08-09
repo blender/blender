@@ -90,7 +90,6 @@ static void add_group_input_node_fn(nodes::LinkSearchOpParams &params)
   bNodeSocket *interface_socket = bke::ntreeAddSocketInterfaceFromSocket(
       &params.node_tree, &params.node, &params.socket);
   const int group_input_index = BLI_findindex(&params.node_tree.inputs, interface_socket);
-
   bNode &group_input = params.add_node("NodeGroupInput");
 
   /* This is necessary to create the new sockets in the other input nodes. */
