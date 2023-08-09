@@ -24,8 +24,7 @@ addons_fake_modules = {}
 
 # called only once at startup, avoids calling 'reset_all', correct but slower.
 def _initialize_once():
-    path_list = paths()
-    for path in path_list:
+    for path in paths():
         _bpy.utils._sys_path_ensure_append(path)
 
     _initialize_extensions_repos_once()
@@ -47,21 +46,20 @@ def paths():
     ]
 
 
-def paths_with_extension_repos():
-    """
-    A version of ``paths`` that includes extension repositories returning a list ``(path, package)`` pairs.
+# A version of `paths` that includes extension repositories returning a list `(path, package)` pairs.
+#
+# Notes on the ``package`` value.
+#
+# - For top-level modules (the "addons" directories, the value is an empty string)
+#   because those add-ons can be imported directly.
+# - For extension repositories the value is a module string (which can be imported for example)
+#   where any modules within the `path` can be imported as a sub-module.
+#   So for example, given a list value of: `("/tmp/repo", "bl_ext.temp_repo")`.
+#
+#   An add-on located at `/tmp/repo/my_handy_addon.py` will have a unique module path of:
+#   `bl_ext.temp_repo.my_handy_addon`, which can be imported and will be the value of it's `Addon.module`.
+def _paths_with_extension_repos():
 
-    Notes on the ``package`` value.
-
-    - For top-level modules (the "addons" directories, the value is an empty string)
-      because those add-ons can be imported directly.
-    - For extension repositories the value is a module string (which can be imported for example)
-      where any modules within the ``path`` can be imported as a sub-module.
-      So for example, given a list value of: ``("/tmp/repo", "bl_ext.temp_repo")``
-
-      An add-on located at ``/tmp/repo/my_handy_addon.py`` will have a unique module path of:
-      ``bl_ext.temp_repo.my_handy_addon``, which can be imported and will be the value of it's :class:`Addon.module`.
-    """
     import os
     addon_paths = [(path, "") for path in paths()]
 
@@ -171,11 +169,9 @@ def modules_refresh(*, module_cache=addons_fake_modules):
     error_encoding = False
     error_duplicates.clear()
 
-    path_list = paths_with_extension_repos()
-
     modules_stale = set(module_cache.keys())
 
-    for path, pkg_id in path_list:
+    for path, pkg_id in _paths_with_extension_repos():
 
         # Force all user contributed add-ons to be 'TESTING'.
         force_support = 'TESTING' if ((not pkg_id) and path.endswith("addons_contrib")) else None
@@ -483,10 +479,7 @@ def reset_all(*, reload_scripts=False):
     # initializes addons_fake_modules
     modules_refresh()
 
-    # RELEASE SCRIPTS: official scripts distributed in Blender releases
-    paths_list = paths_with_extension_repos()
-
-    for path, pkg_id in paths_list:
+    for path, pkg_id in _paths_with_extension_repos():
         if not pkg_id:
             _bpy.utils._sys_path_ensure_append(path)
 
