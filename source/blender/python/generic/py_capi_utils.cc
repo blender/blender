@@ -857,41 +857,34 @@ static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
 /* returns the exception string as a new PyUnicode object, depends on external traceback module */
 #  if 0
 
-
 /* this version uses traceback module but somehow fails on UI errors */
-
 
 PyObject *PyC_ExceptionBuffer()
 {
-PyObject *traceback_mod = nullptr;
-PyObject *format_tb_func = nullptr;
-PyObject *ret = nullptr;
+  PyObject *traceback_mod = nullptr;
+  PyObject *format_tb_func = nullptr;
+  PyObject *ret = nullptr;
 
+  if (!(traceback_mod = PyImport_ImportModule("traceback"))) {
+    goto error_cleanup;
+  }
+  else if (!(format_tb_func = PyObject_GetAttrString(traceback_mod, "format_exc"))) {
+    goto error_cleanup;
+  }
 
-if (!(traceback_mod = PyImport_ImportModule("traceback"))) {
-goto error_cleanup;
-}
-else if (!(format_tb_func = PyObject_GetAttrString(traceback_mod, "format_exc"))) {
-goto error_cleanup;
-}
+  ret = PyObject_CallObject(format_tb_func, nullptr);
 
-
-ret = PyObject_CallObject(format_tb_func, nullptr);
-
-
-if (ret == Py_None) {
-Py_DECREF(ret);
-ret = nullptr;
-}
-
+  if (ret == Py_None) {
+    Py_DECREF(ret);
+    ret = nullptr;
+  }
 
 error_cleanup:
-/* could not import the module so print the error and close */
-Py_XDECREF(traceback_mod);
-Py_XDECREF(format_tb_func);
+  /* could not import the module so print the error and close */
+  Py_XDECREF(traceback_mod);
+  Py_XDECREF(format_tb_func);
 
-
-return ret;
+  return ret;
 }
 #  else /* verbose, non-threadsafe version */
 PyObject *PyC_ExceptionBuffer()

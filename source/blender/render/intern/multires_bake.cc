@@ -1088,9 +1088,12 @@ static void build_permutation_table(ushort permutation[],
    * every entry must appear exactly once
    */
 #  if 0
-  for (i = 0; i < number_of_rays; i++) temp_permutation[i] = 0;
-  for (i = 0; i < number_of_rays; i++) ++temp_permutation[permutation[i]];
-  for (i = 0; i < number_of_rays; i++) BLI_assert(temp_permutation[i] == 1);
+  for (i = 0; i < number_of_rays; i++)
+    temp_permutation[i] = 0;
+  for (i = 0; i < number_of_rays; i++)
+    ++temp_permutation[permutation[i]];
+  for (i = 0; i < number_of_rays; i++)
+    BLI_assert(temp_permutation[i] == 1);
 #  endif
 }
 

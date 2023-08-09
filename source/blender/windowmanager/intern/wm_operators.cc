@@ -348,7 +348,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
   for (link = lb.first; link; link = link->next) {
     const char *identifier = link->data;
     PointerRNA ctx_item_ptr = {{0}};
-        /* CTX_data_pointer_get(C, identifier); */ /* XXX, this isn't working. */
+    // CTX_data_pointer_get(C, identifier);  /* XXX, this isn't working. */
 
     if (ctx_item_ptr.type == nullptr) {
       continue;

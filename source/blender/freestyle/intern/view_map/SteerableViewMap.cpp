@@ -282,7 +282,7 @@ void SteerableViewMap::saveSteerableViewMap() const
           if (c > 255) {
             c = 255;
           }
-          //int c = int(_imagesPyramids[i]->pixel(x, y, j));
+          // int c = int(_imagesPyramids[i]->pixel(x, y, j));
           qtmp.setPixel(x, y, qRgb(c, c, c));
         }
       }

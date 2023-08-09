@@ -1344,22 +1344,22 @@ static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 #  if 0
 static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<  uiLayout*>(ptr->data));
+  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
 }
 
 static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<  uiLayout*>(ptr->data), value);
+  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
 }
 
 static bool rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
-  return uiLayoutGetKeepAspect(static_cast<  uiLayout*>(ptr->data));
+  return uiLayoutGetKeepAspect(static_cast<uiLayout *>(ptr->data));
 }
 
 static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
 {
-  uiLayoutSetKeepAspect(static_cast<  uiLayout*>(ptr->data), value);
+  uiLayoutSetKeepAspect(static_cast<uiLayout *>(ptr->data), value);
 }
 #  endif
 

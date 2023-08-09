@@ -1029,7 +1029,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
  * Actually this is only a problem when resizing the window.
  * If it becomes a problem we should clear only when window size changes. */
 #if 0
-GPU_clear_color(0, 0, 0, 0);
+  GPU_clear_color(0, 0, 0, 0);
 #endif
 
   /* Blit non-overlapping area regions. */

@@ -391,7 +391,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
 #if 0
   GrayImage blur(w, h);
   GaussianFilter gf(4.0f);
-  //int bound = gf.getBound();
+  // int bound = gf.getBound();
   for (y = 0; y < h; ++y) {
     for (x = 0; x < w; ++x) {
       int c = gf.getSmoothedPixel<GrayImage>(&tmp, x, y);

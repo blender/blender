@@ -166,9 +166,9 @@ static void dial_geom_draw(const float color[4],
       imm_draw_circle_partial_wire_3d(
           pos, 0.0f, 0.0f, 0.0f, 1.0f, DIAL_RESOLUTION, -arc_partial_deg / 2, arc_partial_deg);
 #  if 0
-if (arc_inner_factor != 0.0f) {
-BLI_assert(0);
-}
+      if (arc_inner_factor != 0.0f) {
+        BLI_assert(0);
+      }
 #  endif
     }
   }

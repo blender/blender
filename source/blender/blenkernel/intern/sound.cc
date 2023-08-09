@@ -458,71 +458,38 @@ void BKE_sound_exit_once()
 #  if 0
 bSound *BKE_sound_new_buffer(Main *bmain, bSound *source)
 {
-bSound *sound = nullptr;
+  bSound *sound = nullptr;
 
+  char name[MAX_ID_NAME + 5];
+  BLI_string_join(name, sizeof(name), "buf_", source->id.name);
 
+  sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
+  sound->child_sound = source;
+  sound->type = SOUND_TYPE_BUFFER;
 
-char name[MAX_ID_NAME + 5];
-BLI_string_join(name, sizeof(name), "buf_", source->id.name);
+  sound_load(bmain, sound);
 
-
-
-
-sound = BKE_libblock_alloc(bmain, ID_SO, name);
-
-
-
-
-sound->child_sound = source;
-sound->type = SOUND_TYPE_BUFFER;
-
-
-
-
-sound_load(bmain, sound);
-
-
-
-
-return sound;
+  return sound;
 }
-
-
-
 
 bSound *BKE_sound_new_limiter(Main *bmain, bSound *source, float start, float end)
 {
-bSound *sound = nullptr;
+  bSound *sound = nullptr;
 
+  char name[MAX_ID_NAME + 5];
+  BLI_string_join(name, sizeof(name), "lim_", source->id.name);
 
+  sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
+  sound->child_sound = source;
+  sound->start = start;
+  sound->end = end;
+  sound->type = SOUND_TYPE_LIMITER;
 
-char name[MAX_ID_NAME + 5];
-BLI_string_join(name, sizeof(name), "lim_", source->id.name);
+  sound_load(bmain, sound);
 
-
-
-
-sound = BKE_libblock_alloc(bmain, ID_SO, name);
-
-
-
-
-sound->child_sound = source;
-sound->start = start;
-sound->end = end;
-sound->type = SOUND_TYPE_LIMITER;
-
-
-
-
-sound_load(bmain, sound);
-
-
-
-
-return sound;
+  return sound;
 }
 #  endif
 
@@ -572,8 +539,8 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
 
 /* XXX unused currently */
 #  if 0
-switch (sound->type) {
-case SOUND_TYPE_FILE:
+  switch (sound->type) {
+    case SOUND_TYPE_FILE:
 #  endif
   {
     char fullpath[FILE_MAX];
@@ -596,16 +563,18 @@ case SOUND_TYPE_FILE:
   }
 /* XXX unused currently */
 #  if 0
-break;
-}
-case SOUND_TYPE_BUFFER: if (sound->child_sound && sound->child_sound->handle) {
-sound->handle = AUD_bufferSound(sound->child_sound->handle);
-}
-break;
-case SOUND_TYPE_LIMITER: if (sound->child_sound && sound->child_sound->handle) {
-sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
-}
-break;
+    break;
+  }
+  case SOUND_TYPE_BUFFER:
+    if (sound->child_sound && sound->child_sound->handle) {
+      sound->handle = AUD_bufferSound(sound->child_sound->handle);
+    }
+    break;
+  case SOUND_TYPE_LIMITER:
+    if (sound->child_sound && sound->child_sound->handle) {
+      sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+    }
+    break;
 }
 #  endif
   if (sound->flags & SOUND_FLAGS_MONO) {

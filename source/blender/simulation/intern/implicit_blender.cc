@@ -1723,7 +1723,8 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
 #  if 0
     if (length > L) {
       if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
-          (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen)) {
+          (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen))
+      {
         /* cut spring! */
         s->flags |= CSPRING_FLAG_DEACTIVATE;
         return false;

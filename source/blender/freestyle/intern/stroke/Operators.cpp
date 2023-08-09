@@ -228,7 +228,8 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it,
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge) {
+       ++it_edge)
+  {
     if (pred(**it_edge)) {
       continue;
     }
@@ -280,7 +281,8 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge) {
+       ++it_edge)
+  {
     if (pred(**it_edge) || pred_ts(**it_edge)) {
       continue;
     }

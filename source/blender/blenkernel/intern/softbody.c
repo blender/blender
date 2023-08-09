@@ -2275,7 +2275,8 @@ static void softbody_calc_forces(
   /* check conditions for various options */
   do_deflector = query_external_colliders(depsgraph, sb->collision_group);
 #if 0
-  do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+  do_selfcollision = ((ob->softflag & OB_SB_EDGES) && (sb->bspring) &&
+                      (ob->softflag & OB_SB_SELF));
 #endif
   do_springcollision = do_deflector && (ob->softflag & OB_SB_EDGES) &&
                        (ob->softflag & OB_SB_EDGECOLL);

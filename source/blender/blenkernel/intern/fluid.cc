@@ -225,12 +225,14 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
 
           /* Skip if trying to copy from old boundary cell. */
           if (xo < bwidth || yo < bwidth || zo < bwidth || xo >= o_res[0] - bwidth ||
-              yo >= o_res[1] - bwidth || zo >= o_res[2] - bwidth) {
+              yo >= o_res[1] - bwidth || zo >= o_res[2] - bwidth)
+          {
             continue;
           }
           /* Skip if trying to copy into new boundary cell. */
           if (xn < bwidth || yn < bwidth || zn < bwidth || xn >= n_res[0] - bwidth ||
-              yn >= n_res[1] - bwidth || zn >= n_res[2] - bwidth) {
+              yn >= n_res[1] - bwidth || zn >= n_res[2] - bwidth)
+          {
             continue;
           }
 #  endif

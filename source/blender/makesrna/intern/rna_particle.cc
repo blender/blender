@@ -966,7 +966,7 @@ static void rna_PartSettings_start_set(PointerRNA *ptr, float value)
   }
 
 #  if 0
-  if (settings->type==PART_REACTOR && value < 1.0)
+  if (settings->type == PART_REACTOR && value < 1.0)
     value = 1.0;
   else
 #  endif

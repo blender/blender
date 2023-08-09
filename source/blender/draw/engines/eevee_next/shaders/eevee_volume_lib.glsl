@@ -157,7 +157,8 @@ vec3 volume_shadow(LightData ld, vec3 ray_wpos, vec3 L, float l_dist)
 
 #  if 0 /* TODO use shadow maps instead. */
   vec3 shadow = vec3(1.0);
-  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volumes_info_buf.shadow_steps; s += 1.0) {
+  for (float s = 1.0; s < VOLUMETRIC_SHADOW_MAX_STEP && s <= volumes_info_buf.shadow_steps;
+       s += 1.0) {
     vec3 pos = ray_wpos + L * s;
     vec3 s_extinction = volume_participating_media_extinction(pos, volume_extinction);
     shadow *= exp(-s_extinction * dd);

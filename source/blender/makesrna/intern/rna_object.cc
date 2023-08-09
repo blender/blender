@@ -2543,7 +2543,8 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone");
   // RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
-  RNA_def_property_pointer_funcs(prop, nullptr, "rna_Armature_act_edit_bone_set", nullptr, nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_Armature_act_edit_bone_set", nullptr, nullptr);
 
   /* TODO: redraw. */
   // RNA_def_property_collection_active(prop, prop_act);
@@ -3391,8 +3392,16 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Constraints", "Constraints affecting the transformation of the object");
   RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Object_constraints_override_apply");
 #  if 0
-  RNA_def_property_collection_funcs(
-      prop, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, "constraints__add", "constraints__remove");
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "constraints__add",
+                                    "constraints__remove");
 #  endif
   rna_def_object_constraints(brna, prop);
 

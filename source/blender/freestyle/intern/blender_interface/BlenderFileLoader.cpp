@@ -135,7 +135,9 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
     if (G.debug & G_DEBUG_FREESTYLE) {
       printf("%d %s\n",
              i,
-             (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+             (clip[i] == NOT_CLIPPED)     ? "not" :
+             (clip[i] == CLIPPED_BY_NEAR) ? "near" :
+                                            "far");
     }
 #endif
     sum += clip[i];

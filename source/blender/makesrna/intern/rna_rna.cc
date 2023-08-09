@@ -1898,8 +1898,8 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
  * Maybe behind a eRNAOverrideMatch flag? */
 #  if 0
       rnadiff_ctx.comparison = len_str_a < len_str_b ? -1 :
-                       len_str_a > len_str_b ? 1 :
-                                               strcmp(value_a, value_b);
+                               len_str_a > len_str_b ? 1 :
+                                                       strcmp(value_a, value_b);
 #  endif
       rnadiff_ctx.comparison = strcmp(value_a, value_b);
 

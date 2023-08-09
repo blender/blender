@@ -152,8 +152,8 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
     PyObject *lang_dict;
 
 #  if 0
-PyObject_Print(uuid_dict, stdout, 0);
-printf("\n");
+    PyObject_Print(uuid_dict, stdout, 0);
+    printf("\n");
 #  endif
 
     /* Try to get first complete locale, then language+country,

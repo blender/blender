@@ -171,7 +171,8 @@ static void rna_GPencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
 #  if 0
   /* In case a property on a layer changed, tag it with a light update. */
   if (ptr->type == &RNA_GPencilLayer) {
-    BKE_gpencil_tag_light_update((bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), nullptr, nullptr);
+    BKE_gpencil_tag_light_update(
+        (bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), nullptr, nullptr);
   }
 #  endif
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);

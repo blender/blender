@@ -453,7 +453,7 @@ float CurvePoint::local_depth_variance() const
 
 real CurvePoint::local_average_density(float sigma) const
 {
-  //return local_average_density<CurvePoint >(this);
+  // return local_average_density<CurvePoint >(this);
   return density_function<CurvePoint>(this);
 }
 
@@ -896,7 +896,7 @@ float Curve::local_depth_variance(int iCombination) const
 #  if 0
   local_depth_variance_functor<Point> functor;
   float result;
-  Evaluate<float, local_depth_variance_functor<Point> >(&functor, iCombination, result);
+  Evaluate<float, local_depth_variance_functor<Point>>(&functor, iCombination, result);
   return result;
 #  endif
 }
@@ -907,7 +907,7 @@ real Curve::local_average_density(float sigma, int iCombination) const
 #  if 0
   density_functor<Point> functor;
   real result;
-  Evaluate<real, density_functor<Point> >(&functor, iCombination, result);
+  Evaluate<real, density_functor<Point>>(&functor, iCombination, result);
   return result;
 #  endif
 }
@@ -971,12 +971,12 @@ void Curve::computeCurvatureAndOrientation()
   (*v0)->setCurvatureFredo((*v2)->curvatureFredo());
   (*v0)->setDirectionFredo((*v2)->point2d() - (*v0)->point2d());
 
-  //closed curve case one day...
+  // closed curve case one day...
 
   //
   return;
 
-  //numerical degeneracy verification... we'll see later
+  // numerical degeneracy verification... we'll see later
   const_vertex_iterator vLastReliable = vertices_begin();
 
   v = vertices_begin();
@@ -1009,7 +1009,7 @@ void Curve::computeCurvatureAndOrientation()
       cerr << "/";
     }
     else {
-      if (!isReliable) {  //previous points were not reliable
+      if (!isReliable) {  // previous points were not reliable
         const_vertex_iterator vfix = vLastReliable;
         ++vfix;
         for (; vfix != v; ++vfix) {

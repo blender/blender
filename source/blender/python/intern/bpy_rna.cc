@@ -6583,9 +6583,12 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
 #ifdef DEBUG_STRING_FREE
 #  if 0
-if (PyList_GET_SIZE(string_free_ls)) {
-printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), int(PyList_GET_SIZE(string_free_ls)));
-}
+  if (PyList_GET_SIZE(string_free_ls)) {
+    printf("%.200s.%.200s():  has %d strings\n",
+           RNA_struct_identifier(self_ptr->type),
+           RNA_function_identifier(self_func),
+           int(PyList_GET_SIZE(string_free_ls)));
+  }
 #  endif
   Py_DECREF(string_free_ls);
 #  undef DEBUG_STRING_FREE
@@ -8559,8 +8562,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 /* 'almost' all the time calling the class isn't needed.
  * We could just do... */
 #  if 0
-py_class_instance = py_srna;
-Py_INCREF(py_class_instance);
+      py_class_instance = py_srna;
+      Py_INCREF(py_class_instance);
 #  endif
       /*
        * This would work fine, but means __init__ functions wouldn't run.

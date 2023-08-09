@@ -705,7 +705,8 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 
   /* Don't rename everywhere because these are per scene. */
 #  if 0
-  BKE_animdata_fix_paths_rename_all(nullptr, "sequence_editor.sequences_all", oldname, seq->name + 2);
+  BKE_animdata_fix_paths_rename_all(
+      nullptr, "sequence_editor.sequences_all", oldname, seq->name + 2);
 #  endif
   adt = BKE_animdata_from_id(&scene->id);
   if (adt) {
@@ -980,10 +981,10 @@ static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
   BLI_path_split_dir_file(value,
-                    seq->strip->dirpath,
-                    sizeof(seq->strip->dirpath),
-                    seq->strip->stripdata->name,
-                    sizeof(seq->strip->stripdata->name));
+                          seq->strip->dirpath,
+                          sizeof(seq->strip->dirpath),
+                          seq->strip->stripdata->name,
+                          sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)

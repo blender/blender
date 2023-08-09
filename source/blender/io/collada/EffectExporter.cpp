@@ -246,7 +246,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
       /* store pointers so they can be used later when we create <texture>s */
       samp_surf[b] = &samplers[a];
-      //samp_surf[b][1] = &surfaces[a];
+      // samp_surf[b][1] = &surfaces[a];
 
       im_samp_map[key] = b;
       b++;
@@ -266,7 +266,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     int i = im_samp_map[key];
     std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
     COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)
-        samp_surf[i];  /* possibly uninitialized memory ... */
+        samp_surf[i]; /* possibly uninitialized memory ... */
     writeTextures(ep, key, sampler, t, ima, uvname);
   }
 #endif

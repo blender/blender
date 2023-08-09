@@ -647,8 +647,8 @@ void Controller::ComputeSteerableViewMap()
   ViewMap::fedges_container &fedges = _ViewMap->FEdges();
   LineRep *fRep;
   NodeShape *ns;
-  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend;
-       ++f) {
+  for (ViewMap::fedges_container::iterator f = fedges.begin(), fend = fedges.end(); f != fend; ++f)
+  {
     if ((*f)->viewedge()->qi() != 0) {
       continue;
     }
@@ -676,7 +676,7 @@ void Controller::ComputeSteerableViewMap()
     offscreenBuffer.AddNode(ng[i]);
 #  if 0
     img[i] = new GrayImage(_pView->width(), _pView->height());
-    offscreenBuffer.readPixels(0,0,_pView->width(), _pView->height(), img[i]->getArray());
+    offscreenBuffer.readPixels(0, 0, _pView->width(), _pView->height(), img[i]->getArray());
 #  endif
     pm = offscreenBuffer.renderPixmap(_pView->width(), _pView->height());
 
@@ -685,7 +685,7 @@ void Controller::ComputeSteerableViewMap()
         cout << "BuildViewMap Warning: couldn't render the steerable ViewMap" << endl;
       }
     }
-    //pm.save(QString("steerable") + QString::number(i) + QString(".bmp"), "BMP");
+    // pm.save(QString("steerable") + QString::number(i) + QString(".bmp"), "BMP");
     // FIXME!! Lost of time !
     qimg = pm.toImage();
     // FIXME !! again!

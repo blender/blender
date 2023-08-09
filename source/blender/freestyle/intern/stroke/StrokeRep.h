@@ -25,7 +25,7 @@ namespace Freestyle {
 using namespace Geometry;
 
 #if 0
-//symbolic constant to call the appropriate renderers and textures
+// symbolic constant to call the appropriate renderers and textures
 #  define NO_TEXTURE_WITH_BLEND_STROKE -2
 #  define NO_TEXTURE_STROKE -1
 #  define PSEUDO_CHARCOAL_STROKE 0

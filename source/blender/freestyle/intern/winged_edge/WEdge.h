@@ -1240,7 +1240,8 @@ class WShape {
     Vec3f v;
     for (vector<WVertex *>::iterator wv = _VertexList.begin(), wvend = _VertexList.end();
          wv != wvend;
-         wv++) {
+         wv++)
+    {
       for (uint i = 0; i < 3; i++) {
         v = (*wv)->GetVertex();
         if (v[i] < _min[i]) {

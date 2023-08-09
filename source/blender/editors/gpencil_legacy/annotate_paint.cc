@@ -2469,9 +2469,9 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
  * Problem is that the stroke is converted to 3D only after it is finished.
  * This approach should work better in tools that immediately apply in 3D space. */
 #if 0
-if (event->type == NDOF_MOTION) {
-return OPERATOR_PASS_THROUGH;
-}
+  if (event->type == NDOF_MOTION) {
+    return OPERATOR_PASS_THROUGH;
+  }
 #endif
 
   if (p->status == GP_STATUS_IDLING) {

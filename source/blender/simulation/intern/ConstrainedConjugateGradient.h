@@ -106,13 +106,9 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
 #if 0 /* unused */
 template<typename MatrixType> struct MatrixFilter {
-  MatrixFilter() : m_cmat(NULL)
-  {
-  }
+  MatrixFilter() : m_cmat(NULL) {}
 
-  MatrixFilter(const MatrixType &cmat) : m_cmat(&cmat)
-  {
-  }
+  MatrixFilter(const MatrixType &cmat) : m_cmat(&cmat) {}
 
   void setMatrix(const MatrixType &cmat)
   {

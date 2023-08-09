@@ -2834,7 +2834,8 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d, cons
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See #69377) */
+#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug. (See \
+             #69377) */
     DRW_render_instance_buffer_finish();
 #else
     DST.buffer_finish_called = true;

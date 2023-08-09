@@ -1032,23 +1032,21 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
           madd_v3_v3fl(x, b, float(j) / float(size - 1));
           zero_v3(v);
 
-          SIM_hair_volume_grid_interpolate(grid, x, &gdensity, gvel, gvel_smooth, nullptr, nullptr);
+          SIM_hair_volume_grid_interpolate(
+              grid, x, &gdensity, gvel, gvel_smooth, nullptr, nullptr);
 
 #  if 0
           BKE_sim_debug_data_add_circle(
-              clmd->debug_data, x, gdensity, 0.7, 0.3, 1,
-              "grid density", i, j, 3111);
+              clmd->debug_data, x, gdensity, 0.7, 0.3, 1, "grid density", i, j, 3111);
 #  endif
           if (!is_zero_v3(gvel) || !is_zero_v3(gvel_smooth)) {
             float dvel[3];
             sub_v3_v3v3(dvel, gvel_smooth, gvel);
 #  if 0
             BKE_sim_debug_data_add_vector(
-                clmd->debug_data, x, gvel, 0.4, 0, 1,
-                "grid velocity", i, j, 3112);
+                clmd->debug_data, x, gvel, 0.4, 0, 1, "grid velocity", i, j, 3112);
             BKE_sim_debug_data_add_vector(
-                clmd->debug_data, x, gvel_smooth, 0.6, 1, 1,
-                "grid velocity", i, j, 3113);
+                clmd->debug_data, x, gvel_smooth, 0.6, 1, 1, "grid velocity", i, j, 3113);
 #  endif
             BKE_sim_debug_data_add_vector(
                 clmd->debug_data, x, dvel, 0.4, 1, 0.7, "grid velocity", i, j, 3114);
@@ -1058,15 +1056,23 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
               float col1[3] = {0.0, 1.0, 0.0};
               float col[3];
 
-              interp_v3_v3v3(col, col0, col1,
+              interp_v3_v3v3(col,
+                             col0,
+                             col1,
                              CLAMPIS(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
 #    if 0
-              BKE_sim_debug_data_add_circle(
-                  clmd->debug_data, x, gdensity * clmd->sim_parms->density_strength, 0, 1, 0.4,
-                  "grid velocity", i, j, 3115);
+              BKE_sim_debug_data_add_circle(clmd->debug_data,
+                                            x,
+                                            gdensity * clmd->sim_parms->density_strength,
+                                            0,
+                                            1,
+                                            0.4,
+                                            "grid velocity",
+                                            i,
+                                            j,
+                                            3115);
               BKE_sim_debug_data_add_dot(
-                  clmd->debug_data, x, col[0], col[1], col[2],
-                  "grid velocity", i, j, 3115);
+                  clmd->debug_data, x, col[0], col[1], col[2], "grid velocity", i, j, 3115);
 #    endif
               BKE_sim_debug_data_add_circle(
                   clmd->debug_data, x, 0.01f, col[0], col[1], col[2], "grid velocity", i, j, 3115);
