@@ -416,7 +416,7 @@ void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
 
   prop = RNA_def_int(
       ot->srna, "frame_end", 250, 1, 100000, "End Frame", "The end frame of animation", 1, 100000);
-  RNA_def_property_update_runtime(prop, (void *)gpencil_bake_set_frame_end);
+  RNA_def_property_update_runtime(prop, gpencil_bake_set_frame_end);
 
   prop = RNA_def_int(ot->srna, "step", 1, 1, 100, "Step", "Step between generated frames", 1, 100);
 

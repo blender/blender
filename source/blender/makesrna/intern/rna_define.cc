@@ -2920,9 +2920,16 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
   prop->update = (UpdateFunc)func;
 }
 
-void RNA_def_property_update_runtime(PropertyRNA *prop, const void *func)
+void RNA_def_property_update_runtime(PropertyRNA *prop, RNAPropertyUpdateFunc func)
 {
   prop->update = (UpdateFunc)func;
+}
+
+void RNA_def_property_update_runtime_with_context_and_property(
+    PropertyRNA *prop, RNAPropertyUpdateFuncWithContextAndProperty func)
+{
+  prop->update = (UpdateFunc)func;
+  RNA_def_property_flag(prop, PROP_CONTEXT_PROPERTY_UPDATE);
 }
 
 void RNA_def_property_update_notifier(PropertyRNA *prop, const int noteflag)

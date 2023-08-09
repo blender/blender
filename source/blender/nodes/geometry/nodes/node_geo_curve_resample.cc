@@ -137,7 +137,7 @@ static void node_rna(StructRNA *srna)
   RNA_def_property_enum_node_storage(prop, mode);
   RNA_def_property_enum_items(prop, mode_items);
   RNA_def_property_ui_text(prop, "Mode", "How to specify the amount of samples");
-  RNA_def_property_update_runtime(prop, (void *)rna_Node_socket_update);
+  RNA_def_property_update_runtime(prop, rna_Node_socket_update);
   RNA_def_property_update_notifier(prop, NC_NODE | NA_EDITED);
 }
 

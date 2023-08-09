@@ -1730,8 +1730,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
                      "The end frame of the path control curve (if Realtime is not set)",
                      1,
                      100000);
-  RNA_def_property_update_runtime(prop,
-                                  reinterpret_cast<const void *>(gpencil_convert_set_end_frame));
+  RNA_def_property_update_runtime(prop, gpencil_convert_set_end_frame);
 
   RNA_def_float(ot->srna,
                 "gap_duration",

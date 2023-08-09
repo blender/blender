@@ -2267,10 +2267,8 @@ static void bpy_prop_callback_assign_update(PropertyRNA *prop, PyObject *update_
   if (update_fn && update_fn != Py_None) {
     BPyPropStore *prop_store = bpy_prop_py_data_ensure(prop);
 
-    RNA_def_property_update_runtime(prop, reinterpret_cast<const void *>(bpy_prop_update_fn));
+    RNA_def_property_update_runtime_with_context_and_property(prop, bpy_prop_update_fn);
     ASSIGN_PYOBJECT_INCREF(prop_store->py_data.update_fn, update_fn);
-
-    RNA_def_property_flag(prop, PROP_CONTEXT_PROPERTY_UPDATE);
   }
 }
 

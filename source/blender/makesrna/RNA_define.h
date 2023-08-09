@@ -453,7 +453,14 @@ void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *store,
                                      const char *apply);
 
-void RNA_def_property_update_runtime(PropertyRNA *prop, const void *func);
+typedef void (*RNAPropertyUpdateFunc)(struct Main *, struct Scene *, struct PointerRNA *);
+typedef void (*RNAPropertyUpdateFuncWithContextAndProperty)(struct bContext *C,
+                                                            struct PointerRNA *ptr,
+                                                            struct PropertyRNA *prop);
+
+void RNA_def_property_update_runtime(PropertyRNA *prop, RNAPropertyUpdateFunc func);
+void RNA_def_property_update_runtime_with_context_and_property(
+    PropertyRNA *prop, RNAPropertyUpdateFuncWithContextAndProperty func);
 void RNA_def_property_update_notifier(PropertyRNA *prop, int noteflag);
 void RNA_def_property_poll_runtime(PropertyRNA *prop, const void *func);
 
