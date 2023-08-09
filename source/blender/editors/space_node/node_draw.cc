@@ -2112,7 +2112,7 @@ static void node_draw_extra_info_panel(const Scene *scene,
     return;
   }
   if (preview && !(preview->x > 0 && preview->y > 0)) {
-    /* If the preview has an non-drawable size, just dont draw it. */
+    /* If the preview has an non-drawable size, just don't draw it. */
     preview = nullptr;
   }
   Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(tree_draw_ctx, snode, node);

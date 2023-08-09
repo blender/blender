@@ -13,13 +13,13 @@ struct USDExportParams;
 
 namespace blender::io::usd {
 
-/* Ensure classes and type converters necessary for invoking export hook are registered. */
+/** Ensure classes and type converters necessary for invoking export hook are registered. */
 void register_export_hook_converters();
 
-/* Call the 'on_export' chaser function defined in the registred USDHook classes. */
+/** Call the 'on_export' chaser function defined in the registered USDHook classes. */
 void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph);
 
-/* Call the 'on_material_export' hook functions defined in the registered USDHook classes. */
+/** Call the 'on_material_export' hook functions defined in the registered #USDHook classes. */
 void call_material_export_hooks(pxr::UsdStageRefPtr stage,
                                 Material *material,
                                 pxr::UsdShadeMaterial &usd_material);

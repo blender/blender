@@ -64,17 +64,16 @@ struct EraseOperationExecutor {
   /**
    * Computes the intersections between a 2D line segment and a circle with integer values.
    *
-   * \param s0, s1 : endpoints of the segment.
-   * \param center : center of the circle,
+   * \param s0, s1: endpoints of the segment.
+   * \param center: center of the circle,
    * \param radius_2: squared radius of the circle.
    *
-   * \param r_mu0 : (output) signed distance from \a s0 to the first intersection, if it exists.
-   * \param r_mu1 : (output) signed distance from \a s0 to the second  intersection, if it exists.
+   * \param r_mu0: (output) signed distance from \a s0 to the first intersection, if it exists.
+   * \param r_mu1: (output) signed distance from \a s0 to the second  intersection, if it exists.
    *
    * All intersections with the infinite line of the segment are considered.
    *
    * \returns the number of intersection found.
-   *
    */
   static int8_t intersections_segment_circle_integers(const int2 &s0,
                                                       const int2 &s1,
@@ -238,14 +237,13 @@ struct EraseOperationExecutor {
    * \param r_intersections_factors: (output) factors of the potential intersections with each
    * segment. Should be the size of the source point range (cyclic curves get an extra segment).
    *
-   * \param r_is_point_inside : (output) true if the point lies inside the eraser, and thus should
+   * \param r_is_point_inside: (output) true if the point lies inside the eraser, and thus should
    * be removed. Note that if the point lies exactly on the boundary of the eraser, it will not be
    * marked as inside. Should be the size of the source point range.
-   * \param r_is_point_cut : (output) true if the point falls exactly on the boundary of th
+   * \param r_is_point_cut: (output) true if the point falls exactly on the boundary of the
    * eraser. Should be the size of the source point range.
    *
    * \returns total number of intersections found.
-   *
    */
   int64_t intersections_with_curves(const bke::CurvesGeometry &src,
                                     const Span<float2> screen_space_positions,
@@ -320,7 +318,7 @@ struct EraseOperationExecutor {
   }
 
   /* The hard eraser cuts out the curves at their intersection with the eraser, and removes
-   * everything that lies in-between two consecutives intersections. Note that intersections are
+   * everything that lies in-between two consecutive intersections. Note that intersections are
    * computed using integers (pixel-space) to avoid floating-point approximation errors. */
 
   bool hard_eraser(const bke::CurvesGeometry &src,

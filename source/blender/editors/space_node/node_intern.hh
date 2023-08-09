@@ -110,7 +110,7 @@ struct SpaceNode_Runtime {
 
   /**
    * Use this to store data for the displayed node tree. It has an entry for every distinct
-   * nested nodegroup.
+   * nested node-group.
    */
   Map<ComputeContextHash, std::unique_ptr<space_node::NestedTreePreviews>>
       tree_previews_per_context;

@@ -185,7 +185,7 @@ class USDHookInvoker {
 
       /* XXX: Not sure if this is necessary:
        * Advance the iterator before invoking the callback, to guard
-       * against the unlikely error where the hook is deregistered in
+       * against the unlikely error where the hook is de-registered in
        * the callback. This would prevent a crash due to the iterator
        * getting invalidated. */
       USDHook *hook = *hook_iter;

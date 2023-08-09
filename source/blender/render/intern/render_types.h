@@ -171,7 +171,7 @@ struct Render : public BaseRender {
   void *tbh = nullptr;
 
   /**
-   * Executed right before the initialisation of the depsgraph, in order to modify some stuff in
+   * Executed right before the initialization of the depsgraph, in order to modify some stuff in
    * the viewlayer. The modified ids must be tagged in the depsgraph.
    */
   bool (*prepare_viewlayer)(void *handle, struct ViewLayer *vl, struct Depsgraph *depsgraph);

@@ -350,7 +350,7 @@ void IrradianceCache::set_view(View & /*view*/)
     grid_upload_ps_.bind_texture("irradiance_d_tx", &irradiance_d_tx);
     grid_upload_ps_.bind_texture("validity_tx", &validity_tx);
     grid_upload_ps_.bind_image("irradiance_atlas_img", &irradiance_atlas_tx_);
-    /* NOTE: We are read and writting the same texture that we are sampling from. If that causes an
+    /* NOTE: We are read and writing the same texture that we are sampling from. If that causes an
      * issue, we should revert to manual trilinear interpolation. */
     grid_upload_ps_.bind_texture("irradiance_atlas_tx", &irradiance_atlas_tx_);
     /* If visibility is invalid, either it is still baking and visibility is stored with

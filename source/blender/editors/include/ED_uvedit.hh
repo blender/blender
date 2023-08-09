@@ -166,7 +166,7 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
 /**
  * Selects shared UVs based on #sticky_flag.
  *
- * \param sticky_flag: Type of sticky selection :
+ * \param sticky_flag: Type of sticky selection:
  * - #SI_STICKY_LOC: selects all UVs sharing same mesh vertex and UV coordinates.
  * - #SI_STICKY_VERTEX: selects all UVs sharing same mesh vertex.
  */

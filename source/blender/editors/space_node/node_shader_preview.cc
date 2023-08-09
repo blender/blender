@@ -326,10 +326,12 @@ void node_release_preview_ibuf(NestedTreePreviews &tree_previews)
   RE_ReleaseResult(tree_previews.previews_render);
 }
 
-/* Get a link to the node outside the nested nodegroups by creating a new output socket for each
- * nested nodegroup. To do so we cover all nested nodetrees starting from the farthest, and
- * update the `nested_node_iter` pointer to the current nodegroup instance used for linking. We
- * stop before getting to the main nodetree because the output type is different. */
+/**
+ * Get a link to the node outside the nested node-groups by creating a new output socket for each
+ * nested node-group. To do so we cover all nested node-trees starting from the farthest, and
+ * update the `nested_node_iter` pointer to the current node-group instance used for linking.
+ * We stop before getting to the main node-tree because the output type is different.
+ */
 static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
                                         bNode &nested_node,
                                         bNodeSocket &nested_socket,
@@ -361,7 +363,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
     nodeAddLink(nested_nt, nested_node_iter, nested_socket_iter, output_node, out_socket);
     BKE_ntree_update_main_tree(G.pr_main, nested_nt, nullptr);
 
-    /* Change the `nested_node` pointer to the nested nodegroup instance node. The tree path
+    /* Change the `nested_node` pointer to the nested node-group instance node. The tree path
      * contains the name of the instance node but not its ID. */
     nested_node_iter = nodeFindNodebyName(path_prev->nodetree, path->node_name);
 
@@ -369,7 +371,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
     BKE_ntree_update_tag_node_property(path_prev->nodetree, nested_node_iter);
     BKE_ntree_update_main_tree(G.pr_main, path_prev->nodetree, nullptr);
 
-    /* Now use the newly created socket of the nodegroup as previewing socket of the nodegroup
+    /* Now use the newly created socket of the node-group as previewing socket of the node-group
      * instance node. */
     nested_socket_iter = bke::node_find_enabled_output_socket(*nested_node_iter, nested_node.name);
   }
@@ -525,7 +527,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   }
   Span<bNodeTreePath *> treepath = job_data.treepath_copy;
 
-  /* Disconnect all input sockets of the material output node, but keep track of the displacment
+  /* Disconnect all input sockets of the material output node, but keep track of the displacement
    * node. */
   bNodeSocket *disp_socket = nodeFindSocket(job_data.mat_output_copy, SOCK_IN, "Displacement");
   if (disp_socket->link != nullptr) {
@@ -647,7 +649,7 @@ static void shader_preview_startjob(void *customdata,
   bNodeTree *active_nodetree = job_data->treepath_copy.last()->nodetree;
   for (bNode *node : active_nodetree->all_nodes()) {
     if (!(node->flag & NODE_PREVIEW)) {
-      /* Clear the cached preview for this node to be sure that the preview is rerendered if
+      /* Clear the cached preview for this node to be sure that the preview is re-rendered if
        * needed. */
       if (ImBuf **ibuf = job_data->tree_previews->previews_map.lookup_ptr(node->identifier)) {
         IMB_freeImBuf(*ibuf);
