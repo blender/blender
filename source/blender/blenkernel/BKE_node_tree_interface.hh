@@ -194,6 +194,7 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
   const bNodeSocketType *typeinfo = iosock->socket_typeinfo();
   if (typeinfo->interface_from_socket) {
     /* XXX Enable when bNodeSocketType callbacks have been updated. */
+    UNUSED_VARS(from_node);
     //    typeinfo->interface_from_socket(ntree.id, iosock, &from_node, &from_sock);
   }
   return iosock;
