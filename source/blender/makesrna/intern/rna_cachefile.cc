@@ -25,7 +25,6 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_math.h"
 #  include "BLI_string.h"
 
 #  include "BKE_cachefile.h"

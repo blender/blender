@@ -8,8 +8,6 @@
 
 #include <cstdlib>
 
-#include "BLI_math.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -19,6 +17,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"

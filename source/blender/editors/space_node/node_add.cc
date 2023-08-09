@@ -17,6 +17,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 
 #include "BLT_translation.h"
 

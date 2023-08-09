@@ -11,7 +11,7 @@
 #include <cstring>
 
 #include "BLI_function_ref.hh"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_utildefines.h"
 

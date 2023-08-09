@@ -8,6 +8,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap_draw_2d.h"
+#include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
 

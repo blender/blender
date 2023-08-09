@@ -36,7 +36,7 @@
 #include "BLI_fnmatch.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_stack.h"
 #include "BLI_string_utils.h"
 #include "BLI_task.h"

@@ -11,7 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
-#include "BLI_math.h"
 
 #include "bmesh.h"
 

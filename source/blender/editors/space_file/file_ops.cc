@@ -10,7 +10,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
 
 #include "BKE_appdir.h"
 #include "BKE_blendfile.h"

@@ -6,7 +6,6 @@
  * \ingroup edgpencil
  */
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -21,6 +20,9 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 
 #include "BLT_translation.h"
 

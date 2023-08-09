@@ -11,6 +11,7 @@
 #include "collada_utils.h"
 
 #include "BLI_linklist.h"
+#include "BLI_math_matrix.h"
 
 #include "BKE_armature.h"
 

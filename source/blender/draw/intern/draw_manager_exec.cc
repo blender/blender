@@ -9,7 +9,6 @@
 #include "draw_manager.h"
 
 #include "BLI_alloca.h"
-#include "BLI_math.h"
 #include "BLI_math_bits.h"
 #include "BLI_memblock.h"
 

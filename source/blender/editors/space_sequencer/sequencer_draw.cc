@@ -10,7 +10,6 @@
 #include <cstring>
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"

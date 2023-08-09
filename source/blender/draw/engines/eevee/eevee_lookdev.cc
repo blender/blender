@@ -10,6 +10,7 @@
 #include "BKE_camera.h"
 #include "BKE_studiolight.h"
 
+#include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 

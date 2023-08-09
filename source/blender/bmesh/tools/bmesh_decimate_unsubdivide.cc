@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "bmesh.h"
 #include "bmesh_decimate.h" /* own include */
 

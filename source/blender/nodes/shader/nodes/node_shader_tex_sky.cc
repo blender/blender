@@ -5,6 +5,7 @@
 #include "node_shader_util.hh"
 #include "sky_model.h"
 
+#include "BLI_math_rotation.h"
 #include "BLI_task.hh"
 
 #include "BKE_context.h"

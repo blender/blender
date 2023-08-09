@@ -13,7 +13,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 

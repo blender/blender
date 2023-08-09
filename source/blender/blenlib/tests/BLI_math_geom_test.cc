@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 
 TEST(math_geom, DistToLine2DSimple)
 {

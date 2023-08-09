@@ -9,7 +9,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_editmesh.h"
 

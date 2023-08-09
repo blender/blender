@@ -21,7 +21,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -63,6 +64,8 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_world.h"
+
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

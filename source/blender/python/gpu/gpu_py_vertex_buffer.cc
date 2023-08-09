@@ -13,8 +13,6 @@
 
 #include "GPU_vertex_buffer.h"
 
-#include "BLI_math.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "../generic/py_capi_utils.h"

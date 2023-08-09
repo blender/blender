@@ -10,11 +10,11 @@
  * Splits a face into a triangle fan.
  */
 
-#include "BLI_math.h"
-
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
+
+#include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
 

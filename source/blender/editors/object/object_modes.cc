@@ -15,7 +15,6 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "PIL_time.h"
@@ -32,6 +31,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+
+#include "BLI_math_vector.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

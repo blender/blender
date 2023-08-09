@@ -13,7 +13,7 @@
 #include "BLI_alloca.h"
 #include "BLI_kdtree.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_stack.h"
 #include "BLI_utildefines_stack.h"
 

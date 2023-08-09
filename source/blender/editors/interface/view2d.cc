@@ -20,7 +20,7 @@
 #include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"

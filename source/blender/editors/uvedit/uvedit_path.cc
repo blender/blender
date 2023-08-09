@@ -18,7 +18,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 

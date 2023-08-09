@@ -8,7 +8,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"

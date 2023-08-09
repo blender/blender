@@ -15,7 +15,9 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
 
 #include "BKE_customdata.h"

@@ -6,6 +6,8 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "BLI_math_geom.h"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"

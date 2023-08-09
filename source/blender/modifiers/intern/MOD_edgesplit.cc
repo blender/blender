@@ -11,9 +11,8 @@
  * or edge angle (can be used to achieve auto-smoothing)
  */
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 

@@ -18,6 +18,8 @@
 
 #  include "DNA_scene_types.h"
 
+#  include "BLI_math_vector.h"
+
 #  include "BKE_camera.h"
 #  include "BKE_context.h"
 #  include "BKE_object.h"

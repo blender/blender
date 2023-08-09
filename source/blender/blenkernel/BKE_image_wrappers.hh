@@ -10,7 +10,8 @@
 
 #include "DNA_image_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "IMB_imbuf_types.h"

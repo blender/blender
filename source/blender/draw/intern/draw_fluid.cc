@@ -11,7 +11,6 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_fluid_types.h"

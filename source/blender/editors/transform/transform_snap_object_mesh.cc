@@ -6,8 +6,8 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"

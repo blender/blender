@@ -9,8 +9,6 @@
  * to more attractive positions until no more rotations can be made.
  */
 
-#include "BLI_math.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"

@@ -8,6 +8,8 @@
 
 #include "eevee_private.h"
 
+#include "BLI_math_rotation.h"
+
 void EEVEE_shadows_cube_add(EEVEE_LightsInfo *linfo, EEVEE_Light *evli, Object *ob)
 {
   if (linfo->cube_len >= MAX_SHADOW_CUBE) {

@@ -5,6 +5,7 @@
 #include "workbench_private.hh"
 
 #include "BLI_hash.h"
+#include "BLI_math_color.h"
 /* get_image */
 #include "BKE_node.hh"
 #include "DNA_node_types.h"

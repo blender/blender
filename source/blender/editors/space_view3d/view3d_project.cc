@@ -14,6 +14,9 @@
 
 #include "BLI_sys_types.h" /* int64_t */
 
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_camera.h"

@@ -10,7 +10,6 @@
 
 #include "mathutils.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "../generic/py_capi_utils.h"

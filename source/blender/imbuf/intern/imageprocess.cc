@@ -16,7 +16,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_interp.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 

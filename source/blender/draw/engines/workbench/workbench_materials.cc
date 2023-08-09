@@ -15,6 +15,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"
+#include "BLI_math_color.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"

@@ -11,7 +11,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"

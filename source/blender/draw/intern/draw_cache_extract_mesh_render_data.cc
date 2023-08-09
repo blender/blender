@@ -12,6 +12,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_matrix.h"
 #include "BLI_task.hh"
 
 #include "BKE_attribute.hh"

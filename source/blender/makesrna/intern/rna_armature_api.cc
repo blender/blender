@@ -22,6 +22,7 @@
 #  include "DNA_armature_types.h"
 
 #  include "BKE_armature.h"
+#  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
 
 static void rna_EditBone_align_roll(EditBone *ebo, const float no[3])

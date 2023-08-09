@@ -7,7 +7,6 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 

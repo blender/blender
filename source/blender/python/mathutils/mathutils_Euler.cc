@@ -12,7 +12,9 @@
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #ifndef MATH_STANDALONE

@@ -15,7 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -27,6 +27,8 @@
 #include "RNA_prototypes.h"
 
 #include "ED_anim_api.hh"
+
+#include <string.h>
 
 /* ----------------------- Getter functions ----------------------- */
 

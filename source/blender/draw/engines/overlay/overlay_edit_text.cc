@@ -10,6 +10,9 @@
 
 #include "UI_resources.hh"
 
+#include "BLI_math_color.h"
+#include "BLI_math_rotation.h"
+
 #include "BKE_vfont.h"
 
 #include "DNA_curve_types.h"

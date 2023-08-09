@@ -8,8 +8,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"

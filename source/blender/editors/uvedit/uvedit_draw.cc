@@ -6,7 +6,6 @@
  * \ingroup eduv
  */
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"

@@ -16,8 +16,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_dial_2d.h"
-#include "BLI_math.h"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 

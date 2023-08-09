@@ -19,8 +19,6 @@
 
 #include "BKE_object.h"
 
-#include "BLI_math.h"
-
 #include "workbench_engine.h"
 #include "workbench_private.h"
 

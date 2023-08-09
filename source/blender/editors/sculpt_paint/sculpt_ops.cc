@@ -11,7 +11,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 

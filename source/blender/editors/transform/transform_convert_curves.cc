@@ -8,6 +8,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_inplace_priority_queue.hh"
+#include "BLI_math_matrix.h"
 #include "BLI_span.hh"
 
 #include "BKE_curves.hh"

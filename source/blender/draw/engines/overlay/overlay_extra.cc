@@ -10,6 +10,9 @@
 
 #include "UI_resources.hh"
 
+#include "BLI_math_color.h"
+#include "BLI_math_rotation.h"
+
 #include "BKE_anim_path.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"

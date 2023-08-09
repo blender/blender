@@ -25,7 +25,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 

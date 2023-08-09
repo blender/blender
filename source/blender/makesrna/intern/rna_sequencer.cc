@@ -18,7 +18,7 @@
 
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.h"
 

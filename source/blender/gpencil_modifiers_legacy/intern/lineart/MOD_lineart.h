@@ -10,7 +10,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h" /* Needed here for inline functions. */
+#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
 #include <math.h>

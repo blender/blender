@@ -6,6 +6,8 @@
 
 #include "DNA_defaults.h"
 
+#include "BLI_math_geom.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

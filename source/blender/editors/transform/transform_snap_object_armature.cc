@@ -6,7 +6,6 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_armature.h"

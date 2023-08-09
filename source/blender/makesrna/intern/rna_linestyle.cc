@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "RNA_define.h"
@@ -514,8 +515,6 @@ static void rna_LineStyle_geometry_modifier_remove(FreestyleLineStyle *linestyle
 }
 
 #else
-
-#  include "BLI_math.h"
 
 static void rna_def_linestyle_mtex(BlenderRNA *brna)
 {

@@ -11,7 +11,8 @@
 #include "BKE_paint.hh"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "ED_select_utils.hh"

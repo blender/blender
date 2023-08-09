@@ -21,7 +21,6 @@ using namespace OCIO_NAMESPACE;
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 

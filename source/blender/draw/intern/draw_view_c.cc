@@ -26,6 +26,8 @@
 
 #include "WM_types.hh"
 
+#include "BLI_math_rotation.h"
+
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_paint.hh"

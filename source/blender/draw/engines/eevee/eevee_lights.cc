@@ -6,6 +6,7 @@
  * \ingroup DNA
  */
 
+#include "BLI_math_rotation.h"
 #include "BLI_sys_types.h" /* bool */
 
 #include "BKE_object.h"

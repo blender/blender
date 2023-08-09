@@ -31,9 +31,9 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_math.h"
-
 #  include "DNA_anim_types.h"
+
+#  include "BLI_math_vector.h"
 
 #  include "BKE_anim_data.h"
 #  include "BKE_animsys.h"

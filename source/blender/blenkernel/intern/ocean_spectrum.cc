@@ -7,8 +7,9 @@
  */
 
 #include "BKE_ocean.h"
-#include "BLI_math.h"
 #include "ocean_intern.h"
+
+#include <math.h>
 
 #ifdef WITH_OCEANSIM
 

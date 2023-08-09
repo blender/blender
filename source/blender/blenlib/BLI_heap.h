@@ -9,7 +9,7 @@
  * \brief A min-heap / priority queue ADT
  */
 
-#include "BLI_math.h"
+#include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus
 extern "C" {

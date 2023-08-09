@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "bmesh.h"
 

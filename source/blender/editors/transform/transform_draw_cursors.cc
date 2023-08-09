@@ -6,11 +6,11 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
-
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+
+#include "BLI_math_rotation.h"
 
 #include "BKE_context.h"
 

@@ -10,7 +10,8 @@
 
 #include "BLI_array.hh"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines_stack.h"
 

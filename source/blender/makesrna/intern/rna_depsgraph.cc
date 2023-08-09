@@ -8,6 +8,8 @@
 
 #include <cstdlib>
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
@@ -29,7 +31,6 @@
 #  endif
 
 #  include "BLI_iterator.h"
-#  include "BLI_math.h"
 
 #  include "RNA_access.h"
 

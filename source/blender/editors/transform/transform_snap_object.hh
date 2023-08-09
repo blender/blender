@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_geom.h"
+
 #define MAX_CLIPPLANE_LEN 7
 
 #define SNAP_TO_EDGE_ELEMENTS \

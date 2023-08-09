@@ -4,6 +4,8 @@
 
 #include "COM_BokehImageOperation.h"
 
+#include "BLI_math_geom.h"
+
 namespace blender::compositor {
 
 BokehImageOperation::BokehImageOperation()

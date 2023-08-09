@@ -11,6 +11,7 @@
 #include <cstring>
 #include <ctime>
 
+#include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
 #include "RNA_define.h"

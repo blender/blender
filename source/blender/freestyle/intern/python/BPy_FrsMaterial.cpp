@@ -10,6 +10,8 @@
 
 #include "BPy_Convert.h"
 
+#include "BLI_math_vector.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

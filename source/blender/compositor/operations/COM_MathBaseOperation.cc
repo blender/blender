@@ -4,6 +4,8 @@
 
 #include "COM_MathBaseOperation.h"
 
+#include "BLI_math_rotation.h"
+
 namespace blender::compositor {
 
 MathBaseOperation::MathBaseOperation()

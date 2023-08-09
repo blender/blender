@@ -12,9 +12,10 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math.h"
-
 #include "bmesh.h"
+
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
 #include "BKE_deform.h"

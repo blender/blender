@@ -10,7 +10,6 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
 #include "BLI_stack.h"
 
 #include "BKE_editmesh.h"

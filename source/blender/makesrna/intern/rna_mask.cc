@@ -16,6 +16,8 @@
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
+#include "BLI_math_vector.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_movieclip.h"
@@ -32,8 +34,6 @@
 #include "IMB_imbuf_types.h"
 
 #ifdef RNA_RUNTIME
-
-#  include "BLI_math.h"
 
 #  include "DNA_movieclip_types.h"
 

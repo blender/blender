@@ -13,6 +13,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+
 #include "BKE_context.h"
 
 #include "RNA_access.h"

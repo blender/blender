@@ -6,7 +6,8 @@
  * \ingroup edsculpt
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"

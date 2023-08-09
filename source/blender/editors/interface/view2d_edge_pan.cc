@@ -8,7 +8,6 @@
 
 #include "BKE_context.h"
 
-#include "BLI_math.h"
 #include "BLI_rect.h"
 
 #include "ED_screen.hh"

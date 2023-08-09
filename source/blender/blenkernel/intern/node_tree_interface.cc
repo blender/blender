@@ -8,7 +8,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_tree_interface.hh"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"

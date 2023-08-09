@@ -11,7 +11,6 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BLT_translation.h"

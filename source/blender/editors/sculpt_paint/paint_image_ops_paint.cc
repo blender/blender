@@ -12,6 +12,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_color.h"
+
 #include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_layer.h"

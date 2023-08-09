@@ -8,7 +8,7 @@
  * Makes the mesh symmetrical by splitting along an axis and duplicating the geometry.
  */
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"

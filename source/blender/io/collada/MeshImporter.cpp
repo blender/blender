@@ -29,7 +29,6 @@
 
 #include "BLI_edgehash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "ArmatureImporter.h"

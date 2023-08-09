@@ -10,6 +10,8 @@
 #include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
 
+#include "BLI_math_color.h"
+
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"

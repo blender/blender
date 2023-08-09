@@ -12,7 +12,6 @@
 
 #include "BLI_jitter_2d.h"
 #include "BLI_kdtree.h"
-#include "BLI_math.h"
 #include "BLI_math_geom.h"
 #include "BLI_rand.h"
 #include "BLI_sort.h"

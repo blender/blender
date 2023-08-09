@@ -11,6 +11,8 @@
 
 #include "GaussianFilter.h"
 
+#include "BLI_math_base.h"
+
 namespace Freestyle {
 
 GaussianFilter::GaussianFilter(float iSigma)

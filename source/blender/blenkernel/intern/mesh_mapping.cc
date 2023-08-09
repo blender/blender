@@ -18,7 +18,8 @@
 #include "BLI_bitmap.h"
 #include "BLI_buffer.h"
 #include "BLI_function_ref.hh"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 

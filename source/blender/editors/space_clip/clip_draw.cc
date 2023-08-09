@@ -16,7 +16,6 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLI_math.h"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"

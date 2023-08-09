@@ -16,7 +16,6 @@
 #include "GPU_state.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 

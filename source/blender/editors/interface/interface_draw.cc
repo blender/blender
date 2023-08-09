@@ -15,7 +15,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"

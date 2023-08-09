@@ -16,7 +16,6 @@
  */
 
 #include "BKE_object.h"
-#include "BLI_math.h"
 #include "DRW_render.h"
 #include "GPU_compute.h"
 

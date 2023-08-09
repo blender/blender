@@ -16,8 +16,9 @@
 #include "BLI_fileops_types.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -31,6 +32,8 @@
 #include "GPU_texture.h"
 
 #include "MEM_guardedalloc.h"
+
+#include <string.h>
 
 /* Statics */
 static ListBase studiolights;

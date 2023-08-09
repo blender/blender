@@ -9,7 +9,8 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

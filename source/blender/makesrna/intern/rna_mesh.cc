@@ -16,6 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math_base.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"

@@ -6,6 +6,8 @@
  * \ingroup draw_engine
  */
 
+#include "BLI_math_color.h"
+
 #include "DRW_render.h"
 
 #include "DNA_camera_types.h"

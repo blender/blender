@@ -23,6 +23,7 @@
 #include "ED_armature.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 
 #include "ArmatureExporter.h"
 #include "GeometryExporter.h"

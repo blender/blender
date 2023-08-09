@@ -11,6 +11,10 @@
 
 #include "TransformReader.h"
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
+
 TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv)
 {
   /* pass */

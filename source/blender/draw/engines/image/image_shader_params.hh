@@ -16,8 +16,6 @@
 
 #include "BKE_image.h"
 
-#include "BLI_math.h"
-
 #include "image_enums.hh"
 #include "image_space.hh"
 

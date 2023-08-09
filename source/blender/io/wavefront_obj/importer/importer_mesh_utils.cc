@@ -10,6 +10,9 @@
 #include "BKE_object.h"
 
 #include "BLI_delaunay_2d.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 

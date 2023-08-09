@@ -14,6 +14,8 @@
 
 #include "UI_resources.hh"
 
+#include "BLI_math_color.h"
+
 #include "BKE_colorband.h"
 #include "BKE_global.h"
 #include "BKE_object.h"

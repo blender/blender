@@ -8,8 +8,6 @@
 
 #include "DNA_anim_types.h"
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_nla.h"
 

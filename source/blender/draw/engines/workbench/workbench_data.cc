@@ -9,6 +9,7 @@
 
 #include "workbench_private.h"
 
+#include "BLI_math_rotation.h"
 #include "BLI_memblock.h"
 
 #include "DNA_userdef_types.h"

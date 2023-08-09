@@ -8,8 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"

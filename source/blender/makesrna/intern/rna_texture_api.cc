@@ -20,7 +20,7 @@
 
 #  include "BKE_context.h"
 #  include "BKE_global.h"
-#  include "BLI_math.h"
+#  include "BLI_math_vector.h"
 #  include "DNA_scene_types.h"
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"

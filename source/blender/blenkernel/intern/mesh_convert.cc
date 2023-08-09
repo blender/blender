@@ -23,7 +23,6 @@
 #include "BLI_edgehash.h"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

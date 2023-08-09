@@ -13,7 +13,6 @@
 #include "BLI_array_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 

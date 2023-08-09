@@ -6,7 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "BLI_math.h"
 #include "BLI_span.hh"
 
 #include "BLT_translation.h"

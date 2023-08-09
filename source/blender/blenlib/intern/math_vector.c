@@ -6,8 +6,10 @@
  * \ingroup bli
  */
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
+#include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
 #include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */

@@ -13,7 +13,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_session_uuid.h"
 
 #include "BKE_main.h"

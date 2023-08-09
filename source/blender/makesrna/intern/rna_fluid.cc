@@ -9,6 +9,7 @@
 #include <climits>
 #include <cstdlib>
 
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
@@ -36,7 +37,6 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_math.h"
 #  include "BLI_threads.h"
 
 #  include "BKE_colorband.h"

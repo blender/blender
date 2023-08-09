@@ -12,7 +12,6 @@
 #include <cstring>
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"

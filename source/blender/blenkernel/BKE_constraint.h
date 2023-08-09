@@ -46,7 +46,8 @@ typedef struct bConstraintOb {
 
   /** type of owner. */
   short type;
-  /** rotation order for constraint owner (as defined in #eEulerRotationOrders in BLI_math.h) */
+  /** rotation order for constraint owner (as defined in #eEulerRotationOrders in
+   * BLI_math_rotation.h) */
   short rotOrder;
 } bConstraintOb;
 

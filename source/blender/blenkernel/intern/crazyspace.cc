@@ -16,6 +16,8 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_linklist.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"

@@ -7,6 +7,7 @@
 #include "curves_sculpt_intern.hh"
 
 #include "BLI_kdtree.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"

@@ -12,12 +12,13 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
+
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 
 #include "WM_types.hh"
 

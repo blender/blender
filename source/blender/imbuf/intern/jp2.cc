@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
-#include "BLI_math.h"
 
 #include "IMB_filetype.h"
 #include "IMB_imbuf.h"
@@ -19,6 +18,8 @@
 #include "IMB_colormanagement_intern.h"
 
 #include "openjpeg.h"
+
+#include <string.h>
 
 #define JP2_FILEHEADER_SIZE 12
 

@@ -15,7 +15,7 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_edgehash.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
 

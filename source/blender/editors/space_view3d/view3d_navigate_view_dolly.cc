@@ -6,10 +6,10 @@
  * \ingroup spview3d
  */
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_report.h"
+
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 

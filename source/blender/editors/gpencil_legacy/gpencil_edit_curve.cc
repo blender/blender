@@ -22,7 +22,8 @@
 #include "BKE_gpencil_legacy.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

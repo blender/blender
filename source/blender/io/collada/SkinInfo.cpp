@@ -17,7 +17,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"

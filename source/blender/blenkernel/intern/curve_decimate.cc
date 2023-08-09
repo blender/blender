@@ -20,6 +20,8 @@ extern "C" {
 
 #include "BLI_strict_flags.h"
 
+#include <string.h>
+
 struct Knot {
   Knot *next, *prev;
   uint point_index; /* Index in point array. */

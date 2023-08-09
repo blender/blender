@@ -8,7 +8,8 @@
  * OpenGL utilities for setting up 2D viewport for window and regions.
  */
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "DNA_screen_types.h"

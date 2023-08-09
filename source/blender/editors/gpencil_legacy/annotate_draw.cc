@@ -18,7 +18,6 @@
 #include "BLI_sys_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"

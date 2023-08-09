@@ -10,7 +10,7 @@
 
 #include "DNA_camera_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 

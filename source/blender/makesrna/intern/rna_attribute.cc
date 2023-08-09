@@ -20,6 +20,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_math_color.h"
+
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
 
@@ -135,8 +137,6 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
     {0, nullptr, 0, nullptr, nullptr}};
 
 #ifdef RNA_RUNTIME
-
-#  include "BLI_math.h"
 
 #  include "DEG_depsgraph.h"
 

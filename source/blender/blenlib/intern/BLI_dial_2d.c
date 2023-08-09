@@ -7,9 +7,10 @@
  */
 
 #include "BLI_dial_2d.h"
-#include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_math_vector.h"
 
 struct Dial {
   /* center of the dial */

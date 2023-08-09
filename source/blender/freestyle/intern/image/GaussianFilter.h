@@ -14,8 +14,6 @@
 
 #include "../system/FreestyleConfig.h"
 
-#include "BLI_math.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif

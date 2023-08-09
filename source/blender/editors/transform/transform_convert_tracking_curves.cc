@@ -10,13 +10,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
+#include "BLI_math_matrix.h"
 
 #include "ED_clip.hh"
 

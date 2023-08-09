@@ -11,7 +11,6 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -24,6 +23,8 @@
 #include "BKE_speaker.h"
 
 #include "BLO_read_write.h"
+
+#include <string.h>
 
 static void speaker_init_data(ID *id)
 {

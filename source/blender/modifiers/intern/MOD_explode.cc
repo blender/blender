@@ -12,7 +12,9 @@
 
 #include "BLI_edgehash.h"
 #include "BLI_kdtree.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
 #include "BLT_translation.h"

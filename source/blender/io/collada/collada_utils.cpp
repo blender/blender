@@ -29,7 +29,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"

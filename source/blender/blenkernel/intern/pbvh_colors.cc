@@ -8,12 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"

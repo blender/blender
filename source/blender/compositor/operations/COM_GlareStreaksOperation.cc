@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GlareStreaksOperation.h"
+#include "BLI_math_rotation.h"
 
 namespace blender::compositor {
 

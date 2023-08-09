@@ -13,6 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"

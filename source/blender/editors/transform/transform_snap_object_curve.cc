@@ -6,7 +6,6 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "DNA_curve_types.h"

@@ -14,7 +14,6 @@
 
 #include "atomic_ops.h"
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"

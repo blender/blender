@@ -5,6 +5,7 @@
 #include "COM_PlaneDistortCommonOperation.h"
 
 #include "BLI_jitter_2d.h"
+#include "BLI_math_geom.h"
 
 #include "BKE_tracking.h"
 

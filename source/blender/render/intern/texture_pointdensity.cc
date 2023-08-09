@@ -14,7 +14,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_noise.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_task.hh"

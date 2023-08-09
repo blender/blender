@@ -15,7 +15,6 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.h"

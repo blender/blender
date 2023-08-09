@@ -18,8 +18,6 @@
  *   * An iso_edge is undirected.
  */
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"

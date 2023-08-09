@@ -17,6 +17,8 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_fileops.hh"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 

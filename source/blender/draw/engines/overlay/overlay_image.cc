@@ -14,6 +14,7 @@
 #include "BKE_object.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_rotation.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"

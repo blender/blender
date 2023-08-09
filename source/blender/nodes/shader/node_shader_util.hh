@@ -14,7 +14,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_color.hh"
-#include "BLI_math.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.h"

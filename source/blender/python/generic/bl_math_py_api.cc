@@ -11,7 +11,6 @@
 
 #include <Python.h>
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "py_capi_utils.h"

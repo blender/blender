@@ -6,7 +6,8 @@
  * \ingroup bke
  */
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "DNA_customdata_types.h"

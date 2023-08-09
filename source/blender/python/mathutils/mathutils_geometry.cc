@@ -22,7 +22,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "../generic/py_capi_utils.h"

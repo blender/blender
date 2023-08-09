@@ -14,9 +14,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_lineart.h"
+#include "BLI_math_matrix.h"
 
-#include "BLI_math.h"
+#include "MOD_lineart.h"
 
 #include "lineart_intern.h"
 

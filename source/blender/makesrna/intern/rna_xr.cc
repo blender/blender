@@ -6,8 +6,6 @@
  * \ingroup RNA
  */
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "DNA_space_types.h"
@@ -26,6 +24,8 @@
 #ifdef RNA_RUNTIME
 
 #  include "BLI_listbase.h"
+#  include "BLI_math_rotation.h"
+#  include "BLI_math_vector.h"
 
 #  include "WM_api.hh"
 

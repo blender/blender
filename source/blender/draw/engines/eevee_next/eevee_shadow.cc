@@ -9,6 +9,7 @@
  */
 
 #include "BKE_global.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 
 #include "eevee_instance.hh"

@@ -12,8 +12,6 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_math.h"
-
 #include "BKE_customdata.h"
 
 #include "bmesh.h"

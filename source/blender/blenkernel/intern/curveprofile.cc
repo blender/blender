@@ -13,6 +13,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"

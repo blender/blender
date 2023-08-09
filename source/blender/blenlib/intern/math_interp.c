@@ -8,8 +8,9 @@
 
 #include <math.h>
 
-#include "BLI_math.h"
-
+#include "BLI_math_base.h"
+#include "BLI_math_interp.h"
+#include "BLI_math_vector.h"
 #include "BLI_strict_flags.h"
 
 /**************************************************************************

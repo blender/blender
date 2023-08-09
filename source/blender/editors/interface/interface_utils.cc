@@ -17,7 +17,6 @@
 #include "ED_screen.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_search.hh"
 #include "BLI_utildefines.h"

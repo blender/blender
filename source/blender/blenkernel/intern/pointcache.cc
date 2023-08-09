@@ -29,7 +29,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

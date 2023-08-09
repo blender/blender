@@ -23,7 +23,10 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -240,7 +243,7 @@ static bool test_rotmode_euler(short rotmode)
   return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? false : true;
 }
 
-/* could move into BLI_math however this is only useful for display/editing purposes */
+/* could move into BLI_math_rotation.h however this is only useful for display/editing purposes */
 static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
 {
   /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */

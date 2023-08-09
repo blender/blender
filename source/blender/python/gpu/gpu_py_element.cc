@@ -13,8 +13,6 @@
 
 #include "GPU_index_buffer.h"
 
-#include "BLI_math.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "../generic/py_capi_utils.h"

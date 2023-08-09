@@ -41,7 +41,6 @@
 
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "DEG_depsgraph_query.h"
 

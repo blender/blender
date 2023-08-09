@@ -21,6 +21,7 @@
 
 #include "BLI_hash.h"
 #include "BLI_link_utils.h"
+#include "BLI_math_color.h"
 #include "BLI_memblock.h"
 
 #include "gpencil_engine.h"

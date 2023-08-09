@@ -18,7 +18,6 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_lasso_2d.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
