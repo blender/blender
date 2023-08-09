@@ -1617,8 +1617,11 @@ static int rna_SpaceView3D_icon_from_show_object_viewport_get(PointerRNA *ptr)
                                                     &v3d->object_type_exclude_select);
 }
 
-static char *rna_View3DShading_path(const PointerRNA * /*ptr*/)
+static char *rna_View3DShading_path(const PointerRNA *ptr)
 {
+  if (GS(ptr->owner_id->name) == ID_SCE) {
+    return BLI_strdup("display.shading");
+  }
   return BLI_strdup("shading");
 }
 
