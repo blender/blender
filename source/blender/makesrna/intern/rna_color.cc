@@ -1273,6 +1273,16 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Use Curves", "Use RGB curved for pre-display transformation");
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
+  prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_HDR);
+  RNA_def_property_ui_text(
+      prop,
+      "High Dynamic Range",
+      "Enable high dynamic range display in rendered viewport, uncapping display brightness. This "
+      "requires a monitor with HDR support and a view transform designed for HDR. "
+      "'Filmic' does not generate HDR colors");
+  RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+
   /* ** Color-space ** */
   srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", nullptr);
   RNA_def_struct_path_func(srna, "rna_ColorManagedInputColorspaceSettings_path");

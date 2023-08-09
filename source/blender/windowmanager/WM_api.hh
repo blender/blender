@@ -1597,7 +1597,7 @@ void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *),
 void WM_draw_cb_exit(wmWindow *win, void *handle);
 void WM_redraw_windows(bContext *C);
 
-void WM_draw_region_viewport_ensure(ARegion *region, short space_type);
+void WM_draw_region_viewport_ensure(Scene *scene, ARegion *region, short space_type);
 void WM_draw_region_viewport_bind(ARegion *region);
 void WM_draw_region_viewport_unbind(ARegion *region);
 

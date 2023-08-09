@@ -25,6 +25,8 @@
 #include <cassert>
 #include <vector>
 
+static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT_EDR = MTLPixelFormatRGBA16Float;
+
 static void ghost_fatal_error_dialog(const char *msg)
 {
   @autoreleasepool {
@@ -85,6 +87,19 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
       [m_metalLayer removeAllAnimations];
       [m_metalLayer setDevice:metalDevice];
       m_metalLayer.allowsNextDrawableTimeout = NO;
+
+      /* Enable EDR support. This is done by:
+       * 1. Using a floating point render target, so that values ouside 0..1 can be used
+       * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
+       * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
+       * values. */
+      m_metalLayer.wantsExtendedDynamicRangeContent = YES;
+      m_metalLayer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+      const CFStringRef name = kCGColorSpaceExtendedSRGB;
+      CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+      m_metalLayer.colorspace = colorspace;
+      CGColorSpaceRelease(colorspace);
+
       metalInit();
     }
     else {
@@ -199,8 +214,6 @@ GHOST_TSuccess GHOST_ContextCGL::releaseNativeHandles()
   return GHOST_kSuccess;
 }
 
-static const MTLPixelFormat METAL_FRAMEBUFFERPIXEL_FORMAT = MTLPixelFormatBGRA8Unorm;
-
 void GHOST_ContextCGL::metalInit()
 {
   @autoreleasepool {
@@ -266,10 +279,11 @@ void GHOST_ContextCGL::metalInit()
 
     desc.fragmentFunction = [library newFunctionWithName:@"fragment_shader"];
     desc.vertexFunction = [library newFunctionWithName:@"vertex_shader"];
+    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat =
+        METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
+
     /* Ensure library is released. */
     [library autorelease];
-
-    [desc.colorAttachments objectAtIndexedSubscript:0].pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT;
 
     m_metalRenderPipeline = (MTLRenderPipelineState *)[device
         newRenderPipelineStateWithDescriptor:desc
@@ -332,7 +346,7 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
 
   id<MTLDevice> device = m_metalLayer.device;
   MTLTextureDescriptor *overlayDesc = [MTLTextureDescriptor
-      texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA16Float
+      texture2DDescriptorWithPixelFormat:METAL_FRAMEBUFFERPIXEL_FORMAT_EDR
                                    width:width
                                   height:height
                                mipmapped:NO];
@@ -347,12 +361,9 @@ void GHOST_ContextCGL::metalUpdateFramebuffer()
   else {
     overlayTex.label = [NSString
         stringWithFormat:@"Metal Overlay for GHOST Context %p", this];  //@"";
-
-    // NSLog(@"Created new Metal Overlay (backbuffer) for context %p\n", this);
   }
 
-  m_defaultFramebufferMetalTexture[current_swapchain_index].texture =
-      overlayTex;  //[(MTLTexture *)overlayTex retain];
+  m_defaultFramebufferMetalTexture[current_swapchain_index].texture = overlayTex;
 
   /* Clear texture on create */
   id<MTLCommandBuffer> cmdBuffer = [s_sharedMetalCommandQueue commandBuffer];

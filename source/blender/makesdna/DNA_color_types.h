@@ -207,6 +207,7 @@ typedef struct ColorManagedColorspaceSettings {
 /** #ColorManagedViewSettings.flag */
 enum {
   COLORMANAGE_VIEW_USE_CURVES = (1 << 0),
+  COLORMANAGE_VIEW_USE_HDR = (1 << 1),
 };
 
 #ifdef __cplusplus

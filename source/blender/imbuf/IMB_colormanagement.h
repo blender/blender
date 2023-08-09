@@ -297,6 +297,15 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer,
                                         const struct ColorManagedViewSettings *view_settings,
                                         const struct ColorManagedDisplaySettings *display_settings,
                                         bool predivide);
+void IMB_display_buffer_transform_apply_float(
+    float *float_display_buffer,
+    float *linear_buffer,
+    int width,
+    int height,
+    int channels,
+    const struct ColorManagedViewSettings *view_settings,
+    const struct ColorManagedDisplaySettings *display_settings,
+    bool predivide);
 
 void IMB_display_buffer_release(void *cache_handle);
 

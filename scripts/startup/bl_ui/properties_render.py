@@ -58,6 +58,7 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         'BLENDER_WORKBENCH_NEXT'}
 
     def draw(self, context):
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -82,6 +83,36 @@ class RENDER_PT_color_management(RenderButtonsPanel, Panel):
         col.separator()
 
         col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
+
+
+class RENDER_PT_color_management_display_settings(RenderButtonsPanel, Panel):
+    bl_label = "Display"
+    bl_parent_id = "RENDER_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+        'BLENDER_WORKBENCH_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        view = scene.view_settings
+
+        # Only enable display sub-section if HDR support is available.
+        import gpu
+        layout.enabled = gpu.capabilities.hdr_support_get()
+
+        # Only display HDR toggle for non-Filmic display transforms.
+        col = layout.column(align=True)
+        sub = col.row()
+        sub.active = (view.view_transform != "Filmic" and view.view_transform != "Filmic Log")
+        sub.prop(view, "use_hdr_view")
 
 
 class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
@@ -1223,6 +1254,7 @@ classes = (
     RENDER_PT_opengl_film,
     RENDER_PT_hydra_debug,
     RENDER_PT_color_management,
+    RENDER_PT_color_management_display_settings,
     RENDER_PT_color_management_curves,
     RENDER_PT_simplify,
     RENDER_PT_simplify_viewport,
