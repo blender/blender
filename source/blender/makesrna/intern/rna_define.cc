@@ -2925,6 +2925,11 @@ void RNA_def_property_update_runtime(PropertyRNA *prop, const void *func)
   prop->update = (UpdateFunc)func;
 }
 
+void RNA_def_property_update_notifier(PropertyRNA *prop, const int noteflag)
+{
+  prop->noteflag = noteflag;
+}
+
 void RNA_def_property_poll_runtime(PropertyRNA *prop, const void *func)
 {
   if (prop->type == PROP_POINTER) {

@@ -67,6 +67,7 @@ set(SRC
   NOD_multi_function.hh
   NOD_node_declaration.hh
   NOD_register.hh
+  NOD_rna_define.hh
   NOD_shader.h
   NOD_socket.hh
   NOD_socket_declarations.hh

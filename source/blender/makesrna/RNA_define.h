@@ -454,6 +454,7 @@ void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *apply);
 
 void RNA_def_property_update_runtime(PropertyRNA *prop, const void *func);
+void RNA_def_property_update_notifier(PropertyRNA *prop, int noteflag);
 void RNA_def_property_poll_runtime(PropertyRNA *prop, const void *func);
 
 void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength);
