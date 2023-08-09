@@ -1124,8 +1124,13 @@ void node_set_hidden_sockets(bNode *node, int set)
   }
 }
 
-bool node_is_previewable(const bNodeTree &ntree, const bNode &node)
+bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const bNode &node)
 {
+  if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS) ||
+      !(snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS))
+  {
+    return false;
+  }
   if (ntree.type == NTREE_SHADER) {
     return U.experimental.use_shader_node_previews &&
            !(node.is_frame() || node.is_group_input() || node.is_group_output() ||
@@ -1578,7 +1583,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
   for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
 
-      if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode->edittree, *node)) {
+      if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode, *snode->edittree, *node)) {
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&
@@ -1598,7 +1603,7 @@ static void node_flag_toggle_exec(SpaceNode *snode, int toggle_flag)
   for (bNode *node : snode->edittree->all_nodes()) {
     if (node->flag & SELECT) {
 
-      if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode->edittree, *node)) {
+      if (toggle_flag == NODE_PREVIEW && !node_is_previewable(*snode, *snode->edittree, *node)) {
         continue;
       }
       if (toggle_flag == NODE_OPTIONS &&

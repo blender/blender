@@ -2213,7 +2213,8 @@ static void node_draw_basis(const bContext &C,
                             bNodeInstanceKey key)
 {
   const float iconbutw = NODE_HEADER_ICON_SIZE;
-  const bool show_preview = (snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) &&
+  const bool show_preview = (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS) &&
+                            (snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) &&
                             (node.flag & NODE_PREVIEW) &&
                             (U.experimental.use_shader_node_previews ||
                              ntree.type != NTREE_SHADER);
@@ -2302,7 +2303,7 @@ static void node_draw_basis(const bContext &C,
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
   /* Preview. */
-  if (node_is_previewable(ntree, node)) {
+  if (node_is_previewable(snode, ntree, node)) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(&block,
@@ -3511,7 +3512,8 @@ static void draw_nodetree(const bContext &C,
   }
   else if (ntree.type == NTREE_SHADER && U.experimental.use_shader_node_previews &&
            BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
-           U.experimental.use_shader_node_previews)
+           snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
+           snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)
   {
     tree_draw_ctx.nested_group_infos = get_nested_previews(C, *snode);
   }
