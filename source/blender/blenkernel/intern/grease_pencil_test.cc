@@ -53,7 +53,7 @@ TEST(greasepencil, add_empty_drawings)
   EXPECT_EQ(grease_pencil.drawings().size(), 3);
 }
 
-TEST(greasepencil, remove_drawing)
+TEST(greasepencil, remove_drawings)
 {
   GreasePencilIDTestContext ctx;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
@@ -61,7 +61,7 @@ TEST(greasepencil, remove_drawing)
 
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(
       grease_pencil.drawings(1));
-  drawing->geometry.wrap().resize(0, 10);
+  drawing->wrap().strokes_for_write().resize(0, 10);
 
   Layer &layer1 = grease_pencil.root_group().add_layer("Layer1");
   Layer &layer2 = grease_pencil.root_group().add_layer("Layer2");
@@ -71,8 +71,10 @@ TEST(greasepencil, remove_drawing)
   layer1.add_frame(20, 2);
 
   layer2.add_frame(0, 1);
+  drawing->wrap().add_user();
 
-  grease_pencil.remove_drawing(1);
+  grease_pencil.remove_frames(layer1, {10});
+  grease_pencil.remove_frames(layer2, {0});
   EXPECT_EQ(grease_pencil.drawings().size(), 2);
 
   static int expected_frames_size[] = {2, 0};
