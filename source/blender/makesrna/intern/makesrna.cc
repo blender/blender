@@ -5502,7 +5502,9 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   StructDefRNA *ds;
   FILE *file;
   char deffile[4096];
-  int i, status;
+  int i;
+  /* The exit code (returned from this funciton). */
+  int status = EXIT_SUCCESS;
   const char *deps[3]; /* expand as needed */
 
   if (!public_header_outfile) {
@@ -5532,18 +5534,19 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   }
 
   rna_auto_types();
-
-  status = (DefRNA.error != 0);
+  if (DefRNA.error) {
+    status = EXIT_FAILURE;
+  }
 
   /* Create external rna struct prototype header file RNA_prototypes.h. */
   SNPRINTF(deffile, "%s%s", public_header_outfile, "RNA_prototypes.h" TMP_EXT);
-  if (status) {
+  if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
   file = fopen(deffile, "w");
   if (!file) {
     fprintf(stderr, "Unable to open file: %s\n", deffile);
-    status = 1;
+    status = EXIT_FAILURE;
   }
   else {
     fprintf(file,
@@ -5558,20 +5561,21 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     rna_generate_external_property_prototypes(brna, file);
     fprintf(file, "#ifdef __cplusplus\n  }\n#endif\n");
     fclose(file);
-    status = (DefRNA.error != 0);
-
+    if (DefRNA.error) {
+      status = EXIT_FAILURE;
+    }
     replace_if_different(deffile, nullptr);
   }
 
   /* create internal rna struct prototype header file */
   SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h");
-  if (status) {
+  if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
   file = fopen(deffile, "w");
   if (!file) {
     fprintf(stderr, "Unable to open file: %s\n", deffile);
-    status = 1;
+    status = EXIT_FAILURE;
   }
   else {
     fprintf(file,
@@ -5581,7 +5585,9 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     rna_generate_struct_rna_prototypes(brna, file);
     fprintf(file, "#ifdef __cplusplus\n}\n#endif\n");
     fclose(file);
-    status = (DefRNA.error != 0);
+    if (DefRNA.error) {
+      status = EXIT_FAILURE;
+    }
   }
 
   /* Create `rna_gen_*.c` & `rna_gen_*.cc` files. */
@@ -5595,7 +5601,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
              (filename_len - ext_len),
              PROCESS_ITEMS[i].filename,
              is_cc ? "_gen.cc" : "_gen.c");
-    if (status) {
+    if (status != EXIT_SUCCESS) {
       make_bad_file(deffile, __LINE__);
     }
     else {
@@ -5603,12 +5609,14 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
       if (!file) {
         fprintf(stderr, "Unable to open file: %s\n", deffile);
-        status = 1;
+        status = EXIT_FAILURE;
       }
       else {
         rna_generate(brna, file, PROCESS_ITEMS[i].filename, PROCESS_ITEMS[i].api_filename);
         fclose(file);
-        status = (DefRNA.error != 0);
+        if (DefRNA.error) {
+          status = EXIT_FAILURE;
+        }
       }
     }
 
@@ -5623,7 +5631,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   /* Create `RNA_blender_cpp.h`. */
   SNPRINTF(deffile, "%s%s", outfile, "RNA_blender_cpp.h" TMP_EXT);
 
-  if (status) {
+  if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
   else {
@@ -5631,12 +5639,14 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
     if (!file) {
       fprintf(stderr, "Unable to open file: %s\n", deffile);
-      status = 1;
+      status = EXIT_FAILURE;
     }
     else {
       rna_generate_header_cpp(brna, file);
       fclose(file);
-      status = (DefRNA.error != 0);
+      if (DefRNA.error) {
+        status = EXIT_FAILURE;
+      }
     }
   }
 
@@ -5647,7 +5657,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   /* Create `RNA_blender.h`. */
   SNPRINTF(deffile, "%s%s", outfile, "RNA_blender.h" TMP_EXT);
 
-  if (status) {
+  if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
   else {
@@ -5655,12 +5665,14 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
     if (!file) {
       fprintf(stderr, "Unable to open file: %s\n", deffile);
-      status = 1;
+      status = EXIT_FAILURE;
     }
     else {
       rna_generate_header(brna, file);
       fclose(file);
-      status = (DefRNA.error != 0);
+      if (DefRNA.error) {
+        status = EXIT_FAILURE;
+      }
     }
   }
 
@@ -5681,7 +5693,7 @@ static void mem_error_cb(const char *errorStr)
 
 int main(int argc, char **argv)
 {
-  int return_status = 0;
+  int return_status = EXIT_SUCCESS;
 
   MEM_init_memleak_detection();
   MEM_set_error_callback(mem_error_cb);
@@ -5694,7 +5706,7 @@ int main(int argc, char **argv)
 
   if (argc < 2) {
     fprintf(stderr, "Usage: %s outdirectory [public header outdirectory]/\n", argv[0]);
-    return_status = 1;
+    return_status = EXIT_FAILURE;
   }
   else {
     if (debugSRNA > 0) {
