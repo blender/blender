@@ -1492,7 +1492,7 @@ bool GreasePencil::remove_frames(blender::bke::greasepencil::Layer &layer,
       continue;
     }
     const GreasePencilFrame frame_to_remove = layer.frames().lookup(frame_number);
-    const int drawing_index_to_remove = frame_to_remove.drawing_index;
+    const int64_t drawing_index_to_remove = frame_to_remove.drawing_index;
     if (!layer.remove_frame(frame_number)) {
       /* If removing the frame was not successful, continue. */
       continue;
@@ -1519,13 +1519,13 @@ bool GreasePencil::remove_frames(blender::bke::greasepencil::Layer &layer,
 }
 
 static void remove_drawings_unchecked(GreasePencil &grease_pencil,
-                                      Span<int> sorted_indices_to_remove)
+                                      Span<int64_t> sorted_indices_to_remove)
 {
   using namespace blender::bke::greasepencil;
   if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.size() == 0) {
     return;
   }
-  const int drawings_to_remove = sorted_indices_to_remove.size();
+  const int64_t drawings_to_remove = sorted_indices_to_remove.size();
   const blender::IndexRange last_drawings_range(
       grease_pencil.drawings().size() - drawings_to_remove, drawings_to_remove);
 
@@ -1543,16 +1543,15 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
 
   /* Move the drawings to be removed to the end of the array by swapping the pointers. Make sure to
    * remap any frames pointing to the drawings being swapped. */
-  for (const int index_to_remove : sorted_indices_to_remove) {
+  for (const int64_t index_to_remove : sorted_indices_to_remove) {
     if (index_to_remove >= last_drawings_range.first()) {
       /* This drawing and all the next drawings are already in the range to be removed. */
       break;
     }
-    const int swap_index = get_next_available_index();
+    const int64_t swap_index = get_next_available_index();
     /* Remap the drawing_index for frames that point to the drawing to be swapped with. */
     for (Layer *layer : grease_pencil.layers_for_write()) {
-      blender::Map<int, GreasePencilFrame> &frames = layer->frames_for_write();
-      for (auto [key, value] : frames.items()) {
+      for (auto [key, value] : layer->frames_for_write().items()) {
         if (value.drawing_index == swap_index) {
           value.drawing_index = index_to_remove;
         }
@@ -1564,7 +1563,7 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
   }
 
   /* Free the last drawings. */
-  for (const int drawing_index : last_drawings_range) {
+  for (const int64_t drawing_index : last_drawings_range) {
     GreasePencilDrawingBase *drawing_base_to_remove = grease_pencil.drawings(drawing_index);
     switch (drawing_base_to_remove->type) {
       case GP_DRAWING: {
@@ -1590,7 +1589,7 @@ static void remove_drawings_unchecked(GreasePencil &grease_pencil,
 void GreasePencil::remove_drawings_with_no_users()
 {
   using namespace blender;
-  Vector<int> drawings_to_be_removed;
+  Vector<int64_t> drawings_to_be_removed;
   for (const int64_t drawing_i : this->drawings().index_range()) {
     GreasePencilDrawingBase *drawing_base = this->drawings(drawing_i);
     if (drawing_base->type != GP_DRAWING) {
