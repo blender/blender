@@ -146,7 +146,7 @@ static   bUnitDef buMetricLenDef[] = {
 {"decimeter",  "decimeters",  "dm",  nullptr, "10 Centimeters", "DECIMETERS",  UN_SC_DM,  0.0, B_UNIT_DEF_SUPPRESS}, {"centimeter", "centimeters", "cm",  nullptr, "Centimeters",    "CENTIMETERS", UN_SC_CM,  0.0, B_UNIT_DEF_NONE}, {"millimeter", "millimeters", "mm",  nullptr, "Millimeters",    "MILLIMETERS", UN_SC_MM,  0.0, B_UNIT_DEF_NONE | B_UNIT_DEF_TENTH}, {"micrometer", "micrometers", "µm",  "um", "Micrometers",    "MICROMETERS", UN_SC_UM,  0.0, B_UNIT_DEF_NONE},
 
 /* These get displayed because of float precision problems in the transform header,
-* could work around, but for now probably people won't use these. */
+ * could work around, but for now probably people won't use these. */
 #if 0
 {"nanometer", "Nanometers",     "nm", nullptr, 0.000000001, 0.0,   B_UNIT_DEF_NONE}, {"picometer", "Picometers",     "pm", nullptr, 0.000000000001, 0.0, B_UNIT_DEF_NONE},
 #endif
@@ -201,10 +201,8 @@ static   bUnitDef buImperialMassDef[] = {
 {"ounce",         "ounces",         "oz",  nullptr, "Ounces",         "OUNCES",         UN_SC_OZ,   0.0, B_UNIT_DEF_NONE}, NULL_UNIT, };
 static   bUnitCollection buImperialMassCollection = {buImperialMassDef, 3, 0, UNIT_COLLECTION_LENGTH(buImperialMassDef)};
 
-
 /* Even if user scales the system to a point where km^3 is used, velocity and
-* acceleration aren't scaled: that's why we have so few units for them. */
-
+ * acceleration aren't scaled: that's why we have so few units for them. */
 
 /* Velocity. */
 static   bUnitDef buMetricVelDef[] = {

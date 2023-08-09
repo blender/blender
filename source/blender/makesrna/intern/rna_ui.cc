@@ -1135,8 +1135,9 @@ static void asset_shelf_draw_context_menu(const bContext *C,
 
   PointerRNA ptr;
   RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
-  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func; /* RNA_struct_find_function(&ptr,
-                                                                     "draw_context_menu"); */
+
+  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func;
+  // RNA_struct_find_function(&ptr, "draw_context_menu");
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);

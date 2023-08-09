@@ -324,9 +324,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
 
   /* handle curve-property mappings based on mapping_type */
   switch (mapping_type) {
-    case CREATEDRIVER_MAPPING_N_N: /* N-N - Try to match as much as possible, * then use the first
-    one */
-    {
+    /* N-N - Try to match as much as possible, then use the first one. */
+    case CREATEDRIVER_MAPPING_N_N: {
       /* Use the shorter of the two (to avoid out of bounds access) */
       int dst_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr, prop) : 1;
       int src_len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr2, prop2) : 1;
@@ -350,8 +349,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
       }
       break;
     }
-
-    case CREATEDRIVER_MAPPING_1_N: /* 1-N - Specified target index for all */
+      /* 1-N - Specified target index for all. */
+    case CREATEDRIVER_MAPPING_1_N:
     default: {
       int len = RNA_property_array_check(prop) ? RNA_property_array_length(&ptr, prop) : 1;
 
@@ -373,8 +372,8 @@ int ANIM_add_driver_with_target(ReportList *reports,
       break;
     }
 
-    case CREATEDRIVER_MAPPING_1_1: /* 1-1 - Use the specified index (unless -1) */
-    {
+      /* 1-1 - Use the specified index (unless -1). */
+    case CREATEDRIVER_MAPPING_1_1: {
       done_tot = add_driver_with_target(reports,
                                         dst_id,
                                         dst_path,

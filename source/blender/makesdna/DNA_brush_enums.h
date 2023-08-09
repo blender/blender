@@ -100,8 +100,8 @@ typedef enum eGPDbrush_Flag {
   GP_BRUSH_FILL_STROKE_COLLIDE = (1 << 18),
   /* Keep the caps as they are when erasing. Otherwise flatten the caps. */
   GP_BRUSH_ERASER_KEEP_CAPS = (1 << 19),
-  /* Affect only the drawing in the active layer. Otherwise affect all editable drawings in the
-     object. */
+  /* Affect only the drawing in the active layer.
+   * Otherwise affect all editable drawings in the object. */
   GP_BRUSH_ACTIVE_LAYER_ONLY = (1 << 20),
 } eGPDbrush_Flag;
 
