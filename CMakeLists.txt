@@ -119,11 +119,15 @@ enable_testing()
 
 if(CMAKE_COMPILER_IS_GNUCC)
   if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")
-    message(FATAL_ERROR "The minimum supported version of GCC is 11.0.0, found ${CMAKE_C_COMPILER_VERSION}")
+    message(FATAL_ERROR "\
+The minimum supported version of GCC is 11.0.0, found ${CMAKE_C_COMPILER_VERSION}"
+    )
   endif()
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(CMAKE_COMPILER_IS_GNUCC AND ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0"))
-    message(FATAL_ERROR "The minimum supported version of CLANG is 8.0, found ${CMAKE_C_COMPILER_VERSION}")
+    message(FATAL_ERROR "\
+The minimum supported version of CLANG is 8.0, found ${CMAKE_C_COMPILER_VERSION}"
+    )
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   if(MSVC_VERSION VERSION_LESS "1928")
@@ -208,7 +212,7 @@ endif()
 
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
-option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
+option(WITH_PYTHON "Enable Embedded Python API (only disable for development)" ON)
 option(WITH_PYTHON_SECURITY "Disables execution of scripts within blend files by default" ON)
 # Don't want people disabling this unless they really know what they are doing.
 mark_as_advanced(WITH_PYTHON)
@@ -216,33 +220,63 @@ mark_as_advanced(WITH_PYTHON)
 # make a build option.
 mark_as_advanced(WITH_PYTHON_SECURITY)
 
-option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some efficiency, only enable for development)." OFF)
+option(WITH_PYTHON_SAFETY "\
+Enable internal API error checking to track invalid data to prevent crash on access \
+(at the expense of some efficiency, only enable for development)."
+  OFF
+)
 mark_as_advanced(WITH_PYTHON_SAFETY)
-option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development), installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)." OFF)
+option(WITH_PYTHON_MODULE "\
+Enable building as a python module which runs without a user interface, \
+like running regular blender in background mode (only enable for development), \
+installs to PYTHON_SITE_PACKAGES (or CMAKE_INSTALL_PREFIX if WITH_INSTALL_PORTABLE is enabled)."
+  OFF
+)
 
-option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
-set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "Use instead of the current date for reproducible builds (empty string disables this option)")
-set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "Use instead of the current time for reproducible builds (empty string disables this option)")
-set(CPACK_OVERRIDE_PACKAGENAME "" CACHE STRING "Use instead of the standard packagename (empty string disables this option)")
+option(WITH_BUILDINFO "\
+Include extra build details (only disable for development & faster builds)"
+  ON
+)
+set(BUILDINFO_OVERRIDE_DATE "" CACHE STRING "\
+Use instead of the current date for reproducible builds (empty string disables this option)"
+)
+set(BUILDINFO_OVERRIDE_TIME "" CACHE STRING "\
+Use instead of the current time for reproducible builds (empty string disables this option)"
+)
+set(CPACK_OVERRIDE_PACKAGENAME "" CACHE STRING "\
+Use instead of the standard packagename (empty string disables this option)"
+)
 mark_as_advanced(CPACK_OVERRIDE_PACKAGENAME)
 mark_as_advanced(BUILDINFO_OVERRIDE_DATE)
 mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16")
-  option(WITH_UNITY_BUILD   "Enable unity build for modules that support it to improve compile times" ON)
+  option(WITH_UNITY_BUILD "\
+Enable unity build for modules that support it to improve compile times"
+    ON
+  )
   mark_as_advanced(WITH_UNITY_BUILD)
 else()
   set(WITH_UNITY_BUILD OFF)
 endif()
 
-option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
-option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
-option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke, ocean sim, and audio effects)" ON)
-option(WITH_PUGIXML       "Enable PugiXML support (Used for OpenImageIO, Grease Pencil SVG export)" ON)
-option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
-option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported due to missing features in upstream!)" OFF)
+option(WITH_IK_ITASC "\
+Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)"
+  ON
+)
+option(WITH_IK_SOLVER "\
+Enable Legacy IK solver (only disable for development)"
+  ON
+)
+option(WITH_FFTW3 "Enable FFTW3 support (Used for smoke, ocean sim, and audio effects)" ON)
+option(WITH_PUGIXML "Enable PugiXML support (Used for OpenImageIO, Grease Pencil SVG export)" ON)
+option(WITH_BULLET "Enable Bullet (Physics Engine)" ON)
+option(WITH_SYSTEM_BULLET "\
+Use the systems bullet library (currently unsupported due to missing features in upstream!)"
+  OFF
+)
 mark_as_advanced(WITH_SYSTEM_BULLET)
-option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
+option(WITH_OPENCOLORIO "Enable OpenColorIO color management" ON)
 
 set(_option_default ON)
 if(APPLE)
@@ -259,24 +293,33 @@ unset(_option_default)
 option(WITH_GMP "Enable features depending on GMP (Exact Boolean)" ON)
 
 # Compositor
-option(WITH_COMPOSITOR_CPU     "Enable the tile based CPU nodal compositor" ON)
-option(WITH_OPENIMAGEDENOISE   "Enable the OpenImageDenoise compositing node" ON)
+option(WITH_COMPOSITOR_CPU "Enable the tile based CPU nodal compositor" ON)
+option(WITH_OPENIMAGEDENOISE "Enable the OpenImageDenoise compositing node" ON)
 
-option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" ON)
+option(WITH_OPENSUBDIV "Enable OpenSubdiv for surface subdivision" ON)
 
-option(WITH_POTRACE       "Enable features relying on potrace" ON)
-option(WITH_OPENVDB       "Enable features relying on OpenVDB" ON)
-option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" ON)
-option(WITH_OPENVDB_3_ABI_COMPATIBLE "Assume OpenVDB library has been compiled with version 3 ABI compatibility" OFF)
+option(WITH_POTRACE "Enable features relying on potrace" ON)
+option(WITH_OPENVDB "Enable features relying on OpenVDB" ON)
+option(WITH_OPENVDB_BLOSC "\
+Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support"
+  ON
+)
+option(WITH_OPENVDB_3_ABI_COMPATIBLE "\
+Assume OpenVDB library has been compiled with version 3 ABI compatibility"
+  OFF
+)
 mark_as_advanced(WITH_OPENVDB_3_ABI_COMPATIBLE)
-option(WITH_NANOVDB       "Enable usage of NanoVDB data structure for rendering on the GPU" ON)
-option(WITH_HARU          "Enable features relying on Libharu (Grease pencil PDF export)" ON)
+option(WITH_NANOVDB "Enable usage of NanoVDB data structure for rendering on the GPU" ON)
+option(WITH_HARU "Enable features relying on Libharu (Grease pencil PDF export)" ON)
 
 # GHOST Windowing Library Options
-option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
+option(WITH_GHOST_DEBUG "Enable debugging output for the GHOST library" OFF)
 mark_as_advanced(WITH_GHOST_DEBUG)
 
-option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
+option(WITH_GHOST_SDL "\
+Enable building Blender against SDL for windowing rather than the native APIs"
+  OFF
+)
 mark_as_advanced(WITH_GHOST_SDL)
 
 if(UNIX AND NOT (APPLE OR HAIKU))
@@ -290,10 +333,14 @@ if(UNIX AND NOT (APPLE OR HAIKU))
     option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
 
-    option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
+    option(WITH_GHOST_WAYLAND_DBUS "\
+Optionally build with DBUS support (used for Cursor themes). \
+May hang on startup systems where DBUS is not used."
+      OFF
+    )
     mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
 
-    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" ON)
+    option(WITH_GHOST_WAYLAND_DYNLOAD "Enable runtime dynamic WAYLAND libraries loading" ON)
     mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
 
     set(WITH_GHOST_WAYLAND_APP_ID "" CACHE STRING "\
@@ -305,32 +352,39 @@ this can be used to differentiate Blender instances by version or branch for exa
 endif()
 
 if(WITH_GHOST_X11)
-  option(WITH_GHOST_XDND    "Enable drag'n'drop support on X11 using XDND protocol" ON)
+  option(WITH_GHOST_XDND "Enable drag'n'drop support on X11 using XDND protocol" ON)
 endif()
 
 # Misc...
-option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
+option(WITH_HEADLESS "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
 
-option(WITH_QUADRIFLOW    "Build with quadriflow remesher support" ON)
+option(WITH_QUADRIFLOW "Build with quadriflow remesher support" ON)
 
-option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
-option(WITH_SYSTEM_AUDASPACE "Build with external audaspace library installed on the system (only enable if you know what you're doing!)" OFF)
+option(WITH_AUDASPACE "\
+Build with blenders audio library (only disable if you know what you're doing!)"
+  ON
+)
+option(WITH_SYSTEM_AUDASPACE "\
+Build with external audaspace library installed on the system \
+(only enable if you know what you're doing!)"
+  OFF
+)
 mark_as_advanced(WITH_AUDASPACE)
 mark_as_advanced(WITH_SYSTEM_AUDASPACE)
 
 set_and_warn_dependency(WITH_AUDASPACE WITH_SYSTEM_AUDASPACE OFF)
 
-option(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
+option(WITH_OPENMP "Enable OpenMP (has to be supported by the compiler)" ON)
 if(UNIX AND NOT APPLE)
   option(WITH_OPENMP_STATIC "Link OpenMP statically (only used by the release environment)" OFF)
   mark_as_advanced(WITH_OPENMP_STATIC)
 endif()
 
 if(WITH_GHOST_X11)
-  option(WITH_X11_XINPUT    "Enable X11 Xinput (tablet support and unicode input)"  ON)
-  option(WITH_X11_XF86VMODE "Enable X11 video mode switching"                       ON)
-  option(WITH_X11_XFIXES    "Enable X11 XWayland cursor warping workaround"         ON)
+  option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)" ON)
+  option(WITH_X11_XF86VMODE "Enable X11 video mode switching" ON)
+  option(WITH_X11_XFIXES "Enable X11 XWayland cursor warping workaround" ON)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -343,46 +397,46 @@ endif()
 
 
 # Modifiers
-option(WITH_MOD_FLUID           "Enable Mantaflow Fluid Simulation Framework" ON)
-option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
-option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" ON)
+option(WITH_MOD_FLUID "Enable Mantaflow Fluid Simulation Framework" ON)
+option(WITH_MOD_REMESH "Enable Remesh Modifier" ON)
+option(WITH_MOD_OCEANSIM "Enable Ocean Modifier" ON)
 
 # Image format support
-option(WITH_IMAGE_OPENEXR       "Enable OpenEXR Support (http://www.openexr.com)" ON)
-option(WITH_IMAGE_OPENJPEG      "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
-option(WITH_IMAGE_CINEON        "Enable CINEON and DPX Image Support" ON)
-option(WITH_IMAGE_WEBP          "Enable WebP Image Support" ON)
+option(WITH_IMAGE_OPENEXR "Enable OpenEXR Support (http://www.openexr.com)" ON)
+option(WITH_IMAGE_OPENJPEG "Enable OpenJpeg Support (http://www.openjpeg.org)" ON)
+option(WITH_IMAGE_CINEON "Enable CINEON and DPX Image Support" ON)
+option(WITH_IMAGE_WEBP "Enable WebP Image Support" ON)
 
 # Audio/Video format support
-option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
-option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" ON)
-option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" ON)
+option(WITH_CODEC_AVI "Enable Blenders own AVI file support (raw/jpeg)" ON)
+option(WITH_CODEC_FFMPEG "Enable FFMPeg Support (http://ffmpeg.org)" ON)
+option(WITH_CODEC_SNDFILE "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" ON)
 
 # Alembic support
-option(WITH_ALEMBIC             "Enable Alembic Support" ON)
+option(WITH_ALEMBIC "Enable Alembic Support" ON)
 
 # Universal Scene Description support
-option(WITH_USD                 "Enable Universal Scene Description (USD) Support" ON)
+option(WITH_USD "Enable Universal Scene Description (USD) Support" ON)
 
 # MaterialX
-option(WITH_MATERIALX           "Enable MaterialX Support" ON)
+option(WITH_MATERIALX "Enable MaterialX Support" ON)
 
 # Hydra render engine
-option(WITH_HYDRA               "Enable Hydra render engine" ON)
+option(WITH_HYDRA "Enable Hydra render engine" ON)
 
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
-option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
-option(WITH_IO_WAVEFRONT_OBJ  "Enable Wavefront-OBJ 3D file format support (*.obj)" ON)
-option(WITH_IO_PLY            "Enable PLY 3D file format support (*.ply)" ON)
-option(WITH_IO_STL            "Enable STL 3D file format support (*.stl)" ON)
-option(WITH_IO_GPENCIL        "Enable grease-pencil file format IO (*.svg, *.pdf)" ON)
+option(WITH_OPENCOLLADA "Enable OpenCollada Support (http://www.opencollada.org)" ON)
+option(WITH_IO_WAVEFRONT_OBJ "Enable Wavefront-OBJ 3D file format support (*.obj)" ON)
+option(WITH_IO_PLY "Enable PLY 3D file format support (*.ply)" ON)
+option(WITH_IO_STL "Enable STL 3D file format support (*.stl)" ON)
+option(WITH_IO_GPENCIL "Enable grease-pencil file format IO (*.svg, *.pdf)" ON)
 
 # Sound output
-option(WITH_SDL           "Enable SDL for sound" ON)
-option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
+option(WITH_SDL "Enable SDL for sound" ON)
+option(WITH_OPENAL "Enable OpenAL Support (http://www.openal.org)" ON)
 if(APPLE)
-  option(WITH_COREAUDIO    "Enable CoreAudio for audio support on macOS" ON)
+  option(WITH_COREAUDIO "Enable CoreAudio for audio support on macOS" ON)
 else()
   set(WITH_COREAUDIO OFF)
 endif()
@@ -398,41 +452,41 @@ else()
   set(WITH_JACK OFF)
 endif()
 if(UNIX AND NOT APPLE)
-  option(WITH_SDL_DYNLOAD  "Enable runtime dynamic SDL libraries loading" OFF)
+  option(WITH_SDL_DYNLOAD "Enable runtime dynamic SDL libraries loading" OFF)
 endif()
 if(UNIX AND NOT APPLE)
-  option(WITH_PULSEAUDIO   "Enable PulseAudio for audio support on Linux" ON)
-  option(WITH_PULSEAUDIO_DYNLOAD  "Enable runtime dynamic PulseAudio libraries loading" OFF)
+  option(WITH_PULSEAUDIO "Enable PulseAudio for audio support on Linux" ON)
+  option(WITH_PULSEAUDIO_DYNLOAD "Enable runtime dynamic PulseAudio libraries loading" OFF)
 else()
   set(WITH_PULSEAUDIO OFF)
 endif()
 if(WIN32)
-  option(WITH_WASAPI      "Enable Windows Audio Sessions API for audio support on Windows" ON)
+  option(WITH_WASAPI "Enable Windows Audio Sessions API for audio support on Windows" ON)
 else()
   set(WITH_WASAPI OFF)
 endif()
 
 # Compression
-option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
-option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
+option(WITH_LZO "Enable fast LZO compression (used for pointcache)" ON)
+option(WITH_LZMA "Enable best LZMA compression, (used for pointcache)" ON)
 if(UNIX AND NOT APPLE)
-  option(WITH_SYSTEM_LZO    "Use the system LZO library" OFF)
+  option(WITH_SYSTEM_LZO "Use the system LZO library" OFF)
 endif()
-option(WITH_DRACO         "Enable Draco mesh compression Python module (used for glTF)" ON)
+option(WITH_DRACO "Enable Draco mesh compression Python module (used for glTF)" ON)
 
 # Camera/motion tracking
-option(WITH_LIBMV         "Enable Libmv structure from motion library" ON)
+option(WITH_LIBMV "Enable Libmv structure from motion library" ON)
 option(WITH_LIBMV_SCHUR_SPECIALIZATIONS "Enable fixed-size schur specializations." ON)
 mark_as_advanced(WITH_LIBMV_SCHUR_SPECIALIZATIONS)
 
 # Logging/unbit test libraries.
-option(WITH_SYSTEM_GFLAGS   "Use system-wide Gflags instead of a bundled one" OFF)
-option(WITH_SYSTEM_GLOG     "Use system-wide Glog instead of a bundled one" OFF)
+option(WITH_SYSTEM_GFLAGS "Use system-wide Gflags instead of a bundled one" OFF)
+option(WITH_SYSTEM_GLOG "Use system-wide Glog instead of a bundled one" OFF)
 mark_as_advanced(WITH_SYSTEM_GFLAGS)
 mark_as_advanced(WITH_SYSTEM_GLOG)
 
 # Freestyle
-option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
+option(WITH_FREESTYLE "Enable Freestyle (advanced edges rendering)" ON)
 
 # Libraries.
 if(UNIX AND NOT APPLE)
@@ -447,9 +501,16 @@ that point to pre-compiled libraries will be left as-is."
   )
   mark_as_advanced(WITH_LIBS_PRECOMPILED)
 
-  option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
+  option(WITH_STATIC_LIBS "\
+Try to link with static libraries, as much as possible, \
+to make blender more portable across distributions"
+    OFF
+  )
   if(WITH_STATIC_LIBS)
-    option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
+    option(WITH_BOOST_ICU "\
+Boost uses ICU library (required for linking with static Boost built with libicu)."
+      OFF
+    )
     mark_as_advanced(WITH_BOOST_ICU)
   endif()
 endif()
@@ -460,61 +521,84 @@ if(WIN32 OR APPLE)
 endif()
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 if(UNIX AND NOT APPLE)
-  option(WITH_INSTALL_PORTABLE "Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+  option(WITH_INSTALL_PORTABLE "\
+Install redistributable runtime, otherwise install into CMAKE_INSTALL_PREFIX"
+    ON
+  )
 endif()
 
-option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
+option(WITH_PYTHON_INSTALL "Copy system python into the blender install folder" ON)
 
-option(WITH_INSTALL_COPYRIGHT    "Copy the official Blender Foundation's copyright.txt into the Blender install folder" OFF)
+option(WITH_INSTALL_COPYRIGHT "\
+Copy the official Blender Foundation's copyright.txt into the Blender install folder"
+  OFF
+)
 mark_as_advanced(WITH_INSTALL_COPYRIGHT)
 
 if((WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE) OR WITH_MOD_FLUID)
-  option(WITH_PYTHON_NUMPY "Include NumPy in Blender (used by Audaspace and Mantaflow)"  ON)
+  option(WITH_PYTHON_NUMPY "Include NumPy in Blender (used by Audaspace and Mantaflow)" ON)
 endif()
 
 if(WIN32 OR APPLE)
   # Windows and macOS have this bundled with Python libraries.
 elseif(WITH_PYTHON_INSTALL OR WITH_PYTHON_NUMPY)
-  set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
+  set(PYTHON_NUMPY_PATH "" CACHE PATH "\
+Path to python site-packages or dist-packages containing 'numpy' module"
+  )
   mark_as_advanced(PYTHON_NUMPY_PATH)
-  set(PYTHON_NUMPY_INCLUDE_DIRS    "" CACHE PATH "Path to the include directory of the NumPy module")
+  set(PYTHON_NUMPY_INCLUDE_DIRS "" CACHE PATH "Path to the include directory of the NumPy module")
   mark_as_advanced(PYTHON_NUMPY_INCLUDE_DIRS)
 endif()
 if(WITH_PYTHON_INSTALL)
-  option(WITH_PYTHON_INSTALL_NUMPY "Copy system NumPy into the blender install folder"  ON)
+  option(WITH_PYTHON_INSTALL_NUMPY "Copy system NumPy into the blender install folder" ON)
 
   if(UNIX AND NOT APPLE)
     option(WITH_PYTHON_INSTALL_REQUESTS "Copy system requests into the blender install folder" ON)
-    set(PYTHON_REQUESTS_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'requests' module")
+    set(PYTHON_REQUESTS_PATH "" CACHE PATH "\
+Path to python site-packages or dist-packages containing 'requests' module"
+    )
     mark_as_advanced(PYTHON_REQUESTS_PATH)
   endif()
 
   option(WITH_PYTHON_INSTALL_ZSTANDARD "Copy zstandard into the blender install folder" ON)
-  set(PYTHON_ZSTANDARD_PATH "" CACHE PATH "Path to python site-packages or dist-packages containing 'zstandard' module")
+  set(PYTHON_ZSTANDARD_PATH "" CACHE PATH "\
+Path to python site-packages or dist-packages containing 'zstandard' module"
+  )
   mark_as_advanced(PYTHON_ZSTANDARD_PATH)
 endif()
 
-option(WITH_CPU_SIMD              "Enable SIMD instruction if they're detected on the host machine" ON)
+option(WITH_CPU_SIMD "Enable SIMD instruction if they're detected on the host machine" ON)
 mark_as_advanced(WITH_CPU_SIMD)
 
 # Cycles
-option(WITH_CYCLES                   "Enable Cycles Render Engine" ON)
-option(WITH_CYCLES_OSL               "Build Cycles with OpenShadingLanguage support" ON)
-option(WITH_CYCLES_PATH_GUIDING      "Build Cycles with path guiding support" ON)
-option(WITH_CYCLES_EMBREE            "Build Cycles with Embree support" ON)
-option(WITH_CYCLES_LOGGING           "Build Cycles with logging support" ON)
-option(WITH_CYCLES_DEBUG             "Build Cycles with options useful for debugging (e.g., MIS)" OFF)
+option(WITH_CYCLES "Enable Cycles Render Engine" ON)
+option(WITH_CYCLES_OSL "Build Cycles with OpenShadingLanguage support" ON)
+option(WITH_CYCLES_PATH_GUIDING "Build Cycles with path guiding support" ON)
+option(WITH_CYCLES_EMBREE "Build Cycles with Embree support" ON)
+option(WITH_CYCLES_LOGGING "Build Cycles with logging support" ON)
+option(WITH_CYCLES_DEBUG "Build Cycles with options useful for debugging (e.g., MIS)" OFF)
 
-option(WITH_CYCLES_STANDALONE        "Build Cycles standalone application" OFF)
-option(WITH_CYCLES_STANDALONE_GUI    "Build Cycles standalone with GUI" OFF)
-option(WITH_CYCLES_PRECOMPUTE        "Build Cycles data precomputation tool" OFF)
+option(WITH_CYCLES_STANDALONE "Build Cycles standalone application" OFF)
+option(WITH_CYCLES_STANDALONE_GUI "Build Cycles standalone with GUI" OFF)
+option(WITH_CYCLES_PRECOMPUTE "Build Cycles data precomputation tool" OFF)
 
 option(WITH_CYCLES_HYDRA_RENDER_DELEGATE "Build Cycles Hydra render delegate" OFF)
 
-option(WITH_CYCLES_DEBUG_NAN         "Build Cycles with additional asserts for detecting NaNs and invalid values" OFF)
-option(WITH_CYCLES_NATIVE_ONLY       "Build Cycles with native kernel only (which fits current CPU, use for development only)" OFF)
-option(WITH_CYCLES_KERNEL_ASAN       "Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow" OFF)
-set(CYCLES_TEST_DEVICES CPU CACHE STRING "Run regression tests on the specified device types (CPU CUDA OPTIX HIP)" )
+option(WITH_CYCLES_DEBUG_NAN "\
+Build Cycles with additional asserts for detecting NaNs and invalid values"
+  OFF
+)
+option(WITH_CYCLES_NATIVE_ONLY "\
+Build Cycles with native kernel only (which fits current CPU, use for development only)"
+  OFF
+)
+option(WITH_CYCLES_KERNEL_ASAN "\
+Build Cycles kernels with address sanitizer when WITH_COMPILER_ASAN is on, even if it's very slow"
+  OFF
+)
+set(CYCLES_TEST_DEVICES CPU CACHE STRING "\
+Run regression tests on the specified device types (CPU CUDA OPTIX HIP)"
+)
 mark_as_advanced(WITH_CYCLES_KERNEL_ASAN)
 mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
@@ -524,17 +608,31 @@ mark_as_advanced(CYCLES_TEST_DEVICES)
 
 # NVIDIA CUDA & OptiX
 if(NOT APPLE)
-  option(WITH_CYCLES_DEVICE_CUDA       "Enable Cycles NVIDIA CUDA compute support" ON)
-  option(WITH_CYCLES_DEVICE_OPTIX      "Enable Cycles NVIDIA OptiX support" ON)
+  option(WITH_CYCLES_DEVICE_CUDA "Enable Cycles NVIDIA CUDA compute support" ON)
+  option(WITH_CYCLES_DEVICE_OPTIX "Enable Cycles NVIDIA OptiX support" ON)
   mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
 
-  option(WITH_CYCLES_CUDA_BINARIES     "Build Cycles NVIDIA CUDA binaries" OFF)
-  set(CYCLES_CUDA_BINARIES_ARCH sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 sm_89 compute_75 CACHE STRING "CUDA architectures to build binaries for")
-  option(WITH_CYCLES_CUDA_BUILD_SERIAL "Build cubins one after another (useful on machines with limited RAM)" OFF)
-  option(WITH_CUDA_DYNLOAD             "Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)" ON)
+  option(WITH_CYCLES_CUDA_BINARIES "Build Cycles NVIDIA CUDA binaries" OFF)
+  set(CYCLES_CUDA_BINARIES_ARCH
+    sm_30 sm_35 sm_37 sm_50 sm_52 sm_60 sm_61 sm_70 sm_75 sm_86 sm_89 compute_75
+    CACHE STRING "CUDA architectures to build binaries for"
+  )
+  option(WITH_CYCLES_CUDA_BUILD_SERIAL "\
+Build cubins one after another (useful on machines with limited RAM)"
+    OFF
+  )
+  option(WITH_CUDA_DYNLOAD "\
+Dynamically load CUDA libraries at runtime (for developers, makes cuda-gdb work)"
+    ON
+  )
 
-  set(OPTIX_ROOT_DIR                   "" CACHE PATH "Path to the OptiX SDK root directory, for building Cycles OptiX kernels.")
-  set(CYCLES_RUNTIME_OPTIX_ROOT_DIR    "" CACHE PATH "Path to the OptiX SDK root directory. When set, this path will be used at runtime to compile OptiX kernels.")
+  set(OPTIX_ROOT_DIR "" CACHE PATH "\
+Path to the OptiX SDK root directory, for building Cycles OptiX kernels."
+  )
+  set(CYCLES_RUNTIME_OPTIX_ROOT_DIR "" CACHE PATH "\
+Path to the OptiX SDK root directory. \
+When set, this path will be used at runtime to compile OptiX kernels."
+  )
 
   mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
   mark_as_advanced(WITH_CYCLES_CUDA_BUILD_SERIAL)
@@ -545,35 +643,51 @@ endif()
 
 # AMD HIP
 if(NOT APPLE)
-  option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
-  option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
+  option(WITH_CYCLES_DEVICE_HIP "Enable Cycles AMD HIP support" ON)
+  option(WITH_CYCLES_HIP_BINARIES "Build Cycles AMD HIP binaries" OFF)
   # Radeon VII (gfx906) not currently working with HIP SDK, so left out of the list.
-  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1100 gfx1101 gfx1102 CACHE STRING "AMD HIP architectures to build binaries for")
+  set(CYCLES_HIP_BINARIES_ARCH
+    gfx900 gfx90c gfx902
+    gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035
+    gfx1100 gfx1101 gfx1102
+    CACHE STRING "AMD HIP architectures to build binaries for"
+  )
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 
   # HIPRT is only available on Windows for now.
   if(WIN32)
-    option(WITH_CYCLES_DEVICE_HIPRT      "Enable Cycles AMD HIPRT support" OFF)
+    option(WITH_CYCLES_DEVICE_HIPRT "Enable Cycles AMD HIPRT support" OFF)
     mark_as_advanced(WITH_CYCLES_DEVICE_HIPRT)
   endif()
 endif()
 
 # Apple Metal
 if(APPLE)
-  option(WITH_CYCLES_DEVICE_METAL       "Enable Cycles Apple Metal compute support" ON)
+  option(WITH_CYCLES_DEVICE_METAL "Enable Cycles Apple Metal compute support" ON)
 endif()
 
 # oneAPI
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
-  option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
-  option(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION "Switch target of oneAPI implementation from SYCL devices to Host Task (single thread on CPU). This option is only for debugging purposes." OFF)
+  option(WITH_CYCLES_ONEAPI_BINARIES "\
+Enable Ahead-Of-Time compilation for Cycles oneAPI device"
+    OFF
+  )
+  option(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION "\
+Switch target of oneAPI implementation from SYCL devices to Host Task (single thread on CPU). \
+This option is only for debugging purposes."
+    OFF
+  )
 
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
   # acm-g10 is the target for the first Intel Arc Alchemist GPUs.
-  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
-  set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
+  set(CYCLES_ONEAPI_SPIR64_GEN_DEVICES "acm-g10" CACHE STRING "\
+oneAPI Intel GPU architectures to build binaries for"
+  )
+  set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "\
+oneAPI targets to build AOT binaries for"
+  )
 
   mark_as_advanced(WITH_CYCLES_ONEAPI_HOST_TASK_EXECUTION)
   mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
@@ -585,17 +699,18 @@ option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
 mark_as_advanced(WITH_DRAW_DEBUG)
 
 # LLVM
-option(WITH_LLVM                    "Use LLVM" OFF)
+option(WITH_LLVM "Use LLVM" OFF)
 if(APPLE)
-  option(LLVM_STATIC                  "Link with LLVM static libraries" ON) # we prefer static llvm build on Apple, dyn build possible though
+  # We prefer static llvm build on Apple, dyn build possible though.
+  option(LLVM_STATIC "Link with LLVM static libraries" ON)
 else()
-  option(LLVM_STATIC                  "Link with LLVM static libraries" OFF)
+  option(LLVM_STATIC "Link with LLVM static libraries" OFF)
 endif()
 mark_as_advanced(LLVM_STATIC)
-option(WITH_CLANG                   "Use Clang" OFF)
+option(WITH_CLANG "Use Clang" OFF)
 
 # disable for now, but plan to support on all platforms eventually
-option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
+option(WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
 mark_as_advanced(WITH_MEM_JEMALLOC)
 
 # currently only used for BLI_mempool
@@ -603,19 +718,29 @@ option(WITH_MEM_VALGRIND "Enable extended valgrind support for better reporting"
 mark_as_advanced(WITH_MEM_VALGRIND)
 
 # Debug
-option(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)" OFF)
+option(WITH_CXX_GUARDEDALLOC "\
+Enable GuardedAlloc for C++ memory allocation tracking (only enable for development)"
+  OFF
+)
 mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" ON)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
 if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
-  option(WITH_CLANG_TIDY "Use Clang Tidy to analyze the source code (only enable for development on Linux using Clang, or Windows using the Visual Studio IDE)" OFF)
+  option(WITH_CLANG_TIDY "\
+Use Clang Tidy to analyze the source code \
+(only enable for development on Linux using Clang, or Windows using the Visual Studio IDE)"
+    OFF
+  )
   mark_as_advanced(WITH_CLANG_TIDY)
 endif()
 
 option(WITH_BOOST "Enable features depending on boost" ON)
-option(WITH_TBB   "Enable multithreading. TBB is also required for features such as Cycles, OpenVDB and USD" ON)
+option(WITH_TBB "\
+Enable multi-threading. TBB is also required for features such as Cycles, OpenVDB and USD"
+  ON
+)
 
 # TBB malloc is only supported on for windows currently
 if(WIN32)
@@ -644,7 +769,10 @@ endif()
 
 
 # GPU Module
-option(WITH_GPU_BUILDTIME_SHADER_BUILDER "Shader builder is a developer option enabling linting on GLSL during compilation" OFF)
+option(WITH_GPU_BUILDTIME_SHADER_BUILDER "\
+Shader builder is a developer option enabling linting on GLSL during compilation"
+  OFF
+)
 option(WITH_RENDERDOC "Use Renderdoc API to capture frames" OFF)
 
 mark_as_advanced(
@@ -662,7 +790,10 @@ endif()
 
 # Vulkan
 option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
-option(WITH_VULKAN_GUARDEDALLOC "Use guardedalloc for host allocations done inside Vulkan (development option)" OFF)
+option(WITH_VULKAN_GUARDEDALLOC "\
+Use guardedalloc for host allocations done inside Vulkan (development option)"
+  OFF
+)
 mark_as_advanced(
   WITH_VULKAN_BACKEND
   WITH_VULKAN_GUARDEDALLOC
@@ -670,7 +801,10 @@ mark_as_advanced(
 
 # Metal
 if(APPLE)
-  option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." ON)
+  option(WITH_METAL_BACKEND "\
+Use Metal for graphics instead of (or as well as) OpenGL on macOS."
+    ON
+  )
   mark_as_advanced(WITH_METAL_BACKEND)
 else()
   set(WITH_METAL_BACKEND OFF)
@@ -701,7 +835,10 @@ if(UNIX)
   endif()
 endif()
 
-option(WITH_COMPILER_ASAN "Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)." OFF)
+option(WITH_COMPILER_ASAN "\
+Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)."
+  OFF
+)
 mark_as_advanced(WITH_COMPILER_ASAN)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -780,7 +917,10 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  option(WITH_COMPILER_SHORT_FILE_MACRO "Make paths in macros like __FILE__ relative to top level source and build directories." ON)
+  option(WITH_COMPILER_SHORT_FILE_MACRO "\
+Make paths in macros like __FILE__ relative to top level source and build directories."
+    ON
+  )
   mark_as_advanced(WITH_COMPILER_SHORT_FILE_MACRO)
 endif()
 
@@ -789,7 +929,10 @@ if(WIN32)
   option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
   mark_as_advanced(WITH_WINDOWS_FIND_MODULES)
 
-  option(WINDOWS_PYTHON_DEBUG "Include the files needed for debugging python scripts with visual studio 2017+." OFF)
+  option(WINDOWS_PYTHON_DEBUG "\
+Include the files needed for debugging python scripts with visual studio 2017+."
+    OFF
+  )
   mark_as_advanced(WINDOWS_PYTHON_DEBUG)
 
   option(WITH_WINDOWS_BUNDLE_CRT "Bundle the C runtime for install free distribution." ON)
@@ -807,10 +950,16 @@ if(WIN32)
 endif()
 
 if(WIN32 OR XCODE)
-  option(IDE_GROUP_SOURCES_IN_FOLDERS "Organize the source files in filters matching the source folders." ON)
+  option(IDE_GROUP_SOURCES_IN_FOLDERS "\
+Organize the source files in filters matching the source folders."
+    ON
+  )
   mark_as_advanced(IDE_GROUP_SOURCES_IN_FOLDERS)
 
-  option(IDE_GROUP_PROJECTS_IN_FOLDERS "Organize the projects according to source folder structure." ON)
+  option(IDE_GROUP_PROJECTS_IN_FOLDERS "\
+Organize the projects according to source folder structure."
+    ON
+  )
   mark_as_advanced(IDE_GROUP_PROJECTS_IN_FOLDERS)
 
   if(IDE_GROUP_PROJECTS_IN_FOLDERS)
@@ -820,15 +969,20 @@ endif()
 
 if(UNIX)
   # See WITH_WINDOWS_SCCACHE for Windows.
-  option(WITH_COMPILER_CCACHE "Use ccache to improve rebuild times (Works with Ninja, Makefiles and Xcode)" OFF)
+  option(WITH_COMPILER_CCACHE "\
+Use ccache to improve rebuild times (Works with Ninja, Makefiles and Xcode)"
+    OFF
+  )
   mark_as_advanced(WITH_COMPILER_CCACHE)
 endif()
 
 # The following only works with the Ninja generator in CMake >= 3.0.
 if("${CMAKE_GENERATOR}" MATCHES "Ninja")
-  option(WITH_NINJA_POOL_JOBS
-         "Enable Ninja pools of jobs, to try to ease building on machines with 16GB of RAM or less (if not yet defined, will try to set best values based on detected machine specifications)."
-         OFF)
+  option(WITH_NINJA_POOL_JOBS "\
+Enable Ninja pools of jobs, to try to ease building on machines with 16GB of RAM or less \
+(if not yet defined, will try to set best values based on detected machine specifications)."
+    OFF
+  )
   mark_as_advanced(WITH_NINJA_POOL_JOBS)
 endif()
 
@@ -836,7 +990,9 @@ endif()
 set(POSTINSTALL_SCRIPT "" CACHE FILEPATH "Run given CMake script after installation process")
 mark_as_advanced(POSTINSTALL_SCRIPT)
 
-set(POSTCONFIGURE_SCRIPT "" CACHE FILEPATH "Run given CMake script as the last step of CMake configuration")
+set(POSTCONFIGURE_SCRIPT "" CACHE FILEPATH "\
+Run given CMake script as the last step of CMake configuration"
+)
 mark_as_advanced(POSTCONFIGURE_SCRIPT)
 
 # end option(...)
@@ -847,9 +1003,15 @@ mark_as_advanced(POSTCONFIGURE_SCRIPT)
 # unless specified otherwise, which we currently do not allow
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if(WIN32)
-    set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "\
+default install path"
+      FORCE
+    )
   elseif(APPLE)
-    set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "default install path" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE} CACHE PATH "\
+default install path"
+      FORCE
+    )
   else()
     if(WITH_INSTALL_PORTABLE)
       set(CMAKE_INSTALL_PREFIX ${EXECUTABLE_OUTPUT_PATH} CACHE PATH "default install path" FORCE)
@@ -860,9 +1022,15 @@ endif()
 # Effective install path including config folder, as a generator expression.
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(GENERATOR_IS_MULTI_CONFIG)
-  string(REPLACE "\${BUILD_TYPE}" "$<CONFIG>" CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX})
+  string(
+    REPLACE "\${BUILD_TYPE}" "$<CONFIG>"
+    CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX}
+  )
 else()
-  string(REPLACE "\${BUILD_TYPE}" "" CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX})
+  string(
+    REPLACE "\${BUILD_TYPE}" ""
+    CMAKE_INSTALL_PREFIX_WITH_CONFIG ${CMAKE_INSTALL_PREFIX}
+  )
 endif()
 
 
@@ -876,7 +1044,10 @@ endif()
 # -----------------------------------------------------------------------------
 # Check for Conflicting/Unsupported Configurations
 
-option(WITH_STRICT_BUILD_OPTIONS "When requirements for a build option are not met, error instead of disabling the option" OFF)
+option(WITH_STRICT_BUILD_OPTIONS "\
+When requirements for a build option are not met, error instead of disabling the option."
+  OFF
+)
 
 if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE AND NOT WITH_CYCLES_HYDRA_RENDER_DELEGATE)
   message(FATAL_ERROR
@@ -973,8 +1144,13 @@ endif()
 
 if(WITH_AUDASPACE)
   if(NOT WITH_SYSTEM_AUDASPACE)
-    set(AUDASPACE_C_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/audaspace/bindings/C" "${CMAKE_BINARY_DIR}/extern/audaspace")
-    set(AUDASPACE_PY_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/audaspace/bindings")
+    set(AUDASPACE_C_INCLUDE_DIRS
+      "${CMAKE_SOURCE_DIR}/extern/audaspace/bindings/C"
+      "${CMAKE_BINARY_DIR}/extern/audaspace"
+    )
+    set(AUDASPACE_PY_INCLUDE_DIRS
+      "${CMAKE_SOURCE_DIR}/extern/audaspace/bindings"
+    )
   endif()
 endif()
 
@@ -1205,7 +1381,9 @@ if(MSVC)
   # endianness-detection and auto-setting is counterproductive
   # so we just set endianness according CMAKE_OSX_ARCHITECTURES
 
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR CMAKE_OSX_ARCHITECTURES MATCHES x86_64 OR CMAKE_OSX_ARCHITECTURES MATCHES arm64)
+elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR
+       CMAKE_OSX_ARCHITECTURES MATCHES x86_64 OR
+       CMAKE_OSX_ARCHITECTURES MATCHES arm64)
   add_definitions(-D__LITTLE_ENDIAN__)
 elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)
   add_definitions(-D__BIG_ENDIAN__)
@@ -1410,8 +1588,11 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
       set(_compile_heavy_jobs "")
     endif()
 
-    set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING
-        "Define the maximum number of concurrent heavy compilation jobs, for ninja build system (used for some targets which cpp files can take several GB each during compilation)." FORCE)
+    set(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS "${_compile_heavy_jobs}" CACHE STRING "\
+Define the maximum number of concurrent heavy compilation jobs, for ninja build system \
+(used for some targets which cpp files can take several GB each during compilation)."
+      FORCE
+    )
     mark_as_advanced(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
     set(_compile_heavy_jobs)
 
@@ -1438,16 +1619,25 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
   endif()
 
   if(NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS)
-    set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS})
+    set_property(
+      GLOBAL APPEND PROPERTY
+      JOB_POOLS compile_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_JOBS}
+    )
     set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
   endif()
 
   if(NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-    set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_heavy_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS})
+    set_property(
+      GLOBAL APPEND PROPERTY
+      JOB_POOLS compile_heavy_job_pool=${NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS}
+    )
   endif()
 
   if(NINJA_MAX_NUM_PARALLEL_LINK_JOBS)
-    set_property(GLOBAL APPEND PROPERTY JOB_POOLS link_job_pool=${NINJA_MAX_NUM_PARALLEL_LINK_JOBS})
+    set_property(
+      GLOBAL APPEND PROPERTY
+      JOB_POOLS link_job_pool=${NINJA_MAX_NUM_PARALLEL_LINK_JOBS}
+    )
     set(CMAKE_JOB_POOL_LINK link_job_pool)
   endif()
 endif()
