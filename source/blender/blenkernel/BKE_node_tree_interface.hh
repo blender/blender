@@ -184,7 +184,7 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
 {
   eNodeTreeInterfaceSocketFlag flag = eNodeTreeInterfaceSocketFlag(0);
   SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
-  SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
+  q SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
 
   bNodeTreeInterfaceSocket *iosock = ntree.tree_interface.add_socket(
       name.data(), from_sock.description, socket_type, flag, nullptr);
@@ -194,7 +194,7 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
   const bNodeSocketType *typeinfo = iosock->socket_typeinfo();
   if (typeinfo->interface_from_socket) {
     /* XXX Enable when bNodeSocketType callbacks have been updated. */
-    UNUSED_VARS(from_node);
+    UNUSED_VARS(from_sock);
     //    typeinfo->interface_from_socket(ntree.id, iosock, &from_node, &from_sock);
   }
   return iosock;
