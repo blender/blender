@@ -35,18 +35,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Image", reinterpret_cast<Image *>(params.node().id));
 }
 
-}  // namespace blender::nodes::node_geo_image_cc
-
-void register_node_type_geo_image()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_image_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMAGE, "Image", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_image_cc

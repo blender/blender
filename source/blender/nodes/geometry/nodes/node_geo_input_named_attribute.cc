@@ -135,24 +135,23 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Exists", bke::AttributeExistsFieldInput::Create(std::move(name)));
 }
 
-}  // namespace blender::nodes::node_geo_input_named_attribute_cc
-
-void register_node_type_geo_input_named_attribute()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_named_attribute_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_NAMED_ATTRIBUTE, "Named Attribute", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.initfunc = file_ns::node_init;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
+  ntype.updatefunc = node_update;
+  ntype.initfunc = node_init;
   node_type_storage(&ntype,
                     "NodeGeometryInputNamedAttribute",
                     node_free_standard_storage,
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_named_attribute_cc

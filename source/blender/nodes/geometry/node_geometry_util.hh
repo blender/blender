@@ -19,12 +19,12 @@
 
 #include "NOD_geometry.hh"
 #include "NOD_geometry_exec.hh"
+#include "NOD_register.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "RNA_access.h"
 
-#include "node_geometry_register.hh"
 #include "node_util.hh"
 
 #ifdef WITH_OPENVDB

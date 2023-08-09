@@ -109,17 +109,16 @@ static void geo_node_exec(GeoNodeExecParams params)
   params.set_output("Planar", std::move(planar_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc
-
-void register_node_type_geo_input_mesh_face_is_planar()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_mesh_face_is_planar_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, "Is Face Planar", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::geo_node_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = geo_node_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_mesh_face_is_planar_cc

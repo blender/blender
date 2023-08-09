@@ -227,16 +227,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif /* WITH_BULLET */
 }
 
-}  // namespace blender::nodes::node_geo_convex_hull_cc
-
-void register_node_type_geo_convex_hull()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_convex_hull_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CONVEX_HULL, "Convex Hull", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_convex_hull_cc

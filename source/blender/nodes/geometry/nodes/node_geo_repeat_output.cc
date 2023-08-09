@@ -227,6 +227,19 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   return false;
 }
 
+static void node_register()
+{
+  static bNodeType ntype;
+  geo_node_type_base(&ntype, GEO_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
+  ntype.initfunc = node_init;
+  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.gather_add_node_search_ops = search_node_add_ops;
+  ntype.insert_link = node_insert_link;
+  node_type_storage(&ntype, "NodeGeometryRepeatOutput", node_free_storage, node_copy_storage);
+  nodeRegisterType(&ntype);
+}
+NOD_REGISTER_NODE(node_register)
+
 }  // namespace blender::nodes::node_geo_repeat_output_cc
 
 blender::Span<NodeRepeatItem> NodeGeometryRepeatOutput::items_span() const
@@ -317,19 +330,4 @@ void NodeGeometryRepeatOutput::set_item_name(NodeRepeatItem &item, const char *n
 
   MEM_SAFE_FREE(item.name);
   item.name = BLI_strdup(unique_name);
-}
-
-void register_node_type_geo_repeat_output()
-{
-  namespace file_ns = blender::nodes::node_geo_repeat_output_cc;
-
-  static bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.insert_link = file_ns::node_insert_link;
-  node_type_storage(
-      &ntype, "NodeGeometryRepeatOutput", file_ns::node_free_storage, file_ns::node_copy_storage);
-  nodeRegisterType(&ntype);
 }

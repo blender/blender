@@ -36,16 +36,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Length", length);
 }
 
-}  // namespace blender::nodes::node_geo_curve_length_cc
-
-void register_node_type_geo_curve_length()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_length_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_LENGTH, "Curve Length", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_length_cc

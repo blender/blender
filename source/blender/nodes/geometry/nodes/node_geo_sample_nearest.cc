@@ -318,18 +318,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output<Field<int>>("Index", Field<int>(std::move(op)));
 }
 
-}  // namespace blender::nodes::node_geo_sample_nearest_cc
-
-void register_node_type_geo_sample_nearest()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_sample_nearest_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST, "Sample Nearest", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.initfunc = node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_sample_nearest_cc

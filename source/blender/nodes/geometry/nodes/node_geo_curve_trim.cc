@@ -181,21 +181,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_trim_cc
-
-void register_node_type_geo_curve_trim()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_trim_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TRIM_CURVE, "Trim Curve", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
   node_type_storage(
       &ntype, "NodeGeometryCurveTrim", node_free_standard_storage, node_copy_standard_storage);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_trim_cc

@@ -88,17 +88,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_sdf_volume_sphere_cc
-
-void register_node_type_geo_sdf_volume_sphere()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_sdf_volume_sphere_cc;
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SDF_VOLUME_SPHERE, "SDF Volume Sphere", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
+  ntype.declare = node_declare;
   blender::bke::node_type_size(&ntype, 180, 120, 300);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.gather_link_search_ops = file_ns::search_link_ops;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.gather_add_node_search_ops = search_node_add_ops;
+  ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_sdf_volume_sphere_cc

@@ -7,7 +7,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-namespace blender::nodes {
+namespace blender::nodes::node_fn_separate_color_cc {
 
 NODE_STORAGE_FUNCS(NodeCombSepColor)
 
@@ -197,20 +197,21 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   }
 }
 
-}  // namespace blender::nodes
-
-void register_node_type_fn_separate_color()
+static void node_register()
 {
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_SEPARATE_COLOR, "Separate Color", NODE_CLASS_CONVERTER);
-  ntype.declare = blender::nodes::node_declare;
-  ntype.updatefunc = blender::nodes::node_update;
-  ntype.initfunc = blender::nodes::node_init;
+  ntype.declare = node_declare;
+  ntype.updatefunc = node_update;
+  ntype.initfunc = node_init;
   node_type_storage(
       &ntype, "NodeCombSepColor", node_free_standard_storage, node_copy_standard_storage);
-  ntype.build_multi_function = blender::nodes::node_build_multi_function;
-  ntype.draw_buttons = blender::nodes::node_layout;
+  ntype.build_multi_function = node_build_multi_function;
+  ntype.draw_buttons = node_layout;
 
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_separate_color_cc

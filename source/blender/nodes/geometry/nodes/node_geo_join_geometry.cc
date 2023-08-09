@@ -209,16 +209,16 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }
-}  // namespace blender::nodes::node_geo_join_geometry_cc
 
-void register_node_type_geo_join_geometry()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_join_geometry_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_JOIN_GEOMETRY, "Join Geometry", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_join_geometry_cc

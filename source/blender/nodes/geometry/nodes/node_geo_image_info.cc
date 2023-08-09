@@ -79,17 +79,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("FPS", fps);
 }
 
-}  // namespace blender::nodes::node_geo_image_info_cc
-
-void register_node_type_geo_image_info()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_image_info_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_INFO, "Image Info", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_image_info_cc

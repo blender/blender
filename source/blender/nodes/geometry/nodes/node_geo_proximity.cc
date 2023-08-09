@@ -208,20 +208,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Distance", Field<float>(proximity_op, 1));
 }
 
-}  // namespace blender::nodes::node_geo_proximity_cc
-
-void register_node_type_geo_proximity()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_proximity_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_PROXIMITY, "Geometry Proximity", NODE_CLASS_GEOMETRY);
-  ntype.initfunc = file_ns::geo_proximity_init;
+  ntype.initfunc = geo_proximity_init;
   node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_proximity_cc

@@ -383,24 +383,23 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve Instances", GeometrySet::from_instances(instances.release()));
 }
 
-}  // namespace blender::nodes::node_geo_string_to_curves_cc
-
-void register_node_type_geo_string_to_curves()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_string_to_curves_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_STRING_TO_CURVES, "String to Curves", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   blender::bke::node_type_size(&ntype, 190, 120, 700);
   node_type_storage(&ntype,
                     "NodeGeometryStringToCurves",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_string_to_curves_cc

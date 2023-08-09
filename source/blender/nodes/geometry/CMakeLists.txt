@@ -196,11 +196,9 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
-  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
-  node_geometry_register.hh
   node_geometry_util.hh
 )
 
@@ -265,7 +263,19 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
+add_node_discovery(
+  bf_nodes_geometry_generated
+  "${SRC}"
+  ${CMAKE_CURRENT_BINARY_DIR}/register_geometry_nodes.cc
+  register_geometry_nodes
+)
+
+list(APPEND LIB
+  bf_nodes_geometry_generated
+)
+
 blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
 if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)

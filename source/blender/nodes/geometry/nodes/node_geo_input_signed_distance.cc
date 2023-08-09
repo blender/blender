@@ -34,18 +34,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Signed Distance", std::move(signed_distance_field));
 }
 
-}  // namespace blender::nodes::node_geo_input_signed_distance_cc
-
-void register_node_type_geo_input_signed_distance()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_signed_distance_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_SIGNED_DISTANCE, "Signed Distance", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.gather_link_search_ops = file_ns::search_link_ops;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.gather_add_node_search_ops = search_node_add_ops;
+  ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_signed_distance_cc

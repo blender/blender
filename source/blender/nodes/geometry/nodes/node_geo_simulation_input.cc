@@ -248,17 +248,13 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   return true;
 }
 
-}  // namespace blender::nodes::node_geo_simulation_input_cc
-
-void register_node_type_geo_simulation_input()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_simulation_input_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SIMULATION_INPUT, "Simulation Input", NODE_CLASS_INTERFACE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
-  ntype.insert_link = file_ns::node_insert_link;
+  ntype.initfunc = node_init;
+  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.insert_link = node_insert_link;
   ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
   node_type_storage(&ntype,
@@ -267,6 +263,9 @@ void register_node_type_geo_simulation_input()
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_simulation_input_cc
 
 bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
                                                        const bNode *simulation_input_node)

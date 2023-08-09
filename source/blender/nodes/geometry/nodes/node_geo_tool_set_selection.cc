@@ -75,18 +75,18 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry));
 }
 
-}  // namespace blender::nodes::node_geo_tool_set_selection_cc
-
-void register_node_type_geo_tool_set_selection()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_tool_set_selection_cc;
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TOOL_SET_SELECTION, "Set Selection", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_add_node_search_ops = blender::nodes::search_link_ops_for_for_tool_node;
-  ntype.gather_link_search_ops = blender::nodes::search_link_ops_for_tool_node;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_add_node_search_ops = search_link_ops_for_for_tool_node;
+  ntype.gather_link_search_ops = search_link_ops_for_tool_node;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_tool_set_selection_cc

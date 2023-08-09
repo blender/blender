@@ -584,23 +584,22 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Points", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_distribute_points_on_faces_cc
-
-void register_node_type_geo_distribute_points_on_faces()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_distribute_points_on_faces_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype,
                      GEO_NODE_DISTRIBUTE_POINTS_ON_FACES,
                      "Distribute Points on Faces",
                      NODE_CLASS_GEOMETRY);
-  ntype.updatefunc = file_ns::node_point_distribute_points_on_faces_update;
+  ntype.updatefunc = node_point_distribute_points_on_faces_update;
   blender::bke::node_type_size(&ntype, 170, 100, 320);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.draw_buttons_ex = file_ns::node_layout_ex;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.draw_buttons_ex = node_layout_ex;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_distribute_points_on_faces_cc

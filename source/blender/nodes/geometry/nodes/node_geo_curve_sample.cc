@@ -570,22 +570,21 @@ static void node_geo_exec(GeoNodeExecParams params)
   output_attribute_field(params, GField(sample_op, 3));
 }
 
-}  // namespace blender::nodes::node_geo_curve_sample_cc
-
-void register_node_type_geo_curve_sample()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_sample_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, "Sample Curve", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_sample_cc

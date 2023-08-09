@@ -213,12 +213,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_points_to_volume_cc
-
-void register_node_type_geo_points_to_volume()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_points_to_volume_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_VOLUME, "Points to Volume", NODE_CLASS_GEOMETRY);
@@ -227,10 +223,13 @@ void register_node_type_geo_points_to_volume()
                     node_free_standard_storage,
                     node_copy_standard_storage);
   blender::bke::node_type_size(&ntype, 170, 120, 700);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_points_to_volume_cc

@@ -377,24 +377,23 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
-}  // namespace blender::nodes::node_geo_sample_volume_cc
-
-void register_node_type_geo_sample_volume()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_sample_volume_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_VOLUME, "Sample Volume", NODE_CLASS_CONVERTER);
   node_type_storage(
       &ntype, "NodeGeometrySampleVolume", node_free_standard_storage, node_copy_standard_storage);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_add_node_search_ops = file_ns::search_node_add_ops;
-  ntype.gather_link_search_ops = file_ns::search_link_ops;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_add_node_search_ops = search_node_add_ops;
+  ntype.gather_link_search_ops = search_link_ops;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_sample_volume_cc

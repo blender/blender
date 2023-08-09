@@ -105,18 +105,17 @@ static void node_geo_exec(GeoNodeExecParams params)
                         params.extract_input<Field<int>>("Offset"))));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc
-
-void register_node_type_geo_mesh_topology_offset_corner_in_face()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype,
                      GEO_NODE_MESH_TOPOLOGY_OFFSET_CORNER_IN_FACE,
                      "Offset Corner in Face",
                      NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc

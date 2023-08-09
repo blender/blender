@@ -246,12 +246,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_delete_geometry_cc
-
-void register_node_type_geo_delete_geometry()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_DELETE_GEOMETRY, "Delete Geometry", NODE_CLASS_GEOMETRY);
@@ -261,10 +257,12 @@ void register_node_type_geo_delete_geometry()
                     node_free_standard_storage,
                     node_copy_standard_storage);
 
-  ntype.initfunc = file_ns::node_init;
-
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.initfunc = node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_delete_geometry_cc

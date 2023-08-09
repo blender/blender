@@ -26,8 +26,6 @@
 
 #include "node_common.h"
 
-#include "node_geometry_register.hh"
-
 bNodeTreeType *ntreeType_Geometry;
 
 static void geometry_node_tree_get_from_context(

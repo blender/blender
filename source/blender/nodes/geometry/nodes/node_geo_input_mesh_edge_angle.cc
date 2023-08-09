@@ -191,15 +191,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_input_mesh_edge_angle_cc
-
-void register_node_type_geo_input_mesh_edge_angle()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_input_mesh_edge_angle_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_INPUT_MESH_EDGE_ANGLE, "Edge Angle", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_input_mesh_edge_angle_cc

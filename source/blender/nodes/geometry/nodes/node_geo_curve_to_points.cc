@@ -204,21 +204,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Points", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_to_points_cc
-
-void register_node_type_geo_curve_to_points()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_to_points_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_POINTS, "Curve to Points", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   node_type_storage(
       &ntype, "NodeGeometryCurveToPoints", node_free_standard_storage, node_copy_standard_storage);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_to_points_cc

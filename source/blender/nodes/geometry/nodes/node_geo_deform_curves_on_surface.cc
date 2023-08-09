@@ -406,17 +406,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curves", curves_geometry);
 }
 
-}  // namespace blender::nodes::node_geo_deform_curves_on_surface_cc
-
-void register_node_type_geo_deform_curves_on_surface()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_deform_curves_on_surface_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_DEFORM_CURVES_ON_SURFACE, "Deform Curves on Surface", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   blender::bke::node_type_size(&ntype, 170, 120, 700);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_deform_curves_on_surface_cc

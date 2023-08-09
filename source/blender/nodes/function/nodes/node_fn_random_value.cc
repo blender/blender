@@ -196,22 +196,21 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   }
 }
 
-}  // namespace blender::nodes::node_fn_random_value_cc
-
-void register_node_type_fn_random_value()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_fn_random_value_cc;
-
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_RANDOM_VALUE, "Random Value", NODE_CLASS_CONVERTER);
-  ntype.initfunc = file_ns::fn_node_random_value_init;
-  ntype.updatefunc = file_ns::fn_node_random_value_update;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.declare = file_ns::node_declare;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_search_ops;
+  ntype.initfunc = fn_node_random_value_init;
+  ntype.updatefunc = fn_node_random_value_update;
+  ntype.draw_buttons = node_layout;
+  ntype.declare = node_declare;
+  ntype.build_multi_function = node_build_multi_function;
+  ntype.gather_link_search_ops = node_gather_link_search_ops;
   node_type_storage(
       &ntype, "NodeRandomValue", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_random_value_cc
