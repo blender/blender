@@ -297,7 +297,7 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
 static void rna_PreferencesExperimental_use_extension_repos_set(PointerRNA * /*ptr*/, bool value)
 {
   Main *bmain = G.main;
-  if (U.experimental.use_extension_repos != value) {
+  if (bool(U.experimental.use_extension_repos) != value) {
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
     U.experimental.use_extension_repos = value;
     BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
