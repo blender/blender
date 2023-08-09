@@ -58,15 +58,11 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)((GHOST_IEvent *)event)->getData();
-      char str[32] = {'\0'};
-      getKeyString(keyData->key, str);
-      std::cout << "GHOST_kEventKeyUp, key: " << str;
+      std::cout << "GHOST_kEventKeyUp, key: " << getKeyString(keyData->key);
     } break;
     case GHOST_kEventKeyDown: {
       GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)((GHOST_IEvent *)event)->getData();
-      char str[32] = {'\0'};
-      getKeyString(keyData->key, str);
-      std::cout << "GHOST_kEventKeyDown, key: " << str;
+      std::cout << "GHOST_kEventKeyDown, key: " << getKeyString(keyData->key);
     } break;
 
     case GHOST_kEventDraggingEntered: {
@@ -159,161 +155,152 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
   return handled;
 }
 
-void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
+const char *GHOST_EventPrinter::getKeyString(const GHOST_TKey key) const
 {
-  if ((key >= GHOST_kKeyComma) && (key <= GHOST_kKeyRightBracket)) {
-    sprintf(str, "%c", char(key));
-  }
-  else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
-    sprintf(str, "Numpad %d", (key - GHOST_kKeyNumpad0));
-  }
-  else if ((key >= GHOST_kKeyF1) && (key <= GHOST_kKeyF24)) {
-    sprintf(str, "F%d", key - GHOST_kKeyF1 + 1);
-  }
-  else {
-    const char *tstr = nullptr;
-    switch (key) {
-      case GHOST_kKeyBackSpace:
-        tstr = "BackSpace";
-        break;
-      case GHOST_kKeyTab:
-        tstr = "Tab";
-        break;
-      case GHOST_kKeyLinefeed:
-        tstr = "Linefeed";
-        break;
-      case GHOST_kKeyClear:
-        tstr = "Clear";
-        break;
-      case GHOST_kKeyEnter:
-        tstr = "Enter";
-        break;
-      case GHOST_kKeyEsc:
-        tstr = "Esc";
-        break;
-      case GHOST_kKeySpace:
-        tstr = "Space";
-        break;
-      case GHOST_kKeyQuote:
-        tstr = "Quote";
-        break;
-      case GHOST_kKeyBackslash:
-        tstr = "\\";
-        break;
-      case GHOST_kKeyAccentGrave:
-        tstr = "`";
-        break;
-      case GHOST_kKeyLeftShift:
-        tstr = "LeftShift";
-        break;
-      case GHOST_kKeyRightShift:
-        tstr = "RightShift";
-        break;
-      case GHOST_kKeyLeftControl:
-        tstr = "LeftControl";
-        break;
-      case GHOST_kKeyRightControl:
-        tstr = "RightControl";
-        break;
-      case GHOST_kKeyLeftAlt:
-        tstr = "LeftAlt";
-        break;
-      case GHOST_kKeyRightAlt:
-        tstr = "RightAlt";
-        break;
-      case GHOST_kKeyLeftOS:
-        tstr = "LeftOS";
-        break;
-      case GHOST_kKeyRightOS:
-        tstr = "RightOS";
-        break;
-      case GHOST_kKeyApp:
-        tstr = "App";
-        break;
-      case GHOST_kKeyGrLess:
-        // PC german!
-        tstr = "GrLess";
-        break;
-      case GHOST_kKeyCapsLock:
-        tstr = "CapsLock";
-        break;
-      case GHOST_kKeyNumLock:
-        tstr = "NumLock";
-        break;
-      case GHOST_kKeyScrollLock:
-        tstr = "ScrollLock";
-        break;
-      case GHOST_kKeyLeftArrow:
-        tstr = "LeftArrow";
-        break;
-      case GHOST_kKeyRightArrow:
-        tstr = "RightArrow";
-        break;
-      case GHOST_kKeyUpArrow:
-        tstr = "UpArrow";
-        break;
-      case GHOST_kKeyDownArrow:
-        tstr = "DownArrow";
-        break;
-      case GHOST_kKeyPrintScreen:
-        tstr = "PrintScreen";
-        break;
-      case GHOST_kKeyPause:
-        tstr = "Pause";
-        break;
-      case GHOST_kKeyInsert:
-        tstr = "Insert";
-        break;
-      case GHOST_kKeyDelete:
-        tstr = "Delete";
-        break;
-      case GHOST_kKeyHome:
-        tstr = "Home";
-        break;
-      case GHOST_kKeyEnd:
-        tstr = "End";
-        break;
-      case GHOST_kKeyUpPage:
-        tstr = "UpPage";
-        break;
-      case GHOST_kKeyDownPage:
-        tstr = "DownPage";
-        break;
-      case GHOST_kKeyNumpadPeriod:
-        tstr = "NumpadPeriod";
-        break;
-      case GHOST_kKeyNumpadEnter:
-        tstr = "NumpadEnter";
-        break;
-      case GHOST_kKeyNumpadPlus:
-        tstr = "NumpadPlus";
-        break;
-      case GHOST_kKeyNumpadMinus:
-        tstr = "NumpadMinus";
-        break;
-      case GHOST_kKeyNumpadAsterisk:
-        tstr = "NumpadAsterisk";
-        break;
-      case GHOST_kKeyNumpadSlash:
-        tstr = "NumpadSlash";
-        break;
-      case GHOST_kKeyMediaPlay:
-        tstr = "MediaPlayPause";
-        break;
-      case GHOST_kKeyMediaStop:
-        tstr = "MediaStop";
-        break;
-      case GHOST_kKeyMediaFirst:
-        tstr = "MediaFirst";
-        break;
-      case GHOST_kKeyMediaLast:
-        tstr = "MediaLast";
-        break;
-      default:
-        tstr = "unknown";
-        break;
-    }
+  const char *tstr = nullptr;
 
-    sprintf(str, "%s", tstr);
+#define CASE_KEY(k, v) \
+  case k: { \
+    tstr = v; \
+    break; \
   }
+
+  switch (key) {
+    CASE_KEY(GHOST_kKeyBackSpace, "BackSpace");
+    CASE_KEY(GHOST_kKeyTab, "Tab");
+    CASE_KEY(GHOST_kKeyLinefeed, "Linefeed");
+    CASE_KEY(GHOST_kKeyClear, "Clear");
+    CASE_KEY(GHOST_kKeyEnter, "Enter");
+    CASE_KEY(GHOST_kKeyEsc, "Esc");
+    CASE_KEY(GHOST_kKeySpace, "Space");
+    CASE_KEY(GHOST_kKeyQuote, "Quote");
+    CASE_KEY(GHOST_kKeyBackslash, "\\");
+    CASE_KEY(GHOST_kKeyAccentGrave, "`");
+    CASE_KEY(GHOST_kKeyLeftShift, "LeftShift");
+    CASE_KEY(GHOST_kKeyRightShift, "RightShift");
+    CASE_KEY(GHOST_kKeyLeftControl, "LeftControl");
+    CASE_KEY(GHOST_kKeyRightControl, "RightControl");
+    CASE_KEY(GHOST_kKeyLeftAlt, "LeftAlt");
+    CASE_KEY(GHOST_kKeyRightAlt, "RightAlt");
+    CASE_KEY(GHOST_kKeyLeftOS, "LeftOS");
+    CASE_KEY(GHOST_kKeyRightOS, "RightOS");
+    CASE_KEY(GHOST_kKeyApp, "App");
+    CASE_KEY(GHOST_kKeyGrLess, "GrLess");
+    CASE_KEY(GHOST_kKeyCapsLock, "CapsLock");
+    CASE_KEY(GHOST_kKeyNumLock, "NumLock");
+    CASE_KEY(GHOST_kKeyScrollLock, "ScrollLock");
+    CASE_KEY(GHOST_kKeyLeftArrow, "LeftArrow");
+    CASE_KEY(GHOST_kKeyRightArrow, "RightArrow");
+    CASE_KEY(GHOST_kKeyUpArrow, "UpArrow");
+    CASE_KEY(GHOST_kKeyDownArrow, "DownArrow");
+    CASE_KEY(GHOST_kKeyPrintScreen, "PrintScreen");
+    CASE_KEY(GHOST_kKeyPause, "Pause");
+    CASE_KEY(GHOST_kKeyInsert, "Insert");
+    CASE_KEY(GHOST_kKeyDelete, "Delete");
+    CASE_KEY(GHOST_kKeyHome, "Home");
+    CASE_KEY(GHOST_kKeyEnd, "End");
+    CASE_KEY(GHOST_kKeyUpPage, "UpPage");
+    CASE_KEY(GHOST_kKeyDownPage, "DownPage");
+    CASE_KEY(GHOST_kKeyNumpadPeriod, "NumpadPeriod");
+    CASE_KEY(GHOST_kKeyNumpadEnter, "NumpadEnter");
+    CASE_KEY(GHOST_kKeyNumpadPlus, "NumpadPlus");
+    CASE_KEY(GHOST_kKeyNumpadMinus, "NumpadMinus");
+    CASE_KEY(GHOST_kKeyNumpadAsterisk, "NumpadAsterisk");
+    CASE_KEY(GHOST_kKeyNumpadSlash, "NumpadSlash");
+    CASE_KEY(GHOST_kKeyMediaPlay, "MediaPlayPause");
+    CASE_KEY(GHOST_kKeyMediaStop, "MediaStop");
+    CASE_KEY(GHOST_kKeyMediaFirst, "MediaFirst");
+    CASE_KEY(GHOST_kKeyMediaLast, "MediaLast");
+    CASE_KEY(GHOST_kKeyNumpad0, "Numpad 0");
+    CASE_KEY(GHOST_kKeyNumpad1, "Numpad 1");
+    CASE_KEY(GHOST_kKeyNumpad2, "Numpad 2");
+    CASE_KEY(GHOST_kKeyNumpad3, "Numpad 3");
+    CASE_KEY(GHOST_kKeyNumpad4, "Numpad 4");
+    CASE_KEY(GHOST_kKeyNumpad5, "Numpad 5");
+    CASE_KEY(GHOST_kKeyNumpad6, "Numpad 6");
+    CASE_KEY(GHOST_kKeyNumpad7, "Numpad 7");
+    CASE_KEY(GHOST_kKeyNumpad8, "Numpad 8");
+    CASE_KEY(GHOST_kKeyNumpad9, "Numpad 9");
+
+    CASE_KEY(GHOST_kKeyF1, "F1");
+    CASE_KEY(GHOST_kKeyF2, "F2");
+    CASE_KEY(GHOST_kKeyF3, "F3");
+    CASE_KEY(GHOST_kKeyF4, "F4");
+    CASE_KEY(GHOST_kKeyF5, "F5");
+    CASE_KEY(GHOST_kKeyF6, "F6");
+    CASE_KEY(GHOST_kKeyF7, "F7");
+    CASE_KEY(GHOST_kKeyF8, "F8");
+    CASE_KEY(GHOST_kKeyF9, "F9");
+    CASE_KEY(GHOST_kKeyF10, "F10");
+    CASE_KEY(GHOST_kKeyF11, "F11");
+    CASE_KEY(GHOST_kKeyF12, "F12");
+    CASE_KEY(GHOST_kKeyF13, "F13");
+    CASE_KEY(GHOST_kKeyF14, "F14");
+    CASE_KEY(GHOST_kKeyF15, "F15");
+    CASE_KEY(GHOST_kKeyF16, "F16");
+    CASE_KEY(GHOST_kKeyF17, "F17");
+    CASE_KEY(GHOST_kKeyF18, "F18");
+    CASE_KEY(GHOST_kKeyF19, "F19");
+    CASE_KEY(GHOST_kKeyF20, "F20");
+    CASE_KEY(GHOST_kKeyF21, "F21");
+    CASE_KEY(GHOST_kKeyF22, "F22");
+    CASE_KEY(GHOST_kKeyF23, "F23");
+    CASE_KEY(GHOST_kKeyF24, "F24");
+
+    CASE_KEY(GHOST_kKeyUnknown, "Unknown");
+
+    CASE_KEY(GHOST_kKeyComma, ",");
+    CASE_KEY(GHOST_kKeyMinus, "-");
+    CASE_KEY(GHOST_kKeyPlus, "=");
+    CASE_KEY(GHOST_kKeyPeriod, ".");
+    CASE_KEY(GHOST_kKeySlash, "/");
+    CASE_KEY(GHOST_kKey0, "0");
+    CASE_KEY(GHOST_kKey1, "1");
+    CASE_KEY(GHOST_kKey2, "2");
+    CASE_KEY(GHOST_kKey3, "3");
+    CASE_KEY(GHOST_kKey4, "4");
+    CASE_KEY(GHOST_kKey5, "5");
+    CASE_KEY(GHOST_kKey6, "6");
+    CASE_KEY(GHOST_kKey7, "7");
+    CASE_KEY(GHOST_kKey8, "8");
+    CASE_KEY(GHOST_kKey9, "9");
+    CASE_KEY(GHOST_kKeySemicolon, ";");
+    CASE_KEY(GHOST_kKeyEqual, "=");
+    CASE_KEY(GHOST_kKeyA, "A");
+    CASE_KEY(GHOST_kKeyB, "B");
+    CASE_KEY(GHOST_kKeyC, "C");
+    CASE_KEY(GHOST_kKeyD, "D");
+    CASE_KEY(GHOST_kKeyE, "E");
+    CASE_KEY(GHOST_kKeyF, "F");
+    CASE_KEY(GHOST_kKeyG, "G");
+    CASE_KEY(GHOST_kKeyH, "H");
+    CASE_KEY(GHOST_kKeyI, "I");
+    CASE_KEY(GHOST_kKeyJ, "J");
+    CASE_KEY(GHOST_kKeyK, "K");
+    CASE_KEY(GHOST_kKeyL, "L");
+    CASE_KEY(GHOST_kKeyM, "M");
+    CASE_KEY(GHOST_kKeyN, "N");
+    CASE_KEY(GHOST_kKeyO, "O");
+    CASE_KEY(GHOST_kKeyP, "P");
+    CASE_KEY(GHOST_kKeyQ, "Q");
+    CASE_KEY(GHOST_kKeyR, "R");
+    CASE_KEY(GHOST_kKeyS, "S");
+    CASE_KEY(GHOST_kKeyT, "T");
+    CASE_KEY(GHOST_kKeyU, "U");
+    CASE_KEY(GHOST_kKeyV, "V");
+    CASE_KEY(GHOST_kKeyW, "W");
+    CASE_KEY(GHOST_kKeyX, "X");
+    CASE_KEY(GHOST_kKeyY, "Y");
+    CASE_KEY(GHOST_kKeyZ, "Z");
+    CASE_KEY(GHOST_kKeyLeftBracket, "[");
+    CASE_KEY(GHOST_kKeyRightBracket, "]");
+  }
+
+#undef CASE_KEY
+
+  /* Shouldn't happen (the value is not known to #GHOST_TKey). */
+  if (tstr == nullptr) {
+    tstr = "Invalid";
+  }
+  return tstr;
 }
