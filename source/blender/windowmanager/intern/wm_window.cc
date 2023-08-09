@@ -1355,9 +1355,9 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         wm_window_make_drawable(wm, win);
 #if 0
-/* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
-* however this causes window flickering on resize with LIBDECOR under WAYLAND. */
-wm_window_swap_buffers(win);
+        /* NOTE(@ideasman42): Ideally we could swap-buffers to avoid a full redraw.
+         * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
+        wm_window_swap_buffers(win);
 #else
         WM_event_add_notifier(C, NC_WINDOW, nullptr);
 #endif
