@@ -59,7 +59,7 @@ void BLI_system_backtrace(FILE *fp)
 
 /* copied from BLI_file_older */
 #include <sys/stat.h>
-static int file_older(const char *file1, const char *file2)
+static bool file_older(const char *file1, const char *file2)
 {
   struct stat st1, st2;
   if (debugSRNA > 0) {
@@ -604,7 +604,7 @@ static bool rna_parameter_is_const(const PropertyDefRNA *dparm)
   return (dparm->prop->arraydimension) && ((dparm->prop->flag_parameter & PARM_OUTPUT) == 0);
 }
 
-static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
+static bool rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 {
   return ((prop->type == PROP_FLOAT) && ELEM(prop->subtype, PROP_COLOR, PROP_COLOR_GAMMA) &&
           (IS_DNATYPE_FLOAT_COMPAT(dp->dnatype) == 0));
@@ -5287,25 +5287,26 @@ static const char *cpp_classes =
     "\n"
     "\n";
 
-static int rna_is_collection_prop(PropertyRNA *prop)
+static bool rna_is_collection_prop(PropertyRNA *prop)
 {
   if (!(prop->flag & PROP_IDPROPERTY || prop->flag_internal & PROP_INTERN_BUILTIN)) {
     if (prop->type == PROP_COLLECTION) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
-static int rna_is_collection_functions_struct(const char **collection_structs,
-                                              const char *struct_name)
+static bool rna_is_collection_functions_struct(const char **collection_structs,
+                                               const char *struct_name)
 {
-  int a = 0, found = 0;
+  int a = 0;
+  bool found = false;
 
   while (collection_structs[a]) {
     if (STREQ(collection_structs[a], struct_name)) {
-      found = 1;
+      found = true;
       break;
     }
     a++;
