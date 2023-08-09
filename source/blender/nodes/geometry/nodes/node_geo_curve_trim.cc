@@ -12,6 +12,8 @@
 
 #include "GEO_trim_curves.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_trim_cc {
@@ -181,6 +183,30 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_SAMPLE_FACTOR,
+       "FACTOR",
+       0,
+       "Factor",
+       "Find the endpoint positions using a factor of each spline's length"},
+      {GEO_NODE_CURVE_RESAMPLE_LENGTH,
+       "LENGTH",
+       0,
+       "Length",
+       "Find the endpoint positions using a length from the start of each spline"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "How to find endpoint positions for the trimmed spline",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode));
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -194,6 +220,8 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

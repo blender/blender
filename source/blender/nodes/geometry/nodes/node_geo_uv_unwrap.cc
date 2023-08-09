@@ -12,6 +12,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_uv_unwrap_cc {
@@ -187,6 +189,27 @@ static void node_geo_exec(GeoNodeExecParams params)
                         selection_field, seam_field, fill_holes, margin, method)));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem method_items[] = {
+      {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED,
+       "ANGLE_BASED",
+       0,
+       "Angle Based",
+       "This method gives a good 2D representation of a mesh"},
+      {GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL,
+       "CONFORMAL",
+       0,
+       "Conformal",
+       "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
+       "mapping than Angle Based, but works better for simpler objects"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(
+      srna, "method", "Method", "", method_items, NOD_storage_enum_accessors(method));
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -199,6 +222,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
