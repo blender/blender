@@ -6,6 +6,8 @@
 
 #include "RNA_define.h"
 
+#include "WM_types.hh" /* For notifier defines */
+
 void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 
