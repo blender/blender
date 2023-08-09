@@ -893,8 +893,9 @@ static int select_random_exec(bContext *C, wmOperator *op)
     const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
 
     IndexMaskMemory memory;
-    const IndexMask random_elements = random_mask(
-        curves, selection_domain, seed, probability, memory);
+    const IndexMask inv_random_elements = random_mask(
+                                              curves, selection_domain, seed, probability, memory)
+                                              .complement(curves.points_range(), memory);
 
     const bool was_anything_selected = has_anything_selected(curves);
     bke::GSpanAttributeWriter selection = ensure_selection_attribute(
@@ -903,7 +904,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
       curves::fill_selection_true(selection.span);
     }
 
-    curves::fill_selection_false(selection.span, random_elements);
+    curves::fill_selection_false(selection.span, inv_random_elements);
     selection.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
