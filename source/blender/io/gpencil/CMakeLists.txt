@@ -15,7 +15,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/guardedalloc
-  ../../../../intern/utfconv 
+  ../../../../intern/utfconv
 )
 
 set(INC_SYS

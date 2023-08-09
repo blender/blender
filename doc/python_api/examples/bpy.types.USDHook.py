@@ -48,6 +48,7 @@ import pxr.Sdf as Sdf
 import pxr.Usd as Usd
 import pxr.UsdShade as UsdShade
 
+
 class USDHookExample(bpy.types.USDHook):
     bl_idname = "usd_hook_example"
     bl_label = "Example"
@@ -97,10 +98,12 @@ class USDHookExample(bpy.types.USDHook):
 
 
 def register():
-  bpy.utils.register_class(USDHookExample)
+    bpy.utils.register_class(USDHookExample)
+
 
 def unregister():
-  bpy.utils.unregister_class(USDHookExample)
+    bpy.utils.unregister_class(USDHookExample)
+
 
 if __name__ == "__main__":
     register()
