@@ -177,7 +177,7 @@ template<typename T> const T &get_socket_data_as(const bNodeTreeInterfaceSocket 
 }
 
 inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
-                                                                const bNode &from_node,
+                                                                const bNode & /*from_node*/,
                                                                 const bNodeSocket &from_sock,
                                                                 const StringRefNull socket_type,
                                                                 const StringRefNull name)

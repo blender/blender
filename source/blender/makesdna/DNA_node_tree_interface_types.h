@@ -275,13 +275,13 @@ typedef struct bNodeTreeInterface {
 
   /**
    * Add a new panel at the end of the items list.
-   * \param parent: Panel in which the new panel is aded as a child. If parent is null the new
+   * \param parent: Panel in which the new panel is added as a child. If parent is null the new
    * panel is made a child of the root panel.
    */
   bNodeTreeInterfacePanel *add_panel(blender::StringRefNull name, bNodeTreeInterfacePanel *parent);
   /**
    * Insert a new panel.
-   * \param parent: Panel in which the new panel is aded as a child. If parent is null the new
+   * \param parent: Panel in which the new panel is added as a child. If parent is null the new
    * panel is made a child of the root panel.
    * \param position: Position of the child panel within the parent panel.
    */

@@ -5503,7 +5503,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   FILE *file;
   char deffile[4096];
   int i;
-  /* The exit code (returned from this funciton). */
+  /* The exit code (returned from this function). */
   int status = EXIT_SUCCESS;
   const char *deps[3]; /* expand as needed */
 
