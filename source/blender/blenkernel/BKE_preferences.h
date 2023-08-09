@@ -15,6 +15,7 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 struct UserDef;
+struct bUserExtensionRepo;
 struct bUserAssetLibrary;
 
 /* -------------------------------------------------------------------- */
@@ -71,6 +72,31 @@ int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Extension Repositories
+ * \{ */
+
+bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
+                                                       const char *name,
+                                                       const char *dirpath);
+void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo *repo);
+
+void BKE_preferences_extension_repo_name_set(UserDef *userdef,
+                                             bUserExtensionRepo *repo,
+                                             const char *name);
+void BKE_preferences_extension_repo_module_set(UserDef *userdef,
+                                               bUserExtensionRepo *repo,
+                                               const char *module);
+
+void BKE_preferences_extension_repo_path_set(bUserExtensionRepo *repo, const char *path);
+bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index);
+bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef *userdef,
+                                                                  const char *module);
+int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
+                                             const bUserExtensionRepo *repo);
 
 /** \} */
 

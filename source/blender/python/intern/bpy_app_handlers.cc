@@ -90,6 +90,11 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"composite_cancel", "on a compositing background job (cancel)"},
     {"animation_playback_pre", "on starting animation playback"},
     {"animation_playback_post", "on ending animation playback"},
+    /* NOTE(@ideasman42): This avoids bad-level calls into BPY API
+     * but should not be considered part of the public Python API.
+     * If there is a compelling reason to make these public, the leading `_` can be removed. */
+    {"_extension_repos_update_pre", "on changes to extension repos (before)"},
+    {"_extension_repos_update_post", "on changes to extension repos (after)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

@@ -209,6 +209,11 @@ typedef struct AssetHandle {
   const struct FileDirEntry *file_data;
 } AssetHandle;
 
+typedef enum eUserExtensionRepo_Flag {
+  /** Maintain disk cache. */
+  USER_EXTENSION_FLAG_NO_CACHE = 1 << 0,
+} eUserExtensionRepo_Flag;
+
 #ifdef __cplusplus
 }
 #endif

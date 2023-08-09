@@ -934,6 +934,10 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
     BLO_write_struct(writer, bUserAssetLibrary, asset_library_ref);
   }
 
+  LISTBASE_FOREACH (const bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
+    BLO_write_struct(writer, bUserExtensionRepo, repo_ref);
+  }
+
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
     BLO_write_struct(writer, uiStyle, style);
   }

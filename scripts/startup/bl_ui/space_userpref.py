@@ -1532,6 +1532,62 @@ class USERPREF_UL_asset_libraries(bpy.types.UIList):
             layout.prop(asset_library, "name", text="", emboss=False)
 
 
+class USERPREF_PT_file_paths_extension_repos(FilePathsPanel, Panel):
+    bl_label = "Extension Repositories"
+
+    @classmethod
+    def poll(cls, context):
+        return context.preferences.experimental.use_extension_repos
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False
+
+        paths = context.preferences.filepaths
+        active_library_index = paths.active_extension_repo
+
+        row = layout.row()
+
+        row.template_list(
+            "USERPREF_UL_extension_repos", "user_extension_repos",
+            paths, "extension_repos",
+            paths, "active_extension_repo"
+        )
+
+        col = row.column(align=True)
+        col.operator("preferences.extension_repo_add", text="", icon='ADD')
+        props = col.operator("preferences.extension_repo_remove", text="", icon='REMOVE')
+        props.index = active_library_index
+
+        try:
+            active_repo = None if active_library_index < 0 else paths.extension_repos[active_library_index]
+        except IndexError:
+            active_repo = None
+
+        if active_repo is None:
+            return
+
+        layout.separator()
+
+        layout.prop(active_repo, "directory")
+        layout.prop(active_repo, "remote_path")
+        row = layout.row()
+        row.prop(active_repo, "use_cache")
+        row.prop(active_repo, "module")
+
+
+class USERPREF_UL_extension_repos(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        repo = item
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(repo, "name", text="", emboss=False)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.prop(repo, "name", text="", emboss=False)
+
+
 # -----------------------------------------------------------------------------
 # Save/Load Panels
 
@@ -2427,6 +2483,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "enable_workbench_next"}, ("blender/blender/issues/101619", "#101619")),
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
+                ({"property": "use_extension_repos"}, ("/blender/blender/issues/106254", "#106254")),
             ),
         )
 
@@ -2540,6 +2597,7 @@ classes = (
     USERPREF_PT_text_editor_presets,
     USERPREF_PT_file_paths_development,
     USERPREF_PT_file_paths_asset_libraries,
+    USERPREF_PT_file_paths_extension_repos,
 
     USERPREF_PT_saveload_blend,
     USERPREF_PT_saveload_blend_autosave,
@@ -2577,6 +2635,7 @@ classes = (
 
     # UI lists
     USERPREF_UL_asset_libraries,
+    USERPREF_UL_extension_repos,
 
     # Add dynamically generated editor theme panels last,
     # so they show up last in the theme section.

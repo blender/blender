@@ -3377,6 +3377,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->autoexec_paths);
   BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
+  BLO_read_list(reader, &user->extension_repos);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {
     keymap->modal_items = nullptr;

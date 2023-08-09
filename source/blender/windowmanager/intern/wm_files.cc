@@ -2408,11 +2408,14 @@ static void wm_userpref_update_when_changed(bContext *C,
 
 static int wm_userpref_read_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   const bool use_data = false;
   const bool use_userdef = true;
   const bool use_factory_settings = STREQ(op->type->idname, "WM_OT_read_factory_userpref");
   const bool use_factory_settings_app_template_only =
       (use_factory_settings && RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only"));
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
   UserDef U_backup = blender::dna::shallow_copy(U);
 
@@ -2430,13 +2433,13 @@ static int wm_userpref_read_exec(bContext *C, wmOperator *op)
   wm_userpref_read_exceptions(&U, &U_backup);
   SET_FLAG_FROM_TEST(G.f, use_factory_settings, G_FLAG_USERPREF_NO_SAVE_ON_EXIT);
 
-  Main *bmain = CTX_data_main(C);
-
   wm_userpref_update_when_changed(C, bmain, &U_backup, &U);
 
   if (use_factory_settings) {
     U.runtime.is_dirty = true;
   }
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 
   /* Needed to recalculate UI scaling values (eg, #UserDef.inv_dpi_fac). */
   wm_window_clear_drawable(static_cast<wmWindowManager *>(bmain->wm.first));
@@ -2570,6 +2573,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     app_template = WM_init_state_app_template_get();
   }
 
+  if (use_userdef) {
+    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  }
+
   wmHomeFileRead_Params read_homefile_params{};
   read_homefile_params.use_data = true;
   read_homefile_params.use_userdef = use_userdef;
@@ -2592,6 +2599,10 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     if (use_factory_settings) {
       U.runtime.is_dirty = true;
     }
+  }
+
+  if (use_userdef) {
+    BKE_callback_exec_null(CTX_data_main(C), BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
   }
 
   if (G.fileflags & G_FILE_NO_UI) {

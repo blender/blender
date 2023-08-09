@@ -541,7 +541,10 @@ typedef struct bTheme {
 
 typedef struct bAddon {
   struct bAddon *next, *prev;
-  char module[64];
+  /**
+   * 64 characters for a package prefix, 63 characters for the add-on name.
+   */
+  char module[128];
   /** User-Defined Properties on this add-on (for storing preferences). */
   IDProperty *prop;
 } bAddon;
@@ -610,6 +613,28 @@ typedef struct bUserAssetLibrary {
   short flag;          /* eAssetLibrary_Flag */
   char _pad0[4];
 } bUserAssetLibrary;
+
+typedef struct bUserExtensionRepo {
+  struct bUserExtensionRepo *next, *prev;
+  /**
+   * Unique identifier, only for display in the UI list.
+   * The `module` is used for internal identifiers.
+   */
+  char name[64]; /* MAX_NAME */
+  /**
+   * The unique module name (sub-module) in fact.
+   *
+   * Use a shorter name than #NAME_MAX to leave room for a base module prefix.
+   * e.g. `bl_ext.{submodule}.{add_on}` to allow this string to fit into #bAddon::module.
+   */
+  char module[48];
+
+  char dirpath[1024];     /* FILE_MAX */
+  char remote_path[1024]; /* FILE_MAX */
+
+  int flag;
+  char _pad0[4];
+} bUserExtensionRepo;
 
 typedef struct SolidLight {
   int flag;
@@ -694,7 +719,8 @@ typedef struct UserDef_Experimental {
   char use_node_group_operators;
   char use_shader_node_previews;
   char use_asset_shelf;
-  char _pad[7];
+  char use_extension_repos;
+  char _pad[6];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -832,11 +858,18 @@ typedef struct UserDef {
   struct ListBase user_menus;
   /** #bUserAssetLibrary */
   struct ListBase asset_libraries;
+  /** #bUserExtensionRepo */
+  struct ListBase extension_repos;
 
   char keyconfigstr[64];
 
   /** Index of the asset library being edited in the Preferences UI. */
   short active_asset_library;
+
+  /** Index of the extension repo in the Preferences UI. */
+  short active_extension_repo;
+
+  char _pad14[6];
 
   short undosteps;
   int undomemory;

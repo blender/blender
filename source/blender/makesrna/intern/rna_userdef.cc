@@ -18,6 +18,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_utildefines.h"
 #ifdef WIN32
@@ -28,6 +29,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
+#include "BKE_callbacks.h"
 #include "BKE_sound.h"
 #include "BKE_studiolight.h"
 
@@ -292,6 +294,16 @@ static void rna_userdef_screen_update_header_default(Main *bmain, Scene *scene, 
   USERDEF_TAG_DIRTY;
 }
 
+static void rna_PreferencesExperimental_use_extension_repos_set(PointerRNA * /*ptr*/, bool value)
+{
+  Main *bmain = G.main;
+  if (U.experimental.use_extension_repos != value) {
+    BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+    U.experimental.use_extension_repos = value;
+    BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+  }
+}
+
 static void rna_userdef_font_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   BLF_cache_clear();
@@ -323,6 +335,30 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
 {
   bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
   BKE_preferences_asset_library_path_set(library, value);
+}
+
+static void rna_userdef_extension_repo_name_set(PointerRNA *ptr, const char *value)
+{
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_preferences_extension_repo_name_set(&U, repo, value);
+}
+
+static void rna_userdef_extension_repo_module_set(PointerRNA *ptr, const char *value)
+{
+  Main *bmain = G.main;
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  BKE_preferences_extension_repo_module_set(&U, repo, value);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+}
+
+static void rna_userdef_extension_repo_directory_set(PointerRNA *ptr, const char *value)
+{
+  Main *bmain = G.main;
+  bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+  BKE_preferences_extension_repo_path_set(repo, value);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 }
 
 static void rna_userdef_script_autoexec_update(Main * /*bmain*/,
@@ -814,6 +850,35 @@ static int rna_lang_enum_properties_get_no_international(PointerRNA * /*ptr*/)
   return 0;
 }
 #  endif
+
+static void rna_Addon_module_set(PointerRNA *ptr, const char *value)
+{
+  bAddon *addon = (bAddon *)ptr->data;
+  size_t module_len = STRNCPY_UTF8_RLEN(addon->module, value);
+
+  /* Reserve half of `bAddon::module` for a package component.
+   * Ensure the trailing component is less than half `sizeof(bAddon::module)`.
+   * This is needed because the size of the add-on name should never work on not depending on
+   * the user defined module prefix. Trimming off the trailing characters is a silent failure
+   * however there isn't a practical way to notify the user an over long name was used.
+   * In practice this is something only add-on developers should run into,
+   * so it's more of a paper cut for developers. */
+  const size_t submodule_len_limit = sizeof(bAddon::module) / 2;
+  if (UNLIKELY(module_len >= submodule_len_limit)) {
+    char *submodule_end = addon->module + module_len;
+    char *submodule_beg = addon->module;
+    for (size_t i = module_len - 1; i > 0; i--) {
+      if (addon->module[i] == '.') {
+        submodule_beg = addon->module + i;
+        break;
+      }
+    }
+    if ((submodule_end - submodule_beg) > submodule_len_limit) {
+      submodule_beg[submodule_len_limit] = '\0';
+      BLI_str_utf8_invalid_strip(submodule_beg, submodule_len_limit);
+    }
+  }
+}
 
 static IDProperty **rna_AddonPref_idprops(PointerRNA *ptr)
 {
@@ -4208,6 +4273,7 @@ static void rna_def_userdef_addon(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Module", "Module name");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Addon_module_set");
   RNA_def_struct_name_property(srna, prop);
 
   /* Collection active property */
@@ -6356,6 +6422,52 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
       prop, "Relative Path", "Use relative path when linking assets from this asset library");
 }
 
+static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "UserExtensionRepo", nullptr);
+  RNA_def_struct_sdna(srna, "bUserExtensionRepo");
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "Extension Repo", "Settings to define an extension repository");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Name", "Unique repository name");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_extension_repo_name_set");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Module", "Unique module identifier");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_extension_repo_module_set");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, nullptr, "dirpath");
+  RNA_def_property_ui_text(prop, "Local Directory", "The local directory containing extensions");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_userdef_extension_repo_directory_set");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  prop = RNA_def_property(srna, "remote_path", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "remote_path");
+  RNA_def_property_ui_text(prop, "Remote Path", "Remote URL or path for extensions repository");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+  /* NOTE(@ideasman42): this is intended to be used by a package manger component
+   * which is not yet integrated. */
+  prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", USER_EXTENSION_FLAG_NO_CACHE);
+  RNA_def_property_ui_text(
+      prop,
+      "Local Cache",
+      "Store packages in local cache, "
+      "otherwise downloaded package files are immediately deleted after installation");
+}
+
 static void rna_def_userdef_script_directory(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "ScriptDirectory", nullptr);
@@ -6633,6 +6745,18 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Active Asset Library",
                            "Index of the asset library being edited in the Preferences UI");
+
+  rna_def_userdef_filepaths_extension_repo(brna);
+
+  prop = RNA_def_property(srna, "extension_repos", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "UserExtensionRepo");
+  RNA_def_property_ui_text(prop, "Extension Repos", "");
+
+  prop = RNA_def_property(srna, "active_extension_repo", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Active Extension Repo",
+                           "Index of the extensions repo being edited in the Preferences UI");
+
   /* Tag for UI-only update, meaning preferences will not be tagged as changed. */
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 }
@@ -6813,6 +6937,17 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Shader Node Previews", "Enables previews in the shader node editor");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
+
+  prop = RNA_def_property(srna, "use_extension_repos", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Extension Repositories",
+      "Enables extension repositories, "
+      "accessible from the \"Extension Repositories\" panel in the "
+      "\"File Paths\" section of the preferences. "
+      "These paths are exposed as add-ons, package management is not yet integrated");
+  RNA_def_property_boolean_funcs(
+      prop, nullptr, "rna_PreferencesExperimental_use_extension_repos_set");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
