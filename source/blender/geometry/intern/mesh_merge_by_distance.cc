@@ -54,7 +54,7 @@ struct WeldLoop {
       int vert;
       int edge;
       int loop_orig;
-      int loop_skip_to;
+      int loop_next;
     };
   };
 };
@@ -67,7 +67,6 @@ struct WeldPoly {
       int poly_dst;
       int poly_orig;
       int loop_start;
-      int loop_end;
       /* Final Polygon Size. */
       int loop_len;
       /* Group of loops that will be affected. */
@@ -108,8 +107,11 @@ struct WeldMesh {
 };
 
 struct WeldLoopOfPolyIter {
-  int loop_start;
-  int loop_end;
+  int loop_orig_start;
+  int loop_orig_next;
+  int loop_len;
+  int loop_iter;
+
   Span<WeldLoop> wloop;
   Span<int> corner_verts;
   Span<int> corner_edges;
@@ -117,14 +119,10 @@ struct WeldLoopOfPolyIter {
   /* Weld group. */
   int *group;
 
-  int l_curr;
-  int l_next;
-
   /* Return */
   int group_len;
   int v;
   int e;
-  char type;
 };
 
 /* -------------------------------------------------------------------- */
@@ -190,9 +188,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
           int loop_ctx = weld_mesh->loop_map[l];
           if (loop_ctx != OUT_OF_CONTEXT) {
             const WeldLoop *wl = &weld_mesh->wloop[loop_ctx];
-            if (wl->loop_skip_to != OUT_OF_CONTEXT) {
-              l_next = wl->loop_skip_to;
-            }
+            l_next = wl->loop_next;
             if (wl->flag != ELEM_COLLAPSED) {
               loop_kills--;
               remain--;
@@ -224,9 +220,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
       int loop_ctx = weld_mesh->loop_map[l];
       if (loop_ctx != OUT_OF_CONTEXT) {
         const WeldLoop *wl = &weld_mesh->wloop[loop_ctx];
-        if (wl->loop_skip_to != OUT_OF_CONTEXT) {
-          l_next = wl->loop_skip_to;
-        }
+        l_next = wl->loop_next;
         if (wl->flag != ELEM_COLLAPSED) {
           loop_kills--;
           remain--;
@@ -250,6 +244,7 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
                                                 const Span<int> corner_edges,
                                                 Span<int> loop_map)
 {
+  int i = 0;
   const int loop_len = wp.loop_len;
   Array<int, 64> verts(loop_len);
   WeldLoopOfPolyIter iter;
@@ -258,12 +253,14 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
     return;
   }
   else {
-    int i = 0;
     while (weld_iter_loop_of_poly_next(iter)) {
       verts[i++] = iter.v;
     }
   }
-  for (int i = 0; i < loop_len; i++) {
+
+  BLI_assert(i == loop_len);
+
+  for (i = 0; i < loop_len; i++) {
     int va = verts[i];
     for (int j = i + 1; j < loop_len; j++) {
       int vb = verts[j];
@@ -287,15 +284,13 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
 
   int min_len = 0;
   for (; wl <= wl_end; wl++) {
-    BLI_assert(wl->loop_skip_to == OUT_OF_CONTEXT); /* Not for this case. */
+    BLI_assert(
+        ELEM(wl->loop_next, wp->loop_start, (wl->loop_orig + 1))); /* Call before split faces. */
     if (wl->flag != ELEM_COLLAPSED) {
       min_len++;
     }
   }
   BLI_assert(loop_len >= min_len);
-
-  int max_len = wp->loop_end - wp->loop_start + 1;
-  BLI_assert(loop_len <= max_len);
 }
 
 #endif /* USE_WELD_DEBUG */
@@ -513,8 +508,11 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter &iter,
     return false;
   }
 
-  iter.loop_start = wp.loop_start;
-  iter.loop_end = wp.loop_end;
+  iter.loop_orig_start = wp.loop_start;
+  iter.loop_orig_next = wp.loop_start;
+  iter.loop_len = wp.loop_len;
+  iter.loop_iter = 0;
+
   iter.wloop = wloop;
   iter.corner_verts = corner_verts;
   iter.corner_edges = corner_edges;
@@ -523,32 +521,23 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter &iter,
 
   int group_len = 0;
   if (group_buffer) {
-    /* First loop group needs more attention. */
-    int loop_start, loop_end, l;
-    loop_start = iter.loop_start;
-    loop_end = l = iter.loop_end;
-    while (l >= loop_start) {
-      const int loop_ctx = loop_map[l];
-      if (loop_ctx != OUT_OF_CONTEXT) {
-        const WeldLoop *wl = &wloop[loop_ctx];
-        if (wl->flag == ELEM_COLLAPSED) {
-          l--;
-          continue;
-        }
-      }
-      break;
+    /* Include any final loops that are collapsed.
+     * Would it be better to move this to `weld_iter_loop_of_poly_next`? */
+    int l_next = wp.loop_start;
+    const WeldLoop *wl = &wloop[wp.loops.offs + wp.loops.len - 1];
+    while ((wl->loop_next == l_next) && (wl->flag == ELEM_COLLAPSED)) {
+      l_next = wl->loop_orig;
+      wl--;
+      group_len++;
     }
-    if (l != loop_end) {
-      group_len = loop_end - l;
-      int i = 0;
-      while (l < loop_end) {
-        iter.group[i++] = ++l;
-      }
+
+    int l = (++wl)->loop_orig;
+    for (int i : IndexRange(group_len)) {
+      iter.group[i] = l++;
     }
   }
   iter.group_len = group_len;
 
-  iter.l_next = iter.loop_start;
 #ifdef USE_WELD_DEBUG
   iter.v = OUT_OF_CONTEXT;
 #endif
@@ -557,24 +546,21 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter &iter,
 
 static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
 {
-  const int loop_end = iter.loop_end;
   Span<WeldLoop> wloop = iter.wloop;
   Span<int> loop_map = iter.loop_map;
-  int l = iter.l_curr = iter.l_next;
-  if (l == iter.loop_start) {
+  int l = iter.loop_orig_next;
+  if (l == iter.loop_orig_start) {
     /* `grupo_len` is already calculated in the first loop */
   }
   else {
     iter.group_len = 0;
   }
-  while (l <= loop_end) {
+  while (iter.loop_iter < iter.loop_len) {
     int l_next = l + 1;
     const int loop_ctx = loop_map[l];
     if (loop_ctx != OUT_OF_CONTEXT) {
       const WeldLoop *wl = &wloop[loop_ctx];
-      if (wl->loop_skip_to != OUT_OF_CONTEXT) {
-        l_next = wl->loop_skip_to;
-      }
+      l_next = wl->loop_next;
       if (wl->flag == ELEM_COLLAPSED) {
         if (iter.group) {
           iter.group[iter.group_len++] = l;
@@ -587,7 +573,6 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
 #endif
       iter.v = wl->vert;
       iter.e = wl->edge;
-      iter.type = 1;
     }
     else {
 #ifdef USE_WELD_DEBUG
@@ -595,12 +580,12 @@ static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter)
 #endif
       iter.v = iter.corner_verts[l];
       iter.e = iter.corner_edges[l];
-      iter.type = 0;
     }
     if (iter.group) {
       iter.group[iter.group_len++] = l;
     }
-    iter.l_next = l_next;
+    iter.loop_orig_next = l_next;
+    iter.loop_iter++;
     return true;
   }
 
@@ -637,40 +622,42 @@ static void weld_poly_loop_ctx_alloc(const OffsetIndices<int> faces,
   for (const int i : faces.index_range()) {
     const int loopstart = faces[i].start();
     const int totloop = faces[i].size();
+    const int loop_end = loopstart + totloop - 1;
 
     int prev_wloop_len = wloop_len;
-    for (const int i_loop : faces[i]) {
-      int v = corner_verts[i_loop];
-      int e = corner_edges[i_loop];
+    for (const int loop_orig : faces[i]) {
+      int v = corner_verts[loop_orig];
+      int e = corner_edges[loop_orig];
       int v_dest = vert_dest_map[v];
       int e_dest = edge_dest_map[e];
       bool is_vert_ctx = v_dest != OUT_OF_CONTEXT;
       bool is_edge_ctx = e_dest != OUT_OF_CONTEXT;
       if (is_vert_ctx || is_edge_ctx) {
-        WeldLoop wl{};
+        wloop.increase_size_by_unchecked(1);
+
+        WeldLoop &wl = wloop.last();
         wl.vert = is_vert_ctx ? v_dest : v;
         wl.edge = is_edge_ctx ? e_dest : e;
-        wl.loop_orig = i_loop;
-        wl.loop_skip_to = OUT_OF_CONTEXT;
-        wloop.append(wl);
+        wl.loop_orig = loop_orig;
+        wl.loop_next = loop_orig == loop_end ? loopstart : loop_orig + 1;
 
-        loop_map[i_loop] = wloop_len++;
+        loop_map[loop_orig] = wloop_len++;
       }
       else {
-        loop_map[i_loop] = OUT_OF_CONTEXT;
+        loop_map[loop_orig] = OUT_OF_CONTEXT;
       }
     }
     if (wloop_len != prev_wloop_len) {
+      wpoly.increase_size_by_unchecked(1);
+
+      WeldPoly &wp = wpoly.last();
       int loops_len = wloop_len - prev_wloop_len;
-      WeldPoly wp{};
       wp.poly_dst = OUT_OF_CONTEXT;
       wp.poly_orig = i;
       wp.loops.len = loops_len;
       wp.loops.offs = prev_wloop_len;
       wp.loop_start = loopstart;
-      wp.loop_end = loopstart + totloop - 1;
       wp.loop_len = totloop;
-      wpoly.append(wp);
 
       face_map[i] = wpoly_len++;
       if (totloop > 5 && loops_len > 1) {
@@ -740,7 +727,6 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
       int killed_ab = 0;
       ctx_verts_len = 1;
       for (; lb < ctx_loops_len; lb++, wlb++) {
-        BLI_assert(wlb->loop_skip_to == OUT_OF_CONTEXT);
         if (wlb->flag == ELEM_COLLAPSED) {
           killed_ab++;
           continue;
@@ -795,7 +781,6 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               new_wp->loops.len = new_loops_len;
               new_wp->loops.offs = new_loops_ofs;
               new_wp->loop_start = wla->loop_orig;
-              new_wp->loop_end = wlb_prev->loop_orig;
               new_wp->loop_len = dist_a;
               r_weld_mesh->wpoly_new_len++;
               weld_poly_split_recursive(vert_dest_map,
@@ -816,7 +801,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               }
               else {
                 /* The `loop_start` doesn't change but some loops must be skipped. */
-                wla_prev->loop_skip_to = wlb->loop_orig;
+                wla_prev->loop_next = wlb->loop_orig;
               }
               wla = wlb;
               la = lb;
