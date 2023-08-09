@@ -77,6 +77,12 @@ struct FallbackTransform {
     applyRGB(pixel);
   }
 
+  bool isNoOp()
+  {
+    /* Rely on the short-circuiting based on name-space comparison in the IMB_colormanagement. */
+    return false;
+  }
+
   TransformType type;
   /* Scale transform. */
   float scale;
@@ -97,6 +103,11 @@ struct FallbackProcessor {
   void applyRGBA(float *pixel)
   {
     transform.applyRGBA(pixel);
+  }
+
+  bool isNoOp()
+  {
+    return transform.isNoOp();
   }
 
   FallbackTransform transform;
@@ -335,6 +346,11 @@ OCIO_ConstCPUProcessorRcPtr *FallbackImpl::processorGetCPUProcessor(
 void FallbackImpl::processorRelease(OCIO_ConstProcessorRcPtr *processor)
 {
   delete (FallbackProcessor *)(processor);
+}
+
+bool FallbackImpl::cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
+{
+  return ((FallbackProcessor *)cpu_processor)->isNoOp();
 }
 
 void FallbackImpl::cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,

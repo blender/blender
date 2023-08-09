@@ -189,6 +189,11 @@ OCIO_ConstCPUProcessorRcPtr *OCIO_processorGetCPUProcessor(OCIO_ConstProcessorRc
   return impl->processorGetCPUProcessor(processor);
 }
 
+bool OCIO_cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
+{
+  return impl->cpuProcessorIsNoOp(cpu_processor);
+}
+
 void OCIO_cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img)
 {
   impl->cpuProcessorApply(cpu_processor, img);

@@ -1930,8 +1930,6 @@ static void colormanagement_transform_ex(uchar *byte_buffer,
                                          bool predivide,
                                          bool do_threaded)
 {
-  ColormanageProcessor *cm_processor;
-
   if (from_colorspace[0] == '\0') {
     return;
   }
@@ -1943,7 +1941,12 @@ static void colormanagement_transform_ex(uchar *byte_buffer,
     return;
   }
 
-  cm_processor = IMB_colormanagement_colorspace_processor_new(from_colorspace, to_colorspace);
+  ColormanageProcessor *cm_processor = IMB_colormanagement_colorspace_processor_new(
+      from_colorspace, to_colorspace);
+  if (IMB_colormanagement_processor_is_noop(cm_processor)) {
+    IMB_colormanagement_processor_free(cm_processor);
+    return;
+  }
 
   if (do_threaded) {
     processor_transform_apply_threaded(
@@ -3849,6 +3852,18 @@ ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *f
   OCIO_processorRelease(processor);
 
   return cm_processor;
+}
+
+bool IMB_colormanagement_processor_is_noop(ColormanageProcessor *cm_processor)
+{
+  if (cm_processor->curve_mapping) {
+    /* Consider processor which has curve mapping as a non no-op.
+     * This is mainly for the simplicity of the check, since the current cases where this function
+     * is used the curve mapping is never assigned. */
+    return false;
+  }
+
+  return OCIO_cpuProcessorIsNoOp(cm_processor->cpu_processor);
 }
 
 void IMB_colormanagement_processor_apply_v4(ColormanageProcessor *cm_processor, float pixel[4])
