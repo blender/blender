@@ -423,7 +423,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientWidth(uint32_t width)
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if (cBnds.getWidth() != (int32_t)width) {
+  if (cBnds.getWidth() != int32_t(width)) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth() + width - cBnds.getWidth();
     int cy = wBnds.getHeight();
@@ -442,7 +442,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientHeight(uint32_t height)
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if (cBnds.getHeight() != (int32_t)height) {
+  if (cBnds.getHeight() != int32_t(height)) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth();
     int cy = wBnds.getHeight() + height - cBnds.getHeight();
@@ -461,7 +461,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientSize(uint32_t width, uint32_t height)
   GHOST_TSuccess success;
   GHOST_Rect cBnds, wBnds;
   getClientBounds(cBnds);
-  if ((cBnds.getWidth() != (int32_t)width) || (cBnds.getHeight() != (int32_t)height)) {
+  if ((cBnds.getWidth() != int32_t(width)) || (cBnds.getHeight() != int32_t(height))) {
     getWindowBounds(wBnds);
     int cx = wBnds.getWidth() + width - cBnds.getWidth();
     int cy = wBnds.getHeight() + height - cBnds.getHeight();

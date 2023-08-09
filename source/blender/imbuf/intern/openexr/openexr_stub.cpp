@@ -10,7 +10,7 @@
 
 #include "IMB_openexr.h"
 
-void *IMB_exr_get_handle(void)
+void *IMB_exr_get_handle()
 {
   return nullptr;
 }
@@ -42,7 +42,7 @@ bool IMB_exr_begin_write(void * /*handle*/,
                          int /*width*/,
                          int /*height*/,
                          int /*compress*/,
-                         const struct StampData * /*stamp*/)
+                         const StampData * /*stamp*/)
 {
   return false;
 }

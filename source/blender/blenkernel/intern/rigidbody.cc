@@ -2397,29 +2397,25 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
 {
   zero_v3(r_center);
 }
-struct RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
+RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 {
   return nullptr;
 }
-struct RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
+RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
 {
   return nullptr;
 }
-void BKE_rigidbody_world_groups_relink(struct RigidBodyWorld *rbw) {}
-void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
-                                 RigidbodyWorldIDFunc func,
-                                 void *userdata)
-{
-}
-struct RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
+void BKE_rigidbody_world_groups_relink(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_world_id_loop(RigidBodyWorld *rbw, RigidbodyWorldIDFunc func, void *userdata) {}
+RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 {
   return nullptr;
 }
-struct RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type)
+RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type)
 {
   return nullptr;
 }
-struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
+RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
 {
   return nullptr;
 }
@@ -2432,9 +2428,7 @@ bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, R
   return false;
 }
 
-void BKE_rigidbody_remove_object(struct Main *bmain, Scene *scene, Object *ob, const bool free_us)
-{
-}
+void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bool free_us) {}
 void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us) {}
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(

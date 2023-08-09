@@ -21,9 +21,9 @@
  * - object_id: index of object to bake (to use with the pixel_array)
  * - pixel_array: list of primitive ids and barycentric coordinates to
  *   `bake(Python object, see bake_pixel)`.
- * - pixels_num: size of pixel_array, number of pixels to bake (int)
- * - depth: depth of pixels to return (int, assuming always 4 now)
- * - result: array to be populated by the engine (float array, PyLong_AsVoidPtr)
+ * - pixels_num: size of pixel_array, number of pixels to bake `int`.
+ * - depth: depth of pixels to return (`int`, assuming always 4 now).
+ * - result: array to be populated by the engine (`float` array, #PyLong_AsVoidPtr).
  *
  * \note Normals are expected to be in World Space and in the +X, +Y, +Z orientation.
  *

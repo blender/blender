@@ -479,7 +479,7 @@ static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *d
 }
 
 /* Called by renderer, refresh the UI. */
-static void all_nodes_preview_update(void *npv, RenderResult *rr, struct rcti * /*rect*/)
+static void all_nodes_preview_update(void *npv, RenderResult *rr, rcti * /*rect*/)
 {
   ShaderNodesPreviewJob *job_data = static_cast<ShaderNodesPreviewJob *>(npv);
   *job_data->do_update = true;

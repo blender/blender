@@ -217,8 +217,7 @@ static void rna_KeyBlock_normals_vert_calc(ID *id,
     return;
   }
 
-  *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
+  *normals = static_cast<float *>(MEM_mallocN(sizeof(**normals) * size_t(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, (float(*)[3])(*normals), nullptr, nullptr);
 }
@@ -248,8 +247,7 @@ static void rna_KeyBlock_normals_poly_calc(ID *id,
     return;
   }
 
-  *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
+  *normals = static_cast<float *>(MEM_mallocN(sizeof(**normals) * size_t(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, nullptr, (float(*)[3])(*normals), nullptr);
 }
@@ -279,8 +277,7 @@ static void rna_KeyBlock_normals_loop_calc(ID *id,
     return;
   }
 
-  *normals = static_cast<float *>(
-      MEM_mallocN(sizeof(**normals) * (size_t)(*normals_num), __func__));
+  *normals = static_cast<float *>(MEM_mallocN(sizeof(**normals) * size_t(*normals_num), __func__));
 
   BKE_keyblock_mesh_calc_normals(data, me, nullptr, nullptr, (float(*)[3])(*normals));
 }

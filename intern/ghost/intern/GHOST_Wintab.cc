@@ -348,7 +348,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
        *
        * wintab.h defines orAltitude as a `uint` but documents orAltitude as positive for upward
        * angles and negative for downward angles. WACOM uses negative altitude values to show that
-       * the pen is inverted; therefore we cast orAltitude as an (int) and then use the absolute
+       * the pen is inverted; therefore we cast orAltitude as an `int` and then use the absolute
        * value.
        */
 

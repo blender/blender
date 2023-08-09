@@ -1562,51 +1562,27 @@ float BKE_ocean_jminus_to_foam(float /*jminus*/, float /*coverage*/)
   return 0.0f;
 }
 
-void BKE_ocean_eval_uv(struct Ocean * /*oc*/,
-                       struct OceanResult * /*ocr*/,
-                       float /*u*/,
-                       float /*v*/)
-{
-}
+void BKE_ocean_eval_uv(Ocean * /*oc*/, OceanResult * /*ocr*/, float /*u*/, float /*v*/) {}
 
 /* use catmullrom interpolation rather than linear */
-void BKE_ocean_eval_uv_catrom(struct Ocean * /*oc*/,
-                              struct OceanResult * /*ocr*/,
-                              float /*u*/,
-                              float /*v*/)
-{
-}
+void BKE_ocean_eval_uv_catrom(Ocean * /*oc*/, OceanResult * /*ocr*/, float /*u*/, float /*v*/) {}
 
-void BKE_ocean_eval_xz(struct Ocean * /*oc*/,
-                       struct OceanResult * /*ocr*/,
-                       float /*x*/,
-                       float /*z*/)
-{
-}
+void BKE_ocean_eval_xz(Ocean * /*oc*/, OceanResult * /*ocr*/, float /*x*/, float /*z*/) {}
 
-void BKE_ocean_eval_xz_catrom(struct Ocean * /*oc*/,
-                              struct OceanResult * /*ocr*/,
-                              float /*x*/,
-                              float /*z*/)
-{
-}
+void BKE_ocean_eval_xz_catrom(Ocean * /*oc*/, OceanResult * /*ocr*/, float /*x*/, float /*z*/) {}
 
-void BKE_ocean_eval_ij(struct Ocean * /*oc*/, struct OceanResult * /*ocr*/, int /*i*/, int /*j*/)
-{
-}
+void BKE_ocean_eval_ij(Ocean * /*oc*/, OceanResult * /*ocr*/, int /*i*/, int /*j*/) {}
 
-void BKE_ocean_simulate(struct Ocean * /*o*/, float /*t*/, float /*scale*/, float /*chop_amount*/)
-{
-}
+void BKE_ocean_simulate(Ocean * /*o*/, float /*t*/, float /*scale*/, float /*chop_amount*/) {}
 
-struct Ocean *BKE_ocean_add()
+Ocean *BKE_ocean_add()
 {
   Ocean *oc = static_cast<Ocean *>(MEM_callocN(sizeof(Ocean), "ocean sim data"));
 
   return oc;
 }
 
-bool BKE_ocean_init(struct Ocean * /*o*/,
+bool BKE_ocean_init(Ocean * /*o*/,
                     int /*M*/,
                     int /*N*/,
                     float /*Lx*/,
@@ -1632,9 +1608,9 @@ bool BKE_ocean_init(struct Ocean * /*o*/,
   return false;
 }
 
-void BKE_ocean_free_data(struct Ocean * /*oc*/) {}
+void BKE_ocean_free_data(Ocean * /*oc*/) {}
 
-void BKE_ocean_free(struct Ocean *oc)
+void BKE_ocean_free(Ocean *oc)
 {
   if (!oc) {
     return;
@@ -1644,7 +1620,7 @@ void BKE_ocean_free(struct Ocean *oc)
 
 /* ********* Baking/Caching ********* */
 
-void BKE_ocean_free_cache(struct OceanCache *och)
+void BKE_ocean_free_cache(OceanCache *och)
 {
   if (!och) {
     return;
@@ -1654,12 +1630,12 @@ void BKE_ocean_free_cache(struct OceanCache *och)
 }
 
 void BKE_ocean_cache_eval_uv(
-    struct OceanCache * /*och*/, struct OceanResult * /*ocr*/, int /*f*/, float /*u*/, float /*v*/)
+    OceanCache * /*och*/, OceanResult * /*ocr*/, int /*f*/, float /*u*/, float /*v*/)
 {
 }
 
 void BKE_ocean_cache_eval_ij(
-    struct OceanCache * /*och*/, struct OceanResult * /*ocr*/, int /*f*/, int /*i*/, int /*j*/)
+    OceanCache * /*och*/, OceanResult * /*ocr*/, int /*f*/, int /*i*/, int /*j*/)
 {
 }
 
@@ -1678,10 +1654,10 @@ OceanCache *BKE_ocean_init_cache(const char * /*bakepath*/,
   return och;
 }
 
-void BKE_ocean_simulate_cache(struct OceanCache * /*och*/, int /*frame*/) {}
+void BKE_ocean_simulate_cache(OceanCache * /*och*/, int /*frame*/) {}
 
-void BKE_ocean_bake(struct Ocean * /*o*/,
-                    struct OceanCache * /*och*/,
+void BKE_ocean_bake(Ocean * /*o*/,
+                    OceanCache * /*och*/,
                     void (*update_cb)(void *, float progress, int *cancel),
                     void * /*update_cb_data*/)
 {
@@ -1689,8 +1665,8 @@ void BKE_ocean_bake(struct Ocean * /*o*/,
   (void)update_cb;
 }
 
-bool BKE_ocean_init_from_modifier(struct Ocean * /*ocean*/,
-                                  struct OceanModifierData const * /*omd*/,
+bool BKE_ocean_init_from_modifier(Ocean * /*ocean*/,
+                                  OceanModifierData const * /*omd*/,
                                   int /*resolution*/)
 {
   return true;

@@ -45,13 +45,13 @@
  * \code{.unparsed}
  *     SDNA (4 bytes) (magic number)
  *     NAME (4 bytes)
- *     <nr> (4 bytes) amount of names (int)
+ *     <nr> (4 bytes) amount of names `int`.
  *     <string>
  *     <string>
  *     ...
  *     ...
  *     TYPE (4 bytes)
- *     <nr> amount of types (int)
+ *     <nr> amount of types `int`.
  *     <string>
  *     <string>
  *     ...
@@ -62,7 +62,7 @@
  *     ...
  *     ...
  *     STRC (4 bytes)
- *     <nr> amount of structs (int)
+ *     <nr> amount of structs `int`.
  *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
  * \endcode
  *

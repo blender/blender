@@ -1301,17 +1301,17 @@ bool BKE_sound_stream_info_get(Main *main,
 #  include "BLI_utildefines.h"
 
 void BKE_sound_force_device(const char * /*device*/) {}
-void BKE_sound_init_once(void) {}
+void BKE_sound_init_once() {}
 void BKE_sound_init(Main * /*bmain*/) {}
-void BKE_sound_exit(void) {}
-void BKE_sound_exit_once(void) {}
+void BKE_sound_exit() {}
+void BKE_sound_exit_once() {}
 void BKE_sound_cache(bSound * /*sound*/) {}
 void BKE_sound_delete_cache(bSound * /*sound*/) {}
 void BKE_sound_load(Main * /*bmain*/, bSound * /*sound*/) {}
 void BKE_sound_create_scene(Scene * /*scene*/) {}
 void BKE_sound_destroy_scene(Scene * /*scene*/) {}
-void BKE_sound_lock(void) {}
-void BKE_sound_unlock(void) {}
+void BKE_sound_lock() {}
+void BKE_sound_unlock() {}
 void BKE_sound_reset_scene_specs(Scene * /*scene*/) {}
 void BKE_sound_mute_scene(Scene * /*scene*/, int /*muted*/) {}
 void *BKE_sound_scene_add_scene_sound(Scene * /*scene*/,
@@ -1390,7 +1390,7 @@ void BKE_sound_set_scene_sound_pitch_constant_range(void * /*handle*/,
                                                     float /*pitch*/)
 {
 }
-float BKE_sound_get_length(struct Main * /*bmain*/, bSound * /*sound*/)
+float BKE_sound_get_length(Main * /*bmain*/, bSound * /*sound*/)
 {
   return 0;
 }
@@ -1402,14 +1402,12 @@ char **BKE_sound_get_device_names()
 
 void BKE_sound_free_waveform(bSound * /*sound*/) {}
 
-bool BKE_sound_info_get(struct Main * /*main*/,
-                        struct bSound * /*sound*/,
-                        SoundInfo * /*sound_info*/)
+bool BKE_sound_info_get(Main * /*main*/, bSound * /*sound*/, SoundInfo * /*sound_info*/)
 {
   return false;
 }
 
-bool BKE_sound_stream_info_get(struct Main * /*main*/,
+bool BKE_sound_stream_info_get(Main * /*main*/,
                                const char * /*filepath*/,
                                int /*stream*/,
                                SoundStreamInfo * /*sound_info*/)
