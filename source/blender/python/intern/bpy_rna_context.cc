@@ -69,16 +69,18 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
 
   self->ctx_init.win = CTX_wm_window(C);
-  self->ctx_init.win_is_set = (self->ctx_init.win != self->ctx_temp.win);
   self->ctx_init.area = CTX_wm_area(C);
-  self->ctx_init.area_is_set = (self->ctx_init.area != self->ctx_temp.area);
   self->ctx_init.region = CTX_wm_region(C);
-  self->ctx_init.region_is_set = (self->ctx_init.region != self->ctx_temp.region);
 
   wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
-  bScreen *screen = win ? WM_window_get_active_screen(win) : nullptr;
   ScrArea *area = self->ctx_temp.area_is_set ? self->ctx_temp.area : self->ctx_init.area;
   ARegion *region = self->ctx_temp.region_is_set ? self->ctx_temp.region : self->ctx_init.region;
+
+  self->ctx_init.win_is_set = (self->ctx_init.win != win);
+  self->ctx_init.area_is_set = (self->ctx_init.area != area);
+  self->ctx_init.region_is_set = (self->ctx_init.region != region);
+
+  bScreen *screen = win ? WM_window_get_active_screen(win) : nullptr;
 
   /* Sanity check, the region is in the screen/area. */
   if (self->ctx_temp.region_is_set && (region != nullptr)) {
@@ -104,6 +106,16 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
       return nullptr;
     }
   }
+
+  /* NOTE: always set these members, even when they are equal to the current values because
+   * setting the window (for e.g.) clears the area & region, setting the area clears the region.
+   * While it would be useful in some cases to leave the context as-is when setting members
+   * to their current values.
+   *
+   * Favor predictable behavior, where setting a member *always* clears the nested
+   * values it contains - no matter the state of the current context.
+   * If this difference is important, the caller can always detect this case and avoid
+   * passing in the context override altogether. */
 
   if (self->ctx_temp.win_is_set) {
     CTX_wm_window_set(C, self->ctx_temp.win);
@@ -135,15 +147,45 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
   }
 
   if (do_restore) {
+    /* Restore context members as needed.
+     *
+     * The checks here behaves as follows:
+     * - When `self->ctx_init.win_is_set` is true, the window was changed by the override.
+     *   in this case restore the initial window.
+     * - When `self->ctx_temp.win_is_set` is true, the window was set to the current value.
+     *   Setting the window (even to the current value) must be accounted for
+     *   because setting the window clears the area and the region members,
+     *   which must now be restored.
+     *
+     * `is_container_set` is used to detect if nested context members need to be restored.
+     * The comments above refer to the window, it also applies to the area which contains a region.
+     */
+    bool is_container_set = false;
+
     if (self->ctx_init.win_is_set) {
       CTX_wm_window_set(C, self->ctx_init.win);
+      is_container_set = true;
     }
-    if (self->ctx_init.area_is_set) {
+    else if (self->ctx_temp.win_is_set) {
+      is_container_set = true;
+    }
+
+    if (self->ctx_init.area_is_set || is_container_set) {
       CTX_wm_area_set(C, self->ctx_init.area);
+      is_container_set = true;
     }
-    if (self->ctx_init.region_is_set) {
+    else if (self->ctx_temp.area_is_set) {
+      is_container_set = true;
+    }
+
+    if (self->ctx_init.region_is_set || is_container_set) {
       CTX_wm_region_set(C, self->ctx_init.region);
+      is_container_set = true;
     }
+    else if (self->ctx_temp.region_is_set) {
+      is_container_set = true;
+    }
+    UNUSED_VARS(is_container_set);
   }
 
   /* A copy may have been made when writing context members, see #BPY_context_dict_clear_members */
