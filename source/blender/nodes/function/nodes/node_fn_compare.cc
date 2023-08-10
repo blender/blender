@@ -18,6 +18,7 @@
 
 #include "node_function_util.hh"
 
+#include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
 
 namespace blender::nodes::node_fn_compare_cc {
@@ -606,6 +607,128 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
+static void data_type_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  NodeFunctionCompare *node_storage = static_cast<NodeFunctionCompare *>(node->storage);
+
+  if (node_storage->data_type == SOCK_RGBA && !ELEM(node_storage->operation,
+                                                    NODE_COMPARE_EQUAL,
+                                                    NODE_COMPARE_NOT_EQUAL,
+                                                    NODE_COMPARE_COLOR_BRIGHTER,
+                                                    NODE_COMPARE_COLOR_DARKER))
+  {
+    node_storage->operation = NODE_COMPARE_EQUAL;
+  }
+  else if (node_storage->data_type == SOCK_STRING &&
+           !ELEM(node_storage->operation, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL))
+  {
+    node_storage->operation = NODE_COMPARE_EQUAL;
+  }
+  else if (node_storage->data_type != SOCK_RGBA &&
+           ELEM(node_storage->operation, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER))
+  {
+    node_storage->operation = NODE_COMPARE_EQUAL;
+  }
+
+  rna_Node_socket_update(bmain, scene, ptr);
+}
+
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem mode_items[] = {
+      {NODE_COMPARE_MODE_ELEMENT,
+       "ELEMENT",
+       0,
+       "Element-Wise",
+       "Compare each element of the input vectors"},
+      {NODE_COMPARE_MODE_LENGTH, "LENGTH", 0, "Length", "Compare the length of the input vectors"},
+      {NODE_COMPARE_MODE_AVERAGE,
+       "AVERAGE",
+       0,
+       "Average",
+       "Compare the average of the input vectors elements"},
+      {NODE_COMPARE_MODE_DOT_PRODUCT,
+       "DOT_PRODUCT",
+       0,
+       "Dot Product",
+       "Compare the dot products of the input vectors"},
+      {NODE_COMPARE_MODE_DIRECTION,
+       "DIRECTION",
+       0,
+       "Direction",
+       "Compare the direction of the input vectors"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_node_enum(
+      srna,
+      "operation",
+      "Operation",
+      "",
+      rna_enum_node_compare_operation_items,
+      NOD_storage_enum_accessors(operation),
+      NODE_COMPARE_EQUAL,
+      [](bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free) {
+        *r_free = true;
+        bNode *node = static_cast<bNode *>(ptr->data);
+        NodeFunctionCompare *data = static_cast<NodeFunctionCompare *>(node->storage);
+
+        if (ELEM(data->data_type, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR)) {
+          return enum_items_filter(
+              rna_enum_node_compare_operation_items, [](const EnumPropertyItem &item) {
+                return !ELEM(item.value, NODE_COMPARE_COLOR_BRIGHTER, NODE_COMPARE_COLOR_DARKER);
+              });
+        }
+        else if (data->data_type == SOCK_STRING) {
+          return enum_items_filter(
+              rna_enum_node_compare_operation_items, [](const EnumPropertyItem &item) {
+                return ELEM(item.value, NODE_COMPARE_EQUAL, NODE_COMPARE_NOT_EQUAL);
+              });
+        }
+        else if (data->data_type == SOCK_RGBA) {
+          return enum_items_filter(rna_enum_node_compare_operation_items,
+                                   [](const EnumPropertyItem &item) {
+                                     return ELEM(item.value,
+                                                 NODE_COMPARE_EQUAL,
+                                                 NODE_COMPARE_NOT_EQUAL,
+                                                 NODE_COMPARE_COLOR_BRIGHTER,
+                                                 NODE_COMPARE_COLOR_DARKER);
+                                   });
+        }
+        else {
+          return enum_items_filter(rna_enum_node_compare_operation_items,
+                                   [](const EnumPropertyItem &item) { return false; });
+        }
+      });
+
+  prop = RNA_def_node_enum(
+      srna,
+      "data_type",
+      "Input Type",
+      "",
+      node_socket_data_type_items,
+      NOD_storage_enum_accessors(data_type),
+      std::nullopt,
+      [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
+        *r_free = true;
+        return enum_items_filter(node_socket_data_type_items, [](const EnumPropertyItem &item) {
+          return ELEM(item.value, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_STRING, SOCK_RGBA);
+        });
+      });
+  RNA_def_property_update_runtime(prop, data_type_update);
+
+  prop = RNA_def_node_enum(srna,
+                           "mode",
+                           "Mode",
+                           "",
+                           mode_items,
+                           NOD_storage_enum_accessors(mode),
+                           NODE_COMPARE_MODE_ELEMENT);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -620,6 +743,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

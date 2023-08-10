@@ -224,6 +224,8 @@ DEF_ENUM(rna_enum_color_attribute_domain_items)
 DEF_ENUM(rna_enum_attribute_domain_without_corner_items)
 DEF_ENUM(rna_enum_attribute_domain_with_auto_items)
 DEF_ENUM(rna_enum_geometry_component_type_items)
+DEF_ENUM(rna_node_combsep_color_items)
+DEF_ENUM(node_socket_data_type_items)
 
 DEF_ENUM(rna_enum_volume_grid_data_type_items)
 

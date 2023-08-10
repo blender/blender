@@ -78,6 +78,7 @@ set(SRC
   intern/node_geometry_exec.cc
   intern/node_multi_function.cc
   intern/node_register.cc
+  intern/node_rna_define.cc
   intern/node_socket.cc
   intern/node_socket_declarations.cc
   intern/node_util.cc

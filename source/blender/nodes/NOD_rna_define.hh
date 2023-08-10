@@ -6,6 +6,8 @@
 
 #include <optional>
 
+#include "BLI_function_ref.hh"
+
 #include "RNA_define.h"
 
 #include "WM_types.hh" /* For notifier defines */
@@ -55,25 +57,16 @@ struct EnumRNAAccessors {
         node_storage(node).member = value; \
       })
 
-inline PropertyRNA *RNA_def_node_enum(StructRNA *srna,
-                                      const char *identifier,
-                                      const char *ui_name,
-                                      const char *ui_description,
-                                      const EnumPropertyItem *static_items,
-                                      const EnumRNAAccessors accessors,
-                                      std::optional<int> default_value = std::nullopt,
-                                      const EnumPropertyItemFunc item_func = nullptr)
-{
-  PropertyRNA *prop = RNA_def_property(srna, identifier, PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_funcs_runtime(prop, accessors.getter, accessors.setter, item_func);
-  RNA_def_property_enum_items(prop, static_items);
-  if (default_value.has_value()) {
-    RNA_def_property_enum_default(prop, *default_value);
-  }
-  RNA_def_property_ui_text(prop, ui_name, ui_description);
-  RNA_def_property_update_runtime(prop, rna_Node_socket_update);
-  RNA_def_property_update_notifier(prop, NC_NODE | NA_EDITED);
-  return prop;
-}
+const EnumPropertyItem *enum_items_filter(const EnumPropertyItem *original_item_array,
+                                          FunctionRef<bool(const EnumPropertyItem &item)> fn);
+
+PropertyRNA *RNA_def_node_enum(StructRNA *srna,
+                               const char *identifier,
+                               const char *ui_name,
+                               const char *ui_description,
+                               const EnumPropertyItem *static_items,
+                               const EnumRNAAccessors accessors,
+                               std::optional<int> default_value = std::nullopt,
+                               const EnumPropertyItemFunc item_func = nullptr);
 
 }  // namespace blender::nodes

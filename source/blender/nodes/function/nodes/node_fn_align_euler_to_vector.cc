@@ -11,6 +11,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "node_function_util.hh"
 
 namespace blender::nodes::node_fn_align_euler_to_vector_cc {
@@ -189,6 +191,66 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem axis_items[] = {
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Align the X axis with the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Align the Y axis with the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Align the Z axis with the vector"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem pivot_axis_items[] = {
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_AUTO,
+       "AUTO",
+       ICON_NONE,
+       "Auto",
+       "Automatically detect the best rotation axis to rotate towards the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Rotate around the local X axis"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Rotate around the local Y axis"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Rotate around the local Z axis"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "axis",
+                    "Axis",
+                    "Axis to align to the vector",
+                    axis_items,
+                    NOD_inline_enum_accessors(custom1));
+
+  RNA_def_node_enum(srna,
+                    "pivot_axis",
+                    "Pivot Axis",
+                    "Axis to rotate around",
+                    pivot_axis_items,
+                    NOD_inline_enum_accessors(custom2));
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -199,6 +261,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

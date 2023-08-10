@@ -7,6 +7,10 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_rna_define.hh"
+
+#include "RNA_enum_types.h"
+
 namespace blender::nodes::node_fn_separate_color_cc {
 
 NODE_STORAGE_FUNCS(NodeCombSepColor)
@@ -197,6 +201,16 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   }
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "Mode of color processing",
+                    rna_node_combsep_color_items,
+                    NOD_storage_enum_accessors(mode));
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -211,6 +225,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
 
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
