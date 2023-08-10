@@ -78,5 +78,6 @@ endif()
 # appear to be enabled in the list of items (which are mostly OFF).
 set(WITH_CYCLES_DEVICE_OPTIX OFF CACHE BOOL "" FORCE)
 set(WITH_CYCLES_EMBREE       OFF CACHE BOOL "" FORCE)
+set(WITH_CYCLES_OSL          OFF CACHE BOOL "" FORCE)
 set(WITH_CYCLES_PATH_GUIDING OFF CACHE BOOL "" FORCE)
 set(WITH_OPENVDB_BLOSC       OFF CACHE BOOL "" FORCE)
