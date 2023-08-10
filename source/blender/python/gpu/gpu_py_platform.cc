@@ -69,22 +69,26 @@ PyDoc_STRVAR(
     "   :rtype: str\n");
 static PyObject *pygpu_platform_device_type_get(PyObject * /*self*/)
 {
+  const char *device;
   if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    return PyUnicode_FromString("APPLE");
+    device = "APPLE";
   }
-  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    return PyUnicode_FromString("NVIDIA");
+  else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    device = "NVIDIA";
   }
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    return PyUnicode_FromString("AMD");
+  else if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    device = "AMD";
   }
-  if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    return PyUnicode_FromString("INTEL");
+  else if (GPU_type_matches(GPU_DEVICE_INTEL | GPU_DEVICE_INTEL_UHD, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    device = "INTEL";
   }
-  if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_ANY, GPU_DRIVER_ANY)) {
-    return PyUnicode_FromString("SOFTWARE");
+  else if (GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+    device = "SOFTWARE";
   }
-  return PyUnicode_FromString("UNKNOWN");
+  else {
+    device = "UNKNOWN";
+  }
+  return PyUnicode_FromString(device);
 }
 
 PyDoc_STRVAR(pygpu_platform_backend_type_get_doc,
@@ -96,19 +100,28 @@ PyDoc_STRVAR(pygpu_platform_backend_type_get_doc,
              "   :rtype: str\n");
 static PyObject *pygpu_platform_backend_type_get(PyObject * /*self*/)
 {
+  const char *backend = "UNKNOWN";
   switch (GPU_backend_get_type()) {
-    case GPU_BACKEND_VULKAN:
-      return PyUnicode_FromString("VULKAN");
-    case GPU_BACKEND_METAL:
-      return PyUnicode_FromString("METAL");
-    case GPU_BACKEND_NONE:
-      return PyUnicode_FromString("NONE");
-    case GPU_BACKEND_OPENGL:
-      return PyUnicode_FromString("OPENGL");
+    case GPU_BACKEND_VULKAN: {
+      backend = "VULKAN";
+      break;
+    }
+    case GPU_BACKEND_METAL: {
+      backend = "METAL";
+      break;
+    }
+    case GPU_BACKEND_NONE: {
+      backend = "NONE";
+      break;
+    }
+    case GPU_BACKEND_OPENGL: {
+      backend = "OPENGL";
+      break;
+    }
     case GPU_BACKEND_ANY:
       break;
   }
-  return PyUnicode_FromString("UNKNOWN");
+  return PyUnicode_FromString(backend);
 }
 
 /** \} */

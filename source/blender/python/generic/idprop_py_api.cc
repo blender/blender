@@ -1739,21 +1739,30 @@ PyDoc_STRVAR(BPy_IDArray_get_typecode_doc,
              "The type of the data in the array {'f': float, 'd': double, 'i': int, 'b': bool}.");
 static PyObject *BPy_IDArray_get_typecode(BPy_IDArray *self, void * /*closure*/)
 {
+  const char *typecode;
   switch (self->prop->subtype) {
     case IDP_FLOAT:
-      return PyUnicode_FromString("f");
+      typecode = "f";
+      break;
     case IDP_DOUBLE:
-      return PyUnicode_FromString("d");
+      typecode = "d";
+      break;
     case IDP_INT:
-      return PyUnicode_FromString("i");
+      typecode = "i";
+      break;
     case IDP_BOOLEAN:
-      return PyUnicode_FromString("b");
+      typecode = "b";
+      break;
+    default: {
+      PyErr_Format(PyExc_RuntimeError,
+                   "%s: invalid/corrupt array type '%d'!",
+                   __func__,
+                   self->prop->subtype);
+
+      return nullptr;
+    }
   }
-
-  PyErr_Format(
-      PyExc_RuntimeError, "%s: invalid/corrupt array type '%d'!", __func__, self->prop->subtype);
-
-  return nullptr;
+  return PyUnicode_FromString(typecode);
 }
 
 static PyGetSetDef BPy_IDArray_getseters[] = {

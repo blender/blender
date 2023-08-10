@@ -37,16 +37,9 @@
 
 static bool args_contain_key(PyObject *kwargs, const char *name)
 {
-  if (kwargs == nullptr) {
-    /* When a function gets called without any kwargs, Python just passes nullptr instead.
-     * PyDict_Contains() is not nullptr-safe, though. */
-    return false;
-  }
-
-  PyObject *py_key = PyUnicode_FromString(name);
-  const bool result = PyDict_Contains(kwargs, py_key) == 1;
-  Py_DECREF(py_key);
-  return result;
+  /* When a function gets called without any kwargs, */
+  /* Python just passes nullptr instead. #PyDict_GetItemString() is not null-safe, though. */
+  return kwargs && PyDict_GetItemString(kwargs, name) != nullptr;
 }
 
 /**
