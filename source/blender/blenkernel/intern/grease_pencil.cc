@@ -481,7 +481,10 @@ Layer &TreeNode::as_layer_for_write()
 
 LayerGroup *TreeNode::parent_group() const
 {
-  return &this->parent->wrap();
+  if (this->parent) {
+    return &this->parent->wrap();
+  }
+  return nullptr;
 }
 
 LayerMask::LayerMask()
