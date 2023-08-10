@@ -192,6 +192,26 @@ class LayerMask : public ::GreasePencilLayerMask {
   ~LayerMask();
 };
 
+/**
+ * Structure used to transform frames in a grease pencil layer.
+ */
+struct LayerTransformData {
+  enum FrameTransformationStatus { TRANS_CLEAR, TRANS_INIT, TRANS_RUNNING };
+
+  /* Map of frame keys describing the transformation of the frames. Keys of the map are the source
+   * frame indices, and the values of the map are the destination frame indices. */
+  Map<int, int> frames_destination;
+
+  /* Copy of the layer frames map. This allows to display the transformation while running, without
+   * removing any drawing. */
+  Map<int, GreasePencilFrame> frames_copy;
+  /* Map containing the duration (in frames) for each frame in the layer that has a fixed duration,
+   * i.e. each frame that is not an implicit hold. */
+  Map<int, int> frames_duration;
+
+  FrameTransformationStatus status{TRANS_CLEAR};
+};
+
 /* The key of a GreasePencilFrame in the frames map is the starting scene frame number (int) of
  * that frame. */
 using FramesMapKey = int;
@@ -233,6 +253,9 @@ class LayerRuntime {
    * A layer can have zero or more layer masks.
    */
   Vector<LayerMask> masks_;
+
+  /* Runtime data used for frame transformations.*/
+  LayerTransformData trans_data_;
 };
 
 /**
@@ -320,6 +343,12 @@ class Layer : public ::GreasePencilLayer {
    */
   const GreasePencilFrame *frame_at(const int frame_number) const;
   GreasePencilFrame *frame_at(const int frame_number);
+
+  /**
+   * \returns the frame duration of the active frame at \a frame_number or -1 if there is no active
+   * frame or the active frame is the last frame.
+   */
+  int get_frame_duration_at(const int frame_number) const;
 
   void tag_frames_map_changed();
 

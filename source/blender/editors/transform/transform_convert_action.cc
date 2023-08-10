@@ -19,6 +19,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
@@ -44,6 +45,122 @@ struct tGPFtransdata {
   };
   int *sdata; /* pointer to gpf->framenum */
 };
+
+/* -------------------------------------------------------------------- */
+/** \name Grease Pencil Transfrom helpers
+ * \{ */
+
+static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil::Layer &layer)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status != LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+
+  /* Make a copy of the current frames in the layer. This map will be changed during the
+   * transformation, and we need to be able to reset it if the operation is cancelled. */
+  trans_data.frames_copy = layer.frames();
+  trans_data.frames_duration.clear();
+  trans_data.frames_destination.clear();
+
+  for (const auto [frame_number, frame] : layer.frames().items()) {
+    if (frame.is_null()) {
+      continue;
+    }
+
+    /* Store frames' duration to keep them visually correct while moving the frames */
+    if (!frame.is_implicit_hold()) {
+      trans_data.frames_duration.add(frame_number, layer.get_frame_duration_at(frame_number));
+    }
+  }
+
+  trans_data.status = LayerTransformData::TRANS_INIT;
+  return true;
+}
+
+static bool grease_pencil_layer_reset_trans_data(blender::bke::greasepencil::Layer &layer)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  /* If the layer frame map was affected by the transformation, set its status to initialized so
+   * that the frames map gets reset the next time this modal function is called.
+   */
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+  trans_data.status = LayerTransformData::TRANS_INIT;
+  return true;
+}
+
+static bool grease_pencil_layer_update_trans_data(blender::bke::greasepencil::Layer &layer,
+                                                  const int src_frame_number,
+                                                  const int dst_frame_number)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+
+  if (trans_data.status == LayerTransformData::TRANS_INIT) {
+    /* The transdata was only initialized. No transformation was applied yet.
+     * The frame mapping is always defined relatively to the initial frame map, so we first need
+     * to set the frames back to its initial state before applying any frame transformation. */
+    layer.frames_for_write() = trans_data.frames_copy;
+    layer.tag_frames_map_keys_changed();
+    trans_data.status = LayerTransformData::TRANS_RUNNING;
+  }
+
+  /* Apply the transformation directly in the frame map, so that we display the transformed
+   * frame numbers. We don't want to edit the frames or remove any drawing here. This will be
+   * done at once at the end of the transformation. */
+  const GreasePencilFrame src_frame = trans_data.frames_copy.lookup(src_frame_number);
+  const int src_duration = trans_data.frames_duration.lookup_default(src_frame_number, 0);
+  layer.remove_frame(src_frame_number);
+  layer.remove_frame(dst_frame_number);
+  GreasePencilFrame *frame = layer.add_frame(
+      dst_frame_number, src_frame.drawing_index, src_duration);
+  *frame = src_frame;
+
+  trans_data.frames_destination.add_overwrite(src_frame_number, dst_frame_number);
+
+  return true;
+}
+
+static bool grease_pencil_layer_apply_trans_data(GreasePencil &grease_pencil,
+                                                 blender::bke::greasepencil::Layer &layer,
+                                                 const bool canceled)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    /* The layer was not affected by the transformation, so do nothing. */
+    return false;
+  }
+
+  /* Reset the frames to their initial state. */
+  layer.frames_for_write() = trans_data.frames_copy;
+  layer.tag_frames_map_keys_changed();
+
+  if (!canceled) {
+    /* Apply the transformation. */
+    grease_pencil.move_frames(layer, trans_data.frames_destination);
+  }
+
+  /* Clear the frames copy. */
+  trans_data.frames_copy.clear();
+  trans_data.frames_destination.clear();
+  trans_data.status = LayerTransformData::TRANS_CLEAR;
+
+  return true;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Action Transform Creation
@@ -101,6 +218,35 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
     return count_all;
   }
   return count;
+}
+
+static int count_grease_pencil_frames(const blender::bke::greasepencil::Layer *layer,
+                                      char side,
+                                      float cfra,
+                                      bool is_prop_edit)
+{
+  if (layer == nullptr) {
+    return 0;
+  }
+
+  int count_selected = 0;
+  int count_all = 0;
+
+  /* Only include points that occur on the right side of cfra. */
+  for (const auto &[frame_number, frame] : layer->frames().items()) {
+    if (!FrameOnMouseSide(side, float(frame_number), cfra)) {
+      continue;
+    }
+    if (frame.is_selected()) {
+      count_selected++;
+    }
+    count_all++;
+  }
+
+  if (is_prop_edit && count_selected > 0) {
+    return count_all;
+  }
+  return count_selected;
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
@@ -256,6 +402,69 @@ static int GPLayerToTransData(TransData *td,
   return count;
 }
 
+/**
+ * Fills \a td and \a td2d with transform data for each frame of the grease pencil \a layer that is
+ * on the \a side of the frame \a cfra. It also updates the runtime data of the \a layer to keep
+ * track of the transform. This is why the \a layer is not const here.
+ */
+static int GreasePencilLayerToTransData(TransData *td,
+                                        TransData2D *td2d,
+                                        blender::bke::greasepencil::Layer *layer,
+                                        char side,
+                                        float cfra,
+                                        bool is_prop_edit,
+                                        float ypos)
+{
+  using namespace blender;
+  using namespace bke::greasepencil;
+
+  int total_trans_frames = 0;
+  bool any_frame_affected = false;
+  for (auto [frame_number, frame] : layer->frames().items()) {
+    /* We only add transform data for selected frames that are on the right side of current frame.
+     * If proportional edit is set, then we should also account for non selected frames.
+     */
+    if ((!is_prop_edit && !frame.is_selected()) || !FrameOnMouseSide(side, frame_number, cfra)) {
+      continue;
+    }
+    any_frame_affected = true;
+
+    td2d->loc[0] = float(frame_number);
+
+    td->val = td->loc = &td2d->loc[0];
+    td->ival = td->iloc[0] = td2d->loc[0];
+
+    td->center[0] = td->ival;
+    td->center[1] = ypos;
+
+    if (frame.is_selected()) {
+      td->flag |= TD_SELECTED;
+    }
+    /* Set a pointer to the layer in the transform data so that we can apply the transformation
+     * while the operator is running.
+     */
+    td->flag |= TD_GREASE_PENCIL_FRAME;
+    td->extra = layer;
+
+    /* Advance `td` now. */
+    td++;
+    td2d++;
+    total_trans_frames++;
+  }
+
+  if (total_trans_frames == 0) {
+    return total_trans_frames;
+  }
+
+  /* If it was not previously done, initialize the transform data in the layer, and if some frames
+   * are actually concerned by the transform. */
+  if (any_frame_affected) {
+    grease_pencil_layer_initialize_trans_data(*layer);
+  }
+
+  return total_trans_frames;
+}
+
 /* refer to comment above #GPLayerToTransData, this is the same but for masks */
 static int MaskLayerToTransData(TransData *td,
                                 tGPFtransdata *tfd,
@@ -358,7 +567,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
           static_cast<bGPDlayer *>(ale->data), t->frame_side, cfra, is_prop_edit);
     }
     else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
-      /* GPv3: To be implemented. */
+      using namespace blender::bke::greasepencil;
+      adt_count = count_grease_pencil_frames(
+          static_cast<Layer *>(ale->data), t->frame_side, cfra, is_prop_edit);
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       adt_count = count_masklayer_frames(
@@ -428,6 +639,15 @@ static void createTransActionData(bContext *C, TransInfo *t)
       td += i;
       tfd += i;
     }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      using namespace blender::bke::greasepencil;
+      Layer *layer = static_cast<Layer *>(ale->data);
+      int i;
+
+      i = GreasePencilLayerToTransData(td, td2d, layer, t->frame_side, cfra, is_prop_edit, ypos);
+      td += i;
+      td2d += i;
+    }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       MaskLayer *masklay = (MaskLayer *)ale->data;
       int i;
@@ -486,6 +706,32 @@ static void createTransActionData(bContext *C, TransInfo *t)
             td->dist = td->rdist = min;
           }
           td++;
+        }
+      }
+      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+        using namespace blender::bke::greasepencil;
+        Layer *layer = static_cast<Layer *>(ale->data);
+
+        for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+          if (frame.is_selected()) {
+            td->dist = td->rdist = 0.0f;
+            ++td;
+            continue;
+          }
+
+          int closest_selected = INT_MAX;
+          for (auto [neighbor_frame_number, neighbor_frame] : layer->frames_for_write().items()) {
+            if (!neighbor_frame.is_selected() ||
+                !FrameOnMouseSide(t->frame_side, float(neighbor_frame_number), cfra))
+            {
+              continue;
+            }
+            const int distance = abs(neighbor_frame_number - frame_number);
+            closest_selected = std::min(closest_selected, distance);
+          }
+
+          td->dist = td->rdist = closest_selected;
+          ++td;
         }
       }
       else if (ale->type == ANIMTYPE_MASKLAYER) {
@@ -557,7 +803,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /** \name Action Transform Flush
  * \{ */
 
-/* This function helps flush transdata written to tempdata into the gp-frames. */
+/* (Grease Pencil Legacy)
+ * This function helps flush transdata written to tempdata into the gp-frames. */
 static void flushTransIntFrameActionData(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -616,6 +863,13 @@ static void recalcData_actedit(TransInfo *t)
     td->loc[1] = td->iloc[1];
 
     transform_convert_flush_handle2D(td, td2d, 0.0f);
+
+    if ((t->state == TRANS_RUNNING) && ((td->flag & TD_GREASE_PENCIL_FRAME) != 0)) {
+      grease_pencil_layer_update_trans_data(
+          *static_cast<blender::bke::greasepencil::Layer *>(td->extra),
+          round_fl_to_int(td->ival),
+          round_fl_to_int(td2d->loc[0]));
+    }
   }
 
   if (ac.datatype != ANIMCONT_MASK) {
@@ -633,10 +887,25 @@ static void recalcData_actedit(TransInfo *t)
         /* set refresh tags for objects using this animation */
         ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
       }
+
+      /* now free temp channels */
+      ANIM_animdata_freelist(&anim_data);
     }
 
-    /* now free temp channels */
-    ANIM_animdata_freelist(&anim_data);
+    if (ac.datatype == ANIMCONT_GPENCIL) {
+      filter = ANIMFILTER_DATA_VISIBLE;
+      ANIM_animdata_filter(
+          &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+          continue;
+        }
+        grease_pencil_layer_reset_trans_data(
+            *static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+      }
+      ANIM_animdata_freelist(&anim_data);
+    }
   }
 }
 
@@ -865,20 +1134,35 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
      * 3) canceled + duplicate -> user canceled the transform,
      *                            but we made duplicates, so get rid of these
      */
-    if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-      ListBase anim_data = {nullptr, nullptr};
-      const int filter = ANIMFILTER_DATA_VISIBLE;
-      ANIM_animdata_filter(
-          &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+    ListBase anim_data = {nullptr, nullptr};
+    const int filter = ANIMFILTER_DATA_VISIBLE;
+    ANIM_animdata_filter(
+        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-        if (ale->datatype == ALE_GPFRAME) {
-          ale->id->tag &= ~LIB_TAG_DOIT;
-          posttrans_gpd_clean((bGPdata *)ale->id);
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      switch (ale->datatype) {
+        case ALE_GPFRAME:
+          /* Grease Pencil legacy. */
+          if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+            ale->id->tag &= ~LIB_TAG_DOIT;
+            posttrans_gpd_clean((bGPdata *)ale->id);
+          }
+          break;
+
+        case ALE_GREASE_PENCIL_CEL: {
+          GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+          grease_pencil_layer_apply_trans_data(
+              *grease_pencil,
+              *static_cast<blender::bke::greasepencil::Layer *>(ale->data),
+              canceled);
+          break;
         }
+
+        default:
+          break;
       }
-      ANIM_animdata_freelist(&anim_data);
     }
+    ANIM_animdata_freelist(&anim_data);
   }
   else if (ac.datatype == ANIMCONT_MASK) {
     /* remove duplicate frames and also make sure points are in order! */
