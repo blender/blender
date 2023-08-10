@@ -6,6 +6,8 @@
 
 #include "DNA_collection_types.h"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -142,6 +144,33 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Instances", GeometrySet::from_instances(instances.release()));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_node_geometry_collection_info_transform_space_items[] = {
+      {GEO_NODE_TRANSFORM_SPACE_ORIGINAL,
+       "ORIGINAL",
+       0,
+       "Original",
+       "Output the geometry relative to the collection offset"},
+      {GEO_NODE_TRANSFORM_SPACE_RELATIVE,
+       "RELATIVE",
+       0,
+       "Relative",
+       "Bring the input collection geometry into the modified object, maintaining the relative "
+       "position between the objects in the scene"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(
+      srna,
+      "transform_space",
+      "Transform Space",
+      "The transformation of the instances output. Does not affect the internal geometry",
+      rna_node_geometry_collection_info_transform_space_items,
+      NOD_storage_enum_accessors(transform_space),
+      GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -156,6 +185,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

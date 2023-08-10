@@ -13,6 +13,8 @@
 #include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -104,6 +106,31 @@ static void node_geo_exec(GeoNodeExecParams params)
 #endif
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem resolution_mode_items[] = {
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Amount",
+       "Specify the approximate number of voxels along the diagonal"},
+      {GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Size",
+       "Specify the voxel side length"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "resolution_mode",
+                    "Resolution Mode",
+                    "How the voxel size is specified",
+                    resolution_mode_items,
+                    NOD_storage_enum_accessors(resolution_mode),
+                    GEO_NODE_POINTS_TO_VOLUME_RESOLUTION_MODE_AMOUNT);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -123,6 +150,8 @@ static void node_register()
   ntype.gather_add_node_search_ops = search_node_add_ops;
   ntype.gather_link_search_ops = search_link_ops;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

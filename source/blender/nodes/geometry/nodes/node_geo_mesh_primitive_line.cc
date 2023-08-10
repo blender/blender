@@ -11,6 +11,8 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -168,6 +170,53 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_LINE_MODE_OFFSET,
+       "OFFSET",
+       0,
+       "Offset",
+       "Specify the offset from one vertex to the next"},
+      {GEO_NODE_MESH_LINE_MODE_END_POINTS,
+       "END_POINTS",
+       0,
+       "End Points",
+       "Specify the line's start and end points"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static EnumPropertyItem count_mode_items[] = {
+      {GEO_NODE_MESH_LINE_COUNT_TOTAL,
+       "TOTAL",
+       0,
+       "Count",
+       "Specify the total number of vertices"},
+      {GEO_NODE_MESH_LINE_COUNT_RESOLUTION,
+       "RESOLUTION",
+       0,
+       "Resolution",
+       "Specify the distance between vertices"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_MESH_LINE_MODE_OFFSET);
+
+  RNA_def_node_enum(srna,
+                    "count_mode",
+                    "Count Mode",
+                    "",
+                    count_mode_items,
+                    NOD_storage_enum_accessors(count_mode),
+                    GEO_NODE_MESH_LINE_COUNT_TOTAL);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -182,6 +231,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

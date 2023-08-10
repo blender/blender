@@ -12,6 +12,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -199,6 +201,41 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Points", std::move(geometry_set));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_MESH_TO_POINTS_VERTICES,
+       "VERTICES",
+       0,
+       "Vertices",
+       "Create a point in the point cloud for each selected vertex"},
+      {GEO_NODE_MESH_TO_POINTS_EDGES,
+       "EDGES",
+       0,
+       "Edges",
+       "Create a point in the point cloud for each selected edge"},
+      {GEO_NODE_MESH_TO_POINTS_FACES,
+       "FACES",
+       0,
+       "Faces",
+       "Create a point in the point cloud for each selected face"},
+      {GEO_NODE_MESH_TO_POINTS_CORNERS,
+       "CORNERS",
+       0,
+       "Corners",
+       "Create a point in the point cloud for each selected face corner"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_MESH_TO_POINTS_VERTICES);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -211,6 +248,8 @@ static void node_register()
   node_type_storage(
       &ntype, "NodeGeometryMeshToPoints", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

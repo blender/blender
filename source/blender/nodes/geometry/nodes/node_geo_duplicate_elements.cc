@@ -21,6 +21,8 @@
 
 #include "node_geometry_util.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -1078,6 +1080,26 @@ static void node_geo_exec(GeoNodeExecParams params)
 
 /** \} */
 
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem domain_items[] = {
+      {ATTR_DOMAIN_POINT, "POINT", 0, "Point", ""},
+      {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", ""},
+      {ATTR_DOMAIN_FACE, "FACE", 0, "Face", ""},
+      {ATTR_DOMAIN_CURVE, "SPLINE", 0, "Spline", ""},
+      {ATTR_DOMAIN_INSTANCE, "INSTANCE", 0, "Instance", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain",
+                    "Which domain to duplicate",
+                    domain_items,
+                    NOD_storage_enum_accessors(domain),
+                    ATTR_DOMAIN_POINT);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -1094,6 +1116,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

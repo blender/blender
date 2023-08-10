@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "RNA_define.h"
 
 #include "WM_types.hh" /* For notifier defines */

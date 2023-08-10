@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -113,6 +115,31 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_FILLET_BEZIER,
+       "BEZIER",
+       0,
+       "Bezier",
+       "Align Bezier handles to create circular arcs at each control point"},
+      {GEO_NODE_CURVE_FILLET_POLY,
+       "POLY",
+       0,
+       "Poly",
+       "Add control points along a circular arc (handle type is vector if Bezier Spline)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "How to choose number of vertices on fillet",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_CURVE_FILLET_BEZIER);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -126,6 +153,8 @@ static void node_register()
   ntype.updatefunc = node_update;
   ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

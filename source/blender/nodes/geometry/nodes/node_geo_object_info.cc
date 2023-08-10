@@ -9,6 +9,8 @@
 
 #include "DNA_object_types.h"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -103,6 +105,34 @@ static void node_node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
+static void node_rna(StructRNA *srna)
+{
+  static const EnumPropertyItem rna_node_geometry_object_info_transform_space_items[] = {
+      {GEO_NODE_TRANSFORM_SPACE_ORIGINAL,
+       "ORIGINAL",
+       0,
+       "Original",
+       "Output the geometry relative to the input object transform, and the location, rotation "
+       "and "
+       "scale relative to the world origin"},
+      {GEO_NODE_TRANSFORM_SPACE_RELATIVE,
+       "RELATIVE",
+       0,
+       "Relative",
+       "Bring the input object geometry, location, rotation and scale into the modified object, "
+       "maintaining the relative position between the two objects in the scene"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "transform_space",
+                    "Transform Space",
+                    "The transformation of the vector and geometry outputs",
+                    rna_node_geometry_object_info_transform_space_items,
+                    NOD_storage_enum_accessors(transform_space),
+                    GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -115,6 +145,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
