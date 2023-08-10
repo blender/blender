@@ -65,8 +65,14 @@ endif()
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Optionally use system Python if PYTHON_ROOT_DIR is specified.
-if(WITH_PYTHON AND (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
-  find_package(PythonLibsUnix REQUIRED)
+if(WITH_PYTHON)
+  if(WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR)
+    find_package(PythonLibsUnix REQUIRED)
+  endif()
+else()
+  # Python executable is needed as part of the build-process,
+  # note that building without Python is quite unusual.
+  find_program(PYTHON_EXECUTABLE "python3")
 endif()
 
 # Prefer lib directory paths
@@ -127,8 +133,10 @@ if(WITH_CODEC_SNDFILE)
   unset(_sndfile_VORBISENC_LIBRARY)
 endif()
 
-if(WITH_PYTHON AND NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
-  find_package(PythonLibsUnix REQUIRED)
+if(WITH_PYTHON)
+  if(NOT (WITH_PYTHON_MODULE AND PYTHON_ROOT_DIR))
+    find_package(PythonLibsUnix REQUIRED)
+  endif()
 endif()
 
 if(WITH_FFTW3)
