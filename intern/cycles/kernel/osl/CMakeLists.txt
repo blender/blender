@@ -19,6 +19,7 @@ set(SRC
 set(HEADER_SRC
   closures_setup.h
   closures_template.h
+  compat.h
   globals.h
   osl.h
   services.h
