@@ -312,6 +312,11 @@ static bool ed_object_mode_generic_exit_ex(
     }
     ED_object_gpencil_exit(bmain, ob);
   }
+  else if (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) {
+    ob->mode &= ~OB_MODE_PAINT_GREASE_PENCIL;
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
+  }
   else {
     if (only_test) {
       return false;
