@@ -849,6 +849,10 @@ void MEM_guarded_printmemlist_pydict(void)
 {
   MEM_guarded_printmemlist_internal(1);
 }
+void mem_guarded_clearmemlist(void)
+{
+  membase->first = membase->last = NULL;
+}
 
 void MEM_guarded_freeN(void *vmemh)
 {
