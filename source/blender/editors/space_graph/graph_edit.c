@@ -2234,10 +2234,12 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
   const float current_frame = BKE_scene_frame_get(scene);
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-    const FCurve *fcu = ale->key_data;
+    FCurve *fcu = (FCurve *)ale->key_data;
     if (!fcu->bezt) {
       continue;
     }
+    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, false, true);
     float closest_fcu_frame;
     if (!find_closest_frame(fcu, current_frame, next, &closest_fcu_frame)) {
       continue;
@@ -2247,6 +2249,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
       closest_frame = closest_fcu_frame;
       found = true;
     }
+    ANIM_nla_mapping_apply_fcurve(adt, fcu, true, true);
   }
 
   if (!found) {
