@@ -325,6 +325,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_LINKED_PSYS) {
     /* pass */
   }
+  else if (ELEM(type, TSE_R_LAYER_BASE)) {
+    /* pass */
+  }
   else if (type == TSE_SOME_ID) {
     if (!te->abstract_element) {
       BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
