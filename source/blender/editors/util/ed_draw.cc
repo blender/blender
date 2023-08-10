@@ -359,7 +359,7 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
                        &factor_string_pixel_size[1]);
 
   BLF_position(fontid,
-               main_line_rect.xmin - 24.0 * U.pixelsize - factor_string_pixel_size[0] / 2,
+               main_line_rect.xmin - 12.0 * U.pixelsize - factor_string_pixel_size[0],
                (region->winy / 2) - factor_string_pixel_size[1] / 2,
                0.0f);
   BLF_draw(fontid, factor_string, sizeof(factor_string));
