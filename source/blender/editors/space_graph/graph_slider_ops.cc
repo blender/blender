@@ -1068,8 +1068,8 @@ void GRAPH_OT_blend_offset(wmOperatorType *ot)
                        0.0f,
                        -FLT_MAX,
                        FLT_MAX,
-                       "Curve Bend",
-                       "Control the bend of the curve",
+                       "Offset Factor",
+                       "Control which key to offset towards and how far",
                        -1.0f,
                        1.0f);
 }
