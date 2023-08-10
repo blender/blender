@@ -4,6 +4,8 @@
 
 #include "BKE_curves.hh"
 
+#include "BLI_math_geom.h"
+
 #include "NOD_rna_define.hh"
 
 #include "UI_interface.hh"

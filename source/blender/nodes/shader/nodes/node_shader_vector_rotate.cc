@@ -6,6 +6,8 @@
  * \ingroup shdnodes
  */
 
+#include "BLI_math_rotation.h"
+
 #include "node_shader_util.hh"
 
 #include "UI_interface.hh"
