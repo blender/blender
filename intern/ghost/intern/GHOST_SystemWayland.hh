@@ -217,26 +217,26 @@ class GHOST_SystemWayland : public GHOST_System {
 
   /* WAYLAND direct-data access. */
 
-  struct wl_display *wl_display();
-  struct wl_compositor *wl_compositor();
-  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager();
-  struct xdg_activation_v1 *xdg_activation_manager();
-  struct zwp_pointer_gestures_v1 *wp_pointer_gestures();
-  struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager();
-  struct wp_viewporter *wp_viewporter();
+  struct wl_display *wl_display_get();
+  struct wl_compositor *wl_compositor_get();
+  struct zwp_primary_selection_device_manager_v1 *wp_primary_selection_manager_get();
+  struct xdg_activation_v1 *xdg_activation_manager_get();
+  struct zwp_pointer_gestures_v1 *wp_pointer_gestures_get();
+  struct wp_fractional_scale_manager_v1 *wp_fractional_scale_manager_get();
+  struct wp_viewporter *wp_viewporter_get();
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  libdecor *libdecor_context();
+  libdecor *libdecor_context_get();
 #endif
-  struct xdg_wm_base *xdg_decor_shell();
-  struct zxdg_decoration_manager_v1 *xdg_decor_manager();
+  struct xdg_wm_base *xdg_decor_shell_get();
+  struct zxdg_decoration_manager_v1 *xdg_decor_manager_get();
   /* End `xdg_decor`. */
 
-  const std::vector<GWL_Output *> &outputs() const;
+  const std::vector<GWL_Output *> &outputs_get() const;
 
-  struct wl_shm *wl_shm() const;
+  struct wl_shm *wl_shm_get() const;
 
-  static const char *xdg_app_id();
+  static const char *xdg_app_id_get();
 
   /* WAYLAND utility functions. */
 
