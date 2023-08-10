@@ -10,7 +10,6 @@
 
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse.h"
-#include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bssrdf.h"
 #include "kernel/closure/volume.h"
 
@@ -53,9 +52,6 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   /* Compute weight, optionally including Fresnel from entry point. */
   Spectrum weight = surface_shader_bssrdf_sample_weight(sd, sc);
-  if (bssrdf->roughness != FLT_MAX) {
-    path_flag |= PATH_RAY_SUBSURFACE_USE_FRESNEL;
-  }
 
   if (sd->flag & SD_BACKFACING) {
     path_flag |= PATH_RAY_SUBSURFACE_BACKFACING;
@@ -103,24 +99,12 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
 
   const Spectrum weight = one_spectrum();
 
-  if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {
-    ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
-        sd, sizeof(PrincipledDiffuseBsdf), weight);
+  ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
+      sd, sizeof(DiffuseBsdf), weight);
 
-    if (bsdf) {
-      bsdf->N = N;
-      bsdf->roughness = FLT_MAX;
-      sd->flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT_EXIT);
-    }
-  }
-  else {
-    ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-        sd, sizeof(DiffuseBsdf), weight);
-
-    if (bsdf) {
-      bsdf->N = N;
-      sd->flag |= bsdf_diffuse_setup(bsdf);
-    }
+  if (bsdf) {
+    bsdf->N = N;
+    sd->flag |= bsdf_diffuse_setup(bsdf);
   }
 }
 

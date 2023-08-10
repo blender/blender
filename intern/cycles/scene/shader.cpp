@@ -588,6 +588,8 @@ void ShaderManager::device_update_common(Device * /*device*/,
   ktables->ggx_glass_inv_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_E);
   ktables->ggx_glass_inv_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_Eavg);
   ktables->sheen_ltc = ensure_bsdf_table(dscene, scene, table_sheen_ltc);
+  ktables->ggx_gen_schlick_ior_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_ior_s);
+  ktables->ggx_gen_schlick_s = ensure_bsdf_table(dscene, scene, table_ggx_gen_schlick_s);
 
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;

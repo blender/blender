@@ -25,16 +25,11 @@ closure color glossy_toon(normal N, float size, float smooth) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
 closure color sheen(normal N, float roughness) BUILTIN;
 closure color ambient_occlusion() BUILTIN;
-closure color principled_diffuse(normal N, float roughness) BUILTIN;
 
 /* Needed to pass along the color for multi-scattering saturation adjustment,
  * otherwise could be replaced by microfacet() */
 closure color microfacet_multi_ggx_glass(normal N, float ag, float eta, color C) BUILTIN;
 closure color microfacet_multi_ggx_aniso(normal N, vector T, float ax, float ay, color C) BUILTIN;
-/* Needed to pass along the IOR for the Principled V1 Fresnel calculation,
- * otherwise could be replaced by generalized_schlick_bsdf() */
-closure color microfacet_aniso_fresnel(
-    normal N, vector T, float ax, float ay, color f0, color f90, float eta, string dist) BUILTIN;
 
 // BSSRDF
 closure color bssrdf(string method, normal N, vector radius, color albedo) BUILTIN;

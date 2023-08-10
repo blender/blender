@@ -289,10 +289,9 @@ enum PathRayFlag : uint32_t {
   /* Perform subsurface scattering. */
   PATH_RAY_SUBSURFACE_RANDOM_WALK = (1U << 21U),
   PATH_RAY_SUBSURFACE_DISK = (1U << 22U),
-  PATH_RAY_SUBSURFACE_USE_FRESNEL = (1U << 23U),
   PATH_RAY_SUBSURFACE_BACKFACING = (1U << 24U),
   PATH_RAY_SUBSURFACE = (PATH_RAY_SUBSURFACE_RANDOM_WALK | PATH_RAY_SUBSURFACE_DISK |
-                         PATH_RAY_SUBSURFACE_USE_FRESNEL | PATH_RAY_SUBSURFACE_BACKFACING),
+                         PATH_RAY_SUBSURFACE_BACKFACING),
 
   /* Contribute to denoising features. */
   PATH_RAY_DENOISING_FEATURES = (1U << 25U),
@@ -1233,6 +1232,10 @@ typedef struct KernelTables {
   int ggx_glass_inv_E;
   int ggx_glass_inv_Eavg;
   int sheen_ltc;
+  int ggx_gen_schlick_ior_s;
+  int ggx_gen_schlick_s;
+  int pad1;
+  int pad2;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 

@@ -263,6 +263,11 @@ ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
 
 ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, Spectrum weight)
 {
+  float sample_weight = fabsf(average(weight));
+  if (sample_weight < CLOSURE_WEIGHT_CUTOFF) {
+    return NULL;
+  }
+
   ccl_private Bssrdf *bssrdf = (ccl_private Bssrdf *)closure_alloc(
       sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
 
@@ -270,9 +275,8 @@ ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, S
     return NULL;
   }
 
-  float sample_weight = fabsf(average(weight));
   bssrdf->sample_weight = sample_weight;
-  return (sample_weight >= CLOSURE_WEIGHT_CUTOFF) ? bssrdf : NULL;
+  return bssrdf;
 }
 
 ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
@@ -281,22 +285,6 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
                             const float ior)
 {
   int flag = 0;
-
-  /* Add retro-reflection component as separate diffuse BSDF. */
-  if (bssrdf->roughness != FLT_MAX) {
-    ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
-        sd, sizeof(PrincipledDiffuseBsdf), bssrdf->weight);
-
-    if (bsdf) {
-      bsdf->N = bssrdf->N;
-      bsdf->roughness = bssrdf->roughness;
-      flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_RETRO_REFLECTION);
-
-      /* Ad-hoc weight adjustment to avoid retro-reflection taking away half the
-       * samples from BSSRDF. */
-      bsdf->sample_weight *= bsdf_principled_diffuse_retro_reflection_sample_weight(bsdf, sd->wi);
-    }
-  }
 
   /* Verify if the radii are large enough to sample without precision issues. */
   int bssrdf_channels = SPECTRUM_CHANNELS;
@@ -313,24 +301,12 @@ ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
 
   if (bssrdf_channels < SPECTRUM_CHANNELS) {
     /* Add diffuse BSDF if any radius too small. */
-    if (bssrdf->roughness != FLT_MAX) {
-      ccl_private PrincipledDiffuseBsdf *bsdf = (ccl_private PrincipledDiffuseBsdf *)bsdf_alloc(
-          sd, sizeof(PrincipledDiffuseBsdf), diffuse_weight);
+    ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
+        sd, sizeof(DiffuseBsdf), diffuse_weight);
 
-      if (bsdf) {
-        bsdf->N = bssrdf->N;
-        bsdf->roughness = bssrdf->roughness;
-        flag |= bsdf_principled_diffuse_setup(bsdf, PRINCIPLED_DIFFUSE_LAMBERT);
-      }
-    }
-    else {
-      ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
-          sd, sizeof(DiffuseBsdf), diffuse_weight);
-
-      if (bsdf) {
-        bsdf->N = bssrdf->N;
-        flag |= bsdf_diffuse_setup(bsdf);
-      }
+    if (bsdf) {
+      bsdf->N = bssrdf->N;
+      flag |= bsdf_diffuse_setup(bsdf);
     }
   }
 
