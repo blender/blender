@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_grease_pencil.hh"
+
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
@@ -726,7 +728,7 @@ void draw_grease_pencil_datablock_channel(AnimKeylistDrawList *draw_list,
 }
 
 void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
-                                     bDopeSheet * /*ads*/,
+                                     bDopeSheet *ads,
                                      const GreasePencilLayer *layer,
                                      const float ypos,
                                      const float yscale_fac,
@@ -734,7 +736,9 @@ void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
 {
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
       draw_list, ANIM_KEYLIST_GREASE_PENCIL_CELS, ypos, yscale_fac, eSAction_Flag(saction_flag));
+  draw_elem->ads = ads;
   draw_elem->grease_pencil_layer = layer;
+  draw_elem->channel_locked = layer->wrap().is_locked();
 }
 
 void draw_gpl_channel(AnimKeylistDrawList *draw_list,

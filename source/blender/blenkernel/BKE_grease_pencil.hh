@@ -298,6 +298,8 @@ class Layer : public ::GreasePencilLayer {
   bool is_empty() const;
   bool is_selected() const;
 
+  bool use_onion_skinning() const;
+
   /**
    * Adds a new frame into the layer frames map.
    * Fails if there already exists a frame at \a key that is not a null-frame.

@@ -602,6 +602,11 @@ bool Layer::is_selected() const
   return ((this->base.flag & GP_LAYER_TREE_NODE_SELECT) != 0);
 }
 
+bool Layer::use_onion_skinning() const
+{
+  return ((this->base.flag & GP_LAYER_TREE_NODE_USE_ONION_SKINNING) != 0);
+}
+
 Layer::SortedKeysIterator Layer::remove_leading_null_frames_in_range(
     Layer::SortedKeysIterator begin, Layer::SortedKeysIterator end)
 {
