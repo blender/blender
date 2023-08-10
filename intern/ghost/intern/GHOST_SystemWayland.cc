@@ -6476,10 +6476,8 @@ static void cursor_buffer_show(const GWL_Seat *seat)
     const int scale = cursor->is_custom ? cursor->custom_scale : seat->pointer.theme_scale;
     const int32_t hotspot_x = int32_t(cursor->wl.image.hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(cursor->wl.image.hotspot_y) / scale;
-    if (seat->wl.pointer) {
-      wl_pointer_set_cursor(
-          seat->wl.pointer, seat->pointer.serial, cursor->wl.surface_cursor, hotspot_x, hotspot_y);
-    }
+    wl_pointer_set_cursor(
+        seat->wl.pointer, seat->pointer.serial, cursor->wl.surface_cursor, hotspot_x, hotspot_y);
   }
 
   if (!seat->wp.tablet_tools.empty()) {

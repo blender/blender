@@ -1152,7 +1152,6 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
       const char *found = unit_find_str(orig_str, unit->name_short, case_sensitive);
       if (found) {
         int offset = int(found - orig_str);
-        int len_name = 0;
 
         /* Copy everything before the unit. */
         if (offset < str_maxncpy) {
@@ -1168,14 +1167,8 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
         str_maxncpy -= offset;
 
         /* Print the alt_name. */
-        if (unit->name_alt) {
-          len_name = BLI_strncpy_rlen(str, unit->name_alt, str_maxncpy);
-        }
-        else {
-          len_name = 0;
-        }
-
-        len_name = (len_name < str_maxncpy ? len_name : str_maxncpy);
+        const int len_name = BLI_strncpy_rlen(str, unit->name_alt, str_maxncpy);
+        BLI_assert(len_name < str_maxncpy);
         str += len_name;
         str_maxncpy -= len_name;
       }
