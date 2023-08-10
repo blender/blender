@@ -518,7 +518,7 @@ if(WITH_JACK)
 endif()
 
 set(_PYTHON_VERSION "3.10")
-string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
 # Python executable is needed as part of the build-process,
 # note that building without Python is quite unusual.
 set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
