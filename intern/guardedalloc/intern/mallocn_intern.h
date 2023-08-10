@@ -72,6 +72,21 @@ size_t malloc_usable_size(void *ptr);
 #  define MEM_INLINE static inline
 #endif
 
+/* BEGIN copied from BLI_asan.h */
+
+/* Clang defines this. */
+#ifndef __has_feature
+#  define __has_feature(x) 0
+#endif
+
+#if (defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)) && \
+    (!defined(_MSC_VER) || _MSC_VER > 1929) /* MSVC 2019 and below doesn't ship ASAN headers. */
+#  include "sanitizer/asan_interface.h"
+#  define WITH_ASAN
+#endif
+
+/* END copied from BLI_asan.h */
+
 #define IS_POW2(a) (((a) & ((a)-1)) == 0)
 
 /* Extra padding which needs to be applied on MemHead to make it aligned. */
