@@ -238,11 +238,50 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void build_layer_buttons(uiLayout &row)
   {
+    uiBut *but;
     PointerRNA layer_ptr;
     RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_, &layer_ptr);
 
-    uiItemR(&row, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, 0);
-    uiItemR(&row, &layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, 0);
+    uiBlock *block = uiLayoutGetBlock(&row);
+    but = uiDefIconButR(block,
+                        UI_BTYPE_ICON_TOGGLE,
+                        0,
+                        0,
+                        0,
+                        0,
+                        UI_UNIT_X,
+                        UI_UNIT_Y,
+                        &layer_ptr,
+                        "hide",
+                        0,
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        nullptr);
+    if (!layer_.parent_group().is_visible()) {
+      UI_but_flag_enable(but, UI_BUT_INACTIVE);
+    }
+
+    but = uiDefIconButR(block,
+                        UI_BTYPE_ICON_TOGGLE,
+                        0,
+                        0,
+                        0,
+                        0,
+                        UI_UNIT_X,
+                        UI_UNIT_Y,
+                        &layer_ptr,
+                        "lock",
+                        0,
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        nullptr);
+    if (layer_.parent_group().is_locked()) {
+      UI_but_flag_enable(but, UI_BUT_INACTIVE);
+    }
   }
 };
 
