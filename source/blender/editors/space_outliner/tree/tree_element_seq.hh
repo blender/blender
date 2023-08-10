@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_sequence_types.h"
+
 #include "tree_element.hh"
 
 struct Sequence;
@@ -25,6 +27,7 @@ class TreeElementSequence : public AbstractTreeElement {
   void expand(SpaceOutliner &) const override;
 
   Sequence &getSequence() const;
+  SequenceType getSequenceType() const;
 };
 
 /* -------------------------------------------------------------------- */
