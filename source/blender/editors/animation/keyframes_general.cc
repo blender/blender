@@ -679,6 +679,31 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
 
 /* ---------------- */
 
+void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  float y_delta;
+
+  if (factor > 0) {
+    const BezTriple segment_last_key = fcu->bezt[segment->start_index + segment->length - 1];
+    y_delta = right_key->vec[1][1] - segment_last_key.vec[1][1];
+  }
+  else {
+    const BezTriple segment_first_key = fcu->bezt[segment->start_index];
+    y_delta = left_key->vec[1][1] - segment_first_key.vec[1][1];
+  }
+
+  const float offset_value = y_delta * fabs(factor);
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    const float key_y_value = fcu->bezt[i].vec[1][1] + offset_value;
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
+  }
+}
+
+/* ---------------- */
+
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   const BezTriple *left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
