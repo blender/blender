@@ -18,4 +18,5 @@
  * we don't want to change this behavior. So for now we just disable the asserts.
  */
 #define VMA_ASSERT(test)
+
 #include "vk_mem_alloc.h"
