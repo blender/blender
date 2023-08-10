@@ -252,7 +252,9 @@ mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16")
   option(WITH_UNITY_BUILD "\
-Enable unity build for modules that support it to improve compile times"
+Enable unity build for modules that support it to improve compile times.\n\
+WARNING: this option allows files to be built without all necessary headers!\n
+This option should be disabled before manipulating or removing headers."
     ON
   )
   mark_as_advanced(WITH_UNITY_BUILD)
