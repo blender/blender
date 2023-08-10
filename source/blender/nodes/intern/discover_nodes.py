@@ -51,7 +51,7 @@ for relative_source_file in relative_source_files:
     path = source_root / relative_source_file
 
     # Read the source code.
-    with open(path) as f:
+    with open(path, "r", encoding="utf-8") as f:
         code = f.read()
 
     # Keeps track of the current namespace we're in.
@@ -87,12 +87,12 @@ func_lines.append("}")
 # Write the generated code if it changed. If the newly generated code is the same as before,
 # don't overwrite the existing file to avoid unnecessary rebuilds.
 try:
-    with open(output_cc_file) as f:
+    with open(output_cc_file, "r", encoding="utf-8") as f:
         old_generated_code = f.read()
 except:
     old_generated_code = ""
 new_generated_code = "\n".join(include_lines + decl_lines + [""] + func_lines)
 
 if old_generated_code != new_generated_code:
-    with open(output_cc_file, "w") as f:
+    with open(output_cc_file, "w", encoding="utf-8") as f:
         f.write(new_generated_code)
