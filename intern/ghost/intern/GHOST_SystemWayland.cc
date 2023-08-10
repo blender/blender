@@ -1057,9 +1057,11 @@ static void gwl_display_destroy(GWL_Display *display)
     }
   }
 
+#ifdef WITH_OPENGL_BACKEND
   if (eglGetDisplay) {
     ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(display->wl.display)));
   }
+#endif
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   if (display->events_pthread) {
