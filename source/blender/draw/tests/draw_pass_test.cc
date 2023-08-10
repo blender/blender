@@ -38,7 +38,10 @@ static void test_draw_pass_all_commands()
   pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_STENCIL);
   pass.clear_color_depth_stencil(float4(0.25f, 0.5f, 100.0f, -2000.0f), 0.5f, 0xF0);
   pass.state_stencil(0x80, 0x0F, 0x8F);
-  pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
+  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR);
+  const int color_location = GPU_shader_get_uniform(sh, "color");
+  const int mvp_location = GPU_shader_get_uniform(sh, "ModelViewProjectionMatrix");
+  pass.shader_set(sh);
   pass.bind_texture("image", tex);
   pass.bind_texture("image", &tex);
   pass.bind_image("missing_image", tex);       /* Should not crash. */
@@ -89,9 +92,9 @@ static void test_draw_pass_all_commands()
   expected << "  .bind_vertbuf_as_ssbo_ref(-1)" << std::endl;
   expected << "  .bind_indexbuf_as_ssbo(-1)" << std::endl;
   expected << "  .bind_indexbuf_as_ssbo_ref(-1)" << std::endl;
-  expected << "  .push_constant(2, data=(1, 1, 1, 0))" << std::endl;
-  expected << "  .push_constant(2, data=(1, 1, 1, 1))" << std::endl;
-  expected << "  .push_constant(0, data=(" << std::endl;
+  expected << "  .push_constant(" << color_location << ", data=(1, 1, 1, 0))" << std::endl;
+  expected << "  .push_constant(" << color_location << ", data=(1, 1, 1, 1))" << std::endl;
+  expected << "  .push_constant(" << mvp_location << ", data=(" << std::endl;
   expected << "(1, 0, 0, 0)," << std::endl;
   expected << "(0, 1, 0, 0)," << std::endl;
   expected << "(0, 0, 1, 0)," << std::endl;
@@ -261,6 +264,13 @@ DRAW_TEST(draw_pass_sortable)
 
 static void test_draw_resource_id_gen()
 {
+  GPU_render_begin();
+  Texture color_attachment;
+  Framebuffer framebuffer;
+  color_attachment.ensure_2d(GPU_RGBA32F, int2(1));
+  framebuffer.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_attachment));
+  framebuffer.bind();
+
   float4x4 win_mat;
   orthographic_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1);
 
@@ -326,6 +336,8 @@ static void test_draw_resource_id_gen()
     EXPECT_EQ(result.str(), expected);
   }
 
+  GPU_render_end();
+
   DRW_shape_cache_free();
   DRW_shaders_free();
 }
@@ -333,6 +345,13 @@ DRAW_TEST(draw_resource_id_gen)
 
 static void test_draw_visibility()
 {
+  GPU_render_begin();
+  Texture color_attachment;
+  Framebuffer framebuffer;
+  color_attachment.ensure_2d(GPU_RGBA32F, int2(1));
+  framebuffer.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_attachment));
+  framebuffer.bind();
+
   float4x4 win_mat;
   orthographic_m4(win_mat.ptr(), -1, 1, -1, 1, -1, 1);
 
@@ -364,6 +383,8 @@ static void test_draw_visibility()
   }
 
   EXPECT_EQ(result.str(), "11111111111111111111111111111011");
+
+  GPU_render_end();
 
   DRW_shape_cache_free();
   DRW_shaders_free();

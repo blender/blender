@@ -37,8 +37,24 @@ class DrawMetalTest : public blender::gpu::GPUMetalTest {
 #  define DRAW_METAL_TEST(test_name)
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+class DrawVulkanTest : public blender::gpu::GPUVulkanTest {
+ public:
+  void SetUp() override;
+};
+
+#  define DRAW_VULKAN_TEST(test_name) \
+    TEST_F(DrawVulkanTest, test_name) \
+    { \
+      test_##test_name(); \
+    }
+#else
+#  define DRAW_VULKAN_TEST(test_name)
+#endif
+
 #define DRAW_TEST(test_name) \
   DRAW_OPENGL_TEST(test_name) \
-  DRAW_METAL_TEST(test_name)
+  DRAW_METAL_TEST(test_name) \
+  DRAW_VULKAN_TEST(test_name)
 
 }  // namespace blender::draw

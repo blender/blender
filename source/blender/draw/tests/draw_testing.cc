@@ -27,4 +27,12 @@ void DrawMetalTest::SetUp()
 }
 #endif
 
+#ifdef WITH_VULKAN_BACKEND
+void DrawVulkanTest::SetUp()
+{
+  GPUVulkanTest::SetUp();
+  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
+}
+#endif
+
 }  // namespace blender::draw
