@@ -604,11 +604,29 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
         char absolute_bake_dir[FILE_MAX];
         STRNCPY(absolute_bake_dir, nmd->simulation_bake_directory);
         BLI_path_abs(absolute_bake_dir, base_path);
+
+        char meta_dir[FILE_MAX];
+        BLI_path_join(meta_dir, sizeof(meta_dir), absolute_bake_dir, "meta");
+        char bdata_dir[FILE_MAX];
+        BLI_path_join(bdata_dir, sizeof(bdata_dir), absolute_bake_dir, "bdata");
+
         if (BLI_exists(absolute_bake_dir)) {
-          if (BLI_delete(absolute_bake_dir, true, true)) {
-            BKE_reportf(
-                op->reports, RPT_ERROR, "Failed to remove bake directory %s", absolute_bake_dir);
+          if (BLI_exists(meta_dir)) {
+            if (BLI_delete(meta_dir, true, true)) {
+              BKE_reportf(op->reports, RPT_ERROR, "Failed to remove meta directory %s", meta_dir);
+            }
           }
+          if (BLI_exists(bdata_dir)) {
+            if (BLI_delete(bdata_dir, true, true)) {
+              BKE_reportf(
+                  op->reports, RPT_ERROR, "Failed to remove bdata directory %s", bdata_dir);
+            }
+          }
+          /* Delete the folder if it's empty. */
+          BLI_delete(absolute_bake_dir, true, false);
+        }
+        else {
+          BKE_reportf(op->reports, RPT_ERROR, "Bake directory %s not found", absolute_bake_dir);
         }
       }
     }
