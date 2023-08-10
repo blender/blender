@@ -466,6 +466,7 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
  * segment is aligned with the key before or after the segment.
  */
 void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
+void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max);
 
 /**

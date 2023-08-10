@@ -704,6 +704,75 @@ void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const floa
 
 /* ---------------- */
 
+static float s_curve(float x, float slope, float width, float height, float xshift, float yshift)
+{
+  /* Formula for 'S' curve we use for the "ease" sliders. The shift values move the curve verticaly
+   * or horizontaly. The range of the curve used is from 0 to 1 on "x" and "y" so we can scale it
+   * (width and height) and move it (xshift and y yshift) to crop the part of the curve we need.
+   * Slope determins how curvy the shape is. */
+  float y = height * pow((x - xshift), slope) /
+                (pow((x - xshift), slope) + pow((width - (x - xshift)), slope)) +
+            yshift;
+
+  /* The curve doesn't do what we want beyond our margins so we clamp the values. */
+  if (x > xshift + width) {
+    y = height + yshift;
+  }
+  else if (x < xshift) {
+    y = yshift;
+  }
+  return y;
+}
+
+void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  const float key_x_range = right_key->vec[1][0] - left_key->vec[1][0];
+  const float key_y_range = right_key->vec[1][1] - left_key->vec[1][1];
+
+  /* Happens if there is only 1 key on the FCurve. Needs to be skipped because it
+   * would be a divide by 0. */
+  if (IS_EQF(key_x_range, 0.0f)) {
+    return;
+  }
+
+  const float slope = 3.0;
+  /* By doubling the size of the "S" curve we just one side of it, a "C" shape. */
+  const float width = 2.0;
+  const float height = 2.0;
+  float xy_shift;
+
+  /* Shifting the x and y values we can decide what side of the "S" shape to use. */
+  if (factor > 0) {
+    xy_shift = -1.0;
+  }
+  else {
+    xy_shift = 0.0;
+  }
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+
+    const float x = (fcu->bezt[i].vec[1][0] - left_key->vec[1][0]) / key_x_range;
+    const float ease = s_curve(x, slope, width, height, xy_shift, xy_shift);
+    const float base = left_key->vec[1][1] + key_y_range * ease;
+
+    float y_delta;
+    if (factor > 0) {
+      y_delta = base - fcu->bezt[i].vec[1][1];
+    }
+    else {
+      y_delta = fcu->bezt[i].vec[1][1] - base;
+    }
+
+    const float key_y_value = fcu->bezt[i].vec[1][1] + y_delta * factor;
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
+  }
+}
+
+/* ---------------- */
+
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
 {
   const BezTriple *left_bezt = fcurve_segment_start_get(fcu, segment->start_index);
