@@ -930,8 +930,13 @@ elseif(WIN32)
   if(MSVC_ASAN)
     # The ASAN DLL's can be found in the same folder as the compiler,
     # this is the easiest way to find these.
-    string(REPLACE "cl.exe" "clang_rt.asan_dynamic-x86_64.dll" ASAN_DLL ${CMAKE_C_COMPILER})
-    string(REPLACE "cl.exe" "clang_rt.asan_dbg_dynamic-x86_64.dll" ASAN_DEBUG_DLL ${CMAKE_C_COMPILER})
+    string(
+      REPLACE "cl.exe" "clang_rt.asan_dynamic-x86_64.dll"
+      ASAN_DLL ${CMAKE_C_COMPILER})
+    string(
+      REPLACE "cl.exe" "clang_rt.asan_dbg_dynamic-x86_64.dll"
+      ASAN_DEBUG_DLL ${CMAKE_C_COMPILER}
+    )
     if(NOT EXISTS "${ASAN_DLL}")
       message(
         FATAL_ERROR
@@ -1681,7 +1686,7 @@ endif()
 
 # Always install MaterialX files regardless if Blender itself uses them, the
 # bundled Python module still needs it.
-if((DEFINED LIBDIR) AND TARGETDIR_LIB AND WITH_MATERIALX )
+if((DEFINED LIBDIR) AND TARGETDIR_LIB AND WITH_MATERIALX)
   install(
     DIRECTORY ${LIBDIR}/materialx/libraries
     DESTINATION "${TARGETDIR_LIB}/materialx"
