@@ -1312,7 +1312,7 @@ static void template_ID(const bContext *C,
     type = idptr.type;
   }
 
-  if (text) {
+  if (text && text[0]) {
     /* Add label respecting the separated layout property split state. */
     uiItemL_respect_property_split(layout, text, ICON_NONE);
   }
