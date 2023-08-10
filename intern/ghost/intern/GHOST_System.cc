@@ -32,6 +32,7 @@ GHOST_System::GHOST_System()
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(nullptr),
 #endif
+      m_preFullScreenSetting{0},
       m_multitouchGestures(true),
       m_tabletAPI(GHOST_kTabletAutomatic),
       m_is_debug_enabled(false)
