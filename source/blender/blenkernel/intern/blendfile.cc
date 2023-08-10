@@ -61,7 +61,7 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "RE_pipeline.h"
 

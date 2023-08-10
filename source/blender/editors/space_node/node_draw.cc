@@ -78,7 +78,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "NOD_geometry_exec.hh"

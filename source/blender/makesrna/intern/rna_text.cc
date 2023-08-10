@@ -17,7 +17,7 @@
 
 #include "ED_text.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 

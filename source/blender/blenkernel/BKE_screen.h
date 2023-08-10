@@ -9,7 +9,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BKE_context.h"
 

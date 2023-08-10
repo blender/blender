@@ -16,7 +16,7 @@
 
 #include "BKE_fcurve_driver.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "bpy_rna.h"
 

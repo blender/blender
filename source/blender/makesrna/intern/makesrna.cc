@@ -22,9 +22,9 @@
 #include "BLI_system.h" /* for 'BLI_system_backtrace' stub. */
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-#include "RNA_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_types.hh"
 
 #include "rna_internal.h"
 
@@ -611,7 +611,7 @@ static bool rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 }
 
 /**
- * Return the identifier for an enum which is defined in "RNA_enum_items.h".
+ * Return the identifier for an enum which is defined in "RNA_enum_items.hh".
  *
  * Prevents expanding duplicate enums bloating the binary size.
  */
@@ -622,7 +622,7 @@ static const char *rna_enum_id_from_pointer(const EnumPropertyItem *item)
   if (item == id) { \
     return STRINGIFY(id); \
   }
-#include "RNA_enum_items.h"
+#include "RNA_enum_items.hh"
 #undef RNA_MAKESRNA
   return nullptr;
 }
@@ -4020,7 +4020,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
       int i, defaultfound = 0, totflag = 0;
 
       if (eprop->item) {
-        /* Inline the enum if this is not a defined in "RNA_enum_items.h". */
+        /* Inline the enum if this is not a defined in "RNA_enum_items.hh". */
         const char *item_global_id = rna_enum_id_from_pointer(eprop->item);
         if (item_global_id == nullptr) {
           fprintf(f,
@@ -4798,8 +4798,8 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"BKE_main.h\"\n");
   fprintf(f, "#include \"BKE_report.h\"\n");
 
-  fprintf(f, "#include \"RNA_define.h\"\n");
-  fprintf(f, "#include \"RNA_types.h\"\n");
+  fprintf(f, "#include \"RNA_define.hh\"\n");
+  fprintf(f, "#include \"RNA_types.hh\"\n");
   fprintf(f, "#include \"rna_internal.h\"\n\n");
 
   /* include the generated prototypes header */
@@ -4902,7 +4902,7 @@ static void rna_generate_header(BlenderRNA * /*brna*/, FILE *f)
           "/* Automatically generated function declarations for the Data API.\n"
           " * Do not edit manually, changes will be overwritten.              */\n\n");
 
-  fprintf(f, "#include \"RNA_types.h\"\n\n");
+  fprintf(f, "#include \"RNA_types.hh\"\n\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n\n");
 
   fprintf(f, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
@@ -5372,8 +5372,8 @@ static void rna_generate_header_cpp(BlenderRNA * /*brna*/, FILE *f)
           " * Do not edit manually, changes will be overwritten. */\n\n");
 
   fprintf(f, "#include \"RNA_blender.h\"\n");
-  fprintf(f, "#include \"RNA_types.h\"\n");
-  fprintf(f, "#include \"RNA_access.h\"\n");
+  fprintf(f, "#include \"RNA_types.hh\"\n");
+  fprintf(f, "#include \"RNA_access.hh\"\n");
   fprintf(f, "#include \"DNA_node_types.h\"\n");
 
   fprintf(f, "%s", cpp_classes);

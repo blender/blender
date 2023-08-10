@@ -43,7 +43,7 @@
 
 #include "GPU_capabilities.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "SEQ_iterator.h"
 

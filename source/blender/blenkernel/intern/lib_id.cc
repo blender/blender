@@ -62,7 +62,7 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLO_read_write.h"
 

@@ -25,7 +25,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"

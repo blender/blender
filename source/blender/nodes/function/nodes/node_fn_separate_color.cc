@@ -9,7 +9,7 @@
 
 #include "NOD_rna_define.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 namespace blender::nodes::node_fn_separate_color_cc {
 

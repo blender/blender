@@ -48,7 +48,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_enum_types.h" /* For `rna_enum_wm_job_type_items`. */
+#include "RNA_enum_types.hh" /* For `rna_enum_wm_job_type_items`. */
 
 /* for notifiers */
 #include "WM_api.hh"

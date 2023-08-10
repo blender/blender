@@ -13,7 +13,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"

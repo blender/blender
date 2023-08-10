@@ -45,7 +45,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"

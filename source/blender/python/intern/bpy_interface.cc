@@ -29,7 +29,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "bpy.h"
 #include "bpy_capi_utils.h"

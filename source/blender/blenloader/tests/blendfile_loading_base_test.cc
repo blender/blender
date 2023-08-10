@@ -35,7 +35,7 @@
 
 #include "ED_datafiles.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "WM_api.hh"
 #include "wm.hh"

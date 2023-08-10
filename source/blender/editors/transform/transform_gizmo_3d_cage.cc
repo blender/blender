@@ -22,7 +22,7 @@
 #include "ED_screen.hh"
 #include "WM_api.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 /* local module include */
 #include "transform.hh"

@@ -27,7 +27,7 @@
 
 #include "WM_api.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"

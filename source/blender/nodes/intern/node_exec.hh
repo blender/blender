@@ -16,7 +16,7 @@
 
 #include "node_util.hh"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 struct bNode;
 struct bNodeStack;

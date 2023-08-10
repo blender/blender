@@ -29,7 +29,7 @@
 #include "BKE_main.h"
 #include "BKE_undo_system.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "MEM_guardedalloc.h"
 

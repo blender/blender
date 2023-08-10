@@ -9,7 +9,7 @@
 #pragma once
 
 #include "DNA_sequence_types.h"
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #ifdef __cplusplus
 extern "C" {

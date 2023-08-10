@@ -13,13 +13,13 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "RNA_enum_types.h" /* own include */
+#include "RNA_enum_types.hh" /* own include */
 
 #include "rna_internal.h" /* own include */
 

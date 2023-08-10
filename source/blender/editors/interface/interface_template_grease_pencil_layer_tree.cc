@@ -14,7 +14,7 @@
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "ED_undo.hh"

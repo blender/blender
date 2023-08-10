@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 struct Main;
 struct Scene;

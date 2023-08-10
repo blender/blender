@@ -17,7 +17,7 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "WM_types.hh"
 

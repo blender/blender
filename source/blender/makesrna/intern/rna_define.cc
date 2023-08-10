@@ -28,7 +28,7 @@
 
 #include "UI_interface.hh" /* For things like UI_PRECISION_FLOAT_MAX... */
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 

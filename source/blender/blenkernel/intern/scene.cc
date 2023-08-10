@@ -99,7 +99,7 @@
 
 #include "RE_engine.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "SEQ_edit.h"
 #include "SEQ_iterator.h"

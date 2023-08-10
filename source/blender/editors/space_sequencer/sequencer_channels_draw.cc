@@ -27,7 +27,7 @@
 #include "GPU_vertex_buffer.h"
 #include "GPU_viewport.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "SEQ_channels.h"

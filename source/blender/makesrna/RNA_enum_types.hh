@@ -8,11 +8,7 @@
  * \ingroup RNA
  */
 
-#include "RNA_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "RNA_types.hh"
 
 struct ID;
 struct bNodeSocketType;
@@ -21,7 +17,7 @@ struct bNodeType;
 
 /* Types */
 #define DEF_ENUM(id) extern const EnumPropertyItem id[];
-#include "RNA_enum_items.h"
+#include "RNA_enum_items.hh"
 
 extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id,
                                                                bool include_instances,
@@ -124,7 +120,3 @@ const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C,
 
 /* Non confirming, utility function. */
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, bool *r_free);
-
-#ifdef __cplusplus
-}
-#endif

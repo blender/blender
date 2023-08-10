@@ -15,7 +15,7 @@
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

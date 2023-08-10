@@ -16,8 +16,8 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "BKE_screen.h"

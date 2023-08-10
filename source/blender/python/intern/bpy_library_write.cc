@@ -25,7 +25,7 @@
 
 #include "BLO_writefile.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "bpy_capi_utils.h"
 #include "bpy_library.h"

@@ -19,7 +19,7 @@
 #include "BKE_context.h"
 #include "BKE_light_linking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.hh"

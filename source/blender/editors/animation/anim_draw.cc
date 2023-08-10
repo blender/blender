@@ -35,8 +35,8 @@
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

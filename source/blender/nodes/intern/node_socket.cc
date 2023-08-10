@@ -28,8 +28,8 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_types.hh"
 
 #include "MEM_guardedalloc.h"
 

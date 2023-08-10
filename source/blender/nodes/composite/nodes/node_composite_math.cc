@@ -13,7 +13,7 @@
 #include "NOD_math_functions.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 #include "node_composite_util.hh"
 

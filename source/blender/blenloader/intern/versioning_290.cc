@@ -59,7 +59,7 @@
 #include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "SEQ_proxy.h"
 #include "SEQ_render.h"

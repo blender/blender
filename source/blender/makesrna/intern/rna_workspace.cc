@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-#include "RNA_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_types.hh"
 
 #include "BKE_workspace.h"
 
@@ -36,7 +36,7 @@
 #  include "ED_asset.hh"
 #  include "ED_paint.hh"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "WM_toolsystem.h"
 

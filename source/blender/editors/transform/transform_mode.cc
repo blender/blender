@@ -24,7 +24,7 @@
 #include "BKE_context.h"
 #include "BKE_nla.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "UI_interface.hh"
 

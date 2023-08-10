@@ -30,7 +30,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"

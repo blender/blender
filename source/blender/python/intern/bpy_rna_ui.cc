@@ -16,7 +16,7 @@
 
 #include "UI_interface.hh"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "bpy_rna.h"
 #include "bpy_rna_ui.h"

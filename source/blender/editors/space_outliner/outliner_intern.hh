@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 /* Needed for `tree_element_cast()`. */
 #include "tree/tree_element.hh"

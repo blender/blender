@@ -9,7 +9,7 @@
 #pragma once
 
 #include "DNA_anim_types.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 struct ID;
 struct ListBase;

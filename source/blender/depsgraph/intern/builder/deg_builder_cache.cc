@@ -16,7 +16,7 @@
 
 #include "BKE_animsys.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 namespace blender::deg {
 

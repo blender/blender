@@ -14,13 +14,13 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "bpy_rna.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BPY_extern_clog.h"
 

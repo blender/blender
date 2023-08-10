@@ -7,7 +7,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 #include "NOD_socket_search_link.hh"
 

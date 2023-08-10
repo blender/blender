@@ -19,7 +19,7 @@
 #include "ED_mask.hh" /* own include */
 #include "ED_sequencer.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "mask_intern.h" /* own include */
 

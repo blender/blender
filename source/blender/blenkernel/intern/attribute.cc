@@ -37,7 +37,7 @@
 #include "BKE_pointcloud.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 using blender::IndexRange;
 

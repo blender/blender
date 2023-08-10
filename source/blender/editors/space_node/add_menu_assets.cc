@@ -18,7 +18,7 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"

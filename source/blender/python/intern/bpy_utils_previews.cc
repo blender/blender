@@ -16,9 +16,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BPY_extern.h"
 #include "bpy_rna.h"

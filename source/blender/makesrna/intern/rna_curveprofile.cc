@@ -12,7 +12,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curveprofile_types.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 #include "rna_internal.h"
 
 #include "BLT_translation.h"
@@ -22,7 +22,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BKE_curveprofile.h"
 

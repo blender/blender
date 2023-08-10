@@ -19,7 +19,7 @@
 
 #include "UI_resources.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "ED_asset_library.h"
 

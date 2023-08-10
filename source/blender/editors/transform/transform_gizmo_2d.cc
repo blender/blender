@@ -26,7 +26,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"

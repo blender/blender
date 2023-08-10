@@ -6,7 +6,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

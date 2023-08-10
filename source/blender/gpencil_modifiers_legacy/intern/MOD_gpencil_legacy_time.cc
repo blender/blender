@@ -36,7 +36,7 @@
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_gpencil_legacy_modifiertypes.h"

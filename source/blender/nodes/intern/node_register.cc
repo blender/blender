@@ -12,7 +12,7 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 static bool node_undefined_poll(const bNodeType * /*ntype*/,
                                 const bNodeTree * /*nodetree*/,

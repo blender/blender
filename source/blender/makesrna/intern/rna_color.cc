@@ -16,8 +16,8 @@
 
 #include "BKE_node_tree_update.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "rna_internal.h"
 
 #include "WM_api.hh"
@@ -35,8 +35,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "RNA_access.h"
-#  include "RNA_path.h"
+#  include "RNA_access.hh"
+#  include "RNA_path.hh"
 
 #  include "DNA_image_types.h"
 #  include "DNA_material_types.h"

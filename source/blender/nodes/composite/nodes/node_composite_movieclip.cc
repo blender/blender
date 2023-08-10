@@ -15,7 +15,7 @@
 
 #include "DNA_defaults.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

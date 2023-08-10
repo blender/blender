@@ -23,7 +23,7 @@
 
 #include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 /* local module include */
 #include "transform.hh"

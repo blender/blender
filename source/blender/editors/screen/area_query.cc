@@ -14,7 +14,7 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "ED_screen.hh"
 

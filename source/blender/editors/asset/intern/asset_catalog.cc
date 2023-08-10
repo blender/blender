@@ -15,7 +15,7 @@
 
 #include "BLI_string_utils.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "ED_asset_catalog.h"

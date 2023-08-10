@@ -17,8 +17,8 @@
 #include <cfloat> /* FLT_MIN/MAX */
 #include <cstddef>
 
-#include "RNA_path.h"
-#include "RNA_types.h"
+#include "RNA_path.hh"
+#include "RNA_types.hh"
 
 #include "BLI_bitmap.h"
 #include "BLI_dynstr.h"
@@ -41,9 +41,9 @@
 #  include "BLI_ghash.h"
 #endif
 
-#include "RNA_access.h"
-#include "RNA_define.h" /* RNA_def_property_free_identifier */
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh" /* RNA_def_property_free_identifier */
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "CLG_log.h"

@@ -12,7 +12,7 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "RE_bake.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_threads.h"
 

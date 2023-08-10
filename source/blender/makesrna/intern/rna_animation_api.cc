@@ -9,8 +9,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

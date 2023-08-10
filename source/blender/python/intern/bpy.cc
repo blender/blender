@@ -24,10 +24,10 @@
 #include "BKE_bpath.h"
 #include "BKE_global.h" /* XXX, G_MAIN only */
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "GPU_state.h"
 
@@ -527,7 +527,7 @@ static PyObject *bpy_rna_enum_items_static(PyObject * /*self*/)
     const char *id;
     const EnumPropertyItem *items;
   } enum_info[] = {
-#include "RNA_enum_items.h"
+#include "RNA_enum_items.hh"
   };
   PyObject *result = _PyDict_NewPresized(ARRAY_SIZE(enum_info));
   for (int i = 0; i < ARRAY_SIZE(enum_info); i++) {

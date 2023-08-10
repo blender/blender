@@ -17,7 +17,7 @@
 #include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 namespace blender::asset_system {

@@ -62,7 +62,7 @@
 
 #include "interface_intern.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"

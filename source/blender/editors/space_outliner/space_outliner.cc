@@ -30,7 +30,7 @@
 #include "WM_message.hh"
 #include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

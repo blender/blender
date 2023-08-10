@@ -15,11 +15,7 @@
 #include <limits.h>
 
 #include "DNA_listBase.h"
-#include "RNA_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "RNA_types.hh"
 
 #ifdef UNIT_TEST
 #  define RNA_MAX_ARRAY_LENGTH 64
@@ -610,7 +606,3 @@ extern const float rna_default_scale_3d[3];
 
 /** Maximum size for dynamic defined type descriptors, this value is arbitrary. */
 #define RNA_DYN_DESCR_MAX 1024
-
-#ifdef __cplusplus
-}
-#endif

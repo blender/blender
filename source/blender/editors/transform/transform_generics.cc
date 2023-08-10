@@ -21,7 +21,7 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"

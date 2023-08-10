@@ -18,7 +18,7 @@
 #include "node_exec.hh"
 #include "node_shader_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 /**** GROUP ****/
 

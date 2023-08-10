@@ -15,7 +15,7 @@
 
 #include "DNA_ID.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"

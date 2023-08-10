@@ -16,7 +16,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.hh"

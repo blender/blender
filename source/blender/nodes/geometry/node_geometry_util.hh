@@ -23,7 +23,7 @@
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "node_util.hh"
 

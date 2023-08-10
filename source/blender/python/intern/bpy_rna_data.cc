@@ -22,7 +22,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "bpy_rna.h"

@@ -18,7 +18,7 @@
 #include "NOD_add_node_search.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 namespace blender::nodes::node_sh_mix_cc {
 

@@ -39,9 +39,9 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_texture.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 #include "rna_internal_types.h"

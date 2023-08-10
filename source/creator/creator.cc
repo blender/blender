@@ -73,7 +73,7 @@
 #include "WM_api.hh"
 #include "WM_toolsystem.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"

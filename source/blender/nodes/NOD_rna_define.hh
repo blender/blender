@@ -8,7 +8,7 @@
 
 #include "BLI_function_ref.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "WM_types.hh" /* For notifier defines */
 

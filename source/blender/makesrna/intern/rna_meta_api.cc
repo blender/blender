@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "BLI_sys_types.h"
 

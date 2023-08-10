@@ -87,7 +87,7 @@ extern "C" char build_commit_time[];
 extern "C" char build_hash[];
 #endif
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DocumentExporter.h"
 #include "collada_internal.h"

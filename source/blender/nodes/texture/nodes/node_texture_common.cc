@@ -17,7 +17,7 @@
 #include "node_exec.hh"
 #include "node_texture_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 static void copy_stack(bNodeStack *to, bNodeStack *from)
 {

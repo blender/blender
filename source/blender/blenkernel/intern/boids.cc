@@ -31,7 +31,7 @@
 
 #include "BKE_modifier.h"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 static float len_squared_v3v3_with_normal_bias(const float co_search[3],
                                                const float co_test[3],

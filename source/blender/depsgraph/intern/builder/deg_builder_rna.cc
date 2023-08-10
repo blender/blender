@@ -24,7 +24,7 @@
 
 #include "BKE_constraint.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "intern/builder/deg_builder.h"

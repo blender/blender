@@ -45,7 +45,7 @@
 #define USE_RNA_DATABLOCKS
 
 #ifdef USE_RNA_DATABLOCKS
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 #  include "bpy_rna.h"
 #endif
 

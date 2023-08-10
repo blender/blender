@@ -27,7 +27,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "MEM_guardedalloc.h"
 

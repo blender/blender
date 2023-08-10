@@ -12,7 +12,7 @@
 
 #include "intern/depsgraph_type.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 struct ID;
 struct PointerRNA;

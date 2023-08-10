@@ -24,7 +24,7 @@
 #include "BLT_lang.h"
 #include "BLT_translation.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "../generic/python_utildefines.h"
 

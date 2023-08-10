@@ -10,7 +10,7 @@
 
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "ED_screen.hh"
 

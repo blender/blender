@@ -110,7 +110,7 @@ struct wmWindowManager;
 #include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 /* exported types for WM */
 #include "gizmo/WM_gizmo_types.h"

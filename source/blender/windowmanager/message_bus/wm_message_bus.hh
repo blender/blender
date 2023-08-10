@@ -9,7 +9,7 @@
 #pragma once
 
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 #include <stdio.h>
 
 struct ID;

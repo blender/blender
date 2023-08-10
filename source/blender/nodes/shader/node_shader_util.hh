@@ -59,7 +59,7 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 bool sh_node_poll_default(const bNodeType *ntype,
                           const bNodeTree *ntree,

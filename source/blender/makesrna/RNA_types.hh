@@ -13,10 +13,6 @@
 #include "../blenlib/BLI_sys_types.h"
 #include "../blenlib/BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlenderRNA;
 struct FunctionRNA;
 struct ID;
@@ -800,9 +796,5 @@ typedef struct PrimitiveFloatRNA {
 typedef struct PrimitiveBooleanRNA {
   bool value;
 } PrimitiveBooleanRNA;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __RNA_TYPES_H__ */

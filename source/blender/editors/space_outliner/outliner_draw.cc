@@ -64,7 +64,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"

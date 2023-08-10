@@ -9,8 +9,8 @@
 #include <cstddef>
 #include <cstdlib>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
@@ -47,7 +47,7 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BKE_global.h"
 #  include "BKE_screen.h"

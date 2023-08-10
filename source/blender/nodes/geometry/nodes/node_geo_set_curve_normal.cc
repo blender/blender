@@ -9,7 +9,7 @@
 
 #include "NOD_rna_define.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
