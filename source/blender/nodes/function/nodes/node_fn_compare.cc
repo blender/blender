@@ -700,7 +700,7 @@ static void node_rna(StructRNA *srna)
         }
         else {
           return enum_items_filter(rna_enum_node_compare_operation_items,
-                                   [](const EnumPropertyItem &item) { return false; });
+                                   [](const EnumPropertyItem & /*item*/) { return false; });
         }
       });
 
