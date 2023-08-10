@@ -175,6 +175,7 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
                       BKE_mesh_corner_verts_for_write(mesh),
                       BKE_mesh_corner_edges_for_write(mesh),
                       &mesh->ldata,
+                      mesh->totloop,
                       mesh->totpoly);
   BKE_mesh_tessface_clear(mesh);
   BKE_mesh_runtime_clear_geometry(mesh);

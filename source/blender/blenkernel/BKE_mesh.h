@@ -581,6 +581,7 @@ void BKE_mesh_polygon_flip_ex(int poly_offset,
                               int *corner_verts,
                               int *corner_edges,
                               struct CustomData *ldata,
+                              int tot_loop,
                               float (*lnors)[3],
                               struct MDisps *mdisp,
                               bool use_loop_mdisp_flip);
@@ -600,6 +601,7 @@ void BKE_mesh_polys_flip(const int *poly_offsets,
                          int *corner_verts,
                          int *corner_edges,
                          struct CustomData *ldata,
+                         int totloop,
                          int totpoly);
 
 /**
