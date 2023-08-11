@@ -122,6 +122,13 @@ static void rna_generate_static_parameter_prototypes(FILE *f,
  */
 static int replace_if_different(const char *tmpfile, const char *dep_files[])
 {
+
+#ifdef USE_MAKEFILE_WORKAROUND
+  const bool use_makefile_workaround = true;
+#else
+  const bool use_makefile_workaround = false;
+#endif
+
   /* Use for testing hand edited `rna_*_gen.c` files. */
   // return 0;
 
@@ -176,9 +183,11 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
    * requests the `rna_*_gen.c` files are re-generated (even if this function always returns 0).
    * It happens *every* rebuild, slowing incremental builds which isn't practical for development.
    *
-   * This is only an issue for `Unix Makefiles`, `Ninja` generator doesn't have this problem. */
+   * This is only an issue for `Unix Makefiles`, `Ninja` generator doesn't have this problem.
+   *
+   * CMake will set `use_makefile_workaround` to 0 or 1 depending on the generator used. */
 
-  if (true) {
+  if (use_makefile_workaround) {
     /* First check if `makesrna.cc` is newer than generated files.
      * For development on `makesrna.cc` you may want to disable this. */
     if (file_older(orgfile, makesrna_source_filepath)) {
@@ -5568,7 +5577,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   }
 
   /* create internal rna struct prototype header file */
-  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h");
+  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h" TMP_EXT);
   if (status != EXIT_SUCCESS) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5585,6 +5594,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     rna_generate_struct_rna_prototypes(brna, file);
     fprintf(file, "#ifdef __cplusplus\n}\n#endif\n");
     fclose(file);
+    replace_if_different(deffile, nullptr);
     if (DefRNA.error) {
       status = EXIT_FAILURE;
     }
