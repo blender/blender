@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -2113,7 +2114,8 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
                                                const eAttrDomain domain,
                                                const MutableSpan<T> data,
                                                const bool use_vert_sel,
-                                               const bool use_face_sel)
+                                               const bool use_face_sel,
+                                               const bool affect_alpha)
 {
   const VArray<bool> select_vert = *mesh.attributes().lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
@@ -2132,11 +2134,12 @@ static void fill_mesh_face_or_corner_attribute(Mesh &mesh,
       if (use_vert_sel && !select_vert[vert]) {
         continue;
       }
-      if (domain == ATTR_DOMAIN_CORNER) {
-        data[corner] = value;
-      }
-      else {
-        data[vert] = value;
+      const int data_index = domain == ATTR_DOMAIN_CORNER ? corner : vert;
+      data[data_index].r = value.r;
+      data[data_index].g = value.g;
+      data[data_index].b = value.b;
+      if (affect_alpha) {
+        data[data_index].a = value.a;
       }
     }
   }
@@ -2148,7 +2151,8 @@ static void fill_mesh_color(Mesh &mesh,
                             const ColorPaint4f &color,
                             const StringRef attribute_name,
                             const bool use_vert_sel,
-                            const bool use_face_sel)
+                            const bool use_face_sel,
+                            const bool affect_alpha)
 {
   if (mesh.edit_mesh) {
     BMesh *bm = mesh.edit_mesh->bm;
@@ -2174,7 +2178,8 @@ static void fill_mesh_color(Mesh &mesh,
           attribute.domain,
           attribute.span.typed<ColorGeometry4f>().cast<ColorPaint4f>(),
           use_vert_sel,
-          use_face_sel);
+          use_face_sel,
+          affect_alpha);
     }
     else if (attribute.span.type().is<ColorGeometry4b>()) {
       fill_mesh_face_or_corner_attribute<ColorPaint4b>(
@@ -2183,7 +2188,8 @@ static void fill_mesh_color(Mesh &mesh,
           attribute.domain,
           attribute.span.typed<ColorGeometry4b>().cast<ColorPaint4b>(),
           use_vert_sel,
-          use_face_sel);
+          use_face_sel,
+          affect_alpha);
     }
     attribute.finish();
   }
@@ -2194,7 +2200,8 @@ static void fill_mesh_color(Mesh &mesh,
  */
 static bool paint_object_attributes_active_color_fill_ex(Object *ob,
                                                          ColorPaint4f fill_color,
-                                                         bool only_selected = true)
+                                                         bool only_selected = true,
+                                                         bool affect_alpha = true)
 {
   Mesh *me = BKE_mesh_from_object(ob);
   if (!me) {
@@ -2203,7 +2210,8 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
 
   const bool use_face_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0 : false;
   const bool use_vert_sel = only_selected ? (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0 : false;
-  fill_mesh_color(*me, fill_color, me->active_color_attribute, use_vert_sel, use_face_sel);
+  fill_mesh_color(
+      *me, fill_color, me->active_color_attribute, use_vert_sel, use_face_sel, affect_alpha);
 
   DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
 
@@ -2220,18 +2228,38 @@ bool BKE_object_attributes_active_color_fill(Object *ob,
   return paint_object_attributes_active_color_fill_ex(ob, ColorPaint4f(fill_color), only_selected);
 }
 
-static int vertex_color_set_exec(bContext *C, wmOperator * /*op*/)
+static int vertex_color_set_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
 
-  ColorPaint4f paintcol = vpaint_get_current_col(scene, scene->toolsettings->vpaint, false);
-
-  if (paint_object_attributes_active_color_fill_ex(obact, paintcol)) {
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
-    return OPERATOR_FINISHED;
+  if (!BKE_mesh_from_object(obact)) {
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_CANCELLED;
+
+  ColorPaint4f paintcol = vpaint_get_current_col(scene, scene->toolsettings->vpaint, false);
+  const bool affect_alpha = RNA_boolean_get(op->ptr, "use_alpha");
+
+  /* Ensure valid sculpt state. */
+  BKE_sculpt_update_object_for_edit(
+      CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
+
+  SCULPT_undo_push_begin(obact, op);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
+      obact->sculpt->pbvh, nullptr, nullptr);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
+  }
+
+  paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);
+
+  for (PBVHNode *node : nodes) {
+    BKE_pbvh_node_mark_update_color(node);
+  }
+  SCULPT_undo_push_end(obact);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
+  return OPERATOR_FINISHED;
 }
 
 void PAINT_OT_vertex_color_set(wmOperatorType *ot)
@@ -2247,6 +2275,12 @@ void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "use_alpha",
+                  true,
+                  "Affect Alpha",
+                  "Set color completely opaque instead of reusing existing alpha");
 }
 
 /** \} */
