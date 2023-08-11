@@ -4,6 +4,7 @@
 
 #include "node_function_util.hh"
 #include <iomanip>
+#include <sstream>
 
 namespace blender::nodes::node_fn_value_to_string_cc {
 

@@ -7,6 +7,8 @@
 #include "eevee_instance.hh"
 #include "eevee_reflection_probes.hh"
 
+#include <iostream>
+
 namespace blender::eevee {
 
 void ReflectionProbeModule::init()

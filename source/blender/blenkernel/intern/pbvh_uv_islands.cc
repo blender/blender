@@ -8,7 +8,9 @@
 
 #include "pbvh_uv_islands.hh"
 
+#include <iostream>
 #include <optional>
+#include <sstream>
 
 namespace blender::bke::pbvh::uv_islands {
 

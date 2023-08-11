@@ -10,7 +10,7 @@
 
 #include <array>
 #include <cmath>
-#include <iostream>
+#include <ostream>
 #include <type_traits>
 
 #include "BLI_utildefines.h"

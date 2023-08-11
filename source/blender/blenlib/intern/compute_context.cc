@@ -4,6 +4,7 @@
 
 #include "BLI_compute_context.hh"
 #include "BLI_hash_md5.h"
+#include <sstream>
 
 namespace blender {
 

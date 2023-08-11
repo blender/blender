@@ -18,6 +18,8 @@
 #include "obj_export_io.hh"
 #include "obj_export_mtl.hh"
 
+#include <iostream>
+
 namespace blender::io::obj {
 
 class OBJCurve;

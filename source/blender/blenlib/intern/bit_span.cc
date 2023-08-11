@@ -5,6 +5,8 @@
 #include "BLI_bit_span.hh"
 #include "BLI_bit_span_ops.hh"
 
+#include <ostream>
+
 namespace blender::bits {
 
 void MutableBitSpan::set_all()

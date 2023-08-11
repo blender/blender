@@ -18,8 +18,8 @@
 
 #include "BLI_dot_export_attribute_enums.hh"
 
+#include <iosfwd>
 #include <optional>
-#include <sstream>
 
 namespace blender::dot {
 

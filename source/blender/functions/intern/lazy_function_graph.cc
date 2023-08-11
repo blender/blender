@@ -6,6 +6,8 @@
 
 #include "FN_lazy_function_graph.hh"
 
+#include <sstream>
+
 namespace blender::fn::lazy_function {
 
 Graph::~Graph()

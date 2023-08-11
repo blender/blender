@@ -55,6 +55,8 @@
 
 #include "intern/gpu_codegen.h"
 
+#include <sstream>
+
 namespace blender::draw {
 using namespace blender::draw;
 using namespace blender::draw::command;

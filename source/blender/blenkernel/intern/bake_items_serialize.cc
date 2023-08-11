@@ -20,6 +20,8 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
+#include <sstream>
+
 namespace blender::bke {
 
 using namespace io::serialize;

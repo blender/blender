@@ -4,6 +4,8 @@
 
 #include "BLI_color.hh"
 
+#include <ostream>
+
 namespace blender {
 
 std::ostream &operator<<(std::ostream &stream, const eAlpha &space)
@@ -39,5 +41,24 @@ std::ostream &operator<<(std::ostream &stream, const eSpace &space)
   }
   return stream;
 }
+
+template<typename ChannelStorageType, eSpace Space, eAlpha Alpha>
+std::ostream &operator<<(std::ostream &stream,
+                         const ColorRGBA<ChannelStorageType, Space, Alpha> &c)
+{
+  stream << Space << Alpha << "(" << c.r << ", " << c.g << ", " << c.b << ", " << c.a << ")";
+  return stream;
+}
+
+template std::ostream &operator<<(
+    std::ostream &stream, const ColorRGBA<float, eSpace::SceneLinear, eAlpha::Premultiplied> &c);
+template std::ostream &operator<<(
+    std::ostream &stream, const ColorRGBA<float, eSpace::SceneLinear, eAlpha::Straight> &c);
+template std::ostream &operator<<(
+    std::ostream &stream,
+    const ColorRGBA<uint8_t, eSpace::SceneLinearByteEncoded, eAlpha::Premultiplied> &c);
+template std::ostream &operator<<(
+    std::ostream &stream,
+    const ColorRGBA<uint8_t, eSpace::SceneLinearByteEncoded, eAlpha::Straight> &c);
 
 }  // namespace blender

@@ -22,6 +22,8 @@
 
 #include "eevee_shader_shared.hh"
 
+#include <sstream>
+
 namespace blender::eevee {
 
 class Instance;

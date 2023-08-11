@@ -32,7 +32,6 @@
  */
 
 #include <cstring>
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -571,17 +570,8 @@ constexpr StringRef::StringRef(std::string_view view)
 /** \name Operator Overloads
  * \{ */
 
-inline std::ostream &operator<<(std::ostream &stream, StringRef ref)
-{
-  stream << std::string(ref);
-  return stream;
-}
-
-inline std::ostream &operator<<(std::ostream &stream, StringRefNull ref)
-{
-  stream << std::string(ref.data(), size_t(ref.size()));
-  return stream;
-}
+std::ostream &operator<<(std::ostream &stream, StringRef ref);
+std::ostream &operator<<(std::ostream &stream, StringRefNull ref);
 
 /**
  * Adding two #StringRefs will allocate an std::string.

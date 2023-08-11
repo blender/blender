@@ -31,6 +31,8 @@
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
+#include <sstream>
+
 namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;

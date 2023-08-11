@@ -96,6 +96,7 @@
 #include "node_intern.hh" /* own include */
 
 #include <fmt/format.h>
+#include <sstream>
 
 namespace geo_log = blender::nodes::geo_eval_log;
 using blender::bke::bNodeTreeZone;

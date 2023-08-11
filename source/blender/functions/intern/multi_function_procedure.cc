@@ -7,6 +7,8 @@
 #include "BLI_dot_export.hh"
 #include "BLI_stack.hh"
 
+#include <sstream>
+
 namespace blender::fn::multi_function {
 
 void InstructionCursor::set_next(Procedure &procedure, Instruction *new_instruction) const

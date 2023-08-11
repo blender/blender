@@ -32,6 +32,8 @@
 
 #include "CLG_log.h"
 
+#include <sstream>
+
 static CLG_LogRef LOG = {"ed.asset"};
 
 namespace blender::ed::asset::index {

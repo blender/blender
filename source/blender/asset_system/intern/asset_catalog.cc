@@ -7,6 +7,7 @@
  */
 
 #include <fstream>
+#include <iostream>
 #include <set>
 
 #include "AS_asset_catalog.hh"

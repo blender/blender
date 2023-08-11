@@ -8,6 +8,8 @@
 
 #include "gpencil_shader.hh"
 
+#include <iostream>
+
 namespace blender::draw::greasepencil {
 
 ShaderModule *ShaderModule::g_shader_module = nullptr;

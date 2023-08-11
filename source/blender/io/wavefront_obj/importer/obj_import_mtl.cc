@@ -23,6 +23,8 @@
 #include "obj_import_mtl.hh"
 #include "obj_import_string_utils.hh"
 
+#include <iostream>
+
 namespace blender::io::obj {
 
 /**

@@ -59,7 +59,7 @@
  * `serialize`/`deserialize` methods should be implemented.
  */
 
-#include <ostream>
+#include <iosfwd>
 
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"

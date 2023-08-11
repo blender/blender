@@ -10,6 +10,8 @@
 
 #include "BLI_path_util.h"
 
+#include <sstream>
+
 namespace blender::asset_system {
 
 const char AssetCatalogPath::SEPARATOR = '/';

@@ -26,6 +26,8 @@
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
 
+#include <sstream>
+
 namespace deg = blender::deg;
 namespace dot = blender::dot;
 

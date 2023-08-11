@@ -13,7 +13,7 @@
 
 #ifdef WITH_GMP
 
-#  include <iostream>
+#  include <iosfwd>
 
 #  include "BLI_array.hh"
 #  include "BLI_index_range.hh"

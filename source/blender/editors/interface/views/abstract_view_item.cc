@@ -18,6 +18,8 @@
 
 #include "UI_abstract_view.hh"
 
+#include <stdexcept>
+
 namespace blender::ui {
 
 /* ---------------------------------------------------------------------- */

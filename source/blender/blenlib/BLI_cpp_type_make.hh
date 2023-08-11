@@ -10,6 +10,7 @@
 
 #include "BLI_cpp_type.hh"
 #include "BLI_utildefines.h"
+#include <sstream>
 
 namespace blender::cpp_type_util {
 

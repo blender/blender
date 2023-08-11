@@ -16,6 +16,8 @@
 
 #include "eevee_private.h"
 
+#include <sstream>
+
 using blender::gpu::shader::StageInterfaceInfo;
 
 void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,

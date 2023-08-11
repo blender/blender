@@ -27,7 +27,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <memory>
 
 #include "BLI_allocator.hh"
@@ -36,13 +35,21 @@
 #include "BLI_math_base.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
 namespace blender {
+
+namespace internal {
+void vector_print_stats(StringRef name,
+                        void *address,
+                        int64_t size,
+                        int64_t capacity,
+                        int64_t inlineCapacity,
+                        int64_t memorySize);
+}
 
 template<
     /**
@@ -978,15 +985,8 @@ class Vector {
    */
   void print_stats(StringRef name = "") const
   {
-    std::cout << "Vector Stats: " << name << "\n";
-    std::cout << "  Address: " << this << "\n";
-    std::cout << "  Elements: " << this->size() << "\n";
-    std::cout << "  Capacity: " << (capacity_end_ - begin_) << "\n";
-    std::cout << "  Inline Capacity: " << InlineBufferCapacity << "\n";
-
-    char memory_size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
-    BLI_str_format_byte_unit(memory_size_str, sizeof(*this), true);
-    std::cout << "  Size on Stack: " << memory_size_str << "\n";
+    internal::vector_print_stats(
+        name, this, this->size(), capacity_end_ - begin_, InlineBufferCapacity, sizeof(*this));
   }
 
  private:

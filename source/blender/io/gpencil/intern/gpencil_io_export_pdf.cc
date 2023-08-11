@@ -38,6 +38,8 @@
 #include "gpencil_io.h"
 #include "gpencil_io_export_pdf.hh"
 
+#include <iostream>
+
 namespace blender ::io ::gpencil {
 
 static void error_handler(HPDF_STATUS error_no, HPDF_STATUS detail_no, void * /*user_data*/)

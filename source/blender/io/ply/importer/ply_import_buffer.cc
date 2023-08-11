@@ -7,6 +7,7 @@
 #include "BLI_fileops.h"
 
 #include <cstring>
+#include <stdexcept>
 
 static inline bool is_newline(char ch)
 {

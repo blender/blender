@@ -1071,6 +1071,10 @@ template<typename T> class VArraySpan final : public Span<T> {
   }
 };
 
+namespace internal {
+void print_mutable_varray_span_warning();
+}
+
 /**
  * Same as #VArraySpan, but for a mutable span.
  * The important thing to note is that when changing this span, the results might not be
@@ -1141,7 +1145,7 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
     if (varray_) {
       if (show_not_saved_warning_) {
         if (!save_has_been_called_) {
-          std::cout << "Warning: Call `save()` to make sure that changes persist in all cases.\n";
+          internal::print_mutable_varray_span_warning();
         }
       }
     }

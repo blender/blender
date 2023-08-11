@@ -8,6 +8,8 @@
 
 #include "ply_file_buffer.hh"
 
+#include <iostream>
+
 namespace blender::io::ply {
 
 FileBuffer::FileBuffer(const char *filepath, size_t buffer_chunk_size)

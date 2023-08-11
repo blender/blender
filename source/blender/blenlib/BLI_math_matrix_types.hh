@@ -33,7 +33,7 @@
 
 #include <array>
 #include <cmath>
-#include <iostream>
+#include <ostream>
 #include <type_traits>
 
 #include "BLI_math_vector_types.hh"

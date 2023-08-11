@@ -12,6 +12,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
+#include "BLI_string.h"
 
 #include "DNA_gpencil_legacy_types.h"
 
@@ -27,6 +28,8 @@
 #include "gpencil_io_import_svg.hh"
 
 #include "nanosvg.h"
+
+#include <iostream>
 
 using blender::MutableSpan;
 

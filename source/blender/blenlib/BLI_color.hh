@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 #include "BLI_math_color.h"
 

@@ -42,6 +42,7 @@
  */
 
 #include <mutex>
+#include <sstream>
 
 #include "BLI_compute_context.hh"
 #include "BLI_enumerable_thread_specific.hh"

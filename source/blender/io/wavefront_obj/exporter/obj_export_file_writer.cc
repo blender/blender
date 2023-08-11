@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <sstream>
 
 #include "BKE_attribute.hh"
 #include "BKE_blender_version.h"

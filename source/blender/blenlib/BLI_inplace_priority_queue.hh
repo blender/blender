@@ -7,6 +7,8 @@
 #include "BLI_array.hh"
 #include "BLI_dot_export.hh"
 
+#include <sstream>
+
 namespace blender {
 
 /**

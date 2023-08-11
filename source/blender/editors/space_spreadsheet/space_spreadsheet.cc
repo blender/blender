@@ -45,6 +45,8 @@
 #include "spreadsheet_row_filter.hh"
 #include "spreadsheet_row_filter_ui.hh"
 
+#include <sstream>
+
 using namespace blender;
 using namespace blender::ed::spreadsheet;
 

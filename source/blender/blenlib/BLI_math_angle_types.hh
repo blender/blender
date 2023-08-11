@@ -17,7 +17,7 @@
  * This design allows some function overloads to be more efficient with certain types.
  */
 
-#include <iostream>
+#include <ostream>
 
 #include "BLI_math_base.hh"
 

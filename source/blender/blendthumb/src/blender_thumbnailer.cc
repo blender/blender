@@ -21,6 +21,7 @@
  */
 
 #include <fstream>
+#include <iostream>
 #include <optional>
 
 #include <fcntl.h>

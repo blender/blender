@@ -26,6 +26,8 @@
 #include "tree_element_label.hh"
 #include "tree_element_overrides.hh"
 
+#include <stdexcept>
+
 namespace blender::ed::outliner {
 
 class OverrideRNAPathTreeBuilder {

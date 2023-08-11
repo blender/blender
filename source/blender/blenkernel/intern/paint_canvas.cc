@@ -14,6 +14,8 @@
 
 #include "IMB_imbuf_types.h"
 
+#include <sstream>
+
 namespace blender::bke::paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)
 {

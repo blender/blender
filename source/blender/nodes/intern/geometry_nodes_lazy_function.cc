@@ -49,6 +49,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include <fmt/format.h>
+#include <sstream>
 
 namespace blender::nodes {
 

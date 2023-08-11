@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include <iostream>
+#include <iosfwd>
 #include <mutex>
 
 #include "BLI_bounds_types.hh"

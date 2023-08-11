@@ -12,6 +12,8 @@
 
 #include "AS_asset_catalog_path.hh"
 
+#include "BLI_string.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 

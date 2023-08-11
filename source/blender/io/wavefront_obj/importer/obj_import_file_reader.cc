@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <iostream>
 
 namespace blender::io::obj {
 

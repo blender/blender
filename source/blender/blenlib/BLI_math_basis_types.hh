@@ -23,7 +23,7 @@
  * - Curve Tangent-Space: X-left, Y-up, Z-forward
  */
 
-#include <iostream>
+#include <iosfwd>
 
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
@@ -88,20 +88,7 @@ class Axis {
   /** Avoid hell. */
   explicit operator bool() const = delete;
 
-  friend std::ostream &operator<<(std::ostream &stream, const Axis axis)
-  {
-    switch (axis.axis_) {
-      default:
-        BLI_assert_unreachable();
-        return stream << "Invalid Axis";
-      case Value::X:
-        return stream << 'X';
-      case Value::Y:
-        return stream << 'Y';
-      case Value::Z:
-        return stream << 'Z';
-    }
-  }
+  friend std::ostream &operator<<(std::ostream &stream, const Axis axis);
 };
 
 /**
@@ -190,21 +177,7 @@ class AxisSigned {
   /** Avoid hell. */
   explicit operator bool() const = delete;
 
-  friend std::ostream &operator<<(std::ostream &stream, const AxisSigned axis)
-  {
-    switch (axis.axis_) {
-      default:
-        BLI_assert_unreachable();
-        return stream << "Invalid AxisSigned";
-      case Value::X_POS:
-      case Value::Y_POS:
-      case Value::Z_POS:
-      case Value::X_NEG:
-      case Value::Y_NEG:
-      case Value::Z_NEG:
-        return stream << axis.axis() << (axis.sign() == -1 ? '-' : '+');
-    }
-  }
+  friend std::ostream &operator<<(std::ostream &stream, const AxisSigned axis);
 };
 
 constexpr static bool operator<=(const Axis::Value a, const Axis::Value b)
@@ -417,10 +390,7 @@ struct CartesianBasis {
     return axes.z;
   }
 
-  friend std::ostream &operator<<(std::ostream &stream, const CartesianBasis &rot)
-  {
-    return stream << "CartesianBasis" << rot.axes;
-  }
+  friend std::ostream &operator<<(std::ostream &stream, const CartesianBasis &rot);
 };
 
 /**

@@ -13,6 +13,8 @@
 
 #include "BLI_resource_scope.hh"
 
+#include <sstream>
+
 namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;
 using nodes::NodeDeclaration;
