@@ -13,6 +13,13 @@ function(add_node_discovery
   output_function
   )
 
+  set(extra_args "")
+
+  # See `add_definitions(-DUSE_MAKEFILE_WORKAROUND)` comment for `makesrna`.
+  if(CMAKE_GENERATOR MATCHES ".*Unix Makefiles")
+    set(extra_args "--use-makefile-workaround")
+  endif()
+
   add_custom_command(
     OUTPUT
       ${output_file}
@@ -23,11 +30,12 @@ function(add_node_discovery
         ${output_file}
         ${output_function}
         ${sources}
+        ${extra_args}
     DEPENDS
       ${SRC}
       ${DISCOVER_NODES_PATH}
   )
-
+  set_source_files_properties(${output_file} PROPERTIES GENERATED TRUE)
   add_library(${lib_name} ${output_file})
 endfunction()
 
