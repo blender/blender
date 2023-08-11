@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::display_update(RenderResult *render_result, rcti *rect)
+{
+  if (display_update_cb) {
+    display_update_cb(duh, render_result, rect);
+  }
+}
+
 void Render::current_scene_update(struct Scene *scene)
 {
   if (current_scene_update_cb) {

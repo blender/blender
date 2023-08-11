@@ -49,6 +49,7 @@ struct BaseRender {
                                   const char *view_name) = 0;
   virtual void compositor_free() = 0;
 
+  virtual void display_update(RenderResult *render_result, rcti *rect) = 0;
   virtual void current_scene_update(struct Scene *scene) = 0;
 
   virtual void stats_draw(RenderStats *render_stats) = 0;
@@ -99,6 +100,7 @@ struct ViewRender : public BaseRender {
   }
   void compositor_free() override {}
 
+  void display_update(RenderResult * /*render_result*/, rcti * /*rect*/) override {}
   void current_scene_update(struct Scene * /*scene*/) override {}
 
   void stats_draw(RenderStats * /*render_stats*/) override {}
@@ -138,6 +140,7 @@ struct Render : public BaseRender {
                           const char *view_name) override;
   void compositor_free() override;
 
+  void display_update(RenderResult *render_result, rcti *rect) override;
   void current_scene_update(struct Scene *scene) override;
 
   void stats_draw(RenderStats *render_stats) override;

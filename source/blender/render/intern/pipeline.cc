@@ -1049,7 +1049,7 @@ static void render_result_uncrop(Render *re)
       BLI_rw_mutex_unlock(&re->resultmutex);
 
       re->display_init_cb(re->dih, re->result);
-      re->display_update_cb(re->duh, re->result, nullptr);
+      re->display_update(re->result, nullptr);
 
       /* restore the disprect from border */
       re->disprect = orig_disprect;
@@ -1282,7 +1282,7 @@ static void do_render_compositor(Render *re)
   /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != nullptr) {
     re->result->renlay = render_get_single_layer(re, re->result);
-    re->display_update_cb(re->duh, re->result, nullptr);
+    re->display_update(re->result, nullptr);
   }
 }
 
@@ -1420,7 +1420,7 @@ static void do_render_sequencer(Render *re)
 
     /* would mark display buffers as invalid */
     RE_SetActiveRenderView(re, rv->name);
-    re->display_update_cb(re->duh, re->result, nullptr);
+    re->display_update(re->result, nullptr);
   }
 
   recurs_depth--;
@@ -1465,7 +1465,7 @@ static void do_render_full_pipeline(Render *re)
     }
 
     re->stats_draw(&re->i);
-    re->display_update_cb(re->duh, re->result, nullptr);
+    re->display_update(re->result, nullptr);
   }
   else {
     do_render_compositor(re);
@@ -1486,7 +1486,7 @@ static void do_render_full_pipeline(Render *re)
     /* stamp image info here */
     if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
       renderresult_stampinfo(re);
-      re->display_update_cb(re->duh, re->result, nullptr);
+      re->display_update(re->result, nullptr);
     }
   }
 }
