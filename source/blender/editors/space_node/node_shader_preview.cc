@@ -69,6 +69,7 @@ struct ShaderNodesPreviewJob {
   bool *do_update;
 
   Material *mat_copy;
+  ePreviewType preview_type;
   bNode *mat_output_copy;
   NodeSocketPair mat_displacement_copy;
   /* TreePath used to locate the nodetree.
@@ -164,7 +165,8 @@ static Material *duplicate_material(const Material &mat)
 static Scene *preview_prepare_scene(const Main *bmain,
                                     const Scene *scene_orig,
                                     Main *pr_main,
-                                    Material *mat_copy)
+                                    Material *mat_copy,
+                                    ePreviewType preview_type)
 {
   Scene *scene_preview;
 
@@ -210,8 +212,7 @@ static Scene *preview_prepare_scene(const Main *bmain,
   scene_preview->world->horg = 0.05f;
   scene_preview->world->horb = 0.05f;
 
-  ED_preview_set_visibility(
-      pr_main, scene_preview, view_layer, ePreviewType(mat_copy->pr_type), PR_BUTS_RENDER);
+  ED_preview_set_visibility(pr_main, scene_preview, view_layer, preview_type, PR_BUTS_RENDER);
 
   BKE_view_layer_synced_ensure(scene_preview, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
@@ -521,7 +522,7 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
 {
   /* Get the stuff from the builtin preview dbase. */
   Scene *scene = preview_prepare_scene(
-      job_data.bmain, job_data.scene, G.pr_main, job_data.mat_copy);
+      job_data.bmain, job_data.scene, G.pr_main, job_data.mat_copy, job_data.preview_type);
   if (scene == nullptr) {
     return;
   }
@@ -599,16 +600,26 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
 /** \name Preview job management
  * \{ */
 
-static void update_needed_flag(const bNodeTree &nt, NestedTreePreviews &tree_previews)
+static void update_needed_flag(NestedTreePreviews &tree_previews,
+                               const bNodeTree &nt,
+                               ePreviewType preview_type)
 {
   if (tree_previews.rendering) {
     if (nt.runtime->previews_refresh_state != tree_previews.rendering_previews_refresh_state) {
       tree_previews.restart_needed = true;
       return;
     }
+    if (preview_type != tree_previews.rendering_preview_type) {
+      tree_previews.restart_needed = true;
+      return;
+    }
   }
   else {
     if (nt.runtime->previews_refresh_state != tree_previews.cached_previews_refresh_state) {
+      tree_previews.restart_needed = true;
+      return;
+    }
+    if (preview_type != tree_previews.cached_preview_type) {
       tree_previews.restart_needed = true;
       return;
     }
@@ -680,6 +691,7 @@ static void shader_preview_free(void *customdata)
   job_data->tree_previews->rendering = false;
   job_data->tree_previews->cached_previews_refresh_state =
       job_data->tree_previews->rendering_previews_refresh_state;
+  job_data->tree_previews->cached_preview_type = job_data->preview_type;
   if (job_data->mat_copy != nullptr) {
     BLI_remlink(&G.pr_main->materials, job_data->mat_copy);
     BKE_id_free(G.pr_main, &job_data->mat_copy->id);
@@ -699,7 +711,11 @@ static void ensure_nodetree_previews(const bContext &C,
   }
 
   bNodeTree *displayed_nodetree = static_cast<bNodeTreePath *>(treepath.last)->nodetree;
-  update_needed_flag(*displayed_nodetree, tree_previews);
+  ePreviewType preview_type = MA_FLAT;
+  if (CTX_wm_space_node(&C)->overlay.preview_shape == SN_OVERLAY_PREVIEW_3D) {
+    preview_type = (ePreviewType)material.pr_type;
+  }
+  update_needed_flag(tree_previews, *displayed_nodetree, preview_type);
   if (!(tree_previews.restart_needed)) {
     return;
   }
@@ -713,6 +729,7 @@ static void ensure_nodetree_previews(const bContext &C,
   tree_previews.restart_needed = false;
   tree_previews.rendering_previews_refresh_state =
       displayed_nodetree->runtime->previews_refresh_state;
+  tree_previews.rendering_preview_type = preview_type;
 
   ED_preview_ensure_dbase(false);
 
@@ -730,6 +747,7 @@ static void ensure_nodetree_previews(const bContext &C,
   job_data->mat_copy = duplicate_material(material);
   job_data->rendering_node = nullptr;
   job_data->rendering_AOVs = false;
+  job_data->preview_type = preview_type;
 
   /* Update the treepath copied to fit the structure of the nodetree copied. */
   bNodeTreePath *root_path = MEM_cnew<bNodeTreePath>(__func__);

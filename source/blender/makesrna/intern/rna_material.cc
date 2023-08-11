@@ -95,7 +95,6 @@ static void rna_Material_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA 
 static void rna_Material_update_previews(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Material *ma = (Material *)ptr->owner_id;
-  BKE_material_make_node_previews_dirty(ma);
 
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_PREVIEW, ma);
 }
