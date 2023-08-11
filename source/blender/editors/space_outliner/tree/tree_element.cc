@@ -80,6 +80,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementGPencilLayer>(legacy_te, *static_cast<bGPDlayer *>(idv));
     case TSE_R_LAYER_BASE:
       return std::make_unique<TreeElementViewLayerBase>(legacy_te, *static_cast<Scene *>(idv));
+    case TSE_R_LAYER: {
+      ViewLayerElementCreateData *view_layer_data = static_cast<ViewLayerElementCreateData *>(idv);
+      return std::make_unique<TreeElementViewLayer>(
+          legacy_te, *view_layer_data->scene, *view_layer_data->view_layer);
+    }
     case TSE_SCENE_COLLECTION_BASE:
       return std::make_unique<TreeElementCollectionBase>(legacy_te, *static_cast<Scene *>(idv));
     case TSE_SCENE_OBJECTS_BASE:

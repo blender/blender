@@ -30,11 +30,21 @@ TreeElementViewLayerBase::TreeElementViewLayerBase(TreeElement &legacy_te, Scene
 void TreeElementViewLayerBase::expand(SpaceOutliner &space_outliner) const
 {
   for (auto *view_layer : ListBaseWrapper<ViewLayer>(scene_.view_layers)) {
-    TreeElement *tenlay = outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &scene_, &legacy_te_, TSE_R_LAYER, 0);
-    tenlay->name = view_layer->name;
-    tenlay->directdata = view_layer;
+    ViewLayerElementCreateData view_layer_data = {&scene_, view_layer};
+
+    outliner_add_element(
+        &space_outliner, &legacy_te_.subtree, &view_layer_data, &legacy_te_, TSE_R_LAYER, 0);
   }
+}
+
+TreeElementViewLayer::TreeElementViewLayer(TreeElement &legacy_te,
+                                           Scene & /* scene */,
+                                           ViewLayer &view_layer)
+    : AbstractTreeElement(legacy_te), /* scene_(scene), */ view_layer_(view_layer)
+{
+  BLI_assert(legacy_te.store_elem->type == TSE_R_LAYER);
+  legacy_te.name = view_layer_.name;
+  legacy_te.directdata = &view_layer_;
 }
 
 }  // namespace blender::ed::outliner

@@ -21,4 +21,13 @@ class TreeElementViewLayerBase final : public AbstractTreeElement {
   void expand(SpaceOutliner &) const override;
 };
 
+class TreeElementViewLayer final : public AbstractTreeElement {
+  /* Not needed right now, avoid unused member variable warning. */
+  // Scene &scene_;
+  ViewLayer &view_layer_;
+
+ public:
+  TreeElementViewLayer(TreeElement &legacy_te, Scene &scene, ViewLayer &view_layer);
+};
+
 }  // namespace blender::ed::outliner

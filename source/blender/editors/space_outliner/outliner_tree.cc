@@ -258,6 +258,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_LINKED_PSYS) {
     id = &static_cast<ParticleSystemElementCreateData *>(idv)->object->id;
   }
+  else if (type == TSE_R_LAYER) {
+    id = &static_cast<ViewLayerElementCreateData *>(idv)->scene->id;
+  }
 
   /* exceptions */
   if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
@@ -325,7 +328,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_LINKED_PSYS) {
     /* pass */
   }
-  else if (ELEM(type, TSE_R_LAYER_BASE)) {
+  else if (ELEM(type, TSE_R_LAYER, TSE_R_LAYER_BASE)) {
     /* pass */
   }
   else if (type == TSE_SOME_ID) {
@@ -383,6 +386,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_DEFGROUP_BASE,
                 TSE_GPENCIL_EFFECT,
                 TSE_GPENCIL_EFFECT_BASE,
+                TSE_R_LAYER,
                 TSE_R_LAYER_BASE))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");

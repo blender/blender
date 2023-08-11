@@ -315,6 +315,11 @@ struct ParticleSystemElementCreateData {
   ParticleSystem *psys;
 };
 
+struct ViewLayerElementCreateData {
+  Scene *scene;
+  ViewLayer *view_layer;
+};
+
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);
 
