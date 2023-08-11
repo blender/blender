@@ -31,8 +31,14 @@ void TreeElementGPencilEffectBase::expand(SpaceOutliner &space_outliner) const
 {
   int index;
   LISTBASE_FOREACH_INDEX (ShaderFxData *, fx, &object_.shader_fx, index) {
-    outliner_add_element(
-        &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_GPENCIL_EFFECT, index);
+    GPencilEffectElementCreateData gp_effect_data = {&object_, fx};
+
+    outliner_add_element(&space_outliner,
+                         &legacy_te_.subtree,
+                         &gp_effect_data,
+                         &legacy_te_,
+                         TSE_GPENCIL_EFFECT,
+                         index);
   }
 }
 
