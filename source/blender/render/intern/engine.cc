@@ -842,17 +842,13 @@ static void engine_render_view_layer(Render *re,
                                      const bool use_grease_pencil)
 {
   /* Lock UI so scene can't be edited while we read from it in this render thread. */
-  if (re->draw_lock_cb) {
-    re->draw_lock_cb(re->dlh, true);
-  }
+  re->draw_lock();
 
   /* Create depsgraph with scene evaluated at render resolution. */
   ViewLayer *view_layer = static_cast<ViewLayer *>(
       BLI_findstring(&re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name)));
   if (!re->prepare_viewlayer(view_layer, engine->depsgraph)) {
-    if (re->draw_lock_cb) {
-      re->draw_lock_cb(re->dlh, false);
-    }
+    re->draw_unlock();
     return;
   }
   engine_depsgraph_init(engine, view_layer);
@@ -871,9 +867,7 @@ static void engine_render_view_layer(Render *re,
     }
   }
 
-  if (re->draw_lock_cb) {
-    re->draw_lock_cb(re->dlh, false);
-  }
+  re->draw_unlock();
 
   /* Perform render with engine. */
   if (use_engine) {
@@ -966,15 +960,11 @@ bool RE_engine_render(Render *re, bool do_all)
   }
 
   /* Lock drawing in UI during data phase. */
-  if (re->draw_lock_cb) {
-    re->draw_lock_cb(re->dlh, true);
-  }
+  re->draw_lock();
 
   if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
     /* Clear UI drawing locks. */
-    if (re->draw_lock_cb) {
-      re->draw_lock_cb(re->dlh, false);
-    }
+    re->draw_unlock();
     BKE_report(re->reports, RPT_ERROR, "Can not initialize the GPU");
     G.is_break = true;
     return true;
@@ -1006,9 +996,7 @@ bool RE_engine_render(Render *re, bool do_all)
 
   if (re->result == nullptr) {
     /* Clear UI drawing locks. */
-    if (re->draw_lock_cb) {
-      re->draw_lock_cb(re->dlh, false);
-    }
+    re->draw_unlock();
     /* Free engine. */
     RE_engine_free(engine);
     re->engine = nullptr;
@@ -1041,9 +1029,7 @@ bool RE_engine_render(Render *re, bool do_all)
   engine->resolution_y = re->winy;
 
   /* Clear UI drawing locks. */
-  if (re->draw_lock_cb) {
-    re->draw_lock_cb(re->dlh, false);
-  }
+  re->draw_unlock();
 
   /* Render view layers. */
   bool delay_grease_pencil = false;

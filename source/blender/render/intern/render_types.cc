@@ -41,6 +41,19 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::draw_lock()
+{
+  if (draw_lock_cb) {
+    draw_lock_cb(dlh, true);
+  }
+}
+void Render::draw_unlock()
+{
+  if (draw_lock_cb) {
+    draw_lock_cb(dlh, false);
+  }
+}
+
 bool Render::test_break()
 {
   if (!test_break_cb) {

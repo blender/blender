@@ -49,6 +49,9 @@ struct BaseRender {
                                   const char *view_name) = 0;
   virtual void compositor_free() = 0;
 
+  virtual void draw_lock() = 0;
+  virtual void draw_unlock() = 0;
+
   /* Test whether render is to be stopped: if the function returns true rendering will be stopped
    * as soon as the render pipeline allows it. */
   virtual bool test_break() = 0;
@@ -91,6 +94,9 @@ struct ViewRender : public BaseRender {
   }
   void compositor_free() override {}
 
+  void draw_lock() override {}
+  void draw_unlock() override {}
+
   bool test_break() override
   {
     return false;
@@ -121,6 +127,9 @@ struct Render : public BaseRender {
                           const bool use_file_output,
                           const char *view_name) override;
   void compositor_free() override;
+
+  void draw_lock() override;
+  void draw_unlock() override;
 
   bool test_break() override;
 
