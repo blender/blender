@@ -40,3 +40,12 @@ Render::~Render()
 
   render_result_free(pushedresult);
 }
+
+bool Render::prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph)
+{
+  if (!prepare_viewlayer_cb) {
+    return true;
+  }
+
+  return prepare_viewlayer_cb(prepare_vl_handle, view_layer, depsgraph);
+}

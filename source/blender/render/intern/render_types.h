@@ -49,6 +49,14 @@ struct BaseRender {
                                   const char *view_name) = 0;
   virtual void compositor_free() = 0;
 
+  /**
+   * Executed right before the initialization of the depsgraph, in order to modify some stuff in
+   * the viewlayer. The modified ids must be tagged in the depsgraph.
+   *
+   * If false is returned then rendering is aborted,
+   */
+  virtual bool prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph) = 0;
+
   /* Result of rendering */
   RenderResult *result = nullptr;
 
@@ -78,6 +86,12 @@ struct ViewRender : public BaseRender {
   {
   }
   void compositor_free() override {}
+
+  bool prepare_viewlayer(struct ViewLayer * /*view_layer*/,
+                         struct Depsgraph * /*depsgraph*/) override
+  {
+    return true;
+  }
 };
 
 /* Controls state of render, everything that's read-only during render stage */
@@ -98,6 +112,8 @@ struct Render : public BaseRender {
                           const bool use_file_output,
                           const char *view_name) override;
   void compositor_free() override;
+
+  bool prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph) override;
 
   char name[RE_MAXNAME] = "";
   int slot = 0;
@@ -150,7 +166,7 @@ struct Render : public BaseRender {
   blender::render::RealtimeCompositor *gpu_compositor = nullptr;
   std::mutex gpu_compositor_mutex;
 
-  /* callbacks */
+  /* Callbacks for the corresponding base class method implementation. */
   void (*display_init_cb)(void *handle, RenderResult *rr) = nullptr;
   void *dih = nullptr;
   void (*display_clear_cb)(void *handle, RenderResult *rr) = nullptr;
@@ -170,10 +186,6 @@ struct Render : public BaseRender {
   bool (*test_break_cb)(void *handle) = nullptr;
   void *tbh = nullptr;
 
-  /**
-   * Executed right before the initialization of the depsgraph, in order to modify some stuff in
-   * the viewlayer. The modified ids must be tagged in the depsgraph.
-   */
   bool (*prepare_viewlayer_cb)(void *handle, struct ViewLayer *vl, struct Depsgraph *depsgraph);
   void *prepare_vl_handle;
 
