@@ -49,6 +49,8 @@ struct BaseRender {
                                   const char *view_name) = 0;
   virtual void compositor_free() = 0;
 
+  virtual void progress(float progress) = 0;
+
   virtual void draw_lock() = 0;
   virtual void draw_unlock() = 0;
 
@@ -94,6 +96,8 @@ struct ViewRender : public BaseRender {
   }
   void compositor_free() override {}
 
+  void progress(const float /*progress*/) override {}
+
   void draw_lock() override {}
   void draw_unlock() override {}
 
@@ -127,6 +131,8 @@ struct Render : public BaseRender {
                           const bool use_file_output,
                           const char *view_name) override;
   void compositor_free() override;
+
+  void progress(float progress) override;
 
   void draw_lock() override;
   void draw_unlock() override;

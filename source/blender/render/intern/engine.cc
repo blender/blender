@@ -502,7 +502,7 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 
   if (re) {
     CLAMP(progress, 0.0f, 1.0f);
-    re->progress_cb(re->prh, progress);
+    re->progress(progress);
   }
 }
 

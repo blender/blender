@@ -1430,10 +1430,10 @@ static void do_render_sequencer(Render *re)
 
   /* set overall progress of sequence rendering */
   if (re->r.efra != re->r.sfra) {
-    re->progress_cb(re->prh, float(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
+    re->progress(float(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
   }
   else {
-    re->progress_cb(re->prh, 1.0f);
+    re->progress(1.0f);
   }
 }
 

@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::progress(float progress)
+{
+  if (progress_cb) {
+    progress_cb(prh, progress);
+  }
+}
+
 void Render::draw_lock()
 {
   if (draw_lock_cb) {

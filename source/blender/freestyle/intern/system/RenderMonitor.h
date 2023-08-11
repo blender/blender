@@ -38,7 +38,7 @@ class RenderMonitor {
   inline void progress(float i)
   {
     if (_re) {
-      _re->progress_cb(_re->prh, i);
+      _re->progress(i);
     }
   }
 
