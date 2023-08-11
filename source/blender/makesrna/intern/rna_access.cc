@@ -1851,9 +1851,7 @@ bool RNA_property_enum_name_gettexted(
 
   if (result) {
     if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-      if (BLT_translate_iface()) {
-        *name = BLT_pgettext(prop->translation_context, *name);
-      }
+      *name = BLT_translate_do_iface(prop->translation_context, *name);
     }
   }
 
@@ -1894,9 +1892,7 @@ bool RNA_property_enum_item_from_value_gettexted(
   const bool result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
 
   if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-    if (BLT_translate_iface()) {
-      r_item->name = BLT_pgettext(prop->translation_context, r_item->name);
-    }
+    r_item->name = BLT_translate_do_iface(prop->translation_context, r_item->name);
   }
 
   return result;

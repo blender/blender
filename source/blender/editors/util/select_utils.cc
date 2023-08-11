@@ -166,18 +166,18 @@ const char *ED_select_pick_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
   ED_select_pick_params_from_operator(ptr, &params);
   switch (params.sel_op) {
     case SEL_OP_ADD:
-      return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Extend)");
+      return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Extend)");
     case SEL_OP_SUB:
-      return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Deselect)");
+      return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Deselect)");
     case SEL_OP_XOR:
-      return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Toggle)");
+      return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select (Toggle)");
     case SEL_OP_AND:
       BLI_assert_unreachable();
       ATTR_FALLTHROUGH;
     case SEL_OP_SET:
       break;
   }
-  return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select");
+  return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select");
 }
 
 const char *ED_select_circle_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
@@ -186,9 +186,9 @@ const char *ED_select_circle_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
   const eSelectOp sel_op = eSelectOp(RNA_enum_get(ptr, "mode"));
   switch (sel_op) {
     case SEL_OP_ADD:
-      return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select (Extend)");
+      return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select (Extend)");
     case SEL_OP_SUB:
-      return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select (Deselect)");
+      return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select (Deselect)");
     case SEL_OP_XOR:
       ATTR_FALLTHROUGH;
     case SEL_OP_AND:
@@ -197,7 +197,7 @@ const char *ED_select_circle_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
     case SEL_OP_SET:
       break;
   }
-  return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select");
+  return CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select");
 }
 
 /** \} */
