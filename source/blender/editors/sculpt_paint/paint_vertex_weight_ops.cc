@@ -362,7 +362,8 @@ static int weight_sample_group_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(
+      C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_vertex_group_set_active", false);
   wmOperatorCallContext opcontext = WM_OP_EXEC_DEFAULT;

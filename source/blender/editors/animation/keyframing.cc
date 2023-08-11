@@ -2118,7 +2118,8 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /
    * to assign shortcuts to arbitrarily named keying sets. See #89560.
    * These menu items perform the key-frame insertion (not this operator)
    * hence the #OPERATOR_INTERFACE return. */
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(
+      C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   /* Even though `ANIM_OT_keyframe_insert_menu` can show a menu in one line,

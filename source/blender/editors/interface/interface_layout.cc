@@ -1219,9 +1219,11 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   /* Take care to fill 'r_opptr' whatever happens. */
   uiBlock *block = layout->root->block;
 
+  std::string operator_name;
   if (!name) {
     if (ot && ot->srna && (flag & UI_ITEM_R_ICON_ONLY) == 0) {
-      name = WM_operatortype_name(ot, nullptr);
+      operator_name = WM_operatortype_name(ot, nullptr);
+      name = operator_name.c_str();
     }
     else {
       name = "";
@@ -3608,8 +3610,10 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
   /* Caller must check */
   BLI_assert(ot->srna != nullptr);
 
+  std::string operator_name;
   if (name == nullptr) {
-    name = WM_operatortype_name(ot, nullptr);
+    operator_name = WM_operatortype_name(ot, nullptr);
+    name = operator_name.c_str();
   }
 
   if (layout->root->type == UI_LAYOUT_MENU && !icon) {

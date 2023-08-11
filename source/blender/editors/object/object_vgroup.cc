@@ -2965,9 +2965,9 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *vertex_group_lock_description(bContext * /*C*/,
-                                           wmOperatorType * /*op*/,
-                                           PointerRNA *params)
+static std::string vertex_group_lock_description(bContext * /*C*/,
+                                                 wmOperatorType * /*op*/,
+                                                 PointerRNA *params)
 {
   int action = RNA_enum_get(params, "action");
   int mask = RNA_enum_get(params, "mask");
@@ -2978,51 +2978,49 @@ static char *vertex_group_lock_description(bContext * /*C*/,
     case VGROUP_LOCK:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Lock all vertex groups of the active object"));
+          return TIP_("Lock all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Lock selected vertex groups of the active object"));
+          return TIP_("Lock selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Lock unselected vertex groups of the active object"));
+          return TIP_("Lock unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(
-              TIP_("Lock selected and unlock unselected vertex groups of the active object"));
+          return TIP_("Lock selected and unlock unselected vertex groups of the active object");
       }
       break;
     case VGROUP_UNLOCK:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Unlock all vertex groups of the active object"));
+          return TIP_("Unlock all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Unlock selected vertex groups of the active object"));
+          return TIP_("Unlock selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Unlock unselected vertex groups of the active object"));
+          return TIP_("Unlock unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(
-              TIP_("Unlock selected and lock unselected vertex groups of the active object"));
+          return TIP_("Unlock selected and lock unselected vertex groups of the active object");
       }
       break;
     case VGROUP_TOGGLE:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Toggle locks of all vertex groups of the active object"));
+          return TIP_("Toggle locks of all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
-          return BLI_strdup(TIP_("Toggle locks of selected vertex groups of the active object"));
+          return TIP_("Toggle locks of selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Toggle locks of unselected vertex groups of the active object"));
+          return TIP_("Toggle locks of unselected vertex groups of the active object");
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(TIP_(
-              "Toggle locks of all and invert unselected vertex groups of the active object"));
+          return TIP_(
+              "Toggle locks of all and invert unselected vertex groups of the active object");
       }
       break;
     case VGROUP_INVERT:
       switch (mask) {
         case VGROUP_MASK_ALL:
-          return BLI_strdup(TIP_("Invert locks of all vertex groups of the active object"));
+          return TIP_("Invert locks of all vertex groups of the active object");
         case VGROUP_MASK_SELECTED:
         case VGROUP_MASK_INVERT_UNSELECTED:
-          return BLI_strdup(TIP_("Invert locks of selected vertex groups of the active object"));
+          return TIP_("Invert locks of selected vertex groups of the active object");
         case VGROUP_MASK_UNSELECTED:
-          return BLI_strdup(TIP_("Invert locks of unselected vertex groups of the active object"));
+          return TIP_("Invert locks of unselected vertex groups of the active object");
       }
       break;
     default:

@@ -355,7 +355,7 @@ static void rna_XrActionMapItem_op_name_get(PointerRNA *ptr, char *value)
     if (ami->op_properties_ptr) {
       wmOperatorType *ot = WM_operatortype_find(ami->op, 1);
       if (ot) {
-        strcpy(value, WM_operatortype_name(ot, ami->op_properties_ptr));
+        strcpy(value, WM_operatortype_name(ot, ami->op_properties_ptr).c_str());
         return;
       }
     }
@@ -376,7 +376,7 @@ static int rna_XrActionMapItem_op_name_length(PointerRNA *ptr)
     if (ami->op_properties_ptr) {
       wmOperatorType *ot = WM_operatortype_find(ami->op, 1);
       if (ot) {
-        return strlen(WM_operatortype_name(ot, ami->op_properties_ptr));
+        return strlen(WM_operatortype_name(ot, ami->op_properties_ptr).c_str());
       }
     }
     return strlen(ami->op);

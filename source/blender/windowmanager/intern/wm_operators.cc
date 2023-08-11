@@ -1048,7 +1048,8 @@ int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opconte
     return retval;
   }
   else {
-    uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+    uiPopupMenu *pup = UI_popup_menu_begin(
+        C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
     uiLayout *layout = UI_popup_menu_layout(pup);
     /* set this so the default execution context is the same as submenus */
     uiLayoutSetOperatorContext(layout, opcontext);
@@ -1883,7 +1884,7 @@ static int wm_call_menu_exec(bContext *C, wmOperator *op)
   return UI_popup_menu_invoke(C, idname, op->reports);
 }
 
-static const char *wm_call_menu_get_name(wmOperatorType *ot, PointerRNA *ptr)
+static std::string wm_call_menu_get_name(wmOperatorType *ot, PointerRNA *ptr)
 {
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(ptr, "name", idname);
@@ -1962,7 +1963,7 @@ static int wm_call_panel_exec(bContext *C, wmOperator *op)
   return UI_popover_panel_invoke(C, idname, keep_open, op->reports);
 }
 
-static const char *wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)
+static std::string wm_call_panel_get_name(wmOperatorType *ot, PointerRNA *ptr)
 {
   char idname[BKE_ST_MAXNAME];
   RNA_string_get(ptr, "name", idname);

@@ -573,44 +573,41 @@ static void wm_operatortype_free_macro(wmOperatorType *ot)
   BLI_freelistN(&ot->macro);
 }
 
-const char *WM_operatortype_name(wmOperatorType *ot, PointerRNA *properties)
+std::string WM_operatortype_name(wmOperatorType *ot, PointerRNA *properties)
 {
-  const char *name = nullptr;
-
+  std::string name;
   if (ot->get_name && properties) {
     name = ot->get_name(ot, properties);
   }
 
-  return (name && name[0]) ? name : RNA_struct_ui_name(ot->srna);
+  return name.empty() ? std::string(RNA_struct_ui_name(ot->srna)) : name;
 }
 
-char *WM_operatortype_description(bContext *C, wmOperatorType *ot, PointerRNA *properties)
+std::string WM_operatortype_description(bContext *C, wmOperatorType *ot, PointerRNA *properties)
 {
   if (ot->get_description && properties) {
-    char *description = ot->get_description(C, ot, properties);
-
-    if (description) {
-      if (description[0]) {
-        return description;
-      }
-      MEM_freeN(description);
+    std::string description = ot->get_description(C, ot, properties);
+    if (!description.empty()) {
+      return description;
     }
   }
 
   const char *info = RNA_struct_ui_description(ot->srna);
   if (info && info[0]) {
-    return BLI_strdup(info);
+    return info;
   }
-  return nullptr;
+  return "";
 }
 
-char *WM_operatortype_description_or_name(bContext *C, wmOperatorType *ot, PointerRNA *properties)
+std::string WM_operatortype_description_or_name(bContext *C,
+                                                wmOperatorType *ot,
+                                                PointerRNA *properties)
 {
-  char *text = WM_operatortype_description(C, ot, properties);
-  if (text == nullptr) {
-    const char *text_orig = WM_operatortype_name(ot, properties);
-    if (text_orig != nullptr) {
-      text = BLI_strdup(text_orig);
+  std::string text = WM_operatortype_description(C, ot, properties);
+  if (text.empty()) {
+    const std::string text_orig = WM_operatortype_name(ot, properties);
+    if (!text_orig.empty()) {
+      text = BLI_strdup(text_orig.c_str());
     }
   }
   return text;

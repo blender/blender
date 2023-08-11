@@ -1302,21 +1302,21 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *screen_opengl_render_description(bContext * /*C*/,
-                                              wmOperatorType * /*ot*/,
-                                              PointerRNA *ptr)
+static std::string screen_opengl_render_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   if (!RNA_boolean_get(ptr, "animation")) {
-    return nullptr;
+    return "";
   }
 
   if (RNA_boolean_get(ptr, "render_keyed_only")) {
-    return BLI_strdup(TIP_(
+    return TIP_(
         "Render the viewport for the animation range of this scene, but only render keyframes of "
-        "selected objects"));
+        "selected objects");
   }
 
-  return BLI_strdup(TIP_("Render the viewport for the animation range of this scene"));
+  return TIP_("Render the viewport for the animation range of this scene");
 }
 
 void RENDER_OT_opengl(wmOperatorType *ot)

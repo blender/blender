@@ -1513,15 +1513,15 @@ static int object_clear_paths_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *object_clear_paths_description(bContext * /*C*/,
-                                            wmOperatorType * /*ot*/,
-                                            PointerRNA *ptr)
+static std::string object_clear_paths_description(bContext * /*C*/,
+                                                  wmOperatorType * /*ot*/,
+                                                  PointerRNA *ptr)
 {
   const bool only_selected = RNA_boolean_get(ptr, "only_selected");
   if (only_selected) {
-    return BLI_strdup(TIP_("Clear motion paths of selected objects"));
+    return TIP_("Clear motion paths of selected objects");
   }
-  return BLI_strdup(TIP_("Clear motion paths of all objects"));
+  return TIP_("Clear motion paths of all objects");
 }
 
 void OBJECT_OT_paths_clear(wmOperatorType *ot)

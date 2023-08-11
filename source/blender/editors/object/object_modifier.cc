@@ -1878,17 +1878,16 @@ static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const 
   return retval;
 }
 
-static char *modifier_apply_as_shapekey_get_description(bContext * /*C*/,
-                                                        wmOperatorType * /*op*/,
-                                                        PointerRNA *values)
+static std::string modifier_apply_as_shapekey_get_description(bContext * /*C*/,
+                                                              wmOperatorType * /*op*/,
+                                                              PointerRNA *values)
 {
   bool keep = RNA_boolean_get(values, "keep_modifier");
-
   if (keep) {
-    return BLI_strdup(TIP_("Apply modifier as a new shapekey and keep it in the stack"));
+    return TIP_("Apply modifier as a new shapekey and keep it in the stack");
   }
 
-  return nullptr;
+  return "";
 }
 
 void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot)

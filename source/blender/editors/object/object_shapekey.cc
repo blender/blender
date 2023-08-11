@@ -339,18 +339,16 @@ static bool shape_key_remove_poll_property(const bContext * /*C*/,
   return true;
 }
 
-static char *shape_key_remove_get_description(bContext * /*C*/,
-                                              wmOperatorType * /*ot*/,
-                                              PointerRNA *ptr)
+static std::string shape_key_remove_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   const bool do_apply_mix = RNA_boolean_get(ptr, "apply_mix");
-
   if (do_apply_mix) {
-    return BLI_strdup(
-        TIP_("Apply current visible shape to the object data, and delete all shape keys"));
+    return TIP_("Apply current visible shape to the object data, and delete all shape keys");
   }
 
-  return nullptr;
+  return "";
 }
 
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)

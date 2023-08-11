@@ -1395,9 +1395,9 @@ static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return edbm_select_mode_exec(C, op);
 }
 
-static char *edbm_select_mode_get_description(bContext * /*C*/,
-                                              wmOperatorType * /*op*/,
-                                              PointerRNA *values)
+static std::string edbm_select_mode_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*op*/,
+                                                    PointerRNA *values)
 {
   const int type = RNA_enum_get(values, "type");
 
@@ -1412,19 +1412,18 @@ static char *edbm_select_mode_get_description(bContext * /*C*/,
   {
     switch (type) {
       case SCE_SELECT_VERTEX:
-        return BLI_strdup(TIP_(
-            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection"));
+        return TIP_(
+            "Vertex select - Shift-Click for multiple modes, Ctrl-Click contracts selection");
       case SCE_SELECT_EDGE:
-        return BLI_strdup(
-            TIP_("Edge select - Shift-Click for multiple modes, "
-                 "Ctrl-Click expands/contracts selection depending on the current mode"));
+        return TIP_(
+            "Edge select - Shift-Click for multiple modes, "
+            "Ctrl-Click expands/contracts selection depending on the current mode");
       case SCE_SELECT_FACE:
-        return BLI_strdup(
-            TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection"));
+        return TIP_("Face select - Shift-Click for multiple modes, Ctrl-Click expands selection");
     }
   }
 
-  return nullptr;
+  return "";
 }
 
 void MESH_OT_select_mode(wmOperatorType *ot)

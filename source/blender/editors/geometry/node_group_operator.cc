@@ -370,17 +370,18 @@ static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent * /*
   return run_node_group_exec(C, op);
 }
 
-static char *run_node_group_get_description(bContext *C, wmOperatorType * /*ot*/, PointerRNA *ptr)
+static std::string run_node_group_get_description(bContext *C,
+                                                  wmOperatorType * /*ot*/,
+                                                  PointerRNA *ptr)
 {
   const asset_system::AssetRepresentation *asset = get_asset(*C, *ptr, nullptr);
   if (!asset) {
-    return nullptr;
+    return "";
   }
-  const char *description = asset->get_metadata().description;
-  if (!description) {
-    return nullptr;
+  if (!asset->get_metadata().description) {
+    return "";
   }
-  return BLI_strdup(description);
+  return asset->get_metadata().description;
 }
 
 static void add_attribute_search_or_value_buttons(uiLayout *layout,

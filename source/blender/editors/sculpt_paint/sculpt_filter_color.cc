@@ -418,7 +418,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   return OPERATOR_RUNNING_MODAL;
 }
 
-static const char *sculpt_color_filter_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
+static std::string sculpt_color_filter_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, "type");
   const int value = RNA_property_enum_get(ptr, prop);

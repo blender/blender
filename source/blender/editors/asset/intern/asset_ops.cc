@@ -352,18 +352,17 @@ static bool asset_clear_poll(bContext *C)
   return true;
 }
 
-static char *asset_clear_get_description(bContext * /*C*/,
-                                         wmOperatorType * /*op*/,
-                                         PointerRNA *values)
+static std::string asset_clear_get_description(bContext * /*C*/,
+                                               wmOperatorType * /*op*/,
+                                               PointerRNA *values)
 {
   const bool set_fake_user = RNA_boolean_get(values, "set_fake_user");
   if (!set_fake_user) {
-    return nullptr;
+    return "";
   }
-
-  return BLI_strdup(
-      TIP_("Delete all asset metadata, turning the selected asset data-blocks back into normal "
-           "data-blocks, and set Fake User to ensure the data-blocks will still be saved"));
+  return TIP_(
+      "Delete all asset metadata, turning the selected asset data-blocks back into normal "
+      "data-blocks, and set Fake User to ensure the data-blocks will still be saved");
 }
 
 static void ASSET_OT_clear(wmOperatorType *ot)

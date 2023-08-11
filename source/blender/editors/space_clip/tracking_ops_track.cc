@@ -390,26 +390,26 @@ static int track_markers_modal(bContext *C, wmOperator * /*op*/, const wmEvent *
   return OPERATOR_PASS_THROUGH;
 }
 
-static char *track_markers_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
+static std::string track_markers_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
 {
   const bool backwards = RNA_boolean_get(ptr, "backwards");
   const bool sequence = RNA_boolean_get(ptr, "sequence");
 
   if (backwards && sequence) {
-    return BLI_strdup(TIP_("Track the selected markers backward for the entire clip"));
+    return TIP_("Track the selected markers backward for the entire clip");
   }
   if (backwards && !sequence) {
-    return BLI_strdup(TIP_("Track the selected markers backward by one frame"));
+    return TIP_("Track the selected markers backward by one frame");
   }
   if (!backwards && sequence) {
-    return BLI_strdup(TIP_("Track the selected markers forward for the entire clip"));
+    return TIP_("Track the selected markers forward for the entire clip");
   }
   if (!backwards && !sequence) {
-    return BLI_strdup(TIP_("Track the selected markers forward by one frame"));
+    return TIP_("Track the selected markers forward by one frame");
   }
 
   /* Use default description. */
-  return nullptr;
+  return "";
 }
 
 void CLIP_OT_track_markers(wmOperatorType *ot)

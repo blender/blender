@@ -355,7 +355,7 @@ static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropB
     tooltip = drop->tooltip(C, drag, xy, drop);
   }
   if (!tooltip) {
-    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));
+    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr).c_str());
   }
   /* XXX Doing translation here might not be ideal, but later we have no more
    *     access to ot (and hence op context)... */

@@ -1267,14 +1267,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
   wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(ptr->data);
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  strcpy(value, ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
+  strcpy(value, ot ? WM_operatortype_name(ot, kmi->ptr).c_str() : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(ptr->data);
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  return strlen(ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
+  return strlen(ot ? WM_operatortype_name(ot, kmi->ptr).c_str() : kmi->idname);
 }
 
 static bool rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
@@ -1465,7 +1465,9 @@ static void rna_operator_cancel_cb(bContext *C, wmOperator *op)
   RNA_parameter_list_free(&list);
 }
 
-static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, PointerRNA *prop_ptr)
+static std::string rna_operator_description_cb(bContext *C,
+                                               wmOperatorType *ot,
+                                               PointerRNA *prop_ptr)
 {
   extern FunctionRNA rna_Operator_description_func;
 
@@ -1486,11 +1488,11 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
   RNA_parameter_get_lookup(&list, "result", &ret);
   result = (char *)ret;
 
-  if (result && result[0]) {
-    result = BLI_strdup(result);
+  if (result) {
+    result = result;
   }
   else {
-    result = nullptr;
+    result = "";
   }
 
   RNA_parameter_list_free(&list);

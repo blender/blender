@@ -3704,7 +3704,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   /* Vertical Split */
@@ -3889,7 +3889,7 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent * /*
     return OPERATOR_CANCELLED;
   }
 
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   wmOperator *lastop;
@@ -3899,7 +3899,7 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, const wmEvent * /*
   {
     if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
       uiItemIntO(layout,
-                 WM_operatortype_name(lastop->type, lastop->ptr),
+                 WM_operatortype_name(lastop->type, lastop->ptr).c_str(),
                  ICON_NONE,
                  op->type->idname,
                  "index",

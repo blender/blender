@@ -640,18 +640,18 @@ static bool data_transfer_poll_property(const bContext * /*C*/,
   return true;
 }
 
-static char *data_transfer_get_description(bContext * /*C*/,
-                                           wmOperatorType * /*ot*/,
-                                           PointerRNA *ptr)
+static std::string data_transfer_get_description(bContext * /*C*/,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
 {
   const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
 
   if (reverse_transfer) {
-    return BLI_strdup(TIP_(
-        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one"));
+    return TIP_(
+        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one");
   }
 
-  return nullptr;
+  return "";
 }
 
 void OBJECT_OT_data_transfer(wmOperatorType *ot)

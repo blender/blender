@@ -603,17 +603,17 @@ static int graphkeys_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *graphkeys_paste_description(bContext * /*C*/,
-                                         wmOperatorType * /*op*/,
-                                         PointerRNA *ptr)
+static std::string graphkeys_paste_description(bContext * /*C*/,
+                                               wmOperatorType * /*op*/,
+                                               PointerRNA *ptr)
 {
   /* Custom description if the 'flipped' option is used. */
   if (RNA_boolean_get(ptr, "flipped")) {
-    return BLI_strdup(TIP_("Paste keyframes from mirrored bones if they exist"));
+    return TIP_("Paste keyframes from mirrored bones if they exist");
   }
 
   /* Use the default description in the other cases. */
-  return nullptr;
+  return "";
 }
 
 void GRAPH_OT_paste(wmOperatorType *ot)

@@ -682,7 +682,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static char *actkeys_paste_description(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
+static std::string actkeys_paste_description(bContext * /*C*/,
+                                             wmOperatorType * /*op*/,
+                                             PointerRNA *ptr)
 {
   /* Custom description if the 'flipped' option is used. */
   if (RNA_boolean_get(ptr, "flipped")) {
@@ -690,7 +692,7 @@ static char *actkeys_paste_description(bContext * /*C*/, wmOperatorType * /*op*/
   }
 
   /* Use the default description in the other cases. */
-  return nullptr;
+  return "";
 }
 
 void ACTION_OT_paste(wmOperatorType *ot)

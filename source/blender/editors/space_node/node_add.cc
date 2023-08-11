@@ -454,19 +454,19 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
-static char *node_add_group_asset_get_description(bContext *C,
-                                                  wmOperatorType * /*op*/,
-                                                  PointerRNA * /*values*/)
+static std::string node_add_group_asset_get_description(bContext *C,
+                                                        wmOperatorType * /*op*/,
+                                                        PointerRNA * /*values*/)
 {
   const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
-    return nullptr;
+    return "";
   }
   const AssetMetaData &asset_data = asset->get_metadata();
   if (!asset_data.description) {
-    return nullptr;
+    return "";
   }
-  return BLI_strdup(DATA_(asset_data.description));
+  return TIP_(asset_data.description);
 }
 
 void NODE_OT_add_group_asset(wmOperatorType *ot)

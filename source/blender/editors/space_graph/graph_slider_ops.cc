@@ -539,16 +539,16 @@ static bool decimate_poll_property(const bContext * /*C*/, wmOperator *op, const
   return true;
 }
 
-static char *decimate_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
+static std::string decimate_desc(bContext * /*C*/, wmOperatorType * /*op*/, PointerRNA *ptr)
 {
 
   if (RNA_enum_get(ptr, "mode") == DECIM_ERROR) {
-    return BLI_strdup(
-        TIP_("Decimate F-Curves by specifying how much they can deviate from the original curve"));
+    return TIP_(
+        "Decimate F-Curves by specifying how much they can deviate from the original curve");
   }
 
   /* Use default description. */
-  return nullptr;
+  return "";
 }
 
 static const EnumPropertyItem decimate_mode_items[] = {

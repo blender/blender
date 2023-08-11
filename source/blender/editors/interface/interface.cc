@@ -4811,9 +4811,11 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
                                       short height,
                                       const char *tip)
 {
+  std::string operator_name;
   if (!str) {
     if (ot && ot->srna) {
-      str = WM_operatortype_name(ot, nullptr);
+      operator_name = WM_operatortype_name(ot, nullptr);
+      str = operator_name.c_str();
     }
     else {
       str = "";
@@ -6661,12 +6663,12 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
       else if (but->optype) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr));
+          tmp = BLI_strdup(WM_operatortype_name(but->optype, opptr).c_str());
         }
         else {
           bContextStore *previous_ctx = CTX_store_get(C);
           CTX_store_set(C, but->context);
-          tmp = WM_operatortype_description(C, but->optype, opptr);
+          tmp = BLI_strdup(WM_operatortype_description(C, but->optype, opptr).c_str());
           CTX_store_set(C, previous_ctx);
         }
       }
@@ -6693,10 +6695,10 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, nullptr);
           if (ot) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(WM_operatortype_name(ot, nullptr));
+              tmp = BLI_strdup(WM_operatortype_name(ot, nullptr).c_str());
             }
             else {
-              tmp = WM_operatortype_description(C, ot, nullptr);
+              tmp = BLI_strdup(WM_operatortype_description(C, ot, nullptr).c_str());
             }
           }
         }
@@ -6833,10 +6835,10 @@ void UI_but_extra_icon_string_info_get(bContext *C, uiButExtraOpIcon *extra_icon
 
     switch (si->type) {
       case BUT_GET_LABEL:
-        tmp = BLI_strdup(WM_operatortype_name(optype, opptr));
+        tmp = BLI_strdup(WM_operatortype_name(optype, opptr).c_str());
         break;
       case BUT_GET_TIP:
-        tmp = WM_operatortype_description(C, optype, opptr);
+        tmp = BLI_strdup(WM_operatortype_description(C, optype, opptr).c_str());
         break;
       case BUT_GET_OP_KEYMAP: {
         char buf[128];
