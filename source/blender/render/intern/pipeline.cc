@@ -1078,7 +1078,7 @@ static void do_render_engine(Render *re)
   /* now use renderdata and camera to set viewplane */
   RE_SetCamera(re, camera);
 
-  re->current_scene_update_cb(re->suh, re->scene);
+  re->current_scene_update(re->scene);
   RE_engine_render(re, false);
 
   /* when border render, check if we have to insert it in black */
@@ -1188,7 +1188,7 @@ static void do_render_compositor_scenes(Render *re)
 
   if (changed_scene) {
     /* If rendered another scene, switch back to the current scene with compositing nodes. */
-    re->current_scene_update_cb(re->suh, re->scene);
+    re->current_scene_update(re->scene);
   }
 }
 

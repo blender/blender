@@ -49,6 +49,8 @@ struct BaseRender {
                                   const char *view_name) = 0;
   virtual void compositor_free() = 0;
 
+  virtual void current_scene_update(struct Scene *scene) = 0;
+
   virtual void stats_draw(RenderStats *render_stats) = 0;
   virtual void progress(float progress) = 0;
 
@@ -97,6 +99,8 @@ struct ViewRender : public BaseRender {
   }
   void compositor_free() override {}
 
+  void current_scene_update(struct Scene * /*scene*/) override {}
+
   void stats_draw(RenderStats * /*render_stats*/) override {}
   void progress(const float /*progress*/) override {}
 
@@ -133,6 +137,8 @@ struct Render : public BaseRender {
                           const bool use_file_output,
                           const char *view_name) override;
   void compositor_free() override;
+
+  void current_scene_update(struct Scene *scene) override;
 
   void stats_draw(RenderStats *render_stats) override;
   void progress(float progress) override;

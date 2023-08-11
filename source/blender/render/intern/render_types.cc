@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::current_scene_update(struct Scene *scene)
+{
+  if (current_scene_update_cb) {
+    current_scene_update_cb(suh, scene);
+  }
+}
+
 void Render::stats_draw(RenderStats *render_stats)
 {
   if (stats_draw_cb) {
