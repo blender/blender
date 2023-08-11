@@ -241,6 +241,12 @@ void BKE_fmodifier_name_set(struct FModifier *fcm, const char *name);
  * Callback used by lib_query to walk over all ID usages
  * (mimics `foreach_id` callback of #IDTypeInfo structure).
  */
+void BKE_fmodifiers_foreach_id(struct ListBase *fmodifiers, struct LibraryForeachIDData *data);
+
+/**
+ * Callback used by lib_query to walk over all ID usages
+ * (mimics `foreach_id` callback of #IDTypeInfo structure).
+ */
 void BKE_fcurve_foreach_id(struct FCurve *fcu, struct LibraryForeachIDData *data);
 
 /**

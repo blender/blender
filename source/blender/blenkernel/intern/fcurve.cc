@@ -171,21 +171,10 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
   BLI_uniquename(&list, fcm, fmi->name, '.', offsetof(FModifier, name), sizeof(fcm->name));
 }
 
-void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
+void BKE_fmodifiers_foreach_id(ListBase *fmodifiers, LibraryForeachIDData *data)
 {
-  ChannelDriver *driver = fcu->driver;
-
-  if (driver != nullptr) {
-    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-      /* only used targets */
-      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-        BKE_LIB_FOREACHID_PROCESS_ID(data, dtar->id, IDWALK_CB_NOP);
-      }
-      DRIVER_TARGETS_LOOPER_END;
-    }
-  }
-
-  LISTBASE_FOREACH (FModifier *, fcm, &fcu->modifiers) {
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    /* library data for specific F-Modifier types */
     switch (fcm->type) {
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *fcm_py = (FMod_Python *)fcm->data;
@@ -203,6 +192,23 @@ void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
         break;
     }
   }
+}
+
+void BKE_fcurve_foreach_id(FCurve *fcu, LibraryForeachIDData *data)
+{
+  ChannelDriver *driver = fcu->driver;
+
+  if (driver != nullptr) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+      /* only used targets */
+      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+        BKE_LIB_FOREACHID_PROCESS_ID(data, dtar->id, IDWALK_CB_NOP);
+      }
+      DRIVER_TARGETS_LOOPER_END;
+    }
+  }
+
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fmodifiers_foreach_id(&fcu->modifiers, data));
 }
 
 /* ----------------- Finding F-Curves -------------------------- */
