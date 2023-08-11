@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /** \file
  * \ingroup freestyle
  * \brief Different natures for both vertices and edges
