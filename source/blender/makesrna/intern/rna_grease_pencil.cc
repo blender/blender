@@ -191,6 +191,7 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
                                 "rna_GreasePencilLayer_name_length",
                                 "rna_GreasePencilLayer_name_set");
   RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, "rna_grease_pencil_update");
 
   /* Visibility */
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
@@ -264,6 +265,7 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
                                 "rna_GreasePencilLayerGroup_name_length",
                                 "rna_GreasePencilLayerGroup_name_set");
   RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, "rna_grease_pencil_update");
 
   /* Visibility */
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);

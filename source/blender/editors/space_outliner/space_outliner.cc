@@ -236,7 +236,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
       }
       break;
     case NC_GPENCIL:
-      if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
+      if (ELEM(wmn->action, NA_EDITED, NA_SELECTED, NA_RENAME)) {
         ED_region_tag_redraw(region);
       }
       break;
