@@ -40,6 +40,8 @@
 #include "RNA_prototypes.h"
 #include "bpy_rna.h" /* pyrna_struct_CreatePyObject() */
 
+#include "../generic/py_capi_utils.h" /* #PyC_UnicodeFromBytes */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -544,7 +546,7 @@ PyObject *Freestyle_Init()
     char modpath[FILE_MAX];
     BLI_path_join(modpath, sizeof(modpath), path, "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
-    PyObject *py_modpath = PyUnicode_FromString(modpath);
+    PyObject *py_modpath = PyC_UnicodeFromBytes(modpath);
     PyList_Append(sys_path, py_modpath);
     Py_DECREF(py_modpath);
 #if 0

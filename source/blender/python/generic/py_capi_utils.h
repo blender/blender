@@ -96,7 +96,11 @@ PyObject *PyC_Tuple_PackArray_Multi_Bool(const bool *array, const int dims[], in
 void PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void PyC_List_Fill(PyObject *list, PyObject *value);
 
-/* follow http://www.python.org/dev/peps/pep-0383/ */
+/**
+ * Create a `str` from bytes in a way which is compatible with non UTF8 encoded file-system paths,
+ * see: #111033.
+ * Follow http://www.python.org/dev/peps/pep-0383/
+ */
 PyObject *PyC_UnicodeFromBytes(const char *str);
 /**
  * \param size: The length of the string: `strlen(str)`.
