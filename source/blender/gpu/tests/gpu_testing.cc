@@ -6,6 +6,8 @@
 
 #include "CLG_log.h"
 
+#include "BLI_math_color.h"
+
 #include "GPU_context.h"
 #include "GPU_debug.h"
 #include "GPU_init_exit.h"
