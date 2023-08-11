@@ -1200,7 +1200,7 @@ static void render_compositor_stats(void *arg, const char *str)
   RenderStats i;
   memcpy(&i, &re->i, sizeof(i));
   i.infostr = str;
-  re->stats_draw_cb(re->sdh, &i);
+  re->stats_draw(&i);
 }
 
 /* Render compositor nodes, along with any scenes required for them.
@@ -1464,7 +1464,7 @@ static void do_render_full_pipeline(Render *re)
       render_seq = true;
     }
 
-    re->stats_draw_cb(re->sdh, &re->i);
+    re->stats_draw(&re->i);
     re->display_update_cb(re->duh, re->result, nullptr);
   }
   else {
@@ -1473,7 +1473,7 @@ static void do_render_full_pipeline(Render *re)
 
   re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
 
-  re->stats_draw_cb(re->sdh, &re->i);
+  re->stats_draw(&re->i);
 
   /* save render result stamp if needed */
   if (re->result != nullptr) {

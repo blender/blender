@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::stats_draw(RenderStats *render_stats)
+{
+  if (stats_draw_cb) {
+    stats_draw_cb(sdh, render_stats);
+  }
+}
+
 void Render::progress(float progress)
 {
   if (progress_cb) {

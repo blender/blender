@@ -30,7 +30,7 @@ class RenderMonitor {
   {
     if (_re && !info.empty()) {
       _re->i.infostr = info.c_str();
-      _re->stats_draw_cb(_re->sdh, &_re->i);
+      _re->stats_draw(&_re->i);
       _re->i.infostr = nullptr;
     }
   }
