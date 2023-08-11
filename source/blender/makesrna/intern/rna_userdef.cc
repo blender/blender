@@ -423,6 +423,42 @@ static void rna_userdef_script_directory_remove(ReportList *reports, PointerRNA 
   USERDEF_TAG_DIRTY;
 }
 
+static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
+                                                          const char *module,
+                                                          const char *directory,
+                                                          const char *remote_path)
+{
+  Main *bmain = G.main;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+
+  bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
+      &U, name ? name : "", module ? module : "", directory ? directory : "");
+  if (remote_path) {
+    STRNCPY(repo->remote_path, remote_path);
+  }
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+  USERDEF_TAG_DIRTY;
+  return repo;
+}
+
+static void rna_userdef_extension_repo_remove(ReportList *reports, PointerRNA *ptr)
+{
+  Main *bmain = G.main;
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(ptr->data);
+  if (BLI_findindex(&U.extension_repos, repo) == -1) {
+    BKE_report(reports, RPT_ERROR, "Extension repository not found");
+    return;
+  }
+  BKE_preferences_extension_repo_remove(&U, repo);
+  RNA_POINTER_INVALIDATE(ptr);
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+  USERDEF_TAG_DIRTY;
+}
+
 static void rna_userdef_load_ui_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   UserDef *userdef = (UserDef *)ptr->data;
@@ -6534,6 +6570,40 @@ static void rna_def_userdef_script_directory_collection(BlenderRNA *brna, Proper
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
 }
 
+static void rna_def_userdef_extension_repos_collection(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
+
+  RNA_def_property_srna(cprop, "UserExtensionRepoCollection");
+  srna = RNA_def_struct(brna, "UserExtensionRepoCollection", nullptr);
+  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+  RNA_def_struct_ui_text(srna, "User Extension Repos", "Collection of user extension repos");
+
+  func = RNA_def_function(srna, "new", "rna_userdef_extension_repo_new");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
+  RNA_def_function_ui_description(func, "Add a new repository");
+
+  RNA_def_string(func, "name", nullptr, sizeof(bUserExtensionRepo::name), "Name", "");
+  RNA_def_string(func, "module", nullptr, sizeof(bUserExtensionRepo::module), "Module", "");
+  RNA_def_string(
+      func, "directory", nullptr, sizeof(bUserExtensionRepo::dirpath), "Directories", "");
+  RNA_def_string(
+      func, "remote_path", nullptr, sizeof(bUserExtensionRepo::remote_path), "Remote Path", "");
+
+  /* return type */
+  parm = RNA_def_pointer(func, "repo", "UserExtensionRepo", "", "Newly added repo");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "remove", "rna_userdef_extension_repo_remove");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Remove repos");
+  parm = RNA_def_pointer(func, "repo", "UserExtensionRepo", "", "Repo to remove");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
+}
+
 static void rna_def_userdef_filepaths(BlenderRNA *brna)
 {
   PropertyRNA *prop;
@@ -6751,6 +6821,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "extension_repos", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "UserExtensionRepo");
   RNA_def_property_ui_text(prop, "Extension Repos", "");
+  rna_def_userdef_extension_repos_collection(brna, prop);
 
   prop = RNA_def_property(srna, "active_extension_repo", PROP_INT, PROP_NONE);
   RNA_def_property_ui_text(prop,

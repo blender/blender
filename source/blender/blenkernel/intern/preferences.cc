@@ -158,6 +158,7 @@ static size_t strncpy_py_module(char *dst, const char *src, const size_t dst_max
 
 bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
                                                        const char *name,
+                                                       const char *module,
                                                        const char *dirpath)
 {
   bUserExtensionRepo *repo = DNA_struct_default_alloc(bUserExtensionRepo);
@@ -167,7 +168,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
   BKE_preferences_extension_repo_name_set(userdef, repo, name);
 
   /* Set the unique module-name. */
-  BKE_preferences_extension_repo_module_set(userdef, repo, name);
+  BKE_preferences_extension_repo_module_set(userdef, repo, module);
 
   /* Set the directory. */
   STRNCPY(repo->dirpath, dirpath);

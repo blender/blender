@@ -251,7 +251,8 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 
   BLI_path_split_file_part(directory, name, sizeof(name));
 
-  bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(&U, name, directory);
+  const char *module = name;
+  bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(&U, name, module, directory);
 
   /* Activate new repository in the UI for further setup. */
   U.active_extension_repo = BLI_findindex(&U.extension_repos, new_repo);
