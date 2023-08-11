@@ -1099,17 +1099,19 @@ bool BKE_unit_replace_string(
    * not 4 inches. I do think this is the desired behavior!
    */
   for (int system_iter = 0; system_iter < UNIT_SYSTEM_TOT; system_iter++) {
-    if (system_iter != system) {
-      const bUnitCollection *usys_iter = unit_get_system(system_iter, type);
-      if (usys_iter) {
-        for (const bUnitDef *unit = usys_iter->units; unit->name; unit++) {
-          int ofs = 0;
-          /* In case there are multiple instances. */
-          while (
-              (ofs = unit_replace(str + ofs, str_maxncpy - ofs, str_tmp, scale_pref_base, unit))) {
-            changed = true;
-          }
-        }
+    if (system_iter == system) {
+      continue;
+    }
+    const bUnitCollection *usys_iter = unit_get_system(system_iter, type);
+    if (usys_iter == nullptr) {
+      continue;
+    }
+
+    for (const bUnitDef *unit = usys_iter->units; unit->name; unit++) {
+      int ofs = 0;
+      /* In case there are multiple instances. */
+      while ((ofs = unit_replace(str + ofs, str_maxncpy - ofs, str_tmp, scale_pref_base, unit))) {
+        changed = true;
       }
     }
   }
@@ -1146,33 +1148,36 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
   const bUnitCollection *usys = unit_get_system(system, type);
 
   /* Find and substitute all units. */
-  for (const bUnitDef *unit = usys->units; unit->name; unit++) {
-    if (str_maxncpy > 0 && unit->name_alt) {
-      const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
-      const char *found = unit_find_str(orig_str, unit->name_short, case_sensitive);
-      if (found) {
-        int offset = int(found - orig_str);
-
-        /* Copy everything before the unit. */
-        if (offset < str_maxncpy) {
-          memcpy(str, orig_str, offset);
-        }
-        else {
-          BLI_strncpy(str, orig_str, str_maxncpy);
-          offset = str_maxncpy;
-        }
-
-        str += offset;
-        orig_str += offset + strlen(unit->name_short);
-        str_maxncpy -= offset;
-
-        /* Print the alt_name. */
-        const int len_name = BLI_strncpy_rlen(str, unit->name_alt, str_maxncpy);
-        BLI_assert(len_name < str_maxncpy);
-        str += len_name;
-        str_maxncpy -= len_name;
-      }
+  for (const bUnitDef *unit = usys->units; unit->name && (str_maxncpy > 0); unit++) {
+    if (unit->name_alt == nullptr) {
+      continue;
     }
+    const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
+    const char *found = unit_find_str(orig_str, unit->name_short, case_sensitive);
+    if (found == nullptr) {
+      continue;
+    }
+
+    int offset = int(found - orig_str);
+
+    /* Copy everything before the unit. */
+    if (offset < str_maxncpy) {
+      memcpy(str, orig_str, offset);
+    }
+    else {
+      BLI_strncpy(str, orig_str, str_maxncpy);
+      offset = str_maxncpy;
+    }
+
+    str += offset;
+    orig_str += offset + strlen(unit->name_short);
+    str_maxncpy -= offset;
+
+    /* Print the alt_name. */
+    const int len_name = BLI_strncpy_rlen(str, unit->name_alt, str_maxncpy);
+    BLI_assert(len_name < str_maxncpy);
+    str += len_name;
+    str_maxncpy -= len_name;
   }
 
   /* Finally copy the rest of the string. */

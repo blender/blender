@@ -420,16 +420,14 @@ static void make_renderinfo_string(const RenderStats *rs,
     char statistics[64];
   } info_buffers;
 
-  uintptr_t mem_in_use, peak_memory;
-  float megs_used_memory, megs_peak_memory;
   const char *ret_array[32];
   int i = 0;
 
-  mem_in_use = MEM_get_memory_in_use();
-  peak_memory = MEM_get_peak_memory();
+  const uintptr_t mem_in_use = MEM_get_memory_in_use();
+  const uintptr_t peak_memory = MEM_get_peak_memory();
 
-  megs_used_memory = (mem_in_use) / (1024.0 * 1024.0);
-  megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
+  const float megs_used_memory = (mem_in_use) / (1024.0 * 1024.0);
+  const float megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
   /* local view */
   if (rs->localview) {
