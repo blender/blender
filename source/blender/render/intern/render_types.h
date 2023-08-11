@@ -151,30 +151,30 @@ struct Render : public BaseRender {
   std::mutex gpu_compositor_mutex;
 
   /* callbacks */
-  void (*display_init)(void *handle, RenderResult *rr) = nullptr;
+  void (*display_init_cb)(void *handle, RenderResult *rr) = nullptr;
   void *dih = nullptr;
-  void (*display_clear)(void *handle, RenderResult *rr) = nullptr;
+  void (*display_clear_cb)(void *handle, RenderResult *rr) = nullptr;
   void *dch = nullptr;
-  void (*display_update)(void *handle, RenderResult *rr, rcti *rect) = nullptr;
+  void (*display_update_cb)(void *handle, RenderResult *rr, rcti *rect) = nullptr;
   void *duh = nullptr;
-  void (*current_scene_update)(void *handle, struct Scene *scene) = nullptr;
+  void (*current_scene_update_cb)(void *handle, struct Scene *scene) = nullptr;
   void *suh = nullptr;
 
-  void (*stats_draw)(void *handle, RenderStats *ri) = nullptr;
+  void (*stats_draw_cb)(void *handle, RenderStats *ri) = nullptr;
   void *sdh = nullptr;
-  void (*progress)(void *handle, float i) = nullptr;
+  void (*progress_cb)(void *handle, float i) = nullptr;
   void *prh = nullptr;
 
-  void (*draw_lock)(void *handle, bool lock) = nullptr;
+  void (*draw_lock_cb)(void *handle, bool lock) = nullptr;
   void *dlh = nullptr;
-  bool (*test_break)(void *handle) = nullptr;
+  bool (*test_break_cb)(void *handle) = nullptr;
   void *tbh = nullptr;
 
   /**
    * Executed right before the initialization of the depsgraph, in order to modify some stuff in
    * the viewlayer. The modified ids must be tagged in the depsgraph.
    */
-  bool (*prepare_viewlayer)(void *handle, struct ViewLayer *vl, struct Depsgraph *depsgraph);
+  bool (*prepare_viewlayer_cb)(void *handle, struct ViewLayer *vl, struct Depsgraph *depsgraph);
   void *prepare_vl_handle;
 
   RenderStats i = {};

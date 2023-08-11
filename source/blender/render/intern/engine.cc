@@ -380,7 +380,7 @@ void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
     render_result_merge(re->result, result);
     result->renlay = static_cast<RenderLayer *>(
         result->layers.first); /* weak, draws first layer always */
-    re->display_update(re->duh, result, nullptr);
+    re->display_update_cb(re->duh, result, nullptr);
   }
 }
 
@@ -431,16 +431,16 @@ void RE_engine_end_result(
   }
 
   if (!cancel || merge_results) {
-    if (!(re->test_break(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
+    if (!(re->test_break_cb(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
       re_ensure_passes_allocated_thread_safe(re);
       render_result_merge(re->result, result);
     }
 
     /* draw */
-    if (!re->test_break(re->tbh)) {
+    if (!re->test_break_cb(re->tbh)) {
       result->renlay = static_cast<RenderLayer *>(
           result->layers.first); /* weak, draws first layer always */
-      re->display_update(re->duh, result, nullptr);
+      re->display_update_cb(re->duh, result, nullptr);
     }
   }
 
@@ -461,7 +461,7 @@ bool RE_engine_test_break(RenderEngine *engine)
   Render *re = engine->re;
 
   if (re) {
-    return re->test_break(re->tbh);
+    return re->test_break_cb(re->tbh);
   }
 
   return false;
@@ -477,7 +477,7 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
   if (re) {
     re->i.statstr = stats;
     re->i.infostr = info;
-    re->stats_draw(re->sdh, &re->i);
+    re->stats_draw_cb(re->sdh, &re->i);
     re->i.infostr = nullptr;
     re->i.statstr = nullptr;
   }
@@ -502,7 +502,7 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 
   if (re) {
     CLAMP(progress, 0.0f, 1.0f);
-    re->progress(re->prh, progress);
+    re->progress_cb(re->prh, progress);
   }
 }
 
@@ -842,17 +842,17 @@ static void engine_render_view_layer(Render *re,
                                      const bool use_grease_pencil)
 {
   /* Lock UI so scene can't be edited while we read from it in this render thread. */
-  if (re->draw_lock) {
-    re->draw_lock(re->dlh, true);
+  if (re->draw_lock_cb) {
+    re->draw_lock_cb(re->dlh, true);
   }
 
   /* Create depsgraph with scene evaluated at render resolution. */
   ViewLayer *view_layer = static_cast<ViewLayer *>(
       BLI_findstring(&re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name)));
-  if (re->prepare_viewlayer) {
-    if (!re->prepare_viewlayer(re->prepare_vl_handle, view_layer, engine->depsgraph)) {
-      if (re->draw_lock) {
-        re->draw_lock(re->dlh, false);
+  if (re->prepare_viewlayer_cb) {
+    if (!re->prepare_viewlayer_cb(re->prepare_vl_handle, view_layer, engine->depsgraph)) {
+      if (re->draw_lock_cb) {
+        re->draw_lock_cb(re->dlh, false);
       }
       return;
     }
@@ -873,8 +873,8 @@ static void engine_render_view_layer(Render *re,
     }
   }
 
-  if (re->draw_lock) {
-    re->draw_lock(re->dlh, false);
+  if (re->draw_lock_cb) {
+    re->draw_lock_cb(re->dlh, false);
   }
 
   /* Perform render with engine. */
@@ -968,14 +968,14 @@ bool RE_engine_render(Render *re, bool do_all)
   }
 
   /* Lock drawing in UI during data phase. */
-  if (re->draw_lock) {
-    re->draw_lock(re->dlh, true);
+  if (re->draw_lock_cb) {
+    re->draw_lock_cb(re->dlh, true);
   }
 
   if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
     /* Clear UI drawing locks. */
-    if (re->draw_lock) {
-      re->draw_lock(re->dlh, false);
+    if (re->draw_lock_cb) {
+      re->draw_lock_cb(re->dlh, false);
     }
     BKE_report(re->reports, RPT_ERROR, "Can not initialize the GPU");
     G.is_break = true;
@@ -1008,8 +1008,8 @@ bool RE_engine_render(Render *re, bool do_all)
 
   if (re->result == nullptr) {
     /* Clear UI drawing locks. */
-    if (re->draw_lock) {
-      re->draw_lock(re->dlh, false);
+    if (re->draw_lock_cb) {
+      re->draw_lock_cb(re->dlh, false);
     }
     /* Free engine. */
     RE_engine_free(engine);
@@ -1043,8 +1043,8 @@ bool RE_engine_render(Render *re, bool do_all)
   engine->resolution_y = re->winy;
 
   /* Clear UI drawing locks. */
-  if (re->draw_lock) {
-    re->draw_lock(re->dlh, false);
+  if (re->draw_lock_cb) {
+    re->draw_lock_cb(re->dlh, false);
   }
 
   /* Render view layers. */
