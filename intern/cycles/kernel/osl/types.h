@@ -5,7 +5,7 @@
 #pragma once
 
 #if !defined(__KERNEL_GPU__)
-#  include <OSL/oslconfig.h>
+#  include <OSL/oslversion.h>
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -13,8 +13,10 @@ CCL_NAMESPACE_BEGIN
 #if defined(__KERNEL_GPU__)
 /* Strings are represented by their hashes on the GPU. */
 typedef size_t DeviceString;
+#elif defined(OPENIMAGEIO_USTRING_H)
+typedef ustring DeviceString;
 #else
-typedef OSL::ustring DeviceString;
+typedef const char *DeviceString;
 #endif
 
 ccl_device_inline DeviceString make_string(const char *str, size_t hash)
@@ -22,9 +24,12 @@ ccl_device_inline DeviceString make_string(const char *str, size_t hash)
 #if defined(__KERNEL_GPU__)
   (void)str;
   return hash;
+#elif defined(OPENIMAGEIO_USTRING_H)
+  (void)hash;
+  return ustring(str);
 #else
   (void)hash;
-  return OSL::ustring(str);
+  return str;
 #endif
 }
 
