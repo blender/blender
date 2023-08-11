@@ -30,6 +30,7 @@ struct Scene;
 struct ShaderFxData;
 struct TreeStoreElem;
 struct ViewLayer;
+struct bActionGroup;
 struct bContext;
 struct bContextDataResult;
 struct bDeformGroup;
@@ -313,6 +314,11 @@ struct GPencilEffectElementCreateData {
 struct ParticleSystemElementCreateData {
   Object *object;
   ParticleSystem *psys;
+};
+
+struct PoseGroupElementCreateData {
+  Object *object;
+  bActionGroup *agrp;
 };
 
 struct ViewLayerElementCreateData {

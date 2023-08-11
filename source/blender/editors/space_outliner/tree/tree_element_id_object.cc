@@ -115,17 +115,8 @@ void TreeElementIDObject::expand_pose(SpaceOutliner &space_outliner) const
 
   /* Pose Groups */
   if (!BLI_listbase_is_empty(&object_.pose->agroups)) {
-    TreeElement *ten_bonegrp = outliner_add_element(
+    outliner_add_element(
         &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_POSEGRP_BASE, 0);
-    ten_bonegrp->name = IFACE_("Bone Groups");
-
-    int index;
-    LISTBASE_FOREACH_INDEX (bActionGroup *, agrp, &object_.pose->agroups, index) {
-      TreeElement *ten = outliner_add_element(
-          &space_outliner, &ten_bonegrp->subtree, &object_, ten_bonegrp, TSE_POSEGRP, index);
-      ten->name = agrp->name;
-      ten->directdata = agrp;
-    }
   }
 }
 
