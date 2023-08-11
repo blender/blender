@@ -8,6 +8,8 @@
 
 #include "IMB_imbuf.h"
 
+#include "DNA_material_types.h"
+
 struct bContext;
 struct bNodeTree;
 struct ImBuf;
