@@ -982,12 +982,14 @@ struct wmOperatorType {
   /**
    * Return a different name to use in the user interface, based on property values.
    * The returned string does not need to be freed.
+   * The returned string is expected to be translated if needed.
    */
   const char *(*get_name)(wmOperatorType *, PointerRNA *);
 
   /**
    * Return a different description to use in the user interface, based on property values.
    * The returned string must be freed by the caller, unless NULL.
+   * The returned string is expected to be translated if needed.
    */
   char *(*get_description)(bContext *C, wmOperatorType *, PointerRNA *);
 
