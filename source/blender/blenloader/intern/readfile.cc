@@ -4079,6 +4079,13 @@ static void expand_id(BlendExpander *expander, ID *id)
   if (id->override_library) {
     BLO_expand(expander, id->override_library->reference);
     BLO_expand(expander, id->override_library->storage);
+
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+        BLO_expand(expander, opop->subitem_reference_id);
+        BLO_expand(expander, opop->subitem_local_id);
+      }
+    }
   }
 
   AnimData *adt = BKE_animdata_from_id(id);
