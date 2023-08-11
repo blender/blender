@@ -39,6 +39,7 @@
 
 #include "ED_node.hh" /* own include */
 #include "ED_node.hh"
+#include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
 
@@ -190,6 +191,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
 
@@ -649,6 +651,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  stop_preview_job(*CTX_wm_manager(C));
 
   /* are we inside of a group? */
   bNodeTree *ngroup = snode->edittree;
@@ -1261,6 +1264,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   VectorSet<bNode *> nodes_to_group = get_nodes_to_group(ntree, nullptr);
   if (!node_group_make_test_selected(ntree, nodes_to_group, ntree_idname, *op->reports)) {
@@ -1314,6 +1318,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
   const char *node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
   if (!gnode || !gnode->id) {
