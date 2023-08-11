@@ -165,7 +165,7 @@ PyDoc_STRVAR(
     "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
     "\n"
     "   :arg filepath: The path to a blend file.\n"
-    "   :type filepath: string\n"
+    "   :type filepath: string or bytes\n"
     "   :arg link: When False reference to the original file is lost.\n"
     "   :type link: bool\n"
     "   :arg relative: When True the path is stored relative to the open blend file.\n"
@@ -186,7 +186,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   Main *bmain_base = CTX_data_main(BPY_context_get());
   Main *bmain = static_cast<Main *>(self->ptr.data); /* Typically #G_MAIN */
   BPy_Library *ret;
-  const char *filepath = nullptr;
+  PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
   bool is_rel = false, is_link = false, use_assets_only = false;
   bool create_liboverrides = false, reuse_liboverrides = false,
        create_liboverrides_runtime = false;
@@ -202,7 +202,7 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
       nullptr,
   };
   static _PyArg_Parser _parser = {
-      "s" /* `filepath` */
+      "O&" /* `filepath` */
       /* Optional keyword only arguments. */
       "|$"
       "O&" /* `link` */
@@ -218,7 +218,8 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kw,
                                         &_parser,
-                                        &filepath,
+                                        PyC_ParseUnicodeAsBytesAndSize,
+                                        &filepath_data,
                                         PyC_ParseBool,
                                         &is_link,
                                         PyC_ParseBool,
@@ -252,8 +253,10 @@ static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *k
 
   ret = PyObject_New(BPy_Library, &bpy_lib_Type);
 
-  STRNCPY(ret->relpath, filepath);
-  STRNCPY(ret->abspath, filepath);
+  STRNCPY(ret->relpath, filepath_data.value);
+  Py_XDECREF(filepath_data.value_coerce);
+
+  STRNCPY(ret->abspath, ret->relpath);
   BLI_path_abs(ret->abspath, BKE_main_blendfile_path(bmain));
 
   ret->bmain = bmain;

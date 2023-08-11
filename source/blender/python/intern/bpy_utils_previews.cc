@@ -78,7 +78,7 @@ PyDoc_STRVAR(
     "   :arg name: The name (unique id) identifying the preview.\n"
     "   :type name: string\n"
     "   :arg filepath: The file path to generate the preview from.\n"
-    "   :type filepath: string\n"
+    "   :type filepath: string or bytes\n"
     "   :arg filetype: The type of file, needed to generate the preview in [" STR_SOURCE_TYPES
     "].\n"
     "   :type filetype: string\n"
@@ -92,7 +92,8 @@ PyDoc_STRVAR(
     "   :raises KeyError: if ``name`` already exists.");
 static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 {
-  char *name, *filepath;
+  char *name;
+  PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
   const PyC_StringEnumItems path_type_items[] = {
       {THB_SOURCE_IMAGE, "IMAGE"},
       {THB_SOURCE_MOVIE, "MOVIE"},
@@ -110,13 +111,14 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
 
   if (!PyArg_ParseTuple(args,
                         "s"  /* `name` */
-                        "s"  /* `filepath` */
+                        "O&" /* `filepath` */
                         "O&" /* `filetype` */
                         "|"  /* Optional arguments. */
                         "p"  /* `force_reload` */
                         ":load",
                         &name,
-                        &filepath,
+                        PyC_ParseUnicodeAsBytesAndSize,
+                        &filepath_data,
                         PyC_ParseStringEnum,
                         &path_type,
                         &force_reload))
@@ -125,7 +127,10 @@ static PyObject *bpy_utils_previews_load(PyObject * /*self*/, PyObject *args)
   }
 
   PreviewImage *prv = BKE_previewimg_cached_thumbnail_read(
-      name, filepath, path_type.value_found, force_reload);
+      name, filepath_data.value, path_type.value_found, force_reload);
+
+  Py_XDECREF(filepath_data.value_coerce);
+
   PointerRNA ptr;
   RNA_pointer_create(nullptr, &RNA_ImagePreview, prv, &ptr);
   return pyrna_struct_CreatePyObject(&ptr);

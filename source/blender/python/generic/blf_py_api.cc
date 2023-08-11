@@ -12,6 +12,9 @@
 #define PY_SSIZE_T_CLEAN
 
 #include "blf_py_api.h"
+
+#include "../generic/py_capi_utils.h"
+
 #include <Python.h>
 
 #include "../../blenfont/BLF_api.h"
@@ -402,18 +405,24 @@ PyDoc_STRVAR(py_blf_load_doc,
              "   Load a new font.\n"
              "\n"
              "   :arg filepath: the filepath of the font.\n"
-             "   :type filepath: string\n"
+             "   :type filepath: string or bytes\n"
              "   :return: the new font's fontid or -1 if there was an error.\n"
              "   :rtype: integer\n");
 static PyObject *py_blf_load(PyObject * /*self*/, PyObject *args)
 {
-  const char *filepath;
-
-  if (!PyArg_ParseTuple(args, "s:blf.load", &filepath)) {
+  PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
+  if (!PyArg_ParseTuple(args,
+                        "O&" /* `filepath` */
+                        ":blf.load",
+                        PyC_ParseUnicodeAsBytesAndSize,
+                        &filepath_data))
+  {
     return nullptr;
   }
+  const int font_id = BLF_load(filepath_data.value);
+  Py_XDECREF(filepath_data.value_coerce);
 
-  return PyLong_FromLong(BLF_load(filepath));
+  return PyLong_FromLong(font_id);
 }
 
 PyDoc_STRVAR(py_blf_unload_doc,
@@ -422,16 +431,21 @@ PyDoc_STRVAR(py_blf_unload_doc,
              "   Unload an existing font.\n"
              "\n"
              "   :arg filepath: the filepath of the font.\n"
-             "   :type filepath: string\n");
+             "   :type filepath: string or bytes\n");
 static PyObject *py_blf_unload(PyObject * /*self*/, PyObject *args)
 {
-  const char *filepath;
-
-  if (!PyArg_ParseTuple(args, "s:blf.unload", &filepath)) {
+  PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
+  if (!PyArg_ParseTuple(args,
+                        "O&" /* `filepath` */
+                        ":blf.unload",
+                        PyC_ParseUnicodeAsBytesAndSize,
+                        &filepath_data))
+  {
     return nullptr;
   }
 
-  BLF_unload(filepath);
+  BLF_unload(filepath_data.value);
+  Py_XDECREF(filepath_data.value_coerce);
 
   Py_RETURN_NONE;
 }
