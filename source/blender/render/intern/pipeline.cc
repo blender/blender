@@ -1048,7 +1048,7 @@ static void render_result_uncrop(Render *re)
 
       BLI_rw_mutex_unlock(&re->resultmutex);
 
-      re->display_init_cb(re->dih, re->result);
+      re->display_init(re->result);
       re->display_update(re->result, nullptr);
 
       /* restore the disprect from border */
@@ -1778,7 +1778,7 @@ static bool render_init_from_main(Render *re,
   /* Init-state makes new result, have to send changed tags around. */
   ntreeCompositTagRender(re->scene);
 
-  re->display_init_cb(re->dih, re->result);
+  re->display_init(re->result);
   re->display_clear(re->result);
 
   return true;

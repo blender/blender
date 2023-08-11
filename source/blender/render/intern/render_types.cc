@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::display_init(RenderResult *render_result)
+{
+  if (display_init_cb) {
+    display_init_cb(dih, render_result);
+  }
+}
+
 void Render::display_clear(RenderResult *render_result)
 {
   if (display_clear_cb) {
