@@ -1085,6 +1085,36 @@ PyObject *PyC_UnicodeFromBytes(const char *str)
   return PyC_UnicodeFromBytesAndSize(str, strlen(str));
 }
 
+int PyC_ParseUnicodeAsBytesAndSize(PyObject *o, void *p)
+{
+  PyC_UnicodeAsBytesAndSize_Data *data = static_cast<PyC_UnicodeAsBytesAndSize_Data *>(p);
+  if (UNLIKELY(o == nullptr)) {
+    /* Signal to cleanup. */
+    Py_CLEAR(data->value_coerce);
+    return 1;
+  }
+  /* The value must be cleared. */
+  BLI_assert(!(data->value_coerce || data->value || data->value_len));
+  data->value = PyC_UnicodeAsBytesAndSize(o, &data->value_len, &data->value_coerce);
+  if (data->value == nullptr) {
+    /* Leave the error as-is. */
+    return 0;
+  }
+  /* Needed to #Py_DECREF `data->value_coerce` on future failure. */
+  return data->value_coerce ? Py_CLEANUP_SUPPORTED : 1;
+}
+
+int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p)
+{
+  if (o == Py_None) {
+    PyC_UnicodeAsBytesAndSize_Data *data = static_cast<PyC_UnicodeAsBytesAndSize_Data *>(p);
+    BLI_assert(!(data->value_coerce || data->value || data->value_len));
+    UNUSED_VARS_NDEBUG(data);
+    return 1;
+  }
+  return PyC_ParseUnicodeAsBytesAndSize(o, p);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

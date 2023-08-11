@@ -113,6 +113,32 @@ const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **r_coerce); /* coerce
 const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyObject **r_coerce);
 
 /**
+ * Notes on using this structure:
+ * - Always initialize to `{nullptr}`.
+ * - Always `Py_XDECREF(value_coerce)` before returning,
+ *   after this `value` must not be accessed.
+ */
+typedef struct PyC_UnicodeAsBytesAndSize_Data {
+  PyObject *value_coerce;
+  const char *value;
+  Py_ssize_t value_len;
+} PyC_UnicodeAsBytesAndSize_Data;
+
+/**
+ * Use with PyArg_ParseTuple's "O&" formatting.
+ *
+ * Expose #PyC_UnicodeAsBytes in a way which is useful to the argument parser.
+ * \param o: An argument parsed to #PyC_UnicodeAsBytes.
+ * \param p: Pointer to #PyC_UnicodeAsBytes_Data.
+ *
+ * \note The Python API docs reference `PyUnicode_FSConverter` however this does not support
+ * paths which non utf-8 encoding, see: #111033.
+ */
+int PyC_ParseUnicodeAsBytesAndSize(PyObject *o, void *p);
+/** A version of #PyC_ParseUnicodeAsBytesAndSize that accepts None. */
+int PyC_ParseUnicodeAsBytesAndSize_OrNone(PyObject *o, void *p);
+
+/**
  * Description: This function creates a new Python dictionary object.
  * NOTE: dict is owned by sys.modules["__main__"] module, reference is borrowed
  * NOTE: important we use the dict from __main__, this is what python expects
