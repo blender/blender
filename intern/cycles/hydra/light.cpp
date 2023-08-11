@@ -168,6 +168,11 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
       }
 
       _light->set_light_type(shaping ? LIGHT_SPOT : LIGHT_POINT);
+
+      if (shaping) {
+        _light->set_axisu(transform_get_column(&_light->get_tfm(), 0));
+        _light->set_axisv(transform_get_column(&_light->get_tfm(), 1));
+      }
     }
 
     const bool visible = sceneDelegate->GetVisible(id);
