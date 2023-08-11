@@ -68,8 +68,6 @@ struct NodeInsertOfsData {
 
 namespace blender::ed::space_node {
 
-bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out);
-
 static void clear_picking_highlight(ListBase *links)
 {
   LISTBASE_FOREACH (bNodeLink *, link, links) {

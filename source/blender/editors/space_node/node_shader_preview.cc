@@ -26,6 +26,9 @@
 #include "DNA_material_types.h"
 #include "DNA_world_types.h"
 
+#include "RNA_access.h"
+#include "RNA_prototypes.h"
+
 #include "BKE_colortools.h"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.h"
@@ -75,8 +78,8 @@ struct ShaderNodesPreviewJob {
   /* TreePath used to locate the nodetree.
    * bNodeTreePath elements have some listbase pointers which should not be used. */
   Vector<bNodeTreePath *> treepath_copy;
-  Vector<bNode *> AOV_nodes;
-  Vector<bNode *> shader_nodes;
+  Vector<NodeSocketPair> AOV_nodes;
+  Vector<NodeSocketPair> shader_nodes;
 
   bNode *rendering_node;
   bool rendering_AOVs;
@@ -241,21 +244,34 @@ static Scene *preview_prepare_scene(const Main *bmain,
 /** \name Preview rendering
  * \{ */
 
-/* Return the socket used for previewing the node (should probably follow more precise rules). */
-static const bNodeSocket *node_find_preview_socket(const bNode &node)
+/**
+ * Follows some rules to determine the previewed socket and node associated.
+ * We first seek for an output socket of the node, if none if found, the node is an output node, and thus seek for an input socket.
+ */
+static bNodeSocket *node_find_preview_socket(bNodeTree &ntree, bNode &node)
 {
-  LISTBASE_FOREACH (bNodeSocket *, socket, &node.outputs) {
-    if (socket->is_visible()) {
-      return socket;
+  bNodeSocket *socket = get_main_socket(ntree, node, SOCK_OUT);
+  if (socket == nullptr) {
+    socket = get_main_socket(ntree, node, SOCK_IN);
+    if (socket != nullptr && socket->link == nullptr) {
+      if (!(ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA))) {
+        /* We can not preview a socket with no link and no manual value. */
+        return nullptr;
+      }
     }
   }
-  return nullptr;
+  return socket;
 }
 
-static bool node_use_aov(const bNode &node)
+static bool socket_use_aov(const bNodeSocket *socket) {
+  return socket == nullptr || socket->type != SOCK_SHADER;
+}
+
+static bool node_use_aov(bNodeTree &ntree, const bNode *node)
 {
-  const bNodeSocket *socket = node_find_preview_socket(node);
-  return socket != nullptr && socket->type != SOCK_SHADER;
+  bNode *node_preview = const_cast<bNode *>(node);
+  bNodeSocket *socket_preview = node_find_preview_socket(ntree, *node_preview);
+  return socket_use_aov(socket_preview);
 }
 
 static ImBuf *get_image_from_viewlayer_and_pass(RenderResult &rr,
@@ -304,7 +320,7 @@ ImBuf *node_preview_acquire_ibuf(bNodeTree &ntree,
     else {
       /* When the render process is started, the user must see that the preview area is open. */
       ImBuf *image_latest = nullptr;
-      if (node_use_aov(node)) {
+      if (node_use_aov(ntree, &node)) {
         image_latest = get_image_from_viewlayer_and_pass(*rr, nullptr, node.name);
       }
       else {
@@ -337,7 +353,8 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
                                         bNode &nested_node,
                                         bNodeSocket &nested_socket,
                                         bNode &final_node,
-                                        bNodeSocket &final_socket)
+                                        bNodeSocket &final_socket,
+                                        const char *route_name)
 {
   bNode *nested_node_iter = &nested_node;
   bNodeSocket *nested_socket_iter = &nested_socket;
@@ -357,9 +374,10 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
       output_node->flag |= NODE_DO_OUTPUT;
     }
 
-    ntreeAddSocketInterface(nested_nt, SOCK_OUT, nested_socket_iter->idname, nested_node.name);
+    ntreeAddSocketInterface(nested_nt, SOCK_OUT, nested_socket_iter->idname, route_name);
     BKE_ntree_update_main_tree(G.pr_main, nested_nt, nullptr);
-    bNodeSocket *out_socket = bke::node_find_enabled_input_socket(*output_node, nested_node.name);
+    bNodeSocket *out_socket = blender::bke::node_find_enabled_input_socket(*output_node,
+                                                                           route_name);
 
     nodeAddLink(nested_nt, nested_node_iter, nested_socket_iter, output_node, out_socket);
     BKE_ntree_update_main_tree(G.pr_main, nested_nt, nullptr);
@@ -374,7 +392,7 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
 
     /* Now use the newly created socket of the node-group as previewing socket of the node-group
      * instance node. */
-    nested_socket_iter = bke::node_find_enabled_output_socket(*nested_node_iter, nested_node.name);
+    nested_socket_iter = blender::bke::node_find_enabled_output_socket(*nested_node_iter, route_name);
   }
 
   nodeAddLink(treepath.first()->nodetree,
@@ -387,14 +405,20 @@ static void connect_nested_node_to_node(const Span<bNodeTreePath *> treepath,
 /* Connect the node to the output of the first nodetree from `treepath`. Last element of `treepath`
  * should be the path to the node's nodetree */
 static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
-                                           bNode &node,
+                                           NodeSocketPair nodesocket,
                                            bNode &output_node)
 {
   bNodeSocket *out_surface_socket = nullptr;
   bNodeTree *main_nt = treepath.first()->nodetree;
-  bNodeSocket *node_preview_socket = const_cast<bNodeSocket *>(node_find_preview_socket(node));
-  if (node_preview_socket == nullptr) {
+  bNode *node_preview = nodesocket.first;
+  bNodeSocket *socket_preview = nodesocket.second;
+  if (socket_preview == nullptr) {
     return;
+  }
+  if (socket_preview->in_out == SOCK_IN) {
+    BLI_assert(socket_preview->link != nullptr);
+    node_preview = socket_preview->link->fromnode;
+    socket_preview = socket_preview->link->fromsock;
   }
   /* Ensure output is usable. */
   out_surface_socket = nodeFindSocket(&output_node, SOCK_IN, "Surface");
@@ -404,29 +428,60 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
   }
 
   connect_nested_node_to_node(
-      treepath, node, *node_preview_socket, output_node, *out_surface_socket);
+      treepath, *node_preview, *socket_preview, output_node, *out_surface_socket, nodesocket.first->name);
   BKE_ntree_update_main_tree(G.pr_main, main_nt, nullptr);
 }
 
 /* Connect the nodes to some aov nodes located in the first nodetree from `treepath`. Last element
  * of `treepath` should be the path to the nodes nodetree. */
-static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath, const Span<bNode *> &nodes)
+static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath, const Span<NodeSocketPair> &nodesocket_span)
 {
-  if (nodes.size() == 0) {
+  if (nodesocket_span.size() == 0) {
     return;
   }
   bNodeTree *main_nt = treepath.first()->nodetree;
-  for (bNode *node : nodes) {
-    bNodeSocket *node_preview_socket = const_cast<bNodeSocket *>(node_find_preview_socket(*node));
+  bNodeTree *active_nt = treepath.last()->nodetree;
+  for (NodeSocketPair nodesocket : nodesocket_span) {
+    bNode *node_preview = nodesocket.first;
+    bNodeSocket *socket_preview = nodesocket.second;
 
     bNode *aov_node = nodeAddStaticNode(nullptr, main_nt, SH_NODE_OUTPUT_AOV);
-    strcpy(reinterpret_cast<NodeShaderOutputAOV *>(aov_node->storage)->name, node->name);
-    if (node_preview_socket == nullptr) {
+    strcpy(reinterpret_cast<NodeShaderOutputAOV *>(aov_node->storage)->name, nodesocket.first->name);
+    if (socket_preview == nullptr) {
       continue;
     }
     bNodeSocket *aov_socket = nodeFindSocket(aov_node, SOCK_IN, "Color");
-
-    connect_nested_node_to_node(treepath, *node, *node_preview_socket, *aov_node, *aov_socket);
+    if (socket_preview->in_out == SOCK_IN) {
+      if (socket_preview->link == nullptr) {
+        /**
+         * Copy the custom value of the socket directly to the AOV node.
+         * If the socket does not support custom values, it will justl render black.
+         */
+        float vec[4] = {0., 0., 0., 1.};
+        PointerRNA ptr;
+        switch (socket_preview->type) {
+          case SOCK_FLOAT:
+            RNA_pointer_create((ID *)active_nt, &RNA_NodeSocket, socket_preview, &ptr);
+            vec[0] = RNA_float_get(&ptr, "default_value");
+            vec[1] = vec[0];
+            vec[2] = vec[0];
+            break;
+          case SOCK_VECTOR:
+          case SOCK_RGBA:
+            RNA_pointer_create((ID *)active_nt, &RNA_NodeSocket, socket_preview, &ptr);
+            RNA_float_get_array(&ptr, "default_value", vec);
+            break;
+        }
+        RNA_pointer_create((ID *)active_nt, &RNA_NodeSocket, aov_socket, &ptr);
+        RNA_float_set_array(&ptr, "default_value", vec);
+        continue;
+      } else {
+        node_preview = socket_preview->link->fromnode;
+        socket_preview = socket_preview->link->fromsock;
+      }
+    }
+    connect_nested_node_to_node(
+      treepath, *node_preview, *socket_preview, *aov_node, *aov_socket, nodesocket.first->name);
   }
   BKE_ntree_update_main_tree(G.pr_main, main_nt, nullptr);
 }
@@ -441,17 +496,17 @@ static bool nodetree_previews_break(void *spv)
 
 static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *depsgraph)
 {
-  bNode *node = nullptr;
+  NodeSocketPair nodesocket = {nullptr, nullptr};
   ShaderNodesPreviewJob *job_data = static_cast<ShaderNodesPreviewJob *>(pvl_data);
-  for (bNode *node_iter : job_data->shader_nodes) {
-    if (STREQ(vl->name, node_iter->name)) {
-      node = node_iter;
-      job_data->rendering_node = node_iter;
+  for (NodeSocketPair nodesocket_iter : job_data->shader_nodes) {
+    if (STREQ(vl->name, nodesocket_iter.first->name)) {
+      nodesocket = nodesocket_iter;
+      job_data->rendering_node = nodesocket_iter.first;
       job_data->rendering_AOVs = false;
       break;
     }
   }
-  if (node == nullptr) {
+  if (nodesocket.first == nullptr) {
     job_data->rendering_node = nullptr;
     job_data->rendering_AOVs = true;
     /* The AOV layer is the default `ViewLayer` of the scene(which should be the first one). */
@@ -467,7 +522,7 @@ static bool prepare_viewlayer_update(void *pvl_data, ViewLayer *vl, Depsgraph *d
                 job_data->mat_output_copy,
                 displacement_socket);
   }
-  connect_node_to_surface_output(job_data->treepath_copy, *node, *job_data->mat_output_copy);
+  connect_node_to_surface_output(job_data->treepath_copy, nodesocket, *job_data->mat_output_copy);
 
   if (depsgraph != nullptr) {
     /* Used to refresh the dependency graph so that the material can be updated. */
@@ -500,10 +555,10 @@ static void all_nodes_preview_update(void *npv, RenderResult *rr, rcti * /*rect*
     }
   }
   if (job_data->rendering_AOVs) {
-    for (bNode *node : job_data->AOV_nodes) {
-      ImBuf *&image_cached = job_data->tree_previews->previews_map.lookup_or_add(node->identifier,
+    for (NodeSocketPair nodesocket_iter : job_data->AOV_nodes) {
+      ImBuf *&image_cached = job_data->tree_previews->previews_map.lookup_or_add(nodesocket_iter.first->identifier,
                                                                                  nullptr);
-      ImBuf *image_latest = get_image_from_viewlayer_and_pass(*rr, nullptr, node->name);
+      ImBuf *image_latest = get_image_from_viewlayer_and_pass(*rr, nullptr, nodesocket_iter.first->name);
       if (image_latest == nullptr) {
         continue;
       }
@@ -528,31 +583,18 @@ static void preview_render(ShaderNodesPreviewJob &job_data)
   }
   Span<bNodeTreePath *> treepath = job_data.treepath_copy;
 
-  /* Disconnect all input sockets of the material output node, but keep track of the displacement
-   * node. */
-  bNodeSocket *disp_socket = nodeFindSocket(job_data.mat_output_copy, SOCK_IN, "Displacement");
-  if (disp_socket->link != nullptr) {
-    job_data.mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
-                                                    disp_socket->link->fromsock);
-  }
-  LISTBASE_FOREACH (bNodeSocket *, socket_iter, &job_data.mat_output_copy->inputs) {
-    if (socket_iter->link != nullptr) {
-      nodeRemLink(treepath.first()->nodetree, socket_iter->link);
-    }
-  }
-
   /* AOV nodes are rendered in the first RenderLayer so we route them now. */
   connect_nodes_to_aovs(treepath, job_data.AOV_nodes);
 
   /* Create the AOV passes for the viewlayer. */
   ViewLayer *AOV_layer = static_cast<ViewLayer *>(scene->view_layers.first);
-  for (bNode *node : job_data.shader_nodes) {
-    ViewLayer *vl = BKE_view_layer_add(scene, node->name, AOV_layer, VIEWLAYER_ADD_COPY);
-    strcpy(vl->name, node->name);
+  for (NodeSocketPair nodesocket_iter : job_data.shader_nodes) {
+    ViewLayer *vl = BKE_view_layer_add(scene, nodesocket_iter.first->name, AOV_layer, VIEWLAYER_ADD_COPY);
+    strcpy(vl->name, nodesocket_iter.first->name);
   }
-  for (bNode *node : job_data.AOV_nodes) {
+  for (NodeSocketPair nodesocket_iter : job_data.AOV_nodes) {
     ViewLayerAOV *aov = BKE_view_layer_add_aov(AOV_layer);
-    strcpy(aov->name, node->name);
+    strcpy(aov->name, nodesocket_iter.first->name);
   }
   scene->r.xsch = job_data.tree_previews->preview_size;
   scene->r.ysch = job_data.tree_previews->preview_size;
@@ -645,16 +687,23 @@ static void shader_preview_startjob(void *customdata,
     job_data->tree_previews->preview_size = U.node_preview_res;
   }
 
-  /* Find the shader output node. */
+  /* Add a new output node used only for the previews. This is useful to keep the previously
+   * connected links (for previewing the output nodes for example). */
+  job_data->mat_output_copy = nodeAddStaticNode(
+      nullptr, job_data->mat_copy->nodetree, SH_NODE_OUTPUT_MATERIAL);
+  bNode *active_user_output_node = nullptr;
   for (bNode *node_iter : job_data->mat_copy->nodetree->all_nodes()) {
-    if (node_iter->type == SH_NODE_OUTPUT_MATERIAL && node_iter->flag & NODE_DO_OUTPUT) {
-      job_data->mat_output_copy = node_iter;
-      break;
+    if (node_iter->flag & NODE_DO_OUTPUT) {
+      node_iter->flag &= ~NODE_DO_OUTPUT;
+      active_user_output_node = node_iter;
     }
   }
-  if (job_data->mat_output_copy == nullptr) {
-    job_data->mat_output_copy = nodeAddStaticNode(
-        nullptr, job_data->mat_copy->nodetree, SH_NODE_OUTPUT_MATERIAL);
+  job_data->mat_output_copy->flag |= NODE_DO_OUTPUT;
+
+  bNodeSocket *disp_socket = nodeFindSocket(active_user_output_node, SOCK_IN, "Displacement");
+  if (disp_socket->link != nullptr) {
+    job_data->mat_displacement_copy = std::make_pair(disp_socket->link->fromnode,
+                                                     disp_socket->link->fromsock);
   }
 
   bNodeTree *active_nodetree = job_data->treepath_copy.last()->nodetree;
@@ -668,11 +717,12 @@ static void shader_preview_startjob(void *customdata,
       }
       continue;
     }
-    if (node_use_aov(*node)) {
-      job_data->AOV_nodes.append(node);
+    bNodeSocket *preview_socket = node_find_preview_socket(*active_nodetree, *node);
+    if (socket_use_aov(preview_socket)) {
+      job_data->AOV_nodes.append({node, preview_socket});
     }
     else {
-      job_data->shader_nodes.append(node);
+      job_data->shader_nodes.append({node, preview_socket});
     }
   }
 
