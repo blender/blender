@@ -41,6 +41,15 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+bool Render::test_break()
+{
+  if (!test_break_cb) {
+    return false;
+  }
+
+  return test_break_cb(tbh);
+}
+
 bool Render::prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph)
 {
   if (!prepare_viewlayer_cb) {

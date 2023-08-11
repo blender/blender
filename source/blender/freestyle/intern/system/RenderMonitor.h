@@ -44,7 +44,7 @@ class RenderMonitor {
 
   inline bool testBreak()
   {
-    return _re && _re->test_break_cb(_re->tbh);
+    return _re && _re->test_break();
   }
 
  protected:

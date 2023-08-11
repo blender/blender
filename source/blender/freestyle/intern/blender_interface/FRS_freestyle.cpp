@@ -286,7 +286,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
     /* Returns if scene cannot be loaded or if empty. */
     return;
   }
-  if (re->test_break_cb(re->tbh)) {
+  if (re->test_break()) {
     return;
   }
 
@@ -630,7 +630,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
   //   - compute view map
   prepare(re, view_layer, depsgraph);
 
-  if (re->test_break_cb(re->tbh)) {
+  if (re->test_break()) {
     controller->CloseFile();
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "Break" << endl;

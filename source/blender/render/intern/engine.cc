@@ -431,13 +431,13 @@ void RE_engine_end_result(
   }
 
   if (!cancel || merge_results) {
-    if (!(re->test_break_cb(re->tbh) && (re->r.scemode & R_BUTS_PREVIEW))) {
+    if (!(re->test_break() && (re->r.scemode & R_BUTS_PREVIEW))) {
       re_ensure_passes_allocated_thread_safe(re);
       render_result_merge(re->result, result);
     }
 
     /* draw */
-    if (!re->test_break_cb(re->tbh)) {
+    if (!re->test_break()) {
       result->renlay = static_cast<RenderLayer *>(
           result->layers.first); /* weak, draws first layer always */
       re->display_update_cb(re->duh, result, nullptr);
@@ -461,7 +461,7 @@ bool RE_engine_test_break(RenderEngine *engine)
   Render *re = engine->re;
 
   if (re) {
-    return re->test_break_cb(re->tbh);
+    return re->test_break();
   }
 
   return false;
