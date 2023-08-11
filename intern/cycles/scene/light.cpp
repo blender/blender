@@ -99,15 +99,10 @@ NODE_DEFINE(Light)
 
   SOCKET_COLOR(strength, "Strength", one_float3());
 
-  SOCKET_POINT(co, "Co", zero_float3());
-
-  SOCKET_VECTOR(dir, "Dir", zero_float3());
   SOCKET_FLOAT(size, "Size", 0.0f);
   SOCKET_FLOAT(angle, "Angle", 0.0f);
 
-  SOCKET_VECTOR(axisu, "Axis U", zero_float3());
   SOCKET_FLOAT(sizeu, "Size U", 1.0f);
-  SOCKET_VECTOR(axisv, "Axis V", zero_float3());
   SOCKET_FLOAT(sizev, "Size V", 1.0f);
   SOCKET_BOOLEAN(ellipse, "Ellipse", false);
   SOCKET_FLOAT(spread, "Spread", M_PI_F);
@@ -191,6 +186,26 @@ bool Light::has_shadow_linking() const
   }
 
   return false;
+}
+
+float3 Light::get_co() const
+{
+  return transform_get_column(&tfm, 3);
+}
+
+float3 Light::get_dir() const
+{
+  return -transform_get_column(&tfm, 2);
+}
+
+float3 Light::get_axisu() const
+{
+  return transform_get_column(&tfm, 0);
+}
+
+float3 Light::get_axisv() const
+{
+  return transform_get_column(&tfm, 1);
 }
 
 /* Light Manager */
@@ -1144,8 +1159,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     if (light->is_portal) {
       assert(light->light_type == LIGHT_AREA);
 
-      float3 extentu = light->axisu * (light->sizeu * light->size);
-      float3 extentv = light->axisv * (light->sizev * light->size);
+      float3 extentu = light->get_axisu() * (light->sizeu * light->size);
+      float3 extentv = light->get_axisv() * (light->sizev * light->size);
 
       float len_u, len_v;
       float3 axis_u = normalize_len(extentu, &len_u);
@@ -1160,9 +1175,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
         invarea = -invarea;
       }
 
-      float3 dir = safe_normalize(light->dir);
+      float3 dir = safe_normalize(light->get_dir());
 
-      klights[portal_index].co = light->co;
+      klights[portal_index].co = light->get_co();
       klights[portal_index].area.axis_u = axis_u;
       klights[portal_index].area.len_u = len_u;
       klights[portal_index].area.axis_v = axis_v;
@@ -1225,14 +1240,14 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
 
-      klights[light_index].co = light->co;
+      klights[light_index].co = light->get_co();
       klights[light_index].spot.radius = radius;
       klights[light_index].spot.eval_fac = eval_fac;
     }
     else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      float3 dir = safe_normalize(light->dir);
+      float3 dir = safe_normalize(light->get_dir());
       float angle = light->angle / 2.0f;
 
       if (light->use_mis && angle > 0.0f) {
@@ -1276,8 +1291,8 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     }
     else if (light->light_type == LIGHT_AREA) {
       float light_size = light->size;
-      float3 extentu = light->axisu * (light->sizeu * light_size);
-      float3 extentv = light->axisv * (light->sizev * light_size);
+      float3 extentu = light->get_axisu() * (light->sizeu * light_size);
+      float3 extentv = light->get_axisv() * (light->sizev * light_size);
 
       float len_u, len_v;
       float3 axis_u = normalize_len(extentu, &len_u);
@@ -1301,12 +1316,12 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       const float normalize_spread = half_spread > 0.05f ? 1.0f / (tan_half_spread - half_spread) :
                                                            3.0f / powf(half_spread, 3.0f);
 
-      float3 dir = safe_normalize(light->dir);
+      float3 dir = safe_normalize(light->get_dir());
 
       if (light->use_mis && area != 0.0f)
         shader_id |= SHADER_USE_MIS;
 
-      klights[light_index].co = light->co;
+      klights[light_index].co = light->get_co();
       klights[light_index].area.axis_u = axis_u;
       klights[light_index].area.len_u = len_u;
       klights[light_index].area.axis_v = axis_v;
@@ -1318,11 +1333,11 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     }
     if (light->light_type == LIGHT_SPOT) {
       /* Scale axes to accommodate non-uniform scaling. */
-      float3 scaled_axis_u = light->axisu / len_squared(light->axisu);
-      float3 scaled_axis_v = light->axisv / len_squared(light->axisv);
+      float3 scaled_axis_u = light->get_axisu() / len_squared(light->get_axisu());
+      float3 scaled_axis_v = light->get_axisv() / len_squared(light->get_axisv());
       float len_z;
       /* Keep direction normalized. */
-      float3 dir = safe_normalize_len(light->dir, &len_z);
+      float3 dir = safe_normalize_len(light->get_dir(), &len_z);
 
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
       float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);

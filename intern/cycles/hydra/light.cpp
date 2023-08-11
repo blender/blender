@@ -65,14 +65,6 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
                                   .Get<GfMatrix4d>());
 #endif
     _light->set_tfm(tfm);
-
-    _light->set_co(transform_get_column(&tfm, 3));
-    _light->set_dir(-transform_get_column(&tfm, 2));
-
-    if (_lightType == HdPrimTypeTokens->diskLight || _lightType == HdPrimTypeTokens->rectLight) {
-      _light->set_axisu(transform_get_column(&tfm, 0));
-      _light->set_axisv(transform_get_column(&tfm, 1));
-    }
   }
 
   if (*dirtyBits & DirtyBits::DirtyParams) {
@@ -168,11 +160,6 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
       }
 
       _light->set_light_type(shaping ? LIGHT_SPOT : LIGHT_POINT);
-
-      if (shaping) {
-        _light->set_axisu(transform_get_column(&_light->get_tfm(), 0));
-        _light->set_axisv(transform_get_column(&_light->get_tfm(), 1));
-      }
     }
 
     const bool visible = sceneDelegate->GetVisible(id);
