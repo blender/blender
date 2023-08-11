@@ -44,6 +44,7 @@ struct USDExportParams {
   bool export_hair = true;
   bool export_uvmaps = true;
   bool export_normals = true;
+  bool export_mesh_colors = true;
   bool export_materials = true;
   bool selected_objects_only = false;
   bool visible_objects_only = true;

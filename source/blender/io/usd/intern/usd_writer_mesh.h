@@ -34,15 +34,27 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void assign_materials(const HierarchyContext &context,
                         pxr::UsdGeomMesh usd_mesh,
                         const MaterialFaceGroups &usd_face_groups);
-  void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
 
   void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_generic_data(const Mesh *mesh,
+                          pxr::UsdGeomMesh usd_mesh,
+                          const bke::AttributeIDRef &attribute_id,
+                          const bke::AttributeMetaData &meta_data);
+  void write_uv_data(const Mesh *mesh,
+                     pxr::UsdGeomMesh usd_mesh,
+                     const bke::AttributeIDRef &attribute_id,
+                     const char *active_set_name);
   void write_color_data(const Mesh *mesh,
                         pxr::UsdGeomMesh usd_mesh,
                         const bke::AttributeIDRef &attribute_id,
                         const bke::AttributeMetaData &meta_data);
+
+  template<typename BlenderT, typename USDT>
+  void copy_blender_buffer_to_prim(const Span<BlenderT> buffer,
+                                   const pxr::UsdTimeCode timecode,
+                                   pxr::UsdGeomPrimvar attribute_pv);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {
