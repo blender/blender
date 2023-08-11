@@ -1779,7 +1779,7 @@ static bool render_init_from_main(Render *re,
   ntreeCompositTagRender(re->scene);
 
   re->display_init_cb(re->dih, re->result);
-  re->display_clear_cb(re->dch, re->result);
+  re->display_clear(re->result);
 
   return true;
 }

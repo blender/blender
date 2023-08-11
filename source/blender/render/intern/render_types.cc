@@ -41,6 +41,13 @@ Render::~Render()
   render_result_free(pushedresult);
 }
 
+void Render::display_clear(RenderResult *render_result)
+{
+  if (display_clear_cb) {
+    display_clear_cb(dch, render_result);
+  }
+}
+
 void Render::display_update(RenderResult *render_result, rcti *rect)
 {
   if (display_update_cb) {
