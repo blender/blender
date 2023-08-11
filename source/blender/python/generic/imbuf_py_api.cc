@@ -541,7 +541,7 @@ PyDoc_STRVAR(
     "   :arg image: the image to write.\n"
     "   :type image: :class:`ImBuf`\n"
     "   :arg filepath: Optional filepath of the image (fallback to the images file path).\n"
-    "   :type filepath: string or bytes\n");
+    "   :type filepath: string, bytes or NoneType\n");
 static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   Py_ImBuf *py_imb;
@@ -561,7 +561,7 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
                                         &_parser,
                                         &Py_ImBuf_Type,
                                         &py_imb,
-                                        PyC_ParseUnicodeAsBytesAndSize,
+                                        PyC_ParseUnicodeAsBytesAndSize_OrNone,
                                         &filepath_data))
   {
     return nullptr;
