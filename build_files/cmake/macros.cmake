@@ -753,7 +753,12 @@ macro(remove_cc_flag
 
   foreach(_flag ${ARGV})
     foreach(_var ${_flag_vars})
-      string(REGEX REPLACE ${_flag} "" "${_var}" "${${_var}}")
+      # Expands to an expression like:
+      # `string(REGEX REPLACE "${_flag}" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")`
+      cmake_language(
+        EVAL CODE
+        "string(REGEX REPLACE \"\$\{_flag\}\" \"\" ${_var} \"\$\{${_var}\}\")"
+      )
     endforeach()
   endforeach()
 
