@@ -720,7 +720,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
 
       args->mesh_grids_num = pbvh->totgrid;
       args->grids = pbvh->grids;
-      args->gridfaces = pbvh->gridfaces;
       args->grid_flag_mats = pbvh->grid_flag_mats;
       args->vert_normals = pbvh->vert_normals;
 

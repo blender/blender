@@ -61,7 +61,6 @@ struct PBVH_GPU_Args {
   blender::Span<int> grid_indices;
   CCGKey ccg_key;
   CCGElem **grids;
-  void **gridfaces;
   BLI_bitmap **grid_hidden;
 
   blender::Span<int> prim_indices;
