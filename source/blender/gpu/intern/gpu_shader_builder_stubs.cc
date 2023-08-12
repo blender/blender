@@ -120,13 +120,6 @@ extern "C" eAttrDomain BKE_id_attribute_domain(const struct ID * /*id*/,
 /* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_paint.hh
  * \{ */
-bool paint_is_face_hidden(const int * /*looptri_faces*/,
-                          const bool * /*hide_poly*/,
-                          int /*tri_index*/)
-{
-  BLI_assert_unreachable();
-  return false;
-}
 
 void BKE_paint_face_set_overlay_color_get(const int /*face_set*/,
                                           const int /*seed*/,

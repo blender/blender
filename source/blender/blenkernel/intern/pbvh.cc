@@ -318,29 +318,20 @@ static int map_insert_vert(
 /* Find vertices used by the faces in this node and update the draw buffers */
 static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
 {
-  bool has_visible = false;
-
   node->uniq_verts = node->face_verts = 0;
-  const int totface = node->prim_indices.size();
+  const Span<int> prim_indices = node->prim_indices;
 
   /* reserve size is rough guess */
   blender::Map<int, int> map;
-  map.reserve(totface);
+  map.reserve(prim_indices.size());
 
-  node->face_vert_indices.reinitialize(totface);
+  node->face_vert_indices.reinitialize(prim_indices.size());
 
-  for (int i = 0; i < totface; i++) {
-    const MLoopTri *lt = &pbvh->looptri[node->prim_indices[i]];
+  for (const int i : prim_indices.index_range()) {
+    const MLoopTri &tri = pbvh->looptri[prim_indices[i]];
     for (int j = 0; j < 3; j++) {
       node->face_vert_indices[i][j] = map_insert_vert(
-          pbvh, map, &node->face_verts, &node->uniq_verts, pbvh->corner_verts[lt->tri[j]]);
-    }
-
-    if (has_visible == false) {
-      if (!paint_is_face_hidden(
-              pbvh->looptri_faces.data(), pbvh->hide_poly, node->prim_indices[i])) {
-        has_visible = true;
-      }
+          pbvh, map, &node->face_verts, &node->uniq_verts, pbvh->corner_verts[tri.tri[j]]);
     }
   }
 
@@ -356,19 +347,22 @@ static void build_mesh_leaf_node(PBVH *pbvh, PBVHNode *node)
     node->vert_indices[value] = item.key;
   }
 
-  for (int i = 0; i < totface; i++) {
-    const int sides = 3;
-
-    for (int j = 0; j < sides; j++) {
+  for (const int i : prim_indices.index_range()) {
+    for (int j = 0; j < 3; j++) {
       if (node->face_vert_indices[i][j] < 0) {
         node->face_vert_indices[i][j] = -node->face_vert_indices[i][j] + node->uniq_verts - 1;
       }
     }
   }
 
+  const bool fully_hidden = pbvh->hide_poly &&
+                            std::all_of(
+                                prim_indices.begin(), prim_indices.end(), [&](const int tri) {
+                                  const int face = pbvh->looptri_faces[tri];
+                                  return pbvh->hide_poly[face];
+                                });
+  BKE_pbvh_node_fully_hidden_set(node, fully_hidden);
   BKE_pbvh_node_mark_rebuild_draw(node);
-
-  BKE_pbvh_node_fully_hidden_set(node, !has_visible);
 }
 
 static void update_vb(PBVH *pbvh, PBVHNode *node, const Span<BBC> prim_bbc, int offset, int count)
@@ -2308,7 +2302,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(pbvh->looptri_faces.data(), pbvh->hide_poly, looptri_i)) {
+    if (pbvh->hide_poly && pbvh->hide_poly[pbvh->looptri_faces[looptri_i]]) {
       continue;
     }
 
@@ -2655,7 +2649,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     const MLoopTri *lt = &pbvh->looptri[looptri_i];
     const blender::int3 face_verts = node->face_vert_indices[i];
 
-    if (paint_is_face_hidden(pbvh->looptri_faces.data(), pbvh->hide_poly, looptri_i)) {
+    if (pbvh->hide_poly && pbvh->hide_poly[pbvh->looptri_faces[looptri_i]]) {
       continue;
     }
 

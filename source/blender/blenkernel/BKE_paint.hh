@@ -218,10 +218,6 @@ bool BKE_paint_always_hide_test(Object *ob);
 /* Partial visibility. */
 
 /**
- * Returns non-zero if any of the face's vertices are hidden, zero otherwise.
- */
-bool paint_is_face_hidden(const int *looptri_faces, const bool *hide_poly, int tri_index);
-/**
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.
  */
