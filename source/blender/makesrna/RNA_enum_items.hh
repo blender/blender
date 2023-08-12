@@ -227,6 +227,9 @@ DEF_ENUM(rna_enum_geometry_component_type_items)
 DEF_ENUM(rna_node_combsep_color_items)
 DEF_ENUM(node_socket_data_type_items)
 
+DEF_ENUM(rna_node_geometry_curve_handle_side_items)
+DEF_ENUM(rna_node_geometry_mesh_circle_fill_type_items)
+
 DEF_ENUM(rna_enum_volume_grid_data_type_items)
 
 DEF_ENUM(rna_enum_collection_color_items)

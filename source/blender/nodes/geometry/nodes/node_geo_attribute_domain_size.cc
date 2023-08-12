@@ -2,8 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -125,6 +129,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "component",
+                    "Component",
+                    "",
+                    rna_enum_geometry_component_type_items,
+                    NOD_inline_enum_accessors(custom1),
+                    int(blender::bke::GeometryComponent::Type::Mesh));
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -136,6 +151,8 @@ static void node_register()
   ntype.updatefunc = node_update;
 
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

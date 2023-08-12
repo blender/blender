@@ -4,10 +4,14 @@
 
 #include "BKE_curves.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GEO_set_curve_type.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -81,6 +85,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Curve", std::move(geometry_set));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "spline_type",
+                    "Type",
+                    "The curve type to change the selected curves to",
+                    rna_enum_curves_types,
+                    NOD_storage_enum_accessors(spline_type),
+                    CURVE_TYPE_POLY);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -95,6 +110,8 @@ static void node_register()
   ntype.draw_buttons = node_layout;
 
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 

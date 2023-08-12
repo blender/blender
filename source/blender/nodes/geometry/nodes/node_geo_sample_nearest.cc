@@ -10,8 +10,12 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 
+#include "NOD_rna_define.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
+
+#include "RNA_enum_types.hh"
 
 #include "node_geometry_util.hh"
 
@@ -318,6 +322,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output<Field<int>>("Index", Field<int>(std::move(op)));
 }
 
+static void node_rna(StructRNA *srna)
+{
+  RNA_def_node_enum(srna,
+                    "domain",
+                    "Domain", "",
+                    rna_enum_attribute_domain_only_mesh_items,
+                    NOD_inline_enum_accessors(custom2),
+                    ATTR_DOMAIN_POINT);
+}
+
 static void node_register()
 {
   static bNodeType ntype;
@@ -328,6 +342,8 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
 NOD_REGISTER_NODE(node_register)
 
