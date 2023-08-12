@@ -1504,7 +1504,6 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd,
   /* Unproject to find view ray. */
   ED_view3d_win_to_segment_clipped(
       kcd->vc.depsgraph, kcd->region, kcd->vc.v3d, mval, r_origin, r_end, false);
-  add_v3_v3(r_end, r_origin);
 }
 
 /* No longer used, but may be useful in the future. */
