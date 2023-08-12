@@ -727,7 +727,7 @@ static void weld_poly_split_recursive(int poly_loop_len,
   }
 
   int loop_kill = 0;
-  WeldLoop *wla_prev = &wloop[loop_end_ctx];
+  // WeldLoop *wla_prev = &wloop[loop_end_ctx]; /* UNUSED. */
 
   for (int la = start_loop_from; la <= loop_end; la++) {
     int loop_ctx_a = loop_map[la];
@@ -742,11 +742,11 @@ static void weld_poly_split_recursive(int poly_loop_len,
     int vert_a = wla->vert;
     if (vert_dest_map[vert_a] == OUT_OF_CONTEXT) {
       /* Only test vertices that will be merged. */
-      wla_prev = wla;
+      // wla_prev = wla; /* UNUSED. */
       continue;
     }
   wa_continue:
-    WeldLoop *wlb_prev = wla;
+    // WeldLoop *wlb_prev = wla; /* UNUSED. */
     int killed_ab = 0;
     for (int lb = la + 1; lb <= loop_end; lb++) {
       int loop_ctx_b = loop_map[lb];
@@ -761,7 +761,7 @@ static void weld_poly_split_recursive(int poly_loop_len,
       }
       int vert_b = wlb->vert;
       if (vert_a != vert_b) {
-        wlb_prev = wlb;
+        // wlb_prev = wlb; /* UNUSED. */
         continue;
       }
 
