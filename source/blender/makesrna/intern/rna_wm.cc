@@ -1485,13 +1485,10 @@ static std::string rna_operator_description_cb(bContext *C,
   ot->rna_ext.call(C, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "result", &ret);
-  const char *result = (const char *)ret;
+  std::string result = ret ? std::string(static_cast<const char *>(ret)) : "";
 
   RNA_parameter_list_free(&list);
 
-  if (!result) {
-    return "";
-  }
   return result;
 }
 
