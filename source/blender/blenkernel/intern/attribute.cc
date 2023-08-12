@@ -229,7 +229,7 @@ bool BKE_id_attribute_and_defgroup_unique_name_check(void *arg, const char *name
   AttributeAndDefgroupUniqueNameData *data = static_cast<AttributeAndDefgroupUniqueNameData *>(
       arg);
 
-  if (BKE_defgroup_unique_name_check(data, name)) {
+  if (BKE_id_supports_vertex_groups(data->id) && BKE_defgroup_unique_name_check(data, name)) {
     return true;
   }
 

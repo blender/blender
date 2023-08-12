@@ -435,14 +435,19 @@ void BKE_defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int 
   }
 }
 
-bool BKE_object_supports_vertex_groups(const Object *ob)
+bool BKE_id_supports_vertex_groups(const ID *id)
 {
-  const ID *id = (const ID *)ob->data;
   if (id == nullptr) {
     return false;
   }
-
   return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD_LEGACY);
+}
+
+bool BKE_object_supports_vertex_groups(const Object *ob)
+{
+  const ID *id = static_cast<const ID *>(ob->data);
+
+  return BKE_id_supports_vertex_groups(id);
 }
 
 const ListBase *BKE_id_defgroup_list_get(const ID *id)
@@ -701,6 +706,7 @@ bool BKE_defgroup_unique_name_check(void *arg, const char *name)
 {
   AttributeAndDefgroupUniqueNameData *data = static_cast<AttributeAndDefgroupUniqueNameData *>(
       arg);
+
   return defgroup_find_name_dupe(name, data->dg, data->id);
 }
 
