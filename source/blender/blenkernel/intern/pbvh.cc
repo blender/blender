@@ -927,7 +927,7 @@ void BKE_pbvh_build_grids(PBVH *pbvh,
                           CCGElem **grids,
                           int totgrid,
                           CCGKey *key,
-                          blender::Span<int> gridfaces,
+                          void **gridfaces,
                           DMFlagMat *flagmats,
                           BLI_bitmap **grid_hidden,
                           Mesh *me,
@@ -1742,21 +1742,49 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
   copy_v3_v3(bb_max, bb.bmax);
 }
 
-blender::IndexMask BKE_pbvh_get_grid_updates(const PBVH *pbvh,
-                                             const Span<const PBVHNode *> nodes,
-                                             blender::IndexMaskMemory &memory)
+void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int *r_totface)
 {
-  using namespace blender;
-  Array<bool> faces_to_update(pbvh->faces_num, false);
-  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (const PBVHNode *node : nodes.slice(range)) {
+  GSet *face_set = BLI_gset_ptr_new(__func__);
+  PBVHNode *node;
+  PBVHIter iter;
+
+  pbvh_iter_begin(&iter, pbvh, nullptr, nullptr);
+
+  while ((node = pbvh_iter_next(&iter, PBVH_Leaf))) {
+    if (node->flag & PBVH_UpdateNormals) {
       for (const int grid : node->prim_indices) {
-        const int face = pbvh->gridfaces[grid];
-        faces_to_update[face] = true;
+        void *face = pbvh->gridfaces[grid];
+        BLI_gset_add(face_set, face);
+      }
+
+      if (clear) {
+        node->flag &= ~PBVH_UpdateNormals;
+      }
     }
   }
-  });
-  return IndexMask::from_bools(faces_to_update, memory);
+
+  pbvh_iter_end(&iter);
+
+  const int tot = BLI_gset_len(face_set);
+  if (tot == 0) {
+    *r_totface = 0;
+    *r_gridfaces = nullptr;
+    BLI_gset_free(face_set, nullptr);
+    return;
+  }
+
+  void **faces = static_cast<void **>(MEM_mallocN(sizeof(*faces) * tot, __func__));
+
+  GSetIterator gs_iter;
+  int i;
+  GSET_ITER_INDEX (gs_iter, face_set, i) {
+    faces[i] = BLI_gsetIterator_getKey(&gs_iter);
+  }
+
+  BLI_gset_free(face_set, nullptr);
+
+  *r_totface = tot;
+  *r_gridfaces = faces;
 }
 
 /***************************** PBVH Access ***********************************/
@@ -2817,7 +2845,6 @@ bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *data)
 
 void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
 {
-  using namespace blender;
   /* Update normals */
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals));
@@ -2830,11 +2857,12 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
       pbvh_faces_update_normals(pbvh, nodes);
     }
     else if (pbvh->header.type == PBVH_GRIDS) {
-      IndexMaskMemory memory;
-      const IndexMask faces_to_update = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
-      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces_to_update);
-      for (PBVHNode *node : nodes) {
-        node->flag &= ~PBVH_UpdateNormals;
+      CCGFace **faces;
+      int num_faces;
+      BKE_pbvh_get_grid_updates(pbvh, true, (void ***)&faces, &num_faces);
+      if (num_faces > 0) {
+        BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
+        MEM_freeN(faces);
       }
     }
   }
@@ -2953,7 +2981,7 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
 
 void BKE_pbvh_grids_update(PBVH *pbvh,
                            CCGElem **grids,
-                           blender::Span<int> gridfaces,
+                           void **gridfaces,
                            DMFlagMat *flagmats,
                            BLI_bitmap **grid_hidden,
                            CCGKey *key)

@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
@@ -160,7 +159,7 @@ struct SubdivCCG {
   int num_faces;
   SubdivCCGFace *faces;
   /* Indexed by grid index, points to corresponding face from `faces`. */
-  blender::Array<int> grid_faces;
+  SubdivCCGFace **grid_faces;
 
   /* Edges which are adjacent to faces.
    * Used for faster grid stitching, in the cost of extra memory.
@@ -236,14 +235,17 @@ void BKE_subdiv_ccg_key_top_level(CCGKey *key, const SubdivCCG *subdiv_ccg);
 void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
 
 /* Update normals of affected faces. */
-void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg, const blender::IndexMask &face_mask);
+void BKE_subdiv_ccg_update_normals(SubdivCCG *subdiv_ccg,
+                                   CCGFace **effected_faces,
+                                   int num_effected_faces);
 
 /* Average grid coordinates and normals along the grid boundaries. */
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
 
 /* Similar to above, but only updates given faces. */
 void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
-                                         const blender::IndexMask &face_mask);
+                                         CCGFace **effected_faces,
+                                         int num_effected_faces);
 
 /* Get geometry counters at the current subdivision level. */
 void BKE_subdiv_ccg_topology_counters(const SubdivCCG *subdiv_ccg,
