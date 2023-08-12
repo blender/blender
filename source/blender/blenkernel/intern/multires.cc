@@ -1226,12 +1226,11 @@ void multires_stitch_grids(Object *ob)
   /* NOTE: Currently CCG does not keep track of faces, making it impossible
    * to use BKE_pbvh_get_grid_updates().
    */
-  CCGFace **faces;
-  int num_faces;
-  BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
-  if (num_faces) {
-    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
-    MEM_freeN(faces);
+  blender::IndexMaskMemory memory;
+  blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  const blender::IndexMask mask = BKE_pbvh_get_grid_updates(pbvh, nodes, memory);
+  if (!mask.is_empty()) {
+    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, mask);
   }
 }
 
