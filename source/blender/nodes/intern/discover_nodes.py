@@ -31,7 +31,7 @@ def filepath_is_older(filepath_test, filepath_compare):
     return False
 
 
-# The build system requires the geneated file to be touched if any files used to generate it are newer.
+# The build system requires the generated file to be touched if any files used to generate it are newer.
 try:
     sys.argv.remove("--use-makefile-workaround")
     use_makefile_workaround = True
@@ -45,8 +45,7 @@ output_cc_file = sys.argv[2]
 function_to_generate = sys.argv[3]
 source_cc_files = [
     os.path.join(source_root, path)
-    for path in
-    sys.argv[4:]
+    for path in sys.argv[4:]
     if path.endswith(".cc")
 ]
 
@@ -68,16 +67,17 @@ re_namespace_begin = r"^namespace ([\w:]+) \{"
 re_namespace_end = r"^\}  // namespace ([\w:]+)"
 re_macro = r"MACRO\((\w+)\)".replace("MACRO", macro_name)
 re_all = f"({re_namespace_begin})|({re_namespace_end})|({re_macro})"
+re_all_compiled = re.compile(re_all, flags=re.MULTILINE)
 
 for path in source_cc_files:
     # Read the source code.
-    with open(path, "r", encoding="utf-8") as f:
-        code = f.read()
+    with open(path, "r", encoding="utf-8") as fh:
+        code = fh.read()
 
     # Keeps track of the current namespace we're in.
     namespace_parts = []
 
-    for match in re.finditer(re_all, code, flags=re.MULTILINE):
+    for match in re_all_compiled.finditer(code):
         if entered_namespace := match.group(2):
             # Enter a (nested) namespace.
             namespace_parts += entered_namespace.split("::")
@@ -97,7 +97,7 @@ for path in source_cc_files:
                 decl_lines.append(f"namespace {namespace_str} {{")
             decl_lines.append(f"void {auto_run_name}();")
             if namespace_str:
-                decl_lines.append(f"}}")
+                decl_lines.append("}")
 
             # Call the function.
             func_lines.append(f"  {namespace_str}::{auto_run_name}();")
@@ -107,15 +107,15 @@ func_lines.append("}")
 # Write the generated code if it changed. If the newly generated code is the same as before,
 # don't overwrite the existing file to avoid unnecessary rebuilds.
 try:
-    with open(output_cc_file, "r", encoding="utf-8") as f:
-        old_generated_code = f.read()
+    with open(output_cc_file, "r", encoding="utf-8") as fh:
+        old_generated_code = fh.read()
 except:
     old_generated_code = ""
 new_generated_code = "\n".join(include_lines + decl_lines + [""] + func_lines)
 
 if old_generated_code != new_generated_code:
-    with open(output_cc_file, "w", encoding="utf-8") as f:
-        f.write(new_generated_code)
+    with open(output_cc_file, "w", encoding="utf-8") as fh:
+        fh.write(new_generated_code)
 elif use_makefile_workaround and filepath_is_older(output_cc_file, (__file__, *source_cc_files)):
     # If the generated file is older than this command, this file would be generated every time.
     os.utime(output_cc_file)
