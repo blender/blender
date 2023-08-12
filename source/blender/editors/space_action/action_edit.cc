@@ -178,7 +178,7 @@ static bool get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
       if (ale->datatype == ALE_GPFRAME) {
         bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 
-        /* Find gp-frame which is less than or equal to current-frame. */
+        /* Find GP-frame which is less than or equal to current-frame. */
         LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
           if (!onlySel || (gpf->flag & GP_FRAME_SELECT)) {
             const float framenum = float(gpf->framenum);

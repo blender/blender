@@ -89,10 +89,11 @@ GHOST_ContextCGL::GHOST_ContextCGL(bool stereoVisual,
       m_metalLayer.allowsNextDrawableTimeout = NO;
 
       /* Enable EDR support. This is done by:
-       * 1. Using a floating point render target, so that values ouside 0..1 can be used
+       * 1. Using a floating point render target, so that values outside 0..1 can be used
        * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
        * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
-       * values. */
+       *    values.
+       */
       m_metalLayer.wantsExtendedDynamicRangeContent = YES;
       m_metalLayer.pixelFormat = METAL_FRAMEBUFFERPIXEL_FORMAT_EDR;
       const CFStringRef name = kCGColorSpaceExtendedSRGB;
@@ -257,7 +258,7 @@ void GHOST_ContextCGL::metalInit()
                       texture2d<float> t [[texture(0)]]) {
 
         /* Final blit should ensure alpha is 1.0. This resolves
-         * rendering artifacts for blitting of final backbuffer. */
+         * rendering artifacts for blitting of final back-buffer. */
         float4 out_tex = t.sample(s, v.texCoord);
         out_tex.a = 1.0;
         return out_tex;

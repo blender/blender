@@ -3800,7 +3800,7 @@ static IDOverrideLibraryPropertyOperation *liboverride_opop_find_name_lib_iterat
       }
     }
 
-    /* No exact match found, keep cheking the rest of the list of operations. */
+    /* No exact match found, keep checking the rest of the list of operations. */
   }
 
   return nullptr;

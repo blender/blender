@@ -37,17 +37,20 @@
 
 #include "transform_convert.hh"
 
-/* helper struct for gp-frame transforms */
+/** Helper struct for GP-frame transforms. */
 struct tGPFtransdata {
   union {
-    float val;    /* where transdata writes transform */
-    float loc[3]; /* #td->val and #td->loc share the same pointer. */
+    /** Where `transdata` writes transform. */
+    float val;
+    /** #td->val and #td->loc share the same pointer. */
+    float loc[3];
   };
-  int *sdata; /* pointer to gpf->framenum */
+  /** Pointer to `gpf->framenum` */
+  int *sdata;
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Grease Pencil Transfrom helpers
+/** \name Grease Pencil Transform helpers
  * \{ */
 
 static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil::Layer &layer)
@@ -60,7 +63,7 @@ static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil
   }
 
   /* Make a copy of the current frames in the layer. This map will be changed during the
-   * transformation, and we need to be able to reset it if the operation is cancelled. */
+   * transformation, and we need to be able to reset it if the operation is canceled. */
   trans_data.frames_copy = layer.frames();
   trans_data.frames_duration.clear();
   trans_data.frames_destination.clear();

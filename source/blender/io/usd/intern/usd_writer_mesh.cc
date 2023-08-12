@@ -292,7 +292,7 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
 
   const blender::StringRef active_ref(active_set_name);
 
-  /* Because primvars don't have a notion of "active" for data like
+  /* Because prim-vars don't have a notion of "active" for data like
    * UVs, but a specific UV set may be considered "active" by target
    * applications, the [ ---- ] is to name the active set "st". */
   const std::string name = active_set_name && (active_ref == attribute_id.name()) ?

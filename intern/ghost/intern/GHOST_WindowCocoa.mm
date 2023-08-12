@@ -349,10 +349,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
     if (type == GHOST_kDrawingContextTypeMetal) {
       /* Enable EDR support. This is done by:
-       * 1. Using a floating point render target, so that values ouside 0..1 can be used
+       * 1. Using a floating point render target, so that values outside 0..1 can be used
        * 2. Informing the OS that we are EDR aware, and intend to use values outside 0..1
        * 3. Setting the extended sRGB color space so that the OS knows how to interpret the
-       * values. */
+       *    values.
+       */
       m_metalLayer.wantsExtendedDynamicRangeContent = YES;
       m_metalLayer.pixelFormat = MTLPixelFormatRGBA16Float;
       const CFStringRef name = kCGColorSpaceExtendedSRGB;

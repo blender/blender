@@ -40,7 +40,7 @@
 //#define DEBUG_MEMCOUNTER
 
 /* Only for debugging:
- * Defining DEBUG_BACKTRACE will display a backtrace from where memory block was allocated and
+ * Defining DEBUG_BACKTRACE will display a back-trace from where memory block was allocated and
  * print this trace for all unfreed blocks. This will only work for ASAN enabled builds. This
  * option will be on by default for MSVC as it currently does not have LSAN which would normally
  * report these leaks, off by default on all other platforms because it would report the leaks

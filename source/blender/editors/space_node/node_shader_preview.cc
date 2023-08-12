@@ -462,10 +462,8 @@ static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
     bNodeSocket *aov_socket = nodeFindSocket(aov_node, SOCK_IN, "Color");
     if (socket_preview->in_out == SOCK_IN) {
       if (socket_preview->link == nullptr) {
-        /**
-         * Copy the custom value of the socket directly to the AOV node.
-         * If the socket does not support custom values, it will justl render black.
-         */
+        /* Copy the custom value of the socket directly to the AOV node.
+         * If the socket does not support custom values, it will just render black. */
         float vec[4] = {0., 0., 0., 1.};
         PointerRNA ptr;
         switch (socket_preview->type) {
