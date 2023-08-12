@@ -4742,20 +4742,28 @@ static void curvemap_buttons_layout(uiLayout *layout,
   UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), nullptr);
 
   if (brush && neg_slope) {
-    bt = uiDefIconBlockBut(
-        block, curvemap_brush_tools_negslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+    bt = uiDefIconBlockBut(block,
+                           curvemap_brush_tools_negslope_func,
+                           cumap,
+                           0,
+                           ICON_NONE,
+                           0,
+                           0,
+                           dx,
+                           dx,
+                           TIP_("Tools"));
   }
   else if (brush) {
     bt = uiDefIconBlockBut(
-        block, curvemap_brush_tools_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+        block, curvemap_brush_tools_func, cumap, 0, ICON_NONE, 0, 0, dx, dx, TIP_("Tools"));
   }
   else if (neg_slope) {
     bt = uiDefIconBlockBut(
-        block, curvemap_tools_negslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+        block, curvemap_tools_negslope_func, cumap, 0, ICON_NONE, 0, 0, dx, dx, TIP_("Tools"));
   }
   else {
     bt = uiDefIconBlockBut(
-        block, curvemap_tools_posslope_func, cumap, 0, 0, 0, 0, dx, dx, TIP_("Tools"));
+        block, curvemap_tools_posslope_func, cumap, 0, ICON_NONE, 0, 0, dx, dx, TIP_("Tools"));
   }
   UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), nullptr);
 
@@ -5408,8 +5416,16 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
   UI_but_funcN_set(bt, CurveProfile_clipping_toggle, MEM_dupallocN(cb), profile);
 
   /* Reset view, reset curve */
-  bt = uiDefIconBlockBut(
-      block, CurveProfile_buttons_tools, profile, 0, 0, 0, 0, UI_UNIT_X, UI_UNIT_X, TIP_("Tools"));
+  bt = uiDefIconBlockBut(block,
+                         CurveProfile_buttons_tools,
+                         profile,
+                         0,
+                         ICON_NONE,
+                         0,
+                         0,
+                         UI_UNIT_X,
+                         UI_UNIT_X,
+                         TIP_("Tools"));
   UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), nullptr);
 
   UI_block_funcN_set(block, rna_update_cb, MEM_dupallocN(cb), nullptr);
@@ -6311,7 +6327,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       uiButProgress *but_progress = (uiButProgress *)uiDefIconTextBut(block,
                                                                       UI_BTYPE_PROGRESS,
                                                                       0,
-                                                                      0,
+                                                                      ICON_NONE,
                                                                       text,
                                                                       UI_UNIT_X,
                                                                       0,

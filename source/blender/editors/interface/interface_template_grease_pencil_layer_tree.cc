@@ -246,7 +246,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     but = uiDefIconButR(block,
                         UI_BTYPE_ICON_TOGGLE,
                         0,
-                        0,
+                        ICON_NONE,
                         0,
                         0,
                         UI_UNIT_X,
@@ -266,7 +266,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     but = uiDefIconButR(block,
                         UI_BTYPE_ICON_TOGGLE,
                         0,
-                        0,
+                        ICON_NONE,
                         0,
                         0,
                         UI_UNIT_X,
@@ -344,8 +344,8 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     PointerRNA group_ptr;
     RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_, &group_ptr);
 
-    uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, 0);
-    uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, 0);
+    uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
+    uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
   }
 };
 

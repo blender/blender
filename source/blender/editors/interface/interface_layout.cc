@@ -1026,7 +1026,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   if (name[0]) {
 #ifdef UI_PROP_DECORATE
     if (use_prop_sep) {
-      layout_prop_decorate = uiItemL_respect_property_split(layout, name, 0);
+      layout_prop_decorate = uiItemL_respect_property_split(layout, name, ICON_NONE);
     }
     else
 #endif

@@ -16,7 +16,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_uvalongstroke(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "use_tips", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "use_tips", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 }  // namespace blender::nodes::node_shader_uv_along_stroke_cc

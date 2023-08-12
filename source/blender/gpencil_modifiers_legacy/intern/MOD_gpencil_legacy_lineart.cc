@@ -480,7 +480,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *row = uiLayoutRowWithHeading(layout, false, IFACE_("Custom Camera"));
-  uiItemR(row, ptr, "use_custom_camera", UI_ITEM_NONE, "", 0);
+  uiItemR(row, ptr, "use_custom_camera", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *subrow = uiLayoutRow(row, true);
   uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "use_custom_camera"));
   uiLayoutSetPropSep(subrow, true);

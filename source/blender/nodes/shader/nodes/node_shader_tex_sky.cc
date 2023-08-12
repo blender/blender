@@ -42,7 +42,7 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *
     if (BKE_scene_uses_blender_eevee(scene)) {
       uiItemL(layout, TIP_("Sun disc not available in Eevee"), ICON_ERROR);
     }
-    uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+    uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
     uiLayout *col;
     if (RNA_boolean_get(ptr, "sun_disc")) {

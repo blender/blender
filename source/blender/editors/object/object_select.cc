@@ -850,7 +850,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
     collection = ob_collections[i];
     uiItemStringO(layout,
                   collection->id.name + 2,
-                  0,
+                  ICON_NONE,
                   "OBJECT_OT_select_same_collection",
                   "collection",
                   collection->id.name + 2);

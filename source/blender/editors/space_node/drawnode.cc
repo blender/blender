@@ -80,7 +80,7 @@ static void node_socket_button_label(bContext * /*C*/,
                                      PointerRNA * /*node_ptr*/,
                                      const char *text)
 {
-  uiItemL(layout, text, 0);
+  uiItemL(layout, text, ICON_NONE);
 }
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
@@ -448,7 +448,7 @@ static void node_shader_buts_tex_environment_ex(uiLayout *layout, bContext *C, P
 
 static void node_shader_buts_displacement(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "space", DEFAULT_FLAGS, "", 0);
+  uiItemR(layout, ptr, "space", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
 static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -1312,7 +1312,7 @@ static void std_node_socket_draw(
     case SOCK_FLOAT:
     case SOCK_INT:
     case SOCK_BOOLEAN:
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     case SOCK_VECTOR:
       if (sock->flag & SOCK_COMPACT) {
@@ -1335,30 +1335,30 @@ static void std_node_socket_draw(
     }
     case SOCK_RGBA: {
       if (text[0] == '\0') {
-        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       else {
         uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-        uiItemL(row, text, 0);
-        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+        uiItemL(row, text, ICON_NONE);
+        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       break;
     }
     case SOCK_STRING: {
       uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-      uiItemL(row, text, 0);
+      uiItemL(row, text, ICON_NONE);
 
       if (socket_needs_attribute_search(*node, *sock)) {
         node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
       }
       else {
-        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", 0);
+        uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
 
       break;
     }
     case SOCK_OBJECT: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     }
     case SOCK_IMAGE: {
@@ -1379,7 +1379,7 @@ static void std_node_socket_draw(
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
           uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
-          uiItemL(row, text, 0);
+          uiItemL(row, text, ICON_NONE);
           uiTemplateID(row,
                        C,
                        ptr,
@@ -1393,12 +1393,12 @@ static void std_node_socket_draw(
         }
       }
       else {
-        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       }
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     }
     case SOCK_TEXTURE: {
@@ -1417,7 +1417,7 @@ static void std_node_socket_draw(
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
         uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
-        uiItemL(row, text, 0);
+        uiItemL(row, text, ICON_NONE);
         uiTemplateID(
             row, C, ptr, "default_value", "texture.new", nullptr, nullptr, 0, ICON_NONE, nullptr);
       }
@@ -1425,7 +1425,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, 0);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
       break;
     }
     default:
@@ -1475,17 +1475,17 @@ static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, P
     case SOCK_IMAGE:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL: {
-      uiItemR(col, ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), 0);
+      uiItemR(col, ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
       break;
     }
   }
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "hide_value", DEFAULT_FLAGS, nullptr, 0);
+  uiItemR(col, ptr, "hide_value", DEFAULT_FLAGS, nullptr, ICON_NONE);
 
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
   if (sock->in_out == SOCK_IN && node_tree->type == NTREE_GEOMETRY) {
-    uiItemR(col, ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, 0);
+    uiItemR(col, ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, ICON_NONE);
   }
 }
 

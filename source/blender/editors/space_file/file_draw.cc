@@ -186,7 +186,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int x = tile_draw_rect->xmin;
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
-  /* For uiDefIconBut(), if a1==1.0 then a2 is alpha 0.0 - 1.0 */
+  /* For #uiDefIconBut(): if `a1==1.0` then a2 is alpha `0.0 - 1.0`. */
   const float a1 = dimmed ? 1.0f : 0.0f;
   const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(

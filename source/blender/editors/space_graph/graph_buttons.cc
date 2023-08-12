@@ -397,19 +397,19 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
 
     /* easing type */
     if (bezt->ipo > BEZT_IPO_BEZ) {
-      uiItemR(col, &bezt_ptr, "easing", UI_ITEM_NONE, nullptr, 0);
+      uiItemR(col, &bezt_ptr, "easing", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
 
     /* easing extra */
     switch (bezt->ipo) {
       case BEZT_IPO_BACK:
         col = uiLayoutColumn(layout, true);
-        uiItemR(col, &bezt_ptr, "back", UI_ITEM_NONE, nullptr, 0);
+        uiItemR(col, &bezt_ptr, "back", UI_ITEM_NONE, nullptr, ICON_NONE);
         break;
       case BEZT_IPO_ELASTIC:
         col = uiLayoutColumn(layout, true);
-        uiItemR(col, &bezt_ptr, "amplitude", UI_ITEM_NONE, nullptr, 0);
-        uiItemR(col, &bezt_ptr, "period", UI_ITEM_NONE, nullptr, 0);
+        uiItemR(col, &bezt_ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(col, &bezt_ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
         break;
       default:
         break;

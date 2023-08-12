@@ -278,7 +278,7 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, 0);
+  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 
