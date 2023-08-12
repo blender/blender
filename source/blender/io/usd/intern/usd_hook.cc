@@ -32,7 +32,7 @@ using USDHookList = std::list<USDHook *>;
 /* USD hook type declarations */
 static USDHookList g_usd_hooks;
 
-void USD_register_hook(struct USDHook *hook)
+void USD_register_hook(USDHook *hook)
 {
   if (std::find(g_usd_hooks.begin(), g_usd_hooks.end(), hook) != g_usd_hooks.end()) {
     /* The hook is already in the list. */
@@ -43,7 +43,7 @@ void USD_register_hook(struct USDHook *hook)
   g_usd_hooks.push_back(hook);
 }
 
-void USD_unregister_hook(struct USDHook *hook)
+void USD_unregister_hook(USDHook *hook)
 {
   g_usd_hooks.remove(hook);
 }
@@ -57,7 +57,7 @@ USDHook *USD_find_hook_name(const char name[])
 
   USDHookList::iterator hook_iter = std::find_if(
       g_usd_hooks.begin(), g_usd_hooks.end(), [name](USDHook *hook) {
-        return strcmp(hook->idname, name) == 0;
+        return STREQ(hook->idname, name);
       });
 
   return (hook_iter == g_usd_hooks.end()) ? nullptr : *hook_iter;

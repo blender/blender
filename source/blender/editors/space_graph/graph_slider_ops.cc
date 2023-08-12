@@ -1007,7 +1007,7 @@ static void blend_offset_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
   blend_offset_graph_keys(&gso->ac, factor);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int blend_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1042,7 +1042,7 @@ static int blend_offset_exec(bContext *C, wmOperator *op)
   blend_offset_graph_keys(&ac, factor);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1098,7 +1098,7 @@ static void blend_to_ease_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
   blend_to_ease_graph_keys(&gso->ac, factor);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int blend_to_ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1134,7 +1134,7 @@ static int blend_to_ease_exec(bContext *C, wmOperator *op)
   blend_to_ease_graph_keys(&ac, factor);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

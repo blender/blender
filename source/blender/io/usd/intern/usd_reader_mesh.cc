@@ -530,8 +530,7 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
     return;
   }
 
-  if (varying_type == pxr::UsdGeomTokens->faceVarying ||
-      varying_type == pxr::UsdGeomTokens->varying) {
+  if (ELEM(varying_type, pxr::UsdGeomTokens->faceVarying, pxr::UsdGeomTokens->varying)) {
     if (is_left_handed_) {
       /* Reverse the index order. */
       const OffsetIndices faces = mesh->faces();

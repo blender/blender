@@ -1274,7 +1274,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
   prop = RNA_def_property(srna, "use_hdr_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", COLORMANAGE_VIEW_USE_HDR);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", COLORMANAGE_VIEW_USE_HDR);
   RNA_def_property_ui_text(
       prop,
       "High Dynamic Range",
