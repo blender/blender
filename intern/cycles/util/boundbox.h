@@ -9,7 +9,6 @@
 #include <math.h>
 
 #include "util/math.h"
-#include "util/string.h"
 #include "util/transform.h"
 #include "util/types.h"
 

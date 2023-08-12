@@ -14,7 +14,6 @@
 
 #include "util/param.h"
 #include "util/string.h"
-#include "util/system.h"
 #include "util/texture.h"
 #include "util/thread.h"
 

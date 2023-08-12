@@ -9,7 +9,7 @@
 
 #  include "util/string.h"
 
-#  include <ostream>  // NOLINT
+#  include <iosfwd>
 #endif
 
 CCL_NAMESPACE_BEGIN

@@ -6,7 +6,6 @@
 #define __UTIL_DEBUG_H__
 
 #include <cassert>
-#include <iostream>
 
 #include "bvh/params.h"
 
