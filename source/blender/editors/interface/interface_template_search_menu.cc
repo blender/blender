@@ -168,7 +168,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
   MenuSearch_Item *item = nullptr;
 
   /* Use override if the name is empty, this can happen with popovers. */
-  std::string drawstr_override = nullptr;
+  std::string drawstr_override;
   const char *drawstr_sep = (but->flag & UI_BUT_HAS_SEP_CHAR) ?
                                 strrchr(but->drawstr, UI_SEP_CHAR) :
                                 nullptr;
