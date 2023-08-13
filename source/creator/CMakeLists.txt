@@ -634,6 +634,7 @@ if(UNIX AND NOT APPLE)
 
     # none of the other files are needed currently
   elseif(WITH_INSTALL_PORTABLE)
+    set(BLENDER_BIN "blender")
     install(
       TARGETS blender
       DESTINATION "${CMAKE_INSTALL_PREFIX}"
@@ -685,6 +686,7 @@ if(UNIX AND NOT APPLE)
     endif()
   else()
     # main blender binary
+    set(BLENDER_BIN "bin/blender")
     install(
       TARGETS blender
       DESTINATION bin
@@ -1434,6 +1436,7 @@ elseif(APPLE)
     COMMAND SetFile -d ${SETFILE_DATE} -m ${SETFILE_DATE} ${EXECUTABLE_OUTPUT_PATH}/Blender.app
   )
 
+  set(BLENDER_BIN "bin/blender")
   install(
     TARGETS blender
     DESTINATION "${CMAKE_INSTALL_PREFIX}"
@@ -1748,6 +1751,7 @@ endif()
 # Setup launcher
 
 if(WIN32 AND NOT WITH_PYTHON_MODULE)
+  set(BLENDER_BIN "blender.exe")
   install(
     TARGETS blender blender-launcher
     COMPONENT Blender
@@ -1777,9 +1781,12 @@ if(UNIX AND NOT APPLE)
     if(WITH_DOC_MANPAGE)
       # Only run the command to generate the man-page when it may be outdated.
       # The `IS_NEWER_THAN` checks always run when files are missing.
+
+      # NOTE: While `${EXECUTABLE_OUTPUT_PATH}/blender` may work in some cases
+      # Blender's requirement of libraries mean the installation path must be used.
       install(
         CODE "\
-set(BLENDER_BIN \"${EXECUTABLE_OUTPUT_PATH}/blender\")\n\
+set(BLENDER_BIN \"${CMAKE_INSTALL_PREFIX}/${BLENDER_BIN}\")\n\
 set(MANPAGE_GEN \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\")\n\
 set(MANPAGE_OUT \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\")\n\
 if(\n\
