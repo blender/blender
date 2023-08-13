@@ -50,7 +50,8 @@ vec3 lightprobe_irradiance_grid_bias_sample_coord(IrradianceGridData grid_data,
   /* NOTE(fclem): Use uint to avoid signed int modulo. */
   uint vis_comp = uint(cell_start.z) % 4u;
   /* Visibility is stored after the irradiance. */
-  ivec3 vis_coord = ivec3(brick_atlas_coord, IRRADIANCE_GRID_BRICK_SIZE * 4) + ivec3(cell_start);
+  ivec3 vis_coord = ivec3(ivec2(brick_atlas_coord), IRRADIANCE_GRID_BRICK_SIZE * 4) +
+                    ivec3(cell_start);
   /* Visibility is stored packed 1 cell per channel. */
   vis_coord.z -= int(vis_comp);
   float cell_visibility = texelFetch(irradiance_atlas_tx, vis_coord, 0)[vis_comp];
