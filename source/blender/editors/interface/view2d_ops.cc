@@ -451,7 +451,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
   }
 
   /* set RNA-Props - only movement in positive x-direction */
-  RNA_int_set(op->ptr, "deltax", 40);
+  RNA_int_set(op->ptr, "deltax", 40 * UI_SCALE_FAC);
   RNA_int_set(op->ptr, "deltay", 0);
 
   /* apply movement, then we're done */
@@ -491,7 +491,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
   }
 
   /* set RNA-Props - only movement in negative x-direction */
-  RNA_int_set(op->ptr, "deltax", -40);
+  RNA_int_set(op->ptr, "deltax", -40 * UI_SCALE_FAC);
   RNA_int_set(op->ptr, "deltay", 0);
 
   /* apply movement, then we're done */
@@ -536,7 +536,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
-  RNA_int_set(op->ptr, "deltay", -40);
+  RNA_int_set(op->ptr, "deltay", -40 * UI_SCALE_FAC);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
   const bool use_page_size = (vpd->v2d->flag & V2D_SNAP_TO_PAGESIZE_Y) ||
@@ -591,7 +591,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 
   /* set RNA-Props */
   RNA_int_set(op->ptr, "deltax", 0);
-  RNA_int_set(op->ptr, "deltay", 40);
+  RNA_int_set(op->ptr, "deltay", 40 * UI_SCALE_FAC);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
   const bool use_page_size = (vpd->v2d->flag & V2D_SNAP_TO_PAGESIZE_Y) ||
