@@ -1516,14 +1516,14 @@ macro(windows_install_shared_manifest)
     endif()
     install(
       FILES ${WINDOWS_INSTALL_FILES}
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/blender.shared
+      DESTINATION "./blender.shared"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   else()
     # Python module without manifest.
     install(
       FILES ${WINDOWS_INSTALL_FILES}
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/bpy
+      DESTINATION "./bpy"
       CONFIGURATIONS ${WINDOWS_CONFIGURATIONS}
     )
   endif()
