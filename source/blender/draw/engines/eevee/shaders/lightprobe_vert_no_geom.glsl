@@ -30,6 +30,6 @@ void main()
 #ifdef GPU_METAL
   /* In the Metal API, gl_Layer equivalent is specified in the vertex shader for multilayered
    * rendering support. */
-  MTLRenderTargetArrayIndex = Layer + geom_iface.fFace;
+  gpu_Layer = Layer + geom_iface.fFace;
 #endif
 }

@@ -515,10 +515,11 @@ struct MTLContextGlobalShaderPipelineState {
   MTLContextDepthStencilState depth_stencil_state;
 
   /* Viewport/Scissor Region. */
-  int viewport_offset_x;
-  int viewport_offset_y;
-  int viewport_width;
-  int viewport_height;
+  int num_active_viewports = 1;
+  int viewport_offset_x[GPU_MAX_VIEWPORTS];
+  int viewport_offset_y[GPU_MAX_VIEWPORTS];
+  int viewport_width[GPU_MAX_VIEWPORTS];
+  int viewport_height[GPU_MAX_VIEWPORTS];
   bool scissor_enabled;
   int scissor_x;
   int scissor_y;
@@ -862,6 +863,7 @@ class MTLContext : public Context {
 
   /* State assignment. */
   void set_viewport(int origin_x, int origin_y, int width, int height);
+  void set_viewports(int count, const int (&viewports)[GPU_MAX_VIEWPORTS][4]);
   void set_scissor(int scissor_x, int scissor_y, int scissor_width, int scissor_height);
   void set_scissor_enabled(bool scissor_enabled);
 

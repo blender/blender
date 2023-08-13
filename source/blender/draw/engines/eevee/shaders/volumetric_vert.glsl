@@ -29,7 +29,7 @@ void main()
 
 #ifdef GPU_METAL
   volumetric_geom_iface.slice = int(volumetric_vert_iface.vPos.z);
-  MTLRenderTargetArrayIndex = int(volumetric_vert_iface.vPos.z);
+  gpu_Layer = int(volumetric_vert_iface.vPos.z);
   gl_Position = volumetric_vert_iface.vPos.xyww;
 #endif
 }

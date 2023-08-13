@@ -806,7 +806,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
   }
 
   /* Primitive Type -- Primitive topology class needs to be specified for layered rendering. */
-  bool requires_specific_topology_class = uses_mtl_array_index_ ||
+  bool requires_specific_topology_class = uses_gpu_layer || uses_gpu_viewport_index ||
                                           prim_type == MTLPrimitiveTopologyClassPoint;
   pipeline_descriptor.vertex_descriptor.prim_topology_class =
       (requires_specific_topology_class) ? prim_type : MTLPrimitiveTopologyClassUnspecified;
