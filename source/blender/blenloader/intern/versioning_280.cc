@@ -101,6 +101,7 @@
 
 #include "BLT_translation.h"
 
+#include "BLO_read_write.h"
 #include "BLO_readfile.h"
 #include "readfile.h"
 
@@ -2911,6 +2912,22 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       if (brush->sculpt_tool == SCULPT_TOOL_POSE && brush->disconnected_distance_max == 0.0f) {
         brush->flag2 |= BRUSH_USE_CONNECTED_ONLY;
         brush->disconnected_distance_max = 0.1f;
+      }
+    }
+
+    /* 2.8x dropped support for non-empty dupli instances. but propoer do-versionning was never
+     * done correctly. So added here as a 'safe' place version wise, always better than in
+     * readfile lib-linking code! */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type != OB_EMPTY && ob->instance_collection != nullptr) {
+        BLO_reportf_wrap(fd->reports,
+                         RPT_INFO,
+                         TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
+                              "anymore in Blender 2.80 and later, removed instancing"),
+                         ob->id.name + 2,
+                         ob->instance_collection->id.name + 2);
+        ob->instance_collection = nullptr;
+        ob->transflag &= ~OB_DUPLICOLLECTION;
       }
     }
   }
