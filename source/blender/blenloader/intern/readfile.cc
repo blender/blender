@@ -4103,35 +4103,29 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func)
 
 void BLO_expand_main(void *fdhandle, Main *mainvar)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
   FileData *fd = static_cast<FileData *>(fdhandle);
-  ID *id;
-  int a;
-  bool do_it = true;
-
   BlendExpander expander = {fd, mainvar};
 
-  while (do_it) {
+  for (bool do_it = true; do_it;) {
     do_it = false;
+    ID *id_iter;
 
-    a = set_listbasepointers(mainvar, lbarray);
-    while (a--) {
-      id = static_cast<ID *>(lbarray[a]->first);
-      while (id) {
-        if (id->tag & LIB_TAG_NEED_EXPAND) {
-          expand_id(&expander, id);
-
-          const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-          if (id_type->blend_read_expand != nullptr) {
-            id_type->blend_read_expand(&expander, id);
-          }
-
-          do_it = true;
-          id->tag &= ~LIB_TAG_NEED_EXPAND;
-        }
-        id = static_cast<ID *>(id->next);
+    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
+      if ((id_iter->tag & LIB_TAG_NEED_EXPAND) == 0) {
+        continue;
       }
+
+      expand_id(&expander, id_iter);
+
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_iter);
+      if (id_type->blend_read_expand != nullptr) {
+        id_type->blend_read_expand(&expander, id_iter);
+      }
+
+      do_it = true;
+      id_iter->tag &= ~LIB_TAG_NEED_EXPAND;
     }
+    FOREACH_MAIN_ID_END;
   }
 }
 
