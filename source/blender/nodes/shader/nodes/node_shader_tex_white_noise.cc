@@ -6,6 +6,10 @@
 
 #include "BLI_noise.hh"
 
+#include "FN_multi_function.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

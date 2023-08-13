@@ -4,6 +4,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BLI_math_vector.h"
+
 namespace blender::nodes::node_shader_bsdf_transparent_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

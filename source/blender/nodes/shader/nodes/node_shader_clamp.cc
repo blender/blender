@@ -8,6 +8,10 @@
 
 #include "node_shader_util.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

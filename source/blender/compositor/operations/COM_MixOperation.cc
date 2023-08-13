@@ -4,6 +4,8 @@
 
 #include "COM_MixOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 /* ******** Mix Base Operation ******** */

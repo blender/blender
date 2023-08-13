@@ -8,9 +8,16 @@
 
 #include "DNA_texture_types.h"
 
+#include "BKE_colorband.h"
+
 #include "BLI_color.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 namespace blender::nodes::node_shader_color_ramp_cc {
 

@@ -15,6 +15,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BLI_hash.hh"
+#include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"

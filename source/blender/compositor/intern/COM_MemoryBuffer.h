@@ -10,10 +10,10 @@
 #include "COM_Enums.h"
 
 #include "BLI_math_interp.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "IMB_colormanagement.h"
-
+struct ColormanageProcessor;
 struct ImBuf;
 
 namespace blender::compositor {

@@ -7,6 +7,15 @@
  */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
+
+#include "BKE_material.h"
+
+#include "BLI_math_vector.h"
+
+#include "DNA_material_types.h"
+
+#include "NOD_multi_function.hh"
 
 namespace blender::nodes::node_shader_mix_rgb_cc {
 

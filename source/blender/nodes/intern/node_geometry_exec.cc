@@ -9,6 +9,8 @@
 #include "BKE_curves.hh"
 #include "BKE_type_conversions.hh"
 
+#include "BLT_translation.h"
+
 #include "NOD_geometry_exec.hh"
 
 #include "node_geometry_util.hh"

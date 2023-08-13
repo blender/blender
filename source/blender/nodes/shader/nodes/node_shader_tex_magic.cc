@@ -3,6 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
+
+#include "BKE_texture.h"
+
+#include "NOD_multi_function.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

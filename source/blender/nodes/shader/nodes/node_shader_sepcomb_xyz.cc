@@ -8,6 +8,10 @@
 
 #include "node_shader_util.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 
 static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)

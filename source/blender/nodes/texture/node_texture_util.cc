@@ -22,9 +22,13 @@
  * over other previous ones.
  */
 
+#include "BKE_node_runtime.hh"
+
 #include "NOD_add_node_search.hh"
+#include "NOD_texture.h"
 
 #include "node_texture_util.hh"
+#include "node_util.hh"
 
 bool tex_node_poll_default(const bNodeType * /*ntype*/,
                            const bNodeTree *ntree,

@@ -4,6 +4,8 @@
 
 #include "node_geometry_util.hh"
 
+#include "BLI_math_vector.hh"
+
 #include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_rotation.h"

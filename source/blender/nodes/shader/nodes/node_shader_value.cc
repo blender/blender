@@ -8,6 +8,11 @@
 
 #include "node_shader_util.hh"
 
+#include "FN_multi_function.hh"
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
+
 namespace blender::nodes::node_shader_value_cc {
 
 static void sh_node_value_declare(NodeDeclarationBuilder &b)

@@ -4,6 +4,8 @@
 
 #include "COM_BrightnessOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 BrightnessOperation::BrightnessOperation()

@@ -7,6 +7,8 @@
 #include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 DistanceMatteNode::DistanceMatteNode(bNode *editor_node) : Node(editor_node)

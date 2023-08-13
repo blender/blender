@@ -7,8 +7,10 @@
  */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "NOD_math_functions.hh"
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"

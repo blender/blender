@@ -11,6 +11,8 @@
 #include "node_common.h"
 #include "node_geometry_util.hh"
 
+#include "RNA_access.hh"
+
 namespace blender::nodes {
 
 static void node_group_declare(const bNodeTree &node_tree,

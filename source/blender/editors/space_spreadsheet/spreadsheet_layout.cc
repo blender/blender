@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "BLI_math_color.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 

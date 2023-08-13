@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "BLI_math_color.hh"
+#include "BLI_math_vector.hh"
+
 #include "BLI_array.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_vector.hh"

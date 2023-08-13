@@ -21,6 +21,8 @@
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 KeyingNode::KeyingNode(bNode *editor_node) : Node(editor_node)

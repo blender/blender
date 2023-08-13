@@ -4,6 +4,8 @@
 
 #include "COM_ColorBalanceLGGOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)

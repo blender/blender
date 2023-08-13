@@ -4,26 +4,14 @@
 
 #pragma once
 
-#include <string.h>
-
-#include "BLI_bounds_types.hh"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_utildefines.h"
-
 #include "MEM_guardedalloc.h"
-
-#include "DNA_node_types.h"
 
 #include "BKE_node.hh"
 
-#include "NOD_geometry.hh"
 #include "NOD_geometry_exec.hh"
 #include "NOD_register.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
-
-#include "RNA_access.hh"
 
 #include "node_util.hh"
 
@@ -32,6 +20,7 @@
 #endif
 
 struct BVHTreeFromMesh;
+struct GeometrySet;
 namespace blender::nodes {
 class GatherAddNodeSearchParams;
 class GatherLinkSearchOpParams;

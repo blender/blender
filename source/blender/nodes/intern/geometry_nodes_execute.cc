@@ -6,6 +6,7 @@
  * \ingroup nodes
  */
 
+#include "BLI_math_color.hh"
 #include "BLI_math_euler.hh"
 #include "BLI_math_quaternion.hh"
 

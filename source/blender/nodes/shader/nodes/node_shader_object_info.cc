@@ -4,6 +4,8 @@
 
 #include "node_shader_util.hh"
 
+#include "DNA_material_types.h"
+
 namespace blender::nodes::node_shader_object_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

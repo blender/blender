@@ -13,6 +13,8 @@
 
 #include "NOD_rna_define.hh"
 
+#include "RNA_access.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

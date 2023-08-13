@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.hh"
 #include "BLI_math_matrix.hh"
 
 #include "DNA_screen_types.h"

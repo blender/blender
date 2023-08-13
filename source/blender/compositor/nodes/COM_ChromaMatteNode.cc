@@ -7,6 +7,8 @@
 #include "COM_ConvertOperation.h"
 #include "COM_SetAlphaMultiplyOperation.h"
 
+#include "BLI_math_color.h"
+
 namespace blender::compositor {
 
 ChromaMatteNode::ChromaMatteNode(bNode *editor_node) : Node(editor_node)

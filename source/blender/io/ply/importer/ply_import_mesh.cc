@@ -15,6 +15,7 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
+#include "BLI_math_color.hh"
 #include "BLI_math_vector.h"
 
 #include "ply_import_mesh.hh"

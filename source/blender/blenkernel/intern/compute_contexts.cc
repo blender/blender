@@ -6,6 +6,8 @@
 
 #include "BKE_compute_contexts.hh"
 
+#include <ostream>
+
 namespace blender::bke {
 
 ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,

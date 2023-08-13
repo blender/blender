@@ -6,6 +6,7 @@
 
 #include "BLI_jitter_2d.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 
 #include "BKE_tracking.h"
 

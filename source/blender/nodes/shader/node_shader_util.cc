@@ -9,8 +9,12 @@
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_math_vector.h"
+
 #include "BKE_context.h"
 #include "BKE_node_runtime.hh"
+
+#include "IMB_colormanagement.h"
 
 #include "node_shader_util.hh"
 

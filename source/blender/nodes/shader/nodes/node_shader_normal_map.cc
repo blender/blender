@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "BKE_context.h"
 #include "BKE_node_runtime.hh"
 
 #include "DEG_depsgraph_query.h"
+
+#include "RNA_access.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
