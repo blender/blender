@@ -43,13 +43,14 @@ class GPUOpenGLTest : public GPUTest {
  public:
   GPUOpenGLTest() : GPUTest(GHOST_kDrawingContextTypeOpenGL, GPU_BACKEND_OPENGL) {}
 };
+#  define GPU_OPENGL_TEST(test_name) \
+    TEST_F(GPUOpenGLTest, test_name) \
+    { \
+      test_##test_name(); \
+    }
+#else
+#  define GPU_OPENGL_TEST(test_name)
 #endif
-
-#define GPU_OPENGL_TEST(test_name) \
-  TEST_F(GPUOpenGLTest, test_name) \
-  { \
-    test_##test_name(); \
-  }
 
 #ifdef WITH_METAL_BACKEND
 class GPUMetalTest : public GPUTest {
