@@ -326,22 +326,22 @@ static void do_item_rename(ARegion *region,
            TSE_ID_BASE) ||
       ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL))
   {
-    BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
+    BKE_report(reports, RPT_WARNING, "Not an editable name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
-    BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
+    BKE_report(reports, RPT_WARNING, "Sequence names are not editable from the Outliner");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_LINKED(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "Cannot edit external library data");
+    BKE_report(reports, RPT_WARNING, "External library data is not editable");
   }
   else if (TSE_IS_REAL_ID(tselem) && ID_IS_OVERRIDE_LIBRARY(tselem->id)) {
-    BKE_report(reports, RPT_WARNING, "Cannot edit name of an override data-block");
+    BKE_report(reports, RPT_WARNING, "Overridden data-blocks are not editable");
   }
   else if (outliner_is_collection_tree_element(te)) {
     Collection *collection = outliner_collection_from_tree_element(te);
 
     if (collection->flag & COLLECTION_IS_MASTER) {
-      BKE_report(reports, RPT_WARNING, "Cannot edit name of master collection");
+      BKE_report(reports, RPT_WARNING, "Not an editable name");
     }
     else {
       add_textbut = true;
@@ -355,7 +355,7 @@ static void do_item_rename(ARegion *region,
       BKE_report(
           reports,
           RPT_WARNING,
-          "Library path is not editable from here anymore, please use Relocate operation instead");
+          "Library path is not editable from here anymore, use the Relocate operation instead");
     }
   }
   else {
