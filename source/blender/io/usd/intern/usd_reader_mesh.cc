@@ -191,7 +191,7 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
 
   const eCustomDataType *value = type_map.lookup_ptr(usd_type);
   if (value == nullptr) {
-    WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
+    WM_reportf(RPT_WARNING, "Unsupported type %s for mesh data", usd_type.GetAsToken().GetText());
     return std::nullopt;
   }
 
