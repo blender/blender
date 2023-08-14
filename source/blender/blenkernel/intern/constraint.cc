@@ -6491,6 +6491,14 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
   BLO_read_list(reader, lb);
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     BLO_read_data_address(reader, &con->data);
+    /* Patch for error introduced by changing constraints (don't know how). */
+    /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
+    /* FIXME This is likely dead code actually, since it used to be in
+     * #BKE_constraint_blend_read_lib, so it would have crashed on null pointer access in any of
+     * the code below? But does not hurt to keep it around as a safety measure. */
+    if (con->data == nullptr) {
+      con->type = CONSTRAINT_TYPE_NULL;
+    }
 
     /* If linking from a library, clear 'local' library override flag. */
     if (ID_IS_LINKED(id_owner)) {
@@ -6567,11 +6575,6 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
 
   /* legacy fixes */
   LISTBASE_FOREACH (bConstraint *, con, conlist) {
-    /* Patch for error introduced by changing constraints (don't know how). */
-    /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
-    if (con->data == nullptr) {
-      con->type = CONSTRAINT_TYPE_NULL;
-    }
     /* own ipo, all constraints have it */
     BLO_read_id_address(reader, id, &con->ipo); /* XXX deprecated - old animation system */
   }
