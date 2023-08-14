@@ -2446,7 +2446,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
         return ICON_FILE_TEXT;
       }
       /* Helps distinguish text-based formats like the file-browser does. */
-      return (BIFIconID)ED_file_extension_icon(text->filepath);
+      return ED_file_extension_icon(text->filepath);
     }
     case ID_GR:
       return ICON_OUTLINER_COLLECTION;
@@ -2493,7 +2493,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
     case ID_NT: {
       const bNodeTree *ntree = (bNodeTree *)id;
       const bNodeTreeType *ntreetype = ntree->typeinfo;
-      return (BIFIconID)ntreetype->ui_icon;
+      return ntreetype->ui_icon;
     }
     case ID_MC:
       return ICON_SEQUENCE;
@@ -3366,7 +3366,7 @@ static void outliner_draw_tree_element(bContext *C,
     if (ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION) ||
         (te_rna_struct && RNA_struct_is_ID(te_rna_struct->getPointerRNA().type)))
     {
-      const BIFIconID lib_icon = (BIFIconID)UI_icon_from_library(tselem->id);
+      const BIFIconID lib_icon = UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
             float(startx) + offsx + 2 * ufac, float(*starty) + 2 * ufac, lib_icon, alpha_fac);

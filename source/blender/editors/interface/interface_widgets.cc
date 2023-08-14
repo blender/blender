@@ -2313,7 +2313,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
   /* Big previews with optional text label below */
   if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
-    const BIFIconID icon = BIFIconID(ui_but_icon(but));
+    const BIFIconID icon = ui_but_icon(but);
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
 
@@ -2350,7 +2350,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     }
 #endif
 
-    const BIFIconID icon = BIFIconID(ui_but_icon(but));
+    const BIFIconID icon = ui_but_icon(but);
     const int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
     const float icon_size = icon_size_init / (but->block->aspect * UI_INV_SCALE_FAC);
     const float icon_padding = 2 * UI_SCALE_FAC;
@@ -5632,10 +5632,10 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
   }
   GPU_blend(GPU_BLEND_ALPHA);
   if (draw_as_icon) {
-    widget_draw_icon_centered(BIFIconID(iconid), 1.0f, alpha, rect, text_col);
+    widget_draw_icon_centered(iconid, 1.0f, alpha, rect, text_col);
   }
   else {
-    widget_draw_preview(BIFIconID(iconid), alpha, rect);
+    widget_draw_preview(iconid, alpha, rect);
   }
   GPU_blend(GPU_BLEND_NONE);
 

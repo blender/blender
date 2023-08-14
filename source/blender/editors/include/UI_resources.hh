@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_sys_types.h"
+#include "BLI_utildefines.h"
 
 struct bTheme;
 
@@ -18,11 +19,20 @@ struct bTheme;
 #define DEF_ICON_COLOR(name) ICON_##name,
 #define DEF_ICON_BLANK(name) ICON_BLANK_##name,
 
-enum BIFIconID {
+/**
+ * Builtin icons with a compile-time icon-id. Dynamically created icons such as preview image
+ * icons get a dynamic icon-id <= #BIFICONID_LAST_STATIC, #BIFIconID can hold both.
+ */
+enum BIFIconID_Static {
 /* ui */
 #include "UI_icons.hh"
-  BIFICONID_LAST,
+  BIFICONID_LAST_STATIC,
 };
+
+/** Type that fits all compile time and dynamic icon-ids. */
+using BIFIconID = int;
+BLI_STATIC_ASSERT(sizeof(BIFIconID_Static) <= sizeof(BIFIconID),
+                  "Expected all builtin icon IDs to fit into `BIFIconID`");
 
 #define BIFICONID_FIRST (ICON_NONE)
 

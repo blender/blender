@@ -257,7 +257,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   /* Init icons before reading .blend files for preview icons, which can
    * get triggered by the depsgraph. This is also done in background mode
    * for scripts that do background processing with preview icons. */
-  BKE_icons_init(BIFICONID_LAST);
+  BKE_icons_init(BIFICONID_LAST_STATIC);
 
   /* Reports can't be initialized before the window-manager,
    * but keep before file reading, since that may report errors */

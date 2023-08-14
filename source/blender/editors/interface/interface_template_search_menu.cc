@@ -299,7 +299,7 @@ static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
       *drawstr_sep = '\0';
     }
 
-    but->icon = (BIFIconID)item->icon;
+    but->icon = item->icon;
     but->str = but->strdata;
   }
 
