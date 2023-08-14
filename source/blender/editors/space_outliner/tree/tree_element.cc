@@ -20,6 +20,7 @@
 #include "tree_element_anim_data.hh"
 #include "tree_element_bone.hh"
 #include "tree_element_collection.hh"
+#include "tree_element_constraint.hh"
 #include "tree_element_defgroup.hh"
 #include "tree_element_driver.hh"
 #include "tree_element_edit_bone.hh"
@@ -146,6 +147,12 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
           idv);
       return std::make_unique<TreeElementParticleSystem>(
           legacy_te, *psys_data->object, *psys_data->psys);
+    }
+    case TSE_CONSTRAINT_BASE:
+      return std::make_unique<TreeElementConstraintBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_CONSTRAINT: {
+      ConstraintElementCreateData *con_data = static_cast<ConstraintElementCreateData *>(idv);
+      return std::make_unique<TreeElementConstraint>(legacy_te, *con_data->object, *con_data->con);
     }
     case TSE_POSE_BASE:
       return std::make_unique<TreeElementPoseBase>(legacy_te, *static_cast<Object *>(idv));

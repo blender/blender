@@ -87,14 +87,13 @@ void TreeElementIDObject::expand_constraints(SpaceOutliner &space_outliner) cons
   }
   TreeElement *tenla = outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_CONSTRAINT_BASE, 0);
-  tenla->name = IFACE_("Constraints");
 
   int index;
   LISTBASE_FOREACH_INDEX (bConstraint *, con, &object_.constraints, index) {
-    TreeElement *ten = outliner_add_element(
-        &space_outliner, &tenla->subtree, &object_, tenla, TSE_CONSTRAINT, index);
-    ten->name = con->name;
-    ten->directdata = con;
+    ConstraintElementCreateData con_data = {&object_, con};
+
+    outliner_add_element(
+        &space_outliner, &tenla->subtree, &con_data, tenla, TSE_CONSTRAINT, index);
     /* possible add all other types links? */
   }
 }
