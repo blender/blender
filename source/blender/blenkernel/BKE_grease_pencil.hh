@@ -504,6 +504,22 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void tag_nodes_cache_dirty() const;
 };
 
+inline void Drawing::add_user() const
+{
+  this->runtime->user_count.fetch_add(1, std::memory_order_relaxed);
+}
+inline void Drawing::remove_user() const
+{
+  this->runtime->user_count.fetch_sub(1, std::memory_order_relaxed);
+}
+inline bool Drawing::is_instanced() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 1;
+}
+inline bool Drawing::has_users() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
+}
 inline const TreeNode &LayerGroup::as_node() const
 {
   return *reinterpret_cast<const TreeNode *>(this);
@@ -567,26 +583,6 @@ class GreasePencilRuntime {
 };
 
 }  // namespace blender::bke
-
-inline void blender::bke::greasepencil::Drawing::add_user() const
-{
-  this->runtime->user_count.fetch_add(1, std::memory_order_relaxed);
-}
-
-inline void blender::bke::greasepencil::Drawing::remove_user() const
-{
-  this->runtime->user_count.fetch_sub(1, std::memory_order_relaxed);
-}
-
-inline bool blender::bke::greasepencil::Drawing::is_instanced() const
-{
-  return this->runtime->user_count.load(std::memory_order_relaxed) > 1;
-}
-
-inline bool blender::bke::greasepencil::Drawing::has_users() const
-{
-  return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
-}
 
 inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 {
