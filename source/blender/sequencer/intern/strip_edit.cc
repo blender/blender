@@ -28,6 +28,7 @@
 
 #include "SEQ_add.h"
 #include "SEQ_animation.h"
+#include "SEQ_channels.h"
 #include "SEQ_edit.h"
 #include "SEQ_effects.h"
 #include "SEQ_iterator.h"
@@ -388,6 +389,11 @@ static bool seq_edit_split_operation_permitted_check(const Scene *scene,
 {
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, strips) {
+    ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(scene));
+    if (SEQ_transform_is_locked(channels, seq)) {
+      *r_error = "Strip is locked.";
+      return false;
+    }
     if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
       continue;
     }

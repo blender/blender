@@ -604,6 +604,11 @@ static void sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
   for (int i = data->num_seq - 1; i >= 0; i--) {
     Sequence *seq = data->seq_array[i];
 
+    ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(scene));
+    if (SEQ_transform_is_locked(channels, seq)) {
+      continue;
+    }
+
     seq->start = data->ts[i].start + offset;
     if (data->trim[i]) {
       seq->startofs = data->ts[i].startofs - offset;
@@ -1779,11 +1784,16 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator * /*op*/)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq;
+  ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(scene));
 
   /* For effects, try to find a replacement input. */
   for (seq = static_cast<Sequence *>(ed->seqbasep->first); seq;
        seq = static_cast<Sequence *>(seq->next))
   {
+    if (SEQ_transform_is_locked(channels, seq)) {
+      continue;
+    }
+
     if ((seq->type & SEQ_TYPE_EFFECT) == 0 && (seq->flag & SELECT)) {
       seq->startofs = seq->endofs = 0;
     }
@@ -2290,6 +2300,11 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
     if ((SEQ_effect_get_num_inputs(active_seq->type) >= 1) &&
         (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
     {
+      return OPERATOR_CANCELLED;
+    }
+
+    ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(scene));
+    if (SEQ_transform_is_locked(channels, seq) || SEQ_transform_is_locked(channels, active_seq)) {
       return OPERATOR_CANCELLED;
     }
 
