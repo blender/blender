@@ -1643,7 +1643,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
           for (int array_slice = base_slice; array_slice < final_slice; array_slice++) {
             [enc copyFromTexture:read_texture
-                             sourceSlice:0
+                             sourceSlice:array_slice
                              sourceLevel:mip
                             sourceOrigin:MTLOriginMake(x_off, y_off, 0)
                               sourceSize:MTLSizeMake(width, height, 1)
