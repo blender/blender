@@ -308,28 +308,23 @@ static void do_item_rename(ARegion *region,
 
   /* can't rename rna datablocks entries or listbases */
   if (ELEM(tselem->type,
+           TSE_ANIM_DATA,
+           TSE_NLA,
+           TSE_DEFGROUP_BASE,
+           TSE_CONSTRAINT_BASE,
+           TSE_MODIFIER_BASE,
+           TSE_DRIVER_BASE,
+           TSE_POSE_BASE,
+           TSE_POSEGRP_BASE,
+           TSE_R_LAYER_BASE,
+           TSE_SCENE_COLLECTION_BASE,
+           TSE_VIEW_COLLECTION_BASE,
+           TSE_LIBRARY_OVERRIDE_BASE,
            TSE_RNA_STRUCT,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,
-           TSE_ID_BASE,
-           TSE_SCENE_OBJECTS_BASE))
-  {
-    /* do nothing */
-  }
-  else if (ELEM(tselem->type,
-                TSE_ANIM_DATA,
-                TSE_NLA,
-                TSE_DEFGROUP_BASE,
-                TSE_CONSTRAINT_BASE,
-                TSE_MODIFIER_BASE,
-                TSE_DRIVER_BASE,
-                TSE_POSE_BASE,
-                TSE_POSEGRP_BASE,
-                TSE_R_LAYER_BASE,
-                TSE_SCENE_COLLECTION_BASE,
-                TSE_VIEW_COLLECTION_BASE,
-                TSE_LIBRARY_OVERRIDE_BASE,
-                TSE_GENERIC_LABEL))
+           TSE_ID_BASE) ||
+      ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL))
   {
     BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
   }
