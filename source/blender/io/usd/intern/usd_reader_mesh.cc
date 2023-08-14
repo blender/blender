@@ -156,7 +156,6 @@ USDMeshReader::USDMeshReader(const pxr::UsdPrim &prim,
     : USDGeomReader(prim, import_params, settings),
       mesh_prim_(prim),
       is_left_handed_(false),
-      has_uvs_(false),
       is_time_varying_(false),
       is_initial_load_(false)
 {
