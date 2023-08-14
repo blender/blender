@@ -418,8 +418,8 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
     return nil;
   }
 
-  /* Verify Shader. */
-  active_shader_ = (shader) ? static_cast<MTLShader *>(unwrap(shader)) : nullptr;
+  /* Fetch bound shader from context. */
+  active_shader_ = static_cast<MTLShader *>(ctx->shader);
 
   if (active_shader_ == nullptr || !active_shader_->is_valid()) {
     /* Skip drawing if there is no valid Metal shader.
