@@ -126,10 +126,6 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, Light, id_address, &la->id);
   BKE_id_blend_write(writer, &la->id);
 
-  if (la->adt) {
-    BKE_animdata_blend_write(writer, la->adt);
-  }
-
   /* Node-tree is integral part of lights, no libdata. */
   if (la->nodetree) {
     BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
@@ -147,8 +143,6 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 static void light_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Light *la = (Light *)id;
-  BLO_read_data_address(reader, &la->adt);
-  BKE_animdata_blend_read_data(reader, la->adt);
 
   BLO_read_data_address(reader, &la->preview);
   BKE_previewimg_blend_read(reader, la->preview);

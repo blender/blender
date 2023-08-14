@@ -104,10 +104,6 @@ static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_a
   BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
   BKE_id_blend_write(writer, &cache_file->id);
 
-  if (cache_file->adt) {
-    BKE_animdata_blend_write(writer, cache_file->adt);
-  }
-
   /* write layers */
   LISTBASE_FOREACH (CacheFileLayer *, layer, &cache_file->layers) {
     BLO_write_struct(writer, CacheFileLayer, layer);
@@ -121,10 +117,6 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
   cache_file->handle = nullptr;
   cache_file->handle_filepath[0] = '\0';
   cache_file->handle_readers = nullptr;
-
-  /* relink animdata */
-  BLO_read_data_address(reader, &cache_file->adt);
-  BKE_animdata_blend_read_data(reader, cache_file->adt);
 
   /* relink layers */
   BLO_read_list(reader, &cache_file->layers);

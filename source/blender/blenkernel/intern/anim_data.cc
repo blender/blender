@@ -1439,8 +1439,13 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
 
 /* .blend file API -------------------------------------------- */
 
-void BKE_animdata_blend_write(BlendWriter *writer, AnimData *adt)
+void BKE_animdata_blend_write(BlendWriter *writer, ID *id)
 {
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
+    return;
+  }
+
   /* firstly, just write the AnimData block */
   BLO_write_struct(writer, AnimData, adt);
 
@@ -1461,9 +1466,14 @@ void BKE_animdata_blend_write(BlendWriter *writer, AnimData *adt)
   BKE_nla_blend_write(writer, &adt->nla_tracks);
 }
 
-void BKE_animdata_blend_read_data(BlendDataReader *reader, AnimData *adt)
+void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  /* NOTE: must have called BLO_read_data_address already before doing this... */
+  IdAdtTemplate *iat = id_can_have_animdata(id) ? reinterpret_cast<IdAdtTemplate *>(id) : nullptr;
+  if (!iat || !iat->adt) {
+    return;
+  }
+
+  AnimData *adt = static_cast<AnimData *>(BLO_read_data_address(reader, &iat->adt));
   if (adt == nullptr) {
     return;
   }

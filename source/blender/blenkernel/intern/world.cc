@@ -139,10 +139,6 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   BLO_write_id_struct(writer, World, id_address, &wrld->id);
   BKE_id_blend_write(writer, &wrld->id);
 
-  if (wrld->adt) {
-    BKE_animdata_blend_write(writer, wrld->adt);
-  }
-
   /* nodetree is integral part of world, no libdata */
   if (wrld->nodetree) {
     BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
@@ -166,8 +162,6 @@ static void world_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 static void world_blend_read_data(BlendDataReader *reader, ID *id)
 {
   World *wrld = (World *)id;
-  BLO_read_data_address(reader, &wrld->adt);
-  BKE_animdata_blend_read_data(reader, wrld->adt);
 
   BLO_read_data_address(reader, &wrld->preview);
   BKE_previewimg_blend_read(reader, wrld->preview);

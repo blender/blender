@@ -150,10 +150,6 @@ static void greasepencil_blend_write(BlendWriter *writer, ID *id, const void *id
   BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
   BKE_id_blend_write(writer, &gpd->id);
 
-  if (gpd->adt) {
-    BKE_animdata_blend_write(writer, gpd->adt);
-  }
-
   BKE_defbase_blend_write(writer, &gpd->vertex_group_names);
 
   BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
@@ -189,10 +185,6 @@ void BKE_gpencil_blend_read_data(BlendDataReader *reader, bGPdata *gpd)
   if (gpd == nullptr) {
     return;
   }
-
-  /* Relink anim-data. */
-  BLO_read_data_address(reader, &gpd->adt);
-  BKE_animdata_blend_read_data(reader, gpd->adt);
 
   /* Ensure full object-mode for linked grease pencil. */
   if (ID_IS_LINKED(gpd)) {

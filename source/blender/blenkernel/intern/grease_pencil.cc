@@ -166,11 +166,6 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   BLO_write_id_struct(writer, GreasePencil, id_address, &grease_pencil->id);
   BKE_id_blend_write(writer, &grease_pencil->id);
 
-  /* Write animation data. */
-  if (grease_pencil->adt) {
-    BKE_animdata_blend_write(writer, grease_pencil->adt);
-  }
-
   /* Write drawings. */
   write_drawing_array(*grease_pencil, writer);
   /* Write layer tree. */
@@ -185,10 +180,6 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
 {
   using namespace blender::bke::greasepencil;
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
-
-  /* Read animation data. */
-  BLO_read_data_address(reader, &grease_pencil->adt);
-  BKE_animdata_blend_read_data(reader, grease_pencil->adt);
 
   /* Read drawings. */
   read_drawing_array(*grease_pencil, reader);

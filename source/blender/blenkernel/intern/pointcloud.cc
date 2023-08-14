@@ -126,16 +126,11 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
                          &pointcloud->id);
 
   BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
-  if (pointcloud->adt) {
-    BKE_animdata_blend_write(writer, pointcloud->adt);
-  }
 }
 
 static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 {
   PointCloud *pointcloud = (PointCloud *)id;
-  BLO_read_data_address(reader, &pointcloud->adt);
-  BKE_animdata_blend_read_data(reader, pointcloud->adt);
 
   /* Geometry */
   CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);

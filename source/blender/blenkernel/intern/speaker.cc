@@ -49,22 +49,6 @@ static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   /* write LibData */
   BLO_write_id_struct(writer, Speaker, id_address, &spk->id);
   BKE_id_blend_write(writer, &spk->id);
-
-  if (spk->adt) {
-    BKE_animdata_blend_write(writer, spk->adt);
-  }
-}
-
-static void speaker_blend_read_data(BlendDataReader *reader, ID *id)
-{
-  Speaker *spk = (Speaker *)id;
-  BLO_read_data_address(reader, &spk->adt);
-  BKE_animdata_blend_read_data(reader, spk->adt);
-
-#if 0
-  spk->sound = newdataadr(fd, spk->sound);
-  direct_link_sound(fd, spk->sound);
-#endif
 }
 
 static void speaker_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -100,7 +84,7 @@ IDTypeInfo IDType_ID_SPK = {
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ speaker_blend_write,
-    /*blend_read_data*/ speaker_blend_read_data,
+    /*blend_read_data*/ nullptr,
     /*blend_read_lib*/ speaker_blend_read_lib,
     /*blend_read_expand*/ speaker_blend_read_expand,
 

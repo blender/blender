@@ -115,10 +115,6 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_id_struct(writer, Camera, id_address, &cam->id);
   BKE_id_blend_write(writer, &cam->id);
 
-  if (cam->adt) {
-    BKE_animdata_blend_write(writer, cam->adt);
-  }
-
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
     BLO_write_struct(writer, CameraBGImage, bgpic);
   }
@@ -127,8 +123,6 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Camera *ca = (Camera *)id;
-  BLO_read_data_address(reader, &ca->adt);
-  BKE_animdata_blend_read_data(reader, ca->adt);
 
   BLO_read_list(reader, &ca->bg_images);
 

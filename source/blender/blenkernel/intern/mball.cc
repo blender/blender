@@ -114,9 +114,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* direct data */
   BLO_write_pointer_array(writer, mb->totcol, mb->mat);
-  if (mb->adt) {
-    BKE_animdata_blend_write(writer, mb->adt);
-  }
 
   LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
     BLO_write_struct(writer, MetaElem, ml);
@@ -126,8 +123,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 {
   MetaBall *mb = (MetaBall *)id;
-  BLO_read_data_address(reader, &mb->adt);
-  BKE_animdata_blend_read_data(reader, mb->adt);
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 

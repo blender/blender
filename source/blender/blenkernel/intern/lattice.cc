@@ -133,11 +133,6 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
   BKE_id_blend_write(writer, &lt->id);
 
-  /* write animdata */
-  if (lt->adt) {
-    BKE_animdata_blend_write(writer, lt->adt);
-  }
-
   /* direct data */
   BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
@@ -156,9 +151,6 @@ static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 
   lt->editlatt = nullptr;
   lt->batch_cache = nullptr;
-
-  BLO_read_data_address(reader, &lt->adt);
-  BKE_animdata_blend_read_data(reader, lt->adt);
 }
 
 static void lattice_blend_read_lib(BlendLibReader *reader, ID *id)

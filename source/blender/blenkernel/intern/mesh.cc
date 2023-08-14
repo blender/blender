@@ -270,10 +270,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
 
-  if (mesh->adt) {
-    BKE_animdata_blend_write(writer, mesh->adt);
-  }
-
   BKE_defbase_blend_write(writer, &mesh->vertex_group_names);
   BLO_write_string(writer, mesh->active_color_attribute);
   BLO_write_string(writer, mesh->default_color_attribute);
@@ -314,9 +310,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &mesh->mcol);
 
   BLO_read_data_address(reader, &mesh->mselect);
-
-  BLO_read_data_address(reader, &mesh->adt);
-  BKE_animdata_blend_read_data(reader, mesh->adt);
 
   BLO_read_list(reader, &mesh->vertex_group_names);
 

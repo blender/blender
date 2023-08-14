@@ -608,9 +608,6 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* direct data */
   BLO_write_pointer_array(writer, volume->totcol, volume->mat);
-  if (volume->adt) {
-    BKE_animdata_blend_write(writer, volume->adt);
-  }
 
   BKE_packedfile_blend_write(writer, volume->packedfile);
 }
@@ -618,8 +615,6 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 static void volume_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Volume *volume = (Volume *)id;
-  BLO_read_data_address(reader, &volume->adt);
-  BKE_animdata_blend_read_data(reader, volume->adt);
 
   BKE_packedfile_blend_read(reader, &volume->packedfile);
   volume->runtime.frame = 0;

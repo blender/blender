@@ -115,16 +115,11 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_string(writer, curves->surface_uv_map);
 
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
-  if (curves->adt) {
-    BKE_animdata_blend_write(writer, curves->adt);
-  }
 }
 
 static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Curves *curves = (Curves *)id;
-  BLO_read_data_address(reader, &curves->adt);
-  BKE_animdata_blend_read_data(reader, curves->adt);
 
   /* Geometry */
   curves->geometry.wrap().blend_read(*reader);

@@ -2088,6 +2088,8 @@ static void direct_link_id_common(
     return;
   }
 
+  BKE_animdata_blend_read_data(reader, id);
+
   if (id->asset_data) {
     BLO_read_data_address(reader, &id->asset_data);
     BKE_asset_metadata_read(reader, id->asset_data);

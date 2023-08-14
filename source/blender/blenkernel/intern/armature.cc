@@ -219,10 +219,6 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BLO_write_id_struct(writer, bArmature, id_address, &arm->id);
   BKE_id_blend_write(writer, &arm->id);
 
-  if (arm->adt) {
-    BKE_animdata_blend_write(writer, arm->adt);
-  }
-
   /* Direct data */
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     write_bone(writer, bone);
@@ -255,9 +251,6 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
   arm->edbo = nullptr;
   /* Must always be cleared (armatures don't have their own edit-data). */
   arm->needs_flush_to_id = 0;
-
-  BLO_read_data_address(reader, &arm->adt);
-  BKE_animdata_blend_read_data(reader, arm->adt);
 
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     direct_link_bones(reader, bone);

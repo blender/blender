@@ -96,10 +96,6 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_id_struct(writer, Mask, id_address, &mask->id);
   BKE_id_blend_write(writer, &mask->id);
 
-  if (mask->adt) {
-    BKE_animdata_blend_write(writer, mask->adt);
-  }
-
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     BLO_write_struct(writer, MaskLayer, masklay);
 

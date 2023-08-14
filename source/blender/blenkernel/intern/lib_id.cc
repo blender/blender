@@ -2226,6 +2226,8 @@ void BKE_id_blend_write(BlendWriter *writer, ID *id)
     IDP_BlendWrite(writer, id->properties);
   }
 
+  BKE_animdata_blend_write(writer, id);
+
   if (id->override_library) {
     BLO_write_struct(writer, IDOverrideLibrary, id->override_library);
 

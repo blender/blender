@@ -110,10 +110,6 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BLO_write_id_struct(writer, Key, id_address, &key->id);
   BKE_id_blend_write(writer, &key->id);
 
-  if (key->adt) {
-    BKE_animdata_blend_write(writer, key->adt);
-  }
-
   /* direct data */
   LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     KeyBlock tmp_kb = *kb;
@@ -165,9 +161,6 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Key *key = (Key *)id;
   BLO_read_list(reader, &(key->block));
-
-  BLO_read_data_address(reader, &key->adt);
-  BKE_animdata_blend_read_data(reader, key->adt);
 
   BLO_read_data_address(reader, &key->refkey);
 

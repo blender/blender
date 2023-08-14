@@ -185,10 +185,6 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
   BLO_write_id_struct(writer, Material, id_address, &ma->id);
   BKE_id_blend_write(writer, &ma->id);
 
-  if (ma->adt) {
-    BKE_animdata_blend_write(writer, ma->adt);
-  }
-
   /* nodetree is integral part of material, no libdata */
   if (ma->nodetree) {
     BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
@@ -213,8 +209,6 @@ static void material_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void material_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Material *ma = (Material *)id;
-  BLO_read_data_address(reader, &ma->adt);
-  BKE_animdata_blend_read_data(reader, ma->adt);
 
   ma->texpaintslot = nullptr;
 
