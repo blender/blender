@@ -135,7 +135,8 @@ static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(srna,
                     "fill_type",
-                    "Fill Type", "",
+                    "Fill Type",
+                    "",
                     rna_node_geometry_mesh_circle_fill_type_items,
                     NOD_storage_enum_accessors(fill_type),
                     GEO_NODE_MESH_CIRCLE_FILL_NGON);

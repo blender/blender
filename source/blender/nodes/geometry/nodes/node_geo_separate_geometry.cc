@@ -97,7 +97,8 @@ static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(srna,
                     "domain",
-                    "Domain", "Which domain to separate on",
+                    "Domain",
+                    "Which domain to separate on",
                     rna_enum_attribute_domain_without_corner_items,
                     NOD_storage_enum_accessors(domain),
                     ATTR_DOMAIN_POINT);
