@@ -277,9 +277,9 @@ std::string import_asset(const char *src,
                  src);
       return src;
     }
+    BLI_path_abs(dest_dir_path, basepath);
   }
 
-  BLI_path_abs(dest_dir_path, basepath);
   BLI_path_normalize(dest_dir_path);
 
   if (!BLI_dir_create_recursive(dest_dir_path)) {
