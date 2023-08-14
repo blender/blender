@@ -331,6 +331,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_LINKED_PSYS) {
     /* pass */
   }
+  else if (type == TSE_POSE_BASE) {
+    /* pass */
+  }
   else if (ELEM(type, TSE_POSEGRP, TSE_POSEGRP_BASE)) {
     /* pass */
   }
@@ -392,6 +395,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_DEFGROUP_BASE,
                 TSE_GPENCIL_EFFECT,
                 TSE_GPENCIL_EFFECT_BASE,
+                TSE_POSE_BASE,
                 TSE_POSEGRP,
                 TSE_POSEGRP_BASE,
                 TSE_R_LAYER,
