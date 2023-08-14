@@ -314,7 +314,7 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   rna_def_grease_pencil_layers_api(brna, prop);
 
   /* Layer Groups */
-  prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "layer_groups", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayerGroup");
   RNA_def_property_collection_funcs(prop,
                                     "rna_iterator_grease_pencil_layer_groups_begin",
