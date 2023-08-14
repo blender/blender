@@ -237,6 +237,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* idv is the layer itself */
     id = TREESTORE(parent)->id;
   }
+  else if (type == TSE_GREASE_PENCIL_NODE) {
+    /* idv is the layer itself */
+    id = TREESTORE(parent)->id;
+  }
   else if (ELEM(type, TSE_GENERIC_LABEL)) {
     id = nullptr;
   }
@@ -313,7 +317,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_ANIM_DATA, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE)) {
     /* pass */
   }
-  else if (type == TSE_GP_LAYER) {
+  else if (ELEM(type, TSE_GP_LAYER, TSE_GREASE_PENCIL_NODE)) {
     /* pass */
   }
   else if (ELEM(type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
@@ -407,7 +411,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_POSEGRP,
                 TSE_POSEGRP_BASE,
                 TSE_R_LAYER,
-                TSE_R_LAYER_BASE))
+                TSE_R_LAYER_BASE,
+                TSE_GREASE_PENCIL_NODE))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }

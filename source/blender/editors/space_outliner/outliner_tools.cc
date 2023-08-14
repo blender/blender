@@ -45,6 +45,7 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -86,6 +87,7 @@
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_rna.hh"
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
@@ -2207,6 +2209,27 @@ static void gpencil_layer_fn(int event,
   }
 }
 
+static void grease_pencil_node_fn(int event,
+                                  TreeElement *te,
+                                  TreeStoreElem * /*tselem*/,
+                                  void * /*arg*/)
+{
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+
+  if (event == OL_DOP_SELECT) {
+    node.flag |= GP_LAYER_TREE_NODE_SELECT;
+  }
+  else if (event == OL_DOP_DESELECT) {
+    node.flag &= ~GP_LAYER_TREE_NODE_SELECT;
+  }
+  else if (event == OL_DOP_HIDE) {
+    node.flag |= GP_LAYER_TREE_NODE_HIDE;
+  }
+  else if (event == OL_DOP_UNHIDE) {
+    node.flag &= ~GP_LAYER_TREE_NODE_HIDE;
+  }
+}
+
 static void data_select_linked_fn(int event,
                                   TreeElement *te,
                                   TreeStoreElem * /*tselem*/,
@@ -3527,6 +3550,12 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, nullptr);
       ED_undo_push(C, "Grease Pencil Layer operation");
 
+      break;
+    }
+    case TSE_GREASE_PENCIL_NODE: {
+      outliner_do_data_operation(space_outliner, datalevel, event, grease_pencil_node_fn, nullptr);
+      WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, nullptr);
+      ED_undo_push(C, "Grease Pencil Node operation");
       break;
     }
     case TSE_RNA_STRUCT:

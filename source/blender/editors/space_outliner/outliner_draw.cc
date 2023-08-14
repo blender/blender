@@ -31,6 +31,7 @@
 #include "BKE_curve.h"
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -69,6 +70,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_id.hh"
 #include "tree/tree_element_overrides.hh"
 #include "tree/tree_element_rna.hh"
@@ -854,6 +856,26 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
+        case TSE_GREASE_PENCIL_NODE: {
+          GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
+          bke::greasepencil::TreeNode &node =
+              tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+
+          /* The node already has the new name set. To properly rename the node, we need to first
+           * store the new name, restore the old name in the node, and then call the rename
+           * function. */
+          std::string new_name(node.name);
+          node.name = oldname;
+          if (node.is_group()) {
+            grease_pencil.rename_group(node.as_group_for_write(), new_name);
+          }
+          else if (node.is_layer()) {
+            grease_pencil.rename_layer(node.as_layer_for_write(), new_name);
+          }
+          DEG_id_tag_update(&grease_pencil.id, ID_RECALC_COPY_ON_WRITE);
+          WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
+          break;
+        }
         case TSE_R_LAYER: {
           Scene *scene = (Scene *)tselem->id;
           ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
@@ -1491,6 +1513,43 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                 TIP_("Restrict editing of strokes and keyframes in this layer"));
           UI_but_func_set(bt, restrictbutton_gp_layer_flag_fn, id, gpl);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+        }
+      }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        PointerRNA ptr;
+        PropertyRNA *hide_prop;
+        if (node.is_layer()) {
+          RNA_pointer_create(tselem->id, &RNA_GreasePencilLayer, &node, &ptr);
+          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayer, "hide");
+        }
+        else if (node.is_group()) {
+          RNA_pointer_create(tselem->id, &RNA_GreasePencilLayerGroup, &node, &ptr);
+          hide_prop = RNA_struct_type_find_property(&RNA_GreasePencilLayerGroup, "hide");
+        }
+
+        if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
+          bt = uiDefIconButR_prop(block,
+                                  UI_BTYPE_ICON_TOGGLE,
+                                  0,
+                                  0,
+                                  int(region->v2d.cur.xmax - restrict_offsets.hide),
+                                  te->ys,
+                                  UI_UNIT_X,
+                                  UI_UNIT_Y,
+                                  &ptr,
+                                  hide_prop,
+                                  -1,
+                                  0,
+                                  0,
+                                  -1,
+                                  -1,
+                                  nullptr);
+          UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+          if (!node.parent_group()->is_visible()) {
+            UI_but_flag_enable(bt, UI_BUT_INACTIVE);
+          }
         }
       }
       else if (outliner_is_collection_tree_element(te)) {
@@ -2472,6 +2531,7 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       }
     case ID_LS:
       return ICON_LINE_DATA;
+    case ID_GP:
     case ID_GD_LEGACY:
       return ICON_OUTLINER_DATA_GREASEPENCIL;
     case ID_LP: {
@@ -2858,6 +2918,17 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         break;
       }
+      case TSE_GREASE_PENCIL_NODE: {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        if (node.is_layer()) {
+          data.icon = ICON_OUTLINER_DATA_GP_LAYER;
+        }
+        else if (node.is_group()) {
+          data.icon = ICON_FILE_FOLDER;
+        }
+        break;
+      }
       case TSE_GPENCIL_EFFECT_BASE:
       case TSE_GPENCIL_EFFECT:
         data.drag_id = tselem->id;
@@ -3043,8 +3114,19 @@ int tree_element_id_type_to_index(TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  const int id_index = (tselem->type == TSE_SOME_ID) ? BKE_idtype_idcode_to_index(te->idcode) :
-                                                       INDEX_ID_GR;
+  int id_index = 0;
+  if (tselem->type == TSE_SOME_ID) {
+    id_index = BKE_idtype_idcode_to_index(te->idcode);
+  }
+  else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+    /* Use the index of the grease pencil ID for the grease pencil tree nodes (which are not IDs).
+     * All the Grease Pencil layer tree stats are stored in this index in #MergedIconRow. */
+    id_index = INDEX_ID_GP;
+  }
+  else {
+    id_index = INDEX_ID_GR;
+  }
+
   if (id_index < INDEX_ID_OB) {
     return id_index;
   }
@@ -3073,6 +3155,7 @@ static void outliner_draw_iconrow(bContext *C,
                                   int ys,
                                   float alpha_fac,
                                   bool in_bone_hierarchy,
+                                  const bool is_grease_pencil_node_hierarchy,
                                   MergedIconRow *merged)
 {
   eOLDrawState active = OL_DRAWSEL_NONE;
@@ -3086,7 +3169,12 @@ static void outliner_draw_iconrow(bContext *C,
      * an they are at the root level of a collapsed subtree (e.g. not "hidden" in a collapsed
      * collection). */
     const bool is_bone = ELEM(tselem->type, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL);
+    /* The Grease Pencil layer tree is a hierarchy where we merge and count the total number of
+     * layers in a node. We merge the counts for all the layers and skip counting nodes that are
+     * layer groups (for less visual clutter in the outliner). */
+    const bool is_grease_pencil_node = (tselem->type == TSE_GREASE_PENCIL_NODE);
     if ((level < 1) || ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_OB)) ||
+        (is_grease_pencil_node_hierarchy && is_grease_pencil_node) ||
         (in_bone_hierarchy && is_bone))
     {
       /* active blocks get white circle */
@@ -3111,6 +3199,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_LAYER_COLLECTION,
                 TSE_R_LAYER,
                 TSE_GP_LAYER,
+                TSE_GREASE_PENCIL_NODE,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
                 TSE_LIBRARY_OVERRIDE_OPERATION,
@@ -3121,6 +3210,13 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_DEFGROUP))
       {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
+      }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE &&
+               tree_element_cast<TreeElementGreasePencilNode>(te)->node().is_group())
+      {
+        /* Grease Pencil layer groups are tree nodes, but they shouldn't be counted. We only want
+         * to keep track of the nodes that are layers and show the total number of layers in a
+         * node. Adding the count of groups would add a lot of clutter. */
       }
       else {
         const int index = tree_element_id_type_to_index(te);
@@ -3133,12 +3229,17 @@ static void outliner_draw_iconrow(bContext *C,
     }
 
     /* TSE_R_LAYER tree element always has same amount of branches, so don't draw. */
-    /* Also only recurse into bone hierarchies if a direct child of the collapsed element to merge
-     * into. */
+    /* Also only recurse into bone hierarchies if a direct child of the collapsed element to
+     * merge into. */
     const bool is_root_level_bone = is_bone && (level == 0);
     in_bone_hierarchy |= is_root_level_bone;
+    /* Recurse into the grease pencil layer tree if we already are in the hierarchy or if we're at
+     * the root level and find a grease pencil node. */
+    const bool in_grease_pencil_node_hierarchy = is_grease_pencil_node_hierarchy ||
+                                                 (is_grease_pencil_node && level == 0);
     if (!ELEM(tselem->type, TSE_R_LAYER, TSE_BONE, TSE_EBONE, TSE_POSE_CHANNEL) ||
-        in_bone_hierarchy) {
+        in_bone_hierarchy || in_grease_pencil_node_hierarchy)
+    {
       outliner_draw_iconrow(C,
                             block,
                             fstyle,
@@ -3151,6 +3252,7 @@ static void outliner_draw_iconrow(bContext *C,
                             ys,
                             alpha_fac,
                             in_bone_hierarchy,
+                            in_grease_pencil_node_hierarchy,
                             merged);
     }
   }
@@ -3220,6 +3322,16 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
       const bool is_visible = layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER;
       const bool is_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
       return !is_visible || is_excluded;
+    }
+    case TSE_GREASE_PENCIL_NODE: {
+      bke::greasepencil::TreeNode &node =
+          tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+      if (node.is_layer()) {
+        return !node.as_layer().is_visible();
+      }
+      if (node.is_group()) {
+        return !node.as_group().is_visible();
+      }
     }
   }
 
@@ -3416,6 +3528,7 @@ static void outliner_draw_tree_element(bContext *C,
                                 *starty,
                                 alpha_fac,
                                 false,
+                                false,
                                 &merged);
 
           GPU_blend(GPU_BLEND_NONE);
@@ -3518,6 +3631,14 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
         if (subtree_contains_object(&te->subtree)) {
           draw_hierarchy_line = true;
           is_object_line = true;
+          y = *starty;
+        }
+      }
+      else if (tselem->type == TSE_GREASE_PENCIL_NODE) {
+        bke::greasepencil::TreeNode &node =
+            tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+        if (node.is_group() && node.as_group().num_direct_nodes() > 0) {
+          draw_hierarchy_line = true;
           y = *starty;
         }
       }

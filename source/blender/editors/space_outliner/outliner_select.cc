@@ -31,6 +31,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -68,6 +69,7 @@
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
 
@@ -484,6 +486,19 @@ static void tree_element_gplayer_activate(bContext *C, TreeElement *te, TreeStor
   }
 }
 
+static void tree_element_grease_pencil_layer_activate(bContext *C,
+                                                      TreeElement *te,
+                                                      TreeStoreElem *tselem)
+{
+  GreasePencil &grease_pencil = *(GreasePencil *)tselem->id;
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+  if (node.is_layer()) {
+    grease_pencil.set_active_layer(&node.as_layer());
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
+  }
+}
+
 static void tree_element_posegroup_activate(bContext *C, TreeElement *te, TreeStoreElem *tselem)
 {
   Object *ob = (Object *)tselem->id;
@@ -853,6 +868,9 @@ void tree_element_type_active_set(bContext *C,
     case TSE_GP_LAYER:
       tree_element_gplayer_activate(C, te, tselem);
       break;
+    case TSE_GREASE_PENCIL_NODE:
+      tree_element_grease_pencil_layer_activate(C, te, tselem);
+      break;
     case TSE_VIEW_COLLECTION_BASE:
       tree_element_master_collection_activate(C);
       break;
@@ -1013,6 +1031,16 @@ static eOLDrawState tree_element_gplayer_state_get(const TreeElement *te)
   return OL_DRAWSEL_NONE;
 }
 
+static eOLDrawState tree_element_grease_pencil_node_state_get(const TreeElement *te)
+{
+  GreasePencil &grease_pencil = *(GreasePencil *)te->store_elem->id;
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+  if (node.is_layer() && grease_pencil.is_layer_active(&node.as_layer())) {
+    return OL_DRAWSEL_NORMAL;
+  }
+  return OL_DRAWSEL_NONE;
+}
+
 static eOLDrawState tree_element_master_collection_state_get(const bContext *C)
 {
   const ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1156,6 +1184,8 @@ eOLDrawState tree_element_type_active_state_get(const bContext *C,
       return tree_element_sequence_dup_state_get(te);
     case TSE_GP_LAYER:
       return tree_element_gplayer_state_get(te);
+    case TSE_GREASE_PENCIL_NODE:
+      return tree_element_grease_pencil_node_state_get(te);
     case TSE_VIEW_COLLECTION_BASE:
       return tree_element_master_collection_state_get(C);
     case TSE_LAYER_COLLECTION:
@@ -1370,6 +1400,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         break;
       }
       case TSE_GP_LAYER:
+      case TSE_GREASE_PENCIL_NODE:
         RNA_id_pointer_create(tselem->id, &ptr);
         context = BCONTEXT_DATA;
         break;

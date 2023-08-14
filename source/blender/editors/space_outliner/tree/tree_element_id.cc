@@ -25,6 +25,7 @@
 #include "tree_element_id_collection.hh"
 #include "tree_element_id_curve.hh"
 #include "tree_element_id_gpencil_legacy.hh"
+#include "tree_element_id_grease_pencil.hh"
 #include "tree_element_id_library.hh"
 #include "tree_element_id_linestyle.hh"
 #include "tree_element_id_mesh.hh"
@@ -61,6 +62,8 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
       return std::make_unique<TreeElementIDLineStyle>(legacy_te, (FreestyleLineStyle &)id);
     case ID_GD_LEGACY:
       return std::make_unique<TreeElementIDGPLegacy>(legacy_te, (bGPdata &)id);
+    case ID_GP:
+      return std::make_unique<TreeElementIDGreasePencil>(legacy_te, (GreasePencil &)id);
     case ID_GR:
       return std::make_unique<TreeElementIDCollection>(legacy_te, (Collection &)id);
     case ID_AR:
@@ -94,7 +97,6 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
     case ID_PAL:
     case ID_PC:
     case ID_CF:
-    case ID_GP:
       return std::make_unique<TreeElementID>(legacy_te, id);
     case ID_IP:
       BLI_assert_unreachable();
