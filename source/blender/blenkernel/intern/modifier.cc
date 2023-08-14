@@ -1323,6 +1323,11 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
     md->error = nullptr;
     md->runtime = nullptr;
 
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(ob)) {
+      md->flag &= ~eModifierFlag_OverrideLibrary_Local;
+    }
+
     /* Modifier data has been allocated as a part of data migration process and
      * no reading of nested fields from file is needed. */
     bool is_allocated = false;
@@ -1506,13 +1511,6 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
 void BKE_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
 {
   BKE_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
-
-  /* If linking from a library, clear 'local' library override flag. */
-  if (ID_IS_LINKED(ob)) {
-    LISTBASE_FOREACH (ModifierData *, mod, &ob->modifiers) {
-      mod->flag &= ~eModifierFlag_OverrideLibrary_Local;
-    }
-  }
 }
 
 namespace blender::bke {

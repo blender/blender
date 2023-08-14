@@ -6486,11 +6486,16 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBase *conlist)
   }
 }
 
-void BKE_constraint_blend_read_data(BlendDataReader *reader, ListBase *lb)
+void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *lb)
 {
   BLO_read_list(reader, lb);
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     BLO_read_data_address(reader, &con->data);
+
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(id_owner)) {
+      con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
+    }
 
     switch (con->type) {
       case CONSTRAINT_TYPE_PYTHON: {
@@ -6569,11 +6574,6 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
     }
     /* own ipo, all constraints have it */
     BLO_read_id_address(reader, id, &con->ipo); /* XXX deprecated - old animation system */
-
-    /* If linking from a library, clear 'local' library override flag. */
-    if (ID_IS_LINKED(id)) {
-      con->flag &= ~CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
-    }
   }
 
   /* relink all ID-blocks used by the constraints */

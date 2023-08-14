@@ -363,7 +363,9 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
                            float ctime);
 
 void BKE_constraint_blend_write(struct BlendWriter *writer, struct ListBase *conlist);
-void BKE_constraint_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
+                                    struct ID *id_owner,
+                                    struct ListBase *lb);
 void BKE_constraint_blend_read_lib(struct BlendLibReader *reader,
                                    struct ID *id,
                                    struct ListBase *conlist);

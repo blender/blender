@@ -181,7 +181,9 @@ void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, vo
 bool BKE_shaderfx_has_gpencil(const struct Object *ob);
 
 void BKE_shaderfx_blend_write(struct BlendWriter *writer, struct ListBase *fxbase);
-void BKE_shaderfx_blend_read_data(struct BlendDataReader *reader, struct ListBase *lb);
+void BKE_shaderfx_blend_read_data(struct BlendDataReader *reader,
+                                  struct ListBase *lb,
+                                  struct Object *ob);
 void BKE_shaderfx_blend_read_lib(struct BlendLibReader *reader, struct Object *ob);
 
 #ifdef __cplusplus

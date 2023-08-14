@@ -2400,9 +2400,14 @@ void BKE_nla_blend_write(BlendWriter *writer, ListBase *tracks)
   }
 }
 
-void BKE_nla_blend_read_data(BlendDataReader *reader, ListBase *tracks)
+void BKE_nla_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *tracks)
 {
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(id_owner)) {
+      nlt->flag &= ~NLATRACK_OVERRIDELIBRARY_LOCAL;
+    }
+
     /* relink list of strips */
     BLO_read_list(reader, &nlt->strips);
 
@@ -2415,11 +2420,6 @@ void BKE_nla_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *tracks)
 {
   /* we only care about the NLA strips inside the tracks */
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
-    /* If linking from a library, clear 'local' library override flag. */
-    if (ID_IS_LINKED(id)) {
-      nlt->flag &= ~NLATRACK_OVERRIDELIBRARY_LOCAL;
-    }
-
     blend_lib_read_nla_strips(reader, id, &nlt->strips);
   }
 }

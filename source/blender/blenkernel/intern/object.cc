@@ -662,7 +662,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BLO_read_data_address(reader, &ob->pose);
-  BKE_pose_blend_read_data(reader, ob->pose);
+  BKE_pose_blend_read_data(reader, &ob->id, ob->pose);
 
   BLO_read_data_address(reader, &ob->mpath);
   if (ob->mpath) {
@@ -682,8 +682,8 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* do it here, below old data gets converted */
   BKE_modifier_blend_read_data(reader, &ob->modifiers, ob);
-  BKE_gpencil_modifier_blend_read_data(reader, &ob->greasepencil_modifiers);
-  BKE_shaderfx_blend_read_data(reader, &ob->shader_fx);
+  BKE_gpencil_modifier_blend_read_data(reader, &ob->greasepencil_modifiers, ob);
+  BKE_shaderfx_blend_read_data(reader, &ob->shader_fx, ob);
 
   BLO_read_list(reader, &ob->effect);
   paf = (PartEff *)ob->effect.first;
@@ -788,7 +788,7 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &ob->particlesystem);
   BKE_particle_system_blend_read_data(reader, &ob->particlesystem);
 
-  BKE_constraint_blend_read_data(reader, &ob->constraints);
+  BKE_constraint_blend_read_data(reader, &ob->id, &ob->constraints);
 
   BLO_read_list(reader, &ob->hooks);
   while (ob->hooks.first) {

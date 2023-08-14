@@ -933,7 +933,7 @@ void BKE_gpencil_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
   }
 }
 
-void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
+void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
 {
   BLO_read_list(reader, lb);
 
@@ -943,6 +943,11 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
     /* if modifiers disappear, or for upward compatibility */
     if (nullptr == BKE_gpencil_modifier_get_info(GpencilModifierType(md->type))) {
       md->type = eModifierType_None;
+    }
+
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(ob)) {
+      md->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
     }
 
     if (md->type == eGpencilModifierType_Lattice) {
@@ -1033,11 +1038,4 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 void BKE_gpencil_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
 {
   BKE_gpencil_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
-
-  /* If linking from a library, clear 'local' library override flag. */
-  if (ID_IS_LINKED(ob)) {
-    LISTBASE_FOREACH (GpencilModifierData *, mod, &ob->greasepencil_modifiers) {
-      mod->flag &= ~eGpencilModifierFlag_OverrideLibrary_Local;
-    }
-  }
 }

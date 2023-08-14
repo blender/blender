@@ -1488,7 +1488,7 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* link NLA-data */
   BLO_read_list(reader, &adt->nla_tracks);
-  BKE_nla_blend_read_data(reader, &adt->nla_tracks);
+  BKE_nla_blend_read_data(reader, id, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
