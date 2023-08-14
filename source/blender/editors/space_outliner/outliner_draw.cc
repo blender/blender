@@ -757,6 +757,10 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
           break;
         }
+        case TSE_NLA_TRACK: {
+          WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
+          break;
+        }
         case TSE_EBONE: {
           bArmature *arm = (bArmature *)tselem->id;
           if (arm->edbo) {
