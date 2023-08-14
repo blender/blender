@@ -47,14 +47,13 @@ void TreeElementPoseBase::expand(SpaceOutliner &space_outliner) const
         /* Object *target; */
         TreeElement *tenla1 = outliner_add_element(
             &space_outliner, &ten->subtree, &object_, ten, TSE_CONSTRAINT_BASE, 0);
-        tenla1->name = IFACE_("Constraints");
         /* char *str; */
 
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-          TreeElement *ten1 = outliner_add_element(
-              &space_outliner, &tenla1->subtree, &object_, tenla1, TSE_CONSTRAINT, const_index);
-          ten1->name = con->name;
-          ten1->directdata = con;
+          ConstraintElementCreateData con_data = {&object_, con};
+          
+          outliner_add_element(
+              &space_outliner, &tenla1->subtree, &con_data, tenla1, TSE_CONSTRAINT, const_index);
           /* possible add all other types links? */
         }
         const_index++;
