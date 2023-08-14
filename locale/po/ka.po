@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5818,36 +5818,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "sRGB ამსახველი სივრცე ფილმური ხედის ტრანსფორმირებით"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "Rec. 709 (სრული დიაპაზონი), ბლენდერის მკვიდრი წრფივი სივრცე"
-
-
-msgid "Linear ACES"
-msgstr "წრფივი ACES"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "ACES2065-1 წრფივი სივრცე"
-
-
-msgid "Linear ACEScg"
-msgstr "წრფივი ACEScg"
-
-
-msgid "ACEScg linear space"
-msgstr "ACEScg წრფივი სივრცე"
-
-
 msgid "Non-Color"
 msgstr "არა-ფერული"
-
-
-msgid "sRGB display space"
-msgstr "sRGB ამსახველი სივრცე"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -33790,15 +33762,6 @@ msgstr "საწყისი კადრი საექსპორტოდ"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY-ის ექსპორტირება"
-
-
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "Stanford PLY-ის ექსპორტი ნორმალებით, წვეროების ფერებითა და ტექსტურების კოორდინატებით"
-
-
-msgctxt "Operator"
 msgid "Export STL"
 msgstr "STL-ის ექსპორტირება"
 
@@ -33871,19 +33834,6 @@ msgstr "ობიექტის პარამეტრები"
 
 msgid "Animation settings"
 msgstr "ანიმაციის პარამეტრები"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "დააექსპორტირე OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Wavefront OBJ ფაილის შენახვა"
-
-
-msgid "Material Groups"
-msgstr "მასალის ჯგუფები"
 
 
 msgctxt "Operator"
@@ -34760,19 +34710,6 @@ msgstr "გამჭვირვალობისთვის გამოი�
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "დააიმპორტირე PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "ჩატვირთე PLY გეომეტრიული ფაილი"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "ფაილის მისამართი PLY ფაილის დასაიმპორტირებლად"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "დააიმპორტირე STL"
 
@@ -34797,15 +34734,6 @@ msgstr "დააიმპორტირე glTF 2.0"
 
 msgid "Load a glTF 2.0 file"
 msgstr "ჩატვირთე glTF 2.0 ფაილი"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "დააიმპორტირე OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "ჩატვირთე Wavefront OBJ ფაილი"
 
 
 msgctxt "Operator"
@@ -39131,6 +39059,16 @@ msgstr "გახსენი მისამართი ფაილები�
 
 
 msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY-ის ექსპორტირება"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "დააიმპორტირე PLY"
+
+
+msgctxt "Operator"
 msgid "Batch-Clear Previews"
 msgstr "წინასწარი ხედების ერთობლივი გასუფთავება"
 
@@ -40991,6 +40929,10 @@ msgid "Temperature"
 msgstr "ტემპერატურა"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "Lens focal length (mm)"
 msgstr "ლინზის ფოკუსური მანძილი (მმ)"
 
@@ -41290,6 +41232,10 @@ msgstr "სეკვენსერის ლენტები"
 
 msgid "Pixel Size"
 msgstr "პიქსელური ზომა"
+
+
+msgid "Resolution Scale"
+msgstr "გარჩევადობის მასშტაბი"
 
 
 msgid "Display the object as wire edges"
@@ -44774,10 +44720,6 @@ msgid "Revert to Saved Preferences"
 msgstr "დაბრუნე შენახულ პარამეტრებზე"
 
 
-msgid "Resolution Scale"
-msgstr "გარჩევადობის მასშტაბი"
-
-
 msgid "Splash Screen"
 msgstr "ქუდი"
 
@@ -46972,6 +46914,10 @@ msgid "Object Groups"
 msgstr "ობიექტების ჯგუფები"
 
 
+msgid "Material Groups"
+msgstr "მასალის ჯგუფები"
+
+
 msgid "Mesh Data"
 msgstr "მეშის მონაცემები"
 
@@ -49013,24 +48959,12 @@ msgid "File > Import > Scalable Vector Graphics (.svg)"
 msgstr "ფაილი > იმპორტი > Scalable Vector Graphics (.svg)"
 
 
-msgid "Stanford PLY format"
-msgstr "Stanford PLY ფორმატი"
-
-
-msgid "File > Import/Export"
-msgstr "ფაილი > იმპორტი/ექსპორტი"
-
-
 msgid "UV Layout"
 msgstr "UV განლაგება"
 
 
 msgid "UV Editor > UV > Export UV Layout"
 msgstr "UV რედაქტორი > UV > UV განლაგების ექსპორტი"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Wavefront OBJ ფორმატი (ძველებური)"
 
 
 msgid "glTF 2.0 format"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2023-07-18 08:22+0200\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
@@ -5920,36 +5920,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Zobrazovací priestor sRGB s transformáciou zobrazenia Filmový"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "REC. 709 (plný rozsah), natívny lineárny priestor Blendera"
-
-
-msgid "Linear ACES"
-msgstr "Lineárny ACES"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "Lineárny priestor ACES2065-1"
-
-
-msgid "Linear ACEScg"
-msgstr "Lineárny ACEScg"
-
-
-msgid "ACEScg linear space"
-msgstr "Lineárny priestor ACESsg"
-
-
 msgid "Non-Color"
 msgstr "Bezfarebné"
-
-
-msgid "sRGB display space"
-msgstr "Zobrazovací priestor sRGB"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -29998,24 +29970,12 @@ msgid "Insert After"
 msgstr "Vložiť po"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "Vloží novú položku do kolekcie po odkaze v subitem_reference_name alebo _ index"
-
-
 msgid "Insert Before"
 msgstr "Vložiť pred"
 
 
-msgid "Insert a new item into collection before the one referenced in subitem_reference_name or _index (NOT USED)"
-msgstr "Vloží novú položku do kolekcie pred odkazom v subitem_reference_name alebo _ index (NEPOUŽÍVA SA)"
-
-
 msgid "Subitem Local Index"
 msgstr "Index lokálnej podradenej položky"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "Používa sa na ovládanie vložení do kolekcie"
 
 
 msgid "Subitem Local Name"
@@ -43472,15 +43432,6 @@ msgstr "Zlomková časť A"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Zvyšok"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "Zvyšok použitím fmod(A, B)"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Pokryť"
 
@@ -47943,6 +47894,11 @@ msgstr "Vstupný strop"
 
 msgid "The fraction part of A entry-wise"
 msgstr "Zlomok vstupného A"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Zvyšok"
 
 
 msgid "Entry-wise modulo using fmod(A,B)"
@@ -54051,12 +54007,20 @@ msgstr "Konvertuje rotáciu podľa Eulera ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Export PLY"
+msgid "Export STL"
+msgstr "Exportovať STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "Exportuje jeden objekt ako Stanford PLY s normálmi, farbami vrcholov a súradnicami textúr"
+msgid "Save STL triangle mesh data"
+msgstr "Uloží údaje trojuholníkovej povrchovej siete STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Uloží súbor vo formáte súboru ASCII"
 
 
 msgid "X Forward"
@@ -54103,59 +54067,6 @@ msgid "-Z Up"
 msgstr "-Z hore"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "Exportuje použitím formátu súboru ASCII, inak použije binárny formát"
-
-
-msgid "Export the active vertex color layer"
-msgstr "Exportuje aktívnu farebnú vrstvu vrcholov"
-
-
-msgid "Apply Modifiers"
-msgstr "Použiť modifikátory"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Použije modifikátory na exportované povrchové siete"
-
-
-msgid "Export vertex normals"
-msgstr "Exportuje normály vrcholov"
-
-
-msgid "Selection Only"
-msgstr "Len vybrané"
-
-
-msgid "Export selected objects only"
-msgstr "Exportuje len vybrané objekty"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "Exportuje aktívnu UV vrstvy (rozdelí hrany podľa švov)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportovať STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Uloží údaje trojuholníkovej povrchovej siete STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Uloží súbor vo formáte súboru ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Režim dávky"
 
@@ -54176,6 +54087,10 @@ msgid "Export in this reference space"
 msgstr "Export v tomto referenčnom priestore"
 
 
+msgid "Apply Modifiers"
+msgstr "Použiť modifikátory"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Pred uložením použije modifikátory"
 
@@ -54186,6 +54101,14 @@ msgstr "Jednotky scény"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Použije jednotky aktuálnej scény (definovanej jednotkovou stupnicou) na exportované údaje"
+
+
+msgid "Selection Only"
+msgstr "Len vybrané"
+
+
+msgid "Export selected objects only"
+msgstr "Exportuje len vybrané objekty"
 
 
 msgctxt "Operator"
@@ -55148,107 +55071,6 @@ msgstr "Zapamätať si nastavenia exportu"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Uložiť exportné nastavenia glTF v projekte Blender"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Exportovať OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Uloží Wavefront OBJ súbor"
-
-
-msgid "Material Groups"
-msgstr "Skupiny materiálu"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Vygeneruje skupinu OBJ pre každú časť geometrie použitím iného materiálu"
-
-
-msgid "OBJ Groups"
-msgstr "Skupiny OBJ"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Exportujte objekty aplikácie Blender ako skupiny OBJ"
-
-
-msgid "Keep Vertex Order"
-msgstr "Zachovať poradie vrcholov"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Zapíšte si OBJ pre každú snímku"
-
-
-msgid "OBJ Objects"
-msgstr "Objekty OBJ"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Exportujte objekty aplikácie Blender ako OBJ objekty"
-
-
-msgid "Include Edges"
-msgstr "Zahrnúť hrany"
-
-
-msgid "Write Materials"
-msgstr "Zapísať materiály"
-
-
-msgid "Write out the MTL file"
-msgstr "Zapíše si súbor MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Použije modifikátory"
-
-
-msgid "Write Normals"
-msgstr "Zapísať normály"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Exportuje jeden normál na vrchol a na plôšku, na znázornenie plochy plôšok a ostrých hrán"
-
-
-msgid "Write Nurbs"
-msgstr "Zapísať Nurbs"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Zapíše NURBS krivky ako OBJ NURBS pred konverziou geometrie"
-
-
-msgid "Smooth Groups"
-msgstr "Skupiny vyhladenia"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Zapíše ostré hrany ako skupiny vyhladenia"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Bit príznaku skupín vyhladenia"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "Rovnaké ako 'skupiny vyhladenia', ale vytvára ID hladených skupín ID ako bit príznakov (produkuje najviac 32 rôznych skupín vyhladenia, zvyčajne oveľa menej)"
-
-
-msgid "Include UVs"
-msgstr "Zahrnúť UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Zapíšte si aktívne UV súradnice"
-
-
-msgid "Polygroups"
-msgstr "Skupiny mnohouholníkov"
 
 
 msgctxt "Operator"
@@ -58894,6 +58716,14 @@ msgid "How much to blend to the default value"
 msgstr "Určuje, koľko sa má prelínať s predvolenou hodnotou"
 
 
+msgid "Curve Bend"
+msgstr "Ohyb krivky"
+
+
+msgid "Control the bend of the curve"
+msgstr "Ovládanie ohybu krivky"
+
+
 msgctxt "Operator"
 msgid "Blend to Neighbor"
 msgstr "Prelínať na susedné"
@@ -59074,14 +58904,6 @@ msgstr "Uvoľniť kľúčové snímky"
 
 msgid "Align keyframes on a ease-in or ease-out curve"
 msgstr "Zarovná kľúčové snímky na začiatok uvoľnenia alebo koniec uvoľnenia krivky"
-
-
-msgid "Curve Bend"
-msgstr "Ohyb krivky"
-
-
-msgid "Control the bend of the curve"
-msgstr "Ovládanie ohybu krivky"
 
 
 msgctxt "Operator"
@@ -60447,19 +60269,6 @@ msgstr "Použije alfa kanál pre priehľadnosť"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importovať PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Načíta súbor geometrie PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Cesta k súboru používaná na importovanie súboru PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importovať STL"
 
@@ -60700,63 +60509,6 @@ msgstr "Úroveň záznamu"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Formát glTF vyžaduje, aby sa diskontinuálne normály, UV súradnice a ďalšie atribúty vrcholov uložili ako oddelené vrcholy, ako je vyžadované pri vykresľovaní na typickom grafickom hardvéri. Táto možnosť sa pokúša kombinovať vrcholy umiestnené spolu, kde je to možné. V súčasnosti nie je možné kombinovať vrcholy s rôznymi normálmi"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Importovať OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Načíta súbor Wavefront OBJ"
-
-
-msgid "Clamp Size"
-msgstr "Veľkosť úponu"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "Zamedzí upnutiu pod túto hodnotu (nula vypnuté)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "Oddelí geometriu, vynechá vrcholy nepoužívané hranami alebo plôškami"
-
-
-msgid "Keep Vert Order"
-msgstr "Zachovať poradie vrcholov"
-
-
-msgid "Keep vertex order from file"
-msgstr "Zachová poradie vrcholov zo súboru"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Importuje čiary a plôšky s 2 vrcholmi ako hranu"
-
-
-msgid "Poly Groups"
-msgstr "Polygonálne skupiny"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importuje skupiny OBJ ako skupiny vrcholov"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Hľadáva podpriečinky pre všetky pridružené obrázky (Varovanie: môže byť pomalé)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Obklopí vyhladené skupiny ostrými okrajmi"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Importuje skupiny OBJ do objektov Blendera"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Importuje objekty OBJ do objektov Blendera"
 
 
 msgctxt "Operator"
@@ -81056,6 +80808,10 @@ msgid "Export Material Groups"
 msgstr "Exportuje skupiny materiálov"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Vygeneruje skupinu OBJ pre každú časť geometrie použitím iného materiálu"
+
+
 msgid "Export Materials"
 msgstr "Exportovať materiály"
 
@@ -81181,6 +80937,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Zmení veľkosť objektov tak, aby pole ohraničenia bolo pod touto hodnotou. Hodnota 0 vypína prichytenie"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importuje skupiny OBJ ako skupiny vrcholov"
+
+
 msgid "Split By Group"
 msgstr "Rozdeliť podľa skupín"
 
@@ -81286,6 +81046,11 @@ msgid "Open a path in a file browser"
 msgstr "Otvoriť cestu v prehľadávači súborov"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Export PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Uloží scénu do PLY súboru"
 
@@ -81320,6 +81085,11 @@ msgstr "Exportovať normály vrcholov"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exportuje špecifické normály vrcholov, ak sú k dispozícii, inak exportujte vypočítané normály"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importovať PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -89272,6 +89042,10 @@ msgid "Axis-Angle"
 msgstr "Uhol osí"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "XYZ Length"
 msgstr "Dĺžka XYZ"
 
@@ -92110,8 +91884,8 @@ msgid "Render at 12.5% resolution"
 msgstr "Prekresliť v 12,5% rozlíšení"
 
 
-msgid "Resolution %"
-msgstr "Rozlíšenie v %"
+msgid "Resolution Scale"
+msgstr "Mierka rozlíšenia"
 
 
 msgid "Percentage scale for render resolution"
@@ -107409,11 +107183,6 @@ msgstr "Vygenerovanie cyklov/EEVEE kompatibilného materiálu, ale nebude vidite
 
 
 msgctxt "Operator"
-msgid "Stanford (.ply)"
-msgstr "Stanford (.ply)"
-
-
-msgctxt "Operator"
 msgid "Stl (.stl)"
 msgstr "Stl (.stl)"
 
@@ -107556,27 +107325,6 @@ msgstr "Vytvorte, prosím, najprv variant"
 msgctxt "Operator"
 msgid "Add a new Variant Slot"
 msgstr "Pridať novú zásuvku Variant"
-
-
-msgctxt "Operator"
-msgid "Wavefront (.obj) (legacy)"
-msgstr "Wavefront (.obj) (zastaralé)"
-
-
-msgid "Objects as"
-msgstr "Objekty ako"
-
-
-msgid "Curves as NURBS"
-msgstr "Krivky ako NURBS"
-
-
-msgid "Split by Object"
-msgstr "Rozdeliť podľa objektu"
-
-
-msgid "Split by Group"
-msgstr "Rozdeliť podľa skupny"
 
 
 msgctxt "Operator"
@@ -113314,10 +113062,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Návrat k uloženým predvoľbám"
 
 
-msgid "Resolution Scale"
-msgstr "Mierka rozlíšenia"
-
-
 msgid "Splash Screen"
 msgstr "Úvodná obrazovka"
 
@@ -116427,18 +116171,6 @@ msgid "[Action Stash]"
 msgstr "[Skryť akciu]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "Neprázdny objekt '%s' už nemôže vytvárať kópiu kolekcie '%s' v Blender 2.80, odstránené vytvorenie inštancie"
-
-
-msgid "Proxy lost from object %s lib %s"
-msgstr "Náhrada stratená z objektu %s lib %s"
-
-
-msgid "Proxy lost from object %s lib <NONE>"
-msgstr "Náhrada stratená z objektu %s lib <NONE>"
-
-
 msgid "Can't find object data of %s lib %s"
 msgstr "Nemožno nájsť údaje objektu %s lib %s"
 
@@ -116830,6 +116562,14 @@ msgstr "Skrytý %d"
 
 msgid "Eevee material conversion problem. Error in console"
 msgstr "Problém konverzie Eevee materiálu. Chyba na konzole"
+
+
+msgid "Proxy lost from object %s lib %s"
+msgstr "Náhrada stratená z objektu %s lib %s"
+
+
+msgid "Proxy lost from object %s lib <NONE>"
+msgstr "Náhrada stratená z objektu %s lib <NONE>"
 
 
 msgid "2D_Animation"
@@ -119427,6 +119167,10 @@ msgid "Triangulated Mesh"
 msgstr "Trojuholníková povrchová sieť"
 
 
+msgid "Curves as NURBS"
+msgstr "Krivky ako NURBS"
+
+
 msgid "Grouping"
 msgstr "Zoskupenie"
 
@@ -119435,8 +119179,20 @@ msgid "Object Groups"
 msgstr "Skupiny objektov"
 
 
+msgid "Material Groups"
+msgstr "Skupiny materiálu"
+
+
+msgid "Smooth Groups"
+msgstr "Skupiny vyhladenia"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Príznaky bitov vyhladenej skupiny"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
@@ -120164,10 +119920,6 @@ msgstr "Priečinok zapečenia objektu %s, modifikátor %s je prázdny, nastaveni
 
 msgid "Path conflict: %d caches set to path %s"
 msgstr "Konflikt ciest: %d zásobník nastavený na cestu %s"
-
-
-msgid "Failed to remove bake directory %s"
-msgstr "Nepodarilo sa odstrániť priečinok zapečenia %s"
 
 
 msgid "File has to be saved"
@@ -125422,10 +125174,6 @@ msgstr "Nepodarilo sa otvoriť archív USD na čítanie! Podrobnosti nájdete v 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD: nemožné otvoriť oblasť na čítanie %s"
-
-
-msgid "USD Import: couldn't compute values for color attribute '%s'"
-msgstr "Import v USD: nebolo možné vypočítať hodnoty atribútu farby '%s'"
 
 
 msgid "USD Import: color attribute value '%s' count inconsistent with interpolation type"
@@ -130826,18 +130574,6 @@ msgid "Import SVG as curves"
 msgstr "Importovať SVG ako krivky"
 
 
-msgid "Stanford PLY format"
-msgstr "Formát Stanford PLY"
-
-
-msgid "File > Import/Export"
-msgstr "Súbor > Import/Export"
-
-
-msgid "Import-Export PLY mesh data with UVs and vertex colors"
-msgstr "Import-Export PLY údajov povrchovej siete s UV a farbami vrcholov"
-
-
 msgid "UV Layout"
 msgstr "Rozloženie UV"
 
@@ -130848,14 +130584,6 @@ msgstr "UV Editor > UV > Export rozloženia UV"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "Exportuje UV rozloženia ako 2D grafiku"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Formát Wavefront OBJ (starší)"
-
-
-msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
-msgstr "Import-Export OBJ, Import OBJ povrchovej siete, UV, materiálov a textúr"
 
 
 msgid "glTF 2.0 format"

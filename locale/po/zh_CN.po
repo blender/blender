@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -5743,36 +5743,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "带有Filmic视图变换的sRGB显示空间"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "Rec. 709 (全范围), Blender 原生线性空间"
-
-
-msgid "Linear ACES"
-msgstr "线性ACES"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "ACES2065-1 线性空间"
-
-
-msgid "Linear ACEScg"
-msgstr "线性 ACEScg"
-
-
-msgid "ACEScg linear space"
-msgstr "ACEScg 线性空间"
-
-
 msgid "Non-Color"
 msgstr "非彩色"
-
-
-msgid "sRGB display space"
-msgstr "sRGB 显示空间"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -29028,24 +29000,12 @@ msgid "Insert After"
 msgstr "在之后插入"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "在 subitem_reference_name 或 _index 中引用的项之后插入一个新条目到集合"
-
-
 msgid "Insert Before"
 msgstr "在之前插入"
 
 
-msgid "Insert a new item into collection before the one referenced in subitem_reference_name or _index (NOT USED)"
-msgstr "在 subitem_reference_name 或 _index 中引用的项之前插入一个新条目到集合(未使用)"
-
-
 msgid "Subitem Local Index"
 msgstr "子条目自身编号"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "用于处理集合中的插入"
 
 
 msgid "Subitem Local Name"
@@ -42272,15 +42232,6 @@ msgstr "A的分数部分"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "模数"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "使用fmod(A,B)求模运算"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "循环"
 
@@ -46541,6 +46492,11 @@ msgstr "逐项向上取整"
 
 msgid "The fraction part of A entry-wise"
 msgstr "对A逐项取小数部分"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "模数"
 
 
 msgid "Entry-wise modulo using fmod(A,B)"
@@ -52510,12 +52466,20 @@ msgstr "转换转动至欧拉 ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "导出PLY"
+msgid "Export STL"
+msgstr "导出STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "导出为带有法线、顶点颜色和纹理坐标的斯坦福 PLY"
+msgid "Save STL triangle mesh data"
+msgstr "保存 STL 三角网格数据"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "保存文件为 ASCII 文件格式"
 
 
 msgid "X Forward"
@@ -52562,59 +52526,6 @@ msgid "-Z Up"
 msgstr "-Z 向上"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "使用ASCII文件格式导出，否则使用二进制"
-
-
-msgid "Export the active vertex color layer"
-msgstr "导出活动顶点颜色色层"
-
-
-msgid "Apply Modifiers"
-msgstr "应用修改器"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "为输出的网格应用修改器"
-
-
-msgid "Export vertex normals"
-msgstr "导出顶点法向"
-
-
-msgid "Selection Only"
-msgstr "仅导出选中的物体"
-
-
-msgid "Export selected objects only"
-msgstr "仅导出选择的物体"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "导出活动 UV 层(将按缝合线拆分边)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "导出STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "保存 STL 三角网格数据"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "保存文件为 ASCII 文件格式"
-
-
 msgid "Batch Mode"
 msgstr "批量模式"
 
@@ -52635,6 +52546,10 @@ msgid "Export in this reference space"
 msgstr "在此参考空间中导出"
 
 
+msgid "Apply Modifiers"
+msgstr "应用修改器"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "保存前应用修改器"
 
@@ -52645,6 +52560,14 @@ msgstr "场景单位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "应用当前场景单位 (由单位比例定义) 输出数据"
+
+
+msgid "Selection Only"
+msgstr "仅导出选中的物体"
+
+
+msgid "Export selected objects only"
+msgstr "仅导出选择的物体"
 
 
 msgctxt "Operator"
@@ -53459,107 +53382,6 @@ msgstr "记住导出设置"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "将 glTF 导出设置存储在 Blender 中"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "导出OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "保存一个Wavefront的OBJ文件"
-
-
-msgid "Material Groups"
-msgstr "材质组"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "为几何中使用不同材质的每个部分生成OBJ组"
-
-
-msgid "OBJ Groups"
-msgstr "OBJ组"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "导出Blender物体为OBJ组"
-
-
-msgid "Keep Vertex Order"
-msgstr "保持顶点顺序"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "为每帧写出一个OBJ"
-
-
-msgid "OBJ Objects"
-msgstr "OBJ物体"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "导出Blender物体为OBJ物体"
-
-
-msgid "Include Edges"
-msgstr "包括边"
-
-
-msgid "Write Materials"
-msgstr "写入材质"
-
-
-msgid "Write out the MTL file"
-msgstr "写入为 MTL 文件"
-
-
-msgid "Apply modifiers"
-msgstr "应用修改器"
-
-
-msgid "Write Normals"
-msgstr "写入法线"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "逐点逐面导出法向, 已显示平直面和锐利边线"
-
-
-msgid "Write Nurbs"
-msgstr "写入Nurbs"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "将 Nurbs 曲线作为 OBJ Nurbs 写入, 而不是转换为几何体"
-
-
-msgid "Smooth Groups"
-msgstr "平滑组"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "写出锐边为平滑组"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Bitflag 平滑组"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "与'平滑组'相同，但生成平滑组 ID 为位标记(最多生成 32 个不同的平滑组，通常要少得多)"
-
-
-msgid "Include UVs"
-msgstr "包括UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "写入活动UV 坐标轴"
-
-
-msgid "Polygroups"
-msgstr "多边形组"
 
 
 msgctxt "Operator"
@@ -57047,6 +56869,14 @@ msgid "How much to blend to the default value"
 msgstr "混合到默认值的程度"
 
 
+msgid "Curve Bend"
+msgstr "曲线弯曲"
+
+
+msgid "Control the bend of the curve"
+msgstr "控制曲线的弯曲"
+
+
 msgctxt "Operator"
 msgid "Blend to Neighbor"
 msgstr "混合至邻帧"
@@ -57182,14 +57012,6 @@ msgstr "缓动关键帧"
 
 msgid "Align keyframes on a ease-in or ease-out curve"
 msgstr "在渐入或渐出曲线上对齐关键帧"
-
-
-msgid "Curve Bend"
-msgstr "曲线弯曲"
-
-
-msgid "Control the bend of the curve"
-msgstr "控制曲线的弯曲"
 
 
 msgctxt "Operator"
@@ -58348,19 +58170,6 @@ msgstr "将Alpha 通道用于透明"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "导入PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "加载 PLY 几何体文件"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "导入 PLY 文件的路径"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "导入STL"
 
@@ -58601,63 +58410,6 @@ msgstr "日志级别"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "glTF 格式要求将不连续法向、UV以及其他顶点属性存储为单独的顶点，这是在典型图形硬件上渲染所需的。此选项将尽可能合并同一位置的顶点。当前无法合并具有不同法向的顶点"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "导入OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "加载 OBJ 文件"
-
-
-msgid "Clamp Size"
-msgstr "钳制尺寸"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "钳制的下界(0为禁用)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "拆分几何体，忽略未被边或面使用的顶点"
-
-
-msgid "Keep Vert Order"
-msgstr "保留顶点顺序"
-
-
-msgid "Keep vertex order from file"
-msgstr "保留文件中的顶点顺序"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "将线条以及含有 2 个顶点的面作为线元素导入"
-
-
-msgid "Poly Groups"
-msgstr "多边形组"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "将 OBJ 组导入为顶点组"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "为所有关联图像搜索子目录(警告, 速度可能会慢)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "使用锐边包围光滑组"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "将OBJ组导入到Blender物体"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "将OBJ物体导入到Blender物体"
 
 
 msgctxt "Operator"
@@ -78115,6 +77867,10 @@ msgid "Export Material Groups"
 msgstr "导出材质组"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "为几何中使用不同材质的每个部分生成OBJ组"
+
+
 msgid "Export Materials"
 msgstr "导出材质"
 
@@ -78240,6 +77996,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "调整物体大小以使边界框保持在该值以下。数值为0禁用钳制"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "将 OBJ 组导入为顶点组"
+
+
 msgid "Split By Group"
 msgstr "按组拆分"
 
@@ -78339,6 +78099,16 @@ msgstr "启用工作区的插件"
 
 msgid "Open a path in a file browser"
 msgstr "在文件浏览器中打开路径"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "导出PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "导入PLY"
 
 
 msgctxt "Operator"
@@ -85776,6 +85546,10 @@ msgid "Temperature"
 msgstr "温度"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "ID Property Group"
 msgstr "ID 属性组"
 
@@ -88461,8 +88235,8 @@ msgid "Render at 12.5% resolution"
 msgstr "渲染为12.5%分辨率"
 
 
-msgid "Resolution %"
-msgstr "分辨率 %"
+msgid "Resolution Scale"
+msgstr "分辨率缩放"
 
 
 msgid "Percentage scale for render resolution"
@@ -103303,10 +103077,6 @@ msgid "Add a new Variant Slot"
 msgstr "添加新的变量槽"
 
 
-msgid "Curves as NURBS"
-msgstr "曲线为NURBS"
-
-
 msgid "untitled"
 msgstr "无标题"
 
@@ -108823,10 +108593,6 @@ msgid "Revert to Saved Preferences"
 msgstr "恢复至自动保存的设置"
 
 
-msgid "Resolution Scale"
-msgstr "分辨率缩放"
-
-
 msgid "Splash Screen"
 msgstr "启动画面"
 
@@ -111717,18 +111483,6 @@ msgid "[Action Stash]"
 msgstr "[Action Stash]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "非空物体 '%s' 无法在 Blender 2.80 中再复制集合 '%s'，已移除实例"
-
-
-msgid "Proxy lost from object %s lib %s"
-msgstr "从物体 %s 库 %s 丢失代理"
-
-
-msgid "Proxy lost from object %s lib <NONE>"
-msgstr "从物体%s 库 <NONE> 中丢失代理"
-
-
 msgid "Can't find object data of %s lib %s"
 msgstr "找不到 %s 库 %s 的物体数据"
 
@@ -112108,6 +111862,14 @@ msgstr "隐藏 %d"
 
 msgid "Eevee material conversion problem. Error in console"
 msgstr "Eevee材质转换错误，错误详见控制台"
+
+
+msgid "Proxy lost from object %s lib %s"
+msgstr "从物体 %s 库 %s 丢失代理"
+
+
+msgid "Proxy lost from object %s lib <NONE>"
+msgstr "从物体%s 库 <NONE> 中丢失代理"
 
 
 msgid "2D_Animation"
@@ -114488,6 +114250,10 @@ msgid "Triangulated Mesh"
 msgstr "三角化网格"
 
 
+msgid "Curves as NURBS"
+msgstr "曲线为NURBS"
+
+
 msgid "Grouping"
 msgstr "分组"
 
@@ -114496,8 +114262,20 @@ msgid "Object Groups"
 msgstr "物体组"
 
 
+msgid "Material Groups"
+msgstr "材质组"
+
+
+msgid "Smooth Groups"
+msgstr "平滑组"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "平滑组位标记"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
@@ -124519,18 +124297,6 @@ msgid "Import SVG as curves"
 msgstr "导入SVG为曲线"
 
 
-msgid "Stanford PLY format"
-msgstr "斯坦福PLY格式"
-
-
-msgid "File > Import/Export"
-msgstr "文件 > 导入/导出"
-
-
-msgid "Import-Export PLY mesh data with UVs and vertex colors"
-msgstr "导入-导出带有UV和顶点颜色的PLY网格数据"
-
-
 msgid "UV Layout"
 msgstr "UV布局"
 
@@ -124541,10 +124307,6 @@ msgstr "UV 编辑器 > UV > 导出 UV 布局"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "将 UV 布局导出为二维图形"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Wavefront OBJ 格式 (旧版)"
 
 
 msgid "glTF 2.0 format"

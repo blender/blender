@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -5354,14 +5354,6 @@ msgstr "Цветовое пространство изображения, из �
 
 msgid "Filmic sRGB"
 msgstr "Кинематографичный sRGB"
-
-
-msgid "Linear ACES"
-msgstr "Линейный ACES"
-
-
-msgid "Linear ACEScg"
-msgstr "Линейный ACEScg"
 
 
 msgid "Non-Color"
@@ -25522,20 +25514,12 @@ msgid "Insert After"
 msgstr "Вставить после"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "Вставить новый элемент в коллекцию после элемента, установленного в subitem_reference_name или _index"
-
-
 msgid "Insert Before"
 msgstr "Вставить до"
 
 
 msgid "Subitem Local Index"
 msgstr "Локальный индекс подэлемента"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "Используется для управления вставками в коллекцию"
 
 
 msgid "Subitem Local Name"
@@ -36513,11 +36497,6 @@ msgstr "Дробная часть А"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Остаток деления"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Обернуть"
 
@@ -37935,6 +37914,11 @@ msgstr "А умноженная на масштаб"
 
 msgid "Normalize A"
 msgstr "Нормализовать A"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Остаток деления"
 
 
 msgid "Round A to the largest integer multiple of B less than or equal A"
@@ -42741,8 +42725,16 @@ msgstr "Преобразовать вращения по Эйлеру ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Экспортировать PLY"
+msgid "Export STL"
+msgstr "Экспортировать STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Сохранить файл в формате ASCII"
 
 
 msgid "X Forward"
@@ -42789,39 +42781,6 @@ msgid "-Z Up"
 msgstr "Вверх по −Z"
 
 
-msgid "Export the active vertex color layer"
-msgstr "Экспортировать активный слой цветов вершин"
-
-
-msgid "Apply Modifiers"
-msgstr "Применить модификаторы"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Применить модификаторы в экспортируемом меше"
-
-
-msgid "Selection Only"
-msgstr "Только выделенное"
-
-
-msgid "Export selected objects only"
-msgstr "Экспортировать только выделенные объекты"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Экспортировать STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Сохранить файл в формате ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Пакетный режим"
 
@@ -42834,6 +42793,10 @@ msgid "Each object as a file"
 msgstr "Каждый объект в отдельном файле"
 
 
+msgid "Apply Modifiers"
+msgstr "Применить модификаторы"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Применить модификаторы перед сохранением"
 
@@ -42844,6 +42807,14 @@ msgstr "Единицы сцены"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Применить текущие единицы сцены (заданные масштабом единиц) к экспортируемым данным"
+
+
+msgid "Selection Only"
+msgstr "Только выделенное"
+
+
+msgid "Export selected objects only"
+msgstr "Экспортировать только выделенные объекты"
 
 
 msgctxt "Operator"
@@ -43414,87 +43385,6 @@ msgstr "Запомнить настройки экспорта"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Сохранить настройки экспорта glTF в файле Blender"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Экспортировать OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Сохранить файла в формате Wavefront OBJ"
-
-
-msgid "Material Groups"
-msgstr "Группы материалов"
-
-
-msgid "Keep Vertex Order"
-msgstr "Сохранить порядок вершин"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Записать OBJ для каждого кадра"
-
-
-msgid "Include Edges"
-msgstr "Включая рёбра"
-
-
-msgid "Write Materials"
-msgstr "Записать материалы"
-
-
-msgid "Write out the MTL file"
-msgstr "Записать файл MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Применить модификаторы"
-
-
-msgid "Write Normals"
-msgstr "Записывать нормали"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Экспортировать нормали на вершины и грани для представления плоских граней и острых рёбер"
-
-
-msgid "Write Nurbs"
-msgstr "Записать NURBS"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Записать кривые NURBS в OBJ NURBS, не преобразовывая их в геометрические объекты"
-
-
-msgid "Smooth Groups"
-msgstr "Группы сглаживания"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Записывать острые рёбра как группы сглаживания"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Битовый флаг группы сглаживания"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "То же, что и «Группы сглаживания», но генерировать идентификаторы групп сглаживания с помощью битовых флагов (даёт не больше 32 различных групп сглаживания, но обычно этого достаточно)"
-
-
-msgid "Include UVs"
-msgstr "Включить UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Записать активные UV-координаты"
-
-
-msgid "Polygroups"
-msgstr "Полигруппы"
 
 
 msgctxt "Operator"
@@ -46746,19 +46636,6 @@ msgstr "Использовать альфа-канал для прозрачно
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Импортировать PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Загрузить файл геометрии PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Путь к файлу, используемый при импорте файла PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Импортировать STL"
 
@@ -46939,59 +46816,6 @@ msgstr "Уровень логирования"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF требует, чтобы прерывистые нормали, UV и другие атрибуты вершин хранились как отдельные вершины, как это требуется для рендеринга на типичном графическом оборудовании. Эта опция пытается объединить совмещенные вершины, где это возможно. В настоящее время нельзя комбинировать вершины с разными нормалями"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Импортировать OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Загрузить файл формата Wavefront OBJ"
-
-
-msgid "Clamp Size"
-msgstr "Ограничить размер"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "Ограничить область этим значением (0 для отключения)"
-
-
-msgid "Keep Vert Order"
-msgstr "Сохранять порядок вершин"
-
-
-msgid "Keep vertex order from file"
-msgstr "Сохранять порядок вершин из файла"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Импортировать линии и грани с двумя вершинами как рёбра"
-
-
-msgid "Poly Groups"
-msgstr "Полигруппы"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Импортировать группы OBJ как группы вершин"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Искать связанные изображения в подпапках (предупреждение: может быть медленным)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Окружить группы сглаживания острыми рёбрами"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Импортировать группы OBJ как объекты Blender"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Импортировать объекты OBJ как объекты Blender"
 
 
 msgctxt "Operator"
@@ -61932,6 +61756,10 @@ msgid "Object Properties"
 msgstr "Настройки объекта"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Импортировать группы OBJ как группы вершин"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Открыть"
@@ -61998,6 +61826,16 @@ msgstr "Тег интерфейса"
 
 msgid "Open a path in a file browser"
 msgstr "Открыть путь в файловом менеджере"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Экспортировать PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Импортировать PLY"
 
 
 msgctxt "Operator"
@@ -69309,8 +69147,8 @@ msgid "Render at 12.5% resolution"
 msgstr "Рендерить в 12.5%-м разрешении"
 
 
-msgid "Resolution %"
-msgstr "% разрешения"
+msgid "Resolution Scale"
+msgstr "Масштаб разрешения"
 
 
 msgid "Percentage scale for render resolution"
@@ -83006,10 +82844,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Вернуть сохранённые настройки"
 
 
-msgid "Resolution Scale"
-msgstr "Масштаб разрешения"
-
-
 msgid "Splash Screen"
 msgstr "Загрузочная заставка"
 
@@ -85084,10 +84918,6 @@ msgid "[Action Stash]"
 msgstr "[Размещённое действие]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "Непустой объект «%s» больше не может дублировать коллекцию «%s» в Blender 2.80, экземпляры удалены"
-
-
 msgid "Surf"
 msgstr "Сёрф"
 
@@ -87037,6 +86867,14 @@ msgstr "Ошибка во время экспорта (смотрите конс
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Ошибки парсинга документа (см. консоль Blender)"
+
+
+msgid "Material Groups"
+msgstr "Группы материалов"
+
+
+msgid "Smooth Groups"
+msgstr "Группы сглаживания"
 
 
 msgid "Mesh Data"

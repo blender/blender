@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: \n"
@@ -5931,36 +5931,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "[Filmic SRGB]: Espai de visualització sRGB amb transformació del visualitzat fílmic"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "Rec. 709 (interval complet), espai lineal natiu del Blender"
-
-
-msgid "Linear ACES"
-msgstr "ACES lineal"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "Espai lineal ACES2065-1"
-
-
-msgid "Linear ACEScg"
-msgstr "ACEScg lineal"
-
-
-msgid "ACEScg linear space"
-msgstr "Espai lineal ACEScg"
-
-
 msgid "Non-Color"
 msgstr "No-color"
-
-
-msgid "sRGB display space"
-msgstr "Espai de visualització sRGB"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -30029,24 +30001,12 @@ msgid "Insert After"
 msgstr "Insereix després"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "[Insert After]: Insereix un element nou a la col·lecció després del referenciat a subitem_reference_name o _index"
-
-
 msgid "Insert Before"
 msgstr "Insereix abans"
 
 
-msgid "Insert a new item into collection before the one referenced in subitem_reference_name or _index (NOT USED)"
-msgstr "[Insert Before]: Insereix un element nou a la col·lecció abans del referenciat a subitem_reference_name o _index (NO S'USA)"
-
-
 msgid "Subitem Local Index"
 msgstr "Índex local del subítem"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "[Subitem Local Index]: S'utilitza per gestionar les insercions a la col·lecció"
 
 
 msgid "Subitem Local Name"
@@ -43502,15 +43462,6 @@ msgstr "La part fraccionària d'A"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Mòdul"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "[Modulo]: Operació mòdul usant fmod(A,B)"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Confinar"
 
@@ -47997,6 +47948,11 @@ msgstr "[Ceil]: Element a element sostre"
 
 msgid "The fraction part of A entry-wise"
 msgstr "La part fraccionària d'A element a element"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Mòdul"
 
 
 msgid "Entry-wise modulo using fmod(A,B)"
@@ -54105,12 +54061,20 @@ msgstr "Convertir les rotacions a euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "[Export PLY]: Exporta com a PLY de Stanford amb coordenades de normals, colors de vèrtex i textura"
+msgid "Save STL triangle mesh data"
+msgstr "Desa les dades de malla triangular STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Desa el document en format ASCII"
 
 
 msgid "X Forward"
@@ -54157,59 +54121,6 @@ msgid "-Z Up"
 msgstr "-Z amunt"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "Exporta usant el format de document ASCII, altrament usa el binari"
-
-
-msgid "Export the active vertex color layer"
-msgstr "Exportar la capa de color de vèrtex activa"
-
-
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadors"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Aplica els modificadors a la malla exportada"
-
-
-msgid "Export vertex normals"
-msgstr "Exportar normals de vèrtexs"
-
-
-msgid "Selection Only"
-msgstr "Només selecció"
-
-
-msgid "Export selected objects only"
-msgstr "Exporta només els objectes seleccionats"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "Exportar la capa UV activa (es dividiran les arestes per costures)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Desa les dades de malla triangular STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Desa el document en format ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Mode de repetició"
 
@@ -54230,6 +54141,10 @@ msgid "Export in this reference space"
 msgstr "Exporta en aquest espai de referència"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadors"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplica els modificadors abans de desar"
 
@@ -54240,6 +54155,14 @@ msgstr "Unitat escena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "[Scene Unit]: Aplica la unitat escena actual (tal i com està definida per unitat d'escala) a les dades exportades"
+
+
+msgid "Selection Only"
+msgstr "Només selecció"
+
+
+msgid "Export selected objects only"
+msgstr "Exporta només els objectes seleccionats"
 
 
 msgctxt "Operator"
@@ -55202,107 +55125,6 @@ msgstr "Recordar configuració d'exportació"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Emmagatzema els paràmetres d'exportació glTF al projecte Blender"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Exportar OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Desa un document OBJ de Wavefront"
-
-
-msgid "Material Groups"
-msgstr "Grups materials"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Genera un grup OBJ per a cada part d'una geometria usant un material diferent"
-
-
-msgid "OBJ Groups"
-msgstr "Grups OBJ"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Exporta els objectes del Blender com a grups OBJ"
-
-
-msgid "Keep Vertex Order"
-msgstr "Mantenir ordre de vèrtexs"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Escriure un OBJ per a cada fotograma"
-
-
-msgid "OBJ Objects"
-msgstr "Objectes OBJ"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Exporta els objectes del Blender com a objectes OBJ"
-
-
-msgid "Include Edges"
-msgstr "Incloure arestes"
-
-
-msgid "Write Materials"
-msgstr "Escriure materials"
-
-
-msgid "Write out the MTL file"
-msgstr "Escriu el document MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Aplicar modificadors"
-
-
-msgid "Write Normals"
-msgstr "Escriure normals"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Exporta una normal per vèrtex i per cara, per a representar cares aplanades i cantells aguts"
-
-
-msgid "Write Nurbs"
-msgstr "Escriure NURBS"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Escriu les corbes de NURBS com a NURBS OBJ preferiblement a convertir-les en geometria"
-
-
-msgid "Smooth Groups"
-msgstr "Suavitzar grups"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Escriu els cantells aguts com a grups suaus"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Semàfor grups suavitzats"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "[Bitflag Smooth Groups]: El mateix que «Suavitzar grups», però genera els ID dels grups suavitzats com a semàfors (produeix com a màxim 32 grups suavitzats diferents, en general molts menys)"
-
-
-msgid "Include UVs"
-msgstr "Incloure UVs"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Escriu les coordenades UV actives"
-
-
-msgid "Polygroups"
-msgstr "Poligrups"
 
 
 msgctxt "Operator"
@@ -58948,6 +58770,14 @@ msgid "How much to blend to the default value"
 msgstr "Fins a quin punt fusionar fins al valor predeterminat"
 
 
+msgid "Curve Bend"
+msgstr "Arc de corba"
+
+
+msgid "Control the bend of the curve"
+msgstr "[Curve Bend]: Controla l'arc que fa la corba"
+
+
 msgctxt "Operator"
 msgid "Blend to Neighbor"
 msgstr "Fusionar al veí"
@@ -59128,14 +58958,6 @@ msgstr "Fotofites de gradualitzat"
 
 msgid "Align keyframes on a ease-in or ease-out curve"
 msgstr "[Ease Keyframes]: Alinea les fotofites a una corba de gradualització d'inici o de final"
-
-
-msgid "Curve Bend"
-msgstr "Arc de corba"
-
-
-msgid "Control the bend of the curve"
-msgstr "[Curve Bend]: Controla l'arc que fa la corba"
 
 
 msgctxt "Operator"
@@ -60509,19 +60331,6 @@ msgstr "Usar canal alfa per a transparència"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Carrega un document de geometria PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Ruta al document PLY a importar"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -60762,63 +60571,6 @@ msgstr "Nivell de registre"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "[Log Level]: El format glTF requereix normals discontínues, UVs i altres atributs de vèrtex que es guarden com a vèrtexs separats, com es requereix per a revelar en el típic maquinari gràfic. Aquesta opció intenta combinar vèrtexs co-locats quan es pot. Actualment no es poden combinar vèrtexs amb normals diferents"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Importar OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Carrega un document OBJ Wavefront"
-
-
-msgid "Clamp Size"
-msgstr "Retenir mida"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "[Clamp Size]: Reté els límits amb aquest valor (zero per a desactivar)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "Divideix la geometria, omet vèrtexs no utilitzats per arestes o cares"
-
-
-msgid "Keep Vert Order"
-msgstr "Manté ordre de vèrtexs"
-
-
-msgid "Keep vertex order from file"
-msgstr "[Keep Vert Order]: Manté l'ordre dels vèrtexs del document originari"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Importar línies i cares amb 2 vèrtexs com a aresta"
-
-
-msgid "Poly Groups"
-msgstr "Grups poligonals"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importar grups OBJ com a grups de vèrtexs"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Cerca en subdirectoris qualsevol imatge associada (Avís, pot ser lent)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Embolcallar grups suavitzats amb cantells aguts"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Importar grups OBJ a Objectes de Blender"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Importar objectes OBJ a Objectes de Blender"
 
 
 msgctxt "Operator"
@@ -81131,6 +80883,10 @@ msgid "Export Material Groups"
 msgstr "Exportar grups de materials"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Genera un grup OBJ per a cada part d'una geometria usant un material diferent"
+
+
 msgid "Export Materials"
 msgstr "Exportar materials"
 
@@ -81256,6 +81012,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Redimensiona els objectes per a mantenir la capsa contenidora per sota d'aquest valor. El valor 0 inhabilita l'estrenyiment"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importar grups OBJ com a grups de vèrtexs"
+
+
 msgid "Split By Group"
 msgstr "Separar per grup"
 
@@ -81361,6 +81121,11 @@ msgid "Open a path in a file browser"
 msgstr "Obrir una ruta al navegador"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Desar l'escena en un document PLY"
 
@@ -81395,6 +81160,11 @@ msgstr "Exportar normals de vèrtexs"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exporta unes normals de vèrtex específiques si n'hi ha, si no normals calculades"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -89347,6 +89117,10 @@ msgid "Axis-Angle"
 msgstr "Angle d'eix"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "XYZ Length"
 msgstr "Llargada XYZ"
 
@@ -92185,8 +91959,8 @@ msgid "Render at 12.5% resolution"
 msgstr "Revelar a resolució del 12,5%"
 
 
-msgid "Resolution %"
-msgstr "% de resolució"
+msgid "Resolution Scale"
+msgstr "Escala de resolució"
 
 
 msgid "Percentage scale for render resolution"
@@ -107486,11 +107260,6 @@ msgstr "S'està generant material compatible amb Cycles / EEVEE, però no serà 
 
 
 msgctxt "Operator"
-msgid "Stanford (.ply)"
-msgstr "Stanford (.ply)"
-
-
-msgctxt "Operator"
 msgid "Stl (.stl)"
 msgstr "Stl (.stl)"
 
@@ -107633,27 +107402,6 @@ msgstr "Sisplau crea primer una variant"
 msgctxt "Operator"
 msgid "Add a new Variant Slot"
 msgstr "Afegir nou epígraf de variant"
-
-
-msgctxt "Operator"
-msgid "Wavefront (.obj) (legacy)"
-msgstr "Wavefront (.obj) (antic)"
-
-
-msgid "Objects as"
-msgstr "Objecte com a"
-
-
-msgid "Curves as NURBS"
-msgstr "Corbes com a NURBS"
-
-
-msgid "Split by Object"
-msgstr "Separar per objecte"
-
-
-msgid "Split by Group"
-msgstr "Separar per grup"
 
 
 msgctxt "Operator"
@@ -113391,10 +113139,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Revertir a preferències desades"
 
 
-msgid "Resolution Scale"
-msgstr "Escala de resolució"
-
-
 msgid "Splash Screen"
 msgstr "Careta d'entrada"
 
@@ -116504,18 +116248,6 @@ msgid "[Action Stash]"
 msgstr "[Estiba d'acció]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "L'objecte no buit '%s' ja no pot duplicar la col·lecció '%s' a Blender 2.80, instanciació eliminada"
-
-
-msgid "Proxy lost from object %s lib %s"
-msgstr "Avatar extraviat de l'objecte %s bib %s"
-
-
-msgid "Proxy lost from object %s lib <NONE>"
-msgstr "Avatar extraviat de l'objecte %s bib <NONE>"
-
-
 msgid "Can't find object data of %s lib %s"
 msgstr "No es troben les dades d'objecte de %s bib %s"
 
@@ -117175,6 +116907,14 @@ msgstr "Ocult %d"
 
 msgid "Eevee material conversion problem. Error in console"
 msgstr "Problema de conversió de material d'Eevee. Error a la consola"
+
+
+msgid "Proxy lost from object %s lib %s"
+msgstr "Avatar extraviat de l'objecte %s bib %s"
+
+
+msgid "Proxy lost from object %s lib <NONE>"
+msgstr "Avatar extraviat de l'objecte %s bib <NONE>"
 
 
 msgid "2D_Animation"
@@ -119772,6 +119512,10 @@ msgid "Triangulated Mesh"
 msgstr "Malla triangular"
 
 
+msgid "Curves as NURBS"
+msgstr "Corbes com a NURBS"
+
+
 msgid "Grouping"
 msgstr "Agrupament"
 
@@ -119780,8 +119524,20 @@ msgid "Object Groups"
 msgstr "Grups d'objectes"
 
 
+msgid "Material Groups"
+msgstr "Grups materials"
+
+
+msgid "Smooth Groups"
+msgstr "Suavitzar grups"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Suavitzar semàfors de grup"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
@@ -120509,10 +120265,6 @@ msgstr "Precuinar directori d'objecte %s, el modificador %s està buit i estable
 
 msgid "Path conflict: %d caches set to path %s"
 msgstr "Conflicte de ruta: %d cau establerta a camí %s"
-
-
-msgid "Failed to remove bake directory %s"
-msgstr "No ha pogut eliminar directori de precuinat %s"
 
 
 msgid "File has to be saved"
@@ -125767,10 +125519,6 @@ msgstr "No s'ha pogut obrir l'arxiu USD per a lectura! Consulta la consola per m
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Importació USD: no s'ha pogut obrir l'etapa per a llegir %s"
-
-
-msgid "USD Import: couldn't compute values for color attribute '%s'"
-msgstr "Importació USD: no s'han pogut calcular els valors de l'atribut de color '%s'"
 
 
 msgid "USD Import: color attribute value '%s' count inconsistent with interpolation type"
@@ -131175,18 +130923,6 @@ msgid "Import SVG as curves"
 msgstr "Importar SVG com a corbes"
 
 
-msgid "Stanford PLY format"
-msgstr "Format PLY de Stanford"
-
-
-msgid "File > Import/Export"
-msgstr "Document > Importar/exportar"
-
-
-msgid "Import-Export PLY mesh data with UVs and vertex colors"
-msgstr "Importar-exportar dades de malla PLY amb UVs i colors de vèrtexs"
-
-
 msgid "UV Layout"
 msgstr "Disposició UV"
 
@@ -131197,14 +130933,6 @@ msgstr "Editor UV > UV > Exportar disposició UV"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "Exportar disposició UV com un gràfic en 2D"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Format OBJ Wavefront (antic)"
-
-
-msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
-msgstr "Importar-exportar OBJ, importar malla OBJ, UV's, materials i textures"
 
 
 msgid "glTF 2.0 format"

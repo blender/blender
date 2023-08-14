@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -31928,8 +31928,16 @@ msgstr "Converte rotações para o Euler ZYX."
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Guarda o ficheiro em formato de ficheiro ASCII"
 
 
 msgid "X Forward"
@@ -31976,39 +31984,6 @@ msgid "-Z Up"
 msgstr "-Z Para cima"
 
 
-msgid "Export the active vertex color layer"
-msgstr "Exporta a camada ativa de cor de vértice."
-
-
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Aplica os modificadores para a malha exportada."
-
-
-msgid "Selection Only"
-msgstr "Somente a seleção"
-
-
-msgid "Export selected objects only"
-msgstr "Exporta somente os objetos selecionados."
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Guarda o ficheiro em formato de ficheiro ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Modo de tarefas em lote"
 
@@ -32021,6 +31996,10 @@ msgid "Each object as a file"
 msgstr "Cada objeto como um ficheiro"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplica os modificadores antes de guardar."
 
@@ -32031,6 +32010,14 @@ msgstr "Unidades da cena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados exportados."
+
+
+msgid "Selection Only"
+msgstr "Somente a seleção"
+
+
+msgid "Export selected objects only"
+msgstr "Exporta somente os objetos selecionados."
 
 
 msgctxt "Operator"
@@ -32340,87 +32327,6 @@ msgstr "Converte todas as faces para triângulos"
 
 msgid "Add binormal and tangent vectors, together with normal they form the tangent space (will only work correctly with tris/quads only meshes!)"
 msgstr "Adiciona vetores binormais e tangentes, juntamente com as normais que eles formam dentro do espaço tangente (só funciona corretamente com malhas formadas por triângulos ou quadriláteros !)."
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Exportar OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Guarda um ficheiro Wavefront OBJ"
-
-
-msgid "Material Groups"
-msgstr "Grupos de materiais"
-
-
-msgid "Keep Vertex Order"
-msgstr "Manter a ordem de vértices"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Escreve externamente um ficheiro OBJ para cada fotograma."
-
-
-msgid "Include Edges"
-msgstr "Incluir arestas"
-
-
-msgid "Write Materials"
-msgstr "Escrever materiais"
-
-
-msgid "Write out the MTL file"
-msgstr "Escreve a saída para o ficheiro MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Write Normals"
-msgstr "Escrever normais"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Exportar uma normal por face e por vértice, para representar faces achatadas e arestas ressaltadas."
-
-
-msgid "Write Nurbs"
-msgstr "Escrever Nurbs"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Escreve as curvas Nurbs no formato Nurbs OBJ ao invés de convertê-las para geometria."
-
-
-msgid "Smooth Groups"
-msgstr "Grupos suavizados"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Escreve as arestas ressaltadas como grupos suavizados"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Grupos suavizados com Bitflag"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "O mesmo que \"Grupos suavizados\", mas gera identificadores de grupos suavizados como bandeiras em formato de bits (produz ao menos, 32 grupos diferentes de suavização, mas usualmente, muito menos)."
-
-
-msgid "Include UVs"
-msgstr "Incluir UVs"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Escreve as coordenadas UV ativas"
-
-
-msgid "Polygroups"
-msgstr "Diversos grupos"
 
 
 msgid "Compress"
@@ -34514,19 +34420,6 @@ msgstr "Insensível a luzes ou sombras"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Carrega um ficheiro de geometria PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Caminho de ficheiro usado para importar o ficheiro PLY."
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -34666,59 +34559,6 @@ msgstr "Usar rotação prévia ou posterior"
 
 msgid "Use pre/post rotation from FBX transform (you may have to disable that in some cases)"
 msgstr "Usa uma rotação prévia ou posterior a partir das transformações FBX (será necessário desativar esta funcionalidade em alguns casos)."
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Importar OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Carrega um ficheiro Alias Wavefront (.OBJ)."
-
-
-msgid "Clamp Size"
-msgstr "Limitar tamanho"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "Limita as margens abaixo deste valor (zero para desativar)."
-
-
-msgid "Keep Vert Order"
-msgstr "Manter a ordem dos vértices"
-
-
-msgid "Keep vertex order from file"
-msgstr "Mantém a ordem dos vértices a partir do ficheiro."
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Importa as linhas e faces com dois vértices como aresta."
-
-
-msgid "Poly Groups"
-msgstr "Grupo de polígonos"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa os grupos OBJ como grupos de vértices."
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Pesquisa os sub-diretórios por quaisquer imagens associadas (atenção, pode ser lento)."
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Envolve os grupos suavizados por arestas ressaltadas."
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Importa os grupos OBJ em objetos Blender"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Importa os objetos OBJ em objetos Blender"
 
 
 msgctxt "Operator"
@@ -46511,6 +46351,10 @@ msgid "Print memory statistics to the console"
 msgstr "Imprime estatísticas de memória na linha de comando."
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa os grupos OBJ como grupos de vértices."
+
+
 msgid "Open a Blender file"
 msgstr "Abre um ficheiro Blender."
 
@@ -46560,6 +46404,16 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 
 msgid "Open a path in a file browser"
 msgstr "Abre um caminho em um navegador de ficheiros."
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgctxt "Operator"
@@ -51541,10 +51395,6 @@ msgstr "Proporção de aspecto vertical - para saída de pixeis anamórficos ou 
 
 msgid "Pixel Size"
 msgstr "Tamanho do pixel"
-
-
-msgid "Resolution %"
-msgstr "Resolução %"
 
 
 msgid "Percentage scale for render resolution"
@@ -62641,6 +62491,14 @@ msgstr "Sem objetos selecionados. Um ficheiro de exportação vazio foi criado."
 
 msgid "Error during export (see Console)"
 msgstr "Erro durante a exportação (veja a linha de comando)."
+
+
+msgid "Material Groups"
+msgstr "Grupos de materiais"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos suavizados"
 
 
 msgctxt "Mesh"

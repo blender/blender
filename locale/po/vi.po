@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -5558,36 +5558,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Không gian hiển thị sRGB áp dụng biến hóa hiển thị Filmic"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "Rec. 709 (Toàn Bộ Phạm vi), không gian tuyến tính thuộc địa của Blender"
-
-
-msgid "Linear ACES"
-msgstr "ACES Tuyến Tính"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "Không gian tuyến tính ACES2065-1"
-
-
-msgid "Linear ACEScg"
-msgstr "ACEScg Tuyến Tính"
-
-
-msgid "ACEScg linear space"
-msgstr "Không gian tuyến tính ACEScg"
-
-
 msgid "Non-Color"
 msgstr "Vô Màu Sắc"
-
-
-msgid "sRGB display space"
-msgstr "Không gian hiển thị sRGB"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -28282,20 +28254,12 @@ msgid "Insert After"
 msgstr "Chèn Phía Sau"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "Chèn một mặt hàng vào sưu tập sau mặt hàng được tham chiếu trong subitem_reference_name hoặc _index"
-
-
 msgid "Insert Before"
 msgstr "Chèn Phía Trước"
 
 
 msgid "Subitem Local Index"
 msgstr "Chỉ Số địa Phương Hạ Mặt Hàng"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "Sử dụng để xử lý chèn vào sưu tập"
 
 
 msgid "Subitem Local Name"
@@ -41279,15 +41243,6 @@ msgstr "Phần phân số của A"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Phần Dư"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "Phần Dư dùng fmod(A,B)"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Lặp Lại"
 
@@ -45229,6 +45184,11 @@ msgstr "Nóc từng thành phần"
 
 msgid "The fraction part of A entry-wise"
 msgstr "Phân dư của A từng thành phần"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Phần Dư"
 
 
 msgid "Entry-wise modulo using fmod(A,B)"
@@ -51092,12 +51052,20 @@ msgstr "Biến đổi xoay thành Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Xuất PLY"
+msgid "Export STL"
+msgstr "Xuất STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "Xuất một vật thể trong tập tin PLY Stanford, có màu, và tọa độ chất liệu"
+msgid "Save STL triangle mesh data"
+msgstr "Lưu dữ liệu mạng lưới tam giác STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Lưu tập tin bằng định dạng tập tin ASCII"
 
 
 msgid "X Forward"
@@ -51144,59 +51112,6 @@ msgid "-Z Up"
 msgstr "-Z Trên"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "Xuất dùng định dạng ASCII, nếu không dùng nhị phận"
-
-
-msgid "Export the active vertex color layer"
-msgstr "Xuất lớp màu đỉnh hoạt động"
-
-
-msgid "Apply Modifiers"
-msgstr "Áp Dụng Bộ Điều Chỉnh"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Áp dụng cuự sửa đổi với mạng lưới xuất"
-
-
-msgid "Export vertex normals"
-msgstr "Xuất pháp tuyến đỉnh"
-
-
-msgid "Selection Only"
-msgstr "Chỉ Vật Chọn"
-
-
-msgid "Export selected objects only"
-msgstr "Chỉ xuất vật thể được chọn"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "Xuất lớp UV hoạt động (sẽ chẻ cạnh tại vết sẹo)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Xuất STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Lưu dữ liệu mạng lưới tam giác STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Lưu tập tin bằng định dạng tập tin ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Chế Độ Xấp"
 
@@ -51217,6 +51132,10 @@ msgid "Export in this reference space"
 msgstr "Xuất bằng không gian tham chiếu"
 
 
+msgid "Apply Modifiers"
+msgstr "Áp Dụng Bộ Điều Chỉnh"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Áp dụng bộ điều chỉnh trước lưu"
 
@@ -51227,6 +51146,14 @@ msgstr "Đơn Vị Cảnh"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Áp dụng đơn vị của cảnh (tùy chỉ định bằng phóng to đơn vị) với dữ liệu xuất"
+
+
+msgid "Selection Only"
+msgstr "Chỉ Vật Chọn"
+
+
+msgid "Export selected objects only"
+msgstr "Chỉ xuất vật thể được chọn"
 
 
 msgctxt "Operator"
@@ -51941,107 +51868,6 @@ msgstr "Ghi Nhớ Cài Đặt Xuất"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Chứa cài đặt xuất glTF trong dự án Blender"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Xuất OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Lưu tập tin OBJ Wavefront"
-
-
-msgid "Material Groups"
-msgstr "Nhóm Vật Liệu"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Chế tạo một nhóm OBJ cho mỗi bộ phận của một hình dạng bằng dùng một vật liệu khác"
-
-
-msgid "OBJ Groups"
-msgstr "Nhóm OBJ"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Xuất vật thể Blender bằng nhóm OBJ"
-
-
-msgid "Keep Vertex Order"
-msgstr "Giữ Thứ Tự Đỉnh"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Lưu một tập tin OBJ cho mỗi bức ảnh"
-
-
-msgid "OBJ Objects"
-msgstr "Vật Thể OBJ"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Xuất vật thể Blender bằng vật thể OBJ"
-
-
-msgid "Include Edges"
-msgstr "Gồm Cạnh"
-
-
-msgid "Write Materials"
-msgstr "Lưu Vật Liệu"
-
-
-msgid "Write out the MTL file"
-msgstr "Lưu tập tin MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Áp dụng bộ điều chỉnh"
-
-
-msgid "Write Normals"
-msgstr "Lưu Pháp Tuyến"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Xuất một pháp tuyến cho mỗi đỉnh và mặt, cho biểu diễn mặt bằng phẳng và cạnh bén"
-
-
-msgid "Write Nurbs"
-msgstr "Lưu NURBS"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Lưu cong NURBS thành NURBS OBJ thay biến đổi hình dạng"
-
-
-msgid "Smooth Groups"
-msgstr "Nhóm Mịn"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Lưu cạnh bén thành nhóm mịn"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Nhóm Cờ Bit Mịn"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "Giống 'Nhóm Mịn' nhưng chế tạo các ID nhóm mịn bằng cờ bit (chỉ được sản xuất nhiều nhất 32 nhóm mịn, thường ít hơn nhiều)"
-
-
-msgid "Include UVs"
-msgstr "Gồm UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Lưu tọa độ UV hoạt động"
-
-
-msgid "Polygroups"
-msgstr "Nhóm đa giác"
 
 
 msgctxt "Operator"
@@ -56678,19 +56504,6 @@ msgstr "Sử dụng kênh độ đục cho trong suốt"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Nhập PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Nhập một tập tin hình dạng PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Đường dẫn tập tin cho nhập tập tin PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Nhập STL"
 
@@ -56915,63 +56728,6 @@ msgstr "Mức Log"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Định dạng glTF yêu cầu những pháp tuyến không liên tiếp, tọa độ UV, và đặc trưng điểm khác được chứa bởi đỉnh riêng biệt, theo như cầu của phần cứng đồ họa bình thường. Tùy chọn này thử gồm lại đỉnh ở cùng chỗ. Hiện tại chưa được gồm đỉnh có pháp tuyến khác nhau"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Nhập OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Nhập một tập tin OBJ Wavefront"
-
-
-msgid "Clamp Size"
-msgstr "Kẹp Lại Kích Cỡ"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "Kẹp lại dưới giá trị này (đặt = 0 để tắt)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "Chẻ hình dạng, bỏ qua những đỉnh các cạnh và mặt không sử dụng"
-
-
-msgid "Keep Vert Order"
-msgstr "Giữ thứ tự đỉnh"
-
-
-msgid "Keep vertex order from file"
-msgstr "Giữ thứ tự đỉnh từ tập tin"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Nhập các đường và mặt có 2 đỉnh làm cạnh"
-
-
-msgid "Poly Groups"
-msgstr "Nhóm Đa Giác"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Nhập nhóm OBJ thành nhóm đỉnh"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Tìm ảnh liên quan trong thư mục phụ (Cảnh báo, có thể rất chậm)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Đặt cạnh bén quanh nhóm mịn"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Nhập Vật Thể OBJ vào trong Vật Thể Blender"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Nhập Vật Thể OBJ vào trong Vật Thể Blender"
 
 
 msgctxt "Operator"
@@ -75858,6 +75614,10 @@ msgid "Export Material Groups"
 msgstr "Xuất Nhóm Vật Liệu"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Chế tạo một nhóm OBJ cho mỗi bộ phận của một hình dạng bằng dùng một vật liệu khác"
+
+
 msgid "Export Materials"
 msgstr "Xuất vật liệu"
 
@@ -75975,6 +75735,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Đổi cỡ thước vật thể cho giữ hộp bao Quang nhỏ hơn giá trị này. Đặc = 0 để tắt kẹp lại"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Nhập nhóm OBJ thành nhóm đỉnh"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Mở"
@@ -76050,6 +75814,16 @@ msgstr "Nhãn Giao Diện"
 
 msgid "Open a path in a file browser"
 msgstr "Mở một đường dẫn trong một trình duyệt tập tin"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Xuất PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Nhập PLY"
 
 
 msgctxt "Operator"
@@ -83283,6 +83057,10 @@ msgid "Temperature"
 msgstr "Nhiệt Độ"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "ID Property Group"
 msgstr "Nhóm Đặc Tính ID"
 
@@ -85783,8 +85561,8 @@ msgid "Render at 12.5% resolution"
 msgstr "Kết xuất ảnh dùng 12.5% độ phân giải"
 
 
-msgid "Resolution %"
-msgstr "Độ Phân Giải %"
+msgid "Resolution Scale"
+msgstr "Tỉ Số Độ Phân Giải"
 
 
 msgid "Percentage scale for render resolution"
@@ -99871,10 +99649,6 @@ msgid "Add a new Variant Slot"
 msgstr "Thêm một Lhe Biến Thể mới"
 
 
-msgid "Curves as NURBS"
-msgstr "Đường Cong sang NURBS"
-
-
 msgid "Multiple selected objects. Only the active one will be evaluated"
 msgstr "Được chọn nhiều vật thể. Chỉ sẽ đánh giá vật thể hoạt động"
 
@@ -105086,10 +104860,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Hoàn Lại đến Tùy Chọn Được Lưu"
 
 
-msgid "Resolution Scale"
-msgstr "Tỉ Số Độ Phân Giải"
-
-
 msgid "Splash Screen"
 msgstr "Ảnh Quảng Cáo"
 
@@ -107869,10 +107639,6 @@ msgid "[Action Stash]"
 msgstr "[Hành Động Cất Chứa]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "Vật Thể không phải Vật Thể Rỗng '%s' không thể sao chép nữa sưu tập '%s' trong Blender 2.80"
-
-
 msgid "Can't find object data of %s lib %s"
 msgstr "Không thể tìm dữ liệu của %s thư viện %s"
 
@@ -110516,6 +110282,10 @@ msgid "Triangulated Mesh"
 msgstr "Mạng Lưới Tam Giác Hóa"
 
 
+msgid "Curves as NURBS"
+msgstr "Đường Cong sang NURBS"
+
+
 msgid "Grouping"
 msgstr "Nhóm Hóa"
 
@@ -110524,8 +110294,20 @@ msgid "Object Groups"
 msgstr "Nhóm Vật Thể"
 
 
+msgid "Material Groups"
+msgstr "Nhóm Vật Liệu"
+
+
+msgid "Smooth Groups"
+msgstr "Nhóm Mịn"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Cờ Bit Nhóm Mịn"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'd4d0daa934cd')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-07 09:03:59\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -5919,36 +5919,8 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Espacio de visualización sRGB con transformación fílmica"
 
 
-msgid "Rec. 709 (Full Range), Blender native linear space"
-msgstr "Rec. 709 (rango completo), espacio nativo de Blender"
-
-
-msgid "Linear ACES"
-msgstr "ACES lineal"
-
-
-msgid "ACES2065-1 linear space"
-msgstr "Espacio lineal ACES2065-1"
-
-
-msgid "Linear ACEScg"
-msgstr "ACEScg lineal"
-
-
-msgid "ACEScg linear space"
-msgstr "Espacio lineal ACEScg"
-
-
 msgid "Non-Color"
 msgstr "No es color"
-
-
-msgid "sRGB display space"
-msgstr "Espacio de visualización sRGB"
-
-
-msgid "XYZ"
-msgstr "XYZ"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -29985,24 +29957,12 @@ msgid "Insert After"
 msgstr "Insertar después"
 
 
-msgid "Insert a new item into collection after the one referenced in subitem_reference_name or _index"
-msgstr "Inserta un nuevo elemento en la colección después del referenciado en subitem_reference_name o _index"
-
-
 msgid "Insert Before"
 msgstr "Insertar antes"
 
 
-msgid "Insert a new item into collection before the one referenced in subitem_reference_name or _index (NOT USED)"
-msgstr "Inserta un nuevo elemento en la colección antes del referenciado en subitem_reference_name o en _index (NO USADO)"
-
-
 msgid "Subitem Local Index"
 msgstr "Identificador de subsistema local"
-
-
-msgid "Used to handle insertions into collection"
-msgstr "Usado para manipular la inserción en una colección"
 
 
 msgid "Subitem Local Name"
@@ -43450,15 +43410,6 @@ msgstr "La parte fraccionaria de A"
 
 
 msgctxt "NodeTree"
-msgid "Modulo"
-msgstr "Resto"
-
-
-msgid "Modulo using fmod(A,B)"
-msgstr "Resto de dividir dos valores, fmod(A,B)"
-
-
-msgctxt "NodeTree"
 msgid "Wrap"
 msgstr "Ciclo"
 
@@ -47909,6 +47860,11 @@ msgstr "Techo Hadamard"
 
 msgid "The fraction part of A entry-wise"
 msgstr "La parte fraccionaria Hadamard de A"
+
+
+msgctxt "NodeTree"
+msgid "Modulo"
+msgstr "Resto"
 
 
 msgid "Entry-wise modulo using fmod(A,B)"
@@ -54013,12 +53969,20 @@ msgstr "Convetir rotaciones a Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
+msgid "Export STL"
+msgstr "Exportar STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "Exportar como PLY de Stanford con normales, colores de vértices y coordenadas de texturizado"
+msgid "Save STL triangle mesh data"
+msgstr "Guardar datos de malla triangulada STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Guarda el archivo en formato ASCII"
 
 
 msgid "X Forward"
@@ -54065,59 +54029,6 @@ msgid "-Z Up"
 msgstr "-Z hacia arriba"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "Exportar usando un formato de archivo ASCII, de otro modo se usará uno binario"
-
-
-msgid "Export the active vertex color layer"
-msgstr "Exporta la capa activa de colores de vértices"
-
-
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "Aplica los modificadores a la malla exportada"
-
-
-msgid "Export vertex normals"
-msgstr "Exporta las normales de los vértices"
-
-
-msgid "Selection Only"
-msgstr "Sólo lo seleccionado"
-
-
-msgid "Export selected objects only"
-msgstr "Exportar sólo objetos seleccionados"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "Exportar la capa activa de UV (separará los bordes por sus costuras)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exportar STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Guardar datos de malla triangulada STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Guarda el archivo en formato ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Proceso por lotes"
 
@@ -54138,6 +54049,10 @@ msgid "Export in this reference space"
 msgstr "Exporta en este espacio de referencia"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Aplicar los modificadores antes de guardar"
 
@@ -54148,6 +54063,14 @@ msgstr "Unidades de la escena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplicar las unidades de la escena actual a los datos exportados"
+
+
+msgid "Selection Only"
+msgstr "Sólo lo seleccionado"
+
+
+msgid "Export selected objects only"
+msgstr "Exportar sólo objetos seleccionados"
 
 
 msgctxt "Operator"
@@ -55110,107 +55033,6 @@ msgstr "Recordar opciones de exportación"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Almacenar opciones de exportación de glTF en el proyecto de Blender"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Exportar OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "Guarda un archivo OBJ de Wavefront"
-
-
-msgid "Material Groups"
-msgstr "Grupos de material"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Genera un grupo dentro del OBJ para cada parte de una geometría que use un material distinto"
-
-
-msgid "OBJ Groups"
-msgstr "Grupos en OBJ"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Exporta los objetos de Blender como grupos en el OBJ"
-
-
-msgid "Keep Vertex Order"
-msgstr "Mantener orden de vértices"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "Guarda un OBJ por cada fotograma"
-
-
-msgid "OBJ Objects"
-msgstr "Objetos en OBJ"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Exporta los objetos de Blender como objetos en el OBJ"
-
-
-msgid "Include Edges"
-msgstr "Incluir bordes"
-
-
-msgid "Write Materials"
-msgstr "Guardar materiales"
-
-
-msgid "Write out the MTL file"
-msgstr "Guarda el archivo MTL"
-
-
-msgid "Apply modifiers"
-msgstr "Aplicar modificadores"
-
-
-msgid "Write Normals"
-msgstr "Guardar normales"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "Exporta una normal por vértice y por cara, para representar caras planas y bordes definidos"
-
-
-msgid "Write Nurbs"
-msgstr "Guardar NURBS"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "Guarda las curvas NURBS como NURBS de OBJ en vez de convertirlas en geometría"
-
-
-msgid "Smooth Groups"
-msgstr "Grupos de suavizado"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "Guarda los bordes definidos como grupos de suavizado"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Grupos de suavizado (indicadores)"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "Similar a los 'Grupos de suavizado', pero genera ID de grupos de suavizado en forma de indicadores de bits (puede producir como máximo 32 grupos de suavizado distintos, usualmente muchos menos)"
-
-
-msgid "Include UVs"
-msgstr "Incluir UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "Guarda las coordenadas UV activas"
-
-
-msgid "Polygroups"
-msgstr "Grupos poligonales"
 
 
 msgctxt "Operator"
@@ -58856,6 +58678,14 @@ msgid "How much to blend to the default value"
 msgstr "Cuánto fundir hacia el valor predefinido"
 
 
+msgid "Curve Bend"
+msgstr "Flexión de la curva"
+
+
+msgid "Control the bend of the curve"
+msgstr "Controla la flexión de la curva"
+
+
 msgctxt "Operator"
 msgid "Blend to Neighbor"
 msgstr "Fundir a cercano"
@@ -58995,14 +58825,6 @@ msgstr "Aceleración de claves"
 
 msgid "Align keyframes on a ease-in or ease-out curve"
 msgstr "Alinea los claves para formar una curva de partida o llegada suave"
-
-
-msgid "Curve Bend"
-msgstr "Flexión de la curva"
-
-
-msgid "Control the bend of the curve"
-msgstr "Controla la flexión de la curva"
 
 
 msgctxt "Operator"
@@ -60364,19 +60186,6 @@ msgstr "Usar el canal alfa para definir la transparencia"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "Carga un archivo de geometría PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Ruta usada para importar el archivo PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importar STL"
 
@@ -60617,63 +60426,6 @@ msgstr "Nivel de registro"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "El formato glTF requiere que las normales discontinuas, UV y otros atributos de vértices sean almacenados como vértices separados, tal como se requiere para ser procesado por el hardware gráfico usual. Esta opción intentará combinar, cuando sea posible, vértices que compartan la misma ubicación. Actualmente no es posible combinar vértices con distintas normales"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Importar OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "Cargar un archivo Wavefront OBJ"
-
-
-msgid "Clamp Size"
-msgstr "Limitar tamaño"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "Impone un tope a los límites por debajo de este valor (cero para deshabilitar)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "Dividir la geometría, omitiendo los vértices no usados por bordes o caras"
-
-
-msgid "Keep Vert Order"
-msgstr "Mant. orden vért."
-
-
-msgid "Keep vertex order from file"
-msgstr "Mantiene el orden de los vértices del archivo"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "Importa líneas y caras de 2 vértices como bordes"
-
-
-msgid "Poly Groups"
-msgstr "Grupos poligonales"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa grupos OBJ como grupos de vértices"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "Busca cualquier imagen asociada en los subdirectorios (Advertencia, puede ser lento)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "Rodear grupos de suavizado por bordes definidos"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "Importar grupos OBJ como objetos de Blender"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "Importar objetos OBJ como objetos de Blender"
 
 
 msgctxt "Operator"
@@ -80937,6 +80689,10 @@ msgid "Export Material Groups"
 msgstr "Exportar grupos de materiales"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Genera un grupo dentro del OBJ para cada parte de una geometría que use un material distinto"
+
+
 msgid "Export Materials"
 msgstr "Exportar materiales"
 
@@ -81062,6 +80818,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Redimensiona los objetos para mantener el volumen delimitador por debajo de este valor. Un valor de 0 deshabilita la limitación"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa grupos OBJ como grupos de vértices"
+
+
 msgid "Split By Group"
 msgstr "Dividir por grupo"
 
@@ -81167,6 +80927,11 @@ msgid "Open a path in a file browser"
 msgstr "Abre una ruta en el explorador de archivos"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Guarda la escena a un archivo PLY"
 
@@ -81201,6 +80966,11 @@ msgstr "Exportar normales de vértices"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exporta normales de vértices específicas, si estuvieran disponibles, de otro modo se exportarán normales calculadas"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -89137,6 +88907,10 @@ msgid "Axis-Angle"
 msgstr "Eje y ángulo"
 
 
+msgid "XYZ"
+msgstr "XYZ"
+
+
 msgid "XYZ Length"
 msgstr "Longitud XYZ"
 
@@ -91975,8 +91749,8 @@ msgid "Render at 12.5% resolution"
 msgstr "Procesar al 12,5% de resolución"
 
 
-msgid "Resolution %"
-msgstr "% de resolución"
+msgid "Resolution Scale"
+msgstr "Escalar resolución"
 
 
 msgid "Percentage scale for render resolution"
@@ -107254,11 +107028,6 @@ msgstr "Generando un material compatible con Cycles/EEVEE, pero no será visible
 
 
 msgctxt "Operator"
-msgid "Stanford (.ply)"
-msgstr "Stanford (.ply)"
-
-
-msgctxt "Operator"
 msgid "Stl (.stl)"
 msgstr "STL (.stl)"
 
@@ -107401,27 +107170,6 @@ msgstr "Por favor crear antes una variante"
 msgctxt "Operator"
 msgid "Add a new Variant Slot"
 msgstr "Agrega un nuevo contenedor de variante"
-
-
-msgctxt "Operator"
-msgid "Wavefront (.obj) (legacy)"
-msgstr "Wavefront (.obj) (antiguo)"
-
-
-msgid "Objects as"
-msgstr "Objetos como"
-
-
-msgid "Curves as NURBS"
-msgstr "Curvas como NURBS"
-
-
-msgid "Split by Object"
-msgstr "Dividir por objeto"
-
-
-msgid "Split by Group"
-msgstr "Dividir por grupo"
 
 
 msgctxt "Operator"
@@ -113155,10 +112903,6 @@ msgid "Revert to Saved Preferences"
 msgstr "Revertir a preferencias guardadas"
 
 
-msgid "Resolution Scale"
-msgstr "Escalar resolución"
-
-
 msgid "Splash Screen"
 msgstr "Imagen de bienvenida"
 
@@ -116268,18 +116012,6 @@ msgid "[Action Stash]"
 msgstr "[Esconder acción]"
 
 
-msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80, removed instancing"
-msgstr "Objeto no vacío '%s' ya no es posible duplicar la colección '%s' en Blender 2.80, instancia removida"
-
-
-msgid "Proxy lost from object %s lib %s"
-msgstr "Reemplazo del objeto %s bibl %s perdido"
-
-
-msgid "Proxy lost from object %s lib <NONE>"
-msgstr "Reemplazo del objeto %s bibl <Ninguna> perdido"
-
-
 msgid "Can't find object data of %s lib %s"
 msgstr "No es posible encontrar datos del objeto %s bibl %s"
 
@@ -116671,6 +116403,14 @@ msgstr "Oculto %d"
 
 msgid "Eevee material conversion problem. Error in console"
 msgstr "Problema en conversión de material de Eevee (ver error en consola)"
+
+
+msgid "Proxy lost from object %s lib %s"
+msgstr "Reemplazo del objeto %s bibl %s perdido"
+
+
+msgid "Proxy lost from object %s lib <NONE>"
+msgstr "Reemplazo del objeto %s bibl <Ninguna> perdido"
 
 
 msgid "2D_Animation"
@@ -119252,6 +118992,10 @@ msgid "Triangulated Mesh"
 msgstr "Malla triangulada"
 
 
+msgid "Curves as NURBS"
+msgstr "Curvas como NURBS"
+
+
 msgid "Grouping"
 msgstr "Grupos"
 
@@ -119260,8 +119004,20 @@ msgid "Object Groups"
 msgstr "Grupos de objetos"
 
 
+msgid "Material Groups"
+msgstr "Grupos de material"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos de suavizado"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Indicadores grupos suavizado"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
@@ -119989,10 +119745,6 @@ msgstr "El directorio de captura del objeto %s, modificador %s, se encuentra vac
 
 msgid "Path conflict: %d caches set to path %s"
 msgstr "Conflicto en la ruta: cachés de %d definidos a la ruta %s"
-
-
-msgid "Failed to remove bake directory %s"
-msgstr "No fue posible eliminar el directorio de captura %s"
 
 
 msgid "File has to be saved"
@@ -125227,10 +124979,6 @@ msgstr "No fue posible abrir el archivo USD para su lectura, ver la consola para
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Importación de USD: No es posible abrir un stage para leer %s"
-
-
-msgid "USD Import: couldn't compute values for color attribute '%s'"
-msgstr "Importación de USD: No fue posible calcular los valores para el atributo de color '%s'"
 
 
 msgid "USD Import: color attribute value '%s' count inconsistent with interpolation type"
@@ -130631,18 +130379,6 @@ msgid "Import SVG as curves"
 msgstr "Importar SVG como curvas"
 
 
-msgid "Stanford PLY format"
-msgstr "Formato PLY de Stanford"
-
-
-msgid "File > Import/Export"
-msgstr "Archivo > Importar / Exportar"
-
-
-msgid "Import-Export PLY mesh data with UVs and vertex colors"
-msgstr "Importa y exporta datos de malla PLY como las UV y los colores de vértices"
-
-
 msgid "UV Layout"
 msgstr "Organización de UV"
 
@@ -130653,14 +130389,6 @@ msgstr "Editor de UV > UV > Exportar organización de UV"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "Exporta la organización de UV como una imagen 2D"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Formato OBJ de Wavefront (antiguo)"
-
-
-msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
-msgstr "Importa y exporta OBJ, importa mallas, UV, materiales y texturas"
 
 
 msgid "glTF 2.0 format"
