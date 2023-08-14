@@ -421,13 +421,6 @@ endif()
 # -----------------------------------------------------------------------------
 # Install Targets (Generic, All Platforms)
 
-
-# Important to make a clean install each time, else old scripts get loaded.
-install(
-  CODE
-  "file(REMOVE_RECURSE ${TARGETDIR_VER})"
-)
-
 if(WITH_PYTHON)
   # install(CODE "message(\"copying blender scripts...\")")
 
