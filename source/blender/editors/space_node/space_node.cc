@@ -676,14 +676,14 @@ static bool node_group_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *
   return WM_drag_is_ID_type(drag, ID_NT);
 }
 
-static bool node_object_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_object_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_OB);
+  return WM_drag_is_ID_type(drag, ID_OB) && !UI_but_active_drop_name(C);
 }
 
-static bool node_collection_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_GR);
+  return WM_drag_is_ID_type(drag, ID_GR) && !UI_but_active_drop_name(C);
 }
 
 static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
