@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2012-2021 Meta Platforms, Inc. and affiliates.
- * SPDX-FileCopyrightText: 2022 Blender Foundation
+ * SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 

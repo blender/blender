@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2015-2022 Blender Foundation
+# SPDX-FileCopyrightText: 2015-2022 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation. All rights reserved.
+/* SPDX-FileCopyrightText: 2017 Blender Authors. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 

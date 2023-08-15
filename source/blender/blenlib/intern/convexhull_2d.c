@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  * SPDX-FileCopyrightText: 2001 softSurfer (http://www.softsurfer.com)
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
@@ -62,7 +62,7 @@ bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
 /**
  * Get the user's cache directory, i.e.
  * - Linux: `$HOME/.cache/blender/`
- * - Windows: `%USERPROFILE%\AppData\Local\Blender Foundation\Blender\`
+ * - Windows: `%USERPROFILE%\AppData\Local\Blender Authors\Blender\`
  * - MacOS: `/Library/Caches/Blender`
  *
  * \returns True if the path is valid. It doesn't create or checks format

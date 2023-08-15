@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -115,7 +115,7 @@ author_table = {
 commit_authors_overwrite: Dict[bytes, Tuple[str, str]] = {
     # Format: {full_git_hash: (tuple, of, authors),}.
     # Example:
-    # b"a60c1e5bb814078411ce105b7cf347afac6f2afd": ("Blender Foundation",  "Suzanne", "Ton"),
+    # b"a60c1e5bb814078411ce105b7cf347afac6f2afd": ("Blender Authors",  "Suzanne", "Ton"),
 }
 
 
@@ -152,9 +152,9 @@ class Credits:
     )
 
     # Expected to cover the following formats (the e-mail address is not captured if present):
-    #    `Co-authored-by: Blender Foundation`
-    #    `Co-authored-by: Blender Foundation <foundation@blender.org>`
-    #    `Co-authored-by: Blender Foundation <Suzanne>`
+    #    `Co-authored-by: Blender Authors`
+    #    `Co-authored-by: Blender Authors <foundation@blender.org>`
+    #    `Co-authored-by: Blender Authors <Suzanne>`
     GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*(?P<author>[ \w\t]*\w)(?:$|[ \t]*<)", re.MULTILINE)
 
     def __init__(self) -> None:
