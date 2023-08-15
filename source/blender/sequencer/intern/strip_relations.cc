@@ -175,7 +175,7 @@ void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
 
 void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 {
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
   }
 
@@ -186,7 +186,7 @@ void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 
 void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
 {
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
   }
 

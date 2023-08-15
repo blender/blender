@@ -255,7 +255,7 @@ static void seq_convert_transform_crop_lb(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (seq->type != SEQ_TYPE_SOUND_RAM) {
+    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       seq_convert_transform_crop(scene, seq, render_size);
     }
     if (seq->type == SEQ_TYPE_META) {
@@ -341,7 +341,7 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Sequence *, seq, lb) {
-    if (seq->type != SEQ_TYPE_SOUND_RAM) {
+    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       seq_convert_transform_crop_2(scene, seq, render_size);
     }
     if (seq->type == SEQ_TYPE_META) {

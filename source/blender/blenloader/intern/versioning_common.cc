@@ -28,6 +28,8 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "SEQ_sequencer.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLO_readfile.h"
@@ -502,6 +504,14 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
     do_versions_ipos_to_animato(new_bmain);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
+    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
+      if (scene->ed) {
+        SEQ_doversion_250_sound_proxy_update(new_bmain, scene->ed);
+      }
+    }
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 302, 1)) {

@@ -113,6 +113,8 @@ void SEQ_blend_read_lib(struct BlendLibReader *reader,
 
 void SEQ_blend_read_expand(struct BlendExpander *expander, struct ListBase *seqbase);
 
+void SEQ_doversion_250_sound_proxy_update(struct Main *bmain, struct Editing *ed);
+
 /* Depsgraph update function. */
 
 /**

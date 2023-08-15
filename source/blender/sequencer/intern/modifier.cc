@@ -1558,7 +1558,7 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
 
 int SEQ_sequence_supports_modifiers(Sequence *seq)
 {
-  return !ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD);
+  return (seq->type != SEQ_TYPE_SOUND_RAM);
 }
 
 /** \} */

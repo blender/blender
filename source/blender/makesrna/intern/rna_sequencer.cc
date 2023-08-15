@@ -498,7 +498,7 @@ static void rna_Sequence_frame_offset_start_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
+  *min = (seq->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
   *max = seq->len - seq->endofs - 1;
 }
 
@@ -506,7 +506,7 @@ static void rna_Sequence_frame_offset_end_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
+  *min = (seq->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
   *max = seq->len - seq->startofs - 1;
 }
 
