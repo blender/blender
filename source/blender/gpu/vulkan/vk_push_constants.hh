@@ -147,6 +147,8 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
      * Location = ShaderInput.location.
      */
     const PushConstant *find(int32_t location) const;
+
+    void debug_print() const;
   };
 
  private:
