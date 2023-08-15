@@ -29,6 +29,7 @@
 #include "tree_element_grease_pencil_node.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
+#include "tree_element_linked_object.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
 #include "tree_element_particle_system.hh"
@@ -167,6 +168,8 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementPoseGroup>(
           legacy_te, *posegrp_data->object, *posegrp_data->agrp);
     }
+    case TSE_LINKED_OB:
+      return std::make_unique<TreeElementLinkedObject>(legacy_te, *static_cast<ID *>(idv));
     default:
       break;
   }
