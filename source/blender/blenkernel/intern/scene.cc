@@ -1506,18 +1506,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 /* patch for missing scene IDs, can't be in do-versions */
-static void composite_patch(bNodeTree *ntree, Scene *scene)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->id == nullptr &&
-        ((node->type == CMP_NODE_R_LAYERS) ||
-         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
-    {
-      node->id = &scene->id;
-    }
-  }
-}
-
 static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Scene *sce = (Scene *)id;
@@ -1618,10 +1606,6 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     if (rbw->effector_weights) {
       BLO_read_id_address(reader, id, &rbw->effector_weights->group);
     }
-  }
-
-  if (sce->nodetree) {
-    composite_patch(sce->nodetree, sce);
   }
 
   LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {

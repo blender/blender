@@ -49,6 +49,18 @@
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
+static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
+{
+  for (bNode *node : ntree->all_nodes()) {
+    if (node->id == nullptr &&
+        ((node->type == CMP_NODE_R_LAYERS) ||
+         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
+    {
+      node->id = &scene->id;
+    }
+  }
+}
+
 void do_versions_after_linking_400(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 9)) {
@@ -57,6 +69,14 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       light->energy = light->energy_deprecated;
       if (light->type == LA_AREA) {
         light->energy *= M_PI_4;
+      }
+    }
+
+    /* XXX This was added several years ago in 'lib_link` code of Scene... Should be safe enough
+     * here. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->nodetree) {
+        version_composite_nodetree_null_id(scene->nodetree, scene);
       }
     }
 
