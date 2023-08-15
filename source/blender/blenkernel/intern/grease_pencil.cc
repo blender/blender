@@ -1216,6 +1216,9 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
    * would result in a copy when it's shared. So for now, we use a const_cast here. */
   GreasePencil *grease_pencil_eval = const_cast<GreasePencil *>(geometry_set.get_grease_pencil());
 
+  /* Store the frame that this grease pencil data was evaluated on. */
+  grease_pencil_eval->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
+
   /* Assign evaluated object. */
   BKE_object_eval_assign_data(object, &grease_pencil_eval->id, false);
   object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
@@ -1675,8 +1678,8 @@ enum ForeachDrawingMode {
 
 static void foreach_drawing_ex(
     GreasePencil &grease_pencil,
-    int frame,
-    ForeachDrawingMode mode,
+    const int frame,
+    const ForeachDrawingMode mode,
     blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
 {
   using namespace blender::bke::greasepencil;
@@ -1708,19 +1711,71 @@ static void foreach_drawing_ex(
       function(index, drawing->wrap());
     }
     else if (drawing_base->type == GP_DRAWING_REFERENCE) {
-      /* TODO */
+      /* TODO: Drawing references are not implemented yet. */
+      BLI_assert_unreachable();
+    }
+  }
+}
+
+static void foreach_drawing_ex(
+    const GreasePencil &grease_pencil,
+    const int frame,
+    const ForeachDrawingMode mode,
+    blender::FunctionRef<void(int, const blender::bke::greasepencil::Drawing &)> function)
+{
+  using namespace blender::bke::greasepencil;
+
+  blender::Span<GreasePencilDrawingBase *> drawings = grease_pencil.drawings();
+  for (const Layer *layer : grease_pencil.layers()) {
+    switch (mode) {
+      case VISIBLE: {
+        if (!layer->is_visible()) {
+          continue;
+        }
+        break;
+      }
+      case EDITABLE: {
+        if (!layer->is_editable()) {
+          continue;
+        }
+        break;
+      }
+    }
+
+    int index = layer->drawing_index_at(frame);
+    if (index == -1) {
+      continue;
+    }
+    const GreasePencilDrawingBase *drawing_base = drawings[index];
+    if (drawing_base->type == GP_DRAWING) {
+      const GreasePencilDrawing *drawing = reinterpret_cast<const GreasePencilDrawing *>(
+          drawing_base);
+      function(index, drawing->wrap());
+    }
+    else if (drawing_base->type == GP_DRAWING_REFERENCE) {
+      /* TODO: Drawing references are not implemented yet. */
+      BLI_assert_unreachable();
     }
   }
 }
 
 void GreasePencil::foreach_visible_drawing(
-    int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
+    const int frame,
+    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
+{
+  foreach_drawing_ex(*this, frame, VISIBLE, function);
+}
+
+void GreasePencil::foreach_visible_drawing(
+    const int frame,
+    blender::FunctionRef<void(int, const blender::bke::greasepencil::Drawing &)> function) const
 {
   foreach_drawing_ex(*this, frame, VISIBLE, function);
 }
 
 void GreasePencil::foreach_editable_drawing(
-    int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
+    const int frame,
+    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
 {
   foreach_drawing_ex(*this, frame, EDITABLE, function);
 }
@@ -1728,25 +1783,13 @@ void GreasePencil::foreach_editable_drawing(
 std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() const
 {
   using namespace blender;
-  /* FIXME: this should somehow go through the visible drawings. We don't have access to the
-   * scene time here, so we probably need to cache the visible drawing for each layer somehow. */
   std::optional<Bounds<float3>> bounds;
-  for (int i = 0; i < this->drawing_array_num; i++) {
-    GreasePencilDrawingBase *drawing_base = this->drawing_array[i];
-    switch (drawing_base->type) {
-      case GP_DRAWING: {
-        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        const bke::CurvesGeometry &curves = drawing->wrap().strokes();
+  this->foreach_visible_drawing(
+      this->runtime->eval_frame,
+      [&](int /*drawing_index*/, const bke::greasepencil::Drawing &drawing) {
+        const bke::CurvesGeometry &curves = drawing.strokes();
         bounds = bounds::merge(bounds, curves.bounds_min_max());
-        break;
-      }
-      case GP_DRAWING_REFERENCE: {
-        /* TODO: Calculate the bounding box of the reference drawing. */
-        break;
-      }
-    }
-  }
-
+      });
   return bounds;
 }
 

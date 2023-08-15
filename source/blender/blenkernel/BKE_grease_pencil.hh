@@ -570,6 +570,8 @@ class GreasePencilRuntime {
    */
   void *batch_cache = nullptr;
   bke::greasepencil::StrokeCache stroke_cache;
+  /* The frame on which the object was evaluated (only valid for evaluated object). */
+  int eval_frame;
 
  public:
   GreasePencilRuntime() {}

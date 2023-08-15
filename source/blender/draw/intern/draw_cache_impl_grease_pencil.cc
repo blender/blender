@@ -96,16 +96,16 @@ static GPUVertFormat *grease_pencil_color_format()
 /** \name Internal Utilities
  * \{ */
 
-static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil, int cfra)
+static bool grease_pencil_batch_cache_valid(const GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   const GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
-  return (cache && cache->is_dirty == false && cache->cache_frame == cfra);
+  return (cache && cache->is_dirty == false &&
+          cache->cache_frame == grease_pencil.runtime->eval_frame);
 }
 
-static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grease_pencil,
-                                                              int cfra)
+static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
@@ -119,7 +119,7 @@ static GreasePencilBatchCache *grease_pencil_batch_cache_init(GreasePencil &grea
   }
 
   cache->is_dirty = false;
-  cache->cache_frame = cfra;
+  cache->cache_frame = grease_pencil.runtime->eval_frame;
 
   return cache;
 }
@@ -145,14 +145,14 @@ static void grease_pencil_batch_cache_clear(GreasePencil &grease_pencil)
   cache->is_dirty = true;
 }
 
-static GreasePencilBatchCache *grease_pencil_batch_cache_get(GreasePencil &grease_pencil, int cfra)
+static GreasePencilBatchCache *grease_pencil_batch_cache_get(GreasePencil &grease_pencil)
 {
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
-  if (!grease_pencil_batch_cache_valid(grease_pencil, cfra)) {
+  if (!grease_pencil_batch_cache_valid(grease_pencil)) {
     grease_pencil_batch_cache_clear(grease_pencil);
-    return grease_pencil_batch_cache_init(grease_pencil, cfra);
+    return grease_pencil_batch_cache_init(grease_pencil);
   }
 
   return cache;
@@ -517,11 +517,9 @@ void DRW_grease_pencil_batch_cache_validate(GreasePencil *grease_pencil)
 {
   using namespace blender::draw;
   BLI_assert(grease_pencil->runtime != nullptr);
-  /* TODO: pass correct frame here? */
-  if (!grease_pencil_batch_cache_valid(*grease_pencil, 0)) {
+  if (!grease_pencil_batch_cache_valid(*grease_pencil)) {
     grease_pencil_batch_cache_clear(*grease_pencil);
-    /* TODO: pass correct frame here? */
-    grease_pencil_batch_cache_init(*grease_pencil, 0);
+    grease_pencil_batch_cache_init(*grease_pencil);
   }
 }
 
@@ -537,7 +535,7 @@ GPUBatch *DRW_cache_grease_pencil_get(Object *ob, int cfra)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_geom_batch_ensure(grease_pencil, cfra);
 
   return cache->geom_batch;
@@ -547,7 +545,7 @@ GPUBatch *DRW_cache_grease_pencil_edit_points_get(Object *ob, int cfra)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_geom_batch_ensure(grease_pencil, cfra);
 
   return cache->edit_points;
@@ -557,7 +555,7 @@ GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(Object *ob, int cfra)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_geom_batch_ensure(grease_pencil, cfra);
 
   return cache->vbo;
@@ -567,7 +565,7 @@ GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(Object *ob, int cfra)
 {
   using namespace blender::draw;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil, cfra);
+  GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
   grease_pencil_geom_batch_ensure(grease_pencil, cfra);
 
   return cache->vbo_col;

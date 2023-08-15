@@ -2691,8 +2691,12 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_GP:
+    case ID_GP: {
+      TimeSourceKey time_key;
+      ComponentKey geometry_key(obdata, NodeType::GEOMETRY);
+      add_relation(time_key, geometry_key, "Grease Pencil Frame Change");
       break;
+    }
     default:
       BLI_assert_msg(0, "Should not happen");
       break;
