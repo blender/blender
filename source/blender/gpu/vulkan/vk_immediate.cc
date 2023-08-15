@@ -57,6 +57,8 @@ void VKImmediate::end()
   vertex_attributes_.bind(context);
 
   context.command_buffer_get().draw(0, vertex_len, 0, 1);
+  context.command_buffer_get().submit();
+
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;
 }
