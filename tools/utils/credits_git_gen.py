@@ -10,7 +10,7 @@ Example use:
 """
 
 from git_log import GitCommitIter
-import unicodedata as ud
+
 import re
 import multiprocessing
 
@@ -155,7 +155,7 @@ class Credits:
 
         authors = [c.author] + cls.GIT_COMMIT_COAUTHORS_RE.findall(c.body)
         # Normalize author string into canonical form, prevents duplicate credit users
-        authors = [ud.normalize('NFC', author) for author in authors]
+        authors = [unicodedata.normalize('NFC', author) for author in authors]
         return [author_table.get(author, author) for author in authors]
 
     @classmethod
@@ -261,7 +261,6 @@ class Credits:
                     ("" if not is_main_credits else
                      ("- {:d}".format(cu.year_min) if cu.year_min == cu.year_max else
                       ("({:d} - {:d})".format(cu.year_min, cu.year_max))))))
-                file.write("\n\n")
 
             # -------------------------------------------------------------------------
             # Companies, hard coded
