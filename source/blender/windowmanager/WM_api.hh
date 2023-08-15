@@ -170,6 +170,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_GPU_FRONT_BUFFER_READ = (1 << 3),
   /** Ability to copy/paste system clipboard images. */
   WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
+  /** Ability to sample a color outside of Blender windows. */
+  WM_CAPABILITY_DESKTOP_SAMPLE = (1 << 5),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1 << 31),
 };
@@ -193,6 +195,12 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
  * \note This should typically be avoided, only use when the context is not available.
  */
 wmWindow *WM_window_find_by_area(wmWindowManager *wm, const ScrArea *area);
+
+/**
+ * Return the color of the pixel at the current mouse cursor position on the desktop, whether in a
+ * Blender window or not. Returns false on failure or if not supported by the platform.
+ */
+bool WM_desktop_cursor_sample_read(float r_col[3]);
 
 /**
  * Read pixels from the front-buffer (fast).

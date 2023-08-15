@@ -921,6 +921,8 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
       ~(
           /* Cocoa has no support for a primary selection clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
+          /* Cocoa has no support for sampling colors from the desktop. */
+          GHOST_kCapabilityDesktopSample |
           /* This Cocoa back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }

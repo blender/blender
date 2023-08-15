@@ -341,6 +341,11 @@ GHOST_TTabletAPI GHOST_System::getTabletAPI()
   return m_tabletAPI;
 }
 
+GHOST_TSuccess GHOST_System::getPixelAtCursor(float[3] /* r_color */) const
+{
+  return GHOST_kFailure;
+}
+
 #ifdef WITH_INPUT_NDOF
 void GHOST_System::setNDOFDeadZone(float deadzone)
 {

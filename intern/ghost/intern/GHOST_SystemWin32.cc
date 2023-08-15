@@ -448,6 +448,31 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(int32_t x, int32_t y)
   return ::SetCursorPos(x, y) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
+GHOST_TSuccess GHOST_SystemWin32::getPixelAtCursor(float r_color[3]) const
+{
+  POINT point;
+  if (!GetCursorPos(&point)) {
+    return GHOST_kFailure;
+  }
+
+  HDC dc = GetDC(NULL);
+  if (dc == NULL) {
+    return GHOST_kFailure;
+  }
+
+  COLORREF color = GetPixel(dc, point.x, point.y);
+  ReleaseDC(NULL, dc);
+
+  if (color == CLR_INVALID) {
+    return GHOST_kFailure;
+  }
+
+  r_color[0] = GetRValue(color) / 255.0f;
+  r_color[1] = GetGValue(color) / 255.0f;
+  r_color[2] = GetBValue(color) / 255.0f;
+  return GHOST_kSuccess;
+}
+
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
   /* `GetAsyncKeyState` returns the current interrupt-level state of the hardware, which is needed

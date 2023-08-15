@@ -6843,6 +6843,8 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
            * screen-shot and eye-dropper sampling logic, both operations where the overhead
            * is negligible. */
           GHOST_kCapabilityGPUReadFrontBuffer |
+          /* This WAYLAND back-end has not yet implemented desktop color sample. */
+          GHOST_kCapabilityDesktopSample |
           /* This WAYLAND back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }

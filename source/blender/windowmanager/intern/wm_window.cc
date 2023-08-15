@@ -1887,6 +1887,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   if (ghost_flag & GHOST_kCapabilityClipboardImages) {
     flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
   }
+  if (ghost_flag & GHOST_kCapabilityDesktopSample) {
+    flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
+  }
 
   return flag;
 }

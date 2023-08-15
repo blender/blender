@@ -107,6 +107,10 @@ typedef enum {
    * Set when there is support for system clipboard copy/paste.
    */
   GHOST_kCapabilityClipboardImages = (1 << 4),
+  /**
+   * Support for sampling a color outside of the Blender windows.
+   */
+  GHOST_kCapabilityDesktopSample = (1 << 5),
 } GHOST_TCapabilityFlag;
 
 /**
@@ -115,7 +119,8 @@ typedef enum {
  */
 #define GHOST_CAPABILITY_FLAG_ALL \
   (GHOST_kCapabilityCursorWarp | GHOST_kCapabilityWindowPosition | \
-   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer)
+   GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityGPUReadFrontBuffer | \
+   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityDesktopSample)
 
 /* Xtilt and Ytilt represent how much the pen is tilted away from
  * vertically upright in either the X or Y direction, with X and Y the
