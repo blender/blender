@@ -9,10 +9,22 @@ Example use:
    credits_git_gen.py --source=/src/blender --range=SHA1..HEAD
 """
 
-from git_log import GitCommitIter
-
-import re
+import argparse
 import multiprocessing
+import re
+import unicodedata
+
+from git_log import (
+    GitCommitIter,
+    GitCommit,
+)
+
+from typing import (
+    Dict,
+    Tuple,
+    Iterable,
+    List,
+)
 
 
 # -----------------------------------------------------------------------------
@@ -100,7 +112,7 @@ author_table = {
 # Fully overwrite authors gathered from git commit info.
 # Intended usage: Correction of info stored in git commit itself.
 # Note that the names of the authors here are assumed fully valid and usable as-is.
-commit_authors_overwrite = {
+commit_authors_overwrite: Dict[bytes, Tuple[str, str]] = {
     # Format: {full_git_hash: (tuple, of, authors),}.
     # Example:
     # b"a60c1e5bb814078411ce105b7cf347afac6f2afd": ("Blender Foundation",  "Suzanne", "Ton"),
@@ -110,7 +122,7 @@ commit_authors_overwrite = {
 # -----------------------------------------------------------------------------
 # Multi-Processing
 
-def process_commits_for_map(commits):
+def process_commits_for_map(commits: Iterable[GitCommit]) -> "Credits":
     result = Credits()
     for c in commits:
         result.process_commit(c)
@@ -128,8 +140,10 @@ class CreditUser:
         "year_max",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.commit_total = 0
+        self.year_min = 0
+        self.year_max = 0
 
 
 class Credits:
@@ -143,15 +157,14 @@ class Credits:
     #    `Co-authored-by: Blender Foundation <Suzanne>`
     GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*(?P<author>[ \w\t]*\w)(?:$|[ \t]*<)", re.MULTILINE)
 
-    def __init__(self):
-        self.users = {}
+    def __init__(self) -> None:
+        self.users: Dict[str, CreditUser] = {}
 
     @classmethod
-    def commit_authors_get(cls, c):
-        authors = commit_authors_overwrite.get(c.sha1, None)
-        if authors is not None:
+    def commit_authors_get(cls, c: GitCommit) -> List[str]:
+        if (authors_overwrite := commit_authors_overwrite.get(c.sha1, None)) is not None:
             # Ignore git commit info for these having an entry in commit_authors_overwrite.
-            return [author_table.get(author, author) for author in authors]
+            return [author_table.get(author, author) for author in authors_overwrite]
 
         authors = [c.author] + cls.GIT_COMMIT_COAUTHORS_RE.findall(c.body)
         # Normalize author string into canonical form, prevents duplicate credit users
@@ -159,7 +172,7 @@ class Credits:
         return [author_table.get(author, author) for author in authors]
 
     @classmethod
-    def is_credit_commit_valid(cls, c):
+    def is_credit_commit_valid(cls, c: GitCommit) -> bool:
         ignore_dir = (
             b"blender/extern/",
             b"blender/intern/opennl/",
@@ -170,7 +183,7 @@ class Credits:
 
         return True
 
-    def merge(self, other):
+    def merge(self, other: "Credits") -> None:
         """
         Merge other Credits into this, clearing the other.
         """
@@ -185,7 +198,7 @@ class Credits:
                 user.year_max = max(user.year_max, user_other.year_max)
         other.users.clear()
 
-    def process_commit(self, c):
+    def process_commit(self, c: GitCommit) -> None:
         if not self.is_credit_commit_valid(c):
             return
 
@@ -202,7 +215,7 @@ class Credits:
             cu.year_min = min(cu.year_min, year)
             cu.year_max = max(cu.year_max, year)
 
-    def _process_multiprocessing(self, commit_iter, *, jobs):
+    def _process_multiprocessing(self, commit_iter: Iterable[GitCommit], *, jobs: int) -> None:
         print("Collecting commits...")
         # NOTE(@ideasman42): that the chunk size doesn't have as much impact on
         # performance as you might expect, values between 16 and 1024 seem reasonable.
@@ -226,7 +239,7 @@ class Credits:
                 print("{:d} of {:d}".format(i, len(chunk_list)))
                 self.merge(result)
 
-    def process(self, commit_iter, *, jobs):
+    def process(self, commit_iter: Iterable[GitCommit], *, jobs: int) -> None:
         if jobs > 1:
             self._process_multiprocessing(commit_iter, jobs=jobs)
             return
@@ -237,10 +250,13 @@ class Credits:
             if not (i % 100):
                 print(i)
 
-    def write(self, filepath,
-              is_main_credits=True,
-              contrib_companies=(),
-              sort="name"):
+    def write(
+            self,
+            filepath: str,
+            is_main_credits: bool = True,
+            contrib_companies: Tuple[str, ...] = (),
+            sort: str = "name",
+    ) -> None:
 
         # patch_word = "patch", "patches"
         commit_word = "commit", "commits"
@@ -280,8 +296,7 @@ class Credits:
                     ))
 
 
-def argparse_create():
-    import argparse
+def argparse_create() -> argparse.ArgumentParser:
 
     # When --help or no args are given, print this help
     usage_text = "Review revisions."
@@ -325,7 +340,7 @@ def argparse_create():
     return parser
 
 
-def main():
+def main() -> None:
 
     # ----------
     # Parse Args
