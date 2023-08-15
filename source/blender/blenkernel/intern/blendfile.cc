@@ -160,23 +160,6 @@ bool BKE_blendfile_is_readable(const char *path, ReportList *reports)
 /** \name Blend File IO (High Level)
  * \{ */
 
-static bool blendfile_or_libraries_versions_atleast(Main *bmain,
-                                                    const short versionfile,
-                                                    const short subversionfile)
-{
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, versionfile, subversionfile)) {
-    return false;
-  }
-
-  LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (!MAIN_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 static bool foreach_path_clean_cb(BPathForeachPathData * /*bpath_data*/,
                                   char *path_dst,
                                   size_t path_dst_maxncpy,
@@ -887,25 +870,11 @@ static void setup_app_data(bContext *C,
   }
 #endif
 
-  /* FIXME: this version patching should really be part of the file-reading code,
-   * but we still get too many unrelated data-corruption crashes otherwise... */
-  if (bmain->versionfile < 250) {
-    do_versions_ipos_to_animato(bmain);
-  }
-
-  /* NOTE: readfile's `do_versions` does not allow to create new IDs, and only operates on a single
-   * library at a time. This code needs to operate on the whole Main at once. */
-  /* NOTE: Check Main version (i.e. current blend file version), AND the versions of all the
-   * linked libraries. */
-  if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 1)) {
-    BKE_lib_override_library_main_proxy_convert(bmain, reports);
-    /* Currently liboverride code can generate invalid namemap. This is a known issue, requires
-     * #107847 to be properly fixed. */
-    BKE_main_namemap_validate_and_fix(bmain);
-  }
-
-  if (mode != LOAD_UNDO && !blendfile_or_libraries_versions_atleast(bmain, 302, 3)) {
-    BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
+  if (mode != LOAD_UNDO) {
+    /* Perform complex versioning that involves adding or removing IDs, and/or needs to operate
+     * over the whole Main data-base (versioning done in readfile code only operates on a
+     * per-library basis). */
+    BLO_read_do_version_after_setup(bmain, reports);
   }
 
   bmain->recovered = false;

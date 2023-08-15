@@ -195,6 +195,17 @@ BlendFileData *BLO_read_from_memfile(struct Main *oldmain,
  */
 void BLO_blendfiledata_free(BlendFileData *bfd);
 
+/**
+ * Does versioning code that requires the Main data-base to be fully loaded and valid.
+ *
+ * readfile's `do_versions` does not allow to create (or delete) IDs, and only operates on a single
+ * library at a time.
+ *
+ * Called at the end of #setup_add_data from BKE's `blendfile.cc`.
+ *
+ * \param new_bmain the newly read Main data-base. */
+void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

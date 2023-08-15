@@ -2161,15 +2161,15 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* check PoseChannels for constraints with local data */
     if (ob->pose) {
-      /* Verify if there's AnimData block */
-      BKE_animdata_ensure_id(id);
-
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
           /* if constraint has own IPO, convert add these to Object
            * (NOTE: they're most likely to be drivers too)
            */
           if (con->ipo) {
+            /* Verify if there's AnimData block */
+            BKE_animdata_ensure_id(id);
+
             /* although this was the constraint's local IPO, we still need to provide pchan + con
              * so that drivers can be added properly...
              */
@@ -2204,9 +2204,6 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* check constraint channels - we need to remove them anyway... */
     if (ob->constraintChannels.first) {
-      /* Verify if there's AnimData block */
-      BKE_animdata_ensure_id(id);
-
       for (conchan = static_cast<bConstraintChannel *>(ob->constraintChannels.first); conchan;
            conchan = conchann)
       {
@@ -2215,6 +2212,9 @@ void do_versions_ipos_to_animato(Main *bmain)
 
         /* convert Constraint Channel's IPO data */
         if (conchan->ipo) {
+          /* Verify if there's AnimData block */
+          BKE_animdata_ensure_id(id);
+
           ipo_to_animdata(bmain, id, conchan->ipo, nullptr, conchan->name, nullptr);
           id_us_min(&conchan->ipo->id);
           conchan->ipo = nullptr;
