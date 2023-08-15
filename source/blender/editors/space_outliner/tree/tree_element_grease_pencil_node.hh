@@ -18,6 +18,7 @@ namespace blender::ed::outliner {
 
 class TreeElementGreasePencilNode final : public AbstractTreeElement {
   blender::bke::greasepencil::TreeNode &node_;
+
  public:
   TreeElementGreasePencilNode(TreeElement &legacy_te, blender::bke::greasepencil::TreeNode &node);
 
