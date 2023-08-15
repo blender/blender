@@ -973,9 +973,12 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
                                std::string::npos;
   msl_iface.uses_gl_PointSize = shd_builder_->glsl_vertex_source_.find("gl_PointSize") !=
                                 std::string::npos;
-  msl_iface.uses_mtl_array_index_ = shd_builder_->glsl_vertex_source_.find(
-                                        "MTLRenderTargetArrayIndex") != std::string::npos;
-
+  msl_iface.uses_gpu_layer = bool(info->builtins_ & BuiltinBits::LAYER) ||
+                             shd_builder_->glsl_vertex_source_.find("gpu_Layer") !=
+                                 std::string::npos;
+  msl_iface.uses_gpu_viewport_index = bool(info->builtins_ & BuiltinBits::VIEWPORT_INDEX) ||
+                                      shd_builder_->glsl_vertex_source_.find(
+                                          "gpu_ViewportIndex") != std::string::npos;
   /** Identify usage of fragment-shader builtins. */
   if (!msl_iface.uses_transform_feedback) {
     std::smatch gl_special_cases;
@@ -1173,8 +1176,11 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   }
 
   /* Render target array index if using multilayered rendering. */
-  if (msl_iface.uses_mtl_array_index_) {
-    ss_vertex << "int MTLRenderTargetArrayIndex = 0;" << std::endl;
+  if (msl_iface.uses_gpu_layer) {
+    ss_vertex << "int gpu_Layer = 0;" << std::endl;
+  }
+  if (msl_iface.uses_gpu_viewport_index) {
+    ss_vertex << "int gpu_ViewportIndex = 0;" << std::endl;
   }
 
   /* Global vertex data pointers when using SSBO vertex fetch mode.
@@ -1304,6 +1310,14 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "vec3 gpu_BaryCoord;\n";
     }
 
+    /* Render target array index and viewport array index passed from vertex shader. */
+    if (msl_iface.uses_gpu_layer) {
+      ss_fragment << "int gpu_Layer = 0;" << std::endl;
+    }
+    if (msl_iface.uses_gpu_viewport_index) {
+      ss_fragment << "int gpu_ViewportIndex = 0;" << std::endl;
+    }
+
     /* Add Texture members. */
     for (const MSLTextureResource &tex : msl_iface.texture_samplers) {
       if (bool(tex.stage & ShaderStage::FRAGMENT)) {
@@ -1379,7 +1393,8 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
   this->set_interface(msl_iface.bake_shader_interface(this->name));
 
   /* Update other shader properties. */
-  uses_mtl_array_index_ = msl_iface.uses_mtl_array_index_;
+  uses_gpu_layer = msl_iface.uses_gpu_layer;
+  uses_gpu_viewport_index = msl_iface.uses_gpu_viewport_index;
   use_ssbo_vertex_fetch_mode_ = msl_iface.uses_ssbo_vertex_fetch_mode;
   if (msl_iface.uses_ssbo_vertex_fetch_mode) {
     ssbo_vertex_fetch_output_prim_type_ = vertex_fetch_ssbo_output_prim_type;
@@ -2716,8 +2731,13 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   }
 
   /* Add MTL render target array index for multilayered rendering support. */
-  if (uses_mtl_array_index_) {
-    out << "\tuint MTLRenderTargetArrayIndex [[render_target_array_index]];" << std::endl;
+  if (uses_gpu_layer) {
+    out << "\tuint gpu_Layer [[render_target_array_index]];" << std::endl;
+  }
+
+  /* Add Viewport Index output */
+  if (uses_gpu_viewport_index) {
+    out << "\tuint gpu_ViewportIndex [[viewport_array_index]];" << std::endl;
   }
 
   out << "} VertexOut;" << std::endl << std::endl;
@@ -3007,10 +3027,14 @@ std::string MSLGeneratorInterface::generate_msl_vertex_output_population()
   }
 
   /* Output render target array Index. */
-  if (uses_mtl_array_index_) {
-    out << "\toutput.MTLRenderTargetArrayIndex = "
-           ""
-        << shader_stage_inst_name << ".MTLRenderTargetArrayIndex;" << std::endl;
+  if (uses_gpu_layer) {
+    out << "\toutput.gpu_Layer = " << shader_stage_inst_name << ".gpu_Layer;" << std::endl;
+  }
+
+  /* Output Viewport Index. */
+  if (uses_gpu_viewport_index) {
+    out << "\toutput.gpu_ViewportIndex = " << shader_stage_inst_name << ".gpu_ViewportIndex;"
+        << std::endl;
   }
 
   /* Output clip-distances.
@@ -3141,6 +3165,17 @@ std::string MSLGeneratorInterface::generate_msl_fragment_input_population()
   if (this->uses_gl_FragDepth) {
     out << "\t" << shader_stage_inst_name << ".gl_FragDepth = " << shader_stage_inst_name
         << ".gl_FragCoord.z;" << std::endl;
+  }
+
+  /* Input render target array index received from vertex shader. */
+  if (uses_gpu_layer) {
+    out << "\t" << shader_stage_inst_name << ".gpu_Layer = v_in.gpu_Layer;" << std::endl;
+  }
+
+  /* Input viewport array index received from vertex shader. */
+  if (uses_gpu_viewport_index) {
+    out << "\t" << shader_stage_inst_name << ".gpu_ViewportIndex = v_in.gpu_ViewportIndex;"
+        << std::endl;
   }
 
   /* NOTE: We will only assign to the intersection of the vertex output and fragment input.

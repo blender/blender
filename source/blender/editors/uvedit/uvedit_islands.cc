@@ -13,13 +13,13 @@
  * This API uses #BMesh data structures and doesn't have limitations for manifold meshes.
  */
 
-#include "BKE_editmesh.h"
+#include "BLI_math_vector.h"
 
-#include "BLI_math.h"
+#include "BKE_editmesh.h"
 
 #include "DNA_image_types.h"
 
-#include "ED_uvedit.h" /* Own include. */
+#include "ED_uvedit.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name UDIM packing helper functions

@@ -16,7 +16,7 @@
 #include "BLI_vector.hh"
 
 #include "UI_abstract_view.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 struct bContext;
 struct uiBlock;
@@ -44,7 +44,7 @@ class AbstractGridViewItem : public AbstractViewItem {
   uiButViewItem *view_item_but_ = nullptr;
 
  public:
-  virtual ~AbstractGridViewItem() = default;
+  /* virtual */ ~AbstractGridViewItem() override = default;
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
@@ -54,31 +54,12 @@ class AbstractGridViewItem : public AbstractViewItem {
   AbstractGridViewItem(StringRef identifier);
 
   /** See AbstractViewItem::matches(). */
-  virtual bool matches(const AbstractViewItem &other) const override;
+  /* virtual */ bool matches(const AbstractViewItem &other) const override;
 
-  /** Called when the item's state changes from inactive to active. */
-  virtual void on_activate();
-  /**
-   * If the result is not empty, it controls whether the item should be active or not,
-   * usually depending on the data that the view represents.
-   */
-  virtual std::optional<bool> should_be_active() const;
-
-  virtual std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
+  /* virtual */ std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
   virtual std::unique_ptr<GridViewItemDropTarget> create_drop_target();
 
-  /**
-   * Activates this item, deactivates other items, and calls the
-   * #AbstractGridViewItem::on_activate() function.
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise the
-   * actual item state is unknown, possibly calling state-change update functions incorrectly.
-   */
-  void activate();
-  void deactivate();
-
  private:
-  /** See #AbstractTreeView::change_state_delayed() */
-  void change_state_delayed();
   static void grid_tile_click_fn(bContext *, void *but_arg1, void *);
   void add_grid_tile_button(uiBlock &block);
 };
@@ -111,7 +92,7 @@ class AbstractGridView : public AbstractView {
 
  public:
   AbstractGridView();
-  virtual ~AbstractGridView() = default;
+  /* virtual */ ~AbstractGridView() override = default;
 
   using ItemIterFn = FunctionRef<void(AbstractGridViewItem &)>;
   void foreach_item(ItemIterFn iter_fn) const;
@@ -141,15 +122,10 @@ class AbstractGridView : public AbstractView {
   virtual void build_items() = 0;
 
  private:
+  void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const final;
   void update_children_from_old(const AbstractView &old_view) override;
   AbstractGridViewItem *find_matching_item(const AbstractGridViewItem &item_to_match,
                                            const AbstractGridView &view_to_search_in) const;
-  /**
-   * Items may want to do additional work when state changes. But these state changes can only be
-   * reliably detected after the view has completed reconstruction (see #is_reconstructed()). So
-   * the actual state changes are done in a delayed manner through this function.
-   */
-  void change_state_delayed();
 
   /**
    * Add an already constructed item, moving ownership to the grid-view.
@@ -213,13 +189,14 @@ class GridViewBuilder {
 class PreviewGridItem : public AbstractGridViewItem {
  public:
   using IsActiveFn = std::function<bool()>;
-  using ActivateFn = std::function<void(PreviewGridItem &new_active)>;
+  using ActivateFn = std::function<void(bContext &C, PreviewGridItem &new_active)>;
 
  protected:
   /** See #set_on_activate_fn() */
   ActivateFn activate_fn_;
   /** See #set_is_active_fn() */
   IsActiveFn is_active_fn_;
+  bool hide_label_ = false;
 
  public:
   std::string label{};
@@ -240,9 +217,11 @@ class PreviewGridItem : public AbstractGridViewItem {
    */
   void set_is_active_fn(IsActiveFn fn);
 
+  void hide_label();
+
  private:
   std::optional<bool> should_be_active() const override;
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 };
 
 /** \} */

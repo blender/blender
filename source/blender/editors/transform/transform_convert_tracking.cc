@@ -10,7 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -18,9 +19,9 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -481,7 +482,7 @@ static void flushTransTracking(TransInfo *t)
 
       if (t->flag & T_ALT_TRANSFORM) {
         if (t->mode == TFM_RESIZE) {
-          if (tdt->area != TRACK_AREA_PAT) {
+          if (tdt->area != TRACK_AREA_PAT && !(t->state == TRANS_CANCEL)) {
             continue;
           }
         }
@@ -622,7 +623,7 @@ static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Tracking = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransTrackingData,
-    /*recalcData*/ recalcData_tracking,
+    /*create_trans_data*/ createTransTrackingData,
+    /*recalc_data*/ recalcData_tracking,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip,
 };

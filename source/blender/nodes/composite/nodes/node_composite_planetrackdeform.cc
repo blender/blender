@@ -19,11 +19,11 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -109,7 +109,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
           col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
     }
     else {
-      uiItemR(layout, ptr, "plane_track_name", 0, "", ICON_ANIM_DATA);
+      uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
     }
   }
 

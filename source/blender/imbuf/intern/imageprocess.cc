@@ -8,15 +8,15 @@
  * This file was moved here from the `src/` directory.
  * It is meant to deal with endianness. It resided in a general blending lib.
  * The other functions were only used during rendering. This single function remained.
- * It should probably move to `imbuf/intern/util.c`, but we'll keep it here for the time being.
+ * It should probably move to `imbuf/intern/util.cc`, but we'll keep it here for the time being.
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_interp.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 

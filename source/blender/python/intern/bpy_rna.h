@@ -109,7 +109,7 @@ typedef struct {
   PointerRNA ptr;
 } BPy_DummyPointerRNA;
 
-typedef struct {
+typedef struct BPy_StructRNA {
   PyObject_HEAD /* Required Python macro. */
 #ifdef USE_WEAKREFS
   PyObject *in_weakreflist;

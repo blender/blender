@@ -13,37 +13,157 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_markers.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"
 
 #include "transform_convert.hh"
 
-/* helper struct for gp-frame transforms */
+/** Helper struct for GP-frame transforms. */
 struct tGPFtransdata {
   union {
-    float val;    /* where transdata writes transform */
-    float loc[3]; /* #td->val and #td->loc share the same pointer. */
+    /** Where `transdata` writes transform. */
+    float val;
+    /** #td->val and #td->loc share the same pointer. */
+    float loc[3];
   };
-  int *sdata; /* pointer to gpf->framenum */
+  /** Pointer to `gpf->framenum` */
+  int *sdata;
 };
+
+/* -------------------------------------------------------------------- */
+/** \name Grease Pencil Transform helpers
+ * \{ */
+
+static bool grease_pencil_layer_initialize_trans_data(blender::bke::greasepencil::Layer &layer)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status != LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+
+  /* Make a copy of the current frames in the layer. This map will be changed during the
+   * transformation, and we need to be able to reset it if the operation is canceled. */
+  trans_data.frames_copy = layer.frames();
+  trans_data.frames_duration.clear();
+  trans_data.frames_destination.clear();
+
+  for (const auto [frame_number, frame] : layer.frames().items()) {
+    if (frame.is_null()) {
+      continue;
+    }
+
+    /* Store frames' duration to keep them visually correct while moving the frames */
+    if (!frame.is_implicit_hold()) {
+      trans_data.frames_duration.add(frame_number, layer.get_frame_duration_at(frame_number));
+    }
+  }
+
+  trans_data.status = LayerTransformData::TRANS_INIT;
+  return true;
+}
+
+static bool grease_pencil_layer_reset_trans_data(blender::bke::greasepencil::Layer &layer)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  /* If the layer frame map was affected by the transformation, set its status to initialized so
+   * that the frames map gets reset the next time this modal function is called.
+   */
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+  trans_data.status = LayerTransformData::TRANS_INIT;
+  return true;
+}
+
+static bool grease_pencil_layer_update_trans_data(blender::bke::greasepencil::Layer &layer,
+                                                  const int src_frame_number,
+                                                  const int dst_frame_number)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    return false;
+  }
+
+  if (trans_data.status == LayerTransformData::TRANS_INIT) {
+    /* The transdata was only initialized. No transformation was applied yet.
+     * The frame mapping is always defined relatively to the initial frame map, so we first need
+     * to set the frames back to its initial state before applying any frame transformation. */
+    layer.frames_for_write() = trans_data.frames_copy;
+    layer.tag_frames_map_keys_changed();
+    trans_data.status = LayerTransformData::TRANS_RUNNING;
+  }
+
+  /* Apply the transformation directly in the frame map, so that we display the transformed
+   * frame numbers. We don't want to edit the frames or remove any drawing here. This will be
+   * done at once at the end of the transformation. */
+  const GreasePencilFrame src_frame = trans_data.frames_copy.lookup(src_frame_number);
+  const int src_duration = trans_data.frames_duration.lookup_default(src_frame_number, 0);
+  layer.remove_frame(src_frame_number);
+  layer.remove_frame(dst_frame_number);
+  GreasePencilFrame *frame = layer.add_frame(
+      dst_frame_number, src_frame.drawing_index, src_duration);
+  *frame = src_frame;
+
+  trans_data.frames_destination.add_overwrite(src_frame_number, dst_frame_number);
+
+  return true;
+}
+
+static bool grease_pencil_layer_apply_trans_data(GreasePencil &grease_pencil,
+                                                 blender::bke::greasepencil::Layer &layer,
+                                                 const bool canceled)
+{
+  using namespace blender::bke::greasepencil;
+  LayerTransformData &trans_data = layer.runtime->trans_data_;
+
+  if (trans_data.status == LayerTransformData::TRANS_CLEAR) {
+    /* The layer was not affected by the transformation, so do nothing. */
+    return false;
+  }
+
+  /* Reset the frames to their initial state. */
+  layer.frames_for_write() = trans_data.frames_copy;
+  layer.tag_frames_map_keys_changed();
+
+  if (!canceled) {
+    /* Apply the transformation. */
+    grease_pencil.move_frames(layer, trans_data.frames_destination);
+  }
+
+  /* Clear the frames copy. */
+  trans_data.frames_copy.clear();
+  trans_data.frames_destination.clear();
+  trans_data.status = LayerTransformData::TRANS_CLEAR;
+
+  return true;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Action Transform Creation
@@ -81,7 +201,6 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra, bool is_prop_ed
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
 static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_prop_edit)
 {
-  bGPDframe *gpf;
   int count = 0, count_all = 0;
 
   if (gpl == nullptr) {
@@ -89,7 +208,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
   }
 
   /* only include points that occur on the right side of cfra */
-  for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     if (FrameOnMouseSide(side, float(gpf->framenum), cfra)) {
       if (gpf->flag & GP_FRAME_SELECT) {
         count++;
@@ -104,10 +223,38 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra, bool is_p
   return count;
 }
 
+static int count_grease_pencil_frames(const blender::bke::greasepencil::Layer *layer,
+                                      char side,
+                                      float cfra,
+                                      bool is_prop_edit)
+{
+  if (layer == nullptr) {
+    return 0;
+  }
+
+  int count_selected = 0;
+  int count_all = 0;
+
+  /* Only include points that occur on the right side of cfra. */
+  for (const auto &[frame_number, frame] : layer->frames().items()) {
+    if (!FrameOnMouseSide(side, float(frame_number), cfra)) {
+      continue;
+    }
+    if (frame.is_selected()) {
+      count_selected++;
+    }
+    count_all++;
+  }
+
+  if (is_prop_edit && count_selected > 0) {
+    return count_all;
+  }
+  return count_selected;
+}
+
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
 static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, bool is_prop_edit)
 {
-  MaskLayerShape *masklayer_shape;
   int count = 0, count_all = 0;
 
   if (masklay == nullptr) {
@@ -115,10 +262,7 @@ static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra, boo
   }
 
   /* only include points that occur on the right side of cfra */
-  for (masklayer_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-       masklayer_shape;
-       masklayer_shape = masklayer_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, masklayer_shape, &masklay->splines_shapes) {
     if (FrameOnMouseSide(side, float(masklayer_shape->frame), cfra)) {
       if (masklayer_shape->flag & MASK_SHAPE_SELECT) {
         count++;
@@ -230,11 +374,10 @@ static int GPLayerToTransData(TransData *td,
                               bool is_prop_edit,
                               float ypos)
 {
-  bGPDframe *gpf;
   int count = 0;
 
   /* check for select frames on right side of current frame */
-  for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
     const bool is_selected = (gpf->flag & GP_FRAME_SELECT) != 0;
     if (is_prop_edit || is_selected) {
       if (FrameOnMouseSide(side, float(gpf->framenum), cfra)) {
@@ -262,6 +405,69 @@ static int GPLayerToTransData(TransData *td,
   return count;
 }
 
+/**
+ * Fills \a td and \a td2d with transform data for each frame of the grease pencil \a layer that is
+ * on the \a side of the frame \a cfra. It also updates the runtime data of the \a layer to keep
+ * track of the transform. This is why the \a layer is not const here.
+ */
+static int GreasePencilLayerToTransData(TransData *td,
+                                        TransData2D *td2d,
+                                        blender::bke::greasepencil::Layer *layer,
+                                        char side,
+                                        float cfra,
+                                        bool is_prop_edit,
+                                        float ypos)
+{
+  using namespace blender;
+  using namespace bke::greasepencil;
+
+  int total_trans_frames = 0;
+  bool any_frame_affected = false;
+  for (auto [frame_number, frame] : layer->frames().items()) {
+    /* We only add transform data for selected frames that are on the right side of current frame.
+     * If proportional edit is set, then we should also account for non selected frames.
+     */
+    if ((!is_prop_edit && !frame.is_selected()) || !FrameOnMouseSide(side, frame_number, cfra)) {
+      continue;
+    }
+    any_frame_affected = true;
+
+    td2d->loc[0] = float(frame_number);
+
+    td->val = td->loc = &td2d->loc[0];
+    td->ival = td->iloc[0] = td2d->loc[0];
+
+    td->center[0] = td->ival;
+    td->center[1] = ypos;
+
+    if (frame.is_selected()) {
+      td->flag |= TD_SELECTED;
+    }
+    /* Set a pointer to the layer in the transform data so that we can apply the transformation
+     * while the operator is running.
+     */
+    td->flag |= TD_GREASE_PENCIL_FRAME;
+    td->extra = layer;
+
+    /* Advance `td` now. */
+    td++;
+    td2d++;
+    total_trans_frames++;
+  }
+
+  if (total_trans_frames == 0) {
+    return total_trans_frames;
+  }
+
+  /* If it was not previously done, initialize the transform data in the layer, and if some frames
+   * are actually concerned by the transform. */
+  if (any_frame_affected) {
+    grease_pencil_layer_initialize_trans_data(*layer);
+  }
+
+  return total_trans_frames;
+}
+
 /* refer to comment above #GPLayerToTransData, this is the same but for masks */
 static int MaskLayerToTransData(TransData *td,
                                 tGPFtransdata *tfd,
@@ -271,13 +477,10 @@ static int MaskLayerToTransData(TransData *td,
                                 bool is_prop_edit,
                                 float ypos)
 {
-  MaskLayerShape *masklay_shape;
   int count = 0;
 
   /* check for select frames on right side of current frame */
-  for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first); masklay_shape;
-       masklay_shape = masklay_shape->next)
-  {
+  LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
     if (is_prop_edit || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
       if (FrameOnMouseSide(side, float(masklay_shape->frame), cfra)) {
         tfd->val = float(masklay_shape->frame);
@@ -317,7 +520,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
@@ -346,7 +548,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   }
 
   /* loop 1: fully select F-Curve keys and count how many BezTriples are selected */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
     int adt_count = 0;
     /* convert current-frame to action-time (slightly less accurate, especially under
@@ -366,6 +568,11 @@ static void createTransActionData(bContext *C, TransInfo *t)
     else if (ale->type == ANIMTYPE_GPLAYER) {
       adt_count = count_gplayer_frames(
           static_cast<bGPDlayer *>(ale->data), t->frame_side, cfra, is_prop_edit);
+    }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      using namespace blender::bke::greasepencil;
+      adt_count = count_grease_pencil_frames(
+          static_cast<Layer *>(ale->data), t->frame_side, cfra, is_prop_edit);
     }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       adt_count = count_masklayer_frames(
@@ -411,7 +618,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   }
 
   /* loop 2: build transdata array */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
 
     if (is_prop_edit && !ale->tag) {
       continue;
@@ -435,6 +642,15 @@ static void createTransActionData(bContext *C, TransInfo *t)
       td += i;
       tfd += i;
     }
+    else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+      using namespace blender::bke::greasepencil;
+      Layer *layer = static_cast<Layer *>(ale->data);
+      int i;
+
+      i = GreasePencilLayerToTransData(td, td2d, layer, t->frame_side, cfra, is_prop_edit, ypos);
+      td += i;
+      td2d += i;
+    }
     else if (ale->type == ANIMTYPE_MASKLAYER) {
       MaskLayer *masklay = (MaskLayer *)ale->data;
       int i;
@@ -455,7 +671,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
   if (is_prop_edit) {
     td = tc->data;
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt;
 
       /* F-Curve may not have any keyframes */
@@ -473,17 +689,14 @@ static void createTransActionData(bContext *C, TransInfo *t)
 
       if (ale->type == ANIMTYPE_GPLAYER) {
         bGPDlayer *gpl = (bGPDlayer *)ale->data;
-        bGPDframe *gpf;
 
-        for (gpf = static_cast<bGPDframe *>(gpl->frames.first); gpf; gpf = gpf->next) {
+        LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
           if (gpf->flag & GP_FRAME_SELECT) {
             td->dist = td->rdist = 0.0f;
           }
           else {
-            bGPDframe *gpf_iter;
             int min = INT_MAX;
-            for (gpf_iter = static_cast<bGPDframe *>(gpl->frames.first); gpf_iter;
-                 gpf_iter = gpf_iter->next) {
+            LISTBASE_FOREACH (bGPDframe *, gpf_iter, &gpl->frames) {
               if (gpf_iter->flag & GP_FRAME_SELECT) {
                 if (FrameOnMouseSide(t->frame_side, float(gpf_iter->framenum), cfra)) {
                   int val = abs(gpf->framenum - gpf_iter->framenum);
@@ -498,25 +711,43 @@ static void createTransActionData(bContext *C, TransInfo *t)
           td++;
         }
       }
+      else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+        using namespace blender::bke::greasepencil;
+        Layer *layer = static_cast<Layer *>(ale->data);
+
+        for (auto [frame_number, frame] : layer->frames_for_write().items()) {
+          if (frame.is_selected()) {
+            td->dist = td->rdist = 0.0f;
+            ++td;
+            continue;
+          }
+
+          int closest_selected = INT_MAX;
+          for (auto [neighbor_frame_number, neighbor_frame] : layer->frames_for_write().items()) {
+            if (!neighbor_frame.is_selected() ||
+                !FrameOnMouseSide(t->frame_side, float(neighbor_frame_number), cfra))
+            {
+              continue;
+            }
+            const int distance = abs(neighbor_frame_number - frame_number);
+            closest_selected = std::min(closest_selected, distance);
+          }
+
+          td->dist = td->rdist = closest_selected;
+          ++td;
+        }
+      }
       else if (ale->type == ANIMTYPE_MASKLAYER) {
         MaskLayer *masklay = (MaskLayer *)ale->data;
-        MaskLayerShape *masklay_shape;
 
-        for (masklay_shape = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-             masklay_shape;
-             masklay_shape = masklay_shape->next)
-        {
+        LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
           if (FrameOnMouseSide(t->frame_side, float(masklay_shape->frame), cfra)) {
             if (masklay_shape->flag & MASK_SHAPE_SELECT) {
               td->dist = td->rdist = 0.0f;
             }
             else {
-              MaskLayerShape *masklay_iter;
               int min = INT_MAX;
-              for (masklay_iter = static_cast<MaskLayerShape *>(masklay->splines_shapes.first);
-                   masklay_iter;
-                   masklay_iter = masklay_iter->next)
-              {
+              LISTBASE_FOREACH (MaskLayerShape *, masklay_iter, &masklay->splines_shapes) {
                 if (masklay_iter->flag & MASK_SHAPE_SELECT) {
                   if (FrameOnMouseSide(t->frame_side, float(masklay_iter->frame), cfra)) {
                     int val = abs(masklay_shape->frame - masklay_iter->frame);
@@ -575,7 +806,8 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /** \name Action Transform Flush
  * \{ */
 
-/* This function helps flush transdata written to tempdata into the gp-frames. */
+/* (Grease Pencil Legacy)
+ * This function helps flush transdata written to tempdata into the gp-frames. */
 static void flushTransIntFrameActionData(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -595,7 +827,6 @@ static void recalcData_actedit(TransInfo *t)
 
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
@@ -635,6 +866,13 @@ static void recalcData_actedit(TransInfo *t)
     td->loc[1] = td->iloc[1];
 
     transform_convert_flush_handle2D(td, td2d, 0.0f);
+
+    if ((t->state == TRANS_RUNNING) && ((td->flag & TD_GREASE_PENCIL_FRAME) != 0)) {
+      grease_pencil_layer_update_trans_data(
+          *static_cast<blender::bke::greasepencil::Layer *>(td->extra),
+          round_fl_to_int(td->ival),
+          round_fl_to_int(td2d->loc[0]));
+    }
   }
 
   if (ac.datatype != ANIMCONT_MASK) {
@@ -648,14 +886,29 @@ static void recalcData_actedit(TransInfo *t)
      * BUT only do this if realtime updates are enabled
      */
     if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
-      for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         /* set refresh tags for objects using this animation */
         ANIM_list_elem_update(CTX_data_main(t->context), t->scene, ale);
       }
+
+      /* now free temp channels */
+      ANIM_animdata_freelist(&anim_data);
     }
 
-    /* now free temp channels */
-    ANIM_animdata_freelist(&anim_data);
+    if (ac.datatype == ANIMCONT_GPENCIL) {
+      filter = ANIMFILTER_DATA_VISIBLE;
+      ANIM_animdata_filter(
+          &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        if (ale->type != ANIMTYPE_GREASE_PENCIL_LAYER) {
+          continue;
+        }
+        grease_pencil_layer_reset_trans_data(
+            *static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+      }
+      ANIM_animdata_freelist(&anim_data);
+    }
   }
 }
 
@@ -686,10 +939,7 @@ static int masklay_shape_cmp_frame(void *thunk, const void *a, const void *b)
 
 static void posttrans_mask_clean(Mask *mask)
 {
-  MaskLayer *masklay;
-
-  for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-       masklay = masklay->next) {
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     MaskLayerShape *masklay_shape, *masklay_shape_next;
     bool is_double = false;
 
@@ -727,9 +977,7 @@ static void posttrans_mask_clean(Mask *mask)
  */
 static void posttrans_gpd_clean(bGPdata *gpd)
 {
-  bGPDlayer *gpl;
-
-  for (gpl = static_cast<bGPDlayer *>(gpd->layers.first); gpl; gpl = gpl->next) {
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf, *gpfn;
     bool is_double = false;
 
@@ -763,7 +1011,6 @@ static void posttrans_gpd_clean(bGPdata *gpd)
 static void posttrans_action_clean(bAnimContext *ac, bAction *act)
 {
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* filter data */
@@ -773,15 +1020,15 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   /* loop through relevant data, removing keyframes as appropriate
    *      - all keyframes are converted in/out of global time
    */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
     if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
       BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
                                       SELECT,
                                       false); /* only use handles in graph editor */
-      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+      ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
     }
     else {
       BKE_fcurve_merge_duplicate_keys(static_cast<FCurve *>(ale->key_data),
@@ -811,14 +1058,13 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
   if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
     ListBase anim_data = {nullptr, nullptr};
-    bAnimListElem *ale;
     short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 
     /* get channels to work on */
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       switch (ale->datatype) {
         case ALE_GPFRAME:
           ale->id->tag &= ~LIB_TAG_DOIT;
@@ -838,10 +1084,10 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
            */
           if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
             if (adt) {
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, false, false);
               BKE_fcurve_merge_duplicate_keys(
                   fcu, SELECT, false); /* only use handles in graph editor */
-              ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, true, false);
             }
             else {
               BKE_fcurve_merge_duplicate_keys(
@@ -891,20 +1137,35 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
      * 3) canceled + duplicate -> user canceled the transform,
      *                            but we made duplicates, so get rid of these
      */
-    if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-      ListBase anim_data = {nullptr, nullptr};
-      const int filter = ANIMFILTER_DATA_VISIBLE;
-      ANIM_animdata_filter(
-          &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+    ListBase anim_data = {nullptr, nullptr};
+    const int filter = ANIMFILTER_DATA_VISIBLE;
+    ANIM_animdata_filter(
+        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-        if (ale->datatype == ALE_GPFRAME) {
-          ale->id->tag &= ~LIB_TAG_DOIT;
-          posttrans_gpd_clean((bGPdata *)ale->id);
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      switch (ale->datatype) {
+        case ALE_GPFRAME:
+          /* Grease Pencil legacy. */
+          if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+            ale->id->tag &= ~LIB_TAG_DOIT;
+            posttrans_gpd_clean((bGPdata *)ale->id);
+          }
+          break;
+
+        case ALE_GREASE_PENCIL_CEL: {
+          GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+          grease_pencil_layer_apply_trans_data(
+              *grease_pencil,
+              *static_cast<blender::bke::greasepencil::Layer *>(ale->data),
+              canceled);
+          break;
         }
+
+        default:
+          break;
       }
-      ANIM_animdata_freelist(&anim_data);
     }
+    ANIM_animdata_freelist(&anim_data);
   }
   else if (ac.datatype == ANIMCONT_MASK) {
     /* remove duplicate frames and also make sure points are in order! */
@@ -969,7 +1230,7 @@ static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Action = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransActionData,
-    /*recalcData*/ recalcData_actedit,
+    /*create_trans_data*/ createTransActionData,
+    /*recalc_data*/ recalcData_actedit,
     /*special_aftertrans_update*/ special_aftertrans_update__actedit,
 };

@@ -23,15 +23,15 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
 #include "view3d_intern.h"
 #include "view3d_navigate.hh"

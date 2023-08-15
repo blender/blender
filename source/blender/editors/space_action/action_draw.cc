@@ -14,7 +14,6 @@
 #include <cstring>
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 /* Types --------------------------------------------------------------- */
@@ -40,12 +39,12 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_draw.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_draw.hh"
 
 #include "MOD_nodes.hh"
 
@@ -181,15 +180,8 @@ static void draw_channel_action_ranges(ListBase *anim_data, View2D *v2d)
   }
 }
 
-void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
+static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, uint pos)
 {
-  ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
-
-  View2D *v2d = &region->v2d;
-  bDopeSheet *ads = &saction->ads;
-  AnimData *adt = nullptr;
-
   uchar col1[4], col2[4];
   uchar col1a[4], col2a[4];
   uchar col1b[4], col2b[4];
@@ -207,6 +199,295 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
 
   UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
   UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
+
+  float ymax = ANIM_UI_get_first_channel_top(v2d);
+  const float channel_step = ANIM_UI_get_channel_step();
+  bAnimListElem *ale;
+  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= channel_step)
+  {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
+
+    /* check if visible */
+    if (!(IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)))
+    {
+      continue;
+    }
+    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+    int sel = 0;
+
+    /* determine if any need to draw channel */
+    if (ale->datatype == ALE_NONE) {
+      continue;
+    }
+    /* determine if channel is selected */
+    if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT)) {
+      sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
+    }
+
+    if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
+      switch (ale->type) {
+        case ANIMTYPE_SUMMARY: {
+          /* reddish color from NLA */
+          immUniformThemeColor(TH_ANIM_ACTIVE);
+          break;
+        }
+        case ANIMTYPE_SCENE:
+        case ANIMTYPE_OBJECT: {
+          immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
+          break;
+        }
+        case ANIMTYPE_FILLACTD:
+        case ANIMTYPE_DSSKEY:
+        case ANIMTYPE_DSWOR: {
+          immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
+          break;
+        }
+        case ANIMTYPE_GROUP: {
+          bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
+          if (show_group_colors && agrp->customCol) {
+            if (sel) {
+              immUniformColor3ubvAlpha((uchar *)agrp->cs.select, col1a[3]);
+            }
+            else {
+              immUniformColor3ubvAlpha((uchar *)agrp->cs.solid, col2a[3]);
+            }
+          }
+          else {
+            immUniformColor4ubv(sel ? col1a : col2a);
+          }
+          break;
+        }
+        case ANIMTYPE_FCURVE: {
+          FCurve *fcu = static_cast<FCurve *>(ale->data);
+          if (show_group_colors && fcu->grp && fcu->grp->customCol) {
+            immUniformColor3ubvAlpha((uchar *)fcu->grp->cs.active, sel ? col1[3] : col2[3]);
+          }
+          else {
+            immUniformColor4ubv(sel ? col1 : col2);
+          }
+          break;
+        }
+        case ANIMTYPE_GPLAYER: {
+          if (show_group_colors) {
+            uchar gpl_col[4];
+            bGPDlayer *gpl = (bGPDlayer *)ale->data;
+            rgb_float_to_uchar(gpl_col, gpl->color);
+            gpl_col[3] = col1[3];
+
+            immUniformColor4ubv(sel ? col1 : gpl_col);
+          }
+          else {
+            immUniformColor4ubv(sel ? col1 : col2);
+          }
+          break;
+        }
+        default: {
+          immUniformColor4ubv(sel ? col1 : col2);
+        }
+      }
+
+      /* draw region twice: firstly backdrop, then the current range */
+      immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+    else if (ac->datatype == ANIMCONT_GPENCIL) {
+      uchar *color;
+      uchar gpl_col[4];
+      switch (ale->type) {
+        case ANIMTYPE_SUMMARY:
+          color = col_summary;
+          break;
+
+        case ANIMTYPE_GPLAYER: {
+          if (show_group_colors) {
+            bGPDlayer *gpl = (bGPDlayer *)ale->data;
+            rgb_float_to_uchar(gpl_col, gpl->color);
+            gpl_col[3] = col1[3];
+
+            color = sel ? col1 : gpl_col;
+          }
+          else {
+            color = sel ? col1 : col2;
+          }
+          break;
+        }
+
+        case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
+          color = col2b;
+          color[3] = sel ? col1[3] : col2b[3];
+          break;
+
+        default:
+          color = sel ? col1 : col2;
+          break;
+      }
+
+      /* Color overlay on frames between the start/end frames. */
+      immUniformColor4ubv(color);
+      immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+      /* Color overlay outside the start/end frame range get a more transparent overlay. */
+      immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+      immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+      immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+    else if (ac->datatype == ANIMCONT_MASK) {
+      /* TODO: this is a copy of gpencil. */
+      uchar *color;
+      if (ale->type == ANIMTYPE_SUMMARY) {
+        color = col_summary;
+      }
+      else {
+        color = sel ? col1 : col2;
+      }
+
+      /* Color overlay on frames between the start/end frames. */
+      immUniformColor4ubv(color);
+      immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
+
+      /* Color overlay outside the start/end frame range get a more transparent overlay. */
+      immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
+      immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
+      immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
+    }
+  }
+}
+
+static void draw_keyframes(bAnimContext *ac,
+                           View2D *v2d,
+                           SpaceAction *saction,
+                           ListBase &anim_data)
+{
+  /* Draw keyframes
+   * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
+   *    This is to try to optimize this for heavier data sets
+   * 2) Keyframes which are out of view horizontally are disregarded
+   */
+  int action_flag = saction->flag;
+  bDopeSheet *ads = &saction->ads;
+
+  if (saction->mode == SACTCONT_TIMELINE) {
+    action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
+  }
+
+  const float channel_step = ANIM_UI_get_channel_step();
+  float ymax = ANIM_UI_get_first_channel_top(v2d);
+
+  AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
+
+  const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
+
+  bAnimListElem *ale;
+  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= channel_step)
+  {
+    const float ymin = ymax - ANIM_UI_get_channel_height();
+    float ycenter = (ymin + ymax) / 2.0f;
+
+    /* check if visible */
+    if (!(IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
+          IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)))
+    {
+      continue;
+    }
+
+    /* check if anything to show for this channel */
+    if (ale->datatype == ALE_NONE) {
+      continue;
+    }
+
+    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+    /* draw 'keyframes' for each specific datatype */
+    switch (ale->datatype) {
+      case ALE_ALL:
+        draw_summary_channel(
+            draw_list, static_cast<bAnimContext *>(ale->data), ycenter, scale_factor, action_flag);
+        break;
+      case ALE_SCE:
+        draw_scene_channel(draw_list,
+                           ads,
+                           static_cast<Scene *>(ale->key_data),
+                           ycenter,
+                           scale_factor,
+                           action_flag);
+        break;
+      case ALE_OB:
+        draw_object_channel(draw_list,
+                            ads,
+                            static_cast<Object *>(ale->key_data),
+                            ycenter,
+                            scale_factor,
+                            action_flag);
+        break;
+      case ALE_ACT:
+        draw_action_channel(draw_list,
+                            adt,
+                            static_cast<bAction *>(ale->key_data),
+                            ycenter,
+                            scale_factor,
+                            action_flag);
+        break;
+      case ALE_GROUP:
+        draw_agroup_channel(draw_list,
+                            adt,
+                            static_cast<bActionGroup *>(ale->data),
+                            ycenter,
+                            scale_factor,
+                            action_flag);
+        break;
+      case ALE_FCURVE:
+        draw_fcurve_channel(draw_list,
+                            adt,
+                            static_cast<FCurve *>(ale->key_data),
+                            ycenter,
+                            scale_factor,
+                            action_flag);
+        break;
+      case ALE_GREASE_PENCIL_CEL:
+        draw_grease_pencil_cels_channel(draw_list,
+                                        ads,
+                                        static_cast<const GreasePencilLayer *>(ale->data),
+                                        ycenter,
+                                        scale_factor,
+                                        action_flag);
+        break;
+      case ALE_GREASE_PENCIL_DATA:
+        draw_grease_pencil_datablock_channel(draw_list,
+                                             ads,
+                                             static_cast<const GreasePencil *>(ale->data),
+                                             ycenter,
+                                             scale_factor,
+                                             action_flag);
+        break;
+      case ALE_GPFRAME:
+        draw_gpl_channel(draw_list,
+                         ads,
+                         static_cast<bGPDlayer *>(ale->data),
+                         ycenter,
+                         scale_factor,
+                         action_flag);
+        break;
+      case ALE_MASKLAY:
+        draw_masklay_channel(draw_list,
+                             ads,
+                             static_cast<MaskLayer *>(ale->data),
+                             ycenter,
+                             scale_factor,
+                             action_flag);
+        break;
+    }
+  }
+
+  ED_keylist_draw_list_flush(draw_list, v2d);
+  ED_keylist_draw_list_free(draw_list);
+}
+
+void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region)
+{
+  ListBase anim_data = {nullptr, nullptr};
+  View2D *v2d = &region->v2d;
 
   /* build list of channels to draw */
   eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
@@ -233,139 +514,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* first backdrop strips */
-  float ymax = ANIM_UI_get_first_channel_top(v2d);
-  const float channel_step = ANIM_UI_get_channel_step();
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
-    const float ymin = ymax - ANIM_UI_get_channel_height();
+  draw_backdrops(ac, anim_data, v2d, pos);
 
-    /* check if visible */
-    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-      int sel = 0;
-
-      /* determine if any need to draw channel */
-      if (ale->datatype != ALE_NONE) {
-        /* determine if channel is selected */
-        if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT)) {
-          sel = ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
-        }
-
-        if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
-          switch (ale->type) {
-            case ANIMTYPE_SUMMARY: {
-              /* reddish color from NLA */
-              immUniformThemeColor(TH_ANIM_ACTIVE);
-              break;
-            }
-            case ANIMTYPE_SCENE:
-            case ANIMTYPE_OBJECT: {
-              immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
-              break;
-            }
-            case ANIMTYPE_FILLACTD:
-            case ANIMTYPE_DSSKEY:
-            case ANIMTYPE_DSWOR: {
-              immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
-              break;
-            }
-            case ANIMTYPE_GROUP: {
-              bActionGroup *agrp = static_cast<bActionGroup *>(ale->data);
-              if (show_group_colors && agrp->customCol) {
-                if (sel) {
-                  immUniformColor3ubvAlpha((uchar *)agrp->cs.select, col1a[3]);
-                }
-                else {
-                  immUniformColor3ubvAlpha((uchar *)agrp->cs.solid, col2a[3]);
-                }
-              }
-              else {
-                immUniformColor4ubv(sel ? col1a : col2a);
-              }
-              break;
-            }
-            case ANIMTYPE_FCURVE: {
-              FCurve *fcu = static_cast<FCurve *>(ale->data);
-              if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-                immUniformColor3ubvAlpha((uchar *)fcu->grp->cs.active, sel ? col1[3] : col2[3]);
-              }
-              else {
-                immUniformColor4ubv(sel ? col1 : col2);
-              }
-              break;
-            }
-            case ANIMTYPE_GPLAYER: {
-              if (show_group_colors) {
-                uchar gpl_col[4];
-                bGPDlayer *gpl = (bGPDlayer *)ale->data;
-                rgb_float_to_uchar(gpl_col, gpl->color);
-                gpl_col[3] = col1[3];
-
-                immUniformColor4ubv(sel ? col1 : gpl_col);
-              }
-              else {
-                immUniformColor4ubv(sel ? col1 : col2);
-              }
-              break;
-            }
-            default: {
-              immUniformColor4ubv(sel ? col1 : col2);
-            }
-          }
-
-          /* draw region twice: firstly backdrop, then the current range */
-          immRectf(pos, v2d->cur.xmin, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-        else if (ac->datatype == ANIMCONT_GPENCIL) {
-          uchar *color;
-          uchar gpl_col[4];
-          if (ale->type == ANIMTYPE_SUMMARY) {
-            color = col_summary;
-          }
-          else if ((show_group_colors) && (ale->type == ANIMTYPE_GPLAYER)) {
-            bGPDlayer *gpl = (bGPDlayer *)ale->data;
-            rgb_float_to_uchar(gpl_col, gpl->color);
-            gpl_col[3] = col1[3];
-
-            color = sel ? col1 : gpl_col;
-          }
-          else {
-            color = sel ? col1 : col2;
-          }
-
-          /* Color overlay on frames between the start/end frames. */
-          immUniformColor4ubv(color);
-          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
-
-          /* Color overlay outside the start/end frame range get a more transparent overlay. */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
-          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
-          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-        else if (ac->datatype == ANIMCONT_MASK) {
-          /* TODO: this is a copy of gpencil. */
-          uchar *color;
-          if (ale->type == ANIMTYPE_SUMMARY) {
-            color = col_summary;
-          }
-          else {
-            color = sel ? col1 : col2;
-          }
-
-          /* Color overlay on frames between the start/end frames. */
-          immUniformColor4ubv(color);
-          immRectf(pos, ac->scene->r.sfra, ymin, ac->scene->r.efra, ymax);
-
-          /* Color overlay outside the start/end frame range get a more transparent overlay. */
-          immUniformColor3ubvAlpha(color, MIN2(255, color[3] / 2));
-          immRectf(pos, v2d->cur.xmin, ymin, ac->scene->r.sfra, ymax);
-          immRectf(pos, ac->scene->r.efra, ymin, v2d->cur.xmax + EXTRA_SCROLL_PAD, ymax);
-        }
-      }
-    }
-  }
   GPU_blend(GPU_BLEND_NONE);
 
   /* black line marking 'current frame' for Time-Slide transform mode */
@@ -379,116 +529,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   }
   immUnbindProgram();
 
-  /* Draw keyframes
-   * 1) Only channels that are visible in the Action Editor get drawn/evaluated.
-   *    This is to try to optimize this for heavier data sets
-   * 2) Keyframes which are out of view horizontally are disregarded
-   */
-  int action_flag = saction->flag;
-
-  if (saction->mode == SACTCONT_TIMELINE) {
-    action_flag &= ~(SACTION_SHOW_INTERPOLATION | SACTION_SHOW_EXTREMES);
-  }
-
-  ymax = ANIM_UI_get_first_channel_top(v2d);
-
-  AnimKeylistDrawList *draw_list = ED_keylist_draw_list_create();
-
-  const float scale_factor = ANIM_UI_get_keyframe_scale_factor();
-
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale;
-       ale = ale->next, ymax -= channel_step)
-  {
-    const float ymin = ymax - ANIM_UI_get_channel_height();
-    float ycenter = (ymin + ymax) / 2.0f;
-
-    /* check if visible */
-    if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
-        IN_RANGE(ymax, v2d->cur.ymin, v2d->cur.ymax)) {
-      /* check if anything to show for this channel */
-      if (ale->datatype != ALE_NONE) {
-        adt = ANIM_nla_mapping_get(ac, ale);
-
-        /* draw 'keyframes' for each specific datatype */
-        switch (ale->datatype) {
-          case ALE_ALL:
-            draw_summary_channel(draw_list,
-                                 static_cast<bAnimContext *>(ale->data),
-                                 ycenter,
-                                 scale_factor,
-                                 action_flag);
-            break;
-          case ALE_SCE:
-            draw_scene_channel(draw_list,
-                               ads,
-                               static_cast<Scene *>(ale->key_data),
-                               ycenter,
-                               scale_factor,
-                               action_flag);
-            break;
-          case ALE_OB:
-            draw_object_channel(draw_list,
-                                ads,
-                                static_cast<Object *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_ACT:
-            draw_action_channel(draw_list,
-                                adt,
-                                static_cast<bAction *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_GROUP:
-            draw_agroup_channel(draw_list,
-                                adt,
-                                static_cast<bActionGroup *>(ale->data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_FCURVE:
-            draw_fcurve_channel(draw_list,
-                                adt,
-                                static_cast<FCurve *>(ale->key_data),
-                                ycenter,
-                                scale_factor,
-                                action_flag);
-            break;
-          case ALE_GREASE_PENCIL_CELS:
-            draw_grease_pencil_cels_channel(draw_list,
-                                            ads,
-                                            static_cast<GreasePencilLayer *>(ale->data),
-                                            ycenter,
-                                            scale_factor,
-                                            action_flag);
-            break;
-          case ALE_GPFRAME:
-            draw_gpl_channel(draw_list,
-                             ads,
-                             static_cast<bGPDlayer *>(ale->data),
-                             ycenter,
-                             scale_factor,
-                             action_flag);
-            break;
-          case ALE_MASKLAY:
-            draw_masklay_channel(draw_list,
-                                 ads,
-                                 static_cast<MaskLayer *>(ale->data),
-                                 ycenter,
-                                 scale_factor,
-                                 action_flag);
-            break;
-        }
-      }
-    }
-  }
-
-  ED_keylist_draw_list_flush(draw_list, v2d);
-  ED_keylist_draw_list_free(draw_list);
+  draw_keyframes(ac, v2d, saction, anim_data);
 
   /* free temporary channels used for drawing */
   ANIM_animdata_freelist(&anim_data);

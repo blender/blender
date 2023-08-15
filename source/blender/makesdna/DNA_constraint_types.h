@@ -97,7 +97,7 @@ typedef struct bConstraintTarget {
   short flag;
   /** Type of target (eConstraintObType). */
   short type;
-  /** Rotation order for target (as defined in BLI_math.h). */
+  /** Rotation order for target (as defined in BLI_math_rotation.h). */
   short rotOrder;
   /** Weight for armature deform. */
   float weight;
@@ -1111,7 +1111,8 @@ typedef enum eChildOf_Flags {
   CHILDOF_SET_INVERSE = (1 << 9),
 } eChildOf_Flags;
 
-/** Pivot Constraint
+/**
+ * Pivot Constraint
  *
  * Restrictions for Pivot Constraint axis to consider for enabling constraint.
  */

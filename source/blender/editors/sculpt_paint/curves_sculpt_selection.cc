@@ -6,7 +6,7 @@
 
 #include "curves_sculpt_intern.hh"
 
-#include "ED_curves_sculpt.h"
+#include "ED_curves_sculpt.hh"
 
 namespace blender::ed::sculpt_paint {
 

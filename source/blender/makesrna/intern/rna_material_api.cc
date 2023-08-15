@@ -6,12 +6,12 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "DNA_material_types.h"
 

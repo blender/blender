@@ -6,7 +6,6 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_armature.h"
@@ -14,7 +13,9 @@
 #include "BKE_mesh.hh"
 #include "DNA_armature_types.h"
 
-#include "ED_transform_snap_object_context.h"
+#include "ED_transform_snap_object_context.hh"
+
+#include "ANIM_bone_collections.h"
 
 #include "transform_snap_object.hh"
 
@@ -56,7 +57,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   if (arm->edbo) {
     LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-      if (eBone->layer & arm->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, eBone)) {
         if (eBone->flag & BONE_HIDDEN_A) {
           /* Skip hidden bones. */
           continue;

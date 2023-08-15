@@ -15,7 +15,10 @@
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rect.h"
@@ -76,7 +79,7 @@ void mul_v2_m2_add_v2v2(float r[2], const float mat[2][2], const float a[2], con
 /**
  * Compute signed distance squared to a line passing through `uva` and `uvb`.
  */
-static float dist_signed_squared_to_edge(float2 probe, float2 uva, float2 uvb)
+static float dist_signed_squared_to_edge(const float2 probe, const float2 uva, const float2 uvb)
 {
   const float2 edge = uvb - uva;
   const float2 side = probe - uva;
@@ -220,12 +223,13 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
   BLI_assert(params.rotate_method == ED_UVPACK_ROTATION_ANY ||
              params.rotate_method == ED_UVPACK_ROTATION_AXIS_ALIGNED);
 
-  /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an arbitrary
-   * angle to minimize the area of the enclosing AABB. This angle is stored in the `pre_rotate_`
-   * member. The different packing strategies will later rotate the island further, stored in the
-   * `angle_` member.
+  /* As a heuristic to improve layout efficiency, #PackIsland's are first rotated by an
+   * angle which minimizes the area of the enclosing AABB. This angle is stored in the
+   * `pre_rotate_` member. The different packing strategies will later rotate the island further,
+   * stored in the `angle_` member.
    *
-   * As AABBs are symmetric, we only need to consider `-90 <= pre_rotate_ <= 90`.
+   * As AABBs have 180 degree rotational symmetry, we only consider `-90 <= pre_rotate_ <= 90`.
+   *
    * As a further heuristic, we "stand up" the AABBs so they are "tall" rather than "wide". */
 
   /* TODO: Use "Rotating Calipers" directly. */
@@ -239,7 +243,7 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
     const float(*source)[2] = reinterpret_cast<const float(*)[2]>(coords.data());
     float angle = -BLI_convexhull_aabb_fit_points_2d(source, int(coords.size()));
 
-    if (1) {
+    if (true) {
       /* "Stand-up" islands. */
 
       float matrix[2][2];
@@ -270,6 +274,13 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 
 void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
+  /* After all the triangles and polygons have been added to a #PackIsland, but before we can start
+   * running packing algorithms, there is a one-time finalization process where we can
+   * pre-calculate a few quantities about the island, including pre-rotation, bounding box, or
+   * computing convex hull.
+   * In the future, we might also detect special-cases for speed or efficiency, such as
+   * rectangle approximation, circle approximation, detecting if the shape has any holes,
+   * analyzing the shape for rotational symmetry or removing overlaps. */
   BLI_assert(triangle_vertices_.size() >= 3);
 
   calculate_pre_rotation_(params);
@@ -304,16 +315,36 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
 
     BLI_heap_clear(heap, nullptr);
   }
+
+  /* Pivot calculation might be performed multiple times during pre-processing.
+   * To ensure the `pivot_` used during packing includes any changes, we also calculate
+   * the pivot *last* to ensure it is correct.
+   */
   calculate_pivot_();
 }
 
 void PackIsland::calculate_pivot_()
 {
-  /* `pivot_` is calculated as the center of the AABB,
-   * However `pivot_` cannot be outside of the convex hull. */
+  /* The meaning of `pivot_` is somewhat ambiguous, as technically, the only restriction is that it
+   * can't be *outside* the convex hull of the shape. Anywhere in the interior, or even on the
+   * boundary of the convex hull is fine.
+   * (The GJK support function for every direction away from `pivot_` is numerically >= 0.0f)
+   *
+   * Ideally, `pivot_` would be the center of the shape's minimum covering circle (MCC). That would
+   * improve packing performance, and potentially even improve packing efficiency.
+   *
+   * However, computing the MCC *efficiently* is somewhat complicated.
+   *
+   * Instead, we compromise, and `pivot_` is currently calculated as the center of the AABB.
+   *
+   * If we later special-case circle packing, *AND* we can preserve the
+   * numerically-not-outside-the-convex-hull property, we may want to revisit this choice.
+   */
   Bounds<float2> triangle_bounds = *bounds::min_max(triangle_vertices_.as_span());
   pivot_ = (triangle_bounds.min + triangle_bounds.max) * 0.5f;
   half_diagonal_ = (triangle_bounds.max - triangle_bounds.min) * 0.5f;
+  BLI_assert(half_diagonal_.x >= 0.0f);
+  BLI_assert(half_diagonal_.y >= 0.0f);
 }
 
 void PackIsland::place_(const float scale, const uv_phi phi)
@@ -1050,6 +1081,8 @@ static void pack_island_box_pack_2d(const Span<std::unique_ptr<UVAABBIsland>> aa
  * Helper class for the `xatlas` strategy.
  * Accelerates geometry queries by approximating exact queries with a bitmap.
  * Includes some book keeping variables to simplify the algorithm.
+ *
+ * \note The last entry, `(width-1, height-1)` is named the "top-right".
  */
 class Occupancy {
  public:
@@ -1242,6 +1275,10 @@ float Occupancy::trace_island(const PackIsland *island,
 
   /* TODO: Support `ED_UVPACK_SHAPE_AABB`. */
 
+  /* TODO: If the PackIsland has the same shape as it's convex hull, we can trace the hull instead
+   * of the individual triangles, which is faster and provides a better value of `extent`.
+   */
+
   const float2 delta = phi.translation - pivot_transformed;
   const uint vert_count = uint(
       island->triangle_vertices_.size()); /* `uint` is faster than `int`. */
@@ -1268,26 +1305,49 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
                                        Occupancy &occupancy,
                                        const float scale,
                                        const int angle_90_multiple,
+                                       /* TODO: const bool reflect, */
                                        const float margin,
                                        const float target_aspect_y)
 {
+  /* Discussion: Different xatlas implementation make different choices here, either
+   * fixing the output bitmap size before packing begins, or sometimes allowing
+   * for non-square outputs which can make the resulting algorithm a little simpler.
+   *
+   * The current implementation is to grow using the "Alpaca Rules" as described above, with calls
+   * to increase_scale() if the particular packing instance is badly conditioned.
+   *
+   * (This particular choice is largely a result of the way packing is used inside the Blender API,
+   * and isn't strictly required by the xatlas algorithm.)
+   *
+   * One nice extension to the xatlas algorithm might be to grow in all 4 directions, i.e. both
+   * increasing and *decreasing* in the horizontal and vertical axes. The `scan_line` parameter
+   * would become a #rctf, the occupancy bitmap would be 4x larger, and there will be a translation
+   * to move the origin back to `(0,0)` at the end.
+   *
+   * This `plus-atlas` algorithm, which grows in a "+" shape, will likely have better packing
+   * efficiency for many real world inputs, at a cost of increased complexity and memory.
+   */
+
   const float bitmap_scale = 1.0f / occupancy.bitmap_scale_reciprocal;
 
+  /* TODO: If `target_aspect_y != 1.0f`, to avoid aliasing issues, we should probably iterate
+   * Separately on `scan_line_x` and `scan_line_y`. See also: Bresenham's algorithm. */
   const float sqrt_target_aspect_y = sqrtf(target_aspect_y);
   const int scan_line_x = int(scan_line * sqrt_target_aspect_y);
   const int scan_line_y = int(scan_line / sqrt_target_aspect_y);
 
   uv_phi phi;
   phi.rotation = DEG2RADF(angle_90_multiple * 90);
+  /* phi.reflect = reflect; */
   float matrix[2][2];
   island->build_transformation(scale, phi.rotation, matrix);
 
-  /* Caution, margin is zero for support_diagonal as we're tracking the top-right corner. */
+  /* Caution, margin is zero for `support_diagonal` as we're tracking the top-right corner. */
   float2 support_diagonal = island->get_diagonal_support(scale, phi.rotation, 0.0f);
 
   /* Scan using an "Alpaca"-style search, first horizontally using "less-than". */
   int t = int(ceilf((2 * support_diagonal.x + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t < scan_line_x) {
+  while (t < scan_line_x) { /* "less-than" */
     phi.translation = float2(t * bitmap_scale, scan_line_y * bitmap_scale) - support_diagonal;
     const float extent = occupancy.trace_island(island, phi, scale, margin, false);
     if (extent < 0.0f) {
@@ -1298,7 +1358,7 @@ static uv_phi find_best_fit_for_island(const PackIsland *island,
 
   /* Then scan vertically using "less-than-or-equal" */
   t = int(ceilf((2 * support_diagonal.y + margin) * occupancy.bitmap_scale_reciprocal));
-  while (t <= scan_line_y) {
+  while (t <= scan_line_y) { /* "less-than-or-equal" */
     phi.translation = float2(scan_line_x * bitmap_scale, t * bitmap_scale) - support_diagonal;
     const float extent = occupancy.trace_island(island, phi, scale, margin, false);
     if (extent < 0.0f) {
@@ -1503,9 +1563,11 @@ static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> islan
  * - Write with `margin * 2`, read with `margin == 0`.
  * - Lazy resetting of BF search.
  *
- * Performance would normally be `O(n^4)`, however the occupancy
- * bitmap_radix is fixed, which gives a reduced time complexity of `O(n^3)`.
+ * Performance of "xatlas" would normally be `O(n^4)` (or worse!), however, in our
+ * implementation, `bitmap_radix` is a constant, which reduces the time complexity to `O(n^3)`.
+ * => if `n` can ever be large, `bitmap_radix` will need to vary accordingly.
  */
+
 static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> island_indices,
                                   const Span<PackIsland *> islands,
                                   const float scale,
@@ -1666,15 +1728,19 @@ static int64_t pack_island_xatlas(const Span<std::unique_ptr<UVAABBIsland>> isla
     }
   }
 
+  /* TODO: if (i != island_indices.size()) { ??? } */
+
   if (!is_larger(*r_extent, extent, params)) {
     return 0;
   }
+
+  /* Our pack is an improvement on the one passed in. Write it back. */
   *r_extent = extent;
   for (int64_t j = 0; j < i; j++) {
     const int64_t island_index = island_indices[j]->index;
     r_phis[island_index] = phis[island_index];
   }
-  return i;
+  return i; /* Return the number of islands which were packed. */
 }
 
 /**
@@ -1787,15 +1853,18 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     if (pack_island->can_translate_(params)) {
       break;
     }
-    if (i == 0) {
-      float2 bottom_left = pack_island->pivot_ - pack_island->half_diagonal_;
-      locked_bounds.xmin = bottom_left.x;
-      locked_bounds.xmax = bottom_left.x;
-      locked_bounds.ymin = bottom_left.y;
-      locked_bounds.ymax = bottom_left.y;
-    }
+    float2 bottom_left = pack_island->pivot_ - pack_island->half_diagonal_;
     float2 top_right = pack_island->pivot_ + pack_island->half_diagonal_;
-    BLI_rctf_do_minmax_v(&locked_bounds, top_right);
+    if (i == 0) {
+      locked_bounds.xmin = bottom_left.x;
+      locked_bounds.xmax = top_right.x;
+      locked_bounds.ymin = bottom_left.y;
+      locked_bounds.ymax = top_right.y;
+    }
+    else {
+      BLI_rctf_do_minmax_v(&locked_bounds, bottom_left);
+      BLI_rctf_do_minmax_v(&locked_bounds, top_right);
+    }
 
     uv_phi &phi = r_phis[aabbs[i]->index]; /* Lock in place. */
     phi.translation = pack_island->pivot_;
@@ -2216,7 +2285,7 @@ float pack_islands(const Span<PackIsland *> &islands, const UVPackIsland_Params 
   blender::Array<uv_phi> phis(islands.size());
   const float scale = 1.0f;
   const float max_uv = pack_islands_scale_margin(islands, scale, margin, params, phis);
-  const float result = can_scale_count > 0 ? params.target_extent / max_uv : 1.0f;
+  const float result = can_scale_count && max_uv > 1e-14f ? params.target_extent / max_uv : 1.0f;
   for (const int64_t i : islands.index_range()) {
     BLI_assert(result == 1.0f || islands[i]->can_scale_(params));
     islands[i]->place_(scale, phis[i]);

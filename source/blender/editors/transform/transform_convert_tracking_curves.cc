@@ -10,17 +10,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
 #include "BKE_node_tree_update.h"
 #include "BKE_tracking.h"
+#include "BLI_math_matrix.h"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -301,7 +302,7 @@ static void special_aftertrans_update__movieclip_for_curves(bContext *C, TransIn
 
 TransConvertTypeInfo TransConvertType_TrackingCurves = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransTrackingCurves,
-    /*recalcData*/ recalcData_tracking_curves,
+    /*create_trans_data*/ createTransTrackingCurves,
+    /*recalc_data*/ recalcData_tracking_curves,
     /*special_aftertrans_update*/ special_aftertrans_update__movieclip_for_curves,
 };

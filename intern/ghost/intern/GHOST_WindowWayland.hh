@@ -141,11 +141,11 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   /* WAYLAND direct-data access. */
 
-  int scale() const;
-  const struct GWL_WindowScaleParams &scale_params() const;
+  int scale_get() const;
+  const struct GWL_WindowScaleParams &scale_params_get() const;
 
-  struct wl_surface *wl_surface() const;
-  const std::vector<GWL_Output *> &outputs();
+  struct wl_surface *wl_surface_get() const;
+  const std::vector<GWL_Output *> &outputs_get();
 
   wl_fixed_t wl_fixed_from_window(wl_fixed_t value) const;
   wl_fixed_t wl_fixed_to_window(wl_fixed_t value) const;

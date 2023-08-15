@@ -8,7 +8,7 @@
  */
 
 #include "BKE_attribute.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh.h"
 
 #include "BLI_compiler_compat.h"

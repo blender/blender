@@ -13,13 +13,13 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BKE_duplilist.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "GPU_capabilities.h"
 
@@ -776,21 +776,21 @@ static void OVERLAY_instance_free(void *instance_)
 static const DrawEngineDataSize overlay_data_size = DRW_VIEWPORT_DATA_SIZE(OVERLAY_Data);
 
 DrawEngineType draw_engine_overlay_type = {
-    nullptr,
-    nullptr,
-    N_("Overlay"),
-    &overlay_data_size,
-    &OVERLAY_engine_init,
-    &OVERLAY_engine_free,
-    &OVERLAY_instance_free,
-    &OVERLAY_cache_init,
-    &OVERLAY_cache_populate,
-    &OVERLAY_cache_finish,
-    &OVERLAY_draw_scene,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Overlay"),
+    /*vedata_size*/ &overlay_data_size,
+    /*engine_init*/ &OVERLAY_engine_init,
+    /*engine_free*/ &OVERLAY_engine_free,
+    /*instance_free*/ &OVERLAY_instance_free,
+    /*cache_init*/ &OVERLAY_cache_init,
+    /*cache_populate*/ &OVERLAY_cache_populate,
+    /*cache_finish*/ &OVERLAY_cache_finish,
+    /*draw_scene*/ &OVERLAY_draw_scene,
+    /*view_update*/ nullptr,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ nullptr,
+    /*store_metadata*/ nullptr,
 };
 
 /** \} */

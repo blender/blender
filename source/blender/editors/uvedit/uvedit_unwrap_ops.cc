@@ -25,7 +25,10 @@
 #include "BLI_convexhull_2d.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -45,9 +48,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
-#include "BKE_subdiv_modifier.h"
+#include "BKE_subdiv_modifier.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -56,22 +59,22 @@
 
 #include "PIL_time.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
-#include "ED_uvedit.h"
-#include "ED_view3d.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
+#include "ED_uvedit.hh"
+#include "ED_view3d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "uvedit_intern.h"
 
@@ -607,7 +610,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Modifier initialization data, will  control what type of subdivision will happen. */
   SubsurfModifierData smd = {{nullptr}};
 
-  /* Holds a map to edit-faces for every subdivision-surface polygon.
+  /* Holds a map to edit-faces for every subdivision-surface face.
    * These will be used to get hidden/ selected flags etc. */
   BMFace **faceMap;
   /* Similar to the above, we need a way to map edges to their original ones. */
@@ -634,24 +637,24 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const blender::Span<blender::float3> subsurf_positions = subdiv_mesh->vert_positions();
   const blender::Span<blender::int2> subsurf_edges = subdiv_mesh->edges();
-  const blender::OffsetIndices subsurf_polys = subdiv_mesh->polys();
+  const blender::OffsetIndices subsurf_facess = subdiv_mesh->faces();
   const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
 
   const int *origVertIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->vdata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->vert_data, CD_ORIGINDEX));
   const int *origEdgeIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->edata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->edge_data, CD_ORIGINDEX));
   const int *origPolyIndices = static_cast<const int *>(
-      CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX));
+      CustomData_get_layer(&subdiv_mesh->face_data, CD_ORIGINDEX));
 
   faceMap = static_cast<BMFace **>(
-      MEM_mallocN(subdiv_mesh->totpoly * sizeof(BMFace *), "unwrap_edit_face_map"));
+      MEM_mallocN(subdiv_mesh->faces_num * sizeof(BMFace *), "unwrap_edit_face_map"));
 
   BM_mesh_elem_index_ensure(em->bm, BM_VERT);
   BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_FACE);
 
   /* map subsurfed faces to original editFaces */
-  for (int i = 0; i < subdiv_mesh->totpoly; i++) {
+  for (int i = 0; i < subdiv_mesh->faces_num; i++) {
     faceMap[i] = BM_face_at_index(em->bm, origPolyIndices[i]);
   }
 
@@ -667,7 +670,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   }
 
   /* Prepare and feed faces to the solver. */
-  for (const int i : subsurf_polys.index_range()) {
+  for (const int i : subsurf_facess.index_range()) {
     ParamKey key, vkeys[4];
     bool pin[4], select[4];
     const float *co[4];
@@ -687,7 +690,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
       }
     }
 
-    const blender::Span<int> poly_corner_verts = subsurf_corner_verts.slice(subsurf_polys[i]);
+    const blender::Span<int> poly_corner_verts = subsurf_corner_verts.slice(subsurf_facess[i]);
 
     /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(poly_corner_verts.size() == 4);
@@ -880,7 +883,6 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
     blender::geometry::uv_parametrizer_flush(ms->handle);
   }
 
-  blender::geometry::uv_parametrizer_stretch_end(ms->handle);
   delete (ms->handle);
 
   for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
@@ -1271,7 +1273,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
       /* Storage. */
       blender::Array<blender::float2> uvs(f->len);
 
-      /* Obtain UVs of polygon. */
+      /* Obtain UVs of face. */
       BMLoop *l;
       BMIter iter;
       int j;
@@ -1620,27 +1622,27 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, op->ptr, "shape_method", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "shape_method", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   {
-    uiItemR(layout, op->ptr, "rotate", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "rotate", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "rotate"));
-    uiItemR(sub, op->ptr, "rotate_method", 0, nullptr, ICON_NONE);
+    uiItemR(sub, op->ptr, "rotate_method", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "margin_method", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "margin", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin_method", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemS(layout);
   {
-    uiItemR(layout, op->ptr, "pin", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "pin", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "pin"));
-    uiItemR(sub, op->ptr, "pin_method", 0, IFACE_("Lock Method"), ICON_NONE);
+    uiItemR(sub, op->ptr, "pin_method", UI_ITEM_NONE, IFACE_("Lock Method"), ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "merge_overlap", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "udim_source", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "merge_overlap", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "udim_source", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemS(layout);
 }
 
@@ -2644,7 +2646,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "use_subsurf_data",
-      0,
+      false,
       "Use Subdivision Surface",
       "Map UVs taking vertex position after Subdivision Surface modifier has been applied");
   RNA_def_enum(ot->srna,

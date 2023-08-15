@@ -4,6 +4,7 @@
 
 set(INC
   .
+  ../../blenkernel
   ../../gpu
   ../../makesrna
   ../../../../intern/clog
@@ -15,15 +16,15 @@ set(INC_SYS
 )
 
 set(SRC
-  bgl.c
-  bl_math_py_api.c
-  blf_py_api.c
-  bpy_threads.c
-  idprop_py_api.c
-  idprop_py_ui_api.c
-  imbuf_py_api.c
-  py_capi_rna.c
-  py_capi_utils.c
+  bgl.cc
+  bl_math_py_api.cc
+  blf_py_api.cc
+  bpy_threads.cc
+  idprop_py_api.cc
+  idprop_py_ui_api.cc
+  imbuf_py_api.cc
+  py_capi_rna.cc
+  py_capi_utils.cc
 
   bgl.h
   bl_math_py_api.h
@@ -42,7 +43,6 @@ set(LIB
   ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

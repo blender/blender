@@ -7,9 +7,9 @@
  */
 
 #include "logImageCore.h"
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "IMB_filetype.h"
 #include "IMB_imbuf.h"

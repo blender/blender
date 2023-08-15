@@ -6,18 +6,18 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 #include "DNA_packedFile_types.h"
 
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "BKE_packedFile.h"
 
@@ -127,8 +127,8 @@ static void rna_Image_pack(
   if (data) {
     char *data_dup = static_cast<char *>(
         MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__));
-    memcpy(data_dup, data, (size_t)data_len);
-    BKE_image_packfiles_from_mem(reports, image, data_dup, (size_t)data_len);
+    memcpy(data_dup, data, size_t(data_len));
+    BKE_image_packfiles_from_mem(reports, image, data_dup, size_t(data_len));
   }
   else if (BKE_image_is_dirty(image)) {
     BKE_image_memorypack(image);

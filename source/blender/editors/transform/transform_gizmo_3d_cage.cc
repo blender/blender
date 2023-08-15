@@ -10,18 +10,19 @@
  * Used for 3D View
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_screen.h"
-#include "WM_api.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_screen.hh"
+#include "WM_api.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 /* local module include */
 #include "transform.hh"

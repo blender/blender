@@ -7,6 +7,7 @@ set(INC
   exporter
   importer
   ../common
+  ../../blenkernel
   ../../bmesh
   ../../bmesh/intern
   ../../depsgraph
@@ -54,7 +55,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

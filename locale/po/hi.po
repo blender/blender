@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -349,6 +349,10 @@ msgstr "क्षेत्र चौड़ाई"
 
 msgid "X Position"
 msgstr "स्थिति x"
+
+
+msgid "Display Filter"
+msgstr "निस्पादक प्रदर्शित करें"
 
 
 msgid "Data Type"
@@ -2250,6 +2254,22 @@ msgid "Use boundaries for viewer nodes and composite backdrop"
 msgstr "दर्शक नोड्स और मिश्रित पृष्ठभूमि के लिए सीमाओं का उपयोग करें"
 
 
+msgid "Edit"
+msgstr "संपादन"
+
+
+msgid "Sculpt"
+msgstr "शिल्प"
+
+
+msgid "Tool"
+msgstr "यंत्र"
+
+
+msgid "Mesh"
+msgstr "जाल"
+
+
 msgid "Data"
 msgstr "सामग्री"
 
@@ -2805,10 +2825,6 @@ msgid "Add"
 msgstr "जोड़ें"
 
 
-msgid "Edit"
-msgstr "संपादन"
-
-
 msgid "Converter"
 msgstr "परिवर्तक"
 
@@ -2827,10 +2843,6 @@ msgstr "पाठ"
 
 msgid "Math"
 msgstr "गणित"
-
-
-msgid "Mesh"
-msgstr "जाल"
 
 
 msgid "Node"
@@ -2923,10 +2935,6 @@ msgstr "त्वरित प्रभाव"
 
 msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
-
-
-msgid "Sculpt"
-msgstr "शिल्प"
 
 
 msgid "Clone Layer"
@@ -3538,10 +3546,6 @@ msgid "Round"
 msgstr "दौर"
 
 
-msgid "Tool"
-msgstr "यंत्र"
-
-
 msgctxt "Operator"
 msgid "Add Marker"
 msgstr "चिन्हक जोड़ें"
@@ -3693,6 +3697,10 @@ msgid "Only Selected"
 msgstr "केवल चयनित"
 
 
+msgid "Ascii"
+msgstr "ऐस्की"
+
+
 msgid "X Up"
 msgstr "X ऊर्ध्व"
 
@@ -3711,10 +3719,6 @@ msgstr "-Y ऊर्ध्व"
 
 msgid "-Z Up"
 msgstr "-Z ऊर्ध्व"
-
-
-msgid "Ascii"
-msgstr "ऐस्की"
 
 
 msgid "Null"
@@ -3801,6 +3805,11 @@ msgstr "सिग्मा"
 
 msgid "Next Keyframe"
 msgstr "अगले अनुबोधक चिन्ह"
+
+
+msgctxt "Operator"
+msgid "Select Mode"
+msgstr "दृश्य रूप का चयन करें"
 
 
 msgid "Create a new image"
@@ -3998,11 +4007,6 @@ msgstr "सकारात्मक अक्ष"
 
 msgid "Negative Axis"
 msgstr "नकारात्मक अक्ष"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "दृश्य रूप का चयन करें"
 
 
 msgid "Fan"
@@ -4637,6 +4641,14 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
+msgid "Refraction"
+msgstr "अपवर्तन"
+
+
+msgid "Film"
+msgstr "चलचित्र"
+
+
 msgid "Predefined tracking camera intrinsics"
 msgstr "पूर्वनिर्धारित प्रतिबिंबक intrinsics पर नज़र रखने"
 
@@ -4655,10 +4667,6 @@ msgstr "पूर्वनिश्चित रंग"
 
 msgid "Cloth Presets"
 msgstr "पूर्वनिश्चित कपड़ा"
-
-
-msgid "Film"
-msgstr "चलचित्र"
 
 
 msgid "Performance"
@@ -5117,10 +5125,6 @@ msgstr "चेतावनियाँ प्रदर्शित करें"
 
 msgid "Blender File"
 msgstr "ब्लेंडर संचिका"
-
-
-msgid "Display Filter"
-msgstr "निस्पादक प्रदर्शित करें"
 
 
 msgid "Filter based on the operator name"
@@ -5680,10 +5684,6 @@ msgstr "ऊपरी"
 
 msgid "Auto-Step"
 msgstr "स्वत:-चरण"
-
-
-msgid "Refraction"
-msgstr "अपवर्तन"
 
 
 msgid "Paths:"

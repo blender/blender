@@ -6,22 +6,24 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
-
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+
+#include "BLI_math_rotation.h"
 
 #include "BKE_context.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "transform.hh"
 #include "transform_draw_cursors.hh" /* Own include. */
+
+using namespace blender;
 
 enum eArrowDirection {
   UP,
@@ -76,7 +78,7 @@ static void drawArrow(const uint pos_id, const enum eArrowDirection dir)
 bool transform_draw_cursor_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  return (region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) ? 1 : 0;
+  return (region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) ? true : false;
 }
 
 void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata)
@@ -87,24 +89,19 @@ void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata
     return;
   }
 
-  float cent[2];
-  const float mval[3] = {float(x), float(y), 0.0f};
-  float tmval[2] = {
-      float(t->mval[0]),
-      float(t->mval[1]),
-  };
-
-  projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
   /* Offset the values for the area region. */
-  const float offset[2] = {
+  const float2 offset = {
       float(t->region->winrct.xmin),
       float(t->region->winrct.ymin),
   };
 
-  for (int i = 0; i < 2; i++) {
-    cent[i] += offset[i];
-    tmval[i] += offset[i];
-  }
+  float2 cent;
+  float2 tmval = t->mval;
+
+  projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
+
+  cent += offset;
+  tmval += offset;
 
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);
@@ -138,7 +135,7 @@ void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata
   immUniform1f("lineWidth", ARROW_WIDTH);
 
   GPU_matrix_push();
-  GPU_matrix_translate_3fv(mval);
+  GPU_matrix_translate_3f(float(x), float(y), 0.0f);
 
   switch (t->helpline) {
     case HLP_SPRING:

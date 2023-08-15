@@ -6,9 +6,9 @@
  * \ingroup spimage
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -24,7 +24,6 @@
 #include "PIL_time.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -37,9 +36,9 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -49,16 +48,16 @@
 
 #include "BLF_api.h"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_image.h"
-#include "ED_mask.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
+#include "ED_mask.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -85,8 +84,7 @@ static void draw_render_info(
 
   if (re) {
     int total_tiles;
-    bool need_free_tiles;
-    rcti *tiles = RE_engine_get_current_tiles(re, &total_tiles, &need_free_tiles);
+    const rcti *tiles = RE_engine_get_current_tiles(re, &total_tiles);
 
     if (total_tiles) {
       /* find window pixel coordinates of origin */
@@ -104,16 +102,12 @@ static void draw_render_info(
 
       GPU_line_width(1.0f);
 
-      rcti *tile = tiles;
+      const rcti *tile = tiles;
       for (int i = 0; i < total_tiles; i++, tile++) {
         immDrawBorderCorners(pos, tile, zoomx, zoomy);
       }
 
       immUnbindProgram();
-
-      if (need_free_tiles) {
-        MEM_freeN(tiles);
-      }
 
       GPU_matrix_pop();
     }
@@ -280,7 +274,7 @@ void ED_image_draw_info(Scene *scene,
       col[0] = col[1] = col[2] = fp[0];
     }
     else if (cp) {
-      col[0] = col[1] = col[2] = (float)cp[0] / 255.0f;
+      col[0] = col[1] = col[2] = float(cp[0]) / 255.0f;
     }
     else {
       col[0] = col[1] = col[2] = 0.0f;
@@ -382,10 +376,10 @@ void ED_image_draw_info(Scene *scene,
     }
     else if (cp) {
       rgb_to_hsv(
-          (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &hue, &sat, &val);
-      rgb_to_yuv((float)cp[0] / 255.0f,
-                 (float)cp[0] / 255.0f,
-                 (float)cp[0] / 255.0f,
+          float(cp[0]) / 255.0f, float(cp[0]) / 255.0f, float(cp[0]) / 255.0f, &hue, &sat, &val);
+      rgb_to_yuv(float(cp[0]) / 255.0f,
+                 float(cp[0]) / 255.0f,
+                 float(cp[0]) / 255.0f,
                  &lum,
                  &u,
                  &v,
@@ -560,8 +554,8 @@ void draw_image_cache(const bContext *C, ARegion *region)
 float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
 {
   /* UV-space length per pixel */
-  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / (float)(v2d->mask.xmax - v2d->mask.xmin);
-  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / (float)(v2d->mask.ymax - v2d->mask.ymin);
+  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / float(v2d->mask.xmax - v2d->mask.xmin);
+  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / float(v2d->mask.ymax - v2d->mask.ymin);
 
   /* Zoom_factor for UV/Image editor is calculated based on:
    * - Default grid size on startup, which is 256x256 pixels

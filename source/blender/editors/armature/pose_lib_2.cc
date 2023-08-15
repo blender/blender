@@ -6,12 +6,11 @@
  * \ingroup edarmature
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
@@ -30,19 +29,19 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_asset.h"
-#include "ED_keyframing.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_asset.hh"
+#include "ED_keyframing.hh"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
 #include "armature_intern.h"
 
@@ -72,7 +71,7 @@ struct PoseBlendData {
    * cause interesting effects. */
   float blend_factor;
   bool is_flipped;
-  struct PoseBackup *pose_backup;
+  PoseBackup *pose_backup;
 
   Object *ob;           /* Object to work on. */
   bAction *act;         /* Pose to blend into the current pose. */
@@ -81,7 +80,7 @@ struct PoseBlendData {
   Scene *scene;  /* For auto-keying. */
   ScrArea *area; /* For drawing status text. */
 
-  struct tSlider *slider; /* Slider UI and event handling. */
+  tSlider *slider; /* Slider UI and event handling. */
 
   /** Info-text to print in header. */
   char headerstr[UI_MAX_DRAW_STR];
@@ -151,7 +150,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   }
 
   /* Perform actual auto-keying. */
-  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
+  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
   BLI_freelistN(&dsources);
 
   /* send notifiers for this */

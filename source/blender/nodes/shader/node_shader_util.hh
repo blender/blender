@@ -14,7 +14,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_color.hh"
-#include "BLI_math.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.h"
@@ -60,18 +59,18 @@
 #include "RE_pipeline.h"
 #include "RE_texture.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-bool sh_node_poll_default(const struct bNodeType *ntype,
-                          const struct bNodeTree *ntree,
+bool sh_node_poll_default(const bNodeType *ntype,
+                          const bNodeTree *ntree,
                           const char **r_disabled_hint);
-void sh_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
-void sh_fn_node_type_base(struct bNodeType *ntype, int type, const char *name, short nclass);
-bool line_style_shader_nodes_poll(const struct bContext *C);
-bool world_shader_nodes_poll(const struct bContext *C);
-bool object_shader_nodes_poll(const struct bContext *C);
-bool object_cycles_shader_nodes_poll(const struct bContext *C);
-bool object_eevee_shader_nodes_poll(const struct bContext *C);
+void sh_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
+void sh_fn_node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
+bool line_style_shader_nodes_poll(const bContext *C);
+bool world_shader_nodes_poll(const bContext *C);
+bool object_shader_nodes_poll(const bContext *C);
+bool object_cycles_shader_nodes_poll(const bContext *C);
+bool object_eevee_shader_nodes_poll(const bContext *C);
 
 /* ********* exec data struct, remains internal *********** */
 
@@ -80,25 +79,19 @@ struct XYZ_to_RGB /* Transposed #imbuf_xyz_to_rgb, passed as 3x vec3. */
   float r[3], g[3], b[3];
 };
 
-void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, struct bNodeStack *ns);
-void node_data_from_gpu_stack(struct bNodeStack *ns, struct GPUNodeStack *gs);
-void node_shader_gpu_bump_tex_coord(struct GPUMaterial *mat,
-                                    struct bNode *node,
-                                    struct GPUNodeLink **link);
-void node_shader_gpu_default_tex_coord(struct GPUMaterial *mat,
-                                       struct bNode *node,
-                                       struct GPUNodeLink **link);
-void node_shader_gpu_tex_mapping(struct GPUMaterial *mat,
-                                 struct bNode *node,
-                                 struct GPUNodeStack *in,
-                                 struct GPUNodeStack *out);
+void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns);
+void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs);
+void node_shader_gpu_bump_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);
+void node_shader_gpu_default_tex_coord(GPUMaterial *mat, bNode *node, GPUNodeLink **link);
+void node_shader_gpu_tex_mapping(GPUMaterial *mat,
+                                 bNode *node,
+                                 GPUNodeStack *in,
+                                 GPUNodeStack *out);
 
-struct bNodeTreeExec *ntreeShaderBeginExecTree_internal(struct bNodeExecContext *context,
-                                                        struct bNodeTree *ntree,
-                                                        bNodeInstanceKey parent_key);
-void ntreeShaderEndExecTree_internal(struct bNodeTreeExec *exec);
+bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context,
+                                                 bNodeTree *ntree,
+                                                 bNodeInstanceKey parent_key);
+void ntreeShaderEndExecTree_internal(bNodeTreeExec *exec);
 
-void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
-                       struct GPUMaterial *mat,
-                       struct bNode *output_node);
+void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node);
 void get_XYZ_to_RGB_for_gpu(XYZ_to_RGB *data);

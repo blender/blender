@@ -43,21 +43,21 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 #include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
 #include "BLT_translation.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::ObjectHeader;

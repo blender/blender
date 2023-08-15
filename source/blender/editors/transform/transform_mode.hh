@@ -24,7 +24,7 @@ struct TransModeInfo {
   void (*init_fn)(TransInfo *, wmOperator *);
 
   /** Main transform mode function. */
-  void (*transform_fn)(TransInfo *, const int[2]);
+  void (*transform_fn)(TransInfo *);
 
   /**
    * Optional callback to transform a single matrix.
@@ -56,7 +56,7 @@ struct TransDataGenericSlideVert {
   float co_orig_3d[3];
 };
 
-/* transform_mode.c */
+/* `transform_mode.cc` */
 
 eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode);
 bool transdata_check_local_center(const TransInfo *t, short around);
@@ -99,127 +99,127 @@ void transform_mode_init(TransInfo *t, wmOperator *op, int mode);
  */
 void transform_mode_default_modal_orientation_set(TransInfo *t, int type);
 
-/* transform_mode_align.c */
+/* `transform_mode_align.cc` */
 
 extern TransModeInfo TransMode_align;
 
-/* transform_mode_baketime.c */
+/* `transform_mode_baketime.cc` */
 
 extern TransModeInfo TransMode_baketime;
 
-/* transform_mode_bbone_resize.c */
+/* `transform_mode_bbone_resize.cc` */
 
 extern TransModeInfo TransMode_bboneresize;
 
-/* transform_mode_bend.c */
+/* `transform_mode_bend.cc` */
 
 extern TransModeInfo TransMode_bend;
 
-/* transform_mode_boneenvelope.c */
+/* `transform_mode_boneenvelope.cc` */
 
 extern TransModeInfo TransMode_boneenvelope;
 
-/* transform_mode_boneroll.c */
+/* `transform_mode_boneroll.cc` */
 
 extern TransModeInfo TransMode_boneroll;
 
-/* transform_mode_curveshrinkfatten.c */
+/* `transform_mode_curveshrinkfatten.cc` */
 
 extern TransModeInfo TransMode_curveshrinkfatten;
 
-/* transform_mode_customdata.c */
+/* `transform_mode_customdata.cc` */
 
 extern TransModeInfo TransMode_edgecrease;
 extern TransModeInfo TransMode_vertcrease;
 extern TransModeInfo TransMode_bevelweight;
 
-/* transform_mode_edge_rotate_normal.c */
+/* `transform_mode_edge_rotate_normal.cc` */
 
 extern TransModeInfo TransMode_rotatenormal;
 
-/* transform_mode_edge_seq_slide.c */
+/* `transform_mode_edge_seq_slide.cc` */
 
 extern TransModeInfo TransMode_seqslide;
 
-/* transform_mode_edge_slide.c */
+/* `transform_mode_edge_slide.cc` */
 
 extern TransModeInfo TransMode_edgeslide;
 void transform_mode_edge_slide_reproject_input(TransInfo *t);
 
-/* transform_mode_gpopacity.c */
+/* `transform_mode_gpopacity.cc` */
 
 extern TransModeInfo TransMode_gpopacity;
 
-/* transform_mode_gpshrinkfatten.c */
+/* `transform_mode_gpshrinkfatten.cc` */
 
 extern TransModeInfo TransMode_gpshrinkfatten;
 
-/* transform_mode_maskshrinkfatten.c */
+/* `transform_mode_maskshrinkfatten.cc` */
 
 extern TransModeInfo TransMode_maskshrinkfatten;
 
-/* transform_mode_mirror.c */
+/* `transform_mode_mirror.cc` */
 
 extern TransModeInfo TransMode_mirror;
 
-/* transform_mode_push_pull.c */
+/* `transform_mode_push_pull.cc` */
 
 extern TransModeInfo TransMode_pushpull;
 
-/* transform_mode_resize.c */
+/* `transform_mode_resize.cc` */
 
 extern TransModeInfo TransMode_resize;
 
-/* transform_mode_rotate.c */
+/* `transform_mode_rotate.cc` */
 
 extern TransModeInfo TransMode_rotate;
 
-/* transform_mode_shear.c */
+/* `transform_mode_shear.cc` */
 
 extern TransModeInfo TransMode_shear;
 
-/* transform_mode_shrink_fatten.c */
+/* `transform_mode_shrink_fatten.cc` */
 
 extern TransModeInfo TransMode_shrinkfatten;
 
-/* transform_mode_skin_resize.c */
+/* `transform_mode_skin_resize.cc` */
 
 extern TransModeInfo TransMode_skinresize;
 
-/* transform_mode_snapsource.c */
+/* `transform_mode_snapsource.cc` */
 
 extern TransModeInfo TransMode_snapsource;
 void transform_mode_snap_source_init(TransInfo *t, wmOperator *op);
 
-/* transform_mode_tilt.c */
+/* `transform_mode_tilt.cc` */
 
 extern TransModeInfo TransMode_tilt;
 
-/* transform_mode_timescale.c */
+/* `transform_mode_timescale.cc` */
 
 extern TransModeInfo TransMode_timescale;
 
-/* transform_mode_timeslide.c */
+/* `transform_mode_timeslide.cc` */
 
 extern TransModeInfo TransMode_timeslide;
 
-/* transform_mode_timetranslate.c */
+/* `transform_mode_timetranslate.cc` */
 
 extern TransModeInfo TransMode_timetranslate;
 
-/* transform_mode_tosphere.c */
+/* `transform_mode_tosphere.cc` */
 
 extern TransModeInfo TransMode_tosphere;
 
-/* transform_mode_trackball.c */
+/* `transform_mode_trackball.cc` */
 
 extern TransModeInfo TransMode_trackball;
 
-/* transform_mode_translate.c */
+/* `transform_mode_translate.cc` */
 
 extern TransModeInfo TransMode_translate;
 
-/* transform_mode_vert_slide.c */
+/* `transform_mode_vert_slide.cc` */
 
 extern TransModeInfo TransMode_vertslide;
 void transform_mode_vert_slide_reproject_input(TransInfo *t);

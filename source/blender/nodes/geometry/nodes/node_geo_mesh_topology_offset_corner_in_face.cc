@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 
 #include "BLI_task.hh"
 
@@ -42,7 +42,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
                                  const IndexMask &mask) const final
   {
     const IndexRange corner_range(mesh.totloop);
-    const OffsetIndices polys = mesh.polys();
+    const OffsetIndices faces = mesh.faces();
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -52,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
+    Array<int> loop_to_face_map = bke::mesh::build_loop_to_face_map(faces);
 
     Array<int> offset_corners(mask.min_array_size());
     mask.foreach_index_optimized<int>(GrainSize(2048), [&](const int selection_i) {
@@ -63,8 +63,8 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
         return;
       }
 
-      const IndexRange poly = polys[loop_to_poly_map[corner_i]];
-      offset_corners[selection_i] = apply_offset_in_cyclic_range(poly, corner_i, offset);
+      const IndexRange face = faces[loop_to_face_map[corner_i]];
+      offset_corners[selection_i] = apply_offset_in_cyclic_range(face, corner_i, offset);
     });
 
     return VArray<int>::ForContainer(std::move(offset_corners));
@@ -105,18 +105,17 @@ static void node_geo_exec(GeoNodeExecParams params)
                         params.extract_input<Field<int>>("Offset"))));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc
-
-void register_node_type_geo_mesh_topology_offset_corner_in_face()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype,
                      GEO_NODE_MESH_TOPOLOGY_OFFSET_CORNER_IN_FACE,
                      "Offset Corner in Face",
                      NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc

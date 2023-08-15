@@ -8,8 +8,8 @@
 
 #include "DNA_object_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
@@ -17,9 +17,9 @@
 
 #  include "BKE_global.h"
 
-#  include "ED_fileselect.h"
-#  include "ED_screen.h"
-#  include "ED_text.h"
+#  include "ED_fileselect.hh"
+#  include "ED_screen.hh"
+#  include "ED_text.hh"
 
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
                                                const int *object_type_exclude_select)
@@ -197,7 +197,7 @@ void RNA_api_space_filebrowser(StructRNA *srna)
   parm = RNA_def_boolean(
       func,
       "deferred",
-      0,
+      false,
       "",
       "Whether to activate the ID immediately (false) or after the file browser refreshes (true)");
 

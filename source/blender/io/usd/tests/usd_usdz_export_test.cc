@@ -17,7 +17,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd.h"
 
@@ -94,7 +94,9 @@ TEST_F(UsdUsdzExportTest, usdz_export)
       << "BLI_current_working_dir is not expected to return a different value than the given char "
          "buffer.";
 
-  USDExportParams params{};
+  USDExportParams params;
+  params.export_materials = false;
+  params.visible_objects_only = false;
 
   bool result = USD_export(context, output_filepath, &params, false);
   ASSERT_TRUE(result) << "usd export to " << output_filepath << " failed.";

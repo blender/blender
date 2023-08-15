@@ -15,11 +15,11 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "text_intern.hh"
 

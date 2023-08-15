@@ -529,7 +529,7 @@ class Stroke : public Interface1D {
   float _textureStep;
   // StrokeRenderer *_renderer; // mark implementation OpenGL renderer
   MediumType _mediumType;
-  unsigned int _textureId;
+  uint _textureId;
   MTex *_mtex[MAX_MTEX];
   bNodeTree *_nodeTree;
   bool _tips;
@@ -633,7 +633,7 @@ class Stroke : public Interface1D {
   }
 
   /** Returns the id of the texture used to simulate th marks system for this Stroke */
-  inline unsigned int getTextureId()
+  inline uint getTextureId()
   {
     return _textureId;
   }
@@ -659,7 +659,7 @@ class Stroke : public Interface1D {
   /** Returns true if this Stroke has textures assigned, false otherwise. */
   inline bool hasTex() const
   {
-    return (_mtex[0] != NULL) || _nodeTree;
+    return (_mtex[0] != nullptr) || _nodeTree;
   }
 
   /** Returns true if this Stroke uses a texture with tips, false otherwise. */
@@ -746,7 +746,7 @@ class Stroke : public Interface1D {
   }
 
   /** sets the texture id to be used to simulate the marks system for this Stroke. */
-  inline void setTextureId(unsigned int id)
+  inline void setTextureId(uint id)
   {
     _textureId = id;
   }
@@ -836,13 +836,13 @@ class Stroke : public Interface1D {
   StrokeInternal::StrokeVertexIterator strokeVerticesEnd();
 
   /** Returns the number of StrokeVertex constituting the Stroke. */
-  inline unsigned int strokeVerticesSize() const
+  inline uint strokeVerticesSize() const
   {
     return _Vertices.size();
   }
 
   /** Returns the i-th StrokeVertex constituting the Stroke. */
-  inline StrokeVertex &strokeVerticeAt(unsigned int i)
+  inline StrokeVertex &strokeVerticeAt(uint i)
   {
     return *(_Vertices.at(i));
   }

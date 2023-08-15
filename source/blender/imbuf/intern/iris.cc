@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"
@@ -23,7 +23,7 @@
 
 #define IMAGIC 0732
 
-typedef struct {
+struct IMAGE {
   ushort imagic; /* Stuff saved on disk. */
   ushort type;
   ushort dim;
@@ -36,7 +36,7 @@ typedef struct {
   char name[80];
   uint colormap;
   uchar _pad2[404];
-} IMAGE;
+};
 
 #define HEADER_SIZE 512
 
@@ -598,7 +598,7 @@ static int expandrow2(
 
   optr += z;
   optr_end += z;
-  while (1) {
+  while (true) {
     const uchar *iptr_next = iptr + 2;
     EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
     pixel = (iptr[0] << 8) | (iptr[1] << 0);
@@ -685,7 +685,7 @@ static int expandrow(
 
   optr += z;
   optr_end += z;
-  while (1) {
+  while (true) {
     const uchar *iptr_next = iptr + 1;
     EXPAND_CAPACITY_AT_INPUT_OK_OR_FAIL(iptr_next);
     pixel = *iptr;
@@ -782,7 +782,7 @@ static bool output_iris(const char *filepath,
   goodwrite = 1;
   outf = BLI_fopen(filepath, "wb");
   if (!outf) {
-    return 0;
+    return false;
   }
 
   tablen = ysize * zsize * sizeof(int);
@@ -851,11 +851,11 @@ static bool output_iris(const char *filepath,
   MEM_freeN(lumbuf);
   fclose(outf);
   if (goodwrite) {
-    return 1;
+    return true;
   }
 
   fprintf(stderr, "output_iris: not enough space for image!!\n");
-  return 0;
+  return false;
 }
 
 /* static utility functions for output_iris */

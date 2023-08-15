@@ -8,7 +8,7 @@
 
 #include "io_ops.hh" /* own include */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #ifdef WITH_COLLADA
 #  include "io_collada.hh"

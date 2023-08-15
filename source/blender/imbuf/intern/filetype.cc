@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "BLI_utildefines.h"
 
@@ -238,6 +238,8 @@ const ImFileType *IMB_file_type_from_ibuf(const ImBuf *ibuf)
 void imb_filetypes_init()
 {
   const ImFileType *type;
+
+  OIIO_init();
 
   for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
     if (type->init) {

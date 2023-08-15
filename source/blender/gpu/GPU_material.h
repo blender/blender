@@ -285,18 +285,18 @@ eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 void GPU_material_status_set(GPUMaterial *mat, eGPUMaterialStatus status);
 
 /**
- * Return status for async optimization jobs.
+ * Return status for asynchronous optimization jobs.
  */
 eGPUMaterialOptimizationStatus GPU_material_optimization_status(GPUMaterial *mat);
 void GPU_material_optimization_status_set(GPUMaterial *mat, eGPUMaterialOptimizationStatus status);
 bool GPU_material_optimization_ready(GPUMaterial *mat);
 
 /**
- * Store reference to a similar default material for async PSO cache warming.
+ * Store reference to a similar default material for asynchronous PSO cache warming.
  *
  * This function expects `material` to have not yet been compiled and for `default_material` to be
- * ready. When compiling `material` as part of an async shader compilation job, use existing PSO
- * descriptors from `default_material`'s shader to also compile PSOs for this new material
+ * ready. When compiling `material` as part of an asynchronous shader compilation job, use existing
+ * PSO descriptors from `default_material`'s shader to also compile PSOs for this new material
  * asynchronously, rather than at runtime.
  *
  * The default_material `options` should match this new materials options in order

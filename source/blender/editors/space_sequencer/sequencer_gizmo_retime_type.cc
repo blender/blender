@@ -28,21 +28,21 @@
 #include "GPU_select.h"
 #include "GPU_state.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_retiming.h"
@@ -596,21 +596,22 @@ void GIZMO_GT_retime_remove(wmGizmoType *gzt)
 
 static size_t label_str_get(const Sequence *seq,
                             const SeqRetimingHandle *handle,
-                            size_t str_len,
-                            char *r_label_str)
+                            char *r_label_str,
+                            const size_t label_str_maxncpy)
 {
   const SeqRetimingHandle *next_handle = handle + 1;
   if (SEQ_retiming_handle_is_transition_type(handle)) {
     const float prev_speed = SEQ_retiming_handle_speed_get(seq, handle - 1);
     const float next_speed = SEQ_retiming_handle_speed_get(seq, next_handle + 1);
     return BLI_snprintf_rlen(r_label_str,
-                             str_len,
+                             label_str_maxncpy,
                              "%d%% - %d%%",
                              round_fl_to_int(prev_speed * 100.0f),
                              round_fl_to_int(next_speed * 100.0f));
   }
   const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
-  return BLI_snprintf_rlen(r_label_str, str_len, "%d%%", round_fl_to_int(speed * 100.0f));
+  return BLI_snprintf_rlen(
+      r_label_str, label_str_maxncpy, "%d%%", round_fl_to_int(speed * 100.0f));
 }
 
 static bool label_rect_get(const bContext *C,
@@ -669,7 +670,7 @@ static void retime_speed_text_draw(const bContext *C,
 
   char label_str[40];
   rctf label_rect;
-  size_t label_len = label_str_get(seq, handle, sizeof(label_str), label_str);
+  size_t label_len = label_str_get(seq, handle, label_str, sizeof(label_str));
 
   if (!label_rect_get(C, seq, handle, label_str, label_len, &label_rect)) {
     return; /* Not enough space to draw label. */
@@ -720,7 +721,7 @@ static int gizmo_retime_speed_set_test_select(bContext *C, wmGizmo *gz, const in
 
     char label_str[40];
     rctf label_rect;
-    size_t label_len = label_str_get(seq, &handle, sizeof(label_str), label_str);
+    size_t label_len = label_str_get(seq, &handle, label_str, sizeof(label_str));
 
     if (!label_rect_get(C, seq, &handle, label_str, label_len, &label_rect)) {
       continue;

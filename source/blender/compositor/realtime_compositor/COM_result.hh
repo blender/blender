@@ -25,6 +25,11 @@ enum class ResultType : uint8_t {
   Color,
 };
 
+enum class ResultPrecision : uint8_t {
+  Full,
+  Half,
+};
+
 /* ------------------------------------------------------------------------------------------------
  * Result
  *
@@ -59,8 +64,11 @@ enum class ResultType : uint8_t {
  * pass_through method, see that method for more details. */
 class Result {
  private:
-  /* The base type of the texture or the type of the single value. */
+  /* The base type of the result's texture or single value. */
   ResultType type_;
+  /* The precision of the result's texture, host-side single values are always stored using full
+   * precision. */
+  ResultPrecision precision_ = ResultPrecision::Half;
   /* If true, the result is a single value, otherwise, the result is a texture. */
   bool is_single_value_;
   /* A GPU texture storing the result data. This will be a 1x1 texture if the result is a single
@@ -103,14 +111,18 @@ class Result {
   Result *master_ = nullptr;
 
  public:
-  /* Construct a result of the given type with the given texture pool that will be used to allocate
-   * and release the result's texture. */
-  Result(ResultType type, TexturePool &texture_pool);
+  /* Construct a result of the given type and precision with the given texture pool that will be
+   * used to allocate and release the result's texture. */
+  Result(ResultType type,
+         TexturePool &texture_pool,
+         ResultPrecision precision = ResultPrecision::Half);
 
   /* Identical to the standard constructor but initializes the reference count to 1. This is useful
    * to construct temporary results that are created and released by the developer manually, which
    * are typically used in operations that need temporary intermediate results. */
-  static Result Temporary(ResultType type, TexturePool &texture_pool);
+  static Result Temporary(ResultType type,
+                          TexturePool &texture_pool,
+                          ResultPrecision precision = ResultPrecision::Half);
 
   /* Declare the result to be a texture result, allocate a texture of an appropriate type with
    * the size of the given domain from the result's texture pool, and set the domain of the result
@@ -267,6 +279,10 @@ class Result {
 
   /* Returns a reference to the domain of the result. See the Domain class. */
   const Domain &domain() const;
+
+ private:
+  /* Returns the appropriate texture format based on the result's type and precision. */
+  eGPUTextureFormat get_texture_format() const;
 };
 
 }  // namespace blender::realtime_compositor

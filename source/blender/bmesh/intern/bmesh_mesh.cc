@@ -15,7 +15,8 @@
 
 #include "BLI_alloca.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -1031,8 +1032,7 @@ void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const 
 
   /* Selection history */
   {
-    BMEditSelection *ese;
-    for (ese = static_cast<BMEditSelection *>(bm->selected.first); ese; ese = ese->next) {
+    LISTBASE_FOREACH (BMEditSelection *, ese, &bm->selected) {
       switch (ese->htype) {
         case BM_VERT:
           if (vptr_map) {

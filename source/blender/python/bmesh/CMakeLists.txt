@@ -4,6 +4,7 @@
 
 set(INC
   .
+  ../../blenkernel
   ../../bmesh
   ../../depsgraph
 )
@@ -13,15 +14,15 @@ set(INC_SYS
 )
 
 set(SRC
-  bmesh_py_api.c
-  bmesh_py_geometry.c
-  bmesh_py_ops.c
-  bmesh_py_ops_call.c
-  bmesh_py_types.c
-  bmesh_py_types_customdata.c
-  bmesh_py_types_meshdata.c
-  bmesh_py_types_select.c
-  bmesh_py_utils.c
+  bmesh_py_api.cc
+  bmesh_py_geometry.cc
+  bmesh_py_ops.cc
+  bmesh_py_ops_call.cc
+  bmesh_py_types.cc
+  bmesh_py_types_customdata.cc
+  bmesh_py_types_meshdata.cc
+  bmesh_py_types_select.cc
+  bmesh_py_utils.cc
 
   bmesh_py_api.h
   bmesh_py_geometry.h
@@ -35,7 +36,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

@@ -62,7 +62,7 @@ static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *sel
 /*-----------------------BPy_IncreasingThicknessShader type definition --------------------------*/
 
 PyTypeObject IncreasingThicknessShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IncreasingThicknessShader",
     /*tp_basicsize*/ sizeof(BPy_IncreasingThicknessShader),
     /*tp_itemsize*/ 0,

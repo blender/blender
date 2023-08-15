@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 

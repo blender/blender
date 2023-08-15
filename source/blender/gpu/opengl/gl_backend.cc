@@ -122,7 +122,7 @@ void GLBackend::platform_init()
   }
 
   /* Detect support level */
-  if (!(epoxy_gl_version() >= 33)) {
+  if (!(epoxy_gl_version() >= 43)) {
     support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
   }
   else {
@@ -234,6 +234,7 @@ static void detect_workarounds()
     GCaps.shader_image_load_store_support = false;
     GCaps.shader_draw_parameters_support = false;
     GCaps.shader_storage_buffer_objects_support = false;
+    GCaps.hdr_viewport_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
     GLContext::copy_image_support = false;
@@ -244,6 +245,7 @@ static void detect_workarounds()
     GLContext::layered_rendering_support = false;
     GLContext::native_barycentric_support = false;
     GLContext::multi_bind_support = false;
+    GLContext::multi_bind_image_support = false;
     GLContext::multi_draw_indirect_support = false;
     GLContext::shader_draw_parameters_support = false;
     GLContext::texture_cube_map_array_support = false;
@@ -452,6 +454,12 @@ static void detect_workarounds()
     GCaps.clear_viewport_workaround = true;
   }
 
+  /* There is an issue in AMD official driver where we cannot use multi bind when using images. AMD
+   * is aware of the issue, but hasn't released a fix. */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+    GLContext::multi_bind_image_support = false;
+  }
+
   /* Metal-related Workarounds. */
 
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
@@ -486,6 +494,7 @@ bool GLContext::fixed_restart_index_support = false;
 bool GLContext::layered_rendering_support = false;
 bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
+bool GLContext::multi_bind_image_support = false;
 bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
@@ -538,6 +547,7 @@ void GLBackend::capabilities_init()
                                  epoxy_gl_version() >= 43;
   GCaps.geometry_shader_support = true;
   GCaps.max_samplers = GCaps.max_textures;
+  GCaps.hdr_viewport_support = false;
 
   if (GCaps.compute_shader_support) {
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &GCaps.max_work_group_count[0]);
@@ -584,10 +594,12 @@ void GLBackend::capabilities_init()
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
   GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
   GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
-  GLContext::layered_rendering_support = epoxy_has_gl_extension("GL_AMD_vertex_shader_layer");
+  GLContext::layered_rendering_support = epoxy_has_gl_extension(
+      "GL_ARB_shader_viewport_layer_array");
   GLContext::native_barycentric_support = epoxy_has_gl_extension(
       "GL_AMD_shader_explicit_vertex_parameter");
-  GLContext::multi_bind_support = epoxy_has_gl_extension("GL_ARB_multi_bind");
+  GLContext::multi_bind_support = GLContext::multi_bind_image_support = epoxy_has_gl_extension(
+      "GL_ARB_multi_bind");
   GLContext::multi_draw_indirect_support = epoxy_has_gl_extension("GL_ARB_multi_draw_indirect");
   GLContext::shader_draw_parameters_support = epoxy_has_gl_extension(
       "GL_ARB_shader_draw_parameters");

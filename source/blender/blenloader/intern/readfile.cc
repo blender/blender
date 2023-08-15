@@ -53,7 +53,6 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_map.hh"
-#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
@@ -65,13 +64,14 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_asset.h"
+#include "BKE_blender_version.h"
 #include "BKE_collection.h"
 #include "BKE_global.h" /* for G */
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h" /* for Main */
@@ -410,6 +410,8 @@ void blo_split_main(ListBase *mainlist, Main *main)
     libmain->curlib = lib;
     libmain->versionfile = lib->versionfile;
     libmain->subversionfile = lib->subversionfile;
+    libmain->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+        libmain, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
     BLI_addtail(mainlist, libmain);
     lib->temp_index = i;
     lib_main_array[i] = libmain;
@@ -527,7 +529,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   //  printf("blo_find_main: original in  %s\n", filepath);
   //  printf("blo_find_main: converted to %s\n", filepath_abs);
 
-  for (m = static_cast<Main *>(mainlist->first); m; m = m->next) {
+  LISTBASE_FOREACH (Main *, m, mainlist) {
     const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->filepath;
 
     if (BLI_path_cmp(filepath_abs, libname) == 0) {
@@ -567,7 +569,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 
 void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message)
 {
-  /* Tag given bmain, and 'root 'local' main one (in case given one is a library one) as invalid.
+  /* Tag given `bmain`, and 'root 'local' main one (in case given one is a library one) as invalid.
    */
   bmain->is_read_invalid = true;
   for (; bmain->prev != nullptr; bmain = bmain->prev)
@@ -724,7 +726,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0);
           }
           else {
-            /* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+            /* MIN2 is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
             memcpy(&bhead, &bhead8, MIN2(sizeof(bhead), sizeof(bhead8)));
           }
@@ -1078,6 +1080,56 @@ static FileData *filedata_new(BlendFileReadReport *reports)
   return fd;
 }
 
+/**
+ * Check if #FileGlobal::minversion of the file is older than current Blender,
+ * return false if it is not.
+ * Should only be called after #read_file_dna was successfully executed.
+ */
+static bool is_minversion_older_than_blender(FileData *fd, ReportList *reports)
+{
+  BLI_assert(fd->filesdna != nullptr);
+  for (BHead *bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
+    if (bhead->code != BLO_CODE_GLOB) {
+      continue;
+    }
+
+    FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
+    if ((fg->minversion > BLENDER_FILE_VERSION) ||
+        (fg->minversion == BLENDER_FILE_VERSION && fg->minsubversion > BLENDER_FILE_SUBVERSION))
+    {
+      char writer_ver_str[16];
+      char min_reader_ver_str[16];
+      if (fd->fileversion == fg->minversion) {
+        BKE_blender_version_blendfile_string_from_values(
+            writer_ver_str, sizeof(writer_ver_str), short(fd->fileversion), fg->subversion);
+        BKE_blender_version_blendfile_string_from_values(
+            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, fg->minsubversion);
+      }
+      else {
+        BKE_blender_version_blendfile_string_from_values(
+            writer_ver_str, sizeof(writer_ver_str), short(fd->fileversion), -1);
+        BKE_blender_version_blendfile_string_from_values(
+            min_reader_ver_str, sizeof(min_reader_ver_str), fg->minversion, -1);
+      }
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  TIP_("The file was saved by a newer version, open it with Blender %s or later"),
+                  min_reader_ver_str);
+      CLOG_WARN(&LOG,
+                "%s: File saved by a newer version of Blender (%s), Blender %s or later is "
+                "needed to open it.",
+                fd->relabase,
+                writer_ver_str,
+                min_reader_ver_str);
+      MEM_freeN(fg);
+      return true;
+    }
+    MEM_freeN(fg);
+    return false;
+  }
+  return false;
+}
+
 static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 {
   decode_blender_header(fd);
@@ -1087,6 +1139,10 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     if (read_file_dna(fd, &error_message) == false) {
       BKE_reportf(
           reports, RPT_ERROR, "Failed to read blend file '%s': %s", fd->relabase, error_message);
+      blo_filedata_free(fd);
+      fd = nullptr;
+    }
+    else if (is_minversion_older_than_blender(fd, reports)) {
       blo_filedata_free(fd);
       fd = nullptr;
     }
@@ -1134,7 +1190,7 @@ static FileData *blo_filedata_from_file_descriptor(const char *filepath,
     /* Try opening the file with memory-mapped IO. */
     file = BLI_filereader_new_mmap(filedes);
     if (file == nullptr) {
-      /* mmap failed, so just keep using rawfile. */
+      /* `mmap` failed, so just keep using `rawfile`. */
       file = rawfile;
       rawfile = nullptr;
     }
@@ -1865,6 +1921,13 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
     BLO_read_id_address(reader, id, &id->override_library->reference);
     BLO_read_id_address(reader, id, &id->override_library->storage);
     BLO_read_id_address(reader, id, &id->override_library->hierarchy_root);
+
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+        BLO_read_id_address(reader, id, &opop->subitem_reference_id);
+        BLO_read_id_address(reader, id, &opop->subitem_local_id);
+      }
+    }
   }
 
   lib_link_id_embedded_id(reader, id);
@@ -2025,6 +2088,8 @@ static void direct_link_id_common(
     return;
   }
 
+  BKE_animdata_blend_read_data(reader, id);
+
   if (id->asset_data) {
     BLO_read_data_address(reader, &id->asset_data);
     BKE_asset_metadata_read(reader, id->asset_data);
@@ -2182,7 +2247,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   BLI_path_normalize(lib->filepath_abs);
 
   /* check if the library was already read */
-  for (newmain = static_cast<Main *>(fd->mainlist->first); newmain; newmain = newmain->next) {
+  LISTBASE_FOREACH (Main *, newmain, fd->mainlist) {
     if (newmain->curlib) {
       if (BLI_path_cmp(newmain->curlib->filepath_abs, lib->filepath_abs) == 0) {
         BLO_reportf_wrap(fd->reports,
@@ -3010,10 +3075,15 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
   FileGlobal *fg = static_cast<FileGlobal *>(read_struct(fd, bhead, "Global"));
 
-  /* copy to bfd handle */
+  /* NOTE: `bfd->main->versionfile` is supposed to have already been set from `fd->fileversion`
+   * beforehand by calling code. */
   bfd->main->subversionfile = fg->subversion;
+  bfd->main->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+      bfd->main, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
+
   bfd->main->minversionfile = fg->minversion;
   bfd->main->minsubversionfile = fg->minsubversion;
+
   bfd->main->build_commit_timestamp = fg->build_commit_timestamp;
   STRNCPY(bfd->main->build_hash, fg->build_hash);
 
@@ -3315,6 +3385,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->autoexec_paths);
   BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
+  BLO_read_list(reader, &user->extension_repos);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {
     keymap->modal_items = nullptr;
@@ -4010,6 +4081,13 @@ static void expand_id(BlendExpander *expander, ID *id)
   if (id->override_library) {
     BLO_expand(expander, id->override_library->reference);
     BLO_expand(expander, id->override_library->storage);
+
+    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+        BLO_expand(expander, opop->subitem_reference_id);
+        BLO_expand(expander, opop->subitem_local_id);
+      }
+    }
   }
 
   AnimData *adt = BKE_animdata_from_id(id);
@@ -4027,35 +4105,29 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func)
 
 void BLO_expand_main(void *fdhandle, Main *mainvar)
 {
-  ListBase *lbarray[INDEX_ID_MAX];
   FileData *fd = static_cast<FileData *>(fdhandle);
-  ID *id;
-  int a;
-  bool do_it = true;
-
   BlendExpander expander = {fd, mainvar};
 
-  while (do_it) {
+  for (bool do_it = true; do_it;) {
     do_it = false;
+    ID *id_iter;
 
-    a = set_listbasepointers(mainvar, lbarray);
-    while (a--) {
-      id = static_cast<ID *>(lbarray[a]->first);
-      while (id) {
-        if (id->tag & LIB_TAG_NEED_EXPAND) {
-          expand_id(&expander, id);
-
-          const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
-          if (id_type->blend_read_expand != nullptr) {
-            id_type->blend_read_expand(&expander, id);
-          }
-
-          do_it = true;
-          id->tag &= ~LIB_TAG_NEED_EXPAND;
-        }
-        id = static_cast<ID *>(id->next);
+    FOREACH_MAIN_ID_BEGIN (mainvar, id_iter) {
+      if ((id_iter->tag & LIB_TAG_NEED_EXPAND) == 0) {
+        continue;
       }
+
+      expand_id(&expander, id_iter);
+
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_iter);
+      if (id_type->blend_read_expand != nullptr) {
+        id_type->blend_read_expand(&expander, id_iter);
+      }
+
+      do_it = true;
+      id_iter->tag &= ~LIB_TAG_NEED_EXPAND;
     }
+    FOREACH_MAIN_ID_END;
   }
 }
 

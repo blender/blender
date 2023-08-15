@@ -6,7 +6,7 @@
  * \ingroup edgreasepencil
  */
 
-#include "ED_grease_pencil.h"
+#include "ED_grease_pencil.hh"
 
 void ED_operatortypes_grease_pencil()
 {
@@ -14,4 +14,5 @@ void ED_operatortypes_grease_pencil()
   ED_operatortypes_grease_pencil_frames();
   ED_operatortypes_grease_pencil_layers();
   ED_operatortypes_grease_pencil_select();
+  ED_operatortypes_grease_pencil_edit();
 }

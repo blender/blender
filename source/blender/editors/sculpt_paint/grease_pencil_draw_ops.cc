@@ -10,18 +10,18 @@
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 
-#include "ED_grease_pencil.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_grease_pencil.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
 
 #include "grease_pencil_intern.hh"
@@ -48,6 +48,9 @@ static bool start_brush_operation(bContext &C,
     case GPAINT_TOOL_DRAW:
       /* FIXME: Somehow store the unique_ptr in the PaintStroke. */
       operation = greasepencil::new_paint_operation().release();
+      break;
+    case GPAINT_TOOL_ERASE:
+      operation = greasepencil::new_erase_operation().release();
       break;
   }
 

@@ -36,20 +36,28 @@
 
 #define BLI_LINKSTACK_SIZE(var) BLI_mempool_len(var##_pool_)
 
-/* check for typeof() */
-#ifdef __GNUC__
+/* Check for `decltype()` or `typeof()` support. */
+#if defined(__cplusplus)
+#  define BLI_LINKSTACK_PUSH(var, ptr) \
+    (CHECK_TYPE_INLINE_NONCONST(ptr, decltype(var##_type_)), \
+     BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
+#  define BLI_LINKSTACK_POP(var) \
+    (decltype(var##_type_))(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
+#  define BLI_LINKSTACK_POP_DEFAULT(var, r) \
+    (decltype(var##_type_))(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : r)
+#elif defined(__GNUC__)
 #  define BLI_LINKSTACK_PUSH(var, ptr) \
     (CHECK_TYPE_INLINE_NONCONST(ptr, typeof(var##_type_)), \
      BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #  define BLI_LINKSTACK_POP(var) \
-    (var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
+    (typeof(var##_type_))(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
 #  define BLI_LINKSTACK_POP_DEFAULT(var, r) \
-    (var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : r)
-#else /* non gcc */
+    (typeof(var##_type_))(var ? BLI_linklist_pop_pool(&(var), var##_pool_) : r)
+#else /* Non GCC/C++. */
 #  define BLI_LINKSTACK_PUSH(var, ptr) (BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #  define BLI_LINKSTACK_POP(var) (var ? BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
 #  define BLI_LINKSTACK_POP_DEFAULT(var, r) (var ? BLI_linklist_pop_pool(&(var), var##_pool_) : r)
-#endif /* gcc check */
+#endif
 
 #define BLI_LINKSTACK_SWAP(var_a, var_b) \
   { \
@@ -149,7 +157,7 @@
     for (_##var##_iter = _##var##_stack, i = 0; _##var##_iter; \
          _##var##_iter = _##var##_iter->next, i++) \
     { \
-      (data)[i] = _BLI_SMALLSTACK_CAST(var)(_##var##_iter->link); \
+      *(void **)&(data)[i] = _##var##_iter->link; \
     } \
   } \
   ((void)0)

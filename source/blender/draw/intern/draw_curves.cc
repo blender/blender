@@ -26,7 +26,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.h"
 #include "draw_manager.h"
@@ -410,6 +410,18 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
 void DRW_curves_update()
 {
+
+  /* Ensure there's a valid active view.
+   * "Next" engines use this function, but this still uses the old Draw Manager. */
+  if (DRW_view_default_get() == nullptr) {
+    /* Create a dummy default view, it's not really used. */
+    DRW_view_default_set(DRW_view_create(
+        float4x4::identity().ptr(), float4x4::identity().ptr(), nullptr, nullptr, nullptr));
+  }
+  if (DRW_view_get_active() == nullptr) {
+    DRW_view_set_active(DRW_view_default_get());
+  }
+
   /* Update legacy hair too, to avoid verbosity in callers. */
   DRW_hair_update();
 

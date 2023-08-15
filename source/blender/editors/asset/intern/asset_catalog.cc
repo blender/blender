@@ -15,13 +15,13 @@
 
 #include "BLI_string_utils.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "ED_asset_catalog.h"
 #include "ED_asset_catalog.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 using namespace blender;
 using namespace blender::asset_system;

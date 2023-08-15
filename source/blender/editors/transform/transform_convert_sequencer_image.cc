@@ -11,7 +11,9 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -24,11 +26,11 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "transform.hh"
@@ -282,7 +284,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
 
 TransConvertTypeInfo TransConvertType_SequencerImage = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransSeqImageData,
-    /*recalcData*/ recalcData_sequencer_image,
+    /*create_trans_data*/ createTransSeqImageData,
+    /*recalc_data*/ recalcData_sequencer_image,
     /*special_aftertrans_update*/ special_aftertrans_update__sequencer_image,
 };

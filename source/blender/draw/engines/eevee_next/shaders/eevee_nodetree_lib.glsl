@@ -15,10 +15,14 @@ float g_holdout;
 ClosureDiffuse g_diffuse_data;
 ClosureReflection g_reflection_data;
 ClosureRefraction g_refraction_data;
+ClosureVolumeScatter g_volume_scatter_data;
+ClosureVolumeAbsorption g_volume_absorption_data;
 /* Random number per sampled closure type. */
 float g_diffuse_rand;
 float g_reflection_rand;
 float g_refraction_rand;
+float g_volume_scatter_rand;
+float g_volume_absorption_rand;
 
 /**
  * Returns true if the closure is to be selected based on the input weight.
@@ -62,12 +66,22 @@ void closure_weights_reset()
   g_refraction_data.roughness = 0.0;
   g_refraction_data.ior = 0.0;
 
+  g_volume_scatter_data.weight = 0.0;
+  g_volume_scatter_data.scattering = vec3(0.0);
+  g_volume_scatter_data.anisotropy = 0.0;
+
+  g_volume_absorption_data.weight = 0.0;
+  g_volume_absorption_data.absorption = vec3(0.0);
+
 #if defined(GPU_FRAGMENT_SHADER)
   g_diffuse_rand = g_reflection_rand = g_refraction_rand = g_closure_rand;
+  g_volume_scatter_rand = g_volume_absorption_rand = g_closure_rand;
 #else
   g_diffuse_rand = 0.0;
   g_reflection_rand = 0.0;
   g_refraction_rand = 0.0;
+  g_volume_scatter_rand = 0.0;
+  g_volume_absorption_rand = 0.0;
 #endif
 
   g_emission = vec3(0.0);
@@ -115,13 +129,15 @@ Closure closure_eval(ClosureTransparency transparency)
 
 Closure closure_eval(ClosureVolumeScatter volume_scatter)
 {
-  /* TODO */
+  /* TODO: Combine instead of selecting. */
+  SELECT_CLOSURE(g_volume_scatter_data, g_volume_scatter_rand, volume_scatter);
   return Closure(0);
 }
 
 Closure closure_eval(ClosureVolumeAbsorption volume_absorption)
 {
-  /* TODO */
+  /* TODO: Combine instead of selecting. */
+  SELECT_CLOSURE(g_volume_absorption_data, g_volume_absorption_rand, volume_absorption);
   return Closure(0);
 }
 
@@ -160,7 +176,9 @@ Closure closure_eval(ClosureVolumeScatter volume_scatter,
                      ClosureVolumeAbsorption volume_absorption,
                      ClosureEmission emission)
 {
-  /* TODO */
+  closure_eval(volume_scatter);
+  closure_eval(volume_absorption);
+  closure_eval(emission);
   return Closure(0);
 }
 
@@ -229,32 +247,117 @@ float ambient_occlusion_eval(vec3 normal,
 #ifndef GPU_METAL
 void attrib_load();
 Closure nodetree_surface();
-Closure nodetree_volume();
+/* Closure nodetree_volume(); */
 vec3 nodetree_displacement();
 float nodetree_thickness();
 vec4 closure_to_rgba(Closure cl);
 #endif
 
-/* Stubs. */
-vec2 btdf_lut(float a, float b, float c)
+/* Fresnel monochromatic, perfect mirror */
+float F_eta(float eta, float cos_theta)
 {
-  return vec2(1, 0);
+  /* Compute fresnel reflectance without explicitly computing
+   * the refracted direction. */
+  float c = abs(cos_theta);
+  float g = eta * eta - 1.0 + c * c;
+  if (g > 0.0) {
+    g = sqrt(g);
+    float A = (g - c) / (g + c);
+    float B = (c * (g + c) - 1.0) / (c * (g - c) + 1.0);
+    return 0.5 * A * A * (1.0 + B * B);
+  }
+  /* Total internal reflections. */
+  return 1.0;
 }
-vec2 brdf_lut(float a, float b)
+
+/* Simplified form of F_eta(eta, 1.0). */
+float F0_from_ior(float eta)
 {
-  return vec2(1, 0);
+  float A = (eta - 1.0) / (eta + 1.0);
+  return A * A;
 }
-vec3 F_brdf_multi_scatter(vec3 a, vec3 b, vec2 c)
+
+/* Return the fresnel color from a precomputed LUT value (from brdf_lutb). */
+vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  return a;
+  return lut.y * f90 + lut.x * f0;
 }
-vec3 F_brdf_single_scatter(vec3 a, vec3 b, vec2 c)
+
+/* Return the fresnel color from a precomputed LUT value (from brdf_lutb). */
+vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  return a;
+  /**
+   * From "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting"
+   * by Carmelo J. Fdez-Aguera
+   * https://jcgt.org/published/0008/01/03/paper.pdf
+   */
+  vec3 FssEss = lut.y * f90 + lut.x * f0;
+
+  float Ess = lut.x + lut.y;
+  float Ems = 1.0 - Ess;
+  vec3 Favg = f0 + (1.0 - f0) / 21.0;
+  vec3 Fms = FssEss * Favg / (1.0 - (1.0 - Ess) * Favg);
+  /* We don't do anything special for diffuse surfaces because the principle bsdf
+   * does not care about energy conservation of the specular layer for dielectrics. */
+  return FssEss + Fms * Ems;
 }
-float F_eta(float a, float b)
+
+vec2 brdf_lut(float cos_theta, float roughness)
 {
-  return a;
+#ifdef EEVEE_UTILITY_TX
+  return utility_tx_sample_lut(utility_tx, vec2(cos_theta, roughness), UTIL_BSDF_LAYER).rg;
+#else
+  return vec2(1.0, 0.0);
+#endif
+}
+
+vec2 btdf_lut(float cos_theta, float roughness, float ior)
+{
+  if (ior <= 1e-5) {
+    return vec2(0.0);
+  }
+
+  if (ior >= 1.0) {
+    vec2 split_sum = brdf_lut(cos_theta, roughness);
+    float f0 = F0_from_ior(ior);
+    /* Baked IOR for GGX BRDF. */
+    const float specular = 1.0;
+    const float eta_brdf = (2.0 / (1.0 - sqrt(0.08 * specular))) - 1.0;
+    /* Avoid harsh transition coming from ior == 1. */
+    float f90 = fast_sqrt(saturate(f0 / (F0_from_ior(eta_brdf) * 0.25)));
+    float fresnel = F_brdf_single_scatter(vec3(f0), vec3(f90), split_sum).r;
+    /* Setting the BTDF to one is not really important since it is only used for multiscatter
+     * and it's already quite close to ground truth. */
+    float btdf = 1.0;
+    return vec2(btdf, fresnel);
+  }
+
+  /* IOR is sin of critical angle. */
+  float critical_cos = sqrt(1.0 - ior * ior);
+
+  vec3 coords;
+  coords.x = sqr(ior);
+  coords.y = cos_theta;
+  coords.y -= critical_cos;
+  coords.y /= (coords.y > 0.0) ? (1.0 - critical_cos) : critical_cos;
+  coords.y = coords.y * 0.5 + 0.5;
+  coords.z = roughness;
+
+  coords = saturate(coords);
+
+  float layer = coords.z * UTIL_BTDF_LAYER_COUNT;
+  float layer_floored = floor(layer);
+
+#ifdef EEVEE_UTILITY_TX
+  coords.z = UTIL_BTDF_LAYER + layer_floored;
+  vec2 btdf_low = utility_tx_sample_lut(utility_tx, coords.xy, coords.z).rg;
+  vec2 btdf_high = utility_tx_sample_lut(utility_tx, coords.xy, coords.z + 1.0).rg;
+  /* Manual trilinear interpolation. */
+  vec2 btdf = mix(btdf_low, btdf_high, layer - layer_floored);
+  return btdf;
+#else
+  return vec2(0.0);
+#endif
 }
 
 void output_renderpass_color(int id, vec4 color)
@@ -292,13 +395,13 @@ void clear_aovs()
 void output_aov(vec4 color, float value, uint hash)
 {
 #if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (uint i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
+  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
     if (rp_buf.aovs.hash_color[i].x == hash) {
       imageStore(rp_color_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.color_len + i), color);
       return;
     }
   }
-  for (uint i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
+  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
     if (rp_buf.aovs.hash_value[i].x == hash) {
       imageStore(rp_value_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.value_len + i), vec4(value));
       return;
@@ -432,20 +535,24 @@ vec3 coordinate_incoming(vec3 P)
  *
  * \{ */
 
-#if defined(MAT_GEOM_VOLUME)
+#if defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
 
 float attr_load_temperature_post(float attr)
 {
+#  ifdef MAT_GEOM_VOLUME_OBJECT
   /* Bring the into standard range without having to modify the grid values */
   attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
+#  endif
   return attr;
 }
 vec4 attr_load_color_post(vec4 attr)
 {
+#  ifdef MAT_GEOM_VOLUME_OBJECT
   /* Density is premultiplied for interpolation, divide it out here. */
   attr.rgb *= safe_rcp(attr.a);
   attr.rgb *= drw_volume.color_mul.rgb;
   attr.a = 1.0;
+#  endif
   return attr;
 }
 

@@ -76,7 +76,7 @@ static PoseBackup *pose_backup_create(const Object *ob,
     PoseChannelBackup *chan_bak = static_cast<PoseChannelBackup *>(
         MEM_callocN(sizeof(*chan_bak), "PoseChannelBackup"));
     chan_bak->pchan = pchan;
-    memcpy(&chan_bak->olddata, chan_bak->pchan, sizeof(chan_bak->olddata));
+    chan_bak->olddata = blender::dna::shallow_copy(*chan_bak->pchan);
 
     if (pchan->prop) {
       chan_bak->oldprops = IDP_CopyProperty(pchan->prop);
@@ -116,7 +116,7 @@ bool BKE_pose_backup_is_selection_relevant(const PoseBackup *pose_backup)
 void BKE_pose_backup_restore(const PoseBackup *pbd)
 {
   LISTBASE_FOREACH (PoseChannelBackup *, chan_bak, &pbd->backups) {
-    memcpy(chan_bak->pchan, &chan_bak->olddata, sizeof(chan_bak->olddata));
+    *chan_bak->pchan = blender::dna::shallow_copy(chan_bak->olddata);
 
     if (chan_bak->oldprops) {
       IDP_SyncGroupValues(chan_bak->pchan->prop, chan_bak->oldprops);

@@ -6,7 +6,7 @@
  * \ingroup edarmature
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -31,20 +31,20 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_armature.hh"
+#include "ED_keyframing.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 #include "armature_intern.h"
 
@@ -131,7 +131,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const struct SelectPick_Params *params)
+                                       const SelectPick_Params *params)
 {
   bool found = false;
   bool changed = false;
@@ -255,22 +255,22 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               ViewLayer *view_layer,
                                               View3D *v3d,
                                               Base *base,
-                                              const struct GPUSelectResult *buffer,
+                                              const GPUSelectResult *buffer,
                                               const short hits,
-                                              const struct SelectPick_Params *params,
+                                              const SelectPick_Params *params,
                                               bool do_nearest)
 {
   Object *ob = base->object;
   Bone *nearBone;
 
   if (!ob || !ob->pose) {
-    return 0;
+    return false;
   }
 
   /* Callers happen to already get the active base */
   Base *base_dummy = nullptr;
   nearBone = ED_armature_pick_bone_from_selectbuffer(
-      &base, 1, buffer, hits, 1, do_nearest, &base_dummy);
+      &base, 1, buffer, hits, true, do_nearest, &base_dummy);
 
   return ED_armature_pose_select_pick_bone(scene, view_layer, v3d, ob, nearBone, params);
 }
@@ -285,9 +285,9 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
   if (ob_active->type == OB_GPENCIL_LEGACY) {
-    GpencilVirtualModifierData virtualModifierData;
-    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob_active,
-                                                                             &virtualModifierData);
+    GpencilVirtualModifierData virtual_modifier_data;
+    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
+        ob_active, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eGpencilModifierType_Armature) {
         ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
@@ -303,8 +303,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
     }
   }
   else {
-    VirtualModifierData virtualModifierData;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob_active, &virtualModifierData);
+    VirtualModifierData virtual_modifier_data;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob_active, &virtual_modifier_data);
     for (; md; md = md->next) {
       if (md->type == eModifierType_Armature) {
         ArmatureModifierData *amd = (ArmatureModifierData *)md;
@@ -327,7 +327,6 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
 bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibility)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
-  bPoseChannel *pchan;
 
   /* we call this from outliner too */
   if (ob->pose == nullptr) {
@@ -337,8 +336,7 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
   /* Determine if we're selecting or deselecting */
   if (select_mode == SEL_TOGGLE) {
     select_mode = SEL_SELECT;
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
         if (pchan->bone->flag & BONE_SELECTED) {
           select_mode = SEL_DESELECT;
@@ -350,7 +348,7 @@ bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
 
   /* Set the flags accordingly */
   bool changed = false;
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     /* ignore the pchan if it isn't visible or if its selection cannot be changed */
     if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
       int flag_prev = pchan->bone->flag;
@@ -426,8 +424,6 @@ bool ED_pose_deselect_all_multi(bContext *C, int select_mode, const bool ignore_
 
 static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 {
-  Bone *curBone;
-
   /* stop when unconnected child is encountered, or when unselectable bone is encountered */
   if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE)) {
     return;
@@ -440,7 +436,7 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
     bone->flag |= BONE_SELECTED;
   }
 
-  for (curBone = static_cast<Bone *>(bone->childbase.first); curBone; curBone = curBone->next) {
+  LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
     selectconnected_posebonechildren(ob, curBone, extend);
   }
 }
@@ -485,7 +481,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
   }
 
   /* Select children */
-  for (curBone = static_cast<Bone *>(bone->childbase.first); curBone; curBone = curBone->next) {
+  LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
     selectconnected_posebonechildren(base->object, curBone, extend);
   }
 
@@ -556,8 +552,7 @@ static int pose_select_linked_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* Select children */
-    for (curBone = static_cast<Bone *>(pchan->bone->childbase.first); curBone;
-         curBone = curBone->next) {
+    LISTBASE_FOREACH (Bone *, curBone, &pchan->bone->childbase) {
       selectconnected_posebonechildren(ob, curBone, false);
     }
     ED_pose_bone_select_tag_update(ob);
@@ -689,17 +684,14 @@ void POSE_OT_select_parent(wmOperatorType *ot)
 
 static int pose_select_constraint_target_exec(bContext *C, wmOperator * /*op*/)
 {
-  bConstraint *con;
   int found = 0;
 
   CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
     if (pchan->bone->flag & BONE_SELECTED) {
-      for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+      LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
         ListBase targets = {nullptr, nullptr};
-        bConstraintTarget *ct;
-
         if (BKE_constraint_targets_get(con, &targets)) {
-          for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
             Object *ob = ct->tar;
 
             /* Any armature that is also in pose mode should be selected. */
@@ -715,7 +707,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator * /*op*/)
             }
           }
 
-          BKE_constraint_targets_flush(con, &targets, 1);
+          BKE_constraint_targets_flush(con, &targets, true);
         }
       }
     }
@@ -781,15 +773,12 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
     }
   }
   else { /* direction == BONE_SELECT_CHILD */
-    bPoseChannel *pchan_iter;
     Bone *bone_child = nullptr;
     int pass;
 
     /* first pass, only connected bones (the logical direct child) */
     for (pass = 0; pass < 2 && (bone_child == nullptr); pass++) {
-      for (pchan_iter = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan_iter;
-           pchan_iter = pchan_iter->next)
-      {
+      LISTBASE_FOREACH (bPoseChannel *, pchan_iter, &ob->pose->chanbase) {
         /* possible we have multiple children, some invisible */
         if (PBONE_SELECTABLE(arm, pchan_iter->bone)) {
           if (pchan_iter->parent == pchan_act) {
@@ -854,11 +843,11 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 /* -------------------------------------- */
 
 /* modes for select same */
-typedef enum ePose_SelectSame_Mode {
+enum ePose_SelectSame_Mode {
   POSE_SEL_SAME_LAYER = 0,
   POSE_SEL_SAME_GROUP = 1,
   POSE_SEL_SAME_KEYINGSET = 2,
-} ePose_SelectSame_Mode;
+};
 
 static bool pose_select_same_group(bContext *C, bool extend)
 {
@@ -1059,7 +1048,6 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
   ViewLayer *view_layer = CTX_data_view_layer(C);
   bool changed_multi = false;
   KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
-  KS_Path *ksp;
 
   /* sanity checks: validate Keying Set and object */
   if (ks == nullptr) {
@@ -1109,7 +1097,7 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool ex
     /* iterate over elements in the Keying Set, setting selection depending on whether
      * that bone is visible or not...
      */
-    for (ksp = static_cast<KS_Path *>(ks->paths.first); ksp; ksp = ksp->next) {
+    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
       /* only items related to this object will be relevant */
       if ((ksp->id == &ob->id) && (ksp->rna_path != nullptr)) {
         bPoseChannel *pchan = nullptr;
@@ -1236,16 +1224,14 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    bPoseChannel *pchan, *pchan_mirror_act = nullptr;
+    bPoseChannel *pchan_mirror_act = nullptr;
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       const int flag = (pchan->bone->flag & BONE_SELECTED);
       PBONE_PREV_FLAG_SET(pchan, flag);
     }
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (PBONE_SELECTABLE(arm, pchan->bone)) {
         bPoseChannel *pchan_mirror;
         int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;

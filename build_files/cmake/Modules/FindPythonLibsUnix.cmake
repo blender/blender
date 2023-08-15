@@ -27,9 +27,13 @@
 # also defined, but not for general use are
 #  PYTHON_LIBRARY, where to find the python library.
 
-# If PYTHON_ROOT_DIR was defined in the environment, use it.
-IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
+# If `PYTHON_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED PYTHON_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{PYTHON_ROOT_DIR})
   SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
+ELSE()
+  SET(PYTHON_ROOT_DIR "")
 ENDIF()
 
 SET(_PYTHON_VERSION_SUPPORTED 3.10)

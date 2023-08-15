@@ -129,18 +129,17 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Selection", std::move(selection_field));
 }
 
-}  // namespace blender::nodes::node_geo_edge_paths_to_selection_cc
-
-void register_node_type_geo_edge_paths_to_selection()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_edge_paths_to_selection_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_EDGE_PATHS_TO_SELECTION, "Edge Paths to Selection", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
+  ntype.declare = node_declare;
   blender::bke::node_type_size(&ntype, 150, 100, 300);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_edge_paths_to_selection_cc

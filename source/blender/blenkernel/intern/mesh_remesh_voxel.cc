@@ -33,9 +33,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_remesh_voxel.h" /* own include */
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_remesh_voxel.hh" /* own include */
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "bmesh_tools.h"
@@ -122,10 +122,10 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   /* Construct the new output mesh */
   Mesh *mesh = BKE_mesh_new_nomain(qrd.out_totverts, 0, qrd.out_totfaces, qrd.out_totfaces * 4);
   BKE_mesh_copy_parameters(mesh, input_mesh);
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  blender::offset_indices::fill_constant_group_size(4, 0, poly_offsets);
+  blender::offset_indices::fill_constant_group_size(4, 0, face_offsets);
 
   mesh->vert_positions_for_write().copy_from(
       Span(reinterpret_cast<float3 *>(qrd.out_verts), qrd.out_totverts));
@@ -226,14 +226,14 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   Mesh *mesh = BKE_mesh_new_nomain(
       vertices.size(), 0, quads.size() + tris.size(), quads.size() * 4 + tris.size() * 3);
   MutableSpan<float3> vert_positions = mesh->vert_positions_for_write();
-  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = mesh->corner_verts_for_write();
 
   const int triangle_loop_start = quads.size() * 4;
-  if (!poly_offsets.is_empty()) {
-    blender::offset_indices::fill_constant_group_size(4, 0, poly_offsets.take_front(quads.size()));
+  if (!face_offsets.is_empty()) {
+    blender::offset_indices::fill_constant_group_size(4, 0, face_offsets.take_front(quads.size()));
     blender::offset_indices::fill_constant_group_size(
-        3, triangle_loop_start, poly_offsets.drop_front(quads.size()));
+        3, triangle_loop_start, face_offsets.drop_front(quads.size()));
   }
 
   for (const int i : vert_positions.index_range()) {
@@ -282,18 +282,19 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, const Mesh *source)
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_VERTS, 2);
   const Span<float3> target_positions = target->vert_positions();
-  const float *source_mask = (const float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
+  const float *source_mask = (const float *)CustomData_get_layer(&source->vert_data,
+                                                                 CD_PAINT_MASK);
   if (source_mask == nullptr) {
     return;
   }
 
   float *target_mask;
-  if (CustomData_has_layer(&target->vdata, CD_PAINT_MASK)) {
-    target_mask = (float *)CustomData_get_layer(&target->vdata, CD_PAINT_MASK);
+  if (CustomData_has_layer(&target->vert_data, CD_PAINT_MASK)) {
+    target_mask = (float *)CustomData_get_layer(&target->vert_data, CD_PAINT_MASK);
   }
   else {
     target_mask = (float *)CustomData_add_layer(
-        &target->vdata, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
+        &target->vert_data, CD_PAINT_MASK, CD_CONSTRUCT, target->totvert);
   }
 
   blender::threading::parallel_for(IndexRange(target->totvert), 4096, [&](const IndexRange range) {
@@ -318,7 +319,7 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const AttributeAccessor src_attributes = source->attributes();
   MutableAttributeAccessor dst_attributes = target->attributes_for_write();
   const Span<float3> target_positions = target->vert_positions();
-  const OffsetIndices target_polys = target->polys();
+  const OffsetIndices target_polys = target->faces();
   const Span<int> target_corner_verts = target->corner_verts();
 
   const VArray src_face_sets = *src_attributes.lookup<int>(".sculpt_face_set", ATTR_DOMAIN_FACE);
@@ -334,27 +335,28 @@ void BKE_remesh_reproject_sculpt_face_sets(Mesh *target, const Mesh *source)
   const VArraySpan<int> src(src_face_sets);
   MutableSpan<int> dst = dst_face_sets.span;
 
-  const blender::Span<int> looptri_polys = source->looptri_polys();
+  const blender::Span<int> looptri_faces = source->looptri_faces();
   BVHTreeFromMesh bvhtree = {nullptr};
   BKE_bvhtree_from_mesh_get(&bvhtree, source, BVHTREE_FROM_LOOPTRI, 2);
 
-  blender::threading::parallel_for(IndexRange(target->totpoly), 2048, [&](const IndexRange range) {
-    for (const int i : range) {
-      BVHTreeNearest nearest;
-      nearest.index = -1;
-      nearest.dist_sq = FLT_MAX;
-      const float3 from_co = mesh::poly_center_calc(target_positions,
-                                                    target_corner_verts.slice(target_polys[i]));
-      BLI_bvhtree_find_nearest(
-          bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
-      if (nearest.index != -1) {
-        dst[i] = src[looptri_polys[nearest.index]];
-      }
-      else {
-        dst[i] = 1;
-      }
-    }
-  });
+  blender::threading::parallel_for(
+      IndexRange(target->faces_num), 2048, [&](const IndexRange range) {
+        for (const int i : range) {
+          BVHTreeNearest nearest;
+          nearest.index = -1;
+          nearest.dist_sq = FLT_MAX;
+          const float3 from_co = mesh::face_center_calc(
+              target_positions, target_corner_verts.slice(target_polys[i]));
+          BLI_bvhtree_find_nearest(
+              bvhtree.tree, from_co, &nearest, bvhtree.nearest_callback, &bvhtree);
+          if (nearest.index != -1) {
+            dst[i] = src[looptri_faces[nearest.index]];
+          }
+          else {
+            dst[i] = 1;
+          }
+        }
+      });
   free_bvhtree_from_mesh(&bvhtree);
   dst_face_sets.finish();
 }

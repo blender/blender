@@ -112,16 +112,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_curve_topology_curve_of_point_cc
-
-void register_node_type_geo_curve_topology_curve_of_point()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_topology_curve_of_point_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_TOPOLOGY_CURVE_OF_POINT, "Curve of Point", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_topology_curve_of_point_cc

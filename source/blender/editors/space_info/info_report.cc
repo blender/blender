@@ -18,14 +18,14 @@
 
 #include "BKE_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "info_intern.hh"
 
@@ -33,9 +33,7 @@ static void reports_select_all(ReportList *reports, int report_mask, int action)
 {
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (const Report *report = static_cast<const Report *>(reports->list.last); report;
-         report = report->prev)
-    {
+    LISTBASE_FOREACH_BACKWARD (const Report *, report, &reports->list) {
       if ((report->type & report_mask) && (report->flag & SELECT)) {
         action = SEL_DESELECT;
         break;
@@ -43,7 +41,7 @@ static void reports_select_all(ReportList *reports, int report_mask, int action)
     }
   }
 
-  for (Report *report = static_cast<Report *>(reports->list.last); report; report = report->prev) {
+  LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
     if (report->type & report_mask) {
       switch (action) {
         case SEL_SELECT:
@@ -106,7 +104,7 @@ static int report_replay_exec(bContext *C, wmOperator * /*op*/)
         (report->flag & SELECT))
     {
       console_history_add_str(sc, report->message, 0);
-      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL, NULL);
+      WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
 
       ED_area_tag_redraw(CTX_wm_area(C));
     }
@@ -265,8 +263,7 @@ static int box_select_exec(bContext *C, wmOperator *op)
 
   if (report_max == nullptr) {
     // printf("find_max\n");
-    for (Report *report = static_cast<Report *>(reports->list.last); report; report = report->prev)
-    {
+    LISTBASE_FOREACH_BACKWARD (Report *, report, &reports->list) {
       if (report->type & report_mask) {
         report_max = report;
         break;
@@ -363,12 +360,10 @@ static int report_copy_exec(bContext *C, wmOperator * /*op*/)
   ReportList *reports = CTX_wm_reports(C);
   int report_mask = info_report_mask(sinfo);
 
-  Report *report;
-
   DynStr *buf_dyn = BLI_dynstr_new();
   char *buf_str;
 
-  for (report = static_cast<Report *>(reports->list.first); report; report = report->next) {
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
     if ((report->type & report_mask) && (report->flag & SELECT)) {
       BLI_dynstr_append(buf_dyn, report->message);
       BLI_dynstr_append(buf_dyn, "\n");

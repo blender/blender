@@ -11,7 +11,7 @@
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 
 #include "GEO_mesh_merge_by_distance.hh"
 
@@ -48,14 +48,14 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
 
   /* Add faces to the mesh. */
   if (!data.face_sizes.is_empty()) {
-    MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+    MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
     MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
     /* Fill in face data. */
     uint32_t offset = 0;
     for (const int i : data.face_sizes.index_range()) {
       uint32_t size = data.face_sizes[i];
-      poly_offsets[i] = offset;
+      face_offsets[i] = offset;
       for (int j = 0; j < size; j++) {
         uint32_t v = data.face_vertices[offset + j];
         if (v >= mesh->totvert) {

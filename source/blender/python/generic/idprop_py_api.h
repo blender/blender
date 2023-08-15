@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BPy_IDGroup_Iter;
 struct ID;
 struct IDProperty;
@@ -99,3 +103,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, struct IDProperty *grou
 void IDProp_Init_Types(void);
 
 PyObject *BPyInit_idprop(void);
+
+#ifdef __cplusplus
+}
+#endif

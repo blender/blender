@@ -10,7 +10,9 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BKE_action.h"
@@ -28,21 +30,21 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
 #include "DRW_engine.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "view3d_intern.h" /* own include */
 #include "view3d_navigate.hh"
@@ -240,6 +242,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
     if (v3d->scenelock && scene->camera != ob) {
       scene->camera = ob;
       DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_relations_tag_update(CTX_data_main(C));
     }
 
     /* unlikely but looks like a glitch when set to the same */
@@ -629,9 +632,9 @@ int view3d_opengl_select_ex(ViewContext *vc,
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = nullptr;
       if (obact->type == OB_GPENCIL_LEGACY) {
-        GpencilVirtualModifierData virtualModifierData;
+        GpencilVirtualModifierData virtual_modifier_data;
         const GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
-            obact, &virtualModifierData);
+            obact, &virtual_modifier_data);
         for (; md; md = md->next) {
           if (md->type == eGpencilModifierType_Armature) {
             ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
@@ -642,9 +645,9 @@ int view3d_opengl_select_ex(ViewContext *vc,
         }
       }
       else {
-        VirtualModifierData virtualModifierData;
+        VirtualModifierData virtual_modifier_data;
         const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
-                                                                        &virtualModifierData);
+                                                                        &virtual_modifier_data);
         for (; md; md = md->next) {
           if (md->type == eModifierType_Armature) {
             ArmatureModifierData *amd = (ArmatureModifierData *)md;

@@ -5,19 +5,12 @@
 #pragma once
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_customdata_types.h"
-#include "DNA_material_types.h"
-
-#include "BKE_attribute.h"
-#include "BKE_paint.h" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
+#include "BKE_paint.hh" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
 #include "BKE_pbvh_api.hh"
 
 #include "../../bmesh/intern/bmesh_idmap.h"
@@ -25,7 +18,7 @@
 
 #define PBVH_STACK_FIXED_DEPTH 100
 
-struct PBVHGPUFormat;
+#include "DNA_meshdata_types.h"
 
 /** \file
  * \ingroup bke
@@ -51,18 +44,18 @@ struct BBC {
  * union'd structs */
 struct PBVHNode {
   /* Opaque handle for drawing code */
-  PBVHBatches *draw_batches;
+  PBVHBatches *draw_batches = nullptr;
 
   /* Voxel bounds */
-  BB vb;
-  BB orig_vb;
+  BB vb = {};
+  BB orig_vb = {};
 
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
-  int children_offset;
-  int subtree_tottri;
+  int children_offset = 0;
+  int subtree_tottri = 0;
 
-  int depth;
+  int depth = 0;
 
   /* List of primitives for this node. Semantics depends on
    * PBVH type:
@@ -74,8 +67,7 @@ struct PBVHNode {
    * NOTE: This is a pointer inside of PBVH.prim_indices; it
    * is not allocated separately per node.
    */
-  int *prim_indices;
-  unsigned int totprim; /* Number of primitives inside prim_indices. */
+  blender::Span<int> prim_indices;
 
   /* Array of indices into the mesh's vertex array. Contains the
    * indices of all vertices used by faces that are within this
@@ -96,14 +88,14 @@ struct PBVHNode {
    *
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
-  const int *vert_indices;
-  unsigned int uniq_verts, face_verts;
+  blender::Array<int, 0> vert_indices;
+  int uniq_verts = 0;
+  int face_verts = 0;
 
   /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
-  int *loop_indices;
-  unsigned int loop_indices_num;
+  blender::Array<int, 0> loop_indices;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of
@@ -113,31 +105,31 @@ struct PBVHNode {
    *
    * Used for leaf nodes in a mesh-based PBVH (not multires.)
    */
-  const int (*face_vert_indices)[3];
+  blender::Array<blender::int3, 0> face_vert_indices;
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag;
+  PBVHNodeFlags flag = PBVHNodeFlags(0);
 
   /* Used for ray-casting: how close the bounding-box is to the ray point. */
-  float tmin;
+  float tmin = 0.0f;
 
   /* Scalar displacements for sculpt mode's layer brush. */
-  float *layer_disp;
+  float *layer_disp = nullptr;
 
-  int proxy_count;
-  PBVHProxyNode *proxies;
+  int proxy_count = 0;
+  PBVHProxyNode *proxies = nullptr;
 
   /* GSet of pointers to the BMFaces used by this node.
    * NOTE: PBVH_BMESH only.
    */
-  blender::bke::dyntopo::DyntopoSet<BMVert> *bm_unique_verts, *bm_other_verts;
-  blender::bke::dyntopo::DyntopoSet<BMFace> *bm_faces;
+  blender::bke::dyntopo::DyntopoSet<BMVert> *bm_unique_verts = nullptr, *bm_other_verts = nullptr;
+  blender::bke::dyntopo::DyntopoSet<BMFace> *bm_faces = nullptr;
 
-  PBVHTriBuf *tribuf;  // all triangles
-  blender::Vector<PBVHTriBuf> *tri_buffers;
+  PBVHTriBuf *tribuf = nullptr;  // all triangles
+  blender::Vector<PBVHTriBuf> *tri_buffers = nullptr;
 
-  int updategen;
+  int updategen = 0;
 
 #ifdef PROXY_ADVANCED
   ProxyVertArray proxyverts;
@@ -147,8 +139,8 @@ struct PBVHNode {
   /* Used to flash colors of updated node bounding boxes in
    * debug draw mode (when G.debug_value / bpy.app.debug_value is 889).
    */
-  int debug_draw_gen;
-  int id;
+  int debug_draw_gen = 0;
+  int id = 0;
 };
 
 typedef enum { PBVH_IGNORE_UVS = 1 } PBVHFlags;
@@ -166,14 +158,14 @@ struct PBVH {
 
   bool dyntopo_stop;
 
-  PBVHNode *nodes;
-  int node_mem_count, totnode;
+  blender::Vector<PBVHNode> nodes;
 
   /* Memory backing for PBVHNode.prim_indices. */
-  int *prim_indices;
+  blender::Array<int> prim_indices;
   int totprim;
   int totvert;
   int totloop;
+  blender::OffsetIndices<int> faces;
   int faces_num; /* Do not use directly, use BKE_pbvh_num_faces. */
 
   int leaf_limit;
@@ -185,22 +177,26 @@ struct PBVH {
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   blender::MutableSpan<blender::float3> vert_normals;
-  blender::MutableSpan<blender::float3> poly_normals;
+  blender::MutableSpan<blender::float3> face_normals;
   bool *hide_vert;
   blender::MutableSpan<blender::float3> vert_positions;
   /** Local vertex positions owned by the PVBH when not sculpting base mesh positions directly. */
   blender::Array<blender::float3> vert_positions_deformed;
-  blender::OffsetIndices<int> polys;
+  blender::Span<int> looptri_faces;
   blender::Span<blender::int2> edges;
   bool *hide_poly;
   /** Only valid for polygon meshes. */
-  const int *corner_verts;
-  const int *corner_edges;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
   const bool *sharp_edges;
   const bool *seam_edges;
 
+  CustomData *vert_data;
+  CustomData *loop_data;
+  CustomData *face_data;
+
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
-  const MLoopTri *looptri;
+  blender::Array<MLoopTri> looptri;
   blender::Span<blender::float3> origco, origno;
 
   /* Sculpt flags*/
@@ -208,12 +204,6 @@ struct PBVH {
 
   /* Cached vertex valences */
   int *valence;
-
-  const int *looptri_polys;
-
-  CustomData *vdata;
-  CustomData *ldata;
-  CustomData *pdata;
 
   int face_sets_color_seed;
   int face_sets_color_default;
@@ -231,7 +221,7 @@ struct PBVH {
 
   /* Used during BVH build and later to mark that a vertex needs to update
    * (its normal must be recalculated). */
-  bool *vert_bitmap;
+  blender::Array<bool> vert_bitmap;
 
 #ifdef PERFCNTRS
   int perf_modified;
@@ -308,7 +298,7 @@ void BB_expand(BB *bb, const float co[3]);
 /**
  * Expand the bounding box to include another bounding box.
  */
-void BB_expand_with_bb(BB *bb, BB *bb2);
+void BB_expand_with_bb(BB *bb, const BB *bb2);
 void BBC_update_centroid(BBC *bbc);
 /**
  * Return 0, 1, or 2 to indicate the widest axis of the bounding box.
@@ -391,8 +381,6 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node);
 BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *pbvh, const BMVert *key)
 {
   const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, pbvh->cd_vert_node_offset);
-  BLI_assert(node_index != DYNTOPO_NODE_NONE);
-  BLI_assert(node_index << pbvh->totnode);
   return node_index;
 }
 
@@ -400,14 +388,13 @@ BLI_INLINE PBVHNode *pbvh_bmesh_node_from_vert(PBVH *pbvh, const BMVert *key)
 {
   int ni = pbvh_bmesh_node_index_from_vert(pbvh, key);
 
-  return ni >= 0 ? pbvh->nodes + ni : NULL;
-  // return &pbvh->nodes[pbvh_bmesh_node_index_from_vert(pbvh, key)];
+  return ni >= 0 ? &pbvh->nodes[ni] : nullptr;
 }
 
 BLI_INLINE PBVHNode *pbvh_bmesh_node_from_face(PBVH *pbvh, const BMFace *key)
 {
   int ni = BM_ELEM_CD_GET_INT(key, pbvh->cd_face_node_offset);
-  return ni >= 0 && ni < pbvh->totnode ? pbvh->nodes + ni : NULL;
+  return ni >= 0 && ni < pbvh->nodes.size() ? &pbvh->nodes[ni] : nullptr;
 }
 
 bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index);

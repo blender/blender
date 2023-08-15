@@ -6,7 +6,7 @@
  * \ingroup edundo
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -26,7 +26,7 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -35,24 +35,24 @@
 
 #include "BLO_blend_validate.h"
 
-#include "ED_asset.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
+#include "ED_asset.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo"};
@@ -668,14 +668,21 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
   if (op) {
     CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
     wmWindowManager *wm = CTX_wm_manager(C);
+    const ScrArea *area = CTX_wm_area(C);
     Scene *scene = CTX_data_scene(C);
 
     /* keep in sync with logic in view3d_panel_operator_redo() */
     ARegion *region_orig = CTX_wm_region(C);
-    ARegion *region_win = BKE_area_find_region_active_win(CTX_wm_area(C));
+    /* If the redo is called from a HUD, this knows about the region type the operator was
+     * initially called in, so attempt to restore that. */
+    ARegion *redo_region_from_hud = (region_orig->regiontype == RGN_TYPE_HUD) ?
+                                        ED_area_type_hud_redo_region_find(area, region_orig) :
+                                        nullptr;
+    ARegion *region_repeat = redo_region_from_hud ? redo_region_from_hud :
+                                                    BKE_area_find_region_active_win(area);
 
-    if (region_win) {
-      CTX_wm_region_set(C, region_win);
+    if (region_repeat) {
+      CTX_wm_region_set(C, region_repeat);
     }
 
     if (WM_operator_repeat_check(C, op) && WM_operator_poll(C, op->type) &&

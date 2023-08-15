@@ -6,8 +6,9 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 
 #include "DNA_screen_types.h"
 
@@ -21,8 +22,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
 #include "transform_snap_object.hh"
 
@@ -1332,7 +1333,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       /* Small offset to simulate a kind of volume for edges and vertices. */
       new_clipplane[3] += 0.01f;
 
-      /* Try to snap only to the polygon. */
+      /* Try to snap only to the face. */
       elem_test = snap_polygon(sctx, sctx->runtime.snap_to_flag);
       if (elem_test) {
         elem = elem_test;

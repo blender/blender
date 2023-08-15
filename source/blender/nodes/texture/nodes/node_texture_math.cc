@@ -6,6 +6,7 @@
  * \ingroup texnodes
  */
 
+#include "BLI_math_rotation.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
 
@@ -171,6 +172,16 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
       }
       else {
         *out = fmod(in0, in1);
+      }
+      break;
+    }
+
+    case NODE_MATH_FLOORED_MODULO: {
+      if (in1 == 0.0f) {
+        *out = 0.0f;
+      }
+      else {
+        *out = in0 - floorf(in0 / in1) * in1;
       }
       break;
     }

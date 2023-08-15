@@ -45,7 +45,6 @@ struct Image;
 struct MovieClip;
 struct Object;
 struct Scene;
-struct SceneCollection;
 struct World;
 struct bGPdata;
 struct bNodeTree;
@@ -1827,6 +1826,24 @@ typedef struct SceneDisplay {
   View3DShading shading;
 } SceneDisplay;
 
+/**
+ * Ray-tracing parameters.
+ */
+typedef struct RaytraceEEVEE {
+  /** Higher values will take lower strides and have less blurry intersections. */
+  float screen_trace_quality;
+  /** Thickness in world space each surface will have during screen space tracing. */
+  float screen_trace_thickness;
+  /** Resolution downscale factor. */
+  int resolution_scale;
+  /** Maximum intensity a ray can have. */
+  float sample_clamp;
+  /** #RaytraceEEVEE_Flag. */
+  int flag;
+  /** #RaytraceEEVEE_DenoiseStages. */
+  int denoise_stages;
+} RaytraceEEVEE;
+
 typedef struct SceneEEVEE {
   int flag;
   int gi_diffuse_bounces;
@@ -1835,7 +1852,7 @@ typedef struct SceneEEVEE {
   float gi_irradiance_smoothing;
   float gi_glossy_clamp;
   float gi_filter_quality;
-  char _pad0[4];
+  int gi_irradiance_pool_size;
 
   float gi_cubemap_draw_size;
   float gi_irradiance_draw_size;
@@ -1888,9 +1905,16 @@ typedef struct SceneEEVEE {
   int shadow_cascade_size;
   int shadow_pool_size;
 
+  int ray_split_settings;
+  int ray_tracing_method;
+
+  struct RaytraceEEVEE reflection_options;
+  struct RaytraceEEVEE refraction_options;
+
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;
-  char light_cache_info[64];
+  /* Need a 128 byte string for some translations of some messages. */
+  char light_cache_info[128];
 
   float overscan;
   float light_threshold;
@@ -1900,6 +1924,11 @@ typedef struct SceneGpencil {
   float smaa_threshold;
   char _pad[4];
 } SceneGpencil;
+
+typedef struct SceneHydra {
+  int export_method;
+  int _pad0;
+} SceneHydra;
 
 /** \} */
 
@@ -2038,15 +2067,14 @@ typedef struct Scene {
   ListBase view_layers;
   /** Not an actual data-block, but memory owned by scene. */
   struct Collection *master_collection;
-  struct SceneCollection *collection DNA_DEPRECATED;
 
   /** Settings to be override by work-spaces. */
   IDProperty *layer_properties;
-  void *_pad9;
 
   struct SceneDisplay display;
   struct SceneEEVEE eevee;
   struct SceneGpencil grease_pencil_settings;
+  struct SceneHydra hydra;
 } Scene;
 
 /** \} */
@@ -2325,11 +2353,8 @@ typedef enum eSnapFlag {
   SCE_SNAP_TO_INCLUDE_NONEDITED = (1 << 9),
   SCE_SNAP_TO_ONLY_SELECTABLE = (1 << 10),
 } eSnapFlag;
-/* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
-/* TODO: move this macro to a more general place. */
-#ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
-#endif
+
+ENUM_OPERATORS(eSnapFlag, SCE_SNAP_TO_ONLY_SELECTABLE)
 
 /** See #ToolSettings::snap_target (to be renamed `snap_source`) and #TransSnap.source_operation */
 typedef enum eSnapSourceOP {
@@ -2562,7 +2587,7 @@ typedef enum eSculptFlags {
   // SCULPT_SHOW_DIFFUSE = (1 << 9), /* deprecated */
 
   /** If set, the mesh will be drawn with smooth-shading in dynamic-topology mode. */
-  SCULPT_FLAG_UNUSED_10 = (1 << 10),
+  SCULPT_FLAG_UNUSED_10 = (1 << 10), /* deprecated */
 
   /** If set, dynamic-topology brushes will subdivide short edges. */
   SCULPT_DYNTOPO_SUBDIVIDE = (1 << 12), /* deprecated. */
@@ -2831,7 +2856,25 @@ enum {
   SCE_EEVEE_DOF_HQ_SLIGHT_FOCUS = (1 << 22),
   SCE_EEVEE_DOF_JITTER = (1 << 23),
   SCE_EEVEE_SHADOW_ENABLED = (1 << 24),
+  SCE_EEVEE_RAYTRACE_OPTIONS_SPLIT = (1 << 25),
 };
+
+typedef enum RaytraceEEVEE_Flag {
+  RAYTRACE_EEVEE_USE_DENOISE = (1 << 0),
+} RaytraceEEVEE_Flag;
+
+typedef enum RaytraceEEVEE_DenoiseStages {
+  RAYTRACE_EEVEE_DENOISE_SPATIAL = (1 << 0),
+  RAYTRACE_EEVEE_DENOISE_TEMPORAL = (1 << 1),
+  RAYTRACE_EEVEE_DENOISE_BILATERAL = (1 << 2),
+} RaytraceEEVEE_DenoiseStages;
+
+typedef enum RaytraceEEVEE_Method {
+  RAYTRACE_EEVEE_METHOD_NONE = 0,
+  RAYTRACE_EEVEE_METHOD_SCREEN = 1,
+  /* TODO(fclem): Hardware ray-tracing. */
+  // RAYTRACE_EEVEE_METHOD_HARDWARE = 2,
+} RaytraceEEVEE_Method;
 
 /** #SceneEEVEE::shadow_method */
 enum {
@@ -2856,6 +2899,13 @@ enum {
   SCE_DISPLAY_AA_SAMPLES_11 = 11,
   SCE_DISPLAY_AA_SAMPLES_16 = 16,
   SCE_DISPLAY_AA_SAMPLES_32 = 32,
+};
+
+/** #SceneHydra->export_method */
+
+enum {
+  SCE_HYDRA_EXPORT_HYDRA = 0,
+  SCE_HYDRA_EXPORT_USD = 1,
 };
 
 /** \} */

@@ -8,7 +8,8 @@
 
 #include "DNA_vec_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_base.h"
+#include "BLI_math_geom.h"
 #include "BLI_strict_flags.h"
 
 #include "BLI_lasso_2d.h" /* own include */

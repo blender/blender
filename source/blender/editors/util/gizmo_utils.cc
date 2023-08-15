@@ -8,7 +8,7 @@
  * \name Generic Gizmo Utilities.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
@@ -16,11 +16,11 @@
 
 #include "DNA_workspace_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_utils.hh"
 
 bool ED_gizmo_poll_or_unlink_delayed_from_operator(const bContext *C,
                                                    wmGizmoGroupType *gzgt,

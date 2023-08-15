@@ -17,7 +17,6 @@
 #include "COLLADAFWUniqueId.h"
 #include "Math/COLLADABUMathVector3.h"
 
-#include "BLI_math.h"
 #include "DNA_object_types.h"
 
 #include "collada_internal.h"

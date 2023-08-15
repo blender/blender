@@ -16,10 +16,10 @@
 
 namespace blender::gpu {
 
-typedef enum {
+enum GPUIndexBufType {
   GPU_INDEX_U16,
   GPU_INDEX_U32,
-} GPUIndexBufType;
+};
 
 static inline size_t to_bytesize(GPUIndexBufType type)
 {

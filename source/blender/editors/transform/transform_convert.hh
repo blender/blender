@@ -27,12 +27,12 @@ struct TransConvertTypeInfo {
   /**
    * Allocate and initialize `t->data`.
    */
-  void (*createTransData)(bContext *C, TransInfo *t);
+  void (*create_trans_data)(bContext *C, TransInfo *t);
 
   /**
    * Force recalculation of data during transformation.
    */
-  void (*recalcData)(TransInfo *t);
+  void (*recalc_data)(TransInfo *t);
 
   /**
    * Called when the operation is finished.
@@ -40,7 +40,7 @@ struct TransConvertTypeInfo {
   void (*special_aftertrans_update)(bContext *C, TransInfo *t);
 };
 
-/* transform_convert.c */
+/* `transform_convert.cc` */
 
 /**
  * Change the chain-length of auto-IK.
@@ -52,25 +52,25 @@ int special_transform_moving(TransInfo *t);
  */
 void special_aftertrans_update(bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
-void createTransData(bContext *C, TransInfo *t);
+void create_trans_data(bContext *C, TransInfo *t);
 void clipUVData(TransInfo *t);
 void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, float y_fac);
 /**
  * Called for updating while transform acts, once per redraw.
  */
-void recalcData(TransInfo *t);
+void recalc_data(TransInfo *t);
 
-/* transform_convert_mesh.c */
+/* `transform_convert_mesh.cc` */
 
 void transform_convert_mesh_customdatacorrect_init(TransInfo *t);
 
-/* transform_convert_sequencer.c */
+/* `transform_convert_sequencer.cc` */
 
 void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2]);
 
 /********************* intern **********************/
 
-/* transform_convert.c */
+/* `transform_convert.cc` */
 
 bool transform_mode_use_local_origins(const TransInfo *t);
 /**
@@ -106,11 +106,11 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc);
  */
 void animrecord_check_state(TransInfo *t, ID *id);
 
-/* transform_convert_action.c */
+/* `transform_convert_action.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Action;
 
-/* transform_convert_armature.c */
+/* `transform_convert_armature.cc` */
 
 extern TransConvertTypeInfo TransConvertType_EditArmature;
 extern TransConvertTypeInfo TransConvertType_Pose;
@@ -121,13 +121,13 @@ extern TransConvertTypeInfo TransConvertType_Pose;
  */
 void transform_convert_pose_transflags_update(Object *ob, int mode, short around);
 
-/* transform_convert_cursor.c */
+/* `transform_convert_cursor.cc` */
 
 extern TransConvertTypeInfo TransConvertType_CursorImage;
 extern TransConvertTypeInfo TransConvertType_CursorSequencer;
 extern TransConvertTypeInfo TransConvertType_Cursor3D;
 
-/* transform_convert_curve.c */
+/* `transform_convert_curve.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Curve;
 
@@ -135,27 +135,27 @@ extern TransConvertTypeInfo TransConvertType_Curve;
 
 extern TransConvertTypeInfo TransConvertType_Curves;
 
-/* transform_convert_graph.c */
+/* `transform_convert_graph.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Graph;
 
-/* transform_convert_gpencil_legacy.c */
+/* `transform_convert_gpencil_legacy.cc` */
 
 extern TransConvertTypeInfo TransConvertType_GPencil;
 
-/* transform_convert_lattice.c */
+/* `transform_convert_lattice.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Lattice;
 
-/* transform_convert_mask.c */
+/* `transform_convert_mask.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Mask;
 
-/* transform_convert_mball.c */
+/* `transform_convert_mball.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MBall;
 
-/* transform_convert_mesh.c */
+/* `transform_convert_mesh.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Mesh;
 
@@ -203,8 +203,8 @@ void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
                                             TransMirrorData *r_mirror_data);
 void transform_convert_mesh_mirrordata_free(TransMirrorData *mirror_data);
 /**
- * Detect CrazySpace [tm].
- * Vertices with space affected by quats are marked with #BM_ELEM_TAG.
+ * Detect CrazySpace (Blender term).
+ * Vertices with space affected by quaternions are marked with #BM_ELEM_TAG.
  */
 void transform_convert_mesh_crazyspace_detect(TransInfo *t,
                                               TransDataContainer *tc,
@@ -217,23 +217,23 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
 
-/* transform_convert_mesh_edge.c */
+/* `transform_convert_mesh_edge.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MeshEdge;
 
-/* transform_convert_mesh_skin.c */
+/* `transform_convert_mesh_skin.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MeshSkin;
 
-/* transform_convert_mesh_uv.c */
+/* `transform_convert_mesh_uv.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MeshUV;
 
-/* transform_convert_mesh_vert_cdata.c */
+/* `transform_convert_mesh_vert_cdata.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MeshVertCData;
 
-/* transform_convert_nla.c */
+/* `transform_convert_nla.cc` */
 
 extern TransConvertTypeInfo TransConvertType_NLA;
 
@@ -241,19 +241,19 @@ extern TransConvertTypeInfo TransConvertType_NLA;
 
 extern TransConvertTypeInfo TransConvertType_Node;
 
-/* transform_convert_object.c */
+/* `transform_convert_object.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Object;
 
-/* transform_convert_object_texspace.c */
+/* `transform_convert_object_texspace.cc` */
 
 extern TransConvertTypeInfo TransConvertType_ObjectTexSpace;
 
-/* transform_convert_paintcurve.c */
+/* `transform_convert_paintcurve.cc` */
 
 extern TransConvertTypeInfo TransConvertType_PaintCurve;
 
-/* transform_convert_particle.c */
+/* `transform_convert_particle.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Particle;
 
@@ -261,18 +261,18 @@ extern TransConvertTypeInfo TransConvertType_Particle;
 
 extern TransConvertTypeInfo TransConvertType_Sculpt;
 
-/* transform_convert_sequencer.c */
+/* `transform_convert_sequencer.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Sequencer;
 
-/* transform_convert_sequencer_image.c */
+/* `transform_convert_sequencer_image.cc` */
 
 extern TransConvertTypeInfo TransConvertType_SequencerImage;
 
-/* transform_convert_tracking.c */
+/* `transform_convert_tracking.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Tracking;
 
-/* transform_convert_tracking_curves.c */
+/* `transform_convert_tracking_curves.cc` */
 
 extern TransConvertTypeInfo TransConvertType_TrackingCurves;

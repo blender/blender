@@ -180,7 +180,7 @@ static PyObject *CurvePoint_fedge_get(BPy_CurvePoint *self, void * /*closure*/)
 {
   SVertex *A = self->cp->A();
   Interface0D *B = (Interface0D *)self->cp->B();
-  // B can be NULL under certain circumstances
+  // B can be nullptr under certain circumstances
   if (B) {
     return Any_BPy_Interface1D_from_Interface1D(*(A->getFEdge(*B)));
   }
@@ -227,7 +227,8 @@ static PyGetSetDef BPy_CurvePoint_getseters[] = {
 /*-----------------------BPy_CurvePoint type definition ------------------------------*/
 
 PyTypeObject CurvePoint_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "CurvePoint",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "CurvePoint",
     /*tp_basicsize*/ sizeof(BPy_CurvePoint),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -263,7 +264,7 @@ PyTypeObject CurvePoint_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)CurvePoint_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_collection_types.h"
 
@@ -14,12 +14,12 @@
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_collection_color_items[] = {
     {COLLECTION_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
@@ -50,9 +50,9 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "BKE_global.h"
 #  include "BKE_layer.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 static void rna_Collection_all_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -163,20 +163,14 @@ static void rna_Collection_objects_unlink(Collection *collection,
 }
 
 static bool rna_Collection_objects_override_apply(Main *bmain,
-                                                  PointerRNA *ptr_dst,
-                                                  PointerRNA * /*ptr_src*/,
-                                                  PointerRNA * /*ptr_storage*/,
-                                                  PropertyRNA *prop_dst,
-                                                  PropertyRNA * /*prop_src*/,
-                                                  PropertyRNA * /*prop_storage*/,
-                                                  const int /*len_dst*/,
-                                                  const int /*len_src*/,
-                                                  const int /*len_storage*/,
-                                                  PointerRNA *ptr_item_dst,
-                                                  PointerRNA *ptr_item_src,
-                                                  PointerRNA * /*ptr_item_storage*/,
-                                                  IDOverrideLibraryPropertyOperation *opop)
+                                                  RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
+  PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);
@@ -297,20 +291,14 @@ static void rna_Collection_children_unlink(Collection *collection,
 }
 
 static bool rna_Collection_children_override_apply(Main *bmain,
-                                                   PointerRNA *ptr_dst,
-                                                   PointerRNA * /*ptr_src*/,
-                                                   PointerRNA * /*ptr_storage*/,
-                                                   PropertyRNA *prop_dst,
-                                                   PropertyRNA * /*prop_src*/,
-                                                   PropertyRNA * /*prop_storage*/,
-                                                   const int /*len_dst*/,
-                                                   const int /*len_src*/,
-                                                   const int /*len_storage*/,
-                                                   PointerRNA *ptr_item_dst,
-                                                   PointerRNA *ptr_item_src,
-                                                   PointerRNA * /*ptr_item_storage*/,
-                                                   IDOverrideLibraryPropertyOperation *opop)
+                                                   RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PointerRNA *ptr_item_dst = &rnaapply_ctx.ptr_item_dst;
+  PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on collections' children");
   UNUSED_VARS_NDEBUG(opop);
@@ -584,7 +572,7 @@ void RNA_def_collections(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "Collection", "ID");
   RNA_def_struct_ui_text(srna, "Collection", "Collection of Object data-blocks");
   RNA_def_struct_ui_icon(srna, ICON_OUTLINER_COLLECTION);
-  /* This is done on save/load in readfile.c,
+  /* This is done on save/load in `readfile.cc`,
    * removed if no objects are in the collection and not in a scene. */
   RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
@@ -744,7 +732,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   prop = RNA_def_property(srna, "use_lineart_intersection_priority", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_default(prop, 0);
+  RNA_def_property_boolean_default(prop, false);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "lineart_flags", COLLECTION_LRT_USE_INTERSECTION_PRIORITY);
   RNA_def_property_ui_text(

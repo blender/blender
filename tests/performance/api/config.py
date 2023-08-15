@@ -5,7 +5,6 @@
 import fnmatch
 import json
 import pathlib
-import sys
 
 from dataclasses import dataclass, field
 from typing import Dict, List
@@ -15,7 +14,6 @@ from .test import TestCollection
 
 def get_build_hash(args: None) -> str:
     import bpy
-    import sys
     build_hash = bpy.app.build_hash.decode('utf-8')
     return '' if build_hash == 'Unknown' else build_hash
 
@@ -220,6 +218,7 @@ class TestConfig:
             executable, environment = self._split_environment_variables(executable)
             executable_path = env._blender_executable_from_path(pathlib.Path(executable))
             if not executable_path:
+                import sys
                 sys.stderr.write(f'Error: build {executable} not found\n')
                 sys.exit(1)
 

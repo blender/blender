@@ -222,13 +222,14 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it,
     return;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   ViewEdge *edge;
   Chain *new_chain;
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge) {
+       ++it_edge)
+  {
     if (pred(**it_edge)) {
       continue;
     }
@@ -271,7 +272,7 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
     return;
   }
 
-  unsigned id = 0;
+  uint id = 0;
   Functions1D::IncrementChainingTimeStampF1D ts;
   Predicates1D::EqualToChainingTimeStampUP1D pred_ts(TimeStamp::instance()->getTimeStamp() + 1);
 
@@ -280,7 +281,8 @@ void Operators::bidirectionalChain(ViewEdgeIterator &it, UnaryPredicate1D &pred)
 
   for (I1DContainer::iterator it_edge = _current_view_edges_set.begin();
        it_edge != _current_view_edges_set.end();
-       ++it_edge) {
+       ++it_edge)
+  {
     if (pred(**it_edge) || pred_ts(**it_edge)) {
       continue;
     }
@@ -906,7 +908,7 @@ static int __recursiveSplit(Chain *_curve,
       bsplit = true;
     }
   }
-  // mean /= (float)count;
+  // mean /= float(count);
 
   // if ((!bsplit) || (mean - _min > mean)) { // we didn't find any minimum
   if (!bsplit) {  // we didn't find any minimum

@@ -6,8 +6,8 @@
  * \ingroup edobj
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -17,7 +17,8 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -30,10 +31,10 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_curve.h"
-#include "ED_object.h" /* own include */
+#include "ED_curve.hh"
+#include "ED_object.hh" /* own include */
 
 #include "MEM_guardedalloc.h"
 
@@ -161,9 +162,9 @@ struct XFormObjectSkipChild {
   int mode;
 };
 
-struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create()
+XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create()
 {
-  struct XFormObjectSkipChild_Container *xcs = static_cast<XFormObjectSkipChild_Container *>(
+  XFormObjectSkipChild_Container *xcs = static_cast<XFormObjectSkipChild_Container *>(
       MEM_callocN(sizeof(*xcs), __func__));
   if (xcs->obchild_in_obmode_map == nullptr) {
     xcs->obchild_in_obmode_map = BLI_ghash_ptr_new(__func__);
@@ -172,7 +173,7 @@ struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_crea
 }
 
 void ED_object_xform_skip_child_container_item_ensure_from_array(
-    struct XFormObjectSkipChild_Container *xcs,
+    XFormObjectSkipChild_Container *xcs,
     const Scene *scene,
     ViewLayer *view_layer,
     Object **objects,
@@ -233,20 +234,20 @@ void ED_object_xform_skip_child_container_item_ensure_from_array(
   BLI_gset_free(objects_in_transdata, nullptr);
 }
 
-void ED_object_xform_skip_child_container_destroy(struct XFormObjectSkipChild_Container *xcs)
+void ED_object_xform_skip_child_container_destroy(XFormObjectSkipChild_Container *xcs)
 {
   BLI_ghash_free(xcs->obchild_in_obmode_map, nullptr, MEM_freeN);
   MEM_freeN(xcs);
 }
 
-void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChild_Container *xcs,
+void ED_object_xform_skip_child_container_item_ensure(XFormObjectSkipChild_Container *xcs,
                                                       Object *ob,
                                                       Object *ob_parent_recurse,
                                                       int mode)
 {
   void **xf_p;
   if (!BLI_ghash_ensure_p(xcs->obchild_in_obmode_map, ob, &xf_p)) {
-    struct XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
+    XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
         MEM_mallocN(sizeof(*xf), __func__));
     copy_m4_m4(xf->parentinv_orig, ob->parentinv);
     copy_m4_m4(xf->obmat_orig, ob->object_to_world);
@@ -261,8 +262,8 @@ void ED_object_xform_skip_child_container_item_ensure(struct XFormObjectSkipChil
   }
 }
 
-void ED_object_xform_skip_child_container_update_all(struct XFormObjectSkipChild_Container *xcs,
-                                                     struct Main *bmain,
+void ED_object_xform_skip_child_container_update_all(XFormObjectSkipChild_Container *xcs,
+                                                     Main *bmain,
                                                      Depsgraph *depsgraph)
 {
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -270,7 +271,7 @@ void ED_object_xform_skip_child_container_update_all(struct XFormObjectSkipChild
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, xcs->obchild_in_obmode_map) {
     Object *ob = static_cast<Object *>(BLI_ghashIterator_getKey(&gh_iter));
-    struct XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
+    XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
         BLI_ghashIterator_getValue(&gh_iter));
 
     /* The following blocks below assign 'dmat'. */
@@ -343,10 +344,10 @@ struct XFormObjectData_Container {
 struct XFormObjectData_Extra {
   Object *ob;
   float obmat_orig[4][4];
-  struct XFormObjectData *xod;
+  XFormObjectData *xod;
 };
 
-void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container *xds, Object *ob)
+void ED_object_data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob)
 {
   if (xds->obdata_in_obmode_map == nullptr) {
     xds->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
@@ -354,7 +355,7 @@ void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container
 
   void **xf_p;
   if (!BLI_ghash_ensure_p(xds->obdata_in_obmode_map, ob->data, &xf_p)) {
-    struct XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
+    XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
         MEM_mallocN(sizeof(*xf), __func__));
     copy_m4_m4(xf->obmat_orig, ob->object_to_world);
     xf->ob = ob;
@@ -364,8 +365,8 @@ void ED_object_data_xform_container_item_ensure(struct XFormObjectData_Container
   }
 }
 
-void ED_object_data_xform_container_update_all(struct XFormObjectData_Container *xds,
-                                               struct Main *bmain,
+void ED_object_data_xform_container_update_all(XFormObjectData_Container *xds,
+                                               Main *bmain,
                                                Depsgraph *depsgraph)
 {
   if (xds->obdata_in_obmode_map == nullptr) {
@@ -376,7 +377,7 @@ void ED_object_data_xform_container_update_all(struct XFormObjectData_Container 
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, xds->obdata_in_obmode_map) {
     ID *id = static_cast<ID *>(BLI_ghashIterator_getKey(&gh_iter));
-    struct XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
+    XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
         BLI_ghashIterator_getValue(&gh_iter));
     if (xf->xod == nullptr) {
       continue;
@@ -402,22 +403,22 @@ void ED_object_data_xform_container_update_all(struct XFormObjectData_Container 
 /** Callback for #GHash free. */
 static void trans_obdata_in_obmode_free_elem(void *xf_p)
 {
-  struct XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(xf_p);
+  XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(xf_p);
   if (xf->xod) {
     ED_object_data_xform_destroy(xf->xod);
   }
   MEM_freeN(xf);
 }
 
-struct XFormObjectData_Container *ED_object_data_xform_container_create()
+XFormObjectData_Container *ED_object_data_xform_container_create()
 {
-  struct XFormObjectData_Container *xds = static_cast<XFormObjectData_Container *>(
+  XFormObjectData_Container *xds = static_cast<XFormObjectData_Container *>(
       MEM_callocN(sizeof(*xds), __func__));
   xds->obdata_in_obmode_map = BLI_ghash_ptr_new(__func__);
   return xds;
 }
 
-void ED_object_data_xform_container_destroy(struct XFormObjectData_Container *xds)
+void ED_object_data_xform_container_destroy(XFormObjectData_Container *xds)
 {
   BLI_ghash_free(xds->obdata_in_obmode_map, nullptr, trans_obdata_in_obmode_free_elem);
   MEM_freeN(xds);

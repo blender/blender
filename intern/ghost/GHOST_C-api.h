@@ -154,7 +154,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
  * \param systemhandle: The handle to the system.
- * \param parent_windowhandle: Handle of parent (or owner) window, or NULL
+ * \param parent_windowhandle: Handle of parent (or owner) window, or nullptr
  * \param title: The name of the window.
  * (displayed in the title bar of the window if the OS supports it).
  * \param left: The coordinate of the left edge of the window.
@@ -164,7 +164,7 @@ extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
  * \param state: The state of the window when opened.
  * \param is_dialog: Stay on top of parent window, no icon in taskbar, can't be minimized.
  * \param gpuSettings: Misc GPU options.
- * \return A handle to the new window ( == NULL if creation failed).
+ * \return A handle to the new window ( == nullptr if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              GHOST_WindowHandle parent_windowhandle,
@@ -182,7 +182,7 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
  * Never explicitly delete the context, use #disposeContext() instead.
  * \param systemhandle: The handle to the system.
  * \param gpuSettings: Misc GPU options.
- * \return A handle to the new context ( == NULL if creation failed).
+ * \return A handle to the new context ( == nullptr if creation failed).
  */
 extern GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
                                                   GHOST_GPUSettings gpuSettings);
@@ -495,7 +495,7 @@ extern uint64_t GHOST_GetEventTime(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the window this event was generated on,
- * or NULL if it is a 'system' event.
+ * or nullptr if it is a 'system' event.
  * \param eventhandle: The handle to the event.
  * \return The generating window.
  */
@@ -951,7 +951,7 @@ extern bool GHOST_UseNativePixels(void);
 extern GHOST_TCapabilityFlag GHOST_GetCapabilities(void);
 
 /**
- * Assign the callback which generates a back-trace (may be NULL).
+ * Assign the callback which generates a back-trace (may be nullptr).
  */
 extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);
 
@@ -1081,7 +1081,7 @@ int GHOST_XrSessionNeedsUpsideDownDrawing(const GHOST_XrContextHandle xr_context
 /* events */
 /**
  * Invoke handling of all OpenXR events for \a xr_context. Should be called on every main-loop
- * iteration and will early-exit if \a xr_context is NULL (so caller doesn't have to check).
+ * iteration and will early-exit if \a xr_context is nullptr (so caller doesn't have to check).
  *
  * \returns GHOST_kSuccess if any event was handled, otherwise GHOST_kFailure.
  */
@@ -1139,7 +1139,7 @@ int GHOST_XrAttachActionSets(GHOST_XrContextHandle xr_context);
 /**
  * Update button/tracking states for OpenXR actions.
  *
- * \param action_set_name: The name of the action set to sync. If NULL, all action sets
+ * \param action_set_name: The name of the action set to sync. If nullptr, all action sets
  * attached to the session will be synced.
  */
 int GHOST_XrSyncActions(GHOST_XrContextHandle xr_context, const char *action_set_name);

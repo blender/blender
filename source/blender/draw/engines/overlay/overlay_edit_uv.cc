@@ -7,8 +7,10 @@
  */
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "draw_manager_text.h"
+
+#include "BLI_math_color.h"
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -16,22 +18,21 @@
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_sculpt.h"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 #include "IMB_imbuf_types.h"
 
 #include "GPU_batch.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 
@@ -111,28 +112,18 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                                         IMA_TYPE_UV_TEST);
   const bool is_uv_editor = sima->mode == SI_MODE_UV;
   const bool has_edit_object = (draw_ctx->object_edit) != nullptr;
-
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-  const bool has_sculpt_object = draw_ctx->obact->mode == OB_MODE_SCULPT &&
-                                 draw_ctx->obact->sculpt && draw_ctx->obact->sculpt->bm;
-#else
-  const bool has_sculpt_object = false;
-#endif
-
   const bool is_paint_mode = sima->mode == SI_MODE_PAINT;
   const bool is_view_mode = sima->mode == SI_MODE_VIEW;
   const bool is_mask_mode = sima->mode == SI_MODE_MASK;
-  // NotForPR
-  const bool is_edit_mode = draw_ctx->object_mode == OB_MODE_EDIT || has_sculpt_object;
-  const bool do_uv_overlay = is_image_type && is_uv_editor &&
-                             (has_edit_object || has_sculpt_object);
+  const bool is_edit_mode = draw_ctx->object_mode == OB_MODE_EDIT;
+  const bool do_uv_overlay = is_image_type && is_uv_editor && has_edit_object;
   const bool show_modified_uvs = sima->flag & SI_DRAWSHADOW;
   const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
   const bool do_edges_only = (ts->uv_flag & UV_SYNC_SELECTION) ?
-                                 /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
-                                  * on the mesh may cause single UV vertices to be selected. */
-                                 false :
-                                 (ts->uv_selectmode == UV_SELECT_EDGE);
+                                  /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
+                                   * on the mesh may cause single UV vertices to be selected. */
+                                  false :
+                                  (ts->uv_selectmode == UV_SELECT_EDGE);
   const bool do_faces = ((sima->flag & SI_NO_DRAWFACES) == 0);
   const bool do_face_dots = (ts->uv_flag & UV_SYNC_SELECTION) ?
                                 (ts->selectmode & SCE_SELECT_FACE) != 0 :
@@ -442,19 +433,6 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-static CustomData *get_loop_customdata(Object *ob, Mesh *me)
-{
-  if (ob->mode == OB_MODE_EDIT) {
-    return &me->edit_mesh->bm->ldata;
-  }
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-  else if (ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->bm) {
-    return &ob->sculpt->bm->ldata;
-  }
-#endif
-  return nullptr;
-}
-
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
@@ -466,18 +444,12 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
   GPUBatch *geom;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-  const bool is_edit_object = DRW_object_is_in_edit_mode(ob) ||
-                              (ob->mode == OB_MODE_SCULPT && ob->sculpt && ob->sculpt->bm);
-#else
   const bool is_edit_object = DRW_object_is_in_edit_mode(ob);
-#endif
-
   Mesh *me = (Mesh *)ob->data;
-  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2) !=
-                                       -1;
+  const bool has_active_object_uvmap = CustomData_get_active_layer(&me->loop_data,
+                                                                   CD_PROP_FLOAT2) != -1;
   const bool has_active_edit_uvmap = is_edit_object &&
-                                     (CustomData_get_active_layer(get_loop_customdata(ob, me),
+                                     (CustomData_get_active_layer(&me->edit_mesh->bm->ldata,
                                                                   CD_PROP_FLOAT2) != -1);
   const bool draw_shadows = (draw_ctx->object_mode != OB_MODE_OBJECT) &&
                             (ob->mode == draw_ctx->object_mode);

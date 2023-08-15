@@ -9,8 +9,8 @@
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "COM_node_operation.hh"
 
@@ -139,7 +139,7 @@ static void node_composit_buts_switch_view_ex(uiLayout *layout,
               ICON_FILE_REFRESH,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               nullptr);
 }
 
@@ -151,8 +151,16 @@ class SwitchViewOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input(context().get_view_name());
     Result &result = get_result("Image");
+
+    /* A context that is not multi view, pass the first input through as a fallback. */
+    if (context().get_view_name().is_empty()) {
+      Result &input = get_input(node().input(0)->identifier);
+      input.pass_through(result);
+      return;
+    }
+
+    Result &input = get_input(context().get_view_name());
     input.pass_through(result);
   }
 };

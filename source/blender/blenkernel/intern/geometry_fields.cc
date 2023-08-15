@@ -53,29 +53,30 @@ GeometryFieldContext::GeometryFieldContext(const GeometryComponent &component,
   switch (component.type()) {
     case GeometryComponent::Type::Mesh: {
       const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-      geometry_ = mesh_component.get_for_read();
+      geometry_ = mesh_component.get();
       break;
     }
     case GeometryComponent::Type::Curve: {
       const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-      const Curves *curves = curve_component.get_for_read();
+      const Curves *curves = curve_component.get();
       geometry_ = curves ? &curves->geometry.wrap() : nullptr;
       break;
     }
     case GeometryComponent::Type::PointCloud: {
       const PointCloudComponent &pointcloud_component = static_cast<const PointCloudComponent &>(
           component);
-      geometry_ = pointcloud_component.get_for_read();
+      geometry_ = pointcloud_component.get();
       break;
     }
     case GeometryComponent::Type::Instance: {
       const InstancesComponent &instances_component = static_cast<const InstancesComponent &>(
           component);
-      geometry_ = instances_component.get_for_read();
+      geometry_ = instances_component.get();
       break;
     }
     case GeometryComponent::Type::Volume:
     case GeometryComponent::Type::Edit:
+    case GeometryComponent::Type::GreasePencil:
       BLI_assert_unreachable();
       break;
   }
@@ -268,6 +269,14 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
     return *attributes->lookup(name_, context.domain(), data_type);
   }
   return {};
+}
+
+GVArray AttributeExistsFieldInput::get_varray_for_context(const bke::GeometryFieldContext &context,
+                                                          const IndexMask & /*mask*/) const
+{
+  const bool exists = context.attributes()->contains(name_);
+  const int domain_size = context.attributes()->domain_size(context.domain());
+  return VArray<bool>::ForSingle(exists, domain_size);
 }
 
 std::string AttributeFieldInput::socket_inspection_name() const
@@ -592,7 +601,7 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
   };
   if (component_type == GeometryComponent::Type::Mesh) {
     const MeshComponent &mesh_component = static_cast<const MeshComponent &>(component);
-    const Mesh *mesh = mesh_component.get_for_read();
+    const Mesh *mesh = mesh_component.get();
     if (mesh == nullptr) {
       return std::nullopt;
     }
@@ -615,7 +624,7 @@ std::optional<eAttrDomain> try_detect_field_domain(const GeometryComponent &comp
   }
   if (component_type == GeometryComponent::Type::Curve) {
     const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-    const Curves *curves = curve_component.get_for_read();
+    const Curves *curves = curve_component.get();
     if (curves == nullptr) {
       return std::nullopt;
     }

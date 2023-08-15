@@ -455,7 +455,7 @@ bool gpu_shader_create_info_compile_all()
       GPUShader *shader = GPU_shader_create_from_info(
           reinterpret_cast<const GPUShaderCreateInfo *>(info));
       if (shader == nullptr) {
-        printf("Compilation %s Failed\n", info->name_.c_str());
+        std::cerr << "Compilation " << info->name_.c_str() << " Failed\n";
       }
       else {
         success++;
@@ -493,12 +493,12 @@ bool gpu_shader_create_info_compile_all()
           }
 
           if (input == nullptr) {
-            std::cout << "Error: " << info->name_;
-            std::cout << ": Resource « " << name << " » not found in the shader interface\n";
+            std::cerr << "Error: " << info->name_;
+            std::cerr << ": Resource « " << name << " » not found in the shader interface\n";
           }
           else if (input->location == -1) {
-            std::cout << "Warning: " << info->name_;
-            std::cout << ": Resource « " << name << " » is optimized out\n";
+            std::cerr << "Warning: " << info->name_;
+            std::cerr << ": Resource « " << name << " » is optimized out\n";
           }
         }
 #endif

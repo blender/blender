@@ -7,7 +7,7 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -18,12 +18,12 @@
 
 #include "DNA_mask_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h" /* frame remapping functions */
-#include "ED_mask.h"
-#include "ED_screen.h"
+#include "ED_clip.hh" /* frame remapping functions */
+#include "ED_mask.hh"
+#include "ED_screen.hh"
 
 #include "mask_intern.h" /* own include */
 

@@ -53,6 +53,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_movieclip_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_nla_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_node_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_node_tree_interface_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_fluidsim_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_object_force_types.h
@@ -131,6 +132,7 @@ set(SRC_DNA_DEFAULTS_INC
 add_subdirectory(datatoc)
 add_subdirectory(editors)
 add_subdirectory(windowmanager)
+add_subdirectory(animrig)
 add_subdirectory(asset_system)
 add_subdirectory(blenkernel)
 add_subdirectory(blenlib)

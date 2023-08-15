@@ -551,6 +551,10 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
   if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
     ss << "out int gpu_Layer;\n";
   }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
+    ss << "out int gpu_ViewportIndex;\n";
+  }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
       /* Disabled or unsupported. */
@@ -583,6 +587,13 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
                                                           info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface);
+  }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::LAYER)) {
+    ss << "#define gpu_Layer gl_Layer\n";
+  }
+  if (!GLContext::layered_rendering_support && bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX))
+  {
+    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
   }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
@@ -736,6 +747,8 @@ std::string GLShader::workaround_geometry_shader_source_create(
 
   const bool do_layer_workaround = !GLContext::layered_rendering_support &&
                                    bool(info.builtins_ & BuiltinBits::LAYER);
+  const bool do_viewport_workaround = !GLContext::layered_rendering_support &&
+                                      bool(info.builtins_ & BuiltinBits::VIEWPORT_INDEX);
   const bool do_barycentric_workaround = !GLContext::native_barycentric_support &&
                                          bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD);
 
@@ -752,6 +765,9 @@ std::string GLShader::workaround_geometry_shader_source_create(
   if (do_layer_workaround) {
     ss << "in int gpu_Layer[];\n";
   }
+  if (do_viewport_workaround) {
+    ss << "in int gpu_ViewportIndex[];\n";
+  }
   if (do_barycentric_workaround) {
     ss << "flat out vec4 gpu_pos[3];\n";
     ss << "smooth out vec3 gpu_BaryCoord;\n";
@@ -763,6 +779,9 @@ std::string GLShader::workaround_geometry_shader_source_create(
   ss << "{\n";
   if (do_layer_workaround) {
     ss << "  gl_Layer = gpu_Layer[0];\n";
+  }
+  if (do_viewport_workaround) {
+    ss << "  gl_ViewportIndex = gpu_ViewportIndex[0];\n";
   }
   if (do_barycentric_workaround) {
     ss << "  gpu_pos[0] = gl_in[0].gl_Position;\n";
@@ -794,6 +813,9 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
     return true;
   }
   if (!GLContext::layered_rendering_support && bool(builtins & BuiltinBits::LAYER)) {
+    return true;
+  }
+  if (!GLContext::layered_rendering_support && bool(builtins & BuiltinBits::VIEWPORT_INDEX)) {
     return true;
   }
   return false;
@@ -853,8 +875,9 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "#extension GL_ARB_shading_language_420pack: enable\n");
   }
   if (GLContext::layered_rendering_support) {
-    STR_CONCAT(patch, slen, "#extension GL_AMD_vertex_shader_layer: enable\n");
+    STR_CONCAT(patch, slen, "#extension GL_ARB_shader_viewport_layer_array: enable\n");
     STR_CONCAT(patch, slen, "#define gpu_Layer gl_Layer\n");
+    STR_CONCAT(patch, slen, "#define gpu_ViewportIndex gl_ViewportIndex\n");
   }
   if (GLContext::native_barycentric_support) {
     STR_CONCAT(patch, slen, "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n");
@@ -865,10 +888,10 @@ static char *glsl_patch_default_get()
     STR_CONCAT(patch, slen, "uniform int gpu_BaseInstance;\n");
   }
 
-  /* Vulkan GLSL compat. */
+  /* Vulkan GLSL compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n");
 
-  /* Array compat. */
+  /* Array compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   /* Derivative sign can change depending on implementation. */
@@ -900,7 +923,7 @@ static char *glsl_patch_compute_get()
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }
 
-  /* Array compat. */
+  /* Array compatibility. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 
   STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);

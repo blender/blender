@@ -6,6 +6,7 @@ set(INC
   ../include
   ../io
   ../../asset_system
+  ../../blenkernel
   ../../gpu
   ../../makesrna
   ../../windowmanager
@@ -20,7 +21,6 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_geometry

@@ -8,8 +8,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "DNA_defaults.h"
@@ -22,13 +20,13 @@
 
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
@@ -46,7 +44,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
 
@@ -55,7 +53,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DecimateModifierData), modifier);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
 
@@ -85,7 +83,7 @@ static void updateFaceCount(const ModifierEvalContext *ctx,
   }
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
+static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
   Mesh *mesh = meshData, *result = nullptr;
@@ -99,7 +97,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 
   /* Set up front so we don't show invalid info in the UI. */
-  updateFaceCount(ctx, dmd, mesh->totpoly);
+  updateFaceCount(ctx, dmd, mesh->faces_num);
 
   switch (dmd->mode) {
     case MOD_DECIM_MODE_COLLAPSE:
@@ -237,68 +235,69 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
     uiLayoutSetPropDecorate(row, false);
     sub = uiLayoutRow(row, true);
-    uiItemR(sub, ptr, "use_symmetry", 0, "", ICON_NONE);
+    uiItemR(sub, ptr, "use_symmetry", UI_ITEM_NONE, "", ICON_NONE);
     sub = uiLayoutRow(sub, true);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_symmetry"));
     uiItemR(sub, ptr, "symmetry_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
     uiItemDecoratorR(row, ptr, "symmetry_axis", 0);
 
-    uiItemR(layout, ptr, "use_collapse_triangulate", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_collapse_triangulate", UI_ITEM_NONE, nullptr, ICON_NONE);
 
     modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
     sub = uiLayoutRow(layout, true);
     bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
     uiLayoutSetActive(sub, has_vertex_group);
-    uiItemR(sub, ptr, "vertex_group_factor", 0, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "vertex_group_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else if (decimate_type == MOD_DECIM_MODE_UNSUBDIV) {
-    uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else { /* decimate_type == MOD_DECIM_MODE_DISSOLVE. */
-    uiItemR(layout, ptr, "angle_limit", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "angle_limit", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "delimit", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "use_dissolve_boundaries", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "delimit", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_dissolve_boundaries", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   uiItemL(layout, count_info, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Decimate, panel_draw);
 }
 
 ModifierTypeInfo modifierType_Decimate = {
+    /*idname*/ "Decimate",
     /*name*/ N_("Decimate"),
-    /*structName*/ "DecimateModifierData",
-    /*structSize*/ sizeof(DecimateModifierData),
+    /*struct_name*/ "DecimateModifierData",
+    /*struct_size*/ sizeof(DecimateModifierData),
     /*srna*/ &RNA_DecimateModifier,
     /*type*/ eModifierTypeType_Nonconstructive,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
     /*icon*/ ICON_MOD_DECIM,
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ nullptr,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ modifyMesh,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ nullptr,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ modify_mesh,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

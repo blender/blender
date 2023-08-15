@@ -25,7 +25,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -39,9 +39,9 @@
 
 #include "BLO_readfile.h"
 
-#include "ED_asset.h"
-#include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_asset.hh"
+#include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -49,16 +49,16 @@
 
 #include "IMB_imbuf_types.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm_event_system.h"
-#include "wm_window.h"
+#include "wm_window.hh"
 
 /* ****************************************************** */
 
@@ -343,8 +343,7 @@ void WM_drag_free(wmDrag *drag)
 
 void WM_drag_free_list(ListBase *lb)
 {
-  wmDrag *drag;
-  while ((drag = static_cast<wmDrag *>(BLI_pophead(lb)))) {
+  while (wmDrag *drag = static_cast<wmDrag *>(BLI_pophead(lb))) {
     WM_drag_free(drag);
   }
 }
@@ -356,7 +355,7 @@ static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropB
     tooltip = drop->tooltip(C, drag, xy, drop);
   }
   if (!tooltip) {
-    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr));
+    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr).c_str());
   }
   /* XXX Doing translation here might not be ideal, but later we have no more
    *     access to ot (and hence op context)... */
@@ -436,7 +435,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   const int winsize_x = WM_window_pixels_x(win);
   const int winsize_y = WM_window_pixels_y(win);
 
-  /* for multiwin drags, we only do this if mouse inside */
+  /* For multi-window drags, we only do this if mouse inside. */
   if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > winsize_x || event->xy[1] > winsize_y)
   {
     return;
@@ -611,7 +610,7 @@ AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
   return nullptr;
 }
 
-ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
+ID *WM_drag_asset_id_import(const bContext *C, wmDragAsset *asset_drag, const int flag_extra)
 {
   /* Only support passing in limited flags. */
   BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
@@ -626,10 +625,10 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
 
-  Main *bmain = CTX_data_main(asset_drag->evil_C);
-  Scene *scene = CTX_data_scene(asset_drag->evil_C);
-  ViewLayer *view_layer = CTX_data_view_layer(asset_drag->evil_C);
-  View3D *view3d = CTX_wm_view3d(asset_drag->evil_C);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  View3D *view3d = CTX_wm_view3d(C);
 
   switch (eAssetImportMethod(asset_drag->import_method)) {
     case ASSET_IMPORT_LINK:
@@ -678,7 +677,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
   return asset_drag->import_method == ASSET_IMPORT_LINK;
 }
 
-ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
+ID *WM_drag_get_local_ID_or_import_from_asset(const bContext *C, const wmDrag *drag, int idcode)
 {
   if (!ELEM(drag->type, WM_DRAG_ASSET, WM_DRAG_ID)) {
     return nullptr;
@@ -694,7 +693,7 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
   }
 
   /* Link/append the asset. */
-  return WM_drag_asset_id_import(asset_drag, 0);
+  return WM_drag_asset_id_import(C, asset_drag, 0);
 }
 
 void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)

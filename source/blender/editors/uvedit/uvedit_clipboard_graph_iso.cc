@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include <algorithm>
-#include <limits.h>
+#include <climits>
 
 #define L 0
 #define R 1

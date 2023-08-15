@@ -5,7 +5,7 @@
 
 void main()
 {
-  ReflectionProbeData probe_data = reflection_probe_buf[0];
+  ReflectionProbeData probe_data = reflection_probe_buf[reflection_probe_index];
 
   ivec3 texture_coord = ivec3(gl_GlobalInvocationID.xyz);
   ivec3 texture_size = imageSize(octahedral_img);
@@ -25,12 +25,14 @@ void main()
   vec3 R = octahedral_uv_to_direction(octahedral_uv);
 
   vec4 col = textureLod(cubemap_tx, R, float(probe_data.layer_subdivision));
-  // col.xy = octahedral_uv;
 
   int probes_per_dimension = 1 << probe_data.layer_subdivision;
   ivec2 area_coord = ivec2(probe_data.area_index % probes_per_dimension,
                            probe_data.area_index / probes_per_dimension);
   ivec2 area_offset = area_coord * octahedral_size;
 
-  imageStore(octahedral_img, octahedral_coord + ivec3(area_offset, 0), col);
+  /* Convert transmittance to transparency. */
+  col.a = 1.0 - col.a;
+
+  imageStore(octahedral_img, octahedral_coord + ivec3(area_offset, probe_data.layer), col);
 }

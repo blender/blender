@@ -8,12 +8,12 @@
 
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "overlay_private.hh"
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)
 {

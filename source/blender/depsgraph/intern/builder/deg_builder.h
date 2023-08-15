@@ -13,6 +13,8 @@ struct ID;
 struct Main;
 struct ModifierData;
 struct Object;
+struct PointerRNA;
+struct Scene;
 struct bPoseChannel;
 
 namespace blender::deg {
@@ -32,6 +34,14 @@ class DepsgraphBuilder {
   virtual bool check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan);
   virtual bool check_pchan_has_bbone_segments(const Object *object, const bPoseChannel *pchan);
   virtual bool check_pchan_has_bbone_segments(const Object *object, const char *bone_name);
+
+  /**
+   * If `target_prop` + `rna_path` uses indirection via the `scene.camera` pointer, returns
+   * the sub-string of `rna_path` relative to the camera; otherwise returns nullptr.
+   */
+  static const char *get_rna_path_relative_to_scene_camera(const Scene *scene,
+                                                           const PointerRNA &target_prop,
+                                                           const char *rna_path);
 
  protected:
   /* NOTE: The builder does NOT take ownership over any of those resources. */

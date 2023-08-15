@@ -4,6 +4,8 @@
 
 #include "COM_RotateOperation.h"
 
+#include "BLI_math_rotation.h"
+
 namespace blender::compositor {
 
 RotateOperation::RotateOperation()

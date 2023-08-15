@@ -19,25 +19,25 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "ED_geometry.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_sculpt.h"
+#include "ED_geometry.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_sculpt.hh"
 
 #include "geometry_intern.hh"
 
@@ -337,10 +337,10 @@ static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
@@ -564,14 +564,14 @@ static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   const ConvertAttributeMode mode = static_cast<ConvertAttributeMode>(
       RNA_enum_get(op->ptr, "mode"));
 
   if (mode == ConvertAttributeMode::Generic) {
-    uiItemR(layout, op->ptr, "domain", 0, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "data_type", 0, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "data_type", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 }
 

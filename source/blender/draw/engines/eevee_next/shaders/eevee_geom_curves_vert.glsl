@@ -16,8 +16,6 @@ void main()
 
   init_interface();
 
-  vec3 T;
-
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
   hair_get_pos_tan_binor_time(is_persp,
                               ModelMatrixInverse,
@@ -30,14 +28,15 @@ void main()
                               interp.curves_thickness,
                               interp.curves_time_width);
 
-  interp.N = cross(T, interp.curves_binormal);
+  interp.N = cross(interp.curves_tangent, interp.curves_binormal);
   interp.curves_strand_id = hair_get_strand_id();
   interp.barycentric_coords = hair_get_barycentric();
 #ifdef MAT_VELOCITY
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
   int vert_idx = hair_get_base_id();
-  vec3 prv, nxt, pos = texelFetch(hairPointBuffer, vert_idx).point_position;
+  vec3 prv, nxt;
+  vec3 pos = texelFetch(hairPointBuffer, vert_idx).point_position;
   velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors

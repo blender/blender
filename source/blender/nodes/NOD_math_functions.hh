@@ -152,6 +152,8 @@ inline bool try_dispatch_float_math_fl_fl_to_fl(const int operation, Callback &&
       return dispatch(exec_preset_fast, [](float a, float b) { return (float)(a > b); });
     case NODE_MATH_MODULO:
       return dispatch(exec_preset_fast, [](float a, float b) { return safe_modf(a, b); });
+    case NODE_MATH_FLOORED_MODULO:
+      return dispatch(exec_preset_fast, [](float a, float b) { return safe_floored_modf(a, b); });
     case NODE_MATH_SNAP:
       return dispatch(exec_preset_fast,
                       [](float a, float b) { return floorf(safe_divide(a, b)) * b; });

@@ -4,8 +4,8 @@
 
 #include "node_geometry_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void assign_material_to_faces(Mesh &mesh, const IndexMask &selection, Material *material)
 {
-  if (selection.size() != mesh.totpoly) {
+  if (selection.size() != mesh.faces_num) {
     /* If the entire mesh isn't selected, and there is no material slot yet, add an empty
      * slot so that the faces that aren't selected can still refer to the default material. */
     BKE_id_material_eval_ensure_default_slot(&mesh.id);
@@ -74,14 +74,14 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
-      if (mesh->totpoly == 0) {
+      if (mesh->faces_num == 0) {
         if (mesh->totvert > 0) {
           no_faces_warning = true;
         }
       }
       else {
         const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_FACE};
-        fn::FieldEvaluator selection_evaluator{field_context, mesh->totpoly};
+        fn::FieldEvaluator selection_evaluator{field_context, mesh->faces_num};
         selection_evaluator.add(selection_field);
         selection_evaluator.evaluate();
         const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);
@@ -132,16 +132,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_set_material_cc
-
-void register_node_type_geo_set_material()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_set_material_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, "Set Material", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_set_material_cc

@@ -53,7 +53,7 @@ bool data_transfer_layersmapping_vgroups(struct ListBase *r_map,
                                          int fromlayers,
                                          int tolayers);
 
-/* Defined in customdata.c */
+/* Defined in `customdata.cc`. */
 
 /**
  * Normals are special, we need to take care of source & destination spaces.

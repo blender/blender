@@ -13,15 +13,14 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
 
-#include "ED_node.h"
 #include "ED_node.hh"
-#include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
 
 #include "NOD_socket.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "DEG_depsgraph_build.h"
 

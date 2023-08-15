@@ -20,7 +20,9 @@
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_map.hh"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
@@ -37,7 +39,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_dyntopo.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.hh"
 
@@ -717,7 +719,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
   bool do_smooth = eq_ctx->surface_relax && eq_ctx->surface_smooth_fac > 0.0f;
 
   BKE_pbvh_bmesh_check_tris(pbvh, node);
-  int ni = node - pbvh->nodes;
+  int ni = int(node - &pbvh->nodes[0]);
 
   const char facetag = BM_ELEM_TAG_ALT;
 
@@ -1127,7 +1129,7 @@ bool destroy_nonmanifold_fins(PBVH *pbvh, BMEdge *e_root)
     }
 
     int ni = BM_ELEM_CD_GET_INT(f, pbvh->cd_face_node_offset);
-    if (ni >= 0 && ni < pbvh->totnode) {
+    if (ni >= 0 && ni < pbvh->nodes.size()) {
       pbvh->nodes[ni].flag |= (PBVHNodeFlags)node_updateflag;
     }
 
@@ -1295,7 +1297,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 
   Vector<EdgeQueueThreadData> tdata;
 
-  for (int n = 0; n < pbvh->totnode; n++) {
+  for (int n = 0; n < pbvh->nodes.size(); n++) {
     PBVHNode *node = &pbvh->nodes[n];
 
     /* Check leaf nodes marked for topology update */
@@ -1328,7 +1330,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
 #endif
 
 #ifndef CLEAR_TAGS_IN_THREAD
-  for (int i : IndexRange(pbvh->totnode)) {
+  for (int i : IndexRange(pbvh->nodes.size())) {
     PBVHNode *node = &pbvh->nodes[i];
 
     if (!(node->flag & PBVH_Leaf) || !(node->flag & PBVH_UpdateTopology)) {
@@ -1447,7 +1449,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   Vector<EdgeQueueThreadData> tdata;
 
-  for (int n = 0; n < pbvh->totnode; n++) {
+  for (int n = 0; n < pbvh->nodes.size(); n++) {
     PBVHNode *node = &pbvh->nodes[n];
     EdgeQueueThreadData td;
 
@@ -1992,7 +1994,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 
   eq_ctx->used_verts.clear();
 
-  for (const PBVHNode &node : Span<PBVHNode>(pbvh->nodes, pbvh->totnode)) {
+  for (const PBVHNode &node : pbvh->nodes) {
     if (!(node.flag & PBVH_Leaf) || !(node.flag & PBVH_UpdateTopology)) {
       continue;
     }
@@ -2134,7 +2136,7 @@ void EdgeQueueContext::start()
 {
   /* Preemptively log UVs. */
   if (!ignore_loop_data) {
-    for (int i : IndexRange(pbvh->totnode)) {
+    for (int i : IndexRange(pbvh->nodes.size())) {
       PBVHNode *node = &pbvh->nodes[i];
 
       if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology)) {
@@ -2180,10 +2182,10 @@ void EdgeQueueContext::finish()
 
   if (modified) {
     /* Avoid potential infinite loops. */
-    const int totnode = pbvh->totnode;
+    const int totnode = pbvh->nodes.size();
 
     for (int i = 0; i < totnode; i++) {
-      PBVHNode *node = pbvh->nodes + i;
+      PBVHNode *node = &pbvh->nodes[i];
 
       if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
           !(node->flag & PBVH_FullyHidden))
@@ -2201,8 +2203,8 @@ void EdgeQueueContext::finish()
   }
 
   /* clear PBVH_UpdateTopology flags */
-  for (int i = 0; i < pbvh->totnode; i++) {
-    PBVHNode *node = pbvh->nodes + i;
+  for (int i = 0; i < pbvh->nodes.size(); i++) {
+    PBVHNode *node = &pbvh->nodes[i];
 
     if (!(node->flag & PBVH_Leaf)) {
       continue;
@@ -2216,8 +2218,8 @@ void EdgeQueueContext::finish()
 #endif
 
   /* Ensure triangulations are all up to date. */
-  for (int i = 0; i < pbvh->totnode; i++) {
-    PBVHNode *node = pbvh->nodes + i;
+  for (int i = 0; i < pbvh->nodes.size(); i++) {
+    PBVHNode *node = &pbvh->nodes[i];
 
     if (node->flag & PBVH_Leaf) {
       pbvh_bmesh_check_other_verts(node);
@@ -2433,7 +2435,7 @@ void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 }
 }  // namespace blender::bke::dyntopo
 
-void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
+ATTR_NO_OPT void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face)
 {
   blender::bke::dyntopo::pbvh_bmesh_face_remove(pbvh, f, log_face, true, true);
 }
@@ -2473,8 +2475,8 @@ void BKE_pbvh_bmesh_add_face(PBVH *pbvh, struct BMFace *f, bool log_face, bool f
   do {
     int ni2 = BM_ELEM_CD_GET_INT(l->radial_next->f, pbvh->cd_face_node_offset);
 
-    if (ni2 >= 0 && (ni2 >= pbvh->totnode || !(pbvh->nodes[ni2].flag & PBVH_Leaf))) {
-      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, pbvh->totnode);
+    if (ni2 >= 0 && (ni2 >= pbvh->nodes.size() || !(pbvh->nodes[ni2].flag & PBVH_Leaf))) {
+      printf("%s: error: ni: %d totnode: %d\n", __func__, ni2, pbvh->nodes.size());
       l = l->next;
       continue;
     }

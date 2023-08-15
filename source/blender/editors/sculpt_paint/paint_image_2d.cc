@@ -21,26 +21,26 @@
 #include "BLI_stack.h"
 #include "BLI_task.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
-#include "ED_paint.h"
-#include "ED_screen.h"
+#include "ED_paint.hh"
+#include "ED_screen.hh"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "paint_intern.hh"
 
@@ -1028,7 +1028,7 @@ static void paint_2d_lift_soften(ImagePaintState *s,
       /* write into brush buffer */
       xo = out_off[0] + x;
       yo = out_off[1] + y;
-      paint_2d_ibuf_rgb_set(ibufb, xo, yo, 0, outrgb);
+      paint_2d_ibuf_rgb_set(ibufb, xo, yo, false, outrgb);
     }
   }
 }

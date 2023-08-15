@@ -7,8 +7,8 @@
 
 #include "BKE_curves.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -59,9 +59,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_all_curves", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_all_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -297,7 +297,7 @@ class SampleCurveFunction : public mf::MultiFunction {
       return return_default();
     }
 
-    const Curves &curves_id = *geometry_set_.get_curves_for_read();
+    const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     if (curves.points_num() == 0) {
       return return_default();
@@ -434,7 +434,7 @@ class SampleCurveFunction : public mf::MultiFunction {
  private:
   void evaluate_source()
   {
-    const Curves &curves_id = *geometry_set_.get_curves_for_read();
+    const Curves &curves_id = *geometry_set_.get_curves();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
     source_context_.emplace(bke::CurvesFieldContext{curves, ATTR_DOMAIN_POINT});
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, curves.points_num());
@@ -518,7 +518,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const Curves &curves_id = *geometry_set.get_curves_for_read();
+  const Curves &curves_id = *geometry_set.get_curves();
   const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
   if (curves.points_num() == 0) {
     params.set_default_remaining_outputs();
@@ -570,22 +570,21 @@ static void node_geo_exec(GeoNodeExecParams params)
   output_attribute_field(params, GField(sample_op, 3));
 }
 
-}  // namespace blender::nodes::node_geo_curve_sample_cc
-
-void register_node_type_geo_curve_sample()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_sample_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_CURVE, "Sample Curve", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(
       &ntype, "NodeGeometryCurveSample", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_sample_cc

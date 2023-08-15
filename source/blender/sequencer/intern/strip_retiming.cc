@@ -12,7 +12,8 @@
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 

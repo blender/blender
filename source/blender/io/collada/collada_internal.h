@@ -16,7 +16,6 @@
 #include "Math/COLLADABUMathMatrix4.h"
 
 #include "BLI_linklist.h"
-#include "BLI_math.h"
 #include "DNA_armature_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"

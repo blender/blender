@@ -19,7 +19,6 @@
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
-#  include "BLI_math.h"
 #  include "BLI_math_boolean.hh"
 #  include "BLI_math_geom.h"
 #  include "BLI_math_mpq.hh"

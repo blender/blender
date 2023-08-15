@@ -6,8 +6,8 @@
  * \ingroup edgpencil
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -23,10 +23,10 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_undo_system.h"
 
-#include "ED_gpencil_legacy.h"
+#include "ED_gpencil_legacy.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 

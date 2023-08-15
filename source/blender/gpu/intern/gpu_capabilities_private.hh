@@ -48,6 +48,7 @@ struct GPUCapabilities {
   bool shader_image_load_store_support = false;
   bool shader_draw_parameters_support = false;
   bool transform_feedback_support = false;
+  bool hdr_viewport_support = false;
 
   /* OpenGL related workarounds. */
   bool mip_render_workaround = false;

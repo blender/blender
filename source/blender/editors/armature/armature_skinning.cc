@@ -16,26 +16,29 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_iterators.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
-#include "BKE_subsurf.h"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_armature.h"
-#include "ED_mesh.h"
+#include "ED_armature.hh"
+#include "ED_mesh.hh"
+
+#include "ANIM_bone_collections.h"
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"
@@ -159,7 +162,9 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
         segments = 1;
       }
 
-      if (!data->is_weight_paint || ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))) {
+      if (!data->is_weight_paint ||
+          (ANIM_bonecoll_is_visible(arm, bone) && (bone->flag & BONE_SELECTED)))
+      {
         if (!(defgroup = BKE_object_defgroup_find_name(ob, bone->name))) {
           defgroup = BKE_object_defgroup_add_name(ob, bone->name);
         }
@@ -207,7 +212,7 @@ static void envelope_bone_weighting(Object *ob,
   }
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
-      &mesh->vdata, CD_PROP_BOOL, ".select_vert");
+      &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
 
   /* for each vertex in the mesh */
   for (int i = 0; i < mesh->totvert; i++) {
@@ -376,7 +381,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 
     /* set selected */
     if (wpmode) {
-      if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED)) {
+      if (ANIM_bonecoll_is_visible(arm, bone) && (bone->flag & BONE_SELECTED)) {
         selected[j] = 1;
       }
     }
@@ -416,7 +421,7 @@ static void add_verts_to_dgroups(ReportList *reports,
   }
 
   /* transform verts to global space */
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   for (int i = 0; i < mesh->totvert; i++) {
     if (!vertsfilled) {
       copy_v3_v3(verts[i], positions[i]);

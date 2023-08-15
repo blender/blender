@@ -9,6 +9,7 @@
  */
 
 #include "BKE_global.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 
 #include "eevee_instance.hh"
@@ -197,7 +198,7 @@ void ShadowTileMapPool::end_sync(ShadowModule &module)
        * of the setup steps to release the pages. */
       ShadowTileMapData tilemap_data = {};
       tilemap_data.tiles_index = index;
-      tilemap_data.clip_data_index = 0;
+      tilemap_data.clip_data_index = -1;
       tilemap_data.grid_shift = int2(SHADOW_TILEMAP_RES);
       tilemap_data.projection_type = SHADOW_PROJECTION_CUBEFACE;
 

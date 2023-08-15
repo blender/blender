@@ -33,6 +33,7 @@ dict_custom = {
     # Correct spelling, update the dictionary, here:
     # https://github.com/en-wl/wordlist
     "accessor",
+    "accumulatively",
     "additively",
     "adjoint",
     "adjugate",
@@ -75,6 +76,8 @@ dict_custom = {
     "criterium",
     "crosshair",
     "crosstalk",
+    "cumulate",
+    "cumulated",
     "customizable",
     "deallocate",
     "deallocated",
@@ -317,6 +320,8 @@ dict_custom = {
     "suboptimally",
     "subrange",
     "subtractive",
+    "subtype",
+    "subtypes",
     "superset",
     "symmetrizable",
     "symmetrize",

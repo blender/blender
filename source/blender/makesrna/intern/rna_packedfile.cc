@@ -6,14 +6,14 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
 #include "DNA_packedFile_types.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "BKE_packedFile.h"
 
@@ -33,7 +33,7 @@ const EnumPropertyItem rna_enum_unpack_method_items[] = {
 static void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
 {
   PackedFile *pf = (PackedFile *)ptr->data;
-  memcpy(value, pf->data, (size_t)pf->size);
+  memcpy(value, pf->data, size_t(pf->size));
   value[pf->size] = '\0';
 }
 

@@ -18,7 +18,7 @@
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_task.h"
@@ -29,16 +29,16 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
@@ -48,14 +48,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 #include "sculpt_intern.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
@@ -79,11 +79,11 @@ void SCULPT_pbvh_clear(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   ss->pmap = {};
-  ss->vert_to_poly_indices = {};
-  ss->vert_to_poly_offsets = {};
+  ss->vert_to_face_indices = {};
+  ss->vert_to_face_offsets = {};
   ss->epmap = {};
-  ss->edge_to_poly_indices = {};
-  ss->edge_to_poly_offsets = {};
+  ss->edge_to_face_indices = {};
+  ss->edge_to_face_offsets = {};
   ss->vemap = {};
   ss->vert_to_edge_indices = {};
   ss->vert_to_edge_offsets = {};
@@ -112,24 +112,21 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
   }
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain,
-                                       Depsgraph *depsgraph,
-                                       Scene * /*scene*/,
-                                       Object *ob)
+void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
-  customdata_strip_templayers(&me->vdata, me->totvert);
-  customdata_strip_templayers(&me->pdata, me->totpoly);
+  customdata_strip_templayers(&me->vert_data, me->totvert);
+  customdata_strip_templayers(&me->face_data, me->faces_num);
 
   if (!ss->pmap.is_empty()) {
     ss->pmap = {};
-    ss->vert_to_poly_indices = {};
-    ss->vert_to_poly_offsets = {};
+    ss->vert_to_face_indices = {};
+    ss->vert_to_face_offsets = {};
     ss->epmap = {};
-    ss->edge_to_poly_indices = {};
-    ss->edge_to_poly_offsets = {};
+    ss->edge_to_face_indices = {};
+    ss->edge_to_face_offsets = {};
     ss->vemap = {};
     ss->vert_to_edge_indices = {};
     ss->vert_to_edge_offsets = {};
@@ -305,7 +302,7 @@ static void SCULPT_dynamic_topology_disable_ex(
 
   /* Sync the visibility to vertices manually as the pmap is still not initialized. */
   bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-      &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
+      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert);
   if (hide_vert != nullptr) {
     memset(static_cast<void *>(hide_vert), 0, sizeof(bool) * me->totvert);
   }
@@ -371,10 +368,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
   }
 }
 
-static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
-                                                     Depsgraph *depsgraph,
-                                                     Scene *scene,
-                                                     Object *ob)
+static void sculpt_dynamic_topology_enable_with_undo(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -384,7 +378,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
     if (use_undo) {
       SCULPT_undo_push_begin_ex(ob, "Dynamic topology enable");
     }
-    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+    SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
     if (use_undo) {
       SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
       SCULPT_undo_push_end(ob);
@@ -408,7 +402,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
     sculpt_dynamic_topology_disable_with_undo(bmain, depsgraph, scene, ob);
   }
   else {
-    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, scene, ob);
+    sculpt_dynamic_topology_enable_with_undo(bmain, depsgraph, ob);
   }
 
   WM_cursor_wait(false);
@@ -459,7 +453,8 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
     uiItemS(layout);
   }
 
-  uiItemFullO_ptr(layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, nullptr);
+  uiItemFullO_ptr(
+      layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, nullptr);
 
   UI_popup_menu_end(C, pup);
 
@@ -476,8 +471,8 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob)
   UNUSED_VARS_NDEBUG(ss);
 
   {
-    VirtualModifierData virtualModifierData;
-    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    VirtualModifierData virtual_modifier_data;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
     /* Exception for shape keys because we can edit those. */
     for (; md; md = md->next) {

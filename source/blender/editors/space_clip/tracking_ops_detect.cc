@@ -15,16 +15,16 @@
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "clip_intern.h"
 #include "tracking_ops_intern.h"

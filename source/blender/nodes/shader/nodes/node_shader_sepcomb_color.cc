@@ -8,8 +8,8 @@
 
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 static void node_combsep_color_init(bNodeTree * /*tree*/, bNode *node)
 {

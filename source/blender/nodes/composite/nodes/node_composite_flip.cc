@@ -9,8 +9,8 @@
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"

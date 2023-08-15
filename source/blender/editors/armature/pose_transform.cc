@@ -15,7 +15,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 
 #include "BKE_action.h"
@@ -34,20 +36,22 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_armature.hh"
+#include "ED_keyframing.hh"
+#include "ED_screen.hh"
+#include "ED_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "ANIM_bone_collections.h"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "armature_intern.h"
 
@@ -366,9 +370,7 @@ static void applyarmature_reset_bone_constraints(const bPoseChannel *pchan)
  * applied. */
 static void applyarmature_reset_constraints(bPose *pose, const bool use_selected)
 {
-  for (bPoseChannel *pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan;
-       pchan = pchan->next)
-  {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     BLI_assert(pchan->bone != nullptr);
     if (use_selected && (pchan->bone->flag & BONE_SELECTED) == 0) {
       continue;
@@ -388,7 +390,6 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bArmature *arm = BKE_armature_from_object(ob);
   bPose *pose;
-  bPoseChannel *pchan;
   ListBase selected_bones;
 
   const bool use_selected = RNA_boolean_get(op->ptr, "selected");
@@ -436,7 +437,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
     BLI_freelistN(&selected_bones);
   }
   else {
-    for (pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan; pchan = pchan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
       const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
       EditBone *curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 
@@ -474,7 +475,7 @@ static void apply_armature_pose2bones_ui(bContext *C, wmOperator *op)
 
   RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
-  uiItemR(layout, &ptr, "selected", 0, nullptr, ICON_NONE);
+  uiItemR(layout, &ptr, "selected", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void POSE_OT_armature_apply(wmOperatorType *ot)
@@ -600,12 +601,11 @@ void POSE_OT_visual_transform_apply(wmOperatorType *ot)
 static void set_pose_keys(Object *ob)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
-  bPoseChannel *chan;
 
   if (ob->pose) {
-    for (chan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); chan; chan = chan->next) {
+    LISTBASE_FOREACH (bPoseChannel *, chan, &ob->pose->chanbase) {
       Bone *bone = chan->bone;
-      if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer)) {
+      if ((bone) && (bone->flag & BONE_SELECTED) && ANIM_bonecoll_is_visible(arm, bone)) {
         chan->flag |= POSE_KEY;
       }
       else {
@@ -847,7 +847,6 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
   Scene *scene = CTX_data_scene(C);
-  bPoseChannel *chan;
   const bool flip = RNA_boolean_get(op->ptr, "flipped");
   bool selOnly = RNA_boolean_get(op->ptr, "selected_mask");
 
@@ -898,7 +897,7 @@ static int pose_paste_exec(bContext *C, wmOperator *op)
   /* Safely merge all of the channels in the buffer pose into any
    * existing pose.
    */
-  for (chan = static_cast<bPoseChannel *>(pose_from->chanbase.first); chan; chan = chan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, chan, &pose_from->chanbase) {
     if (chan->flag & POSE_KEY) {
       /* Try to perform paste on this bone. */
       bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
@@ -1223,7 +1222,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 
         /* insert keyframes */
         ANIM_apply_keyingset(
-            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
+            C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
 
         /* now recalculate paths */
         if (ob_iter->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) {
@@ -1366,7 +1365,7 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      depsgraph, (float)scene->r.cfra);
+      depsgraph, float(scene->r.cfra));
   const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob) {
@@ -1376,10 +1375,9 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
        */
       bPose *dummyPose = nullptr;
       Object workob{};
-      bPoseChannel *pchan;
 
       /* execute animation step for current frame using a dummy copy of the pose */
-      BKE_pose_copy_data(&dummyPose, ob->pose, 0);
+      BKE_pose_copy_data(&dummyPose, ob->pose, false);
 
       STRNCPY(workob.id.name, "OB<ClearTfmWorkOb>");
       workob.type = OB_ARMATURE;
@@ -1391,14 +1389,12 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
           &workob.id, workob.adt, &anim_eval_context, ADT_RECALC_ANIM, false);
 
       /* Copy back values, but on selected bones only. */
-      for (pchan = static_cast<bPoseChannel *>(dummyPose->chanbase.first); pchan;
-           pchan = pchan->next) {
-        pose_bone_do_paste(ob, pchan, only_select, 0);
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &dummyPose->chanbase) {
+        pose_bone_do_paste(ob, pchan, only_select, false);
       }
 
       /* free temp data - free manually as was copied without constraints */
-      for (pchan = static_cast<bPoseChannel *>(dummyPose->chanbase.first); pchan;
-           pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &dummyPose->chanbase) {
         if (pchan->prop) {
           IDP_FreeProperty(pchan->prop);
         }

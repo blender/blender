@@ -935,7 +935,7 @@ bool Stroke::occluders_empty() const
 }
 
 #  if 0
-inline const polygon3d& occludee() const
+inline const polygon3d &occludee() const
 {
   return *(_FEdgeA->aFace());
 }

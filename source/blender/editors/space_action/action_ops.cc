@@ -11,15 +11,15 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_anim_api.h"
-#include "ED_transform.h"
+#include "ED_anim_api.hh"
+#include "ED_transform.hh"
 
 #include "action_intern.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* ************************** registration - operator types **********************************/
 

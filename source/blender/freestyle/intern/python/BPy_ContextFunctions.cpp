@@ -283,7 +283,7 @@ static PyMethodDef module_functions[] = {
 /*-----------------------ContextFunctions module definition--------------------------------*/
 
 static PyModuleDef module_definition = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "Freestyle.ContextFunctions",
     /*m_doc*/ module_docstring,
     /*m_size*/ -1,

@@ -18,17 +18,17 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 
-#include "UI_interface_icons.h"
+#include "UI_interface_icons.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "ED_asset_list.h"
 #include "ED_asset_mark_clear.h"
 #include "ED_asset_type.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 bool ED_asset_mark_id(ID *id)
 {

@@ -6,21 +6,22 @@
  * \ingroup edtransform
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
 #include "PIL_time.h"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -29,22 +30,22 @@
 #include "BKE_layer.h"
 #include "BKE_mask.h"
 #include "BKE_modifier.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "SEQ_transform.h"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_uvedit.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_uvedit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "SEQ_sequencer.h"
 
@@ -54,6 +55,8 @@
 #include "transform_mode.hh"
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* ************************** GENERICS **************************** */
 
@@ -171,20 +174,20 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->redraw = TREDRAW_HARD; /* redraw first time */
 
-  int mval[2];
+  float2 mval;
   if (event) {
     if (t->flag & T_EVENT_DRAG_START) {
-      WM_event_drag_start_mval(event, region, mval);
+      WM_event_drag_start_mval_fl(event, region, mval);
     }
     else {
-      copy_v2_v2_int(mval, event->mval);
+      mval = float2(event->mval);
     }
   }
   else {
-    zero_v2_int(mval);
+    mval = float2(0, 0);
   }
-  copy_v2_v2_int(t->mval, mval);
-  copy_v2_v2_int(t->mouse.imval, mval);
+
+  t->mval = mval;
 
   t->mode_info = nullptr;
 
@@ -284,11 +287,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
-    if (ED_space_image_show_uvedit(sima,
-                                   BKE_view_layer_active_object_get(t->view_layer),
-                                   CTX_data_active_object(C),
-                                   false))
-    {
+    if (ED_space_image_show_uvedit(sima, BKE_view_layer_active_object_get(t->view_layer))) {
       /* UV transform */
     }
     else if (sima->mode == SI_MODE_MASK) {
@@ -494,9 +493,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
     }
 
-    orient_types[O_DEFAULT] = (short)orient_type_default;
-    orient_types[O_SCENE] = (short)orient_type_scene;
-    orient_types[O_SET] = (short)orient_type_set;
+    orient_types[O_DEFAULT] = short(orient_type_default);
+    orient_types[O_SCENE] = short(orient_type_scene);
+    orient_types[O_SET] = short(orient_type_set);
 
     for (int i = 0; i < 3; i++) {
       /* For efficiency, avoid calculating the same orientation twice. */
@@ -663,10 +662,17 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   if (op && (t->flag & T_MODAL) &&
-      (prop = RNA_struct_find_property(op->ptr, "allow_navigation")) &&
-      RNA_property_boolean_get(op->ptr, prop))
+      ELEM(t->mode,
+           TFM_TRANSLATION,
+           TFM_RESIZE,
+           TFM_ROTATION,
+           TFM_SHRINKFATTEN,
+           TFM_EDGE_SLIDE,
+           TFM_VERT_SLIDE))
   {
-    t->vod = ED_view3d_navigation_init(C);
+    const bool use_alt_navigation = (prop = RNA_struct_find_property(op->ptr, "alt_navigation")) &&
+                                    RNA_property_boolean_get(op->ptr, prop);
+    t->vod = ED_view3d_navigation_init(C, use_alt_navigation);
   }
 
   setTransformViewMatrices(t);
@@ -802,7 +808,7 @@ void applyTransObjects(TransInfo *t)
       copy_v3_v3(td->ext->isize, td->ext->size);
     }
   }
-  recalcData(t);
+  recalc_data(t);
 }
 
 static void transdata_restore_basic(TransDataBasic *td_basic)
@@ -878,7 +884,7 @@ void restoreTransObjects(TransInfo *t)
     unit_m3(t->mat);
   }
 
-  recalcData(t);
+  recalc_data(t);
 }
 
 void calculateCenter2D(TransInfo *t)
@@ -1251,9 +1257,7 @@ void calculatePropRatio(TransInfo *t)
         if (td->flag & TD_SELECTED) {
           td->factor = 1.0f;
         }
-        else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
-                 (connected == 0 && td->rdist > t->prop_size))
-        {
+        else if ((connected ? td->dist : td->rdist) > t->prop_size) {
           td->factor = 0.0f;
           restoreElement(td);
         }
@@ -1297,7 +1301,7 @@ void calculatePropRatio(TransInfo *t)
             case PROP_RANDOM:
               if (t->rng == nullptr) {
                 /* Lazy initialization. */
-                uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+                uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
                 t->rng = BLI_rng_new(rng_seed);
               }
               td->factor = BLI_rng_get_float(t->rng) * dist;

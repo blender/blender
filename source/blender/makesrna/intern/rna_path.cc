@@ -7,8 +7,7 @@
  */
 
 #include <cstdlib>
-#include <stdlib.h>
-#include <string.h>
+#include <cstring>
 
 #include "BLI_alloca.h"
 #include "BLI_dynstr.h"
@@ -24,9 +23,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "rna_access_internal.h"
@@ -400,7 +399,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
 
     prop = nullptr;
     if (use_id_prop) { /* look up property name in current struct */
-      IDProperty *group = RNA_struct_idprops(&curptr, 0);
+      IDProperty *group = RNA_struct_idprops(&curptr, false);
       if (group && quoted) {
         prop = (PropertyRNA *)IDP_GetPropertyFromGroup(group, token);
       }

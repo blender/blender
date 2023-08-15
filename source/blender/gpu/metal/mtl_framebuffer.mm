@@ -780,8 +780,8 @@ void MTLFrameBuffer::apply_state()
 
     /* Ensure viewport has been set. NOTE: This should no longer happen, but kept for safety to
      * track bugs. If viewport size is zero, use framebuffer size. */
-    int viewport_w = viewport_[2];
-    int viewport_h = viewport_[3];
+    int viewport_w = viewport_[0][2];
+    int viewport_h = viewport_[0][3];
     if (viewport_w == 0 || viewport_h == 0) {
       MTL_LOG_WARNING("Viewport had width and height of (0,0) -- Updating -- DEBUG Safety check");
       viewport_w = default_width_;
@@ -789,7 +789,12 @@ void MTLFrameBuffer::apply_state()
     }
 
     /* Update Context State. */
-    mtl_ctx->set_viewport(viewport_[0], viewport_[1], viewport_w, viewport_h);
+    if (multi_viewport_) {
+      mtl_ctx->set_viewports(GPU_MAX_VIEWPORTS, viewport_);
+    }
+    else {
+      mtl_ctx->set_viewport(viewport_[0][0], viewport_[0][1], viewport_w, viewport_h);
+    }
     mtl_ctx->set_scissor(scissor_[0], scissor_[1], scissor_[2], scissor_[3]);
     mtl_ctx->set_scissor_enabled(scissor_test_);
 

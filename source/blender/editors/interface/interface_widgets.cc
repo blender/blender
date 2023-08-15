@@ -15,7 +15,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -23,15 +23,15 @@
 
 #include "BKE_context.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLF_api.h"
 
 #include "ED_node.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
 #include "interface_intern.hh"
 
@@ -44,7 +44,7 @@
 #include "GPU_state.h"
 
 #ifdef WITH_INPUT_IME
-#  include "WM_types.h"
+#  include "WM_types.hh"
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -1032,6 +1032,16 @@ static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rc
   tria->index = g_shape_preset_checkmark_face;
 }
 
+static void shape_preset_trias_from_rect_dash(uiWidgetTrias *tria, const rcti *rect)
+{
+  tria->type = ROUNDBOX_TRIA_DASH;
+
+  /* Center position and size. */
+  tria->center[0] = rect->xmin + 0.5f * BLI_rcti_size_y(rect);
+  tria->center[1] = rect->ymin + 0.5f * BLI_rcti_size_y(rect);
+  tria->size = 0.5f * BLI_rcti_size_y(rect);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1331,6 +1341,32 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
     const int y = rect->ymin + h / 2 - size / 2;
 
     UI_icon_draw_preview(x, y, icon, 1.0f, alpha, size);
+  }
+}
+
+static void widget_draw_icon_centered(const BIFIconID icon,
+                                      const float aspect,
+                                      const float alpha,
+                                      const rcti *rect,
+                                      const uchar mono_color[4])
+{
+  if (icon == ICON_NONE) {
+    return;
+  }
+
+  const float size = ICON_DEFAULT_HEIGHT / (aspect * UI_INV_SCALE_FAC);
+
+  if (size > 0) {
+    const int x = BLI_rcti_cent_x(rect) - size / 2;
+    const int y = BLI_rcti_cent_y(rect) - size / 2;
+
+    const bTheme *btheme = UI_GetTheme();
+    const float desaturate = 1.0 - btheme->tui.icon_saturation;
+    uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
+    const bool has_theme = UI_icon_get_theme_color(int(icon), color);
+
+    UI_icon_draw_ex(
+        x, y, icon, aspect * UI_INV_SCALE_FAC, alpha, desaturate, color, has_theme, nullptr);
   }
 }
 
@@ -1872,6 +1908,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   const char *drawstr = but->drawstr;
   const char *drawstr_right = nullptr;
   bool use_right_only = false;
+  const char *indeterminate_str = UI_VALUE_INDETERMINATE_CHAR;
 
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data;
@@ -1925,6 +1962,20 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         drawstr = but->editstr;
       }
     }
+  }
+
+  /* If not editing and indeterminate, show dash.*/
+  if (but->drawflag & UI_BUT_INDETERMINATE && !but->editstr &&
+      ELEM(but->type,
+           UI_BTYPE_MENU,
+           UI_BTYPE_NUM,
+           UI_BTYPE_NUM_SLIDER,
+           UI_BTYPE_TEXT,
+           UI_BTYPE_SEARCH_MENU))
+  {
+    drawstr = indeterminate_str;
+    drawstr_left_len = strlen(drawstr);
+    align = UI_STYLE_TEXT_CENTER;
   }
 
   /* text button selection, cursor, composite underline */
@@ -2262,7 +2313,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 
   /* Big previews with optional text label below */
   if (but->flag & UI_BUT_ICON_PREVIEW && ui_block_is_menu(but->block)) {
-    const BIFIconID icon = BIFIconID(ui_but_icon(but));
+    const BIFIconID icon = ui_but_icon(but);
     int icon_size = BLI_rcti_size_y(rect);
     int text_size = 0;
 
@@ -2299,7 +2350,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
     }
 #endif
 
-    const BIFIconID icon = BIFIconID(ui_but_icon(but));
+    const BIFIconID icon = ui_but_icon(but);
     const int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
     const float icon_size = icon_size_init / (but->block->aspect * UI_INV_SCALE_FAC);
     const float icon_padding = 2 * UI_SCALE_FAC;
@@ -3640,11 +3691,11 @@ static void widget_progress_type_bar(uiButProgress *but_progress,
 /**
  * Used for both ring & pie types.
  */
-static void widget_progress_type_circle(uiButProgress *but_progress,
-                                        uiWidgetColors *wcol,
-                                        rcti *rect,
-                                        const float ring_width)
+static void widget_progress_type_ring(uiButProgress *but_progress,
+                                      uiWidgetColors *wcol,
+                                      rcti *rect)
 {
+  const float ring_width = 0.6; /* 0.0 would be a pie. */
   const float outer_rad = (rect->ymax - rect->ymin) / 2.0f;
   const float inner_rad = outer_rad * ring_width;
   const float x = rect->xmin + outer_rad;
@@ -3687,12 +3738,8 @@ static void widget_progress_indicator(uiBut *but,
       widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
       break;
     }
-    case UI_BUT_PROGRESS_TYPE_PIE: {
-      widget_progress_type_circle(but_progress, wcol, rect, 0.6f);
-      break;
-    }
     case UI_BUT_PROGRESS_TYPE_RING: {
-      widget_progress_type_circle(but_progress, wcol, rect, 0.0f);
+      widget_progress_type_ring(but_progress, wcol, rect);
       break;
     }
   }
@@ -3775,7 +3822,7 @@ static void widget_numslider(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 
   /* Draw slider part only when not in text editing. */
-  if (!state->is_text_input) {
+  if (!state->is_text_input && !(but->drawflag & UI_BUT_INDETERMINATE)) {
     int roundboxalign_slider = roundboxalign;
 
     uchar outline[3];
@@ -3901,6 +3948,10 @@ static void widget_swatch(uiBut *but,
   round_box_edges(&wtb, roundboxalign, rect, rad);
 
   ui_but_v3_get(but, col);
+
+  if (but->drawflag & UI_BUT_INDETERMINATE) {
+    col[0] = col[1] = col[2] = col[3] = 0.5f;
+  }
 
   if ((state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
                           UI_BUT_OVERRIDDEN | UI_BUT_REDALERT)) ||
@@ -4177,8 +4228,17 @@ static void widget_preview_tile(uiBut *but,
     widget_list_itembut(wcol, rect, state, roundboxalign, zoom);
   }
 
-  ui_draw_preview_item_stateless(
-      &UI_style_get()->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
+  /* When the button is not tagged as having a preview icon, do regular icon drawing with the
+   * standard icon size. */
+  const bool draw_as_icon = !(but->flag & UI_BUT_ICON_PREVIEW);
+
+  ui_draw_preview_item_stateless(&UI_style_get()->widget,
+                                 rect,
+                                 but->drawstr,
+                                 but->icon,
+                                 wcol->text,
+                                 UI_STYLE_TEXT_CENTER,
+                                 draw_as_icon);
 }
 
 static void widget_optionbut(uiWidgetColors *wcol,
@@ -4210,11 +4270,19 @@ static void widget_optionbut(uiWidgetColors *wcol,
   /* Keep one edge in place. */
   BLI_rcti_translate(&recttemp, text_before_widget ? delta : -delta, 0);
 
+  if (state->but_drawflag & UI_BUT_INDETERMINATE) {
+    /* The same muted background color regardless of state. */
+    color_blend_v4_v4v4(wcol->inner, wcol->inner, wcol->inner_sel, 0.75f);
+  }
+
   const float rad = widget_radius_from_rcti(&recttemp, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 
   /* decoration */
-  if (state->but_flag & UI_SELECT) {
+  if (state->but_drawflag & UI_BUT_INDETERMINATE) {
+    shape_preset_trias_from_rect_dash(&wtb.tria1, &recttemp);
+  }
+  else if (state->but_flag & UI_SELECT) {
     shape_preset_trias_from_rect_checkmark(&wtb.tria1, &recttemp);
   }
 
@@ -4584,6 +4652,8 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.draw = nullptr;
       /* Drawn via the `custom` callback. */
       wt.text = nullptr;
+      /* Drawing indicates state well enough. No need to change colors further. */
+      wt.state = widget_state_nothing;
       wt.custom = widget_preview_tile;
       wt.wcol_theme = &btheme->tui.wcol_list_item;
       break;
@@ -5030,6 +5100,10 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
 #endif
   if (but->block->flag & UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE) {
     state.but_flag &= ~UI_BUT_OVERRIDDEN;
+  }
+
+  if (state.but_drawflag & UI_BUT_INDETERMINATE) {
+    state.but_flag &= ~UI_SELECT;
   }
 
   const float zoom = 1.0f / but->block->aspect;
@@ -5533,18 +5607,36 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     const char *name,
                                     int iconid,
                                     const uchar text_col[4],
-                                    eFontStyle_Align text_align)
+                                    eFontStyle_Align text_align,
+                                    bool draw_as_icon)
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
   const bool has_text = name && name[0];
+
+  float alpha = 1.0f;
+
+  {
+    /* Special handling: Previews often want to show a loading icon while the preview is being
+     * loaded. Draw this with reduced opacity. */
+    const bool is_loading_icon = iconid == ICON_TEMP;
+    if (is_loading_icon) {
+      alpha *= 0.5f;
+      draw_as_icon = true;
+    }
+  }
 
   if (has_text) {
     /* draw icon in rect above the space reserved for the label */
     rect->ymin += text_size;
   }
   GPU_blend(GPU_BLEND_ALPHA);
-  widget_draw_preview(BIFIconID(iconid), 1.0f, rect);
+  if (draw_as_icon) {
+    widget_draw_icon_centered(iconid, 1.0f, alpha, rect, text_col);
+  }
+  else {
+    widget_draw_preview(iconid, alpha, rect);
+  }
   GPU_blend(GPU_BLEND_NONE);
 
   if (!has_text) {

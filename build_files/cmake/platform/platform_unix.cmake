@@ -181,6 +181,10 @@ Proceeding with PYTHON_SITE_PACKAGES install target, you have been warned!"
       unset(_is_prefix)
     endif()
   endif()
+else()
+  # Python executable is needed as part of the build-process,
+  # note that building without Python is quite unusual.
+  find_program(PYTHON_EXECUTABLE "python3")
 endif()
 
 if(WITH_IMAGE_OPENEXR)

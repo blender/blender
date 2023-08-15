@@ -8,12 +8,12 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_timeit.hh"
 
-/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
+/* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.hh`. */
 #define UI_MENU_ARROW_SEP BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
 #define UI_MENU_ARROW_SEP_UNICODE 0x25b8
 
@@ -394,55 +394,25 @@ void extract_normalized_words(StringRef str,
   }
 }
 
-}  // namespace blender::string_search
-
-struct SearchItem {
-  blender::Span<blender::StringRef> normalized_words;
-  int length;
-  void *user_data;
-  int weight;
-};
-
-struct StringSearch {
-  blender::LinearAllocator<> allocator;
-  blender::Vector<SearchItem> items;
-};
-
-StringSearch *BLI_string_search_new()
+void StringSearchBase::add_impl(const StringRef str, void *user_data, const int weight)
 {
-  return new StringSearch();
-}
-
-void BLI_string_search_add(StringSearch *search,
-                           const char *str,
-                           void *user_data,
-                           const int weight)
-{
-  using namespace blender;
   Vector<StringRef, 64> words;
-  StringRef str_ref{str};
-  string_search::extract_normalized_words(str_ref, search->allocator, words);
-  search->items.append({search->allocator.construct_array_copy(words.as_span()),
-                        int(str_ref.size()),
-                        user_data,
-                        weight});
+  string_search::extract_normalized_words(str, allocator_, words);
+  items_.append(
+      {allocator_.construct_array_copy(words.as_span()), int(str.size()), user_data, weight});
 }
 
-int BLI_string_search_query(StringSearch *search, const char *query, void ***r_data)
+Vector<void *> StringSearchBase::query_impl(const StringRef query) const
 {
-  using namespace blender;
-
-  const StringRef query_str = query;
-
   LinearAllocator<> allocator;
   Vector<StringRef, 64> query_words;
-  string_search::extract_normalized_words(query_str, allocator, query_words);
+  string_search::extract_normalized_words(query, allocator, query_words);
 
   /* Compute score of every result. */
   MultiValueMap<int, int> result_indices_by_score;
-  for (const int result_index : search->items.index_range()) {
+  for (const int result_index : items_.index_range()) {
     const int score = string_search::score_query_against_words(
-        query_words, search->items[result_index].normalized_words);
+        query_words, items_[result_index].normalized_words);
     if (score >= 0) {
       result_indices_by_score.add(score, result_index);
     }
@@ -459,36 +429,29 @@ int BLI_string_search_query(StringSearch *search, const char *query, void ***r_d
   Vector<int> sorted_result_indices;
   for (const int score : found_scores) {
     MutableSpan<int> indices = result_indices_by_score.lookup(score);
-    if (score == found_scores[0] && !query_str.is_empty()) {
+    if (score == found_scores[0] && !query.is_empty()) {
       /* Sort items with best score by length. Shorter items are more likely the ones you are
        * looking for. This also ensures that exact matches will be at the top, even if the query is
        * a sub-string of another item. */
       std::sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return search->items[a].length < search->items[b].length;
+        return items_[a].length < items_[b].length;
       });
       /* Prefer items with larger weights. Use `stable_sort` so that if the weights are the same,
        * the order won't be changed. */
       std::stable_sort(indices.begin(), indices.end(), [&](int a, int b) {
-        return search->items[a].weight > search->items[b].weight;
+        return items_[a].weight > items_[b].weight;
       });
     }
     sorted_result_indices.extend(indices);
   }
 
-  void **sorted_data = static_cast<void **>(
-      MEM_malloc_arrayN(size_t(sorted_result_indices.size()), sizeof(void *), AT));
+  Vector<void *> sorted_data(sorted_result_indices.size());
   for (const int i : sorted_result_indices.index_range()) {
     const int result_index = sorted_result_indices[i];
-    SearchItem &item = search->items[result_index];
+    const SearchItem &item = items_[result_index];
     sorted_data[i] = item.user_data;
   }
-
-  *r_data = sorted_data;
-
-  return sorted_result_indices.size();
+  return sorted_data;
 }
 
-void BLI_string_search_free(StringSearch *string_search)
-{
-  delete string_search;
-}
+}  // namespace blender::string_search

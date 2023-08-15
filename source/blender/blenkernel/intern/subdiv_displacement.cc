@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
 #include "BLI_utildefines.h"
 

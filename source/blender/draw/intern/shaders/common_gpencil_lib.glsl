@@ -280,7 +280,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
        * using a cosine approximation. */
       x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
       x_axis = mat2(alignment_rot.x, -alignment_rot.y, alignment_rot.y, alignment_rot.x) * x_axis;
-      /* Rotate 90° Counter-Clockwise. */
+      /* Rotate 90 degrees counter-clockwise. */
       vec2 y_axis = vec2(-x_axis.y, x_axis.x);
 
       out_aspect = gpencil_decode_aspect(aspect1);
@@ -306,11 +306,11 @@ vec4 gpencil_vertex(vec4 viewport_size,
       vec2 miter_tan = safe_normalize(line_adj + line);
       float miter_dot = dot(miter_tan, line_adj);
       /* Break corners after a certain angle to avoid really thick corners. */
-      const float miter_limit = 0.5; /* cos(60°) */
+      const float miter_limit = 0.5; /* cos(60 degrees) */
       bool miter_break = (miter_dot < miter_limit);
       miter_tan = (miter_break || is_stroke_start || is_stroke_end) ? line :
                                                                       (miter_tan / miter_dot);
-      /* Rotate 90° Counter-Clockwise. */
+      /* Rotate 90 degrees counter-clockwise. */
       vec2 miter = vec2(-miter_tan.y, miter_tan.x);
 
       out_sspos.xy = ss1;

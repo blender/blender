@@ -10,7 +10,6 @@
  */
 
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_vector.hh"
 

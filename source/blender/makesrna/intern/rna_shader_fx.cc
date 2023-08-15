@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <limits.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <climits>
+#include <cstdlib>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
@@ -17,20 +17,20 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
     {eShaderFxType_Blur, "FX_BLUR", ICON_SHADERFX, "Blur", "Apply Gaussian Blur to object"},

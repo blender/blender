@@ -15,7 +15,9 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
+
+#include "UI_interface_c.hh"
 
 namespace blender::nodes::geo_eval_log {
 struct GeometryAttributeInfo;
@@ -243,7 +245,7 @@ using uiListItemGetNameFn =
  *                     to provide the name still.
  */
 void UI_list_filter_and_sort_items(uiList *ui_list,
-                                   const struct bContext *C,
+                                   const bContext *C,
                                    uiListItemFilterFn item_filter_fn,
                                    PointerRNA *dataptr,
                                    const char *propname,

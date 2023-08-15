@@ -1,8 +1,5 @@
 #pragma once
 
-/* NotForPR: Show uv mesh in uv editor in sculpt mode. */
-//#define DEBUG_SHOW_SCULPT_BM_UV_EDGES
-
 /** When #BRUSH_ACCUMULATE is used */
 #define SCULPT_TOOL_HAS_ACCUMULATE(t) \
   ELEM(t, \

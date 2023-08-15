@@ -45,7 +45,7 @@
 /* local prototypes --------------------- */
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp);
 
-/* Access routines used by filesel. */
+/* Access routines used by file-selector. */
 
 void BLO_datablock_info_free(BLODataBlockInfo *datablock_info)
 {

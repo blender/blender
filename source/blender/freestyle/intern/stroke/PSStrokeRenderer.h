@@ -27,7 +27,7 @@ namespace Freestyle {
 
 class PSStrokeRenderer : public StrokeRenderer {
  public:
-  PSStrokeRenderer(const char *iFileName = NULL);
+  PSStrokeRenderer(const char *iFileName = nullptr);
 
   /** Renders a stroke rep */
   virtual void RenderStrokeRep(StrokeRep *iStrokeRep) const;

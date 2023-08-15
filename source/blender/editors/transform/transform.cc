@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +15,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
@@ -26,25 +27,25 @@
 
 #include "GPU_state.h"
 
-#include "ED_clip.h"
-#include "ED_gpencil_legacy.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_node.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_clip.hh"
+#include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_node.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
 #include "SEQ_transform.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -61,6 +62,8 @@
 /* Disabling, since when you type you know what you are doing,
  * and being able to set it to zero is handy. */
 /* #define USE_NUM_NO_ZERO */
+
+using namespace blender;
 
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
@@ -223,8 +226,8 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     if (t->region->regiontype == RGN_TYPE_WINDOW) {
       if (ED_view3d_project_int_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
         /* this is what was done in 2.64, perhaps we can be smarter? */
-        adr[0] = (int)2140000000.0f;
-        adr[1] = (int)2140000000.0f;
+        adr[0] = int(2140000000.0f);
+        adr[1] = int(2140000000.0f);
       }
     }
   }
@@ -648,7 +651,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
         return false;
       }
       if (value == TFM_MODAL_RESIZE && t->mode == TFM_RESIZE) {
-        return false;
+        /* The tracking transform in MovieClip has an alternate resize that only affects the
+         * tracker size and not the search area. */
+        return t->data_type == &TransConvertType_Tracking;
       }
       if (value == TFM_MODAL_VERT_EDGE_SLIDE &&
           (t->data_type != &TransConvertType_Mesh ||
@@ -965,7 +970,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (!is_navigating && event->type == MOUSEMOVE) {
-    copy_v2_v2_int(t->mval, event->mval);
+    t->mval = float2(event->mval);
 
     /* Use this for soft redraw. Might cause flicker in object mode */
     // t->redraw |= TREDRAW_SOFT;
@@ -1275,12 +1280,12 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         else if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
           /* Shift is modifier for higher precision transform. */
-          t->mouse.precision = 1;
+          t->mouse.precision = true;
           t->redraw |= TREDRAW_HARD;
         }
         else if (event->prev_val == KM_RELEASE) {
           t->modifiers &= ~MOD_PRECISION;
-          t->mouse.precision = 0;
+          t->mouse.precision = false;
           t->redraw |= TREDRAW_HARD;
         }
         break;
@@ -1419,7 +1424,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   /* avoid doing connectivity lookups (when V3D_AROUND_LOCAL_ORIGINS is set) */
   t->around = V3D_AROUND_CENTER_BOUNDS;
 
-  createTransData(C, t); /* make TransData structs from selection */
+  create_trans_data(C, t); /* make TransData structs from selection */
 
   t->around = centerMode; /* override user-defined mode. */
 
@@ -1682,7 +1687,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
           /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
           short *snap_flag_ptr;
 
-          wmMsgParams_RNA msg_key_params = {{0}};
+          wmMsgParams_RNA msg_key_params = {{nullptr}};
           RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);
 
           if (t->spacetype == SPACE_NODE) {
@@ -1911,11 +1916,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
         SPACE_TYPE_ANY, RGN_TYPE_ANY, transform_draw_cursor_poll, transform_draw_cursor_draw, t);
   }
 
-  createTransData(C, t); /* Make #TransData structs from selection. */
+  create_trans_data(C, t); /* Make #TransData structs from selection. */
 
   if (t->data_len_all == 0) {
     postTrans(C, t);
-    return 0;
+    return false;
   }
 
   /* When proportional editing is enabled, data_len_all can be non zero when
@@ -1935,7 +1940,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
     if (!has_selected_any) {
       postTrans(C, t);
-      return 0;
+      return false;
     }
   }
 
@@ -2021,21 +2026,14 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       }
     }
 
-    int mval[2];
-    if (t->flag & T_EVENT_DRAG_START) {
-      WM_event_drag_start_mval(event, t->region, mval);
-    }
-    else {
-      copy_v2_v2_int(mval, event->mval);
-    }
-    initMouseInput(t, &t->mouse, t->center2d, mval, use_accurate);
+    initMouseInput(t, &t->mouse, t->center2d, t->mval, use_accurate);
   }
 
   transform_mode_init(t, op, mode);
 
   if (t->state == TRANS_CANCEL) {
     postTrans(C, t);
-    return 0;
+    return false;
   }
 
   /* Transformation axis from operator */
@@ -2099,7 +2097,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   t->context = nullptr;
 
-  return 1;
+  return true;
 }
 
 void transformApply(bContext *C, TransInfo *t)
@@ -2109,7 +2107,7 @@ void transformApply(bContext *C, TransInfo *t)
   if (t->redraw == TREDRAW_HARD) {
     selectConstraint(t);
     if (t->mode_info) {
-      t->mode_info->transform_fn(t, t->mval); /* calls recalcData() */
+      t->mode_info->transform_fn(t); /* calls recalc_data() */
     }
   }
 
@@ -2137,7 +2135,7 @@ int transformEnd(bContext *C, TransInfo *t)
     /* handle restoring objects */
     if (t->state == TRANS_CANCEL) {
       exit_code = OPERATOR_CANCELLED;
-      restoreTransObjects(t); /* calls recalcData() */
+      restoreTransObjects(t); /* calls recalc_data() */
     }
     else {
       if (t->flag & T_CLNOR_REBUILD) {

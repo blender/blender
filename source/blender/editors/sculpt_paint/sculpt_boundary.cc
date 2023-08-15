@@ -12,26 +12,20 @@
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_multires.h"
-#include "BKE_node.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "paint_intern.hh"
@@ -42,13 +36,13 @@
 
 #include "bmesh.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include <math.h>
 #include <stdlib.h>
@@ -771,7 +765,6 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
   MEM_SAFE_FREE(boundary->boundary_closest);
   MEM_SAFE_FREE(boundary->smoothco);
 
-  MEM_SAFE_FREE(boundary->edit_info);
   MEM_SAFE_FREE(boundary->bend.pivot_positions);
   MEM_SAFE_FREE(boundary->bend.pivot_rotation_axis);
   MEM_SAFE_FREE(boundary->slide.directions);
@@ -779,70 +772,6 @@ void SCULPT_boundary_data_free(SculptBoundary *boundary)
   MEM_SAFE_FREE(boundary->circle.radius);
   MEM_SAFE_FREE(boundary);
 }
-
-Object *sculpt_get_vis_object(bContext *C, SculptSession *ss, const char *name)
-{
-  if (!C) {
-    C = ss->cache->C;
-  }
-
-  Scene *scene = CTX_data_scene(C);
-  ViewLayer *vlayer = CTX_data_view_layer(C);
-  Main *bmain = CTX_data_main(C);
-  Object *actob = CTX_data_active_object(C);
-
-  Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, name);
-
-  if (!ob) {
-    Mesh *me = BKE_mesh_add(bmain, name);
-
-    ob = BKE_object_add_only_object(bmain, OB_MESH, name);
-    ob->data = (void *)me;
-    id_us_plus((ID *)me);
-
-    DEG_id_tag_update_ex(
-        bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-
-    LayerCollection *layer_collection = BKE_layer_collection_get_active(vlayer);
-    BKE_collection_object_add(bmain, layer_collection->collection, ob);
-  }
-
-  copy_v3_v3(ob->loc, actob->loc);
-  copy_v3_v3(ob->rot, actob->rot);
-  BKE_object_to_mat4(ob, ob->object_to_world);
-
-  DEG_id_type_tag(bmain, ID_OB);
-  DEG_relations_tag_update(bmain);
-  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
-  DEG_id_tag_update(&scene->id, 0);
-
-  Mesh *me = (Mesh *)ob->data;
-
-  DEG_id_tag_update(&me->id, ID_RECALC_ALL);
-  return ob;
-}
-
-void sculpt_end_vis_object(bContext *C, SculptSession *ss, Object *ob, BMesh *bm)
-{
-  if (!C) {
-    C = ss->cache->C;
-  }
-
-  Main *bmain = CTX_data_main(C);
-
-  Mesh *me = (Mesh *)ob->data;
-  BMeshToMeshParams params = {};
-
-  params.calc_object_remap = false;
-  params.update_shapekey_indices = false;
-  params.copy_temp_cdlayers = false;
-
-  BM_mesh_bm_to_me(bmain, bm, me, &params);
-
-  DEG_id_tag_update(&me->id, ID_RECALC_ALL);
-}
-
-//#define VISBM
 
 /* These functions initialize the required vectors for the desired deformation using the
  * SculptBoundaryEditInfo. They calculate the data using the vertices that have the
@@ -852,17 +781,6 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
                                            SculptBoundary *boundary,
                                            float radius)
 {
-#ifdef VISBM
-  Object *visob = get_vis_object(ss, "_vis_sculpt_boundary_bend_data_init");
-  BMAllocTemplate alloc = {512, 512, 512, 512};
-  BMesh *visbm = BM_mesh_create(&alloc,
-                                (&(struct BMeshCreateParams){.use_unique_ids = 0,
-                                                             .use_id_elem_mask = 0,
-                                                             .use_id_map = 0,
-                                                             .use_toolflags = 0,
-                                                             .no_reuse_ids = 0}));
-#endif
-
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->bend.pivot_rotation_axis = MEM_cnew_array<float[3]>(totvert, __func__);
   boundary->bend.pivot_positions = MEM_cnew_array<float[4]>(totvert, __func__);
@@ -1018,27 +936,7 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss,
     }
 
     copy_v3_v3(boundary->bend.pivot_positions[i], pos);
-
-#ifdef VISBM
-    {
-      BMVert *v1, *v2;
-      v1 = BM_vert_create(visbm, co1, nullptr, BM_CREATE_NOP);
-
-      v2 = BM_vert_create(visbm, pos, nullptr, BM_CREATE_NOP);
-      BM_edge_create(visbm, v1, v2, nullptr, BM_CREATE_NOP);
-
-      float tmp[3];
-      madd_v3_v3v3fl(tmp, co1, dir, 0.35);
-
-      v2 = BM_vert_create(visbm, tmp, nullptr, BM_CREATE_NOP);
-      BM_edge_create(visbm, v1, v2, nullptr, BM_CREATE_NOP);
-    }
-#endif
   }
-
-#ifdef VISBM
-  end_vis_object(ss, visob, visbm);
-#endif
 }
 
 static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *boundary)
@@ -1135,15 +1033,15 @@ static void do_boundary_brush_circle_task_cb_ex(void *__restrict userdata,
 static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *boundary)
 {
   zero_v3(boundary->twist.pivot_position);
-  float(*poly_verts)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "poly verts"));
+  float(*face_verts)[3] = static_cast<float(*)[3]>(
+      MEM_malloc_arrayN(boundary->verts_num, sizeof(float[3]), "face verts"));
   for (int i = 0; i < boundary->verts_num; i++) {
     add_v3_v3(boundary->twist.pivot_position, SCULPT_vertex_co_get(ss, boundary->verts[i]));
-    copy_v3_v3(poly_verts[i], SCULPT_vertex_co_get(ss, boundary->verts[i]));
+    copy_v3_v3(face_verts[i], SCULPT_vertex_co_get(ss, boundary->verts[i]));
   }
   mul_v3_fl(boundary->twist.pivot_position, 1.0f / boundary->verts_num);
   if (boundary->forms_loop) {
-    normal_poly_v3(boundary->twist.rotation_axis, poly_verts, boundary->verts_num);
+    normal_poly_v3(boundary->twist.rotation_axis, face_verts, boundary->verts_num);
   }
   else {
     sub_v3_v3v3(boundary->twist.rotation_axis,
@@ -1151,7 +1049,7 @@ static void sculpt_boundary_twist_data_init(SculptSession *ss, SculptBoundary *b
                 SCULPT_vertex_co_get(ss, boundary->initial_vertex));
     normalize_v3(boundary->twist.rotation_axis);
   }
-  MEM_freeN(poly_verts);
+  MEM_freeN(face_verts);
 }
 
 static void sculpt_boundary_circle_data_init(SculptSession *ss, SculptBoundary *boundary)

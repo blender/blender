@@ -12,7 +12,6 @@ namespace blender::compositor {
  * \brief KuwaharaNode
  * \ingroup Node
  */
-
 class KuwaharaNode : public Node {
  public:
   KuwaharaNode(bNode *editor_node) : Node(editor_node) {}

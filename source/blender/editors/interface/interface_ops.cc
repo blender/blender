@@ -29,7 +29,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_remap.h"
 #include "BKE_material.h"
 #include "BKE_node.hh"
@@ -41,32 +41,31 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_object.h"
-#include "ED_paint.h"
+#include "ED_object.hh"
+#include "ED_paint.hh"
 
 /* for Copy As Driver */
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
 #include "BKE_main.h"
 #include "BLI_ghash.h"
-#include "ED_screen.h"
-#include "ED_text.h"
+#include "ED_screen.hh"
+#include "ED_text.hh"
 
 using namespace blender::ui;
 
@@ -700,7 +699,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
     /* Remove override operation for given item,
      * add singular operations for the other items as needed. */
     IDOverrideLibraryPropertyOperation *opop = BKE_lib_override_library_property_operation_find(
-        oprop, nullptr, nullptr, index, index, false, &is_strict_find);
+        oprop, nullptr, nullptr, {}, {}, index, index, false, &is_strict_find);
     BLI_assert(opop != nullptr);
     if (!is_strict_find) {
       /* No specific override operation, we have to get generic one,
@@ -709,7 +708,7 @@ static int override_remove_button_exec(bContext *C, wmOperator *op)
       for (int idx = RNA_property_array_length(&ptr, prop); idx--;) {
         if (idx != index) {
           BKE_lib_override_library_property_operation_get(
-              oprop, opop->operation, nullptr, nullptr, idx, idx, true, nullptr, nullptr);
+              oprop, opop->operation, nullptr, nullptr, {}, {}, idx, idx, true, nullptr, nullptr);
         }
       }
     }
@@ -1853,7 +1852,7 @@ static void edittranslation_find_po_file(const char *root,
     return;
   }
 
-  /* Now try without the second iso code part (_ES in es_ES). */
+  /* Now try without the second ISO code part (`_ES` in `es_ES`). */
   {
     const char *tc = nullptr;
     size_t szt = 0;

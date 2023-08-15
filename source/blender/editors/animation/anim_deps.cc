@@ -6,13 +6,14 @@
  * \ingroup edanimation
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -27,18 +28,19 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_main.h"
 #include "BKE_node.h"
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
 #include "SEQ_sequencer.h"
 #include "SEQ_utils.h"
 
-#include "ED_anim_api.h"
+#include "ED_anim_api.hh"
 
 /* **************************** depsgraph tagging ******************************** */
 
@@ -212,8 +214,8 @@ static void animchan_sync_fcurve(bAnimListElem *ale)
   FCurve *fcu = (FCurve *)ale->data;
   ID *owner_id = ale->id;
 
-  /* major priority is selection status, so refer to the checks done in anim_filter.c
-   * skip_fcurve_selected_data() for reference about what's going on here...
+  /* major priority is selection status, so refer to the checks done in `anim_filter.cc`
+   * #skip_fcurve_selected_data() for reference about what's going on here.
    */
   if (ELEM(nullptr, fcu, fcu->rna_path, owner_id)) {
     return;
@@ -256,7 +258,6 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   bActionGroup *active_agrp = nullptr;
@@ -277,7 +278,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* flush settings as appropriate depending on the types of the channels */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_GROUP:
         animchan_sync_group(&ac, ale, &active_agrp);
@@ -290,6 +291,17 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
       case ANIMTYPE_GPLAYER:
         animchan_sync_gplayer(ale);
         break;
+      case ANIMTYPE_GREASE_PENCIL_LAYER:
+        using namespace blender::bke::greasepencil;
+        GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
+        Layer *layer = static_cast<Layer *>(ale->data);
+        if (grease_pencil->is_layer_active(layer)) {
+          layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
+        }
+        else {
+          layer->base.flag &= ~GP_LAYER_TREE_NODE_SELECT;
+        }
+        break;
     }
   }
 
@@ -298,9 +310,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 
 void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 {
-  bAnimListElem *ale;
-
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     if (ale->type == ANIMTYPE_GPLAYER) {
       bGPDlayer *gpl = static_cast<bGPDlayer *>(ale->data);
 

@@ -11,12 +11,12 @@
 #include "cineonlib.h"
 #include "logmemfile.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <sys/types.h>
-#include <time.h>
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"
@@ -301,13 +301,13 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     }
 
     if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refLowQuantity))
+        std::isnan(cineon->element[i].refLowQuantity))
     {
       cineon->element[i].refLowQuantity = 0.0f;
     }
 
     if (cineon->element[i].refHighQuantity == CINEON_UNDEFINED_R32 ||
-        isnan(cineon->element[i].refHighQuantity))
+        std::isnan(cineon->element[i].refHighQuantity))
     {
       if (cineon->element[i].transfer == transfer_PrintingDensity) {
         cineon->element[i].refHighQuantity = 2.048f;

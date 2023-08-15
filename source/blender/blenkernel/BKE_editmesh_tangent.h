@@ -17,14 +17,14 @@ extern "C" {
  * \see #BKE_mesh_calc_loop_tangent, same logic but used arrays instead of #BMesh data.
  *
  * \note This function is not so normal, its using #BMesh.ldata as input,
- * but output's to #Mesh.ldata.
+ * but output's to #Mesh.loop_data.
  * This is done because #CD_TANGENT is cache data used only for drawing.
  */
 void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
                                     bool calc_active_tangent,
                                     const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                     int tangent_names_len,
-                                    const float (*poly_normals)[3],
+                                    const float (*face_normals)[3],
                                     const float (*loop_normals)[3],
                                     const float (*vert_orco)[3],
                                     CustomData *dm_loopdata_out,

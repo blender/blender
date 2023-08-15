@@ -9,7 +9,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BKE_context.h"
 
@@ -128,6 +128,9 @@ typedef struct SpaceType {
 
   /* region type definitions */
   ListBase regiontypes;
+
+  /** Asset shelf type definitions. */
+  ListBase asset_shelf_types; /* #AssetShelfType */
 
   /* read and write... */
 
@@ -413,6 +416,44 @@ typedef struct Menu {
   struct uiLayout *layout; /* runtime for drawing */
 } Menu;
 
+/* asset shelf types */
+
+/* #AssetShelfType.flag */
+typedef enum AssetShelfTypeFlag {
+  /** Do not trigger asset dragging on drag events. Drag events can be overridden with custom
+   * keymap items then. */
+  ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG = (1 << 0),
+
+  ASSET_SHELF_TYPE_FLAG_MAX
+} AssetShelfTypeFlag;
+ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
+
+typedef struct AssetShelfType {
+  struct AssetShelfType *next, *prev;
+
+  char idname[BKE_ST_MAXNAME]; /* unique name */
+
+  int space_type;
+
+  AssetShelfTypeFlag flag;
+
+  /** Determine if asset shelves of this type should be available in current context or not. */
+  bool (*poll)(const struct bContext *C, const struct AssetShelfType *shelf_type);
+
+  /** Determine if an individual asset should be visible or not. May be a temporary design,
+   * visibility should first and foremost be controlled by asset traits. */
+  bool (*asset_poll)(const struct AssetShelfType *shelf_type, const struct AssetHandle *asset);
+
+  /** Asset shelves can define their own context menu via this layout definition callback. */
+  void (*draw_context_menu)(const struct bContext *C,
+                            const struct AssetShelfType *shelf_type,
+                            const struct AssetHandle *asset,
+                            struct uiLayout *layout);
+
+  /* RNA integration */
+  ExtensionRNA rna_ext;
+} AssetShelfType;
+
 /* Space-types. */
 
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
@@ -489,37 +530,39 @@ struct ARegion *BKE_region_find_in_listbase_by_type(const struct ListBase *regio
  * Use #BKE_spacedata_find_region_type if that may be the case.
  */
 struct ARegion *BKE_area_find_region_type(const struct ScrArea *area, int type);
-struct ARegion *BKE_area_find_region_active_win(struct ScrArea *area);
-struct ARegion *BKE_area_find_region_xy(struct ScrArea *area, int regiontype, const int xy[2])
-    ATTR_NONNULL(3);
+struct ARegion *BKE_area_find_region_active_win(const struct ScrArea *area);
+struct ARegion *BKE_area_find_region_xy(const struct ScrArea *area,
+                                        int regiontype,
+                                        const int xy[2]) ATTR_NONNULL(3);
 /**
  * \note This is only for screen level regions (typically menus/popups).
  */
-struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
+struct ARegion *BKE_screen_find_region_xy(const struct bScreen *screen,
                                           int regiontype,
                                           const int xy[2]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
 
-struct ARegion *BKE_screen_find_main_region_at_xy(struct bScreen *screen,
+struct ARegion *BKE_screen_find_main_region_at_xy(const struct bScreen *screen,
                                                   int space_type,
                                                   const int xy[2]) ATTR_NONNULL(1, 3);
 /**
  * \note Ideally we can get the area from the context,
  * there are a few places however where this isn't practical.
  */
-struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen,
-                                                struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
+struct ScrArea *BKE_screen_find_area_from_space(const struct bScreen *screen,
+                                                const struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 /**
  * \note Using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  */
-struct ScrArea *BKE_screen_find_big_area(struct bScreen *screen, int spacetype, short min);
+struct ScrArea *BKE_screen_find_big_area(const struct bScreen *screen, int spacetype, short min);
 struct ScrArea *BKE_screen_area_map_find_area_xy(const struct ScrAreaMap *areamap,
                                                  int spacetype,
                                                  const int xy[2]) ATTR_NONNULL(1, 3);
-struct ScrArea *BKE_screen_find_area_xy(struct bScreen *screen, int spacetype, const int xy[2])
-    ATTR_NONNULL(1, 3);
+struct ScrArea *BKE_screen_find_area_xy(const struct bScreen *screen,
+                                        int spacetype,
+                                        const int xy[2]) ATTR_NONNULL(1, 3);
 
 void BKE_screen_gizmo_tag_refresh(struct bScreen *screen);
 

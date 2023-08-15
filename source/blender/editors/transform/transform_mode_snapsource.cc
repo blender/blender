@@ -8,14 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 
-#include "ED_screen.h"
-#include "ED_transform_snap_object_context.h"
+#include "ED_screen.hh"
+#include "ED_transform_snap_object_context.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -26,6 +24,8 @@
 
 #define RESET_TRANSFORMATION
 #define REMOVE_GIZMO
+
+using namespace blender;
 
 /* -------------------------------------------------------------------- */
 /** \name Transform Element
@@ -79,7 +79,7 @@ static void snapsource_confirm(TransInfo *t)
   SnapSouceCustomData *customdata = static_cast<SnapSouceCustomData *>(t->custom.mode.data);
   t->tsnap.mode = customdata->snap_mode_confirm;
 
-  int mval[2];
+  float2 mval;
 #ifndef RESET_TRANSFORMATION
   if (true) {
     if (t->transform_matrix) {
@@ -97,12 +97,12 @@ static void snapsource_confirm(TransInfo *t)
       sub_v3_v3(t->tsnap.snap_source, t->vec);
     }
 
-    projectIntView(t, t->tsnap.snap_source, mval);
+    projectFloatView(t, t->tsnap.snap_source, mval);
   }
   else
 #endif
   {
-    copy_v2_v2_int(mval, t->mval);
+    mval = t->mval;
   }
 
   snapsource_end(t);
@@ -146,7 +146,7 @@ static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event
   return TREDRAW_NOTHING;
 }
 
-static void snapsource_transform_fn(TransInfo *t, const int[2] /*mval*/)
+static void snapsource_transform_fn(TransInfo *t)
 {
   BLI_assert(t->modifiers & MOD_EDIT_SNAP_SOURCE);
 
@@ -212,7 +212,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
 
 #ifdef RESET_TRANSFORMATION
   /* Temporarily disable snapping.
-   * We don't want #SCE_SNAP_PROJECT to affect `recalcData` for example. */
+   * We don't want #SCE_SNAP_PROJECT to affect `recalc_data` for example. */
   t->tsnap.flag &= ~SCE_SNAP;
 
   restoreTransObjects(t);

@@ -62,7 +62,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -81,14 +80,14 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "ED_keyframing.h"
+#include "ED_keyframing.hh"
 #ifdef WITH_BUILDINFO
 extern "C" char build_commit_date[];
 extern "C" char build_commit_time[];
 extern "C" char build_hash[];
 #endif
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DocumentExporter.h"
 #include "collada_internal.h"

@@ -6,9 +6,9 @@
  * \ingroup edphys
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -29,10 +29,10 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_object.h"
-#include "ED_particle.h"
-#include "ED_physics.h"
-#include "ED_undo.h"
+#include "ED_object.hh"
+#include "ED_particle.hh"
+#include "ED_physics.hh"
+#include "ED_undo.hh"
 
 #include "particle_edit_utildefines.h"
 
@@ -160,7 +160,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
       LOOP_POINTS {
         LOOP_KEYS {
-          if ((int)key->ftime == (int)pm->frame) {
+          if (int(key->ftime) == int(pm->frame)) {
             key->co = static_cast<float *>(cur[BPHYS_DATA_LOCATION]);
             key->vel = static_cast<float *>(cur[BPHYS_DATA_VELOCITY]);
             key->rot = static_cast<float *>(cur[BPHYS_DATA_ROTATION]);
@@ -220,7 +220,7 @@ static bool particle_undosys_poll(bContext *C)
   return (edit != nullptr);
 }
 
-static bool particle_undosys_step_encode(bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
+static bool particle_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;

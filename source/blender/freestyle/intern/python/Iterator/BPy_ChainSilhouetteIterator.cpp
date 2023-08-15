@@ -21,7 +21,7 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool
+// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=nullptr, bool
 // orientation=true) ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
@@ -109,7 +109,7 @@ static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self,
 /*-----------------------BPy_ChainSilhouetteIterator type definition ----------------------------*/
 
 PyTypeObject ChainSilhouetteIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ChainSilhouetteIterator",
     /*tp_basicsize*/ sizeof(BPy_ChainSilhouetteIterator),
     /*tp_itemsize*/ 0,

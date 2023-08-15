@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
@@ -169,7 +173,7 @@ void blf_glyph_draw(
     struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, int x, int y);
 
 #ifdef WIN32
-/* blf_font_win32_compat.c */
+/* `blf_font_win32_compat.cc` */
 
 #  ifdef FT_FREETYPE_H
 extern FT_Error FT_New_Face__win32_compat(FT_Library library,
@@ -177,4 +181,8 @@ extern FT_Error FT_New_Face__win32_compat(FT_Library library,
                                           FT_Long face_index,
                                           FT_Face *aface);
 #  endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif

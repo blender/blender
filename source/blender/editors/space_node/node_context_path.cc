@@ -18,14 +18,13 @@
 
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "node_intern.hh"
 
@@ -128,7 +127,7 @@ static void get_context_path_node_geometry(const bContext &C,
                                            SpaceNode &snode,
                                            Vector<ui::ContextPathItem> &path)
 {
-  if (snode.flag & SNODE_PIN || snode.geometry_nodes_type == SNODE_GEOMETRY_OPERATOR) {
+  if (snode.flag & SNODE_PIN || snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
     context_path_add_node_tree_and_node_groups(snode, path);
   }
   else {

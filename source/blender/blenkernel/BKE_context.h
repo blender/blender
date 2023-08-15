@@ -15,7 +15,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 #  include "BLI_string_ref.hh"

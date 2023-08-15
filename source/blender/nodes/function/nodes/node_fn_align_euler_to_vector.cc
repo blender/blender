@@ -2,12 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "NOD_rna_define.hh"
 
 #include "node_function_util.hh"
 
@@ -27,7 +31,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "pivot_axis", 0, IFACE_("Pivot"), ICON_NONE);
+  uiItemR(layout, ptr, "pivot_axis", UI_ITEM_NONE, IFACE_("Pivot"), ICON_NONE);
 }
 
 static void align_rotations_auto_pivot(const IndexMask &mask,
@@ -187,18 +191,79 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.construct_and_set_matching_fn<MF_AlignEulerToVector>(node.custom1, node.custom2);
 }
 
-}  // namespace blender::nodes::node_fn_align_euler_to_vector_cc
-
-void register_node_type_fn_align_euler_to_vector()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_fn_align_euler_to_vector_cc;
+  static const EnumPropertyItem axis_items[] = {
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Align the X axis with the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Align the Y axis with the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Align the Z axis with the vector"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  static const EnumPropertyItem pivot_axis_items[] = {
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_AUTO,
+       "AUTO",
+       ICON_NONE,
+       "Auto",
+       "Automatically detect the best rotation axis to rotate towards the vector"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_X,
+       "X",
+       ICON_NONE,
+       "X",
+       "Rotate around the local X axis"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Y,
+       "Y",
+       ICON_NONE,
+       "Y",
+       "Rotate around the local Y axis"},
+      {FN_NODE_ALIGN_EULER_TO_VECTOR_PIVOT_AXIS_Z,
+       "Z",
+       ICON_NONE,
+       "Z",
+       "Rotate around the local Z axis"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_node_enum(srna,
+                    "axis",
+                    "Axis",
+                    "Axis to align to the vector",
+                    axis_items,
+                    NOD_inline_enum_accessors(custom1));
+
+  RNA_def_node_enum(srna,
+                    "pivot_axis",
+                    "Pivot Axis",
+                    "Axis to rotate around",
+                    pivot_axis_items,
+                    NOD_inline_enum_accessors(custom2));
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   fn_node_type_base(
       &ntype, FN_NODE_ALIGN_EULER_TO_VECTOR, "Align Euler to Vector", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.build_multi_function = node_build_multi_function;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_align_euler_to_vector_cc

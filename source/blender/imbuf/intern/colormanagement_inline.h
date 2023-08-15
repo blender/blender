@@ -9,6 +9,8 @@
 #ifndef __IMB_COLORMANAGEMENT_INLINE_C__
 #define __IMB_COLORMANAGEMENT_INLINE_C__
 
+#include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "IMB_colormanagement_intern.h"
 

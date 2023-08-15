@@ -10,8 +10,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_uvmap_cc {
 
@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
   if (!RNA_boolean_get(ptr, "from_instancer")) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");

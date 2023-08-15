@@ -29,7 +29,9 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -112,9 +114,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 
   /* direct data */
   BLO_write_pointer_array(writer, mb->totcol, mb->mat);
-  if (mb->adt) {
-    BKE_animdata_blend_write(writer, mb->adt);
-  }
 
   LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
     BLO_write_struct(writer, MetaElem, ml);
@@ -124,8 +123,6 @@ static void metaball_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 {
   MetaBall *mb = (MetaBall *)id;
-  BLO_read_data_address(reader, &mb->adt);
-  BKE_animdata_blend_read_data(reader, mb->adt);
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 
@@ -677,7 +674,7 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
     BKE_mesh_tag_positions_changed(mesh);
   }
 
-  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
+  ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::from_mesh(mesh));
 
   BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

@@ -11,7 +11,6 @@
 #include "BLF_api.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -22,20 +21,20 @@
 #include "BKE_text.h"
 #include "BKE_text_suggestions.h"
 
-#include "ED_text.h"
+#include "ED_text.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "text_format.hh"
 #include "text_intern.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Text Font Drawing

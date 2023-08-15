@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
@@ -14,8 +14,8 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "rna_internal.h"
 
 #include "DNA_light_types.h"
@@ -32,9 +32,9 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_node.h"
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "ED_node.hh"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 static StructRNA *rna_Light_refine(PointerRNA *ptr)
 {
@@ -185,7 +185,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
       RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
       RNA_def_property_ui_text(
-          prop, "Strength", "Sunlight strength in watts per meter squared (W/m^2)");
+          prop, "Strength", "Sunlight strength in watts per meter squared (W/m²)");
       RNA_def_property_update(prop, 0, "rna_Light_draw_update");
       break;
     }

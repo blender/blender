@@ -40,14 +40,16 @@
 //#define DEBUG_MEMCOUNTER
 
 /* Only for debugging:
- * Defining DEBUG_BACKTRACE will store a backtrace from where
- * memory block was allocated and print this trace for all
- * unfreed blocks.
+ * Defining DEBUG_BACKTRACE will display a back-trace from where memory block was allocated and
+ * print this trace for all unfreed blocks. This will only work for ASAN enabled builds. This
+ * option will be on by default for MSVC as it currently does not have LSAN which would normally
+ * report these leaks, off by default on all other platforms because it would report the leaks
+ * twice, once here, and once by LSAN.
  */
+#if defined(_MSC_VER)
+#  define DEBUG_BACKTRACE
+#else
 //#define DEBUG_BACKTRACE
-
-#ifdef DEBUG_BACKTRACE
-#  define BACKTRACE_SIZE 100
 #endif
 
 #ifdef DEBUG_MEMCOUNTER
@@ -92,23 +94,9 @@ typedef struct MemHead {
 #ifdef DEBUG_MEMDUPLINAME
   int need_free_name, pad;
 #endif
-
-#ifdef DEBUG_BACKTRACE
-  void *backtrace[BACKTRACE_SIZE];
-  int backtrace_size;
-#endif
 } MemHead;
 
 typedef MemHead MemHeadAligned;
-
-#ifdef DEBUG_BACKTRACE
-#  if defined(__linux__) || defined(__APPLE__)
-#    include <execinfo.h>
-// Windows is not supported yet.
-//#  elif defined(_MSV_VER)
-//#    include <DbgHelp.h>
-#  endif
-#endif
 
 typedef struct MemTail {
   int tag3, pad;
@@ -366,38 +354,6 @@ void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
   return newp;
 }
 
-#ifdef DEBUG_BACKTRACE
-#  if defined(__linux__) || defined(__APPLE__)
-static void make_memhead_backtrace(MemHead *memh)
-{
-  memh->backtrace_size = backtrace(memh->backtrace, BACKTRACE_SIZE);
-}
-
-static void print_memhead_backtrace(MemHead *memh)
-{
-  char **strings;
-  int i;
-
-  strings = backtrace_symbols(memh->backtrace, memh->backtrace_size);
-  for (i = 0; i < memh->backtrace_size; i++) {
-    print_error("  %s\n", strings[i]);
-  }
-
-  free(strings);
-}
-#  else
-static void make_memhead_backtrace(MemHead *memh)
-{
-  (void)memh; /* Ignored. */
-}
-
-static void print_memhead_backtrace(MemHead *memh)
-{
-  (void)memh; /* Ignored. */
-}
-#  endif /* defined(__linux__) || defined(__APPLE__) */
-#endif   /* DEBUG_BACKTRACE */
-
 static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 {
   MemTail *memt;
@@ -412,10 +368,6 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 
 #ifdef DEBUG_MEMDUPLINAME
   memh->need_free_name = 0;
-#endif
-
-#ifdef DEBUG_BACKTRACE
-  make_memhead_backtrace(memh);
 #endif
 
   memt = (MemTail *)(((char *)memh) + sizeof(MemHead) + len);
@@ -769,7 +721,9 @@ static void MEM_guarded_printmemlist_internal(int pydict)
                   (void *)(membl + 1));
 #endif
 #ifdef DEBUG_BACKTRACE
-      print_memhead_backtrace(membl);
+#  ifdef WITH_ASAN
+      __asan_describe_address(membl);
+#  endif
 #endif
     }
     if (membl->next) {
@@ -848,6 +802,10 @@ void MEM_guarded_printmemlist(void)
 void MEM_guarded_printmemlist_pydict(void)
 {
   MEM_guarded_printmemlist_internal(1);
+}
+void mem_guarded_clearmemlist(void)
+{
+  membase->first = membase->last = NULL;
 }
 
 void MEM_guarded_freeN(void *vmemh)

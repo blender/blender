@@ -9,7 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -21,21 +21,21 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_clip.h"
-#include "ED_mask.h" /* own include */
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_clip.hh"
+#include "ED_mask.hh" /* own include */
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -579,7 +579,7 @@ static void draw_layer_splines(const bContext *C,
     }
 
     /* show undeform for testing */
-    if (0) {
+    if (false) {
       MaskSplinePoint *back = spline->points_deform;
 
       spline->points_deform = nullptr;

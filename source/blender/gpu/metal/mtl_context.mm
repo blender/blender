@@ -751,10 +751,12 @@ void MTLContext::pipeline_state_init()
   this->pipeline_state.src_rgb_blend_factor = MTLBlendFactorOne;
 
   /* Viewport and scissor. */
-  this->pipeline_state.viewport_offset_x = 0;
-  this->pipeline_state.viewport_offset_y = 0;
-  this->pipeline_state.viewport_width = 0;
-  this->pipeline_state.viewport_height = 0;
+  for (int v = 0; v < GPU_MAX_VIEWPORTS; v++) {
+    this->pipeline_state.viewport_offset_x[v] = 0;
+    this->pipeline_state.viewport_offset_y[v] = 0;
+    this->pipeline_state.viewport_width[v] = 0;
+    this->pipeline_state.viewport_height[v] = 0;
+  }
   this->pipeline_state.scissor_x = 0;
   this->pipeline_state.scissor_y = 0;
   this->pipeline_state.scissor_width = 0;
@@ -804,14 +806,46 @@ void MTLContext::set_viewport(int origin_x, int origin_y, int width, int height)
   BLI_assert(height > 0);
   BLI_assert(origin_x >= 0);
   BLI_assert(origin_y >= 0);
-  bool changed = (this->pipeline_state.viewport_offset_x != origin_x) ||
-                 (this->pipeline_state.viewport_offset_y != origin_y) ||
-                 (this->pipeline_state.viewport_width != width) ||
-                 (this->pipeline_state.viewport_height != height);
-  this->pipeline_state.viewport_offset_x = origin_x;
-  this->pipeline_state.viewport_offset_y = origin_y;
-  this->pipeline_state.viewport_width = width;
-  this->pipeline_state.viewport_height = height;
+  bool changed = (this->pipeline_state.viewport_offset_x[0] != origin_x) ||
+                 (this->pipeline_state.viewport_offset_y[0] != origin_y) ||
+                 (this->pipeline_state.viewport_width[0] != width) ||
+                 (this->pipeline_state.viewport_height[0] != height) ||
+                 (this->pipeline_state.num_active_viewports != 1);
+  this->pipeline_state.viewport_offset_x[0] = origin_x;
+  this->pipeline_state.viewport_offset_y[0] = origin_y;
+  this->pipeline_state.viewport_width[0] = width;
+  this->pipeline_state.viewport_height[0] = height;
+  this->pipeline_state.num_active_viewports = 1;
+
+  if (changed) {
+    this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
+                                        MTL_PIPELINE_STATE_VIEWPORT_FLAG);
+  }
+}
+
+void MTLContext::set_viewports(int count, const int (&viewports)[GPU_MAX_VIEWPORTS][4])
+{
+  BLI_assert(this);
+  bool changed = (this->pipeline_state.num_active_viewports != count);
+  for (int v = 0; v < count; v++) {
+    const int(&viewport_info)[4] = viewports[v];
+
+    BLI_assert(viewport_info[0] >= 0);
+    BLI_assert(viewport_info[1] >= 0);
+    BLI_assert(viewport_info[2] > 0);
+    BLI_assert(viewport_info[3] > 0);
+
+    changed = changed || (this->pipeline_state.viewport_offset_x[v] != viewport_info[0]) ||
+              (this->pipeline_state.viewport_offset_y[v] != viewport_info[1]) ||
+              (this->pipeline_state.viewport_width[v] != viewport_info[2]) ||
+              (this->pipeline_state.viewport_height[v] != viewport_info[3]);
+    this->pipeline_state.viewport_offset_x[v] = viewport_info[0];
+    this->pipeline_state.viewport_offset_y[v] = viewport_info[1];
+    this->pipeline_state.viewport_width[v] = viewport_info[2];
+    this->pipeline_state.viewport_height[v] = viewport_info[3];
+  }
+  this->pipeline_state.num_active_viewports = count;
+
   if (changed) {
     this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
                                         MTL_PIPELINE_STATE_VIEWPORT_FLAG);
@@ -989,18 +1023,30 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 
     /** Dynamic Per-draw Render State on RenderCommandEncoder. */
     /* State: Viewport. */
-    if (this->pipeline_state.dirty_flags & MTL_PIPELINE_STATE_VIEWPORT_FLAG) {
+    if (this->pipeline_state.num_active_viewports > 1) {
+      /* Multiple Viewports. */
+      MTLViewport viewports[GPU_MAX_VIEWPORTS];
+      for (int v = 0; v < this->pipeline_state.num_active_viewports; v++) {
+        MTLViewport &viewport = viewports[v];
+        viewport.originX = (double)this->pipeline_state.viewport_offset_x[v];
+        viewport.originY = (double)this->pipeline_state.viewport_offset_y[v];
+        viewport.width = (double)this->pipeline_state.viewport_width[v];
+        viewport.height = (double)this->pipeline_state.viewport_height[v];
+        viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
+        viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
+      }
+      [rec setViewports:viewports count:this->pipeline_state.num_active_viewports];
+    }
+    else {
+      /* Single Viewport. */
       MTLViewport viewport;
-      viewport.originX = (double)this->pipeline_state.viewport_offset_x;
-      viewport.originY = (double)this->pipeline_state.viewport_offset_y;
-      viewport.width = (double)this->pipeline_state.viewport_width;
-      viewport.height = (double)this->pipeline_state.viewport_height;
+      viewport.originX = (double)this->pipeline_state.viewport_offset_x[0];
+      viewport.originY = (double)this->pipeline_state.viewport_offset_y[0];
+      viewport.width = (double)this->pipeline_state.viewport_width[0];
+      viewport.height = (double)this->pipeline_state.viewport_height[0];
       viewport.znear = this->pipeline_state.depth_stencil_state.depth_range_near;
       viewport.zfar = this->pipeline_state.depth_stencil_state.depth_range_far;
       [rec setViewport:viewport];
-
-      this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags &
-                                          ~MTL_PIPELINE_STATE_VIEWPORT_FLAG);
     }
 
     /* State: Scissor. */

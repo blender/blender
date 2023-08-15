@@ -6,7 +6,7 @@
 
 #include "NOD_node_declaration.hh"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_color.hh"
 #include "BLI_math_euler_types.hh"

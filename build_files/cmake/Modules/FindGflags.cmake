@@ -60,9 +60,13 @@
 # GFLAGS_LIBRARY: gflags library, not including the libraries of any
 #                 dependencies.
 
-# If GFLAGS_ROOT_DIR was defined in the environment, use it.
-if(NOT GFLAGS_ROOT_DIR AND NOT $ENV{GFLAGS_ROOT_DIR} STREQUAL "")
+# If `GFLAGS_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED GFLAGS_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{GFLAGS_ROOT_DIR})
   set(GFLAGS_ROOT_DIR $ENV{GFLAGS_ROOT_DIR})
+else()
+  set(GFLAGS_ROOT_DIR "")
 endif()
 
 if(DEFINED GFLAGS_ROOT_DIR)

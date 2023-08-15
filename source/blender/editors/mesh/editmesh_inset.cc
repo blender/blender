@@ -10,7 +10,8 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BLT_translation.h"
@@ -21,21 +22,21 @@
 #include "BKE_layer.h"
 #include "BKE_unit.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "ED_mesh.h"
-#include "ED_numinput.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_transform.h"
-#include "ED_util.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_numinput.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_transform.hh"
+#include "ED_util.hh"
+#include "ED_view3d.hh"
 
 #include "mesh_intern.h" /* own include */
 
@@ -617,6 +618,6 @@ void MESH_OT_inset(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "use_interpolate", true, "Interpolate", "Blend face data across the inset");
 
-  prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+  prop = RNA_def_boolean(ot->srna, "release_confirm", false, "Confirm on Release", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

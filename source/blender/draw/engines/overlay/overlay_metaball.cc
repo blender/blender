@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_mball.h"
+#include "ED_mball.hh"
 
 #include "overlay_private.hh"
 

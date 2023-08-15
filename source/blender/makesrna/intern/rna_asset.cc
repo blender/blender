@@ -6,16 +6,24 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_defs.h"
 #include "DNA_space_types.h"
 
 #include "rna_internal.h"
+
+const EnumPropertyItem rna_enum_aset_library_type_items[] = {
+    {ASSET_LIBRARY_LOCAL, "LOCAL", 0, "Local", ""},
+    {ASSET_LIBRARY_ALL, "ALL", 0, "All", ""},
+    {ASSET_LIBRARY_ESSENTIALS, "ESSENTIALS", 0, "Essentials", ""},
+    {ASSET_LIBRARY_CUSTOM, "CUSTOM", 0, "Custom", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 
 #ifdef RNA_RUNTIME
 
@@ -29,10 +37,10 @@
 #  include "BLI_listbase.h"
 #  include "BLI_uuid.h"
 
-#  include "ED_asset.h"
-#  include "ED_fileselect.h"
+#  include "ED_asset.hh"
+#  include "ED_fileselect.hh"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 static char *rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
 {

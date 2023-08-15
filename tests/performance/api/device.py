@@ -26,7 +26,6 @@ def get_cpu_name() -> str:
 def get_gpu_device(args: None) -> List:
     # Get the list of available Cycles GPU devices.
     import bpy
-    import sys
 
     prefs = bpy.context.preferences
     cprefs = prefs.addons['cycles'].preferences

@@ -14,8 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "DNA_mesh_types.h"
 #include "DNA_view3d_types.h"
 
@@ -24,23 +22,26 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
+
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "bmesh.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_gizmo_library.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Internal API

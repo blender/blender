@@ -9,7 +9,7 @@ set(INC
 )
 
 set(SRC
-  msgfmt.c
+  msgfmt.cc
 )
 
 set(LIB

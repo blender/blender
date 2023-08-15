@@ -380,7 +380,7 @@ void BKE_pchan_to_mat4(const struct bPoseChannel *pchan, float r_chanmat[4][4]);
 
 /**
  * Convert the loc/rot/size to mat4 (`pchan.chan_mat`),
- * used in `constraint.c` too.
+ * used in `constraint.cc` too.
  */
 void BKE_pchan_calc_mat(struct bPoseChannel *pchan);
 
@@ -539,10 +539,29 @@ void BKE_pchan_bbone_segments_cache_copy(struct bPoseChannel *pchan,
 
 /**
  * Calculate index and blend factor for the two B-Bone segment nodes
- * affecting the point at 0 <= pos <= 1.
+ * affecting the specified point along the bone.
+ *
+ * \param pchan: Pose channel.
+ * \param head_tail: head-tail position along the bone (auto-clamped between 0 and 1).
+ * \param r_index: OUTPUT index of the first segment joint affecting the point.
+ * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]
+ */
+void BKE_pchan_bbone_deform_clamp_segment_index(const struct bPoseChannel *pchan,
+                                                float head_tail,
+                                                int *r_index,
+                                                float *r_blend_next);
+
+/**
+ * Calculate index and blend factor for the two B-Bone segment nodes
+ * affecting the specified point in object (pose) space.
+ *
+ * \param pchan: Pose channel.
+ * \param co: Pose space coordinates of the point being deformed.
+ * \param r_index: OUTPUT index of the first segment joint affecting the point.
+ * \param r_blend_next: OUTPUT blend factor between the first and the second segment in [0..1]
  */
 void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
-                                          float pos,
+                                          const float *co,
                                           int *r_index,
                                           float *r_blend_next);
 
@@ -638,7 +657,7 @@ void BKE_pose_eval_cleanup(struct Depsgraph *depsgraph,
                            struct Object *object);
 
 /* -------------------------------------------------------------------- */
-/** \name Deform 3D Coordinates by Armature (armature_deform.c)
+/** \name Deform 3D Coordinates by Armature (`armature_deform.cc`)
  * \{ */
 
 /* Note that we could have a 'BKE_armature_deform_coords' that doesn't take object data

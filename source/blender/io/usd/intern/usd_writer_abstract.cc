@@ -13,7 +13,7 @@
 
 #include "DNA_mesh_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -34,7 +34,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
 
   const Mesh *me = static_cast<Mesh *>(ob->data);
 
-  const char *name = CustomData_get_active_layer_name(&me->ldata, CD_PROP_FLOAT2);
+  const char *name = CustomData_get_active_layer_name(&me->loop_data, CD_PROP_FLOAT2);
 
   return name ? name : "";
 }
@@ -53,13 +53,13 @@ bool USDAbstractWriter::is_supported(const HierarchyContext * /*context*/) const
 
 std::string USDAbstractWriter::get_export_file_path() const
 {
-  return usd_export_context_.hierarchy_iterator->get_export_file_path();
+  return usd_export_context_.export_file_path;
 }
 
 pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
 {
   if (is_animated_) {
-    return usd_export_context_.hierarchy_iterator->get_export_time_code();
+    return usd_export_context_.time_code;
   }
   /* By using the default timecode USD won't even write a single `timeSample` for non-animated
    * data. Instead, it writes it as non-timesampled. */
@@ -107,24 +107,15 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
   /* Construct the material. */
-  pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
+  pxr::TfToken material_name(pxr::TfMakeValidIdentifier(material->id.name + 2));
   pxr::SdfPath usd_path = get_material_library_path().AppendChild(material_name);
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
   if (usd_material) {
     return usd_material;
   }
-  usd_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
 
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
-    std::string active_uv = get_mesh_active_uvlayer_name(context.object);
-    create_usd_preview_surface_material(
-        this->usd_export_context_, material, usd_material, active_uv);
-  }
-  else {
-    create_usd_viewport_material(this->usd_export_context_, material, usd_material);
-  }
-
-  return usd_material;
+  std::string active_uv = get_mesh_active_uvlayer_name(context.object);
+  return create_usd_material(usd_export_context_, usd_path, material, active_uv);
 }
 
 void USDAbstractWriter::write_visibility(const HierarchyContext &context,

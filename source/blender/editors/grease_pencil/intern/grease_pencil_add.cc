@@ -11,7 +11,6 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BLT_translation.h"
@@ -19,7 +18,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_grease_pencil.h"
+#include "ED_grease_pencil.hh"
 
 namespace blender::ed::greasepencil {
 
@@ -1226,7 +1225,7 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
   grease_pencil.insert_blank_frame(layer_color, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
   GreasePencilDrawing &drawing = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[1]);
+      grease_pencil.drawings(1));
   drawing.geometry.wrap() = create_drawing_data(
       stroke_positions, stroke_radii, stroke_opacities, {0, 175}, {material_index}, {75}, matrix);
 }
@@ -1287,7 +1286,7 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
   grease_pencil.insert_blank_frame(layer_fills, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 
   GreasePencilDrawing *drawing_lines = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[0]);
+      grease_pencil.drawings(0));
   drawing_lines->geometry.wrap() = create_drawing_data(monkey_line_positions,
                                                        monkey_line_radii,
                                                        monkey_line_opacities,
@@ -1297,7 +1296,7 @@ void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int fram
                                                        matrix);
 
   GreasePencilDrawing *drawing_fills = reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil.drawings_for_write()[1]);
+      grease_pencil.drawings(1));
   drawing_fills->geometry.wrap() = create_drawing_data(monkey_fill_positions,
                                                        monkey_fill_radii,
                                                        monkey_fill_opacities,

@@ -41,9 +41,7 @@
 
 void BLO_memfile_free(MemFile *memfile)
 {
-  MemFileChunk *chunk;
-
-  while ((chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks)))) {
+  while (MemFileChunk *chunk = static_cast<MemFileChunk *>(BLI_pophead(&memfile->chunks))) {
     if (chunk->is_identical == false) {
       MEM_freeN((void *)chunk->buf);
     }

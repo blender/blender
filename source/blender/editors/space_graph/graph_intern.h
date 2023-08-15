@@ -22,7 +22,7 @@ extern "C" {
 /* internal exports only */
 
 /* ***************************************** */
-/* graph_draw.c */
+/* `graph_draw.cc` */
 
 /**
  * Left hand part.
@@ -30,7 +30,7 @@ extern "C" {
 void graph_draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
 
 /**
- * This is called twice from space_graph.c -> graph_main_region_draw()
+ * This is called twice from `space_graph.cc`, #graph_main_region_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
 void graph_draw_curves(struct bAnimContext *ac,
@@ -46,7 +46,7 @@ void graph_draw_ghost_curves(struct bAnimContext *ac,
                              struct ARegion *region);
 
 /* ***************************************** */
-/* graph_select.c */
+/* `graph_select.cc` */
 
 /**
  * Deselects keyframes in the Graph Editor
@@ -88,7 +88,7 @@ enum eGraphKeys_ColumnSelect_Mode {
 };
 
 /* ***************************************** */
-/* graph_edit.c */
+/* `graph_edit.cc` */
 
 /**
  * Get the min/max keyframes.
@@ -119,6 +119,8 @@ void GRAPH_OT_clean(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_neighbor(struct wmOperatorType *ot);
 void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_ease(struct wmOperatorType *ot);
+void GRAPH_OT_blend_offset(struct wmOperatorType *ot);
+void GRAPH_OT_blend_to_ease(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_butterworth_smooth(struct wmOperatorType *ot);
@@ -143,7 +145,7 @@ void GRAPH_OT_equalize_handles(struct wmOperatorType *ot);
 void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
 /* defines for snap keyframes
- * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.hh)
  */
 enum eGraphKeys_Snap_Mode {
   GRAPHKEYS_SNAP_CFRA = 1,
@@ -155,7 +157,7 @@ enum eGraphKeys_Snap_Mode {
 };
 
 /* Defines for equalize keyframe handles.
- * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.h).
+ * NOTE: Keep in sync with eEditKeyframes_Equalize (in ED_keyframes_edit.hh).
  */
 enum eGraphKeys_Equalize_Mode {
   GRAPHKEYS_EQUALIZE_LEFT = 1,
@@ -164,7 +166,7 @@ enum eGraphKeys_Equalize_Mode {
 };
 
 /* defines for mirror keyframes
- * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
+ * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.hh)
  */
 enum eGraphKeys_Mirror_Mode {
   GRAPHKEYS_MIRROR_CFRA = 1,
@@ -192,12 +194,12 @@ void GRAPH_OT_ghost_curves_create(struct wmOperatorType *ot);
 void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 
 /* ***************************************** */
-/* graph_buttons.c */
+/* `graph_buttons.cc` */
 
 void graph_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */
-/* graph_utils.c */
+/* `graph_utils.cc` */
 
 /**
  * Find 'active' F-Curve.
@@ -232,7 +234,7 @@ bool graphop_active_editable_fcurve_ctx_poll(struct bContext *C);
 bool graphop_selected_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
-/* graph_ops.c */
+/* `graph_ops.cc` */
 
 void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);

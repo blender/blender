@@ -6,17 +6,17 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "SEQ_edit.h"
 
@@ -50,7 +50,7 @@
 #  include "SEQ_sequencer.h"
 #  include "SEQ_time.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static StripElem *rna_Sequence_strip_elem_from_frame(ID *id, Sequence *self, int timeline_frame)
 {

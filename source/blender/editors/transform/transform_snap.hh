@@ -28,7 +28,7 @@ eSnapMode snapObjectsTransform(TransInfo *t,
                                float r_loc[3],
                                float r_no[3]);
 bool snapNodesTransform(TransInfo *t,
-                        const int mval[2],
+                        const blender::float2 &mval,
                         /* return args */
                         float r_loc[2],
                         float *r_dist_px,
@@ -66,14 +66,14 @@ void removeSnapPoint(TransInfo *t);
 
 float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], const float p2[3]);
 
-/* transform_snap_sequencer.c */
+/* `transform_snap_sequencer.cc` */
 
 TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t);
 void transform_snap_sequencer_data_free(TransSeqSnapData *data);
 bool transform_snap_sequencer_calc(TransInfo *t);
 void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
 
-/* transform_snap_animation.c */
+/* `transform_snap_animation.cc` */
 
 /**
  * This function returns the snapping 'mode' for Animation Editors only.

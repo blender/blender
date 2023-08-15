@@ -10,9 +10,9 @@
 
 struct wmOperatorType;
 
-void CACHEFILE_OT_open(struct wmOperatorType *ot);
-void CACHEFILE_OT_reload(struct wmOperatorType *ot);
+void CACHEFILE_OT_open(wmOperatorType *ot);
+void CACHEFILE_OT_reload(wmOperatorType *ot);
 
-void CACHEFILE_OT_layer_add(struct wmOperatorType *ot);
-void CACHEFILE_OT_layer_remove(struct wmOperatorType *ot);
-void CACHEFILE_OT_layer_move(struct wmOperatorType *ot);
+void CACHEFILE_OT_layer_add(wmOperatorType *ot);
+void CACHEFILE_OT_layer_remove(wmOperatorType *ot);
+void CACHEFILE_OT_layer_move(wmOperatorType *ot);

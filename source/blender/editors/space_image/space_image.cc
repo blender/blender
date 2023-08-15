@@ -16,7 +16,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_threads.h"
 
 #include "BKE_colortools.h"
@@ -27,30 +26,30 @@
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.h"
 
 #include "IMB_imbuf_types.h"
 
-#include "ED_image.h"
-#include "ED_mask.h"
-#include "ED_node.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_transform.h"
-#include "ED_util.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mask.hh"
+#include "ED_node.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_transform.hh"
+#include "ED_util.hh"
+#include "ED_uvedit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 
@@ -63,10 +62,9 @@
 static void image_scopes_tag_refresh(ScrArea *area)
 {
   SpaceImage *sima = (SpaceImage *)area->spacedata.first;
-  ARegion *region;
 
   /* only while histogram is visible */
-  for (region = static_cast<ARegion *>(area->regionbase.first); region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_TOOL_PROPS && region->flag & RGN_FLAG_HIDDEN) {
       return;
     }
@@ -649,7 +647,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   image_main_region_set_view2d(sima, region);
 
   /* check for mask (delay draw) */
-  if (!ED_space_image_show_uvedit(sima, obedit, NULL, false) && sima->mode == SI_MODE_MASK) {
+  if (!ED_space_image_show_uvedit(sima, obedit) && sima->mode == SI_MODE_MASK) {
     mask = ED_space_image_get_mask(sima);
   }
 
@@ -678,8 +676,8 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
       BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
       UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
       ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
-      ED_space_image_release_buffer(sima, ibuf, lock);
     }
+    ED_space_image_release_buffer(sima, ibuf, lock);
   }
 
   /* sample line */
@@ -721,8 +719,9 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
                         nullptr,
                         C);
   }
-
-  WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  if ((sima->gizmo_flag & SI_GIZMO_HIDE) == 0) {
+    WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
+  }
   draw_image_cache(C, region);
 }
 
@@ -990,7 +989,7 @@ static void image_header_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-static void image_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDRemapper *mappings)
+static void image_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceImage *simg = (SpaceImage *)slink;
 

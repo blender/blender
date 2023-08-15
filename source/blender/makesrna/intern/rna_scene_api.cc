@@ -6,15 +6,15 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_kdopbvh.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -36,9 +36,9 @@
 
 #  include "DEG_depsgraph_query.h"
 
-#  include "ED_transform.h"
-#  include "ED_transform_snap_object_context.h"
-#  include "ED_uvedit.h"
+#  include "ED_transform.hh"
+#  include "ED_transform_snap_object_context.hh"
+#  include "ED_uvedit.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"
@@ -46,7 +46,7 @@
 
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)
 {
-  double cfra = (double)frame + (double)subframe;
+  double cfra = double(frame) + double(subframe);
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(scene, cfra);
@@ -128,8 +128,8 @@ static void rna_SceneRender_get_frame_path(
 
 static void rna_Scene_ray_cast(Scene *scene,
                                Depsgraph *depsgraph,
-                               float origin[3],
-                               float direction[3],
+                               const float origin[3],
+                               const float direction[3],
                                float ray_dist,
                                bool *r_success,
                                float r_location[3],
@@ -138,7 +138,8 @@ static void rna_Scene_ray_cast(Scene *scene,
                                Object **r_ob,
                                float r_obmat[16])
 {
-  normalize_v3(direction);
+  float direction_unit[3];
+  normalize_v3_v3(direction_unit, direction);
   SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
 
   SnapObjectParams snap_object_params{};
@@ -149,7 +150,7 @@ static void rna_Scene_ray_cast(Scene *scene,
                                                      nullptr,
                                                      &snap_object_params,
                                                      origin,
-                                                     direction,
+                                                     direction_unit,
                                                      &ray_dist,
                                                      r_location,
                                                      r_normal,
@@ -297,7 +298,7 @@ void RNA_api_scene(StructRNA *srna)
                 0.0,
                 BVH_RAYCAST_DIST_MAX);
   /* return location and normal */
-  parm = RNA_def_boolean(func, "result", 0, "", "");
+  parm = RNA_def_boolean(func, "result", false, "", "");
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_vector(func,
                               "location",
@@ -431,7 +432,7 @@ void RNA_api_scene_render(StructRNA *srna)
               "Frame number to use, if unset the current frame will be used",
               MINAFRAME,
               MAXFRAME);
-  RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
+  RNA_def_boolean(func, "preview", false, "Preview", "Use preview range");
   RNA_def_string_file_path(func,
                            "view",
                            nullptr,

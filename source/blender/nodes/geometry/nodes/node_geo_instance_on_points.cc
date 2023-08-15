@@ -6,11 +6,12 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_hash.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_instances.hh"
@@ -91,7 +92,7 @@ static void add_instances_from_component(
 
   const VArraySpan positions = *src_attributes.lookup<float3>("position");
 
-  const bke::Instances *src_instances = instance.get_instances_for_read();
+  const bke::Instances *src_instances = instance.get_instances();
 
   /* Maps handles from the source instances to handles on the new instance. */
   Array<int> handle_mapping;
@@ -214,7 +215,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     for (const GeometryComponent::Type type : types) {
       if (geometry_set.has(type)) {
         add_instances_from_component(*dst_instances,
-                                     *geometry_set.get_component_for_read(type),
+                                     *geometry_set.get_component(type),
                                      instance,
                                      params,
                                      attributes_to_propagate);
@@ -234,17 +235,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Instances", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_instance_on_points_cc
-
-void register_node_type_geo_instance_on_points()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_instance_on_points_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_instance_on_points_cc

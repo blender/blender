@@ -19,8 +19,10 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_solvers.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -35,9 +37,9 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.hh" /* for OMP limits. */
-#include "BKE_mesh_runtime.h"
-#include "BKE_mesh_wrapper.h"
-#include "BKE_subsurf.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -115,11 +117,11 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   data->mesh = mesh;
-  data->poly_offsets = mesh->poly_offsets().data();
+  data->face_offsets = mesh->face_offsets().data();
   data->corner_edges = mesh->corner_edges().data();
   data->vert_normals = reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
   data->sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_face"));
+      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_face"));
 
   if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
     data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
@@ -127,7 +129,7 @@ bool BKE_shrinkwrap_init_tree(
     return data->bvh != nullptr;
   }
 
-  if (mesh->totpoly <= 0) {
+  if (mesh->faces_num <= 0) {
     return false;
   }
 
@@ -138,9 +140,10 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-    data->poly_normals = reinterpret_cast<const float(*)[3]>(mesh->poly_normals().data());
+    data->face_normals = reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
     if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-      data->clnors = static_cast<const float(*)[3]>(CustomData_get_layer(&mesh->ldata, CD_NORMAL));
+      data->clnors = static_cast<const float(*)[3]>(
+          CustomData_get_layer(&mesh->loop_data, CD_NORMAL));
     }
   }
 
@@ -193,7 +196,7 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 static ShrinkwrapBoundaryData *shrinkwrap_build_boundary_data(Mesh *mesh)
 {
   using namespace blender;
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<float3> positions = mesh->vert_positions();
   const blender::Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
@@ -1189,10 +1192,10 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];
   const float(*vert_normals)[3] = tree->vert_normals;
-  const int poly_i = tree->mesh->looptri_polys()[looptri_idx];
+  const int face_i = tree->mesh->looptri_faces()[looptri_idx];
 
   /* Interpolate smooth normals if enabled. */
-  if (!(tree->sharp_faces && tree->sharp_faces[poly_i])) {
+  if (!(tree->sharp_faces && tree->sharp_faces[face_i])) {
     const int vert_indices[3] = {treeData->corner_verts[tri->tri[0]],
                                  treeData->corner_verts[tri->tri[1]],
                                  treeData->corner_verts[tri->tri[2]]};
@@ -1234,9 +1237,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
       normalize_v3(r_no);
     }
   }
-  /* Use the polygon normal if flat. */
-  else if (tree->poly_normals != nullptr) {
-    copy_v3_v3(r_no, tree->poly_normals[poly_i]);
+  /* Use the face normal if flat. */
+  else if (tree->face_normals != nullptr) {
+    copy_v3_v3(r_no, tree->face_normals[face_i]);
   }
   /* Finally fallback to the looptri normal. */
   else {
@@ -1423,7 +1426,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertex positions, normals and deform weights */
-    calc.vert_positions = BKE_mesh_vert_positions_for_write(mesh);
+    calc.vert_positions = reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data());
     calc.vert_normals = mesh->vert_normals();
 
     /* Using vertices positions/normals as if a subsurface was applied */
@@ -1553,15 +1556,16 @@ void BKE_shrinkwrap_mesh_nearest_surface_deform(bContext *C, Object *ob_source, 
 
   Mesh *src_me = static_cast<Mesh *>(ob_source->data);
 
-  shrinkwrapModifier_deform(&ssmd,
-                            &ctx,
-                            sce,
-                            ob_source,
-                            src_me,
-                            nullptr,
-                            -1,
-                            BKE_mesh_vert_positions_for_write(src_me),
-                            src_me->totvert);
+  shrinkwrapModifier_deform(
+      &ssmd,
+      &ctx,
+      sce,
+      ob_source,
+      src_me,
+      nullptr,
+      -1,
+      reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data()),
+      src_me->totvert);
   BKE_mesh_tag_positions_changed(src_me);
 }
 
@@ -1584,12 +1588,12 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
 
   calc.smd = &ssmd;
   calc.numVerts = src_me->totvert;
-  calc.vertexCos = BKE_mesh_vert_positions_for_write(src_me);
+  calc.vertexCos = reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data());
   calc.vert_normals = src_me->vert_normals();
   calc.vgroup = -1;
   calc.target = target_me;
   calc.keepDist = ssmd.keepDist;
-  calc.vert_positions = BKE_mesh_vert_positions_for_write(src_me);
+  calc.vert_positions = reinterpret_cast<float(*)[3]>(src_me->vert_positions_for_write().data());
   BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, ob_target, ob_target);
 
   ShrinkwrapTreeData tree;

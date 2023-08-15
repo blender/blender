@@ -8,9 +8,9 @@
  * Method of smoothing deformation, also known as 'delta-mush'.
  */
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "BLT_translation.h"
 
@@ -28,13 +28,13 @@
 #include "BKE_editmesh.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"
@@ -55,7 +55,7 @@
 
 #include "BLI_strict_flags.h"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
@@ -66,7 +66,7 @@ static void initData(ModifierData *md)
   csmd->delta_cache.deltas = nullptr;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int flag)
+static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
   const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
   CorrectiveSmoothModifierData *tcsmd = (CorrectiveSmoothModifierData *)target;
@@ -89,13 +89,13 @@ static void freeBind(CorrectiveSmoothModifierData *csmd)
   csmd->bind_coords_num = 0;
 }
 
-static void freeData(ModifierData *md)
+static void free_data(ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
   freeBind(csmd);
 }
 
-static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
+static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
@@ -129,15 +129,15 @@ static void mesh_get_weights(const MDeformVert *dvert,
 static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   /* Flag boundary edges so only boundaries are set to 1. */
   uint8_t *boundaries = static_cast<uint8_t *>(
       MEM_calloc_arrayN(size_t(edges.size()), sizeof(*boundaries), __func__));
 
-  for (const int64_t i : polys.index_range()) {
-    for (const int edge : corner_edges.slice(polys[i])) {
+  for (const int64_t i : faces.index_range()) {
+    for (const int edge : corner_edges.slice(faces[i])) {
       uint8_t *e_value = &boundaries[edge];
       *e_value |= uint8_t((*e_value) + 1);
     }
@@ -433,17 +433,17 @@ static void calc_tangent_spaces(const Mesh *mesh,
                                 float *r_tangent_weights_per_vertex)
 {
   const uint mvert_num = uint(mesh->totvert);
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   blender::Span<int> corner_verts = mesh->corner_verts();
 
   if (r_tangent_weights_per_vertex != nullptr) {
     copy_vn_fl(r_tangent_weights_per_vertex, int(mvert_num), 0.0f);
   }
 
-  for (const int64_t i : polys.index_range()) {
-    const blender::IndexRange poly = polys[i];
-    int next_corner = int(poly.start());
-    int term_corner = next_corner + int(poly.size());
+  for (const int64_t i : faces.index_range()) {
+    const blender::IndexRange face = faces[i];
+    int next_corner = int(face.start());
+    int term_corner = next_corner + int(face.size());
     int prev_corner = term_corner - 2;
     int curr_corner = term_corner - 1;
 
@@ -739,11 +739,11 @@ error:
   csmd->delta_cache.deltas_num = 0;
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   correctivesmooth_modifier_do(
       md, ctx->depsgraph, ctx->object, mesh, vertexCos, uint(verts_num), nullptr);
@@ -758,17 +758,17 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "factor", 0, IFACE_("Factor"), ICON_NONE);
-  uiItemR(layout, ptr, "iterations", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "smooth_type", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "factor", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
+  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "smooth_type", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
-  uiItemR(layout, ptr, "use_only_smooth", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_pin_boundary", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_only_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_pin_boundary", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "rest_source", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rest_source", UI_ITEM_NONE, nullptr, ICON_NONE);
   if (RNA_enum_get(ptr, "rest_source") == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
     uiItemO(layout,
             (RNA_boolean_get(ptr, "is_bind") ? IFACE_("Unbind") : IFACE_("Bind")),
@@ -779,12 +779,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_CorrectiveSmooth, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
+static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   CorrectiveSmoothModifierData csmd = *(const CorrectiveSmoothModifierData *)md;
   const bool is_undo = BLO_write_is_undo(writer);
@@ -807,7 +807,7 @@ static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierDa
   }
 }
 
-static void blendRead(BlendDataReader *reader, ModifierData *md)
+static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
@@ -821,34 +821,35 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_CorrectiveSmooth = {
+    /*idname*/ "CorrectiveSmooth",
     /*name*/ N_("CorrectiveSmooth"),
-    /*structName*/ "CorrectiveSmoothModifierData",
-    /*structSize*/ sizeof(CorrectiveSmoothModifierData),
+    /*struct_name*/ "CorrectiveSmoothModifierData",
+    /*struct_size*/ sizeof(CorrectiveSmoothModifierData),
     /*srna*/ &RNA_CorrectiveSmoothModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_SMOOTH,
 
-    /*copyData*/ copyData,
+    /*copy_data*/ copy_data,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ requiredDataMask,
-    /*freeData*/ freeData,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ nullptr,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ blendWrite,
-    /*blendRead*/ blendRead,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ required_data_mask,
+    /*free_data*/ free_data,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ nullptr,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ blend_write,
+    /*blend_read*/ blend_read,
 };

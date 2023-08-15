@@ -23,7 +23,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
@@ -31,16 +32,16 @@
 
 #include "BLT_translation.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
 #include "PIL_time.h" /* Smooth-view. */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_immediate.h"
 
@@ -78,7 +79,7 @@ enum {
 };
 
 /* relative view axis locking - xlock, zlock */
-typedef enum eFlyPanState {
+enum eFlyPanState {
   /* disabled */
   FLY_AXISLOCK_STATE_OFF = 0,
 
@@ -89,7 +90,7 @@ typedef enum eFlyPanState {
   /* mouse moved and checking needed,
    * if no view altering is done its changed back to #FLY_AXISLOCK_STATE_IDLE */
   FLY_AXISLOCK_STATE_ACTIVE = 2,
-} eFlyPanState;
+};
 
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -410,7 +411,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
                  fly->region->winrct.xmin + fly->center_mval[0],
                  fly->region->winrct.ymin + fly->center_mval[1]);
 
-  return 1;
+  return true;
 }
 
 static int flyEnd(bContext *C, FlyInfo *fly)
@@ -467,7 +468,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 static void flyEvent(FlyInfo *fly, const wmEvent *event)
 {
   if (event->type == TIMER && event->customdata == fly->timer) {
-    fly->redraw = 1;
+    fly->redraw = true;
   }
   else if (event->type == MOUSEMOVE) {
     copy_v2_v2_int(fly->mval, event->mval);
@@ -1086,7 +1087,7 @@ static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   RegionView3D *rv3d = fly->rv3d;
   Object *fly_object = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
 
-  fly->redraw = 0;
+  fly->redraw = false;
 
   flyEvent(fly, event);
 

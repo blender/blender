@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_function_util.hh"
 
@@ -127,18 +129,17 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes::node_fn_rotate_euler_cc
-
-void register_node_type_fn_rotate_euler()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_fn_rotate_euler_cc;
-
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.updatefunc = node_update;
+  ntype.build_multi_function = node_build_multi_function;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_rotate_euler_cc

@@ -6,28 +6,31 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "transform.hh"
 #include "transform_constraints.hh"
 #include "transform_convert.hh"
 #include "transform_mode.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Resize) Element
@@ -187,7 +190,7 @@ static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
   return scale != 1.0f;
 }
 
-static void applyResize(TransInfo *t, const int[2] /*mval*/)
+static void applyResize(TransInfo *t)
 {
   float mat[3][3];
   int i;
@@ -280,7 +283,7 @@ static void applyResize(TransInfo *t, const int[2] /*mval*/)
     }
   }
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }
@@ -315,7 +318,7 @@ static void initResize(TransInfo *t, wmOperator *op)
   }
   else {
     int mval_start[2], mval_end[2];
-    float mval_dir[3], t_mval[2];
+    float mval_dir[3];
     float viewmat[3][3];
 
     copy_m3_m4(viewmat, t->viewmat);
@@ -331,8 +334,7 @@ static void initResize(TransInfo *t, wmOperator *op)
     mval_start[0] = t->center2d[0];
     mval_start[1] = t->center2d[1];
 
-    t_mval[0] = t->mval[0] - mval_start[0];
-    t_mval[1] = t->mval[1] - mval_start[1];
+    float2 t_mval = t->mval - float2(t->center2d);
     project_v2_v2v2(mval_dir, t_mval, mval_dir);
 
     mval_end[0] = t->center2d[0] + mval_dir[0];

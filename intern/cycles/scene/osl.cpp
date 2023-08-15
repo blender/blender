@@ -166,8 +166,9 @@ void OSLShaderManager::device_update_specific(Device *device,
   for (const auto &[device_type, ss] : ss_shared) {
     OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
 
-    services->textures.insert(ustring("@ao"), new OSLTextureHandle(OSLTextureHandle::AO));
-    services->textures.insert(ustring("@bevel"), new OSLTextureHandle(OSLTextureHandle::BEVEL));
+    services->textures.insert(OSLUStringHash("@ao"), new OSLTextureHandle(OSLTextureHandle::AO));
+    services->textures.insert(OSLUStringHash("@bevel"),
+                              new OSLTextureHandle(OSLTextureHandle::BEVEL));
   }
 
   device_update_common(device, dscene, scene, progress);
@@ -1320,7 +1321,7 @@ void OSLCompiler::parameter_texture(const char *name, ustring filename, ustring 
    * case we need to do runtime color space conversion. */
   OSLTextureHandle *handle = new OSLTextureHandle(OSLTextureHandle::OIIO);
   handle->processor = ColorSpaceManager::get_processor(colorspace);
-  services->textures.insert(filename, handle);
+  services->textures.insert(OSLUStringHash(filename), handle);
   parameter(name, filename);
 }
 
@@ -1331,7 +1332,7 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
   ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(filename,
+  services->textures.insert(OSLUStringHash(filename),
                             new OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
   parameter(name, filename);
 }
@@ -1340,7 +1341,8 @@ void OSLCompiler::parameter_texture_ies(const char *name, int svm_slot)
 {
   /* IES light textures stored in SVM. */
   ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(filename, new OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
+  services->textures.insert(OSLUStringHash(filename),
+                            new OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
   parameter(name, filename);
 }
 

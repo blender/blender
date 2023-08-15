@@ -10,10 +10,10 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_state.h"
@@ -97,11 +97,12 @@ class DilateErodeOperation : public NodeOperation {
 
   void execute_step()
   {
-    GPUTexture *horizontal_pass_result = execute_step_horizontal_pass();
+    Result horizontal_pass_result = execute_step_horizontal_pass();
     execute_step_vertical_pass(horizontal_pass_result);
+    horizontal_pass_result.release();
   }
 
-  GPUTexture *execute_step_horizontal_pass()
+  Result execute_step_horizontal_pass()
   {
     GPUShader *shader = shader_manager().get(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
@@ -123,20 +124,20 @@ class DilateErodeOperation : public NodeOperation {
     const Domain domain = compute_domain();
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-    GPUTexture *horizontal_pass_result = texture_pool().acquire_color(transposed_domain);
-    const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
-    GPU_texture_image_bind(horizontal_pass_result, image_unit);
+    Result horizontal_pass_result = Result::Temporary(ResultType::Color, texture_pool());
+    horizontal_pass_result.allocate_texture(transposed_domain);
+    horizontal_pass_result.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     GPU_shader_unbind();
     input_mask.unbind_as_texture();
-    GPU_texture_image_unbind(horizontal_pass_result);
+    horizontal_pass_result.unbind_as_image();
 
     return horizontal_pass_result;
   }
 
-  void execute_step_vertical_pass(GPUTexture *horizontal_pass_result)
+  void execute_step_vertical_pass(Result &horizontal_pass_result)
   {
     GPUShader *shader = shader_manager().get(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
@@ -144,9 +145,7 @@ class DilateErodeOperation : public NodeOperation {
     /* Pass the absolute value of the distance. We have specialized shaders for each sign. */
     GPU_shader_uniform_1i(shader, "radius", math::abs(get_distance()));
 
-    GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-    const int texture_image_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(horizontal_pass_result, texture_image_unit);
+    horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
     const Domain domain = compute_domain();
     Result &output_mask = get_result("Mask");
@@ -158,8 +157,8 @@ class DilateErodeOperation : public NodeOperation {
     compute_dispatch_threads_at_least(shader, int2(domain.size.y, domain.size.x));
 
     GPU_shader_unbind();
+    horizontal_pass_result.unbind_as_texture();
     output_mask.unbind_as_image();
-    GPU_texture_unbind(horizontal_pass_result);
   }
 
   const char *get_morphological_step_shader_name()

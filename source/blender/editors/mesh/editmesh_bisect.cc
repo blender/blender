@@ -10,8 +10,6 @@
 
 #include "DNA_object_types.h"
 
-#include "BLI_math.h"
-
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
@@ -20,26 +18,31 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_gizmo_utils.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
+#include "ED_gizmo_utils.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+
+#include "UI_resources.hh"
 
 #include "mesh_intern.h" /* own include */
 
 #define USE_GIZMO
 
 #ifdef USE_GIZMO
-#  include "ED_gizmo_library.h"
-#  include "ED_undo.h"
+#  include "ED_gizmo_library.hh"
+#  include "ED_undo.hh"
 #endif
 
 static int mesh_bisect_exec(bContext *C, wmOperator *op);

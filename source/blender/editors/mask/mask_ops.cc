@@ -9,7 +9,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -22,18 +23,18 @@
 #include "DNA_object_types.h" /* SELECT */
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_mask.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_mask.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "mask_intern.h" /* own include */
 
@@ -926,12 +927,12 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "slide_feather",
-                  0,
+                  false,
                   "Slide Feather",
                   "First try to slide feather instead of vertex");
 
   prop = RNA_def_boolean(
-      ot->srna, "is_new_point", 0, "Slide New Point", "Newly created vertex is being slid");
+      ot->srna, "is_new_point", false, "Slide New Point", "Newly created vertex is being slid");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -1819,7 +1820,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected layers");
 }
 
 static int mask_feather_weight_clear_exec(bContext *C, wmOperator * /*op*/)
@@ -2105,7 +2106,7 @@ static bool paste_splines_poll(bContext *C)
     return BKE_mask_clipboard_is_empty() == false;
   }
 
-  return 0;
+  return false;
 }
 
 static int paste_splines_exec(bContext *C, wmOperator * /*op*/)

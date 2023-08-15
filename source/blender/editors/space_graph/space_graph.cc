@@ -6,8 +6,8 @@
  * \ingroup spgraph
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -24,27 +24,27 @@
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 
@@ -101,8 +101,8 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   region->regiontype = RGN_TYPE_WINDOW;
 
   region->v2d.tot.xmin = 0.0f;
-  region->v2d.tot.ymin = (float)scene->r.sfra - 10.0f;
-  region->v2d.tot.xmax = (float)scene->r.efra;
+  region->v2d.tot.ymin = float(scene->r.sfra) - 10.0f;
+  region->v2d.tot.xmax = float(scene->r.efra);
   region->v2d.tot.ymax = 10.0f;
 
   region->v2d.cur = region->v2d.tot;
@@ -295,7 +295,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
   /* markers */
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    UI_view2d_view_orthoSpecial(region, v2d, 1);
+    UI_view2d_view_orthoSpecial(region, v2d, true);
     int marker_draw_flag = DRAW_MARKERS_MARGIN;
     if (sipo->flag & SIPO_SHOW_MARKERS) {
       ED_markers_draw(C, marker_draw_flag);
@@ -488,7 +488,7 @@ static void graph_region_listener(const wmRegionListenerParams *params)
 
 static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
@@ -525,7 +525,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
    * so just whitelist the entire structs for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{0}};
+    wmMsgParams_RNA msg_key_params = {{nullptr}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet, /* dopesheet filters */
 
@@ -803,7 +803,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   graph_refresh_fcurve_colors(C);
 }
 
-static void graph_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDRemapper *mappings)
+static void graph_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceGraph *sgraph = (SpaceGraph *)slink;
   if (!sgraph->ads) {

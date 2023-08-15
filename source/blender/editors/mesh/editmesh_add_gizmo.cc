@@ -10,8 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -19,21 +17,25 @@
 #include "BKE_editmesh.h"
 #include "BKE_scene.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_undo.h"
-#include "ED_view3d.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "UI_resources.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
+
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 
@@ -216,7 +218,7 @@ static void gizmo_mesh_placement_modal_from_setup(const bContext *C, wmGizmoGrou
       copy_v3_v3(gz->matrix_basis[3], location);
     }
 
-    if (1) {
+    if (true) {
       wmGizmoMap *gzmap = gzgroup->parent_gzmap;
       WM_gizmo_modal_set_from_setup(gzmap,
                                     (bContext *)C,
@@ -363,7 +365,7 @@ static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wm
     if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
       wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_add_bounds", false);
       if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
-        struct Main *bmain = CTX_data_main(C);
+        Main *bmain = CTX_data_main(C);
         WM_gizmo_group_type_reinit_ptr(bmain, gzgt);
       }
     }

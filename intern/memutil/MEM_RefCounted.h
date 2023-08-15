@@ -22,7 +22,6 @@
  * \author  Maarten Gribnau
  * \date    March 31, 2001
  */
-
 class MEM_RefCounted {
  public:
   /**

@@ -8,4 +8,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *bpygpu_capabilities_init(void);
+
+#ifdef __cplusplus
+}
+#endif

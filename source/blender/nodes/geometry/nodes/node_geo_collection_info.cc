@@ -6,8 +6,10 @@
 
 #include "DNA_collection_types.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_collection.h"
 #include "BKE_instances.hh"
@@ -139,25 +141,53 @@ static void node_geo_exec(GeoNodeExecParams params)
     instances->add_instance(handle, transform);
   }
 
-  params.set_output("Instances", GeometrySet::create_with_instances(instances.release()));
+  params.set_output("Instances", GeometrySet::from_instances(instances.release()));
 }
 
-}  // namespace blender::nodes::node_geo_collection_info_cc
-
-void register_node_type_geo_collection_info()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_collection_info_cc;
+  static const EnumPropertyItem rna_node_geometry_collection_info_transform_space_items[] = {
+      {GEO_NODE_TRANSFORM_SPACE_ORIGINAL,
+       "ORIGINAL",
+       0,
+       "Original",
+       "Output the geometry relative to the collection offset"},
+      {GEO_NODE_TRANSFORM_SPACE_RELATIVE,
+       "RELATIVE",
+       0,
+       "Relative",
+       "Bring the input collection geometry into the modified object, maintaining the relative "
+       "position between the objects in the scene"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(
+      srna,
+      "transform_space",
+      "Transform Space",
+      "The transformation of the instances output. Does not affect the internal geometry",
+      rna_node_geometry_collection_info_transform_space_items,
+      NOD_storage_enum_accessors(transform_space),
+      GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_node_init;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCollectionInfo",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_collection_info_cc

@@ -17,7 +17,6 @@
  * To be valid, a rectangle should have a left coordinate smaller than or equal to right.
  * To be valid, a rectangle should have a top coordinate smaller than or equal to bottom.
  */
-
 class GHOST_Rect {
  public:
   /**

@@ -13,9 +13,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
@@ -219,7 +219,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     ntree = blender::bke::ntreeCopyTree_ex(iNodeTree, bmain, do_id_user);
 
     // find the active Output Line Style node
-    for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
         output_linestyle = node;
         break;
@@ -382,7 +382,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
       RNA_float_set(&toptr, "default_value", RNA_float_get(&fromptr, "default_value"));
     }
 
-    for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
       if (node->type == SH_NODE_UVALONGSTROKE) {
         // UV output of the UV Along Stroke node
         bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
@@ -401,7 +401,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
         fromsock = (bNodeSocket *)BLI_findlink(&input_uvmap->outputs, 0);  // UV
 
         // replace links from the UV Along Stroke node by links from the UV Map node
-        for (bNodeLink *link = (bNodeLink *)ntree->links.first; link; link = link->next) {
+        LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
           if (link->fromnode == node && link->fromsock == sock) {
             nodeAddLink(ntree, input_uvmap, fromsock, link->tonode, link->tosock);
           }
@@ -434,7 +434,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
   const vector<Strip *> &strips = iStrokeRep->getStrips();
   const bool hasTex = iStrokeRep->hasTex();
-  int totvert = 0, totedge = 0, totpoly = 0, totloop = 0;
+  int totvert = 0, totedge = 0, faces_num = 0, totloop = 0;
   int visible_faces, visible_segments;
   for (vector<Strip *>::const_iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
     Strip::vertex_container &strip_vertices = (*s)->vertices();
@@ -447,7 +447,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
     totvert += visible_faces + visible_segments * 2;
     totedge += visible_faces * 2 + visible_segments;
-    totpoly += visible_faces;
+    faces_num += visible_faces;
     totloop += visible_faces * 3;
   }
 
@@ -466,7 +466,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
   group->strokes.push_back(iStrokeRep);
   group->totvert += totvert;
   group->totedge += totedge;
-  group->totpoly += totpoly;
+  group->faces_num += faces_num;
   group->totloop += totloop;
 
   if (!group->materials.contains(ma)) {
@@ -581,43 +581,43 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
 
   mesh->totvert = group->totvert;
   mesh->totedge = group->totedge;
-  mesh->totpoly = group->totpoly;
+  mesh->faces_num = group->faces_num;
   mesh->totloop = group->totloop;
   mesh->totcol = group->materials.size();
-  BKE_mesh_poly_offsets_ensure_alloc(mesh);
+  BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   float3 *vert_positions = (float3 *)CustomData_add_layer_named(
-      &mesh->vdata, CD_PROP_FLOAT3, CD_SET_DEFAULT, mesh->totvert, "position");
+      &mesh->vert_data, CD_PROP_FLOAT3, CD_SET_DEFAULT, mesh->totvert, "position");
   blender::int2 *edges = (blender::int2 *)CustomData_add_layer_named(
-      &mesh->edata, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
-  blender::MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->totedge, ".edge_verts");
+  blender::MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   int *corner_verts = (int *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_vert");
+      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_vert");
   int *corner_edges = (int *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_edge");
+      &mesh->loop_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totloop, ".corner_edge");
   int *material_indices = (int *)CustomData_add_layer_named(
-      &mesh->pdata, CD_PROP_INT32, CD_SET_DEFAULT, mesh->totpoly, "material_index");
+      &mesh->face_data, CD_PROP_INT32, CD_SET_DEFAULT, mesh->faces_num, "material_index");
   blender::float2 *loopsuv[2] = {nullptr};
 
   if (hasTex) {
     // First UV layer
     loopsuv[0] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[0]));
-    CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 0);
+        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[0]));
+    CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, 0);
 
     // Second UV layer
     loopsuv[1] = static_cast<blender::float2 *>(CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[1]));
-    CustomData_set_layer_active(&mesh->ldata, CD_PROP_FLOAT2, 1);
+        &mesh->loop_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, uvNames[1]));
+    CustomData_set_layer_active(&mesh->loop_data, CD_PROP_FLOAT2, 1);
   }
 
   // colors and transparency (the latter represented by grayscale colors)
   MLoopCol *colors = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Color");
+      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Color");
   MLoopCol *transp = (MLoopCol *)CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Alpha");
+      &mesh->loop_data, CD_PROP_BYTE_COLOR, CD_SET_DEFAULT, mesh->totloop, "Alpha");
   BKE_id_attributes_active_color_set(
-      &mesh->id, CustomData_get_layer_name(&mesh->ldata, CD_PROP_BYTE_COLOR, 0));
+      &mesh->id, CustomData_get_layer_name(&mesh->loop_data, CD_PROP_BYTE_COLOR, 0));
 
   mesh->mat = (Material **)MEM_mallocN(sizeof(Material *) * mesh->totcol, "MaterialList");
   for (const auto item : group->materials.items()) {
@@ -633,7 +633,7 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
   //  Data copy
   ////////////////////
 
-  int vertex_index = 0, edge_index = 0, loop_index = 0, poly_index = 0;
+  int vertex_index = 0, edge_index = 0, loop_index = 0, face_index = 0;
   int visible_faces, visible_segments;
   bool visible;
   Strip::vertex_container::iterator v[3];
@@ -712,10 +712,10 @@ void BlenderStrokeRenderer::GenerateStrokeMesh(StrokeGroup *group, bool hasTex)
           ++edge_index;
 
           // poly
-          poly_offsets[poly_index] = loop_index;
+          face_offsets[face_index] = loop_index;
           *material_indices = matnr;
           ++material_indices;
-          ++poly_index;
+          ++face_index;
 
           // Even and odd loops connect triangles vertices differently
           bool is_odd = n % 2;

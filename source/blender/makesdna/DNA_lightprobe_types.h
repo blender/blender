@@ -34,6 +34,9 @@ typedef struct LightProbe {
   char attenuation_type;
   /** Parallax type. */
   char parallax_type;
+  /** Grid specific flags. */
+  char grid_flag;
+  char _pad0[3];
 
   /** Influence Radius. */
   float distinf;
@@ -57,6 +60,18 @@ typedef struct LightProbe {
   int grid_resolution_z;
   /** Irradiance grid: number of directions to evaluate light transfer in. */
   int grid_bake_samples;
+  /** Irradiance grid: Virtual offset parameters. */
+  float grid_surface_bias;
+  float grid_escape_bias;
+  /** Irradiance grid: Sampling biases. */
+  float grid_normal_bias;
+  float grid_view_bias;
+  float grid_facing_bias;
+  float grid_validity_threshold;
+  /** Irradiance grid: Dilation. */
+  float grid_dilation_threshold;
+  float grid_dilation_radius;
+  char _pad1[4];
 
   /** Surface element density for scene surface cache. In surfel per unit distance. */
   float surfel_density;
@@ -99,6 +114,13 @@ enum {
   LIGHTPROBE_FLAG_SHOW_CLIP_DIST = (1 << 3),
   LIGHTPROBE_FLAG_SHOW_DATA = (1 << 4),
   LIGHTPROBE_FLAG_INVERT_GROUP = (1 << 5),
+};
+
+/* Probe->grid_flag */
+enum {
+  LIGHTPROBE_GRID_CAPTURE_WORLD = (1 << 0),
+  LIGHTPROBE_GRID_CAPTURE_INDIRECT = (1 << 1),
+  LIGHTPROBE_GRID_CAPTURE_EMISSION = (1 << 2),
 };
 
 /* Probe->display */
@@ -236,6 +258,9 @@ typedef struct LightProbeBakingData {
   float (*L1_a)[4];
   float (*L1_b)[4];
   float (*L1_c)[4];
+  float *validity;
+  /* Capture offset. Only for debugging. */
+  float (*virtual_offset)[4];
 } LightProbeBakingData;
 
 /**
@@ -262,8 +287,8 @@ typedef struct LightProbeVisibilityData {
  * Used to avoid light leaks. Validate visibility between each grid sample.
  */
 typedef struct LightProbeConnectivityData {
-  /** Stores a bitmask of valid connections within a cell. */
-  uint8_t *bitmask;
+  /** Stores validity of the lighting for each grid sample. */
+  uint8_t *validity;
 } LightProbeConnectivityData;
 
 /**

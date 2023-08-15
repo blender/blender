@@ -43,7 +43,7 @@ class UnaryPredicate1D {
   /** Default constructor. */
   UnaryPredicate1D()
   {
-    py_up1D = NULL;
+    py_up1D = nullptr;
   }
 
   /** Destructor. */
@@ -85,7 +85,7 @@ class BinaryPredicate1D {
   /** Default constructor. */
   BinaryPredicate1D()
   {
-    py_bp1D = NULL;
+    py_bp1D = nullptr;
   }
 
   /** Destructor. */
@@ -171,7 +171,7 @@ class QuantitativeInvisibilityUP1D : public UnaryPredicate1D {
    *  \param qi:
    *    The Quantitative Invisibility you want the Interface1D to have
    */
-  QuantitativeInvisibilityUP1D(unsigned qi = 0) : _qi(qi) {}
+  QuantitativeInvisibilityUP1D(uint qi = 0) : _qi(qi) {}
 
   /** Returns the string "QuantitativeInvisibilityUP1D" */
   string getName() const
@@ -191,7 +191,7 @@ class QuantitativeInvisibilityUP1D : public UnaryPredicate1D {
   }
 
  private:
-  unsigned _qi;
+  uint _qi;
 };
 
 // ContourUP1D
@@ -270,10 +270,10 @@ class ExternalContourUP1D : public UnaryPredicate1D {
 /** Returns true if the Interface1D's time stamp is equal to a certain user-defined value. */
 class EqualToTimeStampUP1D : public UnaryPredicate1D {
  protected:
-  unsigned _timeStamp;
+  uint _timeStamp;
 
  public:
-  EqualToTimeStampUP1D(unsigned ts) : UnaryPredicate1D()
+  EqualToTimeStampUP1D(uint ts) : UnaryPredicate1D()
   {
     _timeStamp = ts;
   }
@@ -296,10 +296,10 @@ class EqualToTimeStampUP1D : public UnaryPredicate1D {
 /** Returns true if the Interface1D's time stamp is equal to a certain user-defined value. */
 class EqualToChainingTimeStampUP1D : public UnaryPredicate1D {
  protected:
-  unsigned _timeStamp;
+  uint _timeStamp;
 
  public:
-  EqualToChainingTimeStampUP1D(unsigned ts) : UnaryPredicate1D()
+  EqualToChainingTimeStampUP1D(uint ts) : UnaryPredicate1D()
   {
     _timeStamp = ts;
   }
@@ -337,7 +337,7 @@ class ShapeUP1D : public UnaryPredicate1D {
    *  \param idSecond:
    *    The second Id component.
    */
-  ShapeUP1D(unsigned idFirst, unsigned idSecond = 0) : UnaryPredicate1D()
+  ShapeUP1D(uint idFirst, uint idSecond = 0) : UnaryPredicate1D()
   {
     _id = Id(idFirst, idSecond);
   }

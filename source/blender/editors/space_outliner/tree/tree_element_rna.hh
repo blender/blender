@@ -10,7 +10,7 @@
 
 #include <limits>
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "tree_element.hh"
 

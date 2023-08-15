@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
@@ -27,25 +28,25 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #define STATE_INTERN_GET(state) \
 \
   (SnapStateIntern *)((char *)state - offsetof(SnapStateIntern, snap_state))
 
 struct SnapStateIntern {
-  struct SnapStateIntern *next, *prev;
+  SnapStateIntern *next, *prev;
   V3DSnapCursorState snap_state;
 };
 
@@ -74,7 +75,7 @@ struct SnapCursorDataIntern {
   int snap_on;
 #endif
 
-  struct wmPaintCursor *handle;
+  wmPaintCursor *handle;
 
   bool is_initiated;
 };
@@ -236,7 +237,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
       i += 1;
     }
   }
-  BLI_assert(i == (int)coords_len);
+  BLI_assert(i == int(coords_len));
   immBeginAtMost(GPU_PRIM_LINES, coords_len * 4);
   i = 0;
   for (int x = 0; x < resolution_min; x++) {
@@ -959,7 +960,7 @@ static void v3d_cursor_snap_activate()
       data_intern->is_initiated = true;
     }
 
-    struct wmPaintCursor *pc = WM_paint_cursor_activate(
+    wmPaintCursor *pc = WM_paint_cursor_activate(
         SPACE_VIEW3D, RGN_TYPE_WINDOW, v3d_cursor_snap_poll_fn, v3d_cursor_snap_draw_fn, nullptr);
     data_intern->handle = pc;
   }

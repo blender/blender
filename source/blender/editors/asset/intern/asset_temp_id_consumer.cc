@@ -16,7 +16,7 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_asset.h"
+#include "ED_asset.hh"
 
 #include "BKE_report.h"
 

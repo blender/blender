@@ -297,7 +297,7 @@ ccl_device void math_matrix_jacobi_eigendecomposition(ccl_private float *A,
         /* Determine rotation: The rotation is characterized by its angle phi - or,
          * in the actual implementation, sin(phi) and cos(phi).
          * To find those, we first compute their ratio - that might be unstable if the angle
-         * approaches 90°, so there's a fallback for that case.
+         * approaches 90 degrees, so there's a fallback for that case.
          * Then, we compute sin(phi) and cos(phi) themselves. */
         float singular_diff = MAT(A, n, row, row) - MAT(A, n, col, col);
         float ratio;

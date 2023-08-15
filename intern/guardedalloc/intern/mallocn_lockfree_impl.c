@@ -338,6 +338,8 @@ void MEM_lockfree_printmemlist_pydict(void) {}
 
 void MEM_lockfree_printmemlist(void) {}
 
+void mem_lockfree_clearmemlist(void) {}
+
 /* unused */
 void MEM_lockfree_callbackmemlist(void (*func)(void *))
 {

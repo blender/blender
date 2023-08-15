@@ -22,7 +22,7 @@
 #include "BLI_index_range.hh"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_span.hh"
@@ -67,9 +67,7 @@ static void displist_elem_free(DispList *dl)
 
 void BKE_displist_free(ListBase *lb)
 {
-  DispList *dl;
-
-  while ((dl = (DispList *)BLI_pophead(lb))) {
+  while (DispList *dl = (DispList *)BLI_pophead(lb)) {
     displist_elem_free(dl);
   }
 }
@@ -514,8 +512,8 @@ static ModifierData *curve_get_tessellate_point(const Scene *scene,
                                                 const bool for_render,
                                                 const bool editmode)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data);
 
   ModifierMode required_mode = for_render ? eModifierMode_Render : eModifierMode_Realtime;
   if (editmode) {
@@ -602,8 +600,8 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
   ModifierData *pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
   if (pretessellatePoint) {
-    VirtualModifierData virtualModifierData;
-    for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData); md;
+    VirtualModifierData virtual_modifier_data;
+    for (ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data); md;
          md = md->next)
     {
       const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
@@ -621,7 +619,7 @@ void BKE_curve_calc_modifiers_pre(Depsgraph *depsgraph,
         deformedVerts = BKE_curve_nurbs_vert_coords_alloc(source_nurb, &numVerts);
       }
 
-      mti->deformVerts(md, &mectx, nullptr, deformedVerts, numVerts);
+      mti->deform_verts(md, &mectx, nullptr, deformedVerts, numVerts);
 
       if (md == pretessellatePoint) {
         break;
@@ -709,9 +707,9 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   ModifierData *pretessellatePoint = curve_get_tessellate_point(scene, ob, for_render, editmode);
 
-  VirtualModifierData virtualModifierData;
+  VirtualModifierData virtual_modifier_data;
   ModifierData *md = pretessellatePoint == nullptr ?
-                         BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
+                         BKE_modifiers_get_virtual_modifierlist(ob, &virtual_modifier_data) :
                          pretessellatePoint->next;
 
   blender::bke::GeometrySet geometry_set;
@@ -731,7 +729,7 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     }
 
     if (md->type == eModifierType_Nodes) {
-      mti->modifyGeometrySet(md, &mectx_apply, &geometry_set);
+      mti->modify_geometry_set(md, &mectx_apply, &geometry_set);
       continue;
     }
 
@@ -743,15 +741,15 @@ static blender::bke::GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      mti->deformVerts(md,
-                       &mectx_deform,
-                       mesh,
-                       reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
-                       mesh->totvert);
+      mti->deform_verts(md,
+                        &mectx_deform,
+                        mesh,
+                        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+                        mesh->totvert);
       BKE_mesh_tag_positions_changed(mesh);
     }
     else {
-      Mesh *output_mesh = mti->modifyMesh(md, &mectx_apply, mesh);
+      Mesh *output_mesh = mti->modify_mesh(md, &mectx_apply, mesh);
       if (mesh != output_mesh) {
         geometry_set.replace_mesh(output_mesh);
       }
@@ -1363,7 +1361,7 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph,
        */
       Curve &cow_curve = *reinterpret_cast<Curve *>(
           BKE_id_copy_ex(nullptr, &original_curve.id, nullptr, LIB_ID_COPY_LOCALIZE));
-      cow_curve.curve_eval = geometry.get_curves_for_read();
+      cow_curve.curve_eval = geometry.get_curves();
       /* Copy edit mode pointers necessary for drawing to the duplicated curve. */
       cow_curve.editnurb = original_curve.editnurb;
       cow_curve.editfont = original_curve.editfont;

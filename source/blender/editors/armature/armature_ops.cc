@@ -6,13 +6,13 @@
  * \ingroup edarmature
  */
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_screen.hh"
 
 #include "armature_intern.h"
 
@@ -121,8 +121,7 @@ void ED_operatortypes_armature()
   /* POSE SLIDING */
   WM_operatortype_append(POSE_OT_push);
   WM_operatortype_append(POSE_OT_relax);
-  WM_operatortype_append(POSE_OT_push_rest);
-  WM_operatortype_append(POSE_OT_relax_rest);
+  WM_operatortype_append(POSE_OT_blend_with_rest);
   WM_operatortype_append(POSE_OT_breakdown);
   WM_operatortype_append(POSE_OT_blend_to_neighbors);
 }

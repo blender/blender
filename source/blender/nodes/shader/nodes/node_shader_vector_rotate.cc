@@ -6,10 +6,12 @@
  * \ingroup shdnodes
  */
 
+#include "BLI_math_rotation.h"
+
 #include "node_shader_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 namespace blender::nodes::node_shader_vector_rotate_cc {
 
@@ -33,7 +35,7 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, 0);
+  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 static const char *gpu_shader_get_name(int mode)

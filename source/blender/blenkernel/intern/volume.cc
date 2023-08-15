@@ -19,7 +19,7 @@
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
@@ -608,9 +608,6 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* direct data */
   BLO_write_pointer_array(writer, volume->totcol, volume->mat);
-  if (volume->adt) {
-    BKE_animdata_blend_write(writer, volume->adt);
-  }
 
   BKE_packedfile_blend_write(writer, volume->packedfile);
 }
@@ -618,8 +615,6 @@ static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 static void volume_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Volume *volume = (Volume *)id;
-  BLO_read_data_address(reader, &volume->adt);
-  BKE_animdata_blend_read_data(reader, volume->adt);
 
   BKE_packedfile_blend_read(reader, &volume->packedfile);
   volume->runtime.frame = 0;
@@ -1102,8 +1097,8 @@ static void volume_evaluate_modifiers(Depsgraph *depsgraph,
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData);
+  VirtualModifierData virtual_modifier_data;
+  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtual_modifier_data);
 
   /* Evaluate modifiers. */
   for (; md; md = md->next) {
@@ -1116,8 +1111,8 @@ static void volume_evaluate_modifiers(Depsgraph *depsgraph,
 
     blender::bke::ScopedModifierTimer modifier_timer{*md};
 
-    if (mti->modifyGeometrySet) {
-      mti->modifyGeometrySet(md, &mectx, &geometry_set);
+    if (mti->modify_geometry_set) {
+      mti->modify_geometry_set(md, &mectx, &geometry_set);
     }
   }
 }

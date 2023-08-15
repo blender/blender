@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "SEQ_effects.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

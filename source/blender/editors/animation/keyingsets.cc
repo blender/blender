@@ -6,11 +6,11 @@
  * \ingroup edanimation
  */
 
-#include <float.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -28,19 +28,19 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_keyframing.h"
-#include "ED_screen.h"
+#include "ED_keyframing.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_path.hh"
 
 #include "anim_intern.h"
 
@@ -63,7 +63,7 @@ static bool keyingset_poll_active_edit(bContext *C)
   Scene *scene = CTX_data_scene(C);
 
   if (scene == nullptr) {
-    return 0;
+    return false;
   }
 
   /* there must be an active KeyingSet (and KeyingSets) */
@@ -77,10 +77,10 @@ static bool keyingset_poll_activePath_edit(bContext *C)
   KeyingSet *ks;
 
   if (scene == nullptr) {
-    return 0;
+    return false;
   }
   if (scene->active_keyingset <= 0) {
-    return 0;
+    return false;
   }
 
   ks = static_cast<KeyingSet *>(BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
@@ -369,7 +369,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set");
+  RNA_def_boolean(ot->srna, "all", true, "All", "Add all elements of the array to a Keying Set");
 }
 
 /* Remove from KeyingSet Button Operator ------------------------ */
@@ -724,7 +724,6 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
   }
 
   Scene *scene = C ? CTX_data_scene(C) : nullptr;
-  KeyingSet *ks;
 
   /* Active Keying Set. */
   if (!use_poll || (scene && scene->active_keyingset)) {
@@ -736,7 +735,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
 
   /* User-defined Keying Sets. */
   if (scene && scene->keyingsets.first) {
-    for (ks = static_cast<KeyingSet *>(scene->keyingsets.first); ks; ks = ks->next) {
+    LISTBASE_FOREACH (KeyingSet *, ks, &scene->keyingsets) {
       if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
         continue;
       }
@@ -748,7 +747,7 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
   }
 
   /* Builtin Keying Sets. */
-  for (ks = static_cast<KeyingSet *>(builtin_keyingsets.first); ks; ks = ks->next) {
+  LISTBASE_FOREACH (KeyingSet *, ks, &builtin_keyingsets) {
     if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
       continue;
     }
@@ -889,7 +888,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 
     /* get the associated 'type info' for this KeyingSet */
     if (ksi == nullptr) {
-      return 0;
+      return false;
     }
     /* TODO: check for missing callbacks! */
 
@@ -907,7 +906,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
  * - do not allow this to be accessed from outside for now
  */
 struct tRKS_DSource {
-  struct tRKS_DSource *next, *prev;
+  tRKS_DSource *next, *prev;
   PointerRNA ptr; /* the whole point of this exercise! */
 };
 
@@ -920,9 +919,7 @@ static void RKS_ITER_overrides_list(KeyingSetInfo *ksi,
                                     KeyingSet *ks,
                                     ListBase *dsources)
 {
-  tRKS_DSource *ds;
-
-  for (ds = static_cast<tRKS_DSource *>(dsources->first); ds; ds = ds->next) {
+  LISTBASE_FOREACH (tRKS_DSource *, ds, dsources) {
     /* run generate callback on this data */
     ksi->generate(ksi, C, ks, &ds->ptr);
   }
@@ -1048,7 +1045,6 @@ int ANIM_apply_keyingset(
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ReportList *reports = CTX_wm_reports(C);
-  KS_Path *ksp;
   ListBase nla_cache = {nullptr, nullptr};
   const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene, true);
   const char *groupname = nullptr;
@@ -1082,7 +1078,7 @@ int ANIM_apply_keyingset(
   }
 
   /* apply the paths as specified in the KeyingSet now */
-  for (ksp = static_cast<KS_Path *>(ks->paths.first); ksp; ksp = ksp->next) {
+  LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
     int arraylen, i;
     eInsertKeyFlags kflag2;
 

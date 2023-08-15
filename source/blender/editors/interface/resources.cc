@@ -17,22 +17,22 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_main.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 
 #include "BLO_readfile.h" /* for UserDef version patching. */
 
 #include "BLF_api.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
 #include "GPU_framebuffer.h"
 #include "interface_intern.hh"
@@ -163,6 +163,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_EXECUTE) {
             cp = ts->execution_buts;
           }
+          else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF) {
+            cp = ts->asset_shelf.back;
+          }
+          else if (g_theme_state.regionid == RGN_TYPE_ASSET_SHELF_HEADER) {
+            cp = ts->asset_shelf.header_back;
+          }
           else {
             cp = ts->button;
           }
@@ -188,7 +194,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
             cp = ts->list_text;
           }
-          else if (ELEM(g_theme_state.regionid, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
+          else if (ELEM(g_theme_state.regionid,
+                        RGN_TYPE_HEADER,
+                        RGN_TYPE_FOOTER,
+                        RGN_TYPE_ASSET_SHELF_HEADER))
+          {
             cp = ts->header_text;
           }
           else {
@@ -202,7 +212,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
             cp = ts->list_text_hi;
           }
-          else if (ELEM(g_theme_state.regionid, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
+          else if (ELEM(g_theme_state.regionid,
+                        RGN_TYPE_HEADER,
+                        RGN_TYPE_FOOTER,
+                        RGN_TYPE_ASSET_SHELF_HEADER))
+          {
             cp = ts->header_text_hi;
           }
           else {
@@ -216,7 +230,11 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           else if (g_theme_state.regionid == RGN_TYPE_CHANNELS) {
             cp = ts->list_title;
           }
-          else if (ELEM(g_theme_state.regionid, RGN_TYPE_HEADER, RGN_TYPE_FOOTER)) {
+          else if (ELEM(g_theme_state.regionid,
+                        RGN_TYPE_HEADER,
+                        RGN_TYPE_FOOTER,
+                        RGN_TYPE_ASSET_SHELF_HEADER))
+          {
             cp = ts->header_title;
           }
           else {
@@ -672,6 +690,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
         case TH_SEQ_EFFECT:
           cp = ts->effect;
+          break;
+        case TH_SEQ_TRANSITION:
+          cp = ts->transition;
           break;
         case TH_SEQ_META:
           cp = ts->meta;

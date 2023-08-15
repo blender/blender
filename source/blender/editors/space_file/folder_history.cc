@@ -18,11 +18,11 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_fileselect.h"
+#include "ED_fileselect.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "file_intern.h"
+#include "file_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name FOLDERLIST (previous/next)

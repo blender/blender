@@ -388,7 +388,7 @@ class UpdateAnimatedTransformConstraint(Operator):
             data = ...
             try:
                 data = eval("base." + old_path)
-            except:
+            except BaseException:
                 pass
             ret = (data, old_path)
             if isinstance(base, bpy.types.TransformConstraint) and data is not ...:
@@ -405,7 +405,7 @@ class UpdateAnimatedTransformConstraint(Operator):
                     data = ...
                     try:
                         data = eval("base." + new_path)
-                    except:
+                    except BaseException:
                         pass
                     ret = (data, new_path)
                     # print(ret)

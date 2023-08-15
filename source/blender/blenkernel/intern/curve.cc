@@ -16,7 +16,11 @@
 #include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_solvers.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -159,9 +163,6 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* direct data */
   BLO_write_pointer_array(writer, cu->totcol, cu->mat);
-  if (cu->adt) {
-    BKE_animdata_blend_write(writer, cu->adt);
-  }
 
   if (cu->vfont) {
     BLO_write_raw(writer, cu->len + 1, cu->str);
@@ -207,8 +208,6 @@ static void switch_endian_knots(Nurb *nu)
 static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Curve *cu = (Curve *)id;
-  BLO_read_data_address(reader, &cu->adt);
-  BKE_animdata_blend_read_data(reader, cu->adt);
 
   /* Protect against integer overflow vulnerability. */
   CLAMP(cu->len_char32, 0, INT_MAX - 4);

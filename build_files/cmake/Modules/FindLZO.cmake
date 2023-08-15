@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  LZO_LIBRARY, where to find the LZO library.
 
-# If LZO_ROOT_DIR was defined in the environment, use it.
-IF(NOT LZO_ROOT_DIR AND NOT $ENV{LZO_ROOT_DIR} STREQUAL "")
+# If `LZO_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED LZO_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{LZO_ROOT_DIR})
   SET(LZO_ROOT_DIR $ENV{LZO_ROOT_DIR})
+ELSE()
+  SET(LZO_ROOT_DIR "")
 ENDIF()
 
 SET(_lzo_SEARCH_DIRS

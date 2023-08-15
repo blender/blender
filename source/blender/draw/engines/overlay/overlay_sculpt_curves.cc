@@ -8,7 +8,7 @@
 
 #include "DRW_render.h"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 #include "overlay_private.hh"
 
 #include "BKE_attribute.hh"

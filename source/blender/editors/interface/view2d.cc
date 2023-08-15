@@ -20,7 +20,7 @@
 #include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -35,14 +35,14 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "BLF_api.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "interface_intern.hh"
 #include "view2d_intern.hh"
@@ -228,7 +228,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 
   do_init = (v2d->flag & V2D_IS_INIT) == 0;
 
-  /* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+  /* see eView2D_CommonViewTypes in UI_view2d.hh for available view presets */
   switch (type) {
     /* 'standard view' - optimum setup for 'standard' view behavior,
      * that should be used new views as basis for their
@@ -844,6 +844,20 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
 
   if (region->type->on_view2d_changed != nullptr) {
     region->type->on_view2d_changed(C, region);
+  }
+}
+
+void UI_view2d_curRect_clamp_y(View2D *v2d)
+{
+  const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
+
+  if (BLI_rctf_size_y(&v2d->cur) > BLI_rctf_size_y(&v2d->tot)) {
+    v2d->cur.ymin = -cur_height_y;
+    v2d->cur.ymax = 0;
+  }
+  else if (v2d->cur.ymin < v2d->tot.ymin) {
+    v2d->cur.ymin = v2d->tot.ymin;
+    v2d->cur.ymax = v2d->cur.ymin + cur_height_y;
   }
 }
 
@@ -1962,7 +1976,7 @@ void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
   UI_view2d_curRect_validate(v2d);
 }
 
-void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d)
+void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d)
 {
   const float cur_size_y = BLI_rctf_size_y(&v2d->cur);
   const float page_size_y = view2d_page_size_y(*v2d);

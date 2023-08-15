@@ -6,8 +6,8 @@
  * \ingroup spuserpref
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -17,16 +17,16 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLO_read_write.h"
 
@@ -66,7 +66,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene * /*scene*/)
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_NO_USER_RESIZE;
 
   /* main region */
   region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for userpref"));
@@ -129,7 +129,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, nullptr);
 }
 
-static void userpref_operatortypes(void) {}
+static void userpref_operatortypes() {}
 
 static void userpref_keymap(wmKeyConfig * /*keyconf*/) {}
 

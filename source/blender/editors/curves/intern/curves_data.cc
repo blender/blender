@@ -9,8 +9,8 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_curves.h"
-#include "ED_transverts.h"
+#include "ED_curves.hh"
+#include "ED_transverts.hh"
 
 namespace blender::ed::curves {
 
@@ -49,16 +49,4 @@ float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3]
   evaluator.evaluate();
 
   return reinterpret_cast<float(*)[3]>(data);
-}
-
-void ED_curves_transverts_create(Curves *curves_id, TransVertStore *tvs)
-{
-  using namespace blender;
-  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-  ed::curves::transverts_from_curves_positions_create(curves, tvs);
-}
-
-int *ED_curves_offsets_for_write(Curves *curves_id)
-{
-  return curves_id->geometry.wrap().offsets_for_write().data();
 }

@@ -231,7 +231,7 @@ typedef enum eLibIDDuplicateFlags {
 
 ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
 
-/* lib_remap.c (keep here since they're general functions) */
+/* `lib_remap.cc` (keep here since they're general functions) */
 /**
  * New freeing logic options.
  */
@@ -355,7 +355,7 @@ void id_us_ensure_real(struct ID *id);
 void id_us_clear_real(struct ID *id);
 /**
  * Same as \a id_us_plus, but does not handle lib indirect -> extern.
- * Only used by readfile.c so far, but simpler/safer to keep it here nonetheless.
+ * Only used by `readfile.cc` so far, but simpler/safer to keep it here nonetheless.
  */
 void id_us_plus_no_lib(struct ID *id);
 void id_us_plus(struct ID *id);
@@ -565,7 +565,7 @@ void BKE_main_id_flag_listbase(struct ListBase *lb, int flag, bool value);
 void BKE_main_id_flag_all(struct Main *bmain, int flag, bool value);
 
 /**
- * Next to indirect usage in `readfile.c/writefile.c` also in `editobject.c`, `scene.cc`.
+ * Next to indirect usage in `readfile.cc` / `writefile.cc` also in `editobject.c`, `scene.cc`.
  */
 void BKE_main_id_newptr_and_tag_clear(struct Main *bmain);
 
@@ -677,7 +677,7 @@ void BKE_id_blend_write(struct BlendWriter *writer, struct ID *id);
 
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & LIB_TAG_DOIT))
 
-/* lib_id_eval.c */
+/* `lib_id_eval.cc` */
 
 /**
  * Copy relatives parameters, from `id` to `id_cow`.

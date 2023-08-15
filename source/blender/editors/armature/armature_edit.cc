@@ -18,7 +18,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -30,16 +32,18 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_armature.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+
+#include "ANIM_bone_collections.h"
 
 #include "DEG_depsgraph.h"
 
@@ -53,14 +57,13 @@
 
 void ED_armature_edit_transform(bArmature *arm, const float mat[4][4], const bool do_props)
 {
-  EditBone *ebone;
   float scale = mat4_to_scale(mat); /* store the scale of the matrix here to use on envelopes */
   float mat3[3][3];
 
   copy_m3_m4(mat3, mat);
   normalize_m3(mat3);
   /* Do the rotations */
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     float tmat[3][3];
 
     /* find the current bone's roll matrix */
@@ -102,7 +105,6 @@ void ED_armature_origin_set(
     Main *bmain, Object *ob, const float cursor[3], int centermode, int around)
 {
   const bool is_editmode = BKE_object_is_in_editmode(ob);
-  EditBone *ebone;
   bArmature *arm = static_cast<bArmature *>(ob->data);
   float cent[3];
 
@@ -121,7 +123,7 @@ void ED_armature_origin_set(
     if (around == V3D_AROUND_CENTER_BOUNDS) {
       float min[3], max[3];
       INIT_MINMAX(min, max);
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         minmax_v3v3_v3(min, max, ebone->head);
         minmax_v3v3_v3(min, max, ebone->tail);
       }
@@ -130,7 +132,7 @@ void ED_armature_origin_set(
     else { /* #V3D_AROUND_CENTER_MEDIAN. */
       int total = 0;
       zero_v3(cent);
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         total += 2;
         add_v3_v3(cent, ebone->head);
         add_v3_v3(cent, ebone->tail);
@@ -142,7 +144,7 @@ void ED_armature_origin_set(
   }
 
   /* Do the adjustments */
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     sub_v3_v3(ebone->head, cent);
     sub_v3_v3(ebone->tail, cent);
   }
@@ -295,7 +297,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
       mul_m4_v3(ob->world_to_object, cursor_local);
 
       /* cursor */
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
           float cursor_rel[3];
           sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
@@ -310,7 +312,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ELEM(type, CALC_ROLL_TAN_POS_X, CALC_ROLL_TAN_POS_Z)) {
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if (ebone->parent) {
           bool is_edit = (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone));
           bool is_edit_parent = (EBONE_VISIBLE(arm, ebone->parent) &&
@@ -409,7 +411,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
         negate_v3(vec);
       }
 
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
           /* roll func is a callback which assumes that all is well */
           ebone->roll = ED_armature_ebone_roll_to_vector(ebone, vec, axis_only);
@@ -419,7 +421,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
     }
 
     if (arm->flag & ARM_MIRROR_EDIT) {
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
           EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
           if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
@@ -458,10 +460,10 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "type", prop_calc_roll_types, CALC_ROLL_TAN_POS_X, "Type", "");
-  RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
+  RNA_def_boolean(ot->srna, "axis_flip", false, "Flip Axis", "Negate the alignment axis");
   RNA_def_boolean(ot->srna,
                   "axis_only",
-                  0,
+                  false,
                   "Shortest Rotation",
                   "Ignore the axis direction, use the shortest rotation to align");
 }
@@ -545,7 +547,7 @@ void ARMATURE_OT_roll_clear(wmOperatorType *ot)
 
 /* temporary data-structure for merge/fill bones */
 struct EditBonePoint {
-  struct EditBonePoint *next, *prev;
+  EditBonePoint *next, *prev;
 
   EditBone *head_owner; /* EditBone which uses this point as a 'head' point */
   EditBone *tail_owner; /* EditBone which uses this point as a 'tail' point */
@@ -556,15 +558,15 @@ struct EditBonePoint {
 /* find chain-tips (i.e. bones without children) */
 static void chains_find_tips(ListBase *edbo, ListBase *list)
 {
-  EditBone *curBone, *ebo;
+  EditBone *ebo;
   LinkData *ld;
 
   /* NOTE: this is potentially very slow ... there's got to be a better way. */
-  for (curBone = static_cast<EditBone *>(edbo->first); curBone; curBone = curBone->next) {
+  LISTBASE_FOREACH (EditBone *, curBone, edbo) {
     short stop = 0;
 
     /* is this bone contained within any existing chain? (skip if so) */
-    for (ld = static_cast<LinkData *>(list->first); ld; ld = ld->next) {
+    LISTBASE_FOREACH (LinkData *, ld, list) {
       for (ebo = static_cast<EditBone *>(ld->data); ebo; ebo = ebo->parent) {
         if (ebo == curBone) {
           stop = 1;
@@ -584,7 +586,7 @@ static void chains_find_tips(ListBase *edbo, ListBase *list)
     /* is any existing chain part of the chain formed by this bone? */
     stop = 0;
     for (ebo = curBone->parent; ebo; ebo = ebo->parent) {
-      for (ld = static_cast<LinkData *>(list->first); ld; ld = ld->next) {
+      LISTBASE_FOREACH (LinkData *, ld, list) {
         if (ld->data == ebo) {
           ld->data = curBone;
           stop = 1;
@@ -627,7 +629,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
     copy_v3_v3(vec, ebo->head);
   }
 
-  for (ebp = static_cast<EditBonePoint *>(points->first); ebp; ebp = ebp->next) {
+  LISTBASE_FOREACH (EditBonePoint *, ebp, points) {
     if (equals_v3v3(ebp->vec, vec)) {
       if (eb_tail) {
         if ((ebp->head_owner) && (ebp->head_owner->parent == ebo)) {
@@ -882,9 +884,7 @@ void ARMATURE_OT_fill(wmOperatorType *ot)
 /* helper to clear BONE_TRANSFORM flags */
 static void armature_clear_swap_done_flags(bArmature *arm)
 {
-  EditBone *ebone;
-
-  for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+  LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
     ebone->flag &= ~BONE_TRANSFORM;
   }
 }
@@ -902,7 +902,6 @@ static int armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
     ListBase chains = {nullptr, nullptr};
-    LinkData *chain;
 
     /* get chains of bones (ends on chains) */
     chains_find_tips(arm->edbo, &chains);
@@ -920,7 +919,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
     armature_clear_swap_done_flags(arm);
 
     /* loop over chains, only considering selected and visible bones */
-    for (chain = static_cast<LinkData *>(chains.first); chain; chain = chain->next) {
+    LISTBASE_FOREACH (LinkData *, chain, &chains) {
       EditBone *ebo, *child = nullptr, *parent = nullptr;
 
       /* loop over bones in chain */
@@ -1034,9 +1033,7 @@ static void fix_connected_bone(EditBone *ebone)
 /* helper to recursively find chains of connected bones starting at ebone and fix their position */
 static void fix_editbone_connected_children(ListBase *edbo, EditBone *ebone)
 {
-  EditBone *selbone;
-
-  for (selbone = static_cast<EditBone *>(edbo->first); selbone; selbone = selbone->next) {
+  LISTBASE_FOREACH (EditBone *, selbone, edbo) {
     if ((selbone->parent) && (selbone->parent == ebone) && (selbone->flag & BONE_CONNECTED)) {
       fix_connected_bone(selbone);
       fix_editbone_connected_children(edbo, selbone);
@@ -1221,7 +1218,7 @@ static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
   EditBone *ebone;
 
   ebone = ED_armature_ebone_find_name(arm->edbo, bone_name);
-  return (ebone && (ebone->flag & BONE_SELECTED) && (arm->layer & ebone->layer));
+  return (ebone && (ebone->flag & BONE_SELECTED) && ANIM_bonecoll_is_visible_editbone(arm, ebone));
 }
 
 /* previously delete_armature */
@@ -1252,7 +1249,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
 
     for (curBone = static_cast<EditBone *>(arm->edbo->first); curBone; curBone = ebone_next) {
       ebone_next = curBone->next;
-      if (arm->layer & curBone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, curBone)) {
         if (curBone->flag & BONE_SELECTED) {
           if (curBone == arm->act_edbone) {
             arm->act_edbone = nullptr;
@@ -1328,7 +1325,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
     GHash *ebone_flag_orig = nullptr;
     int ebone_num = 0;
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       ebone->temp.p = nullptr;
       ebone->flag &= ~BONE_DONE;
       ebone_num++;
@@ -1338,7 +1335,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
       GHashIterator gh_iter;
 
       ebone_flag_orig = BLI_ghash_ptr_new_ex(__func__, ebone_num);
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         union {
           int flag;
           void *p;
@@ -1359,7 +1356,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
       }
     }
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (ebone->parent && ebone->flag & BONE_CONNECTED) {
         if (ebone->parent->temp.ebone == ebone->parent) {
           /* ignore */
@@ -1376,21 +1373,21 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
     }
 
     /* cleanup multiple used bones */
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (ebone->temp.ebone == ebone) {
         ebone->temp.ebone = nullptr;
       }
     }
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       /* break connections for unseen bones */
-      if (((arm->layer & ebone->layer) &&
+      if ((ANIM_bonecoll_is_visible_editbone(arm, ebone) &&
            (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0)
       {
         ebone->temp.ebone = nullptr;
       }
 
-      if (((arm->layer & ebone->layer) &&
+      if ((ANIM_bonecoll_is_visible_editbone(arm, ebone) &&
            (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0)
       {
         if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
@@ -1399,7 +1396,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
       }
     }
 
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
 
       if (ebone->parent && (ebone->parent->temp.ebone == ebone)) {
         ebone->flag |= BONE_DONE;
@@ -1422,14 +1419,14 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
     }
 
     if (changed) {
-      for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+      LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         if (ebone->parent && ebone->parent->temp.ebone && (ebone->flag & BONE_CONNECTED)) {
           ebone->rad_head = ebone->parent->rad_tail;
         }
       }
 
       if (arm->flag & ARM_MIRROR_EDIT) {
-        for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
           union Value {
             int flag;
             void *p;
@@ -1541,7 +1538,8 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
+  RNA_def_boolean(
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected");
 }
 
 /** \} */
@@ -1564,7 +1562,7 @@ static int armature_reveal_exec(bContext *C, wmOperator *op)
     bool changed = false;
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (arm->layer & ebone->layer) {
+      if (ANIM_bonecoll_is_visible_editbone(arm, ebone)) {
         if (ebone->flag & BONE_HIDDEN_A) {
           if (!(ebone->flag & BONE_UNSELECTABLE)) {
             SET_FLAG_FROM_TEST(ebone->flag, select, (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL));

@@ -15,8 +15,8 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 static const char UDIM_PATTERN[] = "<UDIM>";
 static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
@@ -277,9 +277,9 @@ std::string import_asset(const char *src,
                  src);
       return src;
     }
+    BLI_path_abs(dest_dir_path, basepath);
   }
 
-  BLI_path_abs(dest_dir_path, basepath);
   BLI_path_normalize(dest_dir_path);
 
   if (!BLI_dir_create_recursive(dest_dir_path)) {

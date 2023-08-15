@@ -6,13 +6,15 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
 
@@ -21,12 +23,12 @@
 #include "BKE_report.h"
 #include "BKE_unit.h"
 
-#include "ED_node.h"
-#include "ED_screen.h"
+#include "ED_node.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -573,7 +575,7 @@ static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
   return result;
 }
 
-static void applyTranslation(TransInfo *t, const int[2] /*mval*/)
+static void applyTranslation(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   float global_dir[3] = {0.0f};
@@ -653,7 +655,7 @@ static void applyTranslation(TransInfo *t, const int[2] /*mval*/)
   mul_v3_m3v3(t->values_final, t->spacemtx_inv, global_dir);
   headerTranslation(t, (t->con.mode & CON_APPLY) ? t->values_final : global_dir, str);
 
-  recalcData(t);
+  recalc_data(t);
   ED_area_status_text(t->area, str);
 }
 

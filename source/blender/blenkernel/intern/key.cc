@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -46,8 +47,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "BLO_read_write.h"
@@ -76,9 +77,7 @@ static void shapekey_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, c
 static void shapekey_free_data(ID *id)
 {
   Key *key = (Key *)id;
-  KeyBlock *kb;
-
-  while ((kb = static_cast<KeyBlock *>(BLI_pophead(&key->block)))) {
+  while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
     }
@@ -110,10 +109,6 @@ static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_add
   /* write LibData */
   BLO_write_id_struct(writer, Key, id_address, &key->id);
   BKE_id_blend_write(writer, &key->id);
-
-  if (key->adt) {
-    BKE_animdata_blend_write(writer, key->adt);
-  }
 
   /* direct data */
   LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
@@ -166,9 +161,6 @@ static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Key *key = (Key *)id;
   BLO_read_list(reader, &(key->block));
-
-  BLO_read_data_address(reader, &key->adt);
-  BKE_animdata_blend_read_data(reader, key->adt);
 
   BLO_read_data_address(reader, &key->refkey);
 
@@ -245,9 +237,7 @@ void BKE_key_free_data(Key *key)
 
 void BKE_key_free_nolib(Key *key)
 {
-  KeyBlock *kb;
-
-  while ((kb = static_cast<KeyBlock *>(BLI_pophead(&key->block)))) {
+  while (KeyBlock *kb = static_cast<KeyBlock *>(BLI_pophead(&key->block))) {
     if (kb->data) {
       MEM_freeN(kb->data);
     }
@@ -310,7 +300,6 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
 void BKE_key_sort(Key *key)
 {
   KeyBlock *kb;
-  KeyBlock *kb2;
 
   /* locate the key which is out of position */
   for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
@@ -325,7 +314,7 @@ void BKE_key_sort(Key *key)
     BLI_remlink(&key->block, kb);
 
     /* find the right location and insert before */
-    for (kb2 = static_cast<KeyBlock *>(key->block.first); kb2; kb2 = kb2->next) {
+    LISTBASE_FOREACH (KeyBlock *, kb2, &key->block) {
       if (kb2->pos > kb->pos) {
         BLI_insertlinkafter(&key->block, kb2->prev, kb);
         break;
@@ -1883,8 +1872,7 @@ KeyBlock *BKE_keyblock_add_ctime(Key *key, const char *name, const bool do_force
    * won't have to systematically use retiming func (and have ordering issues, too). See #39897.
    */
   if (!do_force && (key->type != KEY_RELATIVE)) {
-    KeyBlock *it_kb;
-    for (it_kb = static_cast<KeyBlock *>(key->block.first); it_kb; it_kb = it_kb->next) {
+    LISTBASE_FOREACH (KeyBlock *, it_kb, &key->block) {
       /* Use epsilon to avoid floating point precision issues.
        * 1e-3 because the position is stored as frame * 1e-2. */
       if (compare_ff(it_kb->pos, cpos, 1e-3f)) {
@@ -2067,7 +2055,6 @@ int BKE_keyblock_curve_element_count(const ListBase *nurb)
 
 void BKE_keyblock_update_from_curve(const Curve * /*cu*/, KeyBlock *kb, const ListBase *nurb)
 {
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   float *fp;
@@ -2082,7 +2069,7 @@ void BKE_keyblock_update_from_curve(const Curve * /*cu*/, KeyBlock *kb, const Li
   }
 
   fp = static_cast<float *>(kb->data);
-  for (nu = static_cast<Nurb *>(nurb->first); nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, nurb) {
     if (nu->bezt) {
       for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
         for (int i = 0; i < 3; i++) {
@@ -2111,7 +2098,7 @@ void BKE_keyblock_curve_data_transform(const ListBase *nurb,
 {
   const float *src = static_cast<const float *>(src_data);
   float *dst = static_cast<float *>(dst_data);
-  for (Nurb *nu = static_cast<Nurb *>(nurb->first); nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, nurb) {
     if (nu->bezt) {
       for (int a = nu->pntsu; a; a--) {
         for (int i = 0; i < 3; i++) {
@@ -2231,76 +2218,76 @@ void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                     Mesh *mesh,
                                     float (*r_vert_normals)[3],
-                                    float (*r_poly_normals)[3],
+                                    float (*r_face_normals)[3],
                                     float (*r_loop_normals)[3])
 {
-  if (r_vert_normals == nullptr && r_poly_normals == nullptr && r_loop_normals == nullptr) {
+  if (r_vert_normals == nullptr && r_face_normals == nullptr && r_loop_normals == nullptr) {
     return;
   }
 
   blender::Array<blender::float3> positions(mesh->vert_positions());
   BKE_keyblock_convert_to_mesh(kb, reinterpret_cast<float(*)[3]>(positions.data()), mesh->totvert);
   const blender::Span<blender::int2> edges = mesh->edges();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   const bool loop_normals_needed = r_loop_normals != nullptr;
   const bool vert_normals_needed = r_vert_normals != nullptr || loop_normals_needed;
-  const bool poly_normals_needed = r_poly_normals != nullptr || vert_normals_needed ||
+  const bool face_normals_needed = r_face_normals != nullptr || vert_normals_needed ||
                                    loop_normals_needed;
 
   float(*vert_normals)[3] = r_vert_normals;
-  float(*poly_normals)[3] = r_poly_normals;
+  float(*face_normals)[3] = r_face_normals;
   bool free_vert_normals = false;
-  bool free_poly_normals = false;
+  bool free_face_normals = false;
   if (vert_normals_needed && r_vert_normals == nullptr) {
     vert_normals = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(mesh->totvert, sizeof(float[3]), __func__));
     free_vert_normals = true;
   }
-  if (poly_normals_needed && r_poly_normals == nullptr) {
-    poly_normals = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__));
-    free_poly_normals = true;
+  if (face_normals_needed && r_face_normals == nullptr) {
+    face_normals = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(mesh->faces_num, sizeof(float[3]), __func__));
+    free_face_normals = true;
   }
 
-  if (poly_normals_needed) {
-    blender::bke::mesh::normals_calc_polys(
+  if (face_normals_needed) {
+    blender::bke::mesh::normals_calc_faces(
         positions,
-        polys,
+        faces,
         corner_verts,
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()});
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()});
   }
   if (vert_normals_needed) {
-    blender::bke::mesh::normals_calc_poly_vert(
+    blender::bke::mesh::normals_calc_face_vert(
         positions,
-        polys,
+        faces,
         corner_verts,
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert});
   }
   if (loop_normals_needed) {
-    blender::short2 *clnors = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(&mesh->ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
+    const blender::short2 *clnors = static_cast<const blender::short2 *>(
+        CustomData_get_layer(&mesh->loop_data, CD_CUSTOMLOOPNORMAL));
     const bool *sharp_edges = static_cast<const bool *>(
-        CustomData_get_layer_named(&mesh->edata, CD_PROP_BOOL, "sharp_edge"));
+        CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "sharp_edge"));
     const bool *sharp_faces = static_cast<const bool *>(
-        CustomData_get_layer_named(&mesh->pdata, CD_PROP_BOOL, "sharp_face"));
+        CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
     blender::bke::mesh::normals_calc_loop(
         positions,
         edges,
-        polys,
+        faces,
         corner_verts,
         corner_edges,
         {},
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->totvert},
-        {reinterpret_cast<blender::float3 *>(poly_normals), polys.size()},
+        {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,
+        clnors,
         (mesh->flag & ME_AUTOSMOOTH) != 0,
         mesh->smoothresh,
-        clnors,
         nullptr,
         {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
   }
@@ -2308,8 +2295,8 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
   if (free_vert_normals) {
     MEM_freeN(vert_normals);
   }
-  if (free_poly_normals) {
-    MEM_freeN(poly_normals);
+  if (free_face_normals) {
+    MEM_freeN(face_normals);
   }
 }
 
@@ -2352,11 +2339,10 @@ void BKE_keyblock_update_from_vertcos(const Object *ob, KeyBlock *kb, const floa
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     const Curve *cu = (const Curve *)ob->data;
-    const Nurb *nu;
     const BezTriple *bezt;
     const BPoint *bp;
 
-    for (nu = static_cast<const Nurb *>(cu->nurb.first); nu; nu = nu->next) {
+    LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
       if (nu->bezt) {
         for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
           for (int i = 0; i < 3; i++, co++) {
@@ -2442,11 +2428,10 @@ float (*BKE_keyblock_convert_to_vertcos(const Object *ob, const KeyBlock *kb))[3
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     const Curve *cu = (const Curve *)ob->data;
-    const Nurb *nu;
     const BezTriple *bezt;
     const BPoint *bp;
 
-    for (nu = static_cast<Nurb *>(cu->nurb.first); nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->bezt) {
         for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
           for (int i = 0; i < 3; i++, co++) {
@@ -2479,11 +2464,10 @@ void BKE_keyblock_update_from_offset(const Object *ob, KeyBlock *kb, const float
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     const Curve *cu = (const Curve *)ob->data;
-    const Nurb *nu;
     const BezTriple *bezt;
     const BPoint *bp;
 
-    for (nu = static_cast<const Nurb *>(cu->nurb.first); nu; nu = nu->next) {
+    LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
       if (nu->bezt) {
         for (a = nu->pntsu, bezt = nu->bezt; a; a--, bezt++) {
           for (int i = 0; i < 3; i++, ofs++) {
@@ -2597,4 +2581,47 @@ bool BKE_keyblock_is_basis(const Key *key, const int index)
   }
 
   return false;
+}
+
+bool *BKE_keyblock_get_dependent_keys(const Key *key, const int index)
+{
+  if (key->type != KEY_RELATIVE) {
+    return nullptr;
+  }
+
+  const int count = BLI_listbase_count(&key->block);
+
+  if (index < 0 || index >= count) {
+    return nullptr;
+  }
+
+  /* Seed the table with the specified key. */
+  bool *marked = static_cast<bool *>(MEM_callocN(sizeof(bool) * count, __func__));
+
+  marked[index] = true;
+
+  /* Iterative breadth-first search through the key list. This method minimizes
+   * the number of scans through the list and is fail-safe vs reference cycles. */
+  bool updated, found = false;
+  int i;
+
+  do {
+    updated = false;
+
+    LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &key->block, i) {
+      if (!marked[i] && kb->relative >= 0 && kb->relative < count && marked[kb->relative]) {
+        marked[i] = true;
+        updated = found = true;
+      }
+    }
+  } while (updated);
+
+  if (!found) {
+    MEM_freeN(marked);
+    return nullptr;
+  }
+
+  /* After the search is complete, exclude the original key. */
+  marked[index] = false;
+  return marked;
 }

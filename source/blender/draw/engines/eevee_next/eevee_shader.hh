@@ -33,8 +33,10 @@ enum eShaderType {
   FILM_CRYPTOMATTE_POST,
 
   DEFERRED_LIGHT,
+  DEFERRED_LIGHT_DIFFUSE_ONLY,
 
   DEBUG_SURFELS,
+  DEBUG_IRRADIANCE_GRID,
 
   DISPLAY_PROBE_GRID,
 
@@ -66,15 +68,29 @@ enum eShaderType {
   LIGHT_CULLING_ZBIN,
 
   LIGHTPROBE_IRRADIANCE_BOUNDS,
+  LIGHTPROBE_IRRADIANCE_OFFSET,
   LIGHTPROBE_IRRADIANCE_RAY,
   LIGHTPROBE_IRRADIANCE_LOAD,
 
   MOTION_BLUR_GATHER,
   MOTION_BLUR_TILE_DILATE,
-  MOTION_BLUR_TILE_FLATTEN_RENDER,
-  MOTION_BLUR_TILE_FLATTEN_VIEWPORT,
+  MOTION_BLUR_TILE_FLATTEN_RGBA,
+  MOTION_BLUR_TILE_FLATTEN_RG,
+
+  RAY_DENOISE_BILATERAL_REFLECT,
+  RAY_DENOISE_BILATERAL_REFRACT,
+  RAY_DENOISE_SPATIAL_REFLECT,
+  RAY_DENOISE_SPATIAL_REFRACT,
+  RAY_DENOISE_TEMPORAL,
+  RAY_GENERATE_REFLECT,
+  RAY_GENERATE_REFRACT,
+  RAY_TILE_CLASSIFY,
+  RAY_TILE_COMPACT,
+  RAY_TRACE_SCREEN_REFLECT,
+  RAY_TRACE_SCREEN_REFRACT,
 
   REFLECTION_PROBE_REMAP,
+  REFLECTION_PROBE_UPDATE_IRRADIANCE,
 
   SHADOW_CLIPMAP_CLEAR,
   SHADOW_DEBUG,
@@ -93,10 +109,16 @@ enum eShaderType {
 
   SUBSURFACE_EVAL,
 
+  SURFEL_CLUSTER_BUILD,
   SURFEL_LIGHT,
   SURFEL_LIST_BUILD,
   SURFEL_LIST_SORT,
   SURFEL_RAY,
+
+  VOLUME_INTEGRATION,
+  VOLUME_RESOLVE,
+  VOLUME_SCATTER,
+  VOLUME_SCATTER_WITH_LIGHTS,
 
   MAX_SHADER_TYPE,
 };
@@ -117,14 +139,16 @@ class ShaderModule {
 
   GPUShader *static_shader_get(eShaderType shader_type);
   GPUMaterial *material_shader_get(::Material *blender_mat,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool deferred_compilation);
-  GPUMaterial *world_shader_get(::World *blender_world, struct bNodeTree *nodetree);
+  GPUMaterial *world_shader_get(::World *blender_world,
+                                bNodeTree *nodetree,
+                                eMaterialPipeline pipeline_type);
   GPUMaterial *material_shader_get(const char *name,
                                    ListBase &materials,
-                                   struct bNodeTree *nodetree,
+                                   bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,
                                    eMaterialGeometry geometry_type,
                                    bool is_lookdev);

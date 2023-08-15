@@ -17,7 +17,7 @@
 
 #include "GPU_batch.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "draw_manager_text.h"
 

@@ -12,6 +12,7 @@
 #include "DNA_node_types.h"
 
 #include "BLI_easing.h"
+#include "BLI_math_geom.h"
 #include "BLI_stack.hh"
 
 #include "BKE_anim_data.h"
@@ -25,26 +26,26 @@
 #include "BKE_screen.h"
 
 #include "ED_node.hh" /* own include */
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_util.h"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_util.hh"
 #include "ED_viewer_path.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_state.h"
 
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
@@ -66,8 +67,6 @@ struct NodeInsertOfsData {
 };
 
 namespace blender::ed::space_node {
-
-bNodeSocket *get_main_socket(bNodeTree &ntree, bNode &node, eNodeSocketInOut in_out);
 
 static void clear_picking_highlight(ListBase *links)
 {
@@ -2450,11 +2449,10 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   if (!insert.parent ||
       (prev->parent && (prev->parent == next->parent) && (prev->parent != insert.parent)))
   {
-    bNode *frame;
     rctf totr_frame;
 
     /* check nodes front to back */
-    for (frame = (bNode *)ntree->nodes.last; frame; frame = frame->prev) {
+    LISTBASE_FOREACH_BACKWARD (bNode *, frame, &ntree->nodes) {
       /* skip selected, those are the nodes we want to attach */
       if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
         continue;

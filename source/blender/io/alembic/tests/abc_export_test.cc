@@ -10,7 +10,6 @@
 
 #include "BKE_main.h"
 #include "BLI_fileops.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"

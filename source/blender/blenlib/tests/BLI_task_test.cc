@@ -221,7 +221,7 @@ TEST(task, MempoolIterTLS)
 
   /* Check that all elements are added into the list once. */
   int number_accum = 0;
-  for (LinkData *link = (LinkData *)tls_data.accumulate_items->first; link; link = link->next) {
+  LISTBASE_FOREACH (LinkData *, link, tls_data.accumulate_items) {
     int *data = (int *)link->data;
     number_accum += *data;
   }

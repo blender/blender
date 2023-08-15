@@ -28,10 +28,10 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -799,8 +799,14 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_get(&scn_ptr, "name", scene_name);
 
   PointerRNA op_ptr;
-  uiItemFullO(
-      row, "RENDER_OT_render", "", ICON_RENDER_STILL, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+  uiItemFullO(row,
+              "RENDER_OT_render",
+              "",
+              ICON_RENDER_STILL,
+              nullptr,
+              WM_OP_INVOKE_DEFAULT,
+              UI_ITEM_NONE,
+              &op_ptr);
   RNA_string_set(&op_ptr, "layer", layer_name);
   RNA_string_set(&op_ptr, "scene", scene_name);
 }

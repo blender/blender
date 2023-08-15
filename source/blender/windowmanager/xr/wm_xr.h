@@ -8,18 +8,26 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct wmWindowManager;
 struct wmXrData;
 
 typedef void (*wmXrSessionExitFn)(const wmXrData *xr_data);
 
-/* wm_xr.c */
+/* `wm_xr.cc` */
 
 bool wm_xr_init(wmWindowManager *wm);
 void wm_xr_exit(wmWindowManager *wm);
 void wm_xr_session_toggle(wmWindowManager *wm, wmWindow *win, wmXrSessionExitFn session_exit_fn);
 bool wm_xr_events_handle(wmWindowManager *wm);
 
-/* wm_xr_operators.c */
+/* `wm_xr_operators.cc` */
 
 void wm_xr_operatortypes_register(void);
+
+#ifdef __cplusplus
+}
+#endif

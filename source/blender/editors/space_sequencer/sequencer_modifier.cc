@@ -13,11 +13,11 @@
 
 #include "BKE_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_modifier.h"

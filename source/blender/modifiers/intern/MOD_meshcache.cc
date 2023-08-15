@@ -10,7 +10,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -28,14 +30,14 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_query.h"
@@ -47,7 +49,7 @@
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 
-static void initData(ModifierData *md)
+static void init_data(ModifierData *md)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 
@@ -56,13 +58,13 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData *md)
+static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   return (mcmd->play_mode == MOD_MESHCACHE_PLAY_CFEA);
 }
 
-static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 
@@ -172,7 +174,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
     else if (UNLIKELY(me->totvert != verts_num)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
-    else if (UNLIKELY(me->totpoly == 0)) {
+    else if (UNLIKELY(me->faces_num == 0)) {
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
@@ -180,8 +182,8 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
 
       BKE_mesh_calc_relative_deform(
-          BKE_mesh_poly_offsets(me),
-          me->totpoly,
+          me->face_offsets().data(),
+          me->faces_num,
           me->corner_verts().data(),
           me->totvert,
           reinterpret_cast<const float(*)[3]>(
@@ -273,11 +275,11 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   }
 }
 
-static void deformVerts(ModifierData *md,
-                        const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData *md,
+                         const ModifierEvalContext *ctx,
+                         Mesh *mesh,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
@@ -294,12 +296,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "cache_format", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "filepath", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "cache_format", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "factor", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "deform_mode", 0, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "interpolation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "deform_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "interpolation", UI_ITEM_NONE, nullptr, ICON_NONE);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
   modifier_panel_end(layout, ptr);
@@ -318,19 +320,19 @@ static void time_remapping_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "play_mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
   if (RNA_enum_get(ptr, "play_mode") == MOD_MESHCACHE_PLAY_CFEA) {
-    uiItemR(layout, ptr, "frame_start", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "frame_scale", 0, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "frame_start", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "frame_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
   else { /* play_mode == MOD_MESHCACHE_PLAY_EVAL */
     int time_mode = RNA_enum_get(ptr, "time_mode");
     if (time_mode == MOD_MESHCACHE_TIME_FRAME) {
-      uiItemR(layout, ptr, "eval_frame", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_frame", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     else if (time_mode == MOD_MESHCACHE_TIME_SECONDS) {
-      uiItemR(layout, ptr, "eval_time", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_time", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
     else { /* time_mode == MOD_MESHCACHE_TIME_FACTOR */
-      uiItemR(layout, ptr, "eval_factor", 0, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "eval_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
     }
   }
 }
@@ -346,13 +348,13 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, true);
   uiLayoutSetRedAlert(col, RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
-  uiItemR(col, ptr, "forward_axis", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "up_axis", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "flip_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(
       region_type, eModifierType_MeshCache, panel_draw);
@@ -367,35 +369,36 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_MeshCache = {
+    /*idname*/ "MeshCache",
     /*name*/ N_("MeshCache"),
-    /*structName*/ "MeshCacheModifierData",
-    /*structSize*/ sizeof(MeshCacheModifierData),
+    /*struct_name*/ "MeshCacheModifierData",
+    /*struct_size*/ sizeof(MeshCacheModifierData),
     /*srna*/ &RNA_MeshCacheModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
     /*icon*/ ICON_MOD_MESHDEFORM, /* TODO: Use correct icon. */
 
-    /*copyData*/ BKE_modifier_copydata_generic,
+    /*copy_data*/ BKE_modifier_copydata_generic,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ initData,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ isDisabled,
-    /*updateDepsgraph*/ nullptr,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ init_data,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ is_disabled,
+    /*update_depsgraph*/ nullptr,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

@@ -6,11 +6,11 @@
  * \ingroup spimage
  */
 
-#include <errno.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -22,7 +22,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -60,28 +59,28 @@
 
 #include "RE_pipeline.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_image.h"
-#include "ED_mask.h"
-#include "ED_paint.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_undo.h"
-#include "ED_util.h"
-#include "ED_util_imbuf.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mask.hh"
+#include "ED_paint.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
+#include "ED_util_imbuf.hh"
+#include "ED_uvedit.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "PIL_time.h"
 
@@ -634,10 +633,10 @@ static void image_zoom_apply(ViewZoomData *vpd,
 
   if (viewzoom != USER_ZOOM_SCALE) {
     if (U.uiflag & USER_ZOOM_HORIZ) {
-      delta = (float)(x - vpd->origx);
+      delta = float(x - vpd->origx);
     }
     else {
-      delta = (float)(y - vpd->origy);
+      delta = float(y - vpd->origy);
     }
   }
   else {
@@ -652,7 +651,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
     double time = PIL_check_seconds_timer();
-    float time_step = (float)(time - vpd->timer_lastdraw);
+    float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
     zfac = 1.0f + ((delta / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
@@ -855,7 +854,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
   ot->flag = OPTYPE_LOCK_BYPASS;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+  prop = RNA_def_boolean(ot->srna, "fit_view", false, "Fit View", "Fit frame to the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -898,7 +897,7 @@ void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
   ot->poll = ED_space_image_cursor_poll;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "fit_view", 0, "Fit View", "Fit frame to the viewport");
+  prop = RNA_def_boolean(ot->srna, "fit_view", false, "Fit View", "Fit frame to the viewport");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -955,7 +954,7 @@ static int image_view_selected_exec(bContext *C, wmOperator * /*op*/)
 
   /* get bounds */
   float min[2], max[2];
-  if (ED_space_image_show_uvedit(sima, obedit, NULL, false)) {
+  if (ED_space_image_show_uvedit(sima, obedit)) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         scene, view_layer, ((View3D *)nullptr), &objects_len);
@@ -1141,8 +1140,8 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
   sima_zoom_set(sima, region, RNA_float_get(op->ptr, "ratio"), nullptr, false);
 
   /* ensure pixel exact locations for draw */
-  sima->xof = (int)sima->xof;
-  sima->yof = (int)sima->yof;
+  sima->xof = int(sima->xof);
+  sima->yof = int(sima->yof);
 
   ED_region_tag_redraw(region);
 
@@ -1711,7 +1710,7 @@ static int image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+  anim *anim = ((ImageAnim *)ima->anims.first)->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }
@@ -1901,7 +1900,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     RNA_boolean_set(op->ptr, "save_as_render", isd->opts.save_as_render);
   }
 
-  /* Show multiview save options only if image has multiviews. */
+  /* Show multi-view save options only if image has multi-views. */
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
   RNA_property_boolean_set(op->ptr, prop, BKE_image_is_multiview(image));
@@ -2027,7 +2026,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
     uiLayout *col = uiLayoutColumn(layout, true);
     uiItemS(col);
-    uiItemR(col, &linear_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
+    uiItemR(col, &linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
   }
 
   /* Multiview settings. */
@@ -2078,7 +2077,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   prop = RNA_def_boolean(
       ot->srna,
       "save_as_render",
-      0,
+      false,
       "Save As Render",
       "Save image with render color management.\n"
       "For display image formats like PNG, apply view and display transform.\n"
@@ -2086,7 +2085,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "copy",
-                         0,
+                         false,
                          "Copy",
                          "Create a new image file without modifying the current image in Blender");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2225,7 +2224,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   ImBuf *ibuf, *first_ibuf = nullptr;
   int tot = 0;
   char di[FILE_MAX];
-  struct MovieCacheIter *iter;
+  MovieCacheIter *iter;
 
   if (image == nullptr) {
     return OPERATOR_CANCELLED;
@@ -2656,14 +2655,14 @@ static void image_new_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, op->ptr, "name", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "width", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "height", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "color", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "alpha", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "generated_type", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "float", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "tiled", 0, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "tiled", UI_ITEM_NONE, nullptr, ICON_NONE);
 
 #if 0
   if (is_multiview) {
@@ -2707,20 +2706,23 @@ void IMAGE_OT_new(wmOperatorType *ot)
       ot->srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
   RNA_def_property_float_array_default(prop, default_color);
-  RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+  RNA_def_boolean(ot->srna, "alpha", true, "Alpha", "Create an image with an alpha channel");
   RNA_def_enum(ot->srna,
                "generated_type",
                rna_enum_image_generated_type_items,
                IMA_GENTYPE_BLANK,
                "Generated Type",
                "Fill the image with a grid for UV map testing");
-  RNA_def_boolean(
-      ot->srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
+  RNA_def_boolean(ot->srna,
+                  "float",
+                  false,
+                  "32-bit Float",
+                  "Create image with 32-bit floating-point bit depth");
   RNA_def_property_flag(prop, PROP_HIDDEN);
   prop = RNA_def_boolean(
-      ot->srna, "use_stereo_3d", 0, "Stereo 3D", "Create an image with left and right views");
+      ot->srna, "use_stereo_3d", false, "Stereo 3D", "Create an image with left and right views");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
-  prop = RNA_def_boolean(ot->srna, "tiled", 0, "Tiled", "Create a tiled image");
+  prop = RNA_def_boolean(ot->srna, "tiled", false, "Tiled", "Create a tiled image");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3003,7 +3005,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   if (ibuf->float_buffer.data) {
 
     float *fp = ibuf->float_buffer.data;
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
+    for (i = size_t(ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
       if (r) {
         fp[0] = 1.0f - fp[0];
       }
@@ -3025,7 +3027,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   else if (ibuf->byte_buffer.data) {
 
     uchar *cp = ibuf->byte_buffer.data;
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
+    for (i = size_t(ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
       if (r) {
         cp[0] = 255 - cp[0];
       }
@@ -3077,13 +3079,13 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   ot->poll = image_from_context_has_data_poll_active_tile;
 
   /* properties */
-  prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert red channel");
+  prop = RNA_def_boolean(ot->srna, "invert_r", false, "Red", "Invert red channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_g", 0, "Green", "Invert green channel");
+  prop = RNA_def_boolean(ot->srna, "invert_g", false, "Green", "Invert green channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_b", 0, "Blue", "Invert blue channel");
+  prop = RNA_def_boolean(ot->srna, "invert_b", false, "Blue", "Invert blue channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(ot->srna, "invert_a", 0, "Alpha", "Invert alpha channel");
+  prop = RNA_def_boolean(ot->srna, "invert_a", false, "Alpha", "Invert alpha channel");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* flags */
@@ -3382,7 +3384,7 @@ bool ED_space_image_color_sample(
   if (uv[0] >= 0.0f && uv[1] >= 0.0f && uv[0] < 1.0f && uv[1] < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(uv[0] * ibuf->x), y = (int)(uv[1] * ibuf->y);
+    int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -3607,7 +3609,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER;
 
-  RNA_def_boolean(ot->srna, "reverse", 0, "Cycle in Reverse", "");
+  RNA_def_boolean(ot->srna, "reverse", false, "Cycle in Reverse", "");
 }
 
 /** \} */
@@ -3723,7 +3725,7 @@ static bool change_frame_poll(bContext *C)
 {
   /* prevent changes during render */
   if (G.is_rendering) {
-    return 0;
+    return false;
   }
 
   return space_image_main_region_poll(C);
@@ -4012,12 +4014,12 @@ static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "color", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "width", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "height", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "alpha", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "generated_type", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "float", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
@@ -4068,8 +4070,8 @@ static void def_fill_tile(StructOrFunctionRNA *srna)
 
   /* Only needed when filling the first tile. */
   RNA_def_boolean(
-      srna, "float", 0, "32-bit Float", "Create image with 32-bit floating-point bit depth");
-  RNA_def_boolean(srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+      srna, "float", false, "32-bit Float", "Create image with 32-bit floating-point bit depth");
+  RNA_def_boolean(srna, "alpha", true, "Alpha", "Create an image with an alpha channel");
 }
 
 static bool tile_add_poll(bContext *C)
@@ -4155,10 +4157,10 @@ static void tile_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, op->ptr, "number", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "count", 0, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "label", 0, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "fill", 0, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "number", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "count", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "label", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "fill", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "fill")) {
     draw_fill_tile(op->ptr, layout);

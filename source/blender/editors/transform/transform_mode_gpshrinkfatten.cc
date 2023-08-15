@@ -6,9 +6,9 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -16,9 +16,9 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -32,7 +32,7 @@
 /** \name Transform (GPencil Strokes Shrink/Fatten)
  * \{ */
 
-static void applyGPShrinkFatten(TransInfo *t, const int[2] /*mval*/)
+static void applyGPShrinkFatten(TransInfo *t)
 {
   float ratio;
   int i;
@@ -61,7 +61,7 @@ static void applyGPShrinkFatten(TransInfo *t, const int[2] /*mval*/)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     bGPdata *gpd = static_cast<bGPdata *>(td->ob->data);
-    const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+    const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
     /* Only recalculate data when in curve edit mode. */
     if (is_curve_edit) {
       recalc = true;
@@ -84,7 +84,7 @@ static void applyGPShrinkFatten(TransInfo *t, const int[2] /*mval*/)
   }
 
   if (recalc) {
-    recalcData(t);
+    recalc_data(t);
   }
 
   ED_area_status_text(t->area, str);

@@ -148,11 +148,13 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
   /* TODO(fclem) Promote to parameter? dither with Noise? */
   const float mirroring_min_distance = 15.0;
   if (pair_data[0].coc < mirroring_threshold &&
-      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc) {
+      (pair_data[1].coc - mirroring_min_distance) > pair_data[0].coc)
+  {
     pair_data[1].coc = pair_data[0].coc;
   }
   else if (pair_data[1].coc < mirroring_threshold &&
-           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc) {
+           (pair_data[0].coc - mirroring_min_distance) > pair_data[1].coc)
+  {
     pair_data[0].coc = pair_data[1].coc;
   }
 #endif

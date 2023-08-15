@@ -20,7 +20,8 @@
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_task.h"
@@ -39,7 +40,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -49,39 +50,38 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
-#include "BKE_subdiv_ccg.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv_ccg.hh"
+#include "BKE_subsurf.hh"
+#include "BLI_math_vector.hh"
 
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-#  include "DEG_depsgraph_query.h"
-#endif
+#include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_paint.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_view3d.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"
@@ -130,7 +130,7 @@ float SCULPT_calc_radius(ViewContext *vc,
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
   if (ss->bm) {
-    ss->totfaces = ss->totpoly = ss->bm->totface;
+    ss->totfaces = ss->faces_num = ss->bm->totface;
     ss->totvert = ss->bm->totvert;
 
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
@@ -150,8 +150,8 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
 
     case PBVH_FACES:
     case PBVH_GRIDS: {
-      no = blender::bke::mesh::poly_normal_calc(ss->vert_positions,
-                                                ss->corner_verts.slice(ss->polys[face.i]));
+      no = blender::bke::mesh::face_normal_calc(ss->vert_positions,
+                                                ss->corner_verts.slice(ss->faces[face.i]));
       break;
     }
     default: /* Failed. */
@@ -171,7 +171,7 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
 void SCULPT_face_random_access_ensure(SculptSession *ss)
 {
   if (ss->bm) {
-    ss->totfaces = ss->totpoly = ss->bm->totface;
+    ss->totfaces = ss->faces_num = ss->bm->totface;
     ss->totvert = ss->bm->totvert;
 
     BM_mesh_elem_index_ensure(ss->bm, BM_FACE);
@@ -576,11 +576,7 @@ void SCULPT_face_visibility_all_invert(SculptSession *ss)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS:
-      BLI_assert(ss->hide_poly != nullptr);
-
-      for (int i = 0; i < ss->totfaces; i++) {
-        ss->hide_poly[i] = !ss->hide_poly[i];
-      }
+      blender::array_utils::invert_booleans({ss->hide_poly, ss->totfaces});
       break;
     case PBVH_BMESH: {
       BMIter iter;
@@ -611,6 +607,11 @@ void SCULPT_face_visibility_all_set(Object *ob, bool visible)
     case PBVH_FACES:
     case PBVH_GRIDS:
       /* Note: no need to use the generic loop in PBVH_BMESH, just memset ss->hide_poly. */
+      blender::MutableSpan(ss->hide_poly, ss->totfaces).fill(!visible);
+      break;
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
 
       BLI_assert(ss->hide_poly != nullptr);
 
@@ -627,13 +628,7 @@ void SCULPT_face_visibility_all_set(Object *ob, bool visible)
         memset(ss->hide_poly, !visible, sizeof(bool) * ss->totfaces);
       }
       break;
-    case PBVH_BMESH:
-      for (int i = 0; i < ss->totfaces; i++) {
-        PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
-        BMFace *f = reinterpret_cast<BMFace *>(face.i);
-        BM_elem_flag_set(f, BM_ELEM_HIDDEN, !visible);
-      }
-      break;
+    }
   }
 }
 
@@ -644,8 +639,8 @@ bool SCULPT_vertex_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int poly : ss->pmap[vertex.i]) {
-        if (!ss->hide_poly[poly]) {
+      for (const int face : ss->pmap[vertex.i]) {
+        if (!ss->hide_poly[face]) {
           return true;
         }
       }
@@ -677,8 +672,8 @@ bool SCULPT_vertex_all_faces_visible_get(const SculptSession *ss, PBVHVertRef ve
       if (!ss->hide_poly) {
         return true;
       }
-      for (const int poly : ss->pmap[vertex.i]) {
-        if (ss->hide_poly[poly]) {
+      for (const int face : ss->pmap[vertex.i]) {
+        if (ss->hide_poly[face]) {
           return false;
         }
       }
@@ -728,17 +723,17 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, PBVHVertRef vertex, int face_
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       BLI_assert(ss->face_sets != nullptr);
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->hide_poly && ss->hide_poly[poly_index]) {
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->hide_poly && ss->hide_poly[face_index]) {
           /* Skip hidden faces connected to the vertex. */
           continue;
         }
 
-        for (int vert_i : ss->corner_verts.slice(ss->polys[poly_index])) {
+        for (int vert_i : ss->corner_verts.slice(ss->faces[face_index])) {
           BKE_sculpt_boundary_flag_update(ss, BKE_pbvh_make_vref(vert_i));
         }
 
-        ss->face_sets[poly_index] = face_set;
+        ss->face_sets[face_index] = face_set;
       }
 
       break;
@@ -824,9 +819,9 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
         return SCULPT_FACE_SET_NONE;
       }
       int face_set = 0;
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->face_sets[poly_index] > face_set) {
-          face_set = ss->face_sets[poly_index];
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[face_index] > face_set) {
+          face_set = ss->face_sets[face_index];
         }
       }
       return face_set;
@@ -868,8 +863,8 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_
       if (!ss->face_sets) {
         return face_set == SCULPT_FACE_SET_NONE;
       }
-      for (const int poly_index : ss->pmap[vertex.i]) {
-        if (ss->face_sets[poly_index] == face_set) {
+      for (const int face_index : ss->pmap[vertex.i]) {
+        if (ss->face_sets[face_index] == face_set) {
           return true;
         }
       }
@@ -931,14 +926,14 @@ void SCULPT_visibility_sync_all_from_faces(Object *ob)
     case PBVH_FACES: {
       /* We may have adjusted the ".hide_poly" attribute, now make the hide status attributes for
        * vertices and edges consistent. */
-      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_mesh_flush_hidden_from_faces(mesh);
       BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
       break;
     }
     case PBVH_GRIDS: {
       /* In addition to making the hide status of the base mesh consistent, we also have to
        * propagate the status to the Multires grids. */
-      BKE_mesh_flush_hidden_from_polys(mesh);
+      BKE_mesh_flush_hidden_from_faces(mesh);
       BKE_sculpt_sync_face_visibility_to_grids(mesh, ss->subdiv_ccg);
       break;
     }
@@ -1813,7 +1808,8 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
     leaf_flag = PBVH_TexLeaf;
   }
 
-  /* Build a list of all nodes that are potentially within the cursor or brush's area of influence.
+  /* Build a list of all nodes that are potentially within the cursor or brush's area of
+   * influence.
    */
   if (!ss->cache || brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
     SculptSearchSphereData data{};
@@ -2855,13 +2851,13 @@ static float brush_strength(const Sculpt *sd,
         return root_alpha * feather * pressure * overlap;
       }
       else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_EXPAND) {
-        /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting over
-         * the same vertices. */
+        /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting
+         * over the same vertices. */
         return 0.1f * alpha * flip * pressure * overlap * feather;
       }
       else {
-        /* Multiply by 10 by default to get a larger range of strength depending on the size of the
-         * brush and object. */
+        /* Multiply by 10 by default to get a larger range of strength depending on the size of
+         * the brush and object. */
         return 10.0f * alpha * flip * pressure * overlap * feather;
       }
     case SCULPT_TOOL_DRAW_FACE_SETS:
@@ -3118,7 +3114,7 @@ void SCULPT_brush_strength_color(SculptSession *ss,
 void SCULPT_calc_vertex_displacement(SculptSession *ss,
                                      const Brush *brush,
                                      float rgba[3],
-                                     float out_offset[3])
+                                     float r_offset[3])
 {
   mul_v3_fl(rgba, ss->cache->bstrength);
   /* Handle brush inversion */
@@ -3139,7 +3135,7 @@ void SCULPT_calc_vertex_displacement(SculptSession *ss,
   if (ss->cache->radial_symmetry_pass) {
     mul_m4_v3(ss->cache->symm_rot_mat, rgba);
   }
-  flip_v3_v3(out_offset, rgba, ss->cache->mirror_symmetry_pass);
+  flip_v3_v3(r_offset, rgba, ss->cache->mirror_symmetry_pass);
 }
 
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
@@ -3389,14 +3385,6 @@ static void calc_brush_local_mat(const float rotation,
 
   /* Scale by brush radius. */
   float radius = cache->radius;
-
-  /* Square tips should scale by square root of 2. */
-  if (BKE_brush_has_cube_tip(cache->brush, PAINT_MODE_SCULPT)) {
-    radius += (radius / M_SQRT2 - radius) * cache->brush->tip_roundness;
-  }
-  else {
-    radius /= M_SQRT2;
-  }
 
   normalize_m4(mat);
   scale_m4_fl(scale, radius);
@@ -3764,11 +3752,11 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
 {
   Mesh *me = (Mesh *)ob->data;
   float(*ofs)[3] = nullptr;
-  int a;
+  int a, currkey_i;
   const int kb_act_idx = ob->shapenr - 1;
 
   /* For relative keys editing of base should update other keys. */
-  if (BKE_keyblock_is_basis(me->key, kb_act_idx)) {
+  if (bool *dependent = BKE_keyblock_get_dependent_keys(me->key, kb_act_idx)) {
     ofs = BKE_keyblock_convert_to_vertcos(ob, kb);
 
     /* Calculate key coord offsets (from previous location). */
@@ -3777,13 +3765,14 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
     }
 
     /* Apply offsets on other keys. */
-    LISTBASE_FOREACH (KeyBlock *, currkey, &me->key->block) {
-      if ((currkey != kb) && (currkey->relative == kb_act_idx)) {
+    LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &me->key->block, currkey_i) {
+      if ((currkey != kb) && dependent[currkey_i]) {
         BKE_keyblock_update_from_offset(ob, currkey, ofs);
       }
     }
 
     MEM_freeN(ofs);
+    MEM_freeN(dependent);
   }
 
   /* Modifying of basis key should update mesh. */
@@ -3911,11 +3900,9 @@ bool SCULPT_needs_area_normal(SculptSession * /*ss*/, Sculpt * /*sd*/, Brush *br
 /* Note: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
-static void sculpt_topology_update(Sculpt *sd,
-                                   Object *ob,
-                                   Brush *brush,
-                                   UnifiedPaintSettings * /* ups */,
-                                   PaintModeSettings * /*paint_mode_settings*/)
+static void sculpt_topology_update(
+    Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSettings * /* ups */, PaintModeSettings *
+    /*paint_mode_settings*/)
 {
   using namespace blender::bke::dyntopo;
   SculptSession *ss = ob->sculpt;
@@ -4045,7 +4032,7 @@ static void sculpt_topology_update(Sculpt *sd,
   copy_v3_v3(location, ss->cache->true_location);
   mul_m4_v3(ob->object_to_world, location);
 
-  ss->totfaces = ss->totpoly = ss->bm->totface;
+  ss->totfaces = ss->faces_num = ss->bm->totface;
   ss->totvert = ss->bm->totvert;
 }
 
@@ -5277,8 +5264,8 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
   }
 }
 
-/* In these brushes the grab delta is calculated always from the initial stroke location, which is
- * generally used to create grab deformations. */
+/* In these brushes the grab delta is calculated always from the initial stroke location, which
+ * is generally used to create grab deformations. */
 static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
 {
   if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && (brush->flag & BRUSH_ANCHORED)) {
@@ -5499,9 +5486,9 @@ static void sculpt_update_cache_paint_variants(StrokeCache *cache, const Brush *
                                       1.0f - cache->pressure :
                                       cache->pressure;
 
-    /* This makes wet mix more sensible in higher values, which allows to create brushes that have
-     * a wider pressure range were they only blend colors without applying too much of the brush
-     * color. */
+    /* This makes wet mix more sensible in higher values, which allows to create brushes that
+     * have a wider pressure range were they only blend colors without applying too much of the
+     * brush color. */
     cache->paint_brush.wet_mix = 1.0f - pow2f(1.0f - cache->paint_brush.wet_mix);
   }
 
@@ -6104,18 +6091,6 @@ void SCULPT_update_object_bounding_box(Object *ob)
   }
 }
 
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-void SCULPT_tag_uveditor_update(bContext *C, Depsgraph *depsgraph, Object *ob)
-{
-  Object *obedit_eval = DEG_get_evaluated_object(depsgraph, ob);
-  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
-                                 BKE_MESH_BATCH_DIRTY_UVEDIT_ALL);
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_EDITORS | ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
-}
-#endif
-
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
   using namespace blender;
@@ -6139,15 +6114,11 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   if ((update_flags & SCULPT_UPDATE_IMAGE) != 0) {
     ED_region_tag_redraw(region);
     if (update_flags == SCULPT_UPDATE_IMAGE) {
-      /* Early exit when only need to update the images. We don't want to tag any geometry updates
-       * that would rebuilt the PBVH. */
+      /* Early exit when only need to update the images. We don't want to tag any geometry
+       * updates that would rebuilt the PBVH. */
       return;
     }
   }
-
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
-  SCULPT_tag_uveditor_update(C, depsgraph, ob);
-#endif
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
@@ -6364,8 +6335,8 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
     Brush *brush = BKE_paint_brush(&sd->paint);
     ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
-    /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
-     * canvas it is painting on. (ref. use_sculpt_texture_paint). */
+    /* NOTE: This should be removed when paint mode is available. Paint mode can force based on
+     * the canvas it is painting on. (ref. use_sculpt_texture_paint). */
     if (brush && SCULPT_tool_is_paint(brush->sculpt_tool) &&
         !SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob))
     {
@@ -6745,7 +6716,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "ignore_background_click",
-                  0,
+                  false,
                   "Ignore Background Click",
                   "Clicks on the background do not start the stroke");
 }
@@ -6919,11 +6890,11 @@ void SCULPT_ensure_vemap(SculptSession *ss)
 void SCULPT_ensure_epmap(SculptSession *ss)
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH && ss->epmap.is_empty()) {
-    ss->epmap = blender::bke::mesh::build_edge_to_poly_map(ss->polys,
+    ss->epmap = blender::bke::mesh::build_edge_to_face_map(ss->faces,
                                                            ss->corner_edges,
                                                            ss->totedges,
-                                                           ss->edge_to_poly_offsets,
-                                                           ss->edge_to_poly_indices);
+                                                           ss->edge_to_face_offsets,
+                                                           ss->edge_to_face_indices);
   }
 }
 
@@ -7029,7 +7000,7 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   copy_v3_v3(ray_start, SCULPT_vertex_co_get(ss, vertex));
   madd_v3_v3fl(ray_start, ray_normal, 0.002);
 
-  SculptRaycastData srd = {0};
+  SculptRaycastData srd = {nullptr};
   srd.original = original;
   srd.ss = ss;
   srd.hit = false;

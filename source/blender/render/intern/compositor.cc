@@ -61,11 +61,12 @@ class TexturePool : public realtime_compositor::TexturePool {
   }
 };
 
-/* Render Context Data
+/**
+ * Render Context Data
  *
  * Stored separately from the context so we can update it without losing any cached
- * data from the context. */
-
+ * data from the context.
+ */
 class ContextInputData {
  public:
   const Scene *scene;
@@ -143,11 +144,6 @@ class Context : public realtime_compositor::Context {
     return true;
   }
 
-  bool use_texture_color_management() const override
-  {
-    return BKE_scene_check_color_management_enabled(input_data_.scene);
-  }
-
   const RenderData &get_render_data() const override
   {
     return *(input_data_.render_data);
@@ -192,8 +188,20 @@ class Context : public realtime_compositor::Context {
     /* TODO: support outputting previews.
      * TODO: just a temporary hack, needs to get stored in RenderResult,
      * once that supports GPU buffers. */
+    const int2 size = get_render_size();
+
+    /* Re-create texture if the viewer size changes. */
+    if (viewer_output_texture_) {
+      const int current_width = GPU_texture_width(viewer_output_texture_);
+      const int current_height = GPU_texture_height(viewer_output_texture_);
+
+      if (current_width != size.x || current_height != size.y) {
+        GPU_TEXTURE_FREE_SAFE(viewer_output_texture_);
+        viewer_output_texture_ = nullptr;
+      }
+    }
+
     if (viewer_output_texture_ == nullptr) {
-      const int2 size = get_render_size();
       viewer_output_texture_ = GPU_texture_create_2d("compositor_viewer_output_texture",
                                                      size.x,
                                                      size.y,
@@ -312,7 +320,7 @@ class Context : public realtime_compositor::Context {
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
 
-    ImageUser image_user = {0};
+    ImageUser image_user = {nullptr};
     image_user.multi_index = BKE_scene_multiview_view_id_get(input_data_.render_data,
                                                              input_data_.view_name.c_str());
 
@@ -423,6 +431,34 @@ class RealtimeCompositor {
 
 }  // namespace blender::render
 
+void Render::compositor_execute(const Scene &scene,
+                                const RenderData &render_data,
+                                const bNodeTree &node_tree,
+                                const bool use_file_output,
+                                const char *view_name)
+{
+  std::unique_lock lock(gpu_compositor_mutex);
+
+  blender::render::ContextInputData input_data(
+      scene, render_data, node_tree, use_file_output, view_name);
+
+  if (gpu_compositor == nullptr) {
+    gpu_compositor = new blender::render::RealtimeCompositor(*this, input_data);
+  }
+
+  gpu_compositor->execute(input_data);
+}
+
+void Render::compositor_free()
+{
+  std::unique_lock lock(gpu_compositor_mutex);
+
+  if (gpu_compositor != nullptr) {
+    delete gpu_compositor;
+    gpu_compositor = nullptr;
+  }
+}
+
 void RE_compositor_execute(Render &render,
                            const Scene &scene,
                            const RenderData &render_data,
@@ -430,26 +466,10 @@ void RE_compositor_execute(Render &render,
                            const bool use_file_output,
                            const char *view_name)
 {
-  BLI_mutex_lock(&render.gpu_compositor_mutex);
-
-  blender::render::ContextInputData input_data(
-      scene, render_data, node_tree, use_file_output, view_name);
-
-  if (render.gpu_compositor == nullptr) {
-    render.gpu_compositor = new blender::render::RealtimeCompositor(render, input_data);
-  }
-
-  render.gpu_compositor->execute(input_data);
-
-  BLI_mutex_unlock(&render.gpu_compositor_mutex);
+  render.compositor_execute(scene, render_data, node_tree, use_file_output, view_name);
 }
 
 void RE_compositor_free(Render &render)
 {
-  BLI_mutex_lock(&render.gpu_compositor_mutex);
-  if (render.gpu_compositor) {
-    delete render.gpu_compositor;
-    render.gpu_compositor = nullptr;
-  }
-  BLI_mutex_unlock(&render.gpu_compositor_mutex);
+  render.compositor_free();
 }

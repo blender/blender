@@ -9,7 +9,6 @@
  */
 
 #include "BLI_array.hh"
-#include "BLI_math.h"
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
@@ -471,7 +470,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
 }
 #else
 bool BM_mesh_boolean(BMesh * /*bm*/,
-                     struct BMLoop *(*looptris)[3],
+                     BMLoop *(*looptris)[3],
                      const int /*looptris_tot*/,
                      int (*test_fn)(BMFace *, void *),
                      void * /*user_data*/,
@@ -494,7 +493,7 @@ bool BM_mesh_boolean(BMesh * /*bm*/,
  * to the intersection result faces.
  */
 bool BM_mesh_boolean_knife(BMesh * /*bm*/,
-                           struct BMLoop *(*looptris)[3],
+                           BMLoop *(*looptris)[3],
                            const int /*looptris_tot*/,
                            int (*test_fn)(BMFace *, void *),
                            void * /*user_data*/,

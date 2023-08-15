@@ -6,8 +6,8 @@
 
 #include "BKE_curve_to_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -30,8 +30,8 @@ static void geometry_set_curve_to_mesh(GeometrySet &geometry_set,
                                        const bool fill_caps,
                                        const AnonymousAttributePropagationInfo &propagation_info)
 {
-  const Curves &curves = *geometry_set.get_curves_for_read();
-  const Curves *profile_curves = profile_set.get_curves_for_read();
+  const Curves &curves = *geometry_set.get_curves();
+  const Curves *profile_curves = profile_set.get_curves();
 
   bke::GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
@@ -63,16 +63,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(curve_set));
 }
 
-}  // namespace blender::nodes::node_geo_curve_to_mesh_cc
-
-void register_node_type_geo_curve_to_mesh()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_curve_to_mesh_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_to_mesh_cc

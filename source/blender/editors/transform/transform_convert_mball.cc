@@ -10,7 +10,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 
@@ -27,7 +29,6 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     MetaBall *mb = (MetaBall *)tc->obedit->data;
-    MetaElem *ml;
     TransData *td;
     TransDataExtension *tx;
     float mtx[3][3], smtx[3][3];
@@ -36,7 +37,7 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
     /* count totals */
-    for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
       if (ml->flag & SELECT) {
         countsel++;
       }
@@ -67,7 +68,7 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
     copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+    LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
       if (is_prop_edit || (ml->flag & SELECT)) {
         td->loc = &ml->x;
         copy_v3_v3(td->iloc, td->loc);
@@ -138,7 +139,7 @@ static void recalcData_mball(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_MBall = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransMBallVerts,
-    /*recalcData*/ recalcData_mball,
+    /*create_trans_data*/ createTransMBallVerts,
+    /*recalc_data*/ recalcData_mball,
     /*special_aftertrans_update*/ nullptr,
 };

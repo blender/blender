@@ -6,8 +6,8 @@
  * \ingroup cmpnodes
  */
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
@@ -45,9 +45,9 @@ static void node_composit_buts_antialiasing(uiLayout *layout, bContext * /*C*/, 
 
   col = uiLayoutColumn(layout, false);
 
-  uiItemR(col, ptr, "threshold", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "contrast_limit", 0, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "corner_rounding", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "threshold", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "contrast_limit", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "corner_rounding", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

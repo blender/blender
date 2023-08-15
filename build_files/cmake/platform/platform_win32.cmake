@@ -186,8 +186,6 @@ endif()
 # C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
 if(NOT MSVC_CLANG)
   string(APPEND CMAKE_CXX_FLAGS " /permissive-")
-  # Two-phase name lookup does not place nicely with OpenMP yet, so disable for now
-  string(APPEND CMAKE_CXX_FLAGS " /Zc:twoPhase-")
 endif()
 
 if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
@@ -519,25 +517,29 @@ if(WITH_JACK)
   set(JACK_LIBRARIES optimized ${LIBDIR}/jack/lib/libjack.lib debug ${LIBDIR}/jack/lib/libjack_d.lib)
 endif()
 
+set(_PYTHON_VERSION "3.10")
+string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${_PYTHON_VERSION})
+# Python executable is needed as part of the build-process,
+# note that building without Python is quite unusual.
+set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
+
 if(WITH_PYTHON)
   # Cache version for make_bpy_wheel.py to detect.
   unset(PYTHON_VERSION CACHE)
-  set(PYTHON_VERSION "3.10" CACHE STRING "Python version")
+  set(PYTHON_VERSION "${_PYTHON_VERSION}" CACHE STRING "Python version")
 
-  string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
   set(PYTHON_LIBRARY ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}.lib)
   set(PYTHON_LIBRARY_DEBUG ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/libs/python${_PYTHON_VERSION_NO_DOTS}_d.lib)
-
-  set(PYTHON_EXECUTABLE ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python$<$<CONFIG:Debug>:_d>.exe)
 
   set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/include)
   set(PYTHON_NUMPY_INCLUDE_DIRS ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/lib/site-packages/numpy/core/include)
   set(NUMPY_FOUND ON)
-  unset(_PYTHON_VERSION_NO_DOTS)
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
   set(PYTHON_LIBRARIES debug "${PYTHON_LIBRARY_DEBUG}" optimized "${PYTHON_LIBRARY}" )
 endif()
+unset(_PYTHON_VERSION)
+unset(_PYTHON_VERSION_NO_DOTS)
 
 if(NOT WITH_WINDOWS_FIND_MODULES)
   # even if boost is off, we still need to install the dlls when we use our lib folder since
@@ -859,10 +861,14 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
        REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+[0-9]+.*$")
   file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MINOR
        REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+[0-9]+.*$")
+  file(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_PATCH
+       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+[0-9]+.*$")
   string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+([.0-9]+).*"
          "\\1" OSL_LIBRARY_VERSION_MAJOR ${OSL_LIBRARY_VERSION_MAJOR})
   string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+([.0-9]+).*"
          "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
+  string(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+([.0-9]+).*"
+         "\\1" OSL_LIBRARY_VERSION_PATCH ${OSL_LIBRARY_VERSION_PATCH})
 endif()
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
@@ -965,6 +971,10 @@ if(WITH_USD)
       optimized ${USD_RELEASE_LIB}
     )
   endif()
+endif()
+
+if(WITH_MATERIALX)
+  include("${LIBDIR}/MaterialX/lib/cmake/MaterialX/MaterialXTargets.cmake")
 endif()
 
 if(WINDOWS_PYTHON_DEBUG)

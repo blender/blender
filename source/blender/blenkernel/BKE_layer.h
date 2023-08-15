@@ -493,7 +493,7 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
   } \
   ((void)0)
 
-/* layer_utils.c */
+/* `layer_utils.cc` */
 
 struct ObjectsInViewLayerParams {
   uint no_dup_data : 1;

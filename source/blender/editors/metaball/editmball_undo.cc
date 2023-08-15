@@ -6,8 +6,8 @@
  * \ingroup edmeta
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,13 +31,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_mball.h"
-#include "ED_object.h"
-#include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_mball.hh"
+#include "ED_object.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.mball"};
@@ -55,13 +55,11 @@ struct UndoMBall {
 /* free all MetaElems from ListBase */
 static void freeMetaElemlist(ListBase *lb)
 {
-  MetaElem *ml;
-
   if (lb == nullptr) {
     return;
   }
 
-  while ((ml = static_cast<MetaElem *>(BLI_pophead(lb)))) {
+  while (MetaElem *ml = static_cast<MetaElem *>(BLI_pophead(lb))) {
     MEM_freeN(ml);
   }
 }

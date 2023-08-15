@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
@@ -51,17 +51,6 @@ static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_a
   /* write LibData */
   BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
   BKE_id_blend_write(writer, &prb->id);
-
-  if (prb->adt) {
-    BKE_animdata_blend_write(writer, prb->adt);
-  }
-}
-
-static void lightprobe_blend_read_data(BlendDataReader *reader, ID *id)
-{
-  LightProbe *prb = (LightProbe *)id;
-  BLO_read_data_address(reader, &prb->adt);
-  BKE_animdata_blend_read_data(reader, prb->adt);
 }
 
 static void lightprobe_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -91,7 +80,7 @@ IDTypeInfo IDType_ID_LP = {
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ lightprobe_blend_write,
-    /*blend_read_data*/ lightprobe_blend_read_data,
+    /*blend_read_data*/ nullptr,
     /*blend_read_lib*/ lightprobe_blend_read_lib,
     /*blend_read_expand*/ nullptr,
 
@@ -150,8 +139,7 @@ static void lightprobe_grid_cache_frame_blend_write(BlendWriter *writer,
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_b);
   BLO_write_float_array(writer, sample_count, cache->visibility.L1_c);
 
-  BLO_write_struct_array(
-      writer, LightProbeGridCacheFrame, sample_count, cache->connectivity.bitmask);
+  BLO_write_int8_array(writer, sample_count, (int8_t *)cache->connectivity.validity);
 }
 
 static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
@@ -174,6 +162,8 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   cache->baking.L1_a = nullptr;
   cache->baking.L1_b = nullptr;
   cache->baking.L1_c = nullptr;
+  cache->baking.virtual_offset = nullptr;
+  cache->baking.validity = nullptr;
   cache->surfels = nullptr;
   cache->surfels_len = 0;
 
@@ -187,7 +177,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_b);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_c);
 
-  BLO_read_data_address(reader, &cache->connectivity.bitmask);
+  BLO_read_data_address(reader, &cache->connectivity.validity);
 }
 
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
@@ -214,11 +204,37 @@ template<typename T> static void spherical_harmonic_free(T &data)
   MEM_SAFE_FREE(data.L1_c);
 }
 
+template<typename DataT, typename T> static void spherical_harmonic_copy(T &dst, T &src)
+{
+  dst.L0 = (DataT *)MEM_dupallocN(src.L0);
+  dst.L1_a = (DataT *)MEM_dupallocN(src.L1_a);
+  dst.L1_b = (DataT *)MEM_dupallocN(src.L1_b);
+  dst.L1_c = (DataT *)MEM_dupallocN(src.L1_c);
+}
+
 LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_create()
 {
   LightProbeGridCacheFrame *cache = static_cast<LightProbeGridCacheFrame *>(
       MEM_callocN(sizeof(LightProbeGridCacheFrame), "LightProbeGridCacheFrame"));
   return cache;
+}
+
+LightProbeGridCacheFrame *BKE_lightprobe_grid_cache_frame_copy(LightProbeGridCacheFrame *src)
+{
+  LightProbeGridCacheFrame *dst = static_cast<LightProbeGridCacheFrame *>(MEM_dupallocN(src));
+  dst->block_infos = static_cast<LightProbeBlockData *>(MEM_dupallocN(src->block_infos));
+  spherical_harmonic_copy<float[3]>(dst->irradiance, src->irradiance);
+  spherical_harmonic_copy<float>(dst->visibility, src->visibility);
+  dst->connectivity.validity = static_cast<uint8_t *>(MEM_dupallocN(src->connectivity.validity));
+  /* NOTE: Don't copy baking since it wouldn't be freed nor updated after completion. */
+  dst->baking.L0 = nullptr;
+  dst->baking.L1_a = nullptr;
+  dst->baking.L1_b = nullptr;
+  dst->baking.L1_c = nullptr;
+  dst->baking.virtual_offset = nullptr;
+  dst->baking.validity = nullptr;
+  dst->surfels = nullptr;
+  return dst;
 }
 
 void BKE_lightprobe_grid_cache_frame_free(LightProbeGridCacheFrame *cache)
@@ -227,8 +243,10 @@ void BKE_lightprobe_grid_cache_frame_free(LightProbeGridCacheFrame *cache)
   spherical_harmonic_free(cache->baking);
   spherical_harmonic_free(cache->irradiance);
   spherical_harmonic_free(cache->visibility);
-  MEM_SAFE_FREE(cache->connectivity.bitmask);
+  MEM_SAFE_FREE(cache->baking.validity);
+  MEM_SAFE_FREE(cache->connectivity.validity);
   MEM_SAFE_FREE(cache->surfels);
+  MEM_SAFE_FREE(cache->baking.virtual_offset);
 
   MEM_SAFE_FREE(cache);
 }
@@ -239,6 +257,20 @@ void BKE_lightprobe_cache_create(Object *object)
 
   object->lightprobe_cache = static_cast<LightProbeObjectCache *>(
       MEM_callocN(sizeof(LightProbeObjectCache), "LightProbeObjectCache"));
+}
+
+LightProbeObjectCache *BKE_lightprobe_cache_copy(LightProbeObjectCache *src_cache)
+{
+  BLI_assert(src_cache != nullptr);
+
+  LightProbeObjectCache *dst_cache = static_cast<LightProbeObjectCache *>(
+      MEM_dupallocN(src_cache));
+
+  if (src_cache->grid_static_cache) {
+    dst_cache->grid_static_cache = BKE_lightprobe_grid_cache_frame_copy(
+        src_cache->grid_static_cache);
+  }
+  return dst_cache;
 }
 
 void BKE_lightprobe_cache_free(Object *object)

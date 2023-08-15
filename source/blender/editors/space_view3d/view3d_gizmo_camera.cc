@@ -7,7 +7,8 @@
  */
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_camera.h"
@@ -18,19 +19,19 @@
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_armature.h"
-#include "ED_gizmo_library.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -85,7 +86,7 @@ static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 
-  struct CameraWidgetGroup *cagzgroup = static_cast<CameraWidgetGroup *>(
+  CameraWidgetGroup *cagzgroup = static_cast<CameraWidgetGroup *>(
       MEM_callocN(sizeof(CameraWidgetGroup), __func__));
   gzgroup->customdata = cagzgroup;
 
@@ -130,7 +131,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  struct CameraWidgetGroup *cagzgroup = static_cast<CameraWidgetGroup *>(gzgroup->customdata);
+  CameraWidgetGroup *cagzgroup = static_cast<CameraWidgetGroup *>(gzgroup->customdata);
   View3D *v3d = CTX_wm_view3d(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -161,8 +162,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   /* TODO: make focal length/ortho ob_scale_inv widget optional. */
-  const float aspx = (float)scene->r.xsch * scene->r.xasp;
-  const float aspy = (float)scene->r.ysch * scene->r.yasp;
+  const float aspx = float(scene->r.xsch) * scene->r.xasp;
+  const float aspy = float(scene->r.ysch) * scene->r.yasp;
   const bool is_ortho = (ca->type == CAM_ORTHO);
   const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
   /* Important to use camera value, not calculated fit since 'AUTO' uses width always. */
@@ -247,7 +248,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void WIDGETGROUP_camera_message_subscribe(const bContext *C,
                                                  wmGizmoGroup *gzgroup,
-                                                 struct wmMsgBus *mbus)
+                                                 wmMsgBus *mbus)
 {
   ARegion *region = CTX_wm_region(C);
   const Scene *scene = CTX_data_scene(C);
@@ -335,7 +336,7 @@ static void gizmo_render_border_prop_matrix_get(const wmGizmo * /*gz*/,
 {
   float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
-  struct CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
+  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
       gz_prop->custom_func.user_data);
   const rctf *border = viewgroup->state.edit_border;
 
@@ -351,7 +352,7 @@ static void gizmo_render_border_prop_matrix_set(const wmGizmo * /*gz*/,
                                                 const void *value_p)
 {
   const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
-  struct CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
+  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
       gz_prop->custom_func.user_data);
   rctf *border = viewgroup->state.edit_border;
   BLI_assert(gz_prop->type->array_length == 16);
@@ -408,7 +409,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType * /
 
 static void WIDGETGROUP_camera_view_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  struct CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
+  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
       MEM_mallocN(sizeof(CameraViewWidgetGroup), __func__));
 
   viewgroup->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
@@ -426,8 +427,7 @@ static void WIDGETGROUP_camera_view_setup(const bContext * /*C*/, wmGizmoGroup *
 
 static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
-      gzgroup->customdata);
+  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(gzgroup->customdata);
 
   ARegion *region = CTX_wm_region(C);
   /* Drawing code should happen with fully evaluated graph. */
@@ -458,8 +458,7 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 
 static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(
-      gzgroup->customdata);
+  CameraViewWidgetGroup *viewgroup = static_cast<CameraViewWidgetGroup *>(gzgroup->customdata);
 
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);

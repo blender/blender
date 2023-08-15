@@ -6,8 +6,8 @@
  * \ingroup spgraph
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "DNA_scene_types.h"
 
@@ -18,21 +18,21 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
+#include "ED_anim_api.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
 #include "graph_intern.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* ************************** view-based operators **********************************/
 /* XXX should these really be here? */
@@ -223,7 +223,6 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
   ListBase all_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
   const bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
@@ -256,7 +255,7 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* hack: skip object channels for now, since flushing those will always flush everything,
      * but they are always included */
     /* TODO: find out why this is the case, and fix that */
@@ -287,7 +286,7 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
     ANIM_animdata_filter(
         &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       /* hack: skip object channels for now, since flushing those
        * will always flush everything, but they are always included */
 
@@ -329,7 +328,7 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
 
   /* props */
   RNA_def_boolean(
-      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected curves");
+      ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected curves");
 }
 
 /* ........ */
@@ -339,7 +338,6 @@ static int graphview_curves_reveal_exec(bContext *C, wmOperator *op)
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
   ListBase all_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
   const bool select = RNA_boolean_get(op->ptr, "select");
 
@@ -364,7 +362,7 @@ static int graphview_curves_reveal_exec(bContext *C, wmOperator *op)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* hack: skip object channels for now, since flushing those will always flush everything,
      * but they are always included. */
     /* TODO: find out why this is the case, and fix that */
@@ -471,6 +469,8 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_blend_to_neighbor);
   WM_operatortype_append(GRAPH_OT_breakdown);
   WM_operatortype_append(GRAPH_OT_ease);
+  WM_operatortype_append(GRAPH_OT_blend_offset);
+  WM_operatortype_append(GRAPH_OT_blend_to_ease);
   WM_operatortype_append(GRAPH_OT_blend_to_default);
   WM_operatortype_append(GRAPH_OT_gaussian_smooth);
   WM_operatortype_append(GRAPH_OT_butterworth_smooth);

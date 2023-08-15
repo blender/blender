@@ -17,7 +17,7 @@
 #include "node_exec.hh"
 #include "node_texture_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 static void copy_stack(bNodeStack *to, bNodeStack *from)
 {
@@ -61,12 +61,11 @@ static void group_freeexec(void *nodedata)
 static void group_copy_inputs(bNode *gnode, bNodeStack **in, bNodeStack *gstack)
 {
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
-  bNode *node;
   bNodeSocket *sock;
   bNodeStack *ns;
   int a;
 
-  for (node = static_cast<bNode *>(ngroup->nodes.first); node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ngroup->nodes) {
     if (node->type == NODE_GROUP_INPUT) {
       for (sock = static_cast<bNodeSocket *>(node->outputs.first), a = 0; sock;
            sock = sock->next, a++) {
@@ -124,11 +123,8 @@ static void group_execute(void *data,
   /* XXX same behavior as trunk: all nodes inside group are executed.
    * it's stupid, but just makes it work. compo redesign will do this better.
    */
-  {
-    bNode *inode;
-    for (inode = static_cast<bNode *>(exec->nodetree->nodes.first); inode; inode = inode->next) {
-      inode->runtime->need_exec = 1;
-    }
+  LISTBASE_FOREACH (bNode *, inode, &exec->nodetree->nodes) {
+    inode->runtime->need_exec = 1;
   }
 
   nts = ntreeGetThreadStack(exec, thread);

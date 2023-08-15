@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,22 +18,21 @@
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
-#include "ED_fileselect.h"
-#include "ED_undo.h"
+#include "ED_asset.hh"
+#include "ED_fileselect.hh"
+#include "ED_undo.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 #include "UI_tree_view.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 #include <fmt/format.h>
 
@@ -82,7 +81,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
  public:
   AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item);
 
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 
   void build_row(uiLayout &row) override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
@@ -220,7 +219,7 @@ AssetCatalogTreeViewAllItem &AssetCatalogTreeView::add_all_item()
   FileAssetSelectParams *params = params_;
 
   AssetCatalogTreeViewAllItem &item = add_tree_item<AssetCatalogTreeViewAllItem>(IFACE_("All"));
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
+  item.set_on_activate_fn([params](bContext & /*C*/, ui::BasicTreeViewItem & /*item*/) {
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_ALL_CATALOGS;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
@@ -236,7 +235,7 @@ void AssetCatalogTreeView::add_unassigned_item()
   AssetCatalogTreeViewUnassignedItem &item = add_tree_item<AssetCatalogTreeViewUnassignedItem>(
       IFACE_("Unassigned"), ICON_FILE_HIDDEN);
 
-  item.set_on_activate_fn([params](ui::BasicTreeViewItem & /*item*/) {
+  item.set_on_activate_fn([params](bContext & /*C*/, ui::BasicTreeViewItem & /*item*/) {
     params->asset_catalog_visibility = FILE_SHOW_ASSETS_WITHOUT_CATALOG;
     WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
   });
@@ -264,7 +263,7 @@ AssetCatalogTreeViewItem::AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog
 {
 }
 
-void AssetCatalogTreeViewItem::on_activate()
+void AssetCatalogTreeViewItem::on_activate(bContext & /*C*/)
 {
   AssetCatalogTreeView &tree_view = static_cast<AssetCatalogTreeView &>(get_tree_view());
   tree_view.activate_catalog_by_id(catalog_item_.get_catalog_id());
@@ -297,7 +296,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
@@ -309,7 +308,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               ICON_NONE,
               nullptr,
               WM_OP_INVOKE_DEFAULT,
-              0,
+              UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
   uiItemO(&column, "Rename", ICON_NONE, "UI_OT_view_item_rename");

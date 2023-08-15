@@ -10,6 +10,7 @@
  */
 
 #include "BKE_dyntopo_set.hh"
+#include <string>
 
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
@@ -93,11 +94,6 @@ struct PBVHProxyNode {
   float (*co)[3];
 };
 
-struct PBVHColorBufferNode {
-  float (*color)[4];
-  int size;
-};
-
 struct PBVHPixels {
   /**
    * Storage for texture painting on PBVH level.
@@ -113,11 +109,11 @@ struct PBVHPixelsNode {
    *
    * Contains #blender::bke::pbvh::pixels::NodeData.
    */
-  void *node_data;
+  void *node_data = nullptr;
 };
 
 struct PBVHAttrReq {
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  std::string name;
   eAttrDomain domain;
   eCustomDataType type;
 };
@@ -386,7 +382,9 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       bool update_only_visible,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
-                      void (*draw_fn)(void *user_data, PBVHBatches *batches, PBVH_GPU_Args *args),
+                      void (*draw_fn)(void *user_data,
+                                      PBVHBatches *batches,
+                                      const PBVH_GPU_Args &args),
                       void *user_data,
                       bool full_render,
                       PBVHAttrReq *attrs,
@@ -467,7 +465,7 @@ void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
-                             int **grid_indices,
+                             const int **grid_indices,
                              int *totgrid,
                              int *maxgrid,
                              int *gridsize,
@@ -563,7 +561,7 @@ struct PBVHVertexIter {
   CCGElem **grids;
   CCGElem *grid;
   BLI_bitmap **grid_hidden, *gh;
-  int *grid_indices;
+  const int *grid_indices;
   int totgrid;
   int gridsize;
 
@@ -700,15 +698,15 @@ struct PBVHFaceIter {
   int cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const int *poly_offsets_;
-  const int *looptri_polys_;
-  const int *corner_verts_;
+  blender::OffsetIndices<int> face_offsets_;
+  blender::Span<int> looptri_faces_;
+  blender::Span<int> corner_verts_;
   int prim_index_;
   const SubdivCCG *subdiv_ccg_;
   const BMesh *bm;
   CCGKey subdiv_key_;
 
-  int last_poly_index_;
+  int last_face_index_;
 };
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);
@@ -822,16 +820,6 @@ void BKE_pbvh_bmesh_free_tris(PBVH *pbvh, PBVHNode *node);
   symmetrize.*/
 void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh);
 void BKE_pbvh_set_boundary_flags(PBVH *pbvh, int *boundary_flags);
-
-/* saves all bmesh references to internal indices, to be restored later */
-void BKE_pbvh_bmesh_save_indices(PBVH *pbvh);
-
-/* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
-void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh);
-
-/* wraps calls to BM_mesh_toolflags_set in BKE_pbvh_bmesh_save_indices and
- * BKE_pbvh_bmesh_from_saved_indices */
-void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags);
 
 void BKE_pbvh_bmesh_remove_face(PBVH *pbvh, BMFace *f, bool log_face);
 void BKE_pbvh_bmesh_remove_edge(PBVH *pbvh, BMEdge *e, bool log_edge);

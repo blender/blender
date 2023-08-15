@@ -163,7 +163,7 @@ static pxr::SdfLayerHandle get_layer_handle(const pxr::UsdAttribute &attribute)
 static blender::Vector<int> get_udim_tiles(const std::string &file_path)
 {
   char base_udim_path[FILE_MAX];
-  BLI_strncpy(base_udim_path, file_path.c_str(), sizeof(base_udim_path));
+  STRNCPY(base_udim_path, file_path.c_str());
 
   blender::Vector<int> udim_tiles;
 
@@ -854,7 +854,7 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(
         std::string varname = varname_val.Cast<std::string>().Get<std::string>();
         if (!varname.empty()) {
           NodeShaderUVMap *storage = (NodeShaderUVMap *)uv_map->storage;
-          BLI_strncpy(storage->uv_map, varname.c_str(), sizeof(storage->uv_map));
+          STRNCPY(storage->uv_map, varname.c_str());
         }
       }
     }

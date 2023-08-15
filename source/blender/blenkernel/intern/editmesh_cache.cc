@@ -23,14 +23,14 @@
 /** \name Ensure Data (derived from coords)
  * \{ */
 
-void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, blender::bke::EditMeshData *emd)
+void BKE_editmesh_cache_ensure_face_normals(BMEditMesh *em, blender::bke::EditMeshData *emd)
 {
-  if (emd->vertexCos.is_empty() || !emd->polyNos.is_empty()) {
+  if (emd->vertexCos.is_empty() || !emd->faceNos.is_empty()) {
     return;
   }
   BMesh *bm = em->bm;
 
-  emd->polyNos.reinitialize(bm->totface);
+  emd->faceNos.reinitialize(bm->totface);
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
   BMFace *efa;
@@ -39,7 +39,7 @@ void BKE_editmesh_cache_ensure_poly_normals(BMEditMesh *em, blender::bke::EditMe
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
     BM_face_calc_normal_vcos(
-        bm, efa, emd->polyNos[i], reinterpret_cast<const float(*)[3]>(emd->vertexCos.data()));
+        bm, efa, emd->faceNos[i], reinterpret_cast<const float(*)[3]>(emd->vertexCos.data()));
   }
   bm->elem_index_dirty &= ~BM_FACE;
 }
@@ -51,40 +51,40 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh *em, blender::bke::EditMe
   }
   BMesh *bm = em->bm;
 
-  /* Calculate vertex normals from poly normals. */
-  BKE_editmesh_cache_ensure_poly_normals(em, emd);
+  /* Calculate vertex normals from face normals. */
+  BKE_editmesh_cache_ensure_face_normals(em, emd);
 
   emd->vertexNos.reinitialize(bm->totvert);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
   BM_verts_calc_normal_vcos(bm,
-                            reinterpret_cast<const float(*)[3]>(emd->polyNos.data()),
+                            reinterpret_cast<const float(*)[3]>(emd->faceNos.data()),
                             reinterpret_cast<const float(*)[3]>(emd->vertexCos.data()),
                             reinterpret_cast<float(*)[3]>(emd->vertexNos.data()));
 }
 
-void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, blender::bke::EditMeshData *emd)
+void BKE_editmesh_cache_ensure_face_centers(BMEditMesh *em, blender::bke::EditMeshData *emd)
 {
-  if (!emd->polyCos.is_empty()) {
+  if (!emd->faceCos.is_empty()) {
     return;
   }
   BMesh *bm = em->bm;
 
-  emd->polyCos.reinitialize(bm->totface);
+  emd->faceCos.reinitialize(bm->totface);
 
   BMFace *efa;
   BMIter fiter;
   int i;
   if (emd->vertexCos.is_empty()) {
     BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-      BM_face_calc_center_median(efa, emd->polyCos[i]);
+      BM_face_calc_center_median(efa, emd->faceCos[i]);
     }
   }
   else {
     BM_mesh_elem_index_ensure(bm, BM_VERT);
     BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
       BM_face_calc_center_median_vcos(
-          bm, efa, emd->polyCos[i], reinterpret_cast<const float(*)[3]>(emd->vertexCos.data()));
+          bm, efa, emd->faceCos[i], reinterpret_cast<const float(*)[3]>(emd->vertexCos.data()));
     }
   }
 }

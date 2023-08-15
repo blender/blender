@@ -6,23 +6,23 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_nla.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.h"
 
@@ -118,7 +118,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
   }
 }
 
-static void applyTimeSlide(TransInfo *t, const int mval[2])
+static void applyTimeSlide(TransInfo *t)
 {
   View2D *v2d = (View2D *)t->view;
   float cval[2], sval[2];
@@ -128,7 +128,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   char str[UI_MAX_DRAW_STR];
 
   /* calculate mouse co-ordinates */
-  UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
+  UI_view2d_region_to_view(v2d, t->mval[0], t->mval[1], &cval[0], &cval[1]);
   UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &sval[0], &sval[1]);
 
   /* t->values_final[0] stores cval[0], which is the current mouse-pointer location (in frames) */
@@ -143,7 +143,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   headerTimeSlide(t, sval[0], str);
   applyTimeSlideValue(t, sval[0], t->values_final[0]);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

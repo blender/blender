@@ -12,23 +12,23 @@
 #  include "BKE_main.h"
 #  include "BKE_report.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "DNA_space_types.h"
 
-#  include "ED_fileselect.h"
-#  include "ED_outliner.h"
+#  include "ED_fileselect.hh"
+#  include "ED_outliner.hh"
 
-#  include "RNA_access.h"
-#  include "RNA_define.h"
+#  include "RNA_access.hh"
+#  include "RNA_define.hh"
 
 #  include "BLT_translation.h"
 
 #  include "MEM_guardedalloc.h"
 
-#  include "UI_interface.h"
-#  include "UI_resources.h"
+#  include "UI_interface.hh"
+#  include "UI_resources.hh"
 
 #  include "DEG_depsgraph.h"
 
@@ -99,27 +99,33 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
-  uiItemR(sub, imfptr, "ascii_format", 0, IFACE_("ASCII"), ICON_NONE);
+  uiItemR(sub, imfptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
-  uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "global_scale", 0, nullptr, ICON_NONE);
+  uiItemR(
+      sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+  uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  uiItemR(sub, imfptr, "forward_axis", 0, IFACE_("Forward Axis"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", 0, IFACE_("Up Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
-  uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
+  uiItemR(sub, imfptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
 
   /* Geometry options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
-  uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Vertex Normals"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Vertex Colors"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
+  uiItemR(sub,
+          imfptr,
+          "export_triangulated_mesh",
+          UI_ITEM_NONE,
+          IFACE_("Triangulated Mesh"),
+          ICON_NONE);
 }
 
 static void wm_ply_export_draw(bContext * /*C*/, wmOperator *op)
@@ -172,9 +178,9 @@ void WM_OT_ply_export(wmOperatorType *ot)
 
   /* Object transform options. */
   prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
+  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
+  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
   RNA_def_float(
       ot->srna,
       "global_scale",
@@ -303,9 +309,9 @@ void WM_OT_ply_import(wmOperatorType *ot)
                   "Scene Unit",
                   "Apply current scene's unit (as defined by unit scale) to imported data");
   prop = RNA_def_enum(ot->srna, "forward_axis", io_transform_axis, IO_AXIS_Y, "Forward Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)io_ui_forward_axis_update);
+  RNA_def_property_update_runtime(prop, io_ui_forward_axis_update);
   prop = RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Z, "Up Axis", "");
-  RNA_def_property_update_runtime(prop, (void *)io_ui_up_axis_update);
+  RNA_def_property_update_runtime(prop, io_ui_up_axis_update);
   RNA_def_boolean(ot->srna, "merge_verts", false, "Merge Vertices", "Merges vertices by distance");
   RNA_def_enum(ot->srna,
                "import_colors",

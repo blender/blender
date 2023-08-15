@@ -10,23 +10,25 @@
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
+#include "ED_view3d.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -40,12 +42,11 @@ static void edbm_extrude_edge_exclude_mirror(
     Object *obedit, BMEditMesh *em, const char hflag, BMOperator *op, BMOpSlot *slot_edges_exclude)
 {
   BMesh *bm = em->bm;
-  ModifierData *md;
 
   /* If a mirror modifier with clipping is on, we need to adjust some
    * of the cases above to handle edges on the line of symmetry.
    */
-  for (md = static_cast<ModifierData *>(obedit->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &obedit->modifiers) {
     if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
       MirrorModifierData *mmd = (MirrorModifierData *)md;
 
@@ -701,7 +702,7 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 
 static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
   BMVert *v1;
   BMIter iter;
@@ -781,7 +782,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       float nor[3] = {0.0, 0.0, 0.0};
 
       /* 2D normal calc */
-      const float mval_f[2] = {(float)event->mval[0], (float)event->mval[1]};
+      const float mval_f[2] = {float(event->mval[0]), float(event->mval[1])};
 
       /* check for edges that are half selected, use for rotation */
       bool done = false;

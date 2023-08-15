@@ -7,8 +7,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
@@ -81,23 +81,22 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   return false;
 }
 
-}  // namespace blender::nodes::node_geo_repeat_input_cc
-
-void register_node_type_geo_repeat_input()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_repeat_input_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
+  ntype.initfunc = node_init;
+  ntype.declare_dynamic = node_declare_dynamic;
   ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
-  ntype.insert_link = file_ns::node_insert_link;
+  ntype.insert_link = node_insert_link;
   node_type_storage(
       &ntype, "NodeGeometryRepeatInput", node_free_standard_storage, node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_repeat_input_cc
 
 bool NOD_geometry_repeat_input_pair_with_output(const bNodeTree *node_tree,
                                                 bNode *repeat_input_node,

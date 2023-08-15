@@ -17,7 +17,9 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 
 #include "BKE_action.h"
@@ -32,16 +34,18 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_armature.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+
+#include "ANIM_bone_collections.h"
 
 #include "DEG_depsgraph.h"
 
@@ -66,7 +70,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   bone->rad_head = 0.10f;
   bone->rad_tail = 0.05f;
   bone->segments = 1;
-  bone->layer = arm->layer;
+  ANIM_bone_set_ebone_layer_from_armature(bone, arm);
 
   /* Bendy-Bone parameters */
   bone->roll1 = 0.0f;
@@ -271,10 +275,8 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 
 static EditBone *get_named_editbone(ListBase *edbo, const char *name)
 {
-  EditBone *eBone;
-
   if (name) {
-    for (eBone = static_cast<EditBone *>(edbo->first); eBone; eBone = eBone->next) {
+    LISTBASE_FOREACH (EditBone *, eBone, edbo) {
       if (STREQ(name, eBone->name)) {
         return eBone;
       }
@@ -374,20 +376,18 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
    */
   EditBone *oldtarget, *newtarget;
   bPoseChannel *pchan;
-  bConstraint *curcon;
   ListBase *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name))) {
     if ((conlist = &pchan->constraints)) {
-      for (curcon = static_cast<bConstraint *>(conlist->first); curcon; curcon = curcon->next) {
+      LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
         /* does this constraint have a subtarget in
          * this armature?
          */
         ListBase targets = {nullptr, nullptr};
-        bConstraintTarget *ct;
 
         if (BKE_constraint_targets_get(curcon, &targets)) {
-          for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
             if ((ct->tar == ob) && (ct->subtarget[0])) {
               oldtarget = get_named_editbone(editbones, ct->subtarget);
               if (oldtarget) {
@@ -414,7 +414,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
             }
           }
 
-          BKE_constraint_targets_flush(curcon, &targets, 0);
+          BKE_constraint_targets_flush(curcon, &targets, false);
         }
       }
     }
@@ -502,7 +502,7 @@ static void updateDuplicateActionConstraintSettings(
       BKE_fcurves_filter(&ani_curves, &act->curves, "pose.bones[", orig_bone->name))
   {
     /* Create a copy and mirror the animation */
-    for (LinkData *ld = static_cast<LinkData *>(ani_curves.first); ld; ld = ld->next) {
+    LISTBASE_FOREACH (LinkData *, ld, &ani_curves) {
       FCurve *old_curve = static_cast<FCurve *>(ld->data);
       FCurve *new_curve = BKE_fcurve_copy(old_curve);
       bActionGroup *agrp;
@@ -827,7 +827,6 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
    * subtarget they point to has also been duplicated.
    */
   bPoseChannel *pchan;
-  bConstraint *curcon;
   ListBase *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name)) == nullptr ||
@@ -836,7 +835,7 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
     return;
   }
 
-  for (curcon = static_cast<bConstraint *>(conlist->first); curcon; curcon = curcon->next) {
+  LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
     switch (curcon->type) {
       case CONSTRAINT_TYPE_ACTION:
         updateDuplicateActionConstraintSettings(dup_bone, orig_bone, ob, pchan, curcon);
@@ -975,9 +974,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
     /* Select mirrored bones */
     if (arm->flag & ARM_MIRROR_EDIT) {
-      for (ebone_iter = static_cast<EditBone *>(arm->edbo->first); ebone_iter;
-           ebone_iter = ebone_iter->next)
-      {
+      LISTBASE_FOREACH (EditBone *, ebone_iter, arm->edbo) {
         if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
           EditBone *ebone;
 
@@ -1160,9 +1157,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
      * and unique selected bones with an unique flippable name.
      *
      * Storing temp pointers to mirrored unselected ebones. */
-    for (ebone_iter = static_cast<EditBone *>(arm->edbo->first); ebone_iter;
-         ebone_iter = ebone_iter->next)
-    {
+    LISTBASE_FOREACH (EditBone *, ebone_iter, arm->edbo) {
       if (!(EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED))) {
         /* Skipping invisible selected bones. */
         continue;
@@ -1408,20 +1403,27 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool forked = RNA_boolean_get(op->ptr, "forked");
   bool changed_multi = false;
-
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
+
+  enum ExtrudePoint {
+    SKIP_EXTRUDE,
+    TIP_EXTRUDE,
+    ROOT_EXTRUDE,
+  };
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool forked_iter = forked;
 
     EditBone *newbone = nullptr, *ebone, *flipbone, *first = nullptr;
-    int a, totbone = 0, do_extrude;
+    int a, totbone = 0;
+    ExtrudePoint do_extrude;
 
     /* since we allow root extrude too, we have to make sure selection is OK */
-    for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (EBONE_VISIBLE(arm, ebone)) {
         if (ebone->flag & BONE_ROOTSEL) {
           if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
@@ -1439,9 +1441,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
     {
       if (EBONE_VISIBLE(arm, ebone)) {
         /* we extrude per definition the tip */
-        do_extrude = false;
+        do_extrude = SKIP_EXTRUDE;
         if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
-          do_extrude = true;
+          do_extrude = TIP_EXTRUDE;
         }
         else if (ebone->flag & BONE_ROOTSEL) {
           /* but, a bone with parent deselected we do the root... */
@@ -1449,7 +1451,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             /* pass */
           }
           else {
-            do_extrude = 2;
+            do_extrude = ROOT_EXTRUDE;
           }
         }
 
@@ -1459,7 +1461,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
           if (arm->flag & ARM_MIRROR_EDIT) {
             flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
             if (flipbone) {
-              forked_iter = 0; /* we extrude 2 different bones */
+              forked_iter = false; /* we extrude 2 different bones */
               if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED)) {
                 /* don't want this bone to be selected... */
                 flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -1481,7 +1483,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             totbone++;
             newbone = static_cast<EditBone *>(MEM_callocN(sizeof(EditBone), "extrudebone"));
 
-            if (do_extrude != 0) {
+            if (do_extrude == TIP_EXTRUDE) {
               copy_v3_v3(newbone->head, ebone->tail);
               copy_v3_v3(newbone->tail, newbone->head);
               newbone->parent = ebone;
@@ -1493,7 +1495,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
                 newbone->flag |= BONE_CONNECTED;
               }
             }
-            else {
+            else if (do_extrude == ROOT_EXTRUDE) {
               copy_v3_v3(newbone->head, ebone->head);
               copy_v3_v3(newbone->tail, ebone->head);
               newbone->parent = ebone->parent;
@@ -1599,7 +1601,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
+  RNA_def_boolean(ot->srna, "forked", false, "Forked", "");
 }
 
 /* ********************** Bone Add *************************************/
@@ -1685,7 +1687,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 static int armature_subdivide_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
-  EditBone *newbone, *tbone;
+  EditBone *newbone;
   int cuts, i;
 
   /* there may not be a number_cuts property defined (for 'simple' subdivide) */
@@ -1730,7 +1732,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
       ED_armature_ebone_unique_name(arm->edbo, newbone->name, nullptr);
 
       /* correct parent bones */
-      for (tbone = static_cast<EditBone *>(arm->edbo->first); tbone; tbone = tbone->next) {
+      LISTBASE_FOREACH (EditBone *, tbone, arm->edbo) {
         if (tbone->parent == ebone) {
           tbone->parent = newbone;
         }

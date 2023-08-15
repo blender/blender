@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -16,14 +16,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* Enum defines exported for `rna_animation.cc`. */
 
@@ -81,7 +81,7 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 
 #  include "DNA_object_types.h"
 
-#  include "ED_anim_api.h"
+#  include "ED_anim_api.hh"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"

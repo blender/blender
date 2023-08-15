@@ -18,13 +18,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_curves.h"
-#include "ED_undo.h"
+#include "ED_curves.hh"
+#include "ED_undo.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 static CLG_LogRef LOG = {"ed.undo.curves"};
 

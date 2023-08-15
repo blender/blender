@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -14,7 +14,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
@@ -680,7 +680,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx, AVFrame *frame)
               ctx->frame->linesize);
   }
 
-  frame = ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame;
+  frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
 
   if (frame) {
     frame->pts = ctx->cfra++;

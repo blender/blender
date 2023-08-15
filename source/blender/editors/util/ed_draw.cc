@@ -6,9 +6,9 @@
  * \ingroup edutil
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -28,20 +28,20 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_util.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_util.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
-#include "WM_api.h"
-#include "WM_types.h"
+#include "RNA_access.hh"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Slider
@@ -146,7 +146,7 @@ static void draw_ticks(const float start_factor,
   /* Round initial_tick_factor up to the next tick_increment. */
   int tick_percentage = ceil((start_factor * 100) / tick_increment) * tick_increment;
 
-  while (tick_percentage <= (int)(end_factor * 100)) {
+  while (tick_percentage <= int(end_factor * 100)) {
     float tick_height;
     /* Different ticks have different heights. Multiples of 100% are the tallest, 50% is a bit
      * smaller and the rest is the minimum size. */
@@ -359,7 +359,7 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
                        &factor_string_pixel_size[1]);
 
   BLF_position(fontid,
-               main_line_rect.xmin - 24.0 * U.pixelsize - factor_string_pixel_size[0] / 2,
+               main_line_rect.xmin - 12.0 * U.pixelsize - factor_string_pixel_size[0],
                (region->winy / 2) - factor_string_pixel_size[1] / 2,
                0.0f);
   BLF_draw(fontid, factor_string, sizeof(factor_string));
@@ -578,7 +578,7 @@ void ED_slider_mode_set(tSlider *slider, SliderMode mode)
 
 void ED_slider_unit_set(tSlider *slider, const char *unit)
 {
-  BLI_strncpy(slider->unit_string, unit, SLIDER_UNIT_STRING_SIZE);
+  STRNCPY(slider->unit_string, unit);
 }
 
 /** \} */
@@ -724,7 +724,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
       else if (i == 3) {
         int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
-          struct ResultBLF info;
+          ResultBLF info;
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
@@ -795,7 +795,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
       if (metadata_is_valid(ibuf, str, i, 0)) {
         if (i == 4) {
           struct {
-            struct ResultBLF info;
+            ResultBLF info;
             rcti rect;
           } wrap;
 

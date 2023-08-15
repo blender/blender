@@ -17,7 +17,8 @@
 extern "C" {
 #endif
 
-#define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
+/** Used in `readfile.cc` and `editfont.cc`. */
+#define MAXTEXTBOX 256
 
 struct AnimData;
 struct Curves;

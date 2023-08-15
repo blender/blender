@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  XML2_LIBRARY, where to find the XML2 library.
 
-# If XML2_ROOT_DIR was defined in the environment, use it.
-IF(NOT XML2_ROOT_DIR AND NOT $ENV{XML2_ROOT_DIR} STREQUAL "")
+# If `XML2_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED XML2_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{XML2_ROOT_DIR})
   SET(XML2_ROOT_DIR $ENV{XML2_ROOT_DIR})
+ELSE()
+  SET(XML2_ROOT_DIR "")
 ENDIF()
 
 SET(_xml2_SEARCH_DIRS

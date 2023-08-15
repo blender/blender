@@ -11,7 +11,7 @@
  */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BKE_screen.h"
@@ -19,11 +19,11 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "screen_intern.h"
 
@@ -150,7 +150,7 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
   float max[2] = {0.0f, 0.0f};
 
   LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-    const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
+    const float fv[2] = {float(sv->vec.x), float(sv->vec.y)};
     minmax_v2v2_v2(min, max, fv);
   }
 

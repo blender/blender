@@ -6,10 +6,10 @@
  * \ingroup edsnd
  */
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -32,18 +32,18 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "SEQ_iterator.h"
 #include "SEQ_utils.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>
@@ -51,8 +51,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_sound.h"
-#include "ED_util.h"
+#include "ED_sound.hh"
+#include "ED_util.hh"
 
 /******************** open sound operator ********************/
 
@@ -196,7 +196,7 @@ static void sound_update_animation_flags(Scene *scene);
 
 static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 {
-  struct FCurve *fcu;
+  FCurve *fcu;
   Scene *scene = (Scene *)user_data;
   bool driven;
 
@@ -236,7 +236,7 @@ static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 
 static void sound_update_animation_flags(Scene *scene)
 {
-  struct FCurve *fcu;
+  FCurve *fcu;
   bool driven;
 
   if (scene->id.tag & LIB_TAG_DOIT) {
@@ -358,7 +358,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
-  const double fps = (((double)scene_eval->r.frs_sec) / (double)scene_eval->r.frs_sec_base);
+  const double fps = (double(scene_eval->r.frs_sec) / double(scene_eval->r.frs_sec_base));
   const int start_frame = scene_eval->r.sfra;
   const int end_frame = scene_eval->r.efra;
 

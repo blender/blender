@@ -7,7 +7,7 @@
  */
 
 #include "BKE_collection.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 
 #include "BLI_function_ref.hh"
 #include "BLI_listbase_wrapper.hh"
@@ -18,8 +18,8 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 
 #include "../outliner_intern.hh"
 
@@ -256,7 +256,7 @@ StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel()
 std::optional<BIFIconID> TreeElementOverridesPropertyOperation::getIcon() const
 {
   if (const std::optional<PointerRNA> col_item_ptr = get_collection_ptr()) {
-    return (BIFIconID)RNA_struct_ui_icon(col_item_ptr->type);
+    return RNA_struct_ui_icon(col_item_ptr->type);
   }
 
   return {};
@@ -403,8 +403,15 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
                                                  item_idx,
                                                  nullptr);
     IDOverrideLibraryPropertyOperation *item_operation =
-        BKE_lib_override_library_property_operation_find(
-            &override_data.override_property, nullptr, nullptr, -1, item_idx, false, nullptr);
+        BKE_lib_override_library_property_operation_find(&override_data.override_property,
+                                                         nullptr,
+                                                         nullptr,
+                                                         {},
+                                                         {},
+                                                         -1,
+                                                         item_idx,
+                                                         false,
+                                                         nullptr);
     TreeElement *current_te = nullptr;
 
     TreeElement *existing_te = path_te_map.lookup_default(coll_item_path, nullptr);
@@ -444,7 +451,7 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
 
 static BIFIconID get_property_icon(PointerRNA &ptr, PropertyRNA &prop)
 {
-  BIFIconID icon = (BIFIconID)RNA_property_ui_icon(&prop);
+  BIFIconID icon = RNA_property_ui_icon(&prop);
   if (icon) {
     return icon;
   }
@@ -453,7 +460,7 @@ static BIFIconID get_property_icon(PointerRNA &ptr, PropertyRNA &prop)
    * #Object.modifiers property). */
   if (RNA_property_type(&prop) == PROP_COLLECTION) {
     const StructRNA *coll_ptr_type = RNA_property_pointer_type(&ptr, &prop);
-    icon = (BIFIconID)RNA_struct_ui_icon(coll_ptr_type);
+    icon = RNA_struct_ui_icon(coll_ptr_type);
     if (icon != ICON_DOT) {
       return icon;
     }
@@ -496,7 +503,7 @@ TreeElement &OverrideRNAPathTreeBuilder::ensure_label_element_for_ptr(TreeElemen
         TSE_GENERIC_LABEL,
         index++);
     TreeElementLabel *te_label = tree_element_cast<TreeElementLabel>(new_te);
-    te_label->setIcon((BIFIconID)RNA_struct_ui_icon(ptr.type));
+    te_label->setIcon(RNA_struct_ui_icon(ptr.type));
 
     MEM_delete(dyn_name);
 

@@ -107,10 +107,8 @@ void free_exr_channels(void *exrhandle,
                        const char *layer_name,
                        const DataType datatype)
 {
-  SceneRenderView *srv;
-
   /* check renderdata for amount of views */
-  for (srv = (SceneRenderView *)rd->views.first; srv; srv = srv->next) {
+  LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
     float *rect = nullptr;
 
     if (BKE_scene_multiview_is_render_view_active(rd, srv) == false) {

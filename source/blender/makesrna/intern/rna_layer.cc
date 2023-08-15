@@ -12,15 +12,15 @@
 
 #include "BLT_translation.h"
 
-#include "ED_object.h"
-#include "ED_render.h"
+#include "ED_object.hh"
+#include "ED_render.hh"
 
 #include "RE_engine.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
@@ -33,11 +33,11 @@
 #  include "DNA_collection_types.h"
 #  include "DNA_object_types.h"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BKE_idprop.h"
 #  include "BKE_layer.h"
-#  include "BKE_mesh.h"
+#  include "BKE_mesh.hh"
 #  include "BKE_node.h"
 #  include "BKE_scene.h"
 
@@ -504,7 +504,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
                                   "Whether this collection is visible, take into account the "
                                   "collection parent and the viewport");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-  RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "result", false, "", ""));
 
   /* Run-time flags. */
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);
@@ -518,7 +518,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "has_objects", "rna_LayerCollection_has_objects");
   RNA_def_function_ui_description(func, "");
-  RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "result", false, "", ""));
 
   func = RNA_def_function(
       srna, "has_selected_objects", "rna_LayerCollection_has_selected_objects");
@@ -527,7 +527,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
   prop = RNA_def_pointer(
       func, "view_layer", "ViewLayer", "", "View layer the layer collection belongs to");
   RNA_def_parameter_flags(prop, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_function_return(func, RNA_def_boolean(func, "result", 0, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "result", false, "", ""));
 }
 
 static void rna_def_layer_objects(BlenderRNA *brna, PropertyRNA *cprop)

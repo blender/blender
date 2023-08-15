@@ -12,8 +12,8 @@
 #include "DNA_shader_fx_types.h"
 #include "DRW_engine.h"
 #include "DRW_render.h"
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 #include "GPU_capabilities.h"
 #include "IMB_imbuf_types.h"
 
@@ -304,21 +304,21 @@ extern "C" {
 static const DrawEngineDataSize gpencil_data_size = DRW_VIEWPORT_DATA_SIZE(GPENCIL_NEXT_Data);
 
 DrawEngineType draw_engine_gpencil_next_type = {
-    nullptr,
-    nullptr,
-    N_("Gpencil"),
-    &gpencil_data_size,
-    &gpencil_engine_init,
-    &gpencil_engine_free,
-    &gpencil_instance_free,
-    &gpencil_cache_init,
-    &gpencil_cache_populate,
-    &gpencil_cache_finish,
-    &gpencil_draw_scene,
-    nullptr,
-    nullptr,
-    &gpencil_render_to_image,
-    nullptr,
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Gpencil"),
+    /*vedata_size*/ &gpencil_data_size,
+    /*engine_init*/ &gpencil_engine_init,
+    /*engine_free*/ &gpencil_engine_free,
+    /*instance_free*/ &gpencil_instance_free,
+    /*cache_init*/ &gpencil_cache_init,
+    /*cache_populate*/ &gpencil_cache_populate,
+    /*cache_finish*/ &gpencil_cache_finish,
+    /*draw_scene*/ &gpencil_draw_scene,
+    /*view_update*/ nullptr,
+    /*id_update*/ nullptr,
+    /*render_to_image*/ &gpencil_render_to_image,
+    /*store_metadata*/ nullptr,
 };
 }
 

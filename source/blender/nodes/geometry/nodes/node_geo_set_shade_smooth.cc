@@ -44,7 +44,7 @@ static void set_sharp_faces(Mesh &mesh,
                             const Field<bool> &selection_field,
                             const Field<bool> &sharp_field)
 {
-  if (mesh.totpoly == 0) {
+  if (mesh.faces_num == 0) {
     return;
   }
   if (try_removing_sharp_attribute(mesh, selection_field, sharp_field)) {
@@ -56,7 +56,7 @@ static void set_sharp_faces(Mesh &mesh,
                                                                                ATTR_DOMAIN_FACE);
 
   const bke::MeshFieldContext field_context{mesh, ATTR_DOMAIN_FACE};
-  fn::FieldEvaluator evaluator{field_context, mesh.totpoly};
+  fn::FieldEvaluator evaluator{field_context, mesh.faces_num};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(sharp_field, sharp_faces.varray);
   evaluator.evaluate();
@@ -78,16 +78,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_set_shade_smooth_cc
-
-void register_node_type_geo_set_shade_smooth()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_set_shade_smooth_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_SHADE_SMOOTH, "Set Shade Smooth", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_set_shade_smooth_cc

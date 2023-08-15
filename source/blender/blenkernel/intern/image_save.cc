@@ -794,7 +794,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */
-      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, ""))) {
+      if (!multi_layer && !STR_ELEM(rp->name, RE_PASSNAME_COMBINED, "")) {
         continue;
       }
 

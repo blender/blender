@@ -274,8 +274,8 @@ GPUShader *GPU_shader_create_from_info_name(const char *info_name)
   const GPUShaderCreateInfo *_info = gpu_shader_create_info_get(info_name);
   const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(_info);
   if (!info.do_static_compilation_) {
-    printf("Warning: Trying to compile \"%s\" which was not marked for static compilation.\n",
-           info.name_.c_str());
+    std::cerr << "Warning: Trying to compile \"" << info.name_.c_str()
+              << "\" which was not marked for static compilation.\n";
   }
   return GPU_shader_create_from_info(_info);
 }
@@ -291,7 +291,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   const std::string error = info.check_error();
   if (!error.empty()) {
-    printf("%s\n", error.c_str());
+    std::cerr << error.c_str() << "\n";
     BLI_assert(false);
   }
 

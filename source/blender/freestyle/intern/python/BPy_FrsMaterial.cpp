@@ -10,6 +10,8 @@
 
 #include "BPy_Convert.h"
 
+#include "BLI_math_vector.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -525,7 +527,7 @@ static Py_hash_t FrsMaterial_hash(PyObject *self)
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
 
 PyTypeObject FrsMaterial_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Material",
     /*tp_basicsize*/ sizeof(BPy_FrsMaterial),
     /*tp_itemsize*/ 0,

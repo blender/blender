@@ -6,10 +6,10 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cstdlib>
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
@@ -18,7 +18,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -32,9 +32,9 @@
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
+#  include "ED_node.hh"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 {

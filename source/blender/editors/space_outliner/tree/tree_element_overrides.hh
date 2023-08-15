@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "BLI_string_ref.hh"
 

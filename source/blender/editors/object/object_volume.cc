@@ -6,7 +6,7 @@
  * \ingroup edobj
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
@@ -16,8 +16,8 @@
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
@@ -25,12 +25,12 @@
 #include "BKE_report.h"
 #include "BKE_volume.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_image.h"
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_image.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
 #include "object_intern.h"
 

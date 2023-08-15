@@ -4,13 +4,13 @@
 
 set(INC
   ../include
+  ../../blenkernel
   ../../blentranslation
   ../../depsgraph
   ../../gpu
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../extern/curve_fit_nd
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -19,26 +19,26 @@ set(INC_SYS
 )
 
 set(SRC
-  curve_ops.c
-  editcurve.c
-  editcurve_add.c
-  editcurve_paint.c
-  editcurve_pen.c
-  editcurve_query.c
-  editcurve_select.c
+  curve_ops.cc
+  editcurve.cc
+  editcurve_add.cc
+  editcurve_paint.cc
+  editcurve_pen.cc
+  editcurve_query.cc
+  editcurve_select.cc
   editcurve_undo.cc
-  editfont.c
-  editfont_undo.c
+  editfont.cc
+  editfont_undo.cc
 
   curve_intern.h
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::intern::guardedalloc
-  extern_curve_fit_nd
 )
 
 

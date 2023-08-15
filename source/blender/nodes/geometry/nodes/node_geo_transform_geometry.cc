@@ -6,6 +6,7 @@
 #  include <openvdb/openvdb.h>
 #endif
 
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_task.hh"
@@ -293,17 +294,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   params.set_output("Geometry", std::move(geometry_set));
 }
-}  // namespace blender::nodes::node_geo_transform_geometry_cc
 
-void register_node_type_geo_transform_geometry()
+static void register_node()
 {
-  namespace file_ns = blender::nodes::node_geo_transform_geometry_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_TRANSFORM_GEOMETRY, "Transform Geometry", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(register_node)
+
+}  // namespace blender::nodes::node_geo_transform_geometry_cc

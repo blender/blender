@@ -8,7 +8,10 @@
 
 #include "DRW_render.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
+
+#include "BLI_math_color.h"
+#include "BLI_math_rotation.h"
 
 #include "BKE_vfont.h"
 

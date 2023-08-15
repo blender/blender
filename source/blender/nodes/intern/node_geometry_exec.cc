@@ -96,6 +96,10 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
       case GeometryComponent::Type::Edit: {
         continue;
       }
+      case GeometryComponent::Type::GreasePencil: {
+        message += TIP_("Grease Pencil");
+        break;
+      }
     }
     this->error_message_add(NodeWarningType::Info, std::move(message));
   }
@@ -105,8 +109,7 @@ void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_se
 {
   UNUSED_VARS_NDEBUG(geometry_set);
 #ifdef DEBUG
-  if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints_for_read())
-  {
+  if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints()) {
     /* If this is not valid, it's likely that the number of stored deformed points does not match
      * the number of points in the original data. */
     BLI_assert(curve_edit_hints->is_valid());

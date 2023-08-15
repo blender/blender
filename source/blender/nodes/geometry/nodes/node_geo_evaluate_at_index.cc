@@ -4,8 +4,8 @@
 
 #include "node_geometry_util.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
 
@@ -75,8 +75,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -179,21 +179,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 }
 
-}  // namespace blender::nodes::node_geo_evaluate_at_index_cc
-
-void register_node_type_geo_evaluate_at_index()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_evaluate_at_index_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(
       &ntype, GEO_NODE_EVALUATE_AT_INDEX, "Evaluate at Index", NODE_CLASS_CONVERTER);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.draw_buttons = node_layout;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_evaluate_at_index_cc

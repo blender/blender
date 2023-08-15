@@ -18,10 +18,10 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "ED_asset.h"
-#include "ED_screen.h"
+#include "ED_asset.hh"
+#include "ED_screen.hh"
 
 #include "node_intern.hh"
 
@@ -163,6 +163,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     menus.add_new("Point");
     menus.add_new("Text");
     menus.add_new("Texture");
+    menus.add_new("Tool");
     menus.add_new("Utilities");
     menus.add_new("UV");
     menus.add_new("Vector");

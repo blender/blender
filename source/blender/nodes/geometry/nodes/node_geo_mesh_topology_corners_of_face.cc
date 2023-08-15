@@ -47,7 +47,7 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask &mask) const final
   {
-    const OffsetIndices polys = mesh.polys();
+    const OffsetIndices faces = mesh.faces();
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -71,14 +71,14 @@ class CornersOfFaceInput final : public bke::MeshFieldInput {
       Array<int> sort_indices;
 
       for (const int selection_i : segment) {
-        const int poly_i = face_indices[selection_i];
+        const int face_i = face_indices[selection_i];
         const int index_in_sort = indices_in_sort[selection_i];
-        if (!polys.index_range().contains(poly_i)) {
+        if (!faces.index_range().contains(face_i)) {
           corner_of_face[selection_i] = 0;
           continue;
         }
 
-        const IndexRange corners = polys[poly_i];
+        const IndexRange corners = faces[face_i];
 
         const int index_in_sort_wrapped = mod_i(index_in_sort, corners.size());
         if (use_sorting) {
@@ -148,9 +148,9 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_FACE) {
       return {};
     }
-    const OffsetIndices polys = mesh.polys();
-    return VArray<int>::ForFunc(mesh.totpoly,
-                                [polys](const int64_t i) { return polys[i].size(); });
+    const OffsetIndices faces = mesh.faces();
+    return VArray<int>::ForFunc(mesh.faces_num,
+                                [faces](const int64_t i) { return faces[i].size(); });
   }
 
   uint64_t hash() const final
@@ -188,16 +188,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_mesh_topology_corners_of_face_cc
-
-void register_node_type_geo_mesh_topology_corners_of_face()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_topology_corners_of_face_cc;
-
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_FACE, "Corners of Face", NODE_CLASS_INPUT);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_topology_corners_of_face_cc

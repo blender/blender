@@ -11,15 +11,15 @@
 #  include "BKE_context.h"
 #  include "BKE_report.h"
 
-#  include "WM_api.h"
-#  include "WM_types.h"
+#  include "WM_api.hh"
+#  include "WM_types.hh"
 
 #  include "DNA_space_types.h"
 
-#  include "ED_outliner.h"
+#  include "ED_outliner.hh"
 
-#  include "RNA_access.h"
-#  include "RNA_define.h"
+#  include "RNA_access.hh"
+#  include "RNA_define.hh"
 
 #  include "IO_stl.h"
 #  include "io_stl_ops.hh"

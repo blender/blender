@@ -12,7 +12,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
@@ -21,29 +20,29 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_paint.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_ccg.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_screen.h"
-#include "ED_sculpt.h"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
@@ -154,12 +153,11 @@ static bool sculpt_expand_is_face_in_active_component(SculptSession *ss,
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      vertex.i = ss->corner_verts[ss->polys[f.i].start()];
+      vertex.i = ss->corner_verts[ss->faces[f.i].start()];
       break;
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
-      vertex.i = ss->polys[f.i].start() * key->grid_area;
-
+      vertex.i = ss->faces[f.i].start() * key->grid_area;
       break;
     }
     case PBVH_BMESH: {
@@ -702,7 +700,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = static_cast<float *>(MEM_calloc_arrayN(totvert, sizeof(float), __func__));
 
-  /* This algorithm uses mesh data (polys and loops), so this falloff type can't be initialized for
+  /* This algorithm uses mesh data (faces and loops), so this falloff type can't be initialized for
    * Multires. Also supports non-tri PBVH_BMESH, though untested until we implement that properly*/
   if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES || (ss->bm && ss->bm->totloop != ss->bm->totvert * 3))
   {
@@ -771,7 +769,7 @@ static float *sculpt_expand_diagonals_falloff_create(Object *ob, const PBVHVertR
       Span<int> map = ss->pmap[v_next_i];
 
       for (int j : map.index_range()) {
-        for (const int vert : ss->corner_verts.slice(ss->polys[map[j]])) {
+        for (const int vert : ss->corner_verts.slice(ss->faces[map[j]])) {
           const PBVHVertRef neighbor_v = BKE_pbvh_make_vref(vert);
           if (BLI_BITMAP_TEST(visited_verts, neighbor_v.i)) {
             continue;
@@ -854,32 +852,32 @@ static void sculpt_expand_grids_to_faces_falloff(SculptSession *ss,
                                                  Mesh *mesh,
                                                  ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int corner : polys[i]) {
+    for (const int corner : faces[i]) {
       const int grid_loop_index = corner * key->grid_area;
       for (int g = 0; g < key->grid_area; g++) {
         accum += expand_cache->vert_falloff[grid_loop_index + g];
       }
     }
-    expand_cache->face_falloff[i] = accum / (polys[i].size() * key->grid_area);
+    expand_cache->face_falloff[i] = accum / (faces[i].size() * key->grid_area);
   }
 }
 
 static void sculpt_expand_vertex_to_faces_falloff(Mesh *mesh, ExpandCache *expand_cache)
 {
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  for (const int i : polys.index_range()) {
+  for (const int i : faces.index_range()) {
     float accum = 0.0f;
-    for (const int vert : corner_verts.slice(polys[i])) {
+    for (const int vert : corner_verts.slice(faces[i])) {
       accum += expand_cache->vert_falloff[vert];
     }
-    expand_cache->face_falloff[i] = accum / polys[i].size();
+    expand_cache->face_falloff[i] = accum / faces[i].size();
   }
 }
 
@@ -911,7 +909,7 @@ static void sculpt_expand_mesh_face_falloff_from_vertex_falloff(SculptSession *s
 
   if (!expand_cache->face_falloff) {
     expand_cache->face_falloff = static_cast<float *>(
-        MEM_malloc_arrayN(mesh->totpoly, sizeof(float), __func__));
+        MEM_malloc_arrayN(mesh->faces_num, sizeof(float), __func__));
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -1199,9 +1197,9 @@ static void sculpt_expand_snap_initialize_from_enabled(SculptSession *ss,
     BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(face_set));
   }
 
-  for (const int i : ss->polys.index_range()) {
+  for (const int i : ss->faces.index_range()) {
     bool any_disabled = false;
-    for (const int vert : ss->corner_verts.slice(ss->polys[i])) {
+    for (const int vert : ss->corner_verts.slice(ss->faces[i])) {
       if (!BLI_BITMAP_TEST(enabled_verts, vert)) {
         any_disabled = true;
         break;
@@ -2067,7 +2065,7 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
   BMIter iter;
   BMFace *f;
   int i = 0;
-  const int totface = ss->totpoly;
+  const int totface = ss->bm->totface;
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
    * before attempting to delete it. */
@@ -2146,8 +2144,8 @@ static void sculpt_expand_delete_face_set_id_bmesh(int *r_face_sets,
 
     if (!any_updated) {
       /* No Face Sets where updated in this iteration, which means that no more content to keep
-       * filling the polys of the deleted Face Set was found. Break to avoid entering an infinite
-       * loop trying to search for those polys again. */
+       * filling the faces of the deleted Face Set was found. Break to avoid entering an infinite
+       * loop trying to search for those faces again. */
       break;
     }
 
@@ -2188,7 +2186,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
 
   const int totface = ss->totfaces;
   const blender::GroupedSpan<int> pmap = ss->pmap;
-  const blender::OffsetIndices<int> polys = mesh->polys();
+  const blender::OffsetIndices<int> faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
   /* Check that all the face sets IDs in the mesh are not equal to `delete_id`
@@ -2226,7 +2224,7 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     while (BLI_LINKSTACK_SIZE(queue)) {
       const int f_index = POINTER_AS_INT(BLI_LINKSTACK_POP(queue));
       int other_id = delete_id;
-      for (const int vert : corner_verts.slice(polys[f_index])) {
+      for (const int vert : corner_verts.slice(faces[f_index])) {
         for (const int neighbor_face_index : pmap[vert]) {
           if (expand_cache->original_face_sets[neighbor_face_index] <= 0) {
             /* Skip picking IDs from hidden Face Sets. */
@@ -2248,8 +2246,8 @@ static void sculpt_expand_delete_face_set_id(int *r_face_sets,
     }
     if (!any_updated) {
       /* No Face Sets where updated in this iteration, which means that no more content to keep
-       * filling the polys of the deleted Face Set was found. Break to avoid entering an infinite
-       * loop trying to search for those polys again. */
+       * filling the faces of the deleted Face Set was found. Break to avoid entering an infinite
+       * loop trying to search for those faces again. */
       break;
     }
 

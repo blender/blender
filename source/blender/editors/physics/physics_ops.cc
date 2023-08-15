@@ -6,11 +6,11 @@
  * \ingroup edphys
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_physics.h"
+#include "ED_physics.hh"
 
 #include "physics_intern.h" /* own include */
 

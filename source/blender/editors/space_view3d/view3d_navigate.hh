@@ -19,40 +19,22 @@
 struct ARegion;
 struct Depsgraph;
 struct Dial;
-struct Main;
 struct RegionView3D;
 struct Scene;
 struct ScrArea;
 struct View3D;
 struct bContext;
+struct Object;
+struct PointerRNA;
 struct rcti;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
+struct wmTimer;
+struct wmWindow;
 struct wmWindowManager;
-
-enum eV3D_OpMode {
-  V3D_OP_MODE_NONE = -1,
-  V3D_OP_MODE_ZOOM = 0,
-  V3D_OP_MODE_ROTATE,
-  V3D_OP_MODE_MOVE,
-  V3D_OP_MODE_VIEW_PAN,
-  V3D_OP_MODE_VIEW_ROLL,
-  V3D_OP_MODE_DOLLY,
-#ifdef WITH_INPUT_NDOF
-  V3D_OP_MODE_NDOF_ORBIT,
-  V3D_OP_MODE_NDOF_ORBIT_ZOOM,
-  V3D_OP_MODE_NDOF_PAN,
-  V3D_OP_MODE_NDOF_ALL,
-#endif
-};
-#ifndef WITH_INPUT_NDOF
-#  define V3D_OP_MODE_LEN V3D_OP_MODE_DOLLY + 1
-#else
-#  define V3D_OP_MODE_LEN V3D_OP_MODE_NDOF_ALL + 1
-#endif
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -93,17 +75,24 @@ enum eViewOpsFlag {
    * Some operations don't require this (view zoom/pan or NDOF where subtle rotation is common
    * so we don't want it to trigger auto-perspective). */
   VIEWOPS_FLAG_PERSP_ENSURE = (1 << 2),
-  /** When set, ignore any options that depend on initial cursor location. */
-  VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 
-  VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 4),
+  VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 3),
+
+  VIEWOPS_FLAG_INIT_ZFAC = (1 << 4),
 };
-ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_ZOOM_TO_MOUSE);
+ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_INIT_ZFAC);
+
+struct ViewOpsType {
+  eViewOpsFlag flag;
+  const char *idname;
+  bool (*poll_fn)(bContext *C);
+  int (*init_fn)(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr);
+  int (*apply_fn)(bContext *C, ViewOpsData *vod, const eV3D_OpEvent event_code, const int xy[2]);
+};
 
 /** Generic View Operator Custom-Data */
 struct ViewOpsData {
   /** Context pointers (assigned by #viewops_data_create). */
-  Main *bmain;
   Scene *scene;
   ScrArea *area;
   ARegion *region;
@@ -139,8 +128,8 @@ struct ViewOpsData {
 
     /** #wmEvent.xy. */
     int event_xy[2];
-    /** Offset to use when #VIEWOPS_FLAG_USE_MOUSE_INIT is not set.
-     * so we can simulate pressing in the middle of the screen. */
+    /* Offset used when "use_cursor_init" is false to simulate pressing in the middle of the
+     * region. */
     int event_xy_offset[2];
     /** #wmEvent.type that triggered the operator. */
     int event_type;
@@ -154,7 +143,7 @@ struct ViewOpsData {
     float mousevec[3];
 
     /** Used for roll */
-    struct Dial *dial;
+    Dial *dial;
   } init;
 
   /** Previous state (previous modal event handled). */
@@ -172,7 +161,7 @@ struct ViewOpsData {
     float viewquat[4];
   } curr;
 
-  eV3D_OpMode nav_type;
+  const ViewOpsType *nav_type;
   eViewOpsFlag viewops_flag;
 
   float reverse;
@@ -191,17 +180,22 @@ struct ViewOpsData {
    */
   bool use_dyn_ofs_ortho_correction;
 
-  /** Used for navigation on non view3d operators. */
-  wmKeyMap *keymap;
-  bool is_modal_event;
+  void init_context(bContext *C);
+  void state_backup();
+  void state_restore();
+  void init_navigation(bContext *C,
+                       const wmEvent *event,
+                       const ViewOpsType *nav_type,
+                       const float dyn_ofs_override[3] = nullptr,
+                       const bool use_cursor_init = false);
+  void end_navigation(bContext *C);
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("ViewOpsData")
+#endif
 };
 
 /* view3d_navigate.cc */
-
-/**
- * Navigation operators that share the `ViewOpsData` utility.
- */
-const char *viewops_operator_idname_get(eV3D_OpMode nav_type);
 
 bool view3d_location_poll(bContext *C);
 bool view3d_rotation_poll(bContext *C);
@@ -210,7 +204,7 @@ bool view3d_zoom_or_dolly_poll(bContext *C);
 int view3d_navigate_invoke_impl(bContext *C,
                                 wmOperator *op,
                                 const wmEvent *event,
-                                const eV3D_OpMode nav_type);
+                                const ViewOpsType *nav_type);
 int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event);
 void view3d_navigate_cancel_fn(bContext *C, wmOperator *op);
 
@@ -236,23 +230,24 @@ void viewops_data_free(bContext *C, ViewOpsData *vod);
  */
 ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
-                                 const eV3D_OpMode nav_type,
+                                 const ViewOpsType *nav_type,
                                  const bool use_cursor_init);
-void viewops_data_state_restore(ViewOpsData *vod);
-
-void VIEW3D_OT_view_all(wmOperatorType *ot);
-void VIEW3D_OT_view_selected(wmOperatorType *ot);
-void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
-void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
-void VIEW3D_OT_view_axis(wmOperatorType *ot);
-void VIEW3D_OT_view_camera(wmOperatorType *ot);
-void VIEW3D_OT_view_orbit(wmOperatorType *ot);
-void VIEW3D_OT_view_pan(wmOperatorType *ot);
+void axis_set_view(bContext *C,
+                   View3D *v3d,
+                   ARegion *region,
+                   const float quat_[4],
+                   char view,
+                   char view_axis_roll,
+                   int perspo,
+                   const float *align_to_quat,
+                   const int smooth_viewtx);
 
 /* view3d_navigate_dolly.cc */
 
 void viewdolly_modal_keymap(wmKeyConfig *keyconf);
 void VIEW3D_OT_dolly(wmOperatorType *ot);
+
+extern ViewOpsType ViewOpsType_dolly;
 
 /* view3d_navigate_fly.cc */
 
@@ -262,24 +257,15 @@ void VIEW3D_OT_fly(wmOperatorType *ot);
 
 /* view3d_navigate_move.cc */
 
-int viewmove_modal_impl(bContext *C,
-                        ViewOpsData *vod,
-                        const eV3D_OpEvent event_code,
-                        const int xy[2]);
-int viewmove_invoke_impl(ViewOpsData *vod, const wmEvent *event);
 void viewmove_modal_keymap(wmKeyConfig *keyconf);
 void VIEW3D_OT_move(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_move;
 
 /* view3d_navigate_ndof.cc */
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
-
-int ndof_orbit_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
-int ndof_orbit_zoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
-int ndof_pan_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
-int ndof_all_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
-
 /**
  * Called from both fly mode and walk mode,
  */
@@ -294,21 +280,25 @@ void VIEW3D_OT_ndof_orbit(wmOperatorType *ot);
 void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot);
 void VIEW3D_OT_ndof_pan(wmOperatorType *ot);
 void VIEW3D_OT_ndof_all(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_ndof_orbit;
+extern const ViewOpsType ViewOpsType_ndof_orbit_zoom;
+extern const ViewOpsType ViewOpsType_ndof_pan;
+extern const ViewOpsType ViewOpsType_ndof_all;
 #endif /* WITH_INPUT_NDOF */
 
 /* view3d_navigate_roll.cc */
 
 void VIEW3D_OT_view_roll(wmOperatorType *ot);
 
+extern const ViewOpsType ViewOpsType_roll;
+
 /* view3d_navigate_rotate.cc */
 
-int viewrotate_modal_impl(bContext *C,
-                          ViewOpsData *vod,
-                          const eV3D_OpEvent event_code,
-                          const int xy[2]);
-int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event);
 void viewrotate_modal_keymap(wmKeyConfig *keyconf);
 void VIEW3D_OT_rotate(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_rotate;
 
 /* view3d_navigate_smoothview.cc */
 
@@ -318,7 +308,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot);
  * Each of the struct members may be NULL to signify they aren't to be adjusted.
  */
 struct V3D_SmoothParams {
-  struct Object *camera_old, *camera;
+  Object *camera_old, *camera;
   const float *ofs, *quat, *dist, *lens;
 
   /** Alternate rotation center, when set `ofs` must be NULL. */
@@ -372,6 +362,39 @@ void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *regio
 
 void VIEW3D_OT_smoothview(wmOperatorType *ot);
 
+/* view3d_navigate_view_all.cc */
+
+void VIEW3D_OT_view_all(wmOperatorType *ot);
+void VIEW3D_OT_view_selected(wmOperatorType *ot);
+
+/* view3d_navigate_view_axis.cc */
+
+void VIEW3D_OT_view_axis(wmOperatorType *ot);
+
+/* view3d_navigate_view_camera.cc */
+
+void VIEW3D_OT_view_camera(wmOperatorType *ot);
+
+/* view3d_navigate_view_center_cursor.cc */
+
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
+
+/* view3d_navigate_view_center_pick.cc */
+
+void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
+
+/* view3d_navigate_view_orbit.cc */
+
+void VIEW3D_OT_view_orbit(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_orbit;
+
+/* view3d_navigate_view_pan.cc */
+
+void VIEW3D_OT_view_pan(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_pan;
+
 /* view3d_navigate_walk.cc */
 
 void walk_modal_keymap(wmKeyConfig *keyconf);
@@ -379,13 +402,10 @@ void VIEW3D_OT_walk(wmOperatorType *ot);
 
 /* view3d_navigate_zoom.cc */
 
-int viewzoom_modal_impl(bContext *C,
-                        ViewOpsData *vod,
-                        const eV3D_OpEvent event_code,
-                        const int xy[2]);
-int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr);
 void viewzoom_modal_keymap(wmKeyConfig *keyconf);
 void VIEW3D_OT_zoom(wmOperatorType *ot);
+
+extern const ViewOpsType ViewOpsType_zoom;
 
 /* view3d_navigate_zoom_border.cc */
 

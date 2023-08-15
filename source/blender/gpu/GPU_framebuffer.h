@@ -35,6 +35,9 @@ typedef enum eGPUFrameBufferBits {
 
 ENUM_OPERATORS(eGPUFrameBufferBits, GPU_STENCIL_BIT)
 
+/* Guaranteed by the spec and is never greater than 16 on any hardware or implementation. */
+#define GPU_MAX_VIEWPORTS 16
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -340,9 +343,22 @@ void GPU_framebuffer_default_size(GPUFrameBuffer *framebuffer, int width, int he
  * or when binding the frame-buffer after modifying its attachments.
  *
  * \note Viewport and scissor size is stored per frame-buffer.
+ * \note Setting a singular viewport will only change the state of the first viewport.
+ * \note Must be called after first bind.
  */
 void GPU_framebuffer_viewport_set(
     GPUFrameBuffer *framebuffer, int x, int y, int width, int height);
+
+/**
+ * Similar to `GPU_framebuffer_viewport_set()` but specify the bounds of all 16 viewports.
+ * By default geometry renders only to the first viewport. That can be changed by setting
+ * `gpu_ViewportIndex` in the vertex.
+ *
+ * \note Viewport and scissor size is stored per frame-buffer.
+ * \note Must be called after first bind.
+ */
+void GPU_framebuffer_multi_viewports_set(GPUFrameBuffer *gpu_fb,
+                                         const int viewport_rects[GPU_MAX_VIEWPORTS][4]);
 
 /**
  * Return the viewport offset and size in a int quadruple: (x, y, width, height).
@@ -569,8 +585,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
  */
 void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *framebuffer,
                                           int max_level,
-                                          void (*per_level_callback)(void *userData, int level),
-                                          void *userData);
+                                          void (*per_level_callback)(void *user_data, int level),
+                                          void *user_data);
 
 /** \} */
 
@@ -652,6 +668,11 @@ int GPU_offscreen_height(const GPUOffScreen *offscreen);
  * \note only to be used by viewport code!
  */
 struct GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *offscreen);
+
+/**
+ * Return the texture format of a #GPUOffScreen.
+ */
+eGPUTextureFormat GPU_offscreen_format(const GPUOffScreen *offscreen);
 
 /**
  * Return the internals of a #GPUOffScreen. Does not give ownership.

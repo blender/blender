@@ -8,10 +8,11 @@
  * Utilities for stand-alone `makesdna.cc` and Blender to share.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_alloca.h"
 #include "BLI_assert.h"
 #include "BLI_ghash.h"
 #include "BLI_sys_types.h"
@@ -326,6 +327,15 @@ extern "C" void _DNA_internal_memzero(void *dst, size_t size);
 extern "C" void _DNA_internal_memzero(void *dst, const size_t size)
 {
   memset(dst, 0, size);
+}
+
+extern "C" void _DNA_internal_swap(void *a, void *b, size_t size);
+extern "C" void _DNA_internal_swap(void *a, void *b, const size_t size)
+{
+  void *tmp = alloca(size);
+  memcpy(tmp, a, size);
+  memcpy(a, b, size);
+  memcpy(b, tmp, size);
 }
 
 /** \} */

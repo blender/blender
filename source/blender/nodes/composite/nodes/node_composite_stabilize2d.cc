@@ -12,8 +12,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
@@ -47,7 +47,7 @@ static void init(const bContext *C, PointerRNA *ptr)
   node->id = (ID *)scene->clip;
   id_us_plus(node->id);
 
-  /* default to bilinear, see node_sampler_type_items in rna_nodetree.c */
+  /* Default to bi-linear, see node_sampler_type_items in `rna_nodetree.cc`. */
   node->custom1 = 1;
 }
 

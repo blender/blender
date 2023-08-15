@@ -8,6 +8,8 @@
  * Contains everything about light baking.
  */
 
+#include <mutex>
+
 #include "DRW_render.h"
 
 #include "BKE_global.h"
@@ -25,10 +27,10 @@
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "wm_window.h"
+#include "wm_window.hh"
 
 #include "eevee_engine.h"
 #include "eevee_instance.hh"
@@ -177,7 +179,7 @@ class LightBake {
             }
           });
 
-      if ((G.is_break == true) || ((stop != nullptr && *stop == true))) {
+      if ((G.is_break == true) || (stop != nullptr && *stop == true)) {
         break;
       }
     }

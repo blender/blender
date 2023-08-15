@@ -515,7 +515,8 @@ static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
                                        float exponent,
                                        float dither,
                                        bool use_predivide,
-                                       bool use_overlay)
+                                       bool use_overlay,
+                                       bool use_hdr)
 {
   bool do_update = false;
   if (shader.parameters_buffer == nullptr) {
@@ -541,6 +542,10 @@ static void updateGPUDisplayParameters(OCIO_GPUShader &shader,
   }
   if (bool(data.use_overlay) != use_overlay) {
     data.use_overlay = use_overlay;
+    do_update = true;
+  }
+  if (bool(data.use_hdr) != use_hdr) {
+    data.use_hdr = use_hdr;
     do_update = true;
   }
   if (do_update) {
@@ -684,7 +689,8 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     const float exponent,
                                     const float dither,
                                     const bool use_predivide,
-                                    const bool use_overlay)
+                                    const bool use_overlay,
+                                    const bool use_hdr)
 {
   /* Get GPU shader from cache or create new one. */
   OCIO_GPUDisplayShader &display_shader = getGPUDisplayShader(
@@ -719,7 +725,7 @@ bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
     GPU_uniformbuf_bind(textures.uniforms_buffer, UNIFORMBUF_SLOT_LUTS);
   }
 
-  updateGPUDisplayParameters(shader, scale, exponent, dither, use_predivide, use_overlay);
+  updateGPUDisplayParameters(shader, scale, exponent, dither, use_predivide, use_overlay, use_hdr);
   GPU_uniformbuf_bind(shader.parameters_buffer, UNIFORMBUF_SLOT_DISPLAY);
 
   /* TODO(fclem): remove remains of IMM. */

@@ -67,7 +67,7 @@ void MTLIndexBuf::read(uint32_t *data) const
     MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
 
-    /* Ensure data is flushed for host caches.  */
+    /* Ensure data is flushed for host caches. */
     id<MTLBuffer> source_buffer = ibo_->get_metal_buffer();
     if (source_buffer.storageMode == MTLStorageModeManaged) {
       id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
@@ -210,6 +210,14 @@ void MTLIndexBuf::update_sub(uint32_t start, uint32_t len, const void *data)
 void MTLIndexBuf::flag_can_optimize(bool can_optimize)
 {
   can_optimize_ = can_optimize;
+
+  /* NOTE: Index buffer optimization needs to be disabled for Indirect draws, as the index count is
+   * unknown at submission time. However, if the index buffer has already been optimized by a
+   * separate draw pass, errors will occur and these cases need to be resolved at the high-level,
+   * ensuring primitive types without primitive restart are used instead, as these perform far
+   * more optimally on hardware. */
+  BLI_assert_msg(can_optimize_ || (optimized_ibo_ == nullptr),
+                 "Index buffer optimization disabled, but optimal buffer already generated.");
 }
 
 /** \} */

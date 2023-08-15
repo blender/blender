@@ -45,10 +45,11 @@
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
@@ -60,32 +61,33 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "ED_node.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_scene.h"
-#include "ED_screen.h"
-#include "ED_sequencer.h"
-#include "ED_undo.h"
+#include "ED_node.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_scene.hh"
+#include "ED_screen.hh"
+#include "ED_sequencer.hh"
+#include "ED_undo.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "../../blender/blenloader/BLO_readfile.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_rna.hh"
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
@@ -1811,7 +1813,7 @@ static void refreshdrivers_animdata_fn(int /*event*/,
   IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 
   /* Loop over drivers, performing refresh
-   * (i.e. check graph_buttons.c and rna_fcurve.cc for details). */
+   * (i.e. check `graph_buttons.cc` and `rna_fcurve.cc` for details). */
   LISTBASE_FOREACH (FCurve *, fcu, &iat->adt->drivers) {
     fcu->flag &= ~FCURVE_DISABLED;
 
@@ -2204,6 +2206,27 @@ static void gpencil_layer_fn(int event,
   }
   else if (event == OL_DOP_UNHIDE) {
     gpl->flag &= ~GP_LAYER_HIDE;
+  }
+}
+
+static void grease_pencil_node_fn(int event,
+                                  TreeElement *te,
+                                  TreeStoreElem * /*tselem*/,
+                                  void * /*arg*/)
+{
+  bke::greasepencil::TreeNode &node = tree_element_cast<TreeElementGreasePencilNode>(te)->node();
+
+  if (event == OL_DOP_SELECT) {
+    node.flag |= GP_LAYER_TREE_NODE_SELECT;
+  }
+  else if (event == OL_DOP_DESELECT) {
+    node.flag &= ~GP_LAYER_TREE_NODE_SELECT;
+  }
+  else if (event == OL_DOP_HIDE) {
+    node.flag |= GP_LAYER_TREE_NODE_HIDE;
+  }
+  else if (event == OL_DOP_UNHIDE) {
+    node.flag &= ~GP_LAYER_TREE_NODE_HIDE;
   }
 }
 
@@ -2613,7 +2636,7 @@ static TreeTraversalAction outliner_collect_objects_to_delete(TreeElement *te, v
     ID *id_parent = tselem_parent->id;
     /* It's not possible to remove an object from an overridden collection (and potentially scene,
      * through the master collection). */
-    if ((ELEM(GS(id_parent->name), ID_GR, ID_SCE))) {
+    if (ELEM(GS(id_parent->name), ID_GR, ID_SCE)) {
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id_parent)) {
         return TRAVERSE_SKIP_CHILDS;
       }
@@ -3529,6 +3552,12 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 
       break;
     }
+    case TSE_GREASE_PENCIL_NODE: {
+      outliner_do_data_operation(space_outliner, datalevel, event, grease_pencil_node_fn, nullptr);
+      WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, nullptr);
+      ED_undo_push(C, "Grease Pencil Node operation");
+      break;
+    }
     case TSE_RNA_STRUCT:
       if (event == OL_DOP_SELECT_LINKED) {
         outliner_do_data_operation(space_outliner, datalevel, event, data_select_linked_fn, C);
@@ -3611,7 +3640,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 static int outliner_operator_menu(bContext *C, const char *opname)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false);
-  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, nullptr), ICON_NONE);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(ot, nullptr).c_str(), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   /* set this so the default execution context is the same as submenus */

@@ -6,7 +6,7 @@
  * \ingroup edscr
  */
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "GPU_batch_presets.h"
 #include "GPU_framebuffer.h"
@@ -16,14 +16,13 @@
 #include "GPU_state.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "screen_intern.h"
 
@@ -352,96 +351,4 @@ void screen_draw_split_preview(ScrArea *area, const eScreenAxis dir_axis, const 
   GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();
-}
-
-/* -------------------------------------------------------------------- */
-/* Screen Thumbnail Preview */
-
-/**
- * Calculates a scale factor to squash the preview for \a screen into a rectangle
- * of given size and aspect.
- */
-static void screen_preview_scale_get(
-    const bScreen *screen, float size_x, float size_y, const float asp[2], float r_scale[2])
-{
-  float max_x = 0, max_y = 0;
-
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    max_x = MAX2(max_x, area->totrct.xmax);
-    max_y = MAX2(max_y, area->totrct.ymax);
-  }
-  r_scale[0] = (size_x * asp[0]) / max_x;
-  r_scale[1] = (size_y * asp[1]) / max_y;
-}
-
-static void screen_preview_draw_areas(const bScreen *screen,
-                                      const float scale[2],
-                                      const float col[4],
-                                      const float ofs_between_areas)
-{
-  const float ofs_h = ofs_between_areas * 0.5f;
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-  immUniformColor4fv(col);
-
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    rctf rect{};
-    rect.xmin = area->totrct.xmin * scale[0] + ofs_h;
-    rect.xmax = area->totrct.xmax * scale[0] - ofs_h;
-    rect.ymin = area->totrct.ymin * scale[1] + ofs_h;
-    rect.ymax = area->totrct.ymax * scale[1] - ofs_h;
-
-    immBegin(GPU_PRIM_TRI_FAN, 4);
-    immVertex2f(pos, rect.xmin, rect.ymin);
-    immVertex2f(pos, rect.xmax, rect.ymin);
-    immVertex2f(pos, rect.xmax, rect.ymax);
-    immVertex2f(pos, rect.xmin, rect.ymax);
-    immEnd();
-  }
-
-  immUnbindProgram();
-}
-
-static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
-{
-  const float asp[2] = {1.0f, 0.8f}; /* square previews look a bit ugly */
-  /* could use theme color (tui.wcol_menu_item.text),
-   * but then we'd need to regenerate all previews when changing. */
-  const float col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  float scale[2];
-
-  wmOrtho2(0.0f, size_x, 0.0f, size_y);
-  /* center */
-  GPU_matrix_push();
-  GPU_matrix_identity_set();
-  GPU_matrix_translate_2f(size_x * (1.0f - asp[0]) * 0.5f, size_y * (1.0f - asp[1]) * 0.5f);
-
-  screen_preview_scale_get(screen, size_x, size_y, asp, scale);
-  screen_preview_draw_areas(screen, scale, col, 1.5f);
-
-  GPU_matrix_pop();
-}
-
-void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uint *r_rect)
-{
-  char err_out[256] = "unknown";
-  GPUOffScreen *offscreen = GPU_offscreen_create(size_x,
-                                                 size_y,
-                                                 true,
-                                                 GPU_RGBA8,
-                                                 GPU_TEXTURE_USAGE_SHADER_READ |
-                                                     GPU_TEXTURE_USAGE_HOST_READ,
-                                                 err_out);
-
-  GPU_offscreen_bind(offscreen, true);
-  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-  GPU_clear_depth(1.0f);
-
-  screen_preview_draw(screen, size_x, size_y);
-
-  GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, r_rect);
-  GPU_offscreen_unbind(offscreen, true);
-
-  GPU_offscreen_free(offscreen);
 }

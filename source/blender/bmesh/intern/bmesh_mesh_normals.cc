@@ -16,7 +16,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -509,8 +509,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
   else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
            !BM_elem_flag_test(l_curr->prev->e, BM_ELEM_TAG))
   {
-    /* Simple case (both edges around that vertex are sharp in related polygon),
-     * this vertex just takes its poly normal.
+    /* Simple case (both edges around that vertex are sharp in related face),
+     * this vertex just takes its face normal.
      */
     const int l_curr_index = BM_elem_index_get(l_curr);
     const float *no = fnos ? fnos[BM_elem_index_get(l_curr->f)] : l_curr->f->no;
@@ -640,7 +640,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
       {
         /* Code similar to accumulate_vertex_normals_poly_v3. */
-        /* Calculate angle between the two poly edges incident on this vertex. */
+        /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
         const float fac = saacos(dot_v3v3(vec_next, vec_curr));
         const float *no = fnos ? fnos[BM_elem_index_get(f)] : f->no;
@@ -850,7 +850,7 @@ static void bm_edge_tag_from_smooth_and_set_sharp(const float (*fnos)[3],
       }
       else {
         /* Note that we do not care about the other sharp-edge cases
-         * (sharp poly, non-manifold edge, etc.),
+         * (sharp face, non-manifold edge, etc.),
          * only tag edge as sharp when it is due to angle threshold. */
         BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
       }
@@ -2033,7 +2033,6 @@ static void bm_loop_normal_mark_indiv_do_loop(BMLoop *l,
 /* Mark the individual clnors to be edited, if multiple selection methods are used. */
 static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do_all_loops_of_vert)
 {
-  BMEditSelection *ese, *ese_prev;
   int totloopsel = 0;
 
   const bool sel_verts = (bm->selectmode & SCE_SELECT_VERTEX) != 0;
@@ -2052,11 +2051,11 @@ static int bm_loop_normal_mark_indiv(BMesh *bm, BLI_bitmap *loops, const bool do
      * but it is not designed to be used with huge selection sets,
      * rather with only a few items selected at most. */
     /* Goes from last selected to the first selected element. */
-    for (ese = static_cast<BMEditSelection *>(bm->selected.last); ese; ese = ese->prev) {
+    LISTBASE_FOREACH_BACKWARD (BMEditSelection *, ese, &bm->selected) {
       if (ese->htype == BM_FACE) {
         /* If current face is selected,
          * then any verts to be edited must have been selected before it. */
-        for (ese_prev = ese->prev; ese_prev; ese_prev = ese_prev->prev) {
+        for (BMEditSelection *ese_prev = ese->prev; ese_prev; ese_prev = ese_prev->prev) {
           if (ese_prev->htype == BM_VERT) {
             bm_loop_normal_mark_indiv_do_loop(
                 BM_face_vert_share_loop((BMFace *)ese->ele, (BMVert *)ese_prev->ele),

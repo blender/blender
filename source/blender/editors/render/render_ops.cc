@@ -10,9 +10,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "render_intern.hh" /* own include */
 
@@ -78,12 +78,12 @@ void ED_operatortypes_render()
   WM_operatortype_append(TEXTURE_OT_slot_paste);
   WM_operatortype_append(TEXTURE_OT_slot_move);
 
-  /* render_internal.c */
+  /* `render_internal.cc` */
   WM_operatortype_append(RENDER_OT_view_show);
   WM_operatortype_append(RENDER_OT_render);
   WM_operatortype_append(RENDER_OT_view_cancel);
   WM_operatortype_append(RENDER_OT_shutter_curve_preset);
 
-  /* render_opengl.c */
+  /* `render_opengl.cc` */
   WM_operatortype_append(RENDER_OT_opengl);
 }

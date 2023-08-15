@@ -15,7 +15,7 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_edgehash.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
 
@@ -44,7 +44,7 @@ using ePolyFill2DTestFlag = enum ePolyFill2DTestFlag {
 /* -------------------------------------------------------------------- */
 /* test utility functions */
 
-#define TRI_ERROR_VALUE (uint) - 1
+#define TRI_ERROR_VALUE uint(-1)
 
 static void test_valid_polyfill_prepare(uint tris[][3], uint tris_num)
 {

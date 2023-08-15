@@ -8,15 +8,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_report.h"
 
-#include "ED_sculpt.h"
+#include "ED_sculpt.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -43,7 +45,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
     BLI_assert(t->data_container_len == 1);
     TransDataContainer *tc = t->data_container;
     tc->data_len = 1;
-    tc->is_active = 1;
+    tc->is_active = true;
     td = tc->data = MEM_cnew<TransData>(__func__);
     td->ext = tc->data_ext = MEM_cnew<TransDataExtension>(__func__);
   }
@@ -122,7 +124,7 @@ static void special_aftertrans_update__sculpt(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Sculpt = {
     /*flags*/ 0,
-    /*createTransData*/ createTransSculpt,
-    /*recalcData*/ recalcData_sculpt,
+    /*create_trans_data*/ createTransSculpt,
+    /*recalc_data*/ recalcData_sculpt,
     /*special_aftertrans_update*/ special_aftertrans_update__sculpt,
 };

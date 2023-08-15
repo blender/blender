@@ -6,14 +6,13 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
@@ -24,15 +23,15 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
     {PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
@@ -117,9 +116,9 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "ED_gpencil_legacy.h"
-#  include "ED_paint.h"
-#  include "ED_particle.h"
+#  include "ED_gpencil_legacy.hh"
+#  include "ED_paint.hh"
+#  include "ED_particle.hh"
 
 static void rna_GPencil_update(Main * /*bmain*/, Scene *scene, PointerRNA * /*ptr*/)
 {
@@ -295,7 +294,7 @@ static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 static bool paint_contains_brush_slot(const Paint *paint, const PaintToolSlot *tslot, int *r_index)
 {
   if ((tslot >= paint->tool_slots) && (tslot < (paint->tool_slots + paint->tool_slots_len))) {
-    *r_index = (int)(tslot - paint->tool_slots);
+    *r_index = int(tslot - paint->tool_slots);
     return true;
   }
   return false;
@@ -388,7 +387,7 @@ static void rna_Sculpt_update(bContext *C, PointerRNA * /*ptr*/)
 
   if (ob) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | ND_DRAW, ob);
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
   }
 }
 
@@ -1175,7 +1174,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Check if required texpaint data exist");
 
   /* return type */
-  RNA_def_function_return(func, RNA_def_boolean(func, "ok", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "ok", true, "", ""));
 
   /* booleans */
   prop = RNA_def_property(srna, "use_occlude", PROP_BOOLEAN, PROP_NONE);

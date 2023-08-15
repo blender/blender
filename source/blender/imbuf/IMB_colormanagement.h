@@ -297,6 +297,15 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer,
                                         const struct ColorManagedViewSettings *view_settings,
                                         const struct ColorManagedDisplaySettings *display_settings,
                                         bool predivide);
+void IMB_display_buffer_transform_apply_float(
+    float *float_display_buffer,
+    float *linear_buffer,
+    int width,
+    int height,
+    int channels,
+    const struct ColorManagedViewSettings *view_settings,
+    const struct ColorManagedDisplaySettings *display_settings,
+    bool predivide);
 
 void IMB_display_buffer_release(void *cache_handle);
 
@@ -345,6 +354,7 @@ int IMB_colormanagement_colorspace_get_named_index(const char *name);
 const char *IMB_colormanagement_colorspace_get_indexed_name(int index);
 const char *IMB_colormanagement_colorspace_get_name(const struct ColorSpace *colorspace);
 const char *IMB_colormanagement_view_get_default_name(const char *display_name);
+const char *IMB_colormanagement_view_get_raw_or_default_name(const char *display_name);
 
 void IMB_colormanagement_colorspace_from_ibuf_ftype(
     struct ColorManagedColorspaceSettings *colorspace_settings, struct ImBuf *ibuf);
@@ -411,6 +421,7 @@ struct ColormanageProcessor *IMB_colormanagement_display_processor_new(
     const struct ColorManagedDisplaySettings *display_settings);
 struct ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(
     const char *from_colorspace, const char *to_colorspace);
+bool IMB_colormanagement_processor_is_noop(struct ColormanageProcessor *cm_processor);
 void IMB_colormanagement_processor_apply_v4(struct ColormanageProcessor *cm_processor,
                                             float pixel[4]);
 void IMB_colormanagement_processor_apply_v4_predivide(struct ColormanageProcessor *cm_processor,

@@ -90,7 +90,7 @@ def rna_idprop_ui_create(
     ui_data = item.id_properties_ui(prop)
     proptype, _ = rna_idprop_value_item_type(default)
 
-    if proptype is bool:
+    if (proptype is bool) or (proptype is str):
         ui_data = item.id_properties_ui(prop)
         ui_data.update(
             description=description,

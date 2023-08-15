@@ -16,7 +16,7 @@
 /* for FOREACH_NODETREE_BEGIN */
 #include "DNA_node_types.h"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 #  include "BLI_map.hh"
@@ -238,6 +238,8 @@ typedef struct bNodeType {
   char ui_name[64]; /* MAX_NAME */
   char ui_description[256];
   int ui_icon;
+  /** Should usually use the idname instead, but this enum type is still exposed in Python. */
+  const char *enum_name_legacy;
 
   float width, minwidth, maxwidth;
   float height, minheight, maxheight;
@@ -542,61 +544,12 @@ void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
 /** \name Node Tree Interface
  * \{ */
 
-/** Run this after relevant changes to panels to ensure sockets remain sorted by panel. */
-void ntreeEnsureSocketInterfacePanelOrder(bNodeTree *ntree);
-
 void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock);
 
 struct bNodeSocket *ntreeAddSocketInterface(struct bNodeTree *ntree,
                                             eNodeSocketInOut in_out,
                                             const char *idname,
                                             const char *name);
-
-/** Set the panel of the interface socket. */
-void ntreeSetSocketInterfacePanel(bNodeTree *ntree, bNodeSocket *sock, bNodePanel *panel);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Node Tree Socket Panels
- * \{ */
-
-/**
- * Check if a panel is part of the node tree.
- * \return True if the panel is part of the node tree.
- */
-bool ntreeContainsPanel(const bNodeTree *ntree, const bNodePanel *panel);
-
-/**
- * Index of a panel in the node tree.
- * \return Index of the panel in the node tree or -1 if the tree does not contain the panel.
- */
-int ntreeGetPanelIndex(const bNodeTree *ntree, const bNodePanel *panel);
-
-/**
- * Add a new panel to the node tree.
- * \param name: Name of the new panel.
- */
-bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name);
-
-/**
- * Insert a new panel in the node tree.
- * \param name: Name of the new panel.
- * \param index: Index at which to insert the panel.
- */
-bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int index);
-
-/** Remove a panel from the node tree. */
-void ntreeRemovePanel(bNodeTree *ntree, bNodePanel *panel);
-
-/** Remove all panels from the node tree. */
-void ntreeClearPanels(bNodeTree *ntree);
-
-/**
- * Move a panel up or down in the node tree.
- * \param index: Index to which to move the panel.
- */
-void ntreeMovePanel(bNodeTree *ntree, bNodePanel *panel, int new_index);
 
 /** \} */
 
@@ -789,7 +742,6 @@ bool BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey ke
 void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
                                             bNodeInstanceValueFP valfreefp);
 
-void BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -953,7 +905,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_BSDF_GLASS 134
 #define SH_NODE_BSDF_TRANSLUCENT 137
 #define SH_NODE_BSDF_TRANSPARENT 138
-#define SH_NODE_BSDF_VELVET 139
+#define SH_NODE_BSDF_SHEEN 139
 #define SH_NODE_EMISSION 140
 #define SH_NODE_NEW_GEOMETRY 141
 #define SH_NODE_LIGHT_PATH 142
@@ -1365,6 +1317,11 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
  * the repeat zone. */
 #define GEO_NODE_REPEAT_INPUT 2107
 #define GEO_NODE_REPEAT_OUTPUT 2108
+#define GEO_NODE_TOOL_SELECTION 2109
+#define GEO_NODE_TOOL_SET_SELECTION 2110
+#define GEO_NODE_TOOL_3D_CURSOR 2111
+#define GEO_NODE_TOOL_FACE_SET 2112
+#define GEO_NODE_TOOL_SET_FACE_SET 2113
 
 /** \} */
 

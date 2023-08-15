@@ -9,8 +9,10 @@
 
 #include "BKE_mesh.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "NOD_rna_define.hh"
 
 #include "node_geometry_util.hh"
 
@@ -42,7 +44,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "method", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "method", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -62,11 +64,11 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 {
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
   const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
-  FieldEvaluator face_evaluator{face_context, polys.size()};
+  FieldEvaluator face_evaluator{face_context, faces.size()};
   face_evaluator.add(selection_field);
   face_evaluator.evaluate();
   const IndexMask selection = face_evaluator.get_evaluated_as_mask(0);
@@ -83,15 +85,15 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   Array<float3> uv(corner_verts.size(), float3(0));
 
   geometry::ParamHandle *handle = new geometry::ParamHandle();
-  selection.foreach_index([&](const int poly_index) {
-    const IndexRange poly = polys[poly_index];
-    Array<geometry::ParamKey, 16> mp_vkeys(poly.size());
-    Array<bool, 16> mp_pin(poly.size());
-    Array<bool, 16> mp_select(poly.size());
-    Array<const float *, 16> mp_co(poly.size());
-    Array<float *, 16> mp_uv(poly.size());
-    for (const int i : IndexRange(poly.size())) {
-      const int corner = poly[i];
+  selection.foreach_index([&](const int face_index) {
+    const IndexRange face = faces[face_index];
+    Array<geometry::ParamKey, 16> mp_vkeys(face.size());
+    Array<bool, 16> mp_pin(face.size());
+    Array<bool, 16> mp_select(face.size());
+    Array<const float *, 16> mp_co(face.size());
+    Array<float *, 16> mp_uv(face.size());
+    for (const int i : IndexRange(face.size())) {
+      const int corner = face[i];
       const int vert = corner_verts[corner];
       mp_vkeys[i] = vert;
       mp_co[i] = positions[vert];
@@ -100,8 +102,8 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
       mp_select[i] = false;
     }
     geometry::uv_parametrizer_face_add(handle,
-                                       poly_index,
-                                       poly.size(),
+                                       face_index,
+                                       face.size(),
                                        mp_vkeys.data(),
                                        mp_co.data(),
                                        mp_uv.data(),
@@ -187,20 +189,42 @@ static void node_geo_exec(GeoNodeExecParams params)
                         selection_field, seam_field, fill_holes, margin, method)));
 }
 
-}  // namespace blender::nodes::node_geo_uv_unwrap_cc
-
-void register_node_type_geo_uv_unwrap()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_uv_unwrap_cc;
+  static EnumPropertyItem method_items[] = {
+      {GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED,
+       "ANGLE_BASED",
+       0,
+       "Angle Based",
+       "This method gives a good 2D representation of a mesh"},
+      {GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL,
+       "CONFORMAL",
+       0,
+       "Conformal",
+       "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV "
+       "mapping than Angle Based, but works better for simpler objects"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(
+      srna, "method", "Method", "", method_items, NOD_storage_enum_accessors(method));
+}
+
+static void node_register()
+{
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_UV_UNWRAP, "UV Unwrap", NODE_CLASS_CONVERTER);
-  ntype.initfunc = file_ns::node_init;
+  ntype.initfunc = node_init;
   node_type_storage(
       &ntype, "NodeGeometryUVUnwrap", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_uv_unwrap_cc

@@ -6,6 +6,7 @@ set(INC
   .
   intern
   ../blenfont
+  ../blenkernel
   ../blenloader
   ../blentranslation
   ../depsgraph
@@ -45,44 +46,44 @@ set(SRC
   SEQ_transform.h
   SEQ_utils.h
 
-  intern/animation.c
-  intern/channels.c
-  intern/clipboard.c
-  intern/disk_cache.c
+  intern/animation.cc
+  intern/channels.cc
+  intern/clipboard.cc
+  intern/disk_cache.cc
   intern/disk_cache.h
-  intern/effects.c
+  intern/effects.cc
   intern/effects.h
-  intern/image_cache.c
+  intern/image_cache.cc
   intern/image_cache.h
-  intern/iterator.c
-  intern/modifier.c
-  intern/multiview.c
+  intern/iterator.cc
+  intern/modifier.cc
+  intern/multiview.cc
   intern/multiview.h
-  intern/prefetch.c
+  intern/prefetch.cc
   intern/prefetch.h
-  intern/proxy.c
+  intern/proxy.cc
   intern/proxy.h
-  intern/proxy_job.c
-  intern/render.c
+  intern/proxy_job.cc
+  intern/render.cc
   intern/render.h
-  intern/sequence_lookup.c
-  intern/sequencer.c
+  intern/sequence_lookup.cc
+  intern/sequencer.cc
   intern/sequencer.h
-  intern/sound.c
-  intern/strip_add.c
-  intern/strip_edit.c
-  intern/strip_relations.c
+  intern/sound.cc
+  intern/strip_add.cc
+  intern/strip_edit.cc
+  intern/strip_relations.cc
   intern/strip_retiming.cc
-  intern/strip_select.c
-  intern/strip_time.c
+  intern/strip_select.cc
+  intern/strip_time.cc
   intern/strip_time.h
-  intern/strip_transform.c
-  intern/utils.c
+  intern/strip_transform.cc
+  intern/utils.cc
   intern/utils.h
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic

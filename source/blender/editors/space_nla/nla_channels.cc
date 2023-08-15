@@ -27,23 +27,23 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */
 
@@ -86,7 +86,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
   }
 
   /* action to take depends on what channel we've got */
-  /* WARNING: must keep this in sync with the equivalent function in anim_channels_edit.c */
+  /* WARNING: must keep this in sync with the equivalent function in `anim_channels_edit.cc`. */
   switch (ale->type) {
     case ANIMTYPE_SCENE: {
       Scene *sce = static_cast<Scene *>(ale->data);
@@ -350,7 +350,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* props */
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); /* SHIFTKEY */
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -519,7 +519,7 @@ static int nla_action_unlink_exec(bContext *C, wmOperator *op)
 static int nla_action_unlink_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* NOTE: this is hardcoded to match the behavior for the unlink button
-   * (in interface_templates.c) */
+   * (in `interface_templates.cc`). */
   RNA_boolean_set(op->ptr, "force_delete", event->modifier & KM_SHIFT);
   return nla_action_unlink_exec(C, op);
 }
@@ -689,7 +689,7 @@ void NLA_OT_tracks_add(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(ot->srna,
                   "above_selected",
-                  0,
+                  false,
                   "Above Selected",
                   "Add a new NLA Track above every existing selected one");
 }

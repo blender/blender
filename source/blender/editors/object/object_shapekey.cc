@@ -6,8 +6,8 @@
  * \ingroup edobj
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #ifndef WIN32
 #  include <unistd.h>
@@ -18,7 +18,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -43,14 +43,14 @@
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "object_intern.h"
 
@@ -105,7 +105,7 @@ static bool object_shape_key_mirror(
 
   key = BKE_key_from_object(ob);
   if (key == nullptr) {
-    return 0;
+    return false;
   }
 
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
@@ -207,7 +207,7 @@ static bool object_shape_key_mirror(
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -339,18 +339,16 @@ static bool shape_key_remove_poll_property(const bContext * /*C*/,
   return true;
 }
 
-static char *shape_key_remove_get_description(bContext * /*C*/,
-                                              wmOperatorType * /*ot*/,
-                                              PointerRNA *ptr)
+static std::string shape_key_remove_get_description(bContext * /*C*/,
+                                                    wmOperatorType * /*ot*/,
+                                                    PointerRNA *ptr)
 {
   const bool do_apply_mix = RNA_boolean_get(ptr, "apply_mix");
-
   if (do_apply_mix) {
-    return BLI_strdup(
-        TIP_("Apply current visible shape to the object data, and delete all shape keys"));
+    return TIP_("Apply current visible shape to the object data, and delete all shape keys");
   }
 
-  return nullptr;
+  return "";
 }
 
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
@@ -394,7 +392,7 @@ static int shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     kb->curval = 0.0f;
   }
 
@@ -431,7 +429,7 @@ static int shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (kb = static_cast<KeyBlock *>(key->block.first); kb; kb = kb->next) {
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
     kb->pos = cfra;
     cfra += 0.1f;
   }
@@ -496,7 +494,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "use_topology",
-      0,
+      false,
       "Topology Mirror",
       "Use topology based mirroring (for when both sides of mesh have matching, unique topology)");
 }

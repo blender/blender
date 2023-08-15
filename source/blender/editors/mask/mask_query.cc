@@ -8,10 +8,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
-
 #include "BKE_context.h"
 #include "BKE_mask.h"
+
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -20,11 +21,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_mask.h" /* own include */
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_mask.hh" /* own include */
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "mask_intern.h" /* own include */
 

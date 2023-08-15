@@ -6,13 +6,13 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h" /* own include */
 
@@ -20,14 +20,14 @@
 
 #  include "BKE_context.h"
 #  include "BKE_global.h"
-#  include "BLI_math.h"
+#  include "BLI_math_vector.h"
 #  include "DNA_scene_types.h"
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
 #  include "RE_pipeline.h"
 #  include "RE_texture.h"
 
-static void texture_evaluate(Tex *tex, float value[3], float r_color[4])
+static void texture_evaluate(Tex *tex, const float value[3], float r_color[4])
 {
   TexResult texres = {0.0f};
 

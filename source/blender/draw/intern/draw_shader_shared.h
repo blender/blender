@@ -47,6 +47,10 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 #  endif
 #endif
 
+#if defined(__cplusplus) && !defined(GPU_SHADER)
+extern "C" {
+#endif
+
 #define DRW_SHADER_SHARED_H
 
 #define DRW_RESOURCE_CHUNK_LEN 512
@@ -95,7 +99,7 @@ uint drw_view_id = 0;
      (DRW_VIEW_LEN > 2)  ? 2 : \
                            1)
 #  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
-#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
+#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (uint(drw_ResourceID) & DRW_VIEW_MASK)
 #endif
 
 struct FrustumCorners {
@@ -380,3 +384,7 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 #define drw_debug_draw_offset 2
 
 /** \} */
+
+#if defined(__cplusplus) && !defined(GPU_SHADER)
+}
+#endif

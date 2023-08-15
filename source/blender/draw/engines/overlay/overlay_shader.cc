@@ -10,7 +10,7 @@
 
 #include "GPU_shader.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "gpu_shader_create_info.hh"
 

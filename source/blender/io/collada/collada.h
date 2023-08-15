@@ -15,7 +15,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

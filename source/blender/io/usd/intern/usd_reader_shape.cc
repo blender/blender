@@ -13,7 +13,7 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "usd_reader_shape.h"
 
@@ -125,7 +125,7 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
   return false;
 }
 
-Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
+Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
                                 const USDMeshReadParams params,
                                 const char ** /*err_str*/)
 {
@@ -143,11 +143,11 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
     return existing_mesh;
   }
 
-  MutableSpan<int> poly_offsets = active_mesh->poly_offsets_for_write();
-  for (const int i : IndexRange(active_mesh->totpoly)) {
-    poly_offsets[i] = face_counts[i];
+  MutableSpan<int> face_offsets = active_mesh->face_offsets_for_write();
+  for (const int i : IndexRange(active_mesh->faces_num)) {
+    face_offsets[i] = face_counts[i];
   }
-  offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  offset_indices::accumulate_counts_to_offsets(face_offsets);
 
   /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
   BKE_mesh_smooth_flag_set(active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
@@ -172,7 +172,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
     return existing_mesh;
   }
 
-  const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->totpoly :
+  const bool poly_counts_match = existing_mesh ? face_counts.size() == existing_mesh->faces_num :
                                                  false;
   const bool position_counts_match = existing_mesh ? positions.size() == existing_mesh->totvert :
                                                      false;

@@ -10,7 +10,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -34,14 +35,14 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_gpencil_legacy.h"
-#include "ED_transform_snap_object_context.h"
+#include "ED_gpencil_legacy.hh"
+#include "ED_transform_snap_object_context.hh"
 
 #include "gpencil_intern.h"
 
@@ -416,7 +417,7 @@ void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
 
   prop = RNA_def_int(
       ot->srna, "frame_end", 250, 1, 100000, "End Frame", "The end frame of animation", 1, 100000);
-  RNA_def_property_update_runtime(prop, (void *)gpencil_bake_set_frame_end);
+  RNA_def_property_update_runtime(prop, gpencil_bake_set_frame_end);
 
   prop = RNA_def_int(ot->srna, "step", 1, 1, 100, "Step", "Step between generated frames", 1, 100);
 

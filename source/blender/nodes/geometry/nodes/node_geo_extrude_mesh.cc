@@ -12,11 +12,13 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
 
@@ -45,7 +47,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -107,53 +109,53 @@ static void remove_non_propagated_attributes(
 static void expand_mesh(Mesh &mesh,
                         const int vert_expand,
                         const int edge_expand,
-                        const int poly_expand,
+                        const int face_expand,
                         const int loop_expand)
 {
   /* Remove types that aren't supported for interpolation in this node. */
   if (vert_expand != 0) {
-    CustomData_free_layers(&mesh.vdata, CD_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_SHAPEKEY, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_CLOTH_ORCO, mesh.totvert);
-    CustomData_free_layers(&mesh.vdata, CD_MVERT_SKIN, mesh.totvert);
+    CustomData_free_layers(&mesh.vert_data, CD_ORCO, mesh.totvert);
+    CustomData_free_layers(&mesh.vert_data, CD_SHAPEKEY, mesh.totvert);
+    CustomData_free_layers(&mesh.vert_data, CD_CLOTH_ORCO, mesh.totvert);
+    CustomData_free_layers(&mesh.vert_data, CD_MVERT_SKIN, mesh.totvert);
     const int old_verts_num = mesh.totvert;
     mesh.totvert += vert_expand;
-    CustomData_realloc(&mesh.vdata, old_verts_num, mesh.totvert);
+    CustomData_realloc(&mesh.vert_data, old_verts_num, mesh.totvert);
   }
   if (edge_expand != 0) {
     if (mesh.totedge == 0) {
       mesh.attributes_for_write().add(
           ".edge_verts", ATTR_DOMAIN_EDGE, CD_PROP_INT32_2D, bke::AttributeInitConstruct());
     }
-    CustomData_free_layers(&mesh.edata, CD_FREESTYLE_EDGE, mesh.totedge);
+    CustomData_free_layers(&mesh.edge_data, CD_FREESTYLE_EDGE, mesh.totedge);
     const int old_edges_num = mesh.totedge;
     mesh.totedge += edge_expand;
-    CustomData_realloc(&mesh.edata, old_edges_num, mesh.totedge);
+    CustomData_realloc(&mesh.edge_data, old_edges_num, mesh.totedge);
   }
-  if (poly_expand != 0) {
-    CustomData_free_layers(&mesh.pdata, CD_FREESTYLE_FACE, mesh.totpoly);
-    const int old_polys_num = mesh.totpoly;
-    mesh.totpoly += poly_expand;
-    CustomData_realloc(&mesh.pdata, old_polys_num, mesh.totpoly);
-    implicit_sharing::resize_trivial_array(&mesh.poly_offset_indices,
-                                           &mesh.runtime->poly_offsets_sharing_info,
-                                           old_polys_num == 0 ? 0 : (old_polys_num + 1),
-                                           mesh.totpoly + 1);
+  if (face_expand != 0) {
+    CustomData_free_layers(&mesh.face_data, CD_FREESTYLE_FACE, mesh.faces_num);
+    const int old_faces_num = mesh.faces_num;
+    mesh.faces_num += face_expand;
+    CustomData_realloc(&mesh.face_data, old_faces_num, mesh.faces_num);
+    implicit_sharing::resize_trivial_array(&mesh.face_offset_indices,
+                                           &mesh.runtime->face_offsets_sharing_info,
+                                           old_faces_num == 0 ? 0 : (old_faces_num + 1),
+                                           mesh.faces_num + 1);
     /* Set common values for convenience. */
-    mesh.poly_offset_indices[0] = 0;
-    mesh.poly_offset_indices[mesh.totpoly] = mesh.totloop + loop_expand;
+    mesh.face_offset_indices[0] = 0;
+    mesh.face_offset_indices[mesh.faces_num] = mesh.totloop + loop_expand;
   }
   if (loop_expand != 0) {
-    CustomData_free_layers(&mesh.ldata, CD_NORMAL, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_MDISPS, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_TANGENT, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_PAINT_MASK, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_MLOOPTANGENT, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_GRID_PAINT_MASK, mesh.totloop);
-    CustomData_free_layers(&mesh.ldata, CD_CUSTOMLOOPNORMAL, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_NORMAL, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_MDISPS, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_TANGENT, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_PAINT_MASK, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_MLOOPTANGENT, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_GRID_PAINT_MASK, mesh.totloop);
+    CustomData_free_layers(&mesh.loop_data, CD_CUSTOMLOOPNORMAL, mesh.totloop);
     const int old_loops_num = mesh.totloop;
     mesh.totloop += loop_expand;
-    CustomData_realloc(&mesh.ldata, old_loops_num, mesh.totloop);
+    CustomData_realloc(&mesh.loop_data, old_loops_num, mesh.totloop);
   }
 }
 
@@ -161,16 +163,16 @@ static CustomData &mesh_custom_data_for_domain(Mesh &mesh, const eAttrDomain dom
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
-      return mesh.vdata;
+      return mesh.vert_data;
     case ATTR_DOMAIN_EDGE:
-      return mesh.edata;
+      return mesh.edge_data;
     case ATTR_DOMAIN_FACE:
-      return mesh.pdata;
+      return mesh.face_data;
     case ATTR_DOMAIN_CORNER:
-      return mesh.ldata;
+      return mesh.loop_data;
     default:
       BLI_assert_unreachable();
-      return mesh.vdata;
+      return mesh.vert_data;
   }
 }
 
@@ -339,45 +341,45 @@ static void extrude_mesh_vertices(Mesh &mesh,
   }
 }
 
-static void fill_quad_consistent_direction(const Span<int> other_poly_verts,
-                                           const Span<int> other_poly_edges,
+static void fill_quad_consistent_direction(const Span<int> other_face_verts,
+                                           const Span<int> other_face_edges,
                                            MutableSpan<int> new_corner_verts,
                                            MutableSpan<int> new_corner_edges,
-                                           const int vert_connected_to_poly_1,
-                                           const int vert_connected_to_poly_2,
-                                           const int vert_across_from_poly_1,
-                                           const int vert_across_from_poly_2,
-                                           const int edge_connected_to_poly,
+                                           const int vert_connected_to_face_1,
+                                           const int vert_connected_to_face_2,
+                                           const int vert_across_from_face_1,
+                                           const int vert_across_from_face_2,
+                                           const int edge_connected_to_face,
                                            const int connecting_edge_1,
-                                           const int edge_across_from_poly,
+                                           const int edge_across_from_face,
                                            const int connecting_edge_2)
 {
-  /* Find the loop on the polygon connected to the new quad that uses the duplicate edge. */
+  /* Find the loop on the face connected to the new quad that uses the duplicate edge. */
   bool start_with_connecting_edge = true;
-  for (const int i : other_poly_edges.index_range()) {
-    if (other_poly_edges[i] == edge_connected_to_poly) {
-      start_with_connecting_edge = other_poly_verts[i] == vert_connected_to_poly_1;
+  for (const int i : other_face_edges.index_range()) {
+    if (other_face_edges[i] == edge_connected_to_face) {
+      start_with_connecting_edge = other_face_verts[i] == vert_connected_to_face_1;
       break;
     }
   }
   if (start_with_connecting_edge) {
-    new_corner_verts[0] = vert_connected_to_poly_1;
+    new_corner_verts[0] = vert_connected_to_face_1;
     new_corner_edges[0] = connecting_edge_1;
-    new_corner_verts[1] = vert_across_from_poly_1;
-    new_corner_edges[1] = edge_across_from_poly;
-    new_corner_verts[2] = vert_across_from_poly_2;
+    new_corner_verts[1] = vert_across_from_face_1;
+    new_corner_edges[1] = edge_across_from_face;
+    new_corner_verts[2] = vert_across_from_face_2;
     new_corner_edges[2] = connecting_edge_2;
-    new_corner_verts[3] = vert_connected_to_poly_2;
-    new_corner_edges[3] = edge_connected_to_poly;
+    new_corner_verts[3] = vert_connected_to_face_2;
+    new_corner_edges[3] = edge_connected_to_face;
   }
   else {
-    new_corner_verts[0] = vert_connected_to_poly_1;
-    new_corner_edges[0] = edge_connected_to_poly;
-    new_corner_verts[1] = vert_connected_to_poly_2;
+    new_corner_verts[0] = vert_connected_to_face_1;
+    new_corner_edges[0] = edge_connected_to_face;
+    new_corner_verts[1] = vert_connected_to_face_2;
     new_corner_edges[1] = connecting_edge_2;
-    new_corner_verts[2] = vert_across_from_poly_2;
-    new_corner_edges[2] = edge_across_from_poly;
-    new_corner_verts[3] = vert_across_from_poly_1;
+    new_corner_verts[2] = vert_across_from_face_2;
+    new_corner_edges[2] = edge_across_from_face;
+    new_corner_verts[3] = vert_across_from_face_1;
     new_corner_edges[3] = connecting_edge_1;
   }
 }
@@ -421,7 +423,7 @@ static void extrude_mesh_edges(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   const Span<int2> orig_edges = mesh.edges();
-  const OffsetIndices orig_polys = mesh.polys();
+  const OffsetIndices orig_faces = mesh.faces();
   const int orig_loop_size = mesh.totloop;
 
   const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
@@ -435,10 +437,10 @@ static void extrude_mesh_edges(Mesh &mesh,
     return;
   }
 
-  Array<int> edge_to_poly_offsets;
-  Array<int> edge_to_poly_indices;
-  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
-      orig_polys, mesh.corner_edges(), mesh.totedge, edge_to_poly_offsets, edge_to_poly_indices);
+  Array<int> edge_to_face_offsets;
+  Array<int> edge_to_face_indices;
+  const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
+      orig_faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
 
   /* Find the offsets on the vertex domain for translation. This must be done before the mesh's
    * custom data layers are reallocated, in case the virtual array references one of them. */
@@ -465,30 +467,30 @@ static void extrude_mesh_edges(Mesh &mesh,
   const IndexRange connect_edge_range{orig_edges.size(), new_vert_range.size()};
   /* The duplicate edges are extruded copies of the selected edges. */
   const IndexRange duplicate_edge_range = connect_edge_range.after(edge_selection.size());
-  /* There is a new polygon for every selected edge. */
-  const IndexRange new_poly_range{orig_polys.size(), edge_selection.size()};
-  /* Every new polygon is a quad with four corners. */
-  const IndexRange new_loop_range{orig_loop_size, new_poly_range.size() * 4};
+  /* There is a new face for every selected edge. */
+  const IndexRange new_face_range{orig_faces.size(), edge_selection.size()};
+  /* Every new face is a quad with four corners. */
+  const IndexRange new_loop_range{orig_loop_size, new_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + duplicate_edge_range.size(),
-              new_poly_range.size(),
+              new_face_range.size(),
               new_loop_range.size());
 
   MutableSpan<int2> edges = mesh.edges_for_write();
   MutableSpan<int2> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<int2> duplicate_edges = edges.slice(duplicate_edge_range);
-  MutableSpan<int> poly_offsets = mesh.poly_offsets_for_write();
-  MutableSpan<int> new_poly_offsets = poly_offsets.slice(new_poly_range);
+  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
+  MutableSpan<int> new_face_offsets = face_offsets.slice(new_face_range);
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> new_corner_verts = corner_verts.slice(new_loop_range);
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
   MutableSpan<int> new_corner_edges = corner_edges.slice(new_loop_range);
 
-  offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
-  const OffsetIndices polys = mesh.polys();
+  offset_indices::fill_constant_group_size(4, orig_loop_size, new_face_offsets);
+  const OffsetIndices faces = mesh.faces();
 
   for (const int i : connect_edges.index_range()) {
     connect_edges[i] = int2(new_vert_indices[i], new_vert_range[i]);
@@ -508,20 +510,20 @@ static void extrude_mesh_edges(Mesh &mesh,
     const int extrude_index_1 = new_vert_1 - orig_vert_size;
     const int extrude_index_2 = new_vert_2 - orig_vert_size;
 
-    const Span<int> connected_polys = edge_to_poly_map[orig_edge_index];
+    const Span<int> connected_faces = edge_to_face_map[orig_edge_index];
 
-    /* When there was a single polygon connected to the new polygon, we can use the old one to keep
+    /* When there was a single face connected to the new face, we can use the old one to keep
      * the face direction consistent. When there is more than one connected edge, the new face
      * direction is totally arbitrary and the only goal for the behavior is to be deterministic. */
-    Span<int> connected_poly_verts = {};
-    Span<int> connected_poly_edges = {};
-    if (connected_polys.size() == 1) {
-      const IndexRange connected_poly = polys[connected_polys.first()];
-      connected_poly_verts = corner_verts.slice(connected_poly);
-      connected_poly_edges = corner_edges.slice(connected_poly);
+    Span<int> connected_face_verts = {};
+    Span<int> connected_face_edges = {};
+    if (connected_faces.size() == 1) {
+      const IndexRange connected_face = faces[connected_faces.first()];
+      connected_face_verts = corner_verts.slice(connected_face);
+      connected_face_edges = corner_edges.slice(connected_face);
     }
-    fill_quad_consistent_direction(connected_poly_verts,
-                                   connected_poly_edges,
+    fill_quad_consistent_direction(connected_face_verts,
+                                   connected_face_edges,
                                    new_corner_verts.slice(4 * i, 4),
                                    new_corner_edges.slice(4 * i, 4),
                                    new_vert_indices[extrude_index_1],
@@ -575,8 +577,8 @@ static void extrude_mesh_edges(Mesh &mesh,
          * original edge. */
         copy_with_mixing(
             attribute.span,
-            [&](const int i) { return edge_to_poly_map[edge_selection[i]]; },
-            attribute.span.slice(new_poly_range));
+            [&](const int i) { return edge_to_face_map[edge_selection[i]]; },
+            attribute.span.slice(new_face_range));
         break;
       }
       case ATTR_DOMAIN_CORNER: {
@@ -588,18 +590,17 @@ static void extrude_mesh_edges(Mesh &mesh,
           MutableSpan<T> new_data = data.slice(new_loop_range);
           edge_selection.foreach_index(
               GrainSize(256), [&](const int64_t orig_edge_index, const int64_t i_edge_selection) {
-                const Span<int> connected_polys = edge_to_poly_map[orig_edge_index];
-                if (connected_polys.is_empty()) {
-                  /* If there are no connected polygons, there is no corner data to
-                   * interpolate. */
+                const Span<int> connected_faces = edge_to_face_map[orig_edge_index];
+                if (connected_faces.is_empty()) {
+                  /* If there are no connected faces, there is no corner data to interpolate. */
                   new_data.slice(4 * i_edge_selection, 4).fill(T());
                   return;
                 }
 
-                /* Both corners on each vertical edge of the side polygon get the same value,
+                /* Both corners on each vertical edge of the side face get the same value,
                  * so there are only two unique values to mix. */
-                Array<T> side_poly_corner_data(2);
-                bke::attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
+                Array<T> side_face_corner_data(2);
+                bke::attribute_math::DefaultPropagationMixer<T> mixer{side_face_corner_data};
 
                 const int2 &duplicate_edge = duplicate_edges[i_edge_selection];
                 const int new_vert_1 = duplicate_edge[0];
@@ -608,10 +609,10 @@ static void extrude_mesh_edges(Mesh &mesh,
                 const int orig_vert_2 = new_vert_indices[new_vert_2 - orig_vert_size];
 
                 /* Average the corner data from the corners that share a vertex from the
-                 * polygons that share an edge with the extruded edge. */
-                for (const int i_connected_poly : connected_polys.index_range()) {
-                  const IndexRange connected_poly = polys[connected_polys[i_connected_poly]];
-                  for (const int i_loop : IndexRange(connected_poly)) {
+                 * faces that share an edge with the extruded edge. */
+                for (const int i_connected_face : connected_faces.index_range()) {
+                  const IndexRange connected_face = faces[connected_faces[i_connected_face]];
+                  for (const int i_loop : IndexRange(connected_face)) {
                     if (corner_verts[i_loop] == orig_vert_1) {
                       mixer.mix_in(0, data[i_loop]);
                     }
@@ -628,10 +629,10 @@ static void extrude_mesh_edges(Mesh &mesh,
                  * vertex indices. */
                 for (const int i : IndexRange(4 * i_edge_selection, 4)) {
                   if (ELEM(new_corner_verts[i], new_vert_1, orig_vert_1)) {
-                    new_data[i] = side_poly_corner_data.first();
+                    new_data[i] = side_face_corner_data.first();
                   }
                   else if (ELEM(new_corner_verts[i], new_vert_2, orig_vert_2)) {
-                    new_data[i] = side_poly_corner_data.last();
+                    new_data[i] = side_face_corner_data.last();
                   }
                 }
               });
@@ -678,8 +679,8 @@ static void extrude_mesh_edges(Mesh &mesh,
                         edge_orig_indices.slice(duplicate_edge_range));
   }
 
-  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  poly_orig_indices.slice_safe(new_poly_range).fill(ORIGINDEX_NONE);
+  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  face_orig_indices.slice_safe(new_face_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -687,7 +688,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_poly_range);
+        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, new_face_range);
   }
 
   tag_mesh_added_faces(mesh);
@@ -705,34 +706,34 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 {
   const int orig_vert_size = mesh.totvert;
   const Span<int2> orig_edges = mesh.edges();
-  const OffsetIndices orig_polys = mesh.polys();
+  const OffsetIndices orig_faces = mesh.faces();
   const Span<int> orig_corner_verts = mesh.corner_verts();
   const int orig_loop_size = orig_corner_verts.size();
 
-  const bke::MeshFieldContext poly_context{mesh, ATTR_DOMAIN_FACE};
-  FieldEvaluator poly_evaluator{poly_context, mesh.totpoly};
-  poly_evaluator.set_selection(selection_field);
-  poly_evaluator.add(offset_field);
-  poly_evaluator.evaluate();
-  const IndexMask poly_selection = poly_evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> poly_position_offsets = poly_evaluator.get_evaluated<float3>(0);
-  if (poly_selection.is_empty()) {
+  const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  FieldEvaluator face_evaluator{face_context, mesh.faces_num};
+  face_evaluator.set_selection(selection_field);
+  face_evaluator.add(offset_field);
+  face_evaluator.evaluate();
+  const IndexMask face_selection = face_evaluator.get_evaluated_selection_as_mask();
+  const VArray<float3> face_position_offsets = face_evaluator.get_evaluated<float3>(0);
+  if (face_selection.is_empty()) {
     return;
   }
 
-  Array<bool> poly_selection_array(orig_polys.size());
-  poly_selection.to_bools(poly_selection_array);
+  Array<bool> face_selection_array(orig_faces.size());
+  face_selection.to_bools(face_selection_array);
 
   /* Mix the offsets from the face domain to the vertex domain. Evaluate on the face domain above
    * in order to be consistent with the selection, and to use the face normals rather than vertex
    * normals as an offset, for example. */
   Array<float3> vert_offsets;
-  if (!poly_position_offsets.is_single()) {
+  if (!face_position_offsets.is_single()) {
     vert_offsets.reinitialize(orig_vert_size);
     bke::attribute_math::DefaultPropagationMixer<float3> mixer(vert_offsets);
-    poly_selection.foreach_index([&](const int i_poly) {
-      const float3 offset = poly_position_offsets[i_poly];
-      for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
+    face_selection.foreach_index([&](const int i_face) {
+      const float3 offset = face_position_offsets[i_face];
+      for (const int vert : orig_corner_verts.slice(orig_faces[i_face])) {
         mixer.mix_in(vert, offset);
       }
     });
@@ -740,17 +741,17 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* All of the faces (selected and deselected) connected to each edge. */
-  Array<int> edge_to_poly_offsets;
-  Array<int> edge_to_poly_indices;
-  const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
-      orig_polys, mesh.corner_edges(), mesh.totedge, edge_to_poly_offsets, edge_to_poly_indices);
+  Array<int> edge_to_face_offsets;
+  Array<int> edge_to_face_indices;
+  const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_face_map(
+      orig_faces, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
 
-  /* All vertices that are connected to the selected polygons.
-   * Start the size at one vert per poly to reduce unnecessary reallocation. */
+  /* All vertices that are connected to the selected faces.
+   * Start the size at one vert per face to reduce unnecessary reallocation. */
   VectorSet<int> all_selected_verts;
-  all_selected_verts.reserve(orig_polys.size());
-  poly_selection.foreach_index([&](const int i_poly) {
-    for (const int vert : orig_corner_verts.slice(orig_polys[i_poly])) {
+  all_selected_verts.reserve(orig_faces.size());
+  face_selection.foreach_index([&](const int i_face) {
+    for (const int vert : orig_corner_verts.slice(orig_faces[i_face])) {
       all_selected_verts.add(vert);
     }
   });
@@ -767,30 +768,30 @@ static void extrude_mesh_face_regions(Mesh &mesh,
    * other connected faces, or because all of the other faces aren't selected. */
   VectorSet<int> boundary_edge_indices;
   for (const int i_edge : orig_edges.index_range()) {
-    const Span<int> polys = edge_to_poly_map[i_edge];
+    const Span<int> faces = edge_to_face_map[i_edge];
 
-    int i_selected_poly = -1;
-    int deselected_poly_count = 0;
-    int selected_poly_count = 0;
-    for (const int i_other_poly : polys) {
-      if (poly_selection_array[i_other_poly]) {
-        selected_poly_count++;
-        i_selected_poly = i_other_poly;
+    int i_selected_face = -1;
+    int deselected_face_count = 0;
+    int selected_face_count = 0;
+    for (const int i_other_face : faces) {
+      if (face_selection_array[i_other_face]) {
+        selected_face_count++;
+        i_selected_face = i_other_face;
       }
       else {
-        deselected_poly_count++;
+        deselected_face_count++;
       }
     }
 
-    if (selected_poly_count == 1) {
-      /* If there is only one selected polygon connected to the edge,
+    if (selected_face_count == 1) {
+      /* If there is only one selected face connected to the edge,
        * the edge should be extruded to form a "side face". */
       boundary_edge_indices.add_new(i_edge);
-      edge_extruded_face_indices.append(i_selected_poly);
+      edge_extruded_face_indices.append(i_selected_face);
     }
-    else if (selected_poly_count > 1) {
+    else if (selected_face_count > 1) {
       /* The edge is inside an extruded region of faces. */
-      if (deselected_poly_count > 0) {
+      if (deselected_face_count > 0) {
         /* Add edges that are also connected to deselected edges to a separate list. */
         new_inner_edge_indices.add_new(i_edge);
       }
@@ -816,40 +817,40 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 
   /* New vertices forming the duplicated boundary edges and the ends of the new inner edges. */
   const IndexRange new_vert_range{orig_vert_size, new_vert_indices.size()};
-  /* One edge connects each selected vertex to a new vertex on the extruded polygons. */
+  /* One edge connects each selected vertex to a new vertex on the extruded faces. */
   const IndexRange connect_edge_range{orig_edges.size(), extruded_vert_size};
   /* Each selected edge is duplicated to form a single edge on the extrusion. */
   const IndexRange boundary_edge_range = connect_edge_range.after(boundary_edge_indices.size());
   /* Duplicated edges inside regions that were connected to deselected faces. */
   const IndexRange new_inner_edge_range = boundary_edge_range.after(new_inner_edge_indices.size());
   /* Each edge selected for extrusion is extruded into a single face. */
-  const IndexRange side_poly_range{orig_polys.size(), boundary_edge_indices.size()};
+  const IndexRange side_face_range{orig_faces.size(), boundary_edge_indices.size()};
   /* The loops that form the new side faces. */
-  const IndexRange side_loop_range{orig_corner_verts.size(), side_poly_range.size() * 4};
+  const IndexRange side_loop_range{orig_corner_verts.size(), side_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + boundary_edge_range.size() + new_inner_edge_range.size(),
-              side_poly_range.size(),
+              side_face_range.size(),
               side_loop_range.size());
 
   MutableSpan<int2> edges = mesh.edges_for_write();
   MutableSpan<int2> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<int2> boundary_edges = edges.slice(boundary_edge_range);
   MutableSpan<int2> new_inner_edges = edges.slice(new_inner_edge_range);
-  MutableSpan<int> poly_offsets = mesh.poly_offsets_for_write();
-  MutableSpan<int> new_poly_offsets = poly_offsets.slice(side_poly_range);
+  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
+  MutableSpan<int> new_face_offsets = face_offsets.slice(side_face_range);
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> new_corner_verts = corner_verts.slice(side_loop_range);
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
   MutableSpan<int> new_corner_edges = corner_edges.slice(side_loop_range);
 
-  /* Initialize the new side polygons. */
-  if (!new_poly_offsets.is_empty()) {
-    offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
+  /* Initialize the new side faces. */
+  if (!new_face_offsets.is_empty()) {
+    offset_indices::fill_constant_group_size(4, orig_loop_size, new_face_offsets);
   }
-  const OffsetIndices polys = mesh.polys();
+  const OffsetIndices faces = mesh.faces();
 
   /* Initialize the edges that form the sides of the extrusion. */
   for (const int i : connect_edges.index_range()) {
@@ -886,8 +887,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
   }
 
   /* Connect the selected faces to the extruded or duplicated edges and the new vertices. */
-  poly_selection.foreach_index([&](const int i_poly) {
-    for (const int corner : polys[i_poly]) {
+  face_selection.foreach_index([&](const int i_face) {
+    for (const int corner : faces[i_face]) {
       const int i_new_vert = new_vert_indices.index_of_try(corner_verts[corner]);
       if (i_new_vert != -1) {
         corner_verts[corner] = new_vert_range[i_new_vert];
@@ -913,10 +914,10 @@ static void extrude_mesh_face_regions(Mesh &mesh,
     const int extrude_index_1 = new_vert_1 - orig_vert_size;
     const int extrude_index_2 = new_vert_2 - orig_vert_size;
 
-    const IndexRange extrude_poly = polys[edge_extruded_face_indices[i]];
+    const IndexRange extrude_face = faces[edge_extruded_face_indices[i]];
 
-    fill_quad_consistent_direction(corner_verts.slice(extrude_poly),
-                                   corner_edges.slice(extrude_poly),
+    fill_quad_consistent_direction(corner_verts.slice(extrude_face),
+                                   corner_edges.slice(extrude_face),
                                    new_corner_verts.slice(4 * i, 4),
                                    new_corner_edges.slice(4 * i, 4),
                                    new_vert_1,
@@ -972,7 +973,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
       case ATTR_DOMAIN_FACE: {
         /* New faces on the side of extrusions get the values from the corresponding selected
          * face. */
-        GMutableSpan side_data = attribute.span.slice(side_poly_range);
+        GMutableSpan side_data = attribute.span.slice(side_face_range);
         bke::attribute_math::gather(attribute.span, edge_extruded_face_indices, side_data);
         break;
       }
@@ -992,13 +993,13 @@ static void extrude_mesh_face_regions(Mesh &mesh,
                   const int orig_vert_2 = new_vert_indices[new_vert_2 - orig_vert_size];
 
                   /* Retrieve the data for the first two sides of the quad from the extruded
-                   * polygon, which we generally expect to have just a small amount of sides. This
+                   * face, which we generally expect to have just a small amount of sides. This
                    * loop could be eliminated by adding a cache of connected loops (which would
                    * also simplify some of the other code to find the correct loops on the extruded
                    * face). */
                   T data_1;
                   T data_2;
-                  for (const int i_loop : polys[edge_extruded_face_indices[i_boundary_edge]]) {
+                  for (const int i_loop : faces[edge_extruded_face_indices[i_boundary_edge]]) {
                     if (corner_verts[i_loop] == new_vert_1) {
                       data_1 = data[i_loop];
                     }
@@ -1035,8 +1036,8 @@ static void extrude_mesh_face_regions(Mesh &mesh,
    * have been duplicated and only the new vertex should use the offset. Otherwise the vertex might
    * still need an offset, but it was reused on the inside of a region of extruded faces. */
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
-  if (poly_position_offsets.is_single()) {
-    const float3 offset = poly_position_offsets.get_internal_single();
+  if (face_position_offsets.is_single()) {
+    const float3 offset = face_position_offsets.get_internal_single();
     threading::parallel_for(
         IndexRange(all_selected_verts.size()), 1024, [&](const IndexRange range) {
           for (const int i_orig : all_selected_verts.as_span().slice(range)) {
@@ -1084,20 +1085,20 @@ static void extrude_mesh_face_regions(Mesh &mesh,
                         edge_orig_indices.slice(boundary_edge_range));
   }
 
-  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  if (!poly_orig_indices.is_empty()) {
-    array_utils::gather(poly_orig_indices.as_span(),
+  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  if (!face_orig_indices.is_empty()) {
+    array_utils::gather(face_orig_indices.as_span(),
                         edge_extruded_face_indices.as_span(),
-                        poly_orig_indices.slice(side_poly_range));
+                        face_orig_indices.slice(side_face_range));
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        mesh, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, poly_selection);
+        mesh, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, face_selection);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
+        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_face_range);
   }
 
   tag_mesh_added_faces(mesh);
@@ -1112,91 +1113,91 @@ static void extrude_individual_mesh_faces(
 {
   const int orig_vert_size = mesh.totvert;
   const int orig_edge_size = mesh.totedge;
-  const OffsetIndices orig_polys = mesh.polys();
+  const OffsetIndices orig_faces = mesh.faces();
   const Span<int> orig_corner_verts = mesh.corner_verts();
   const int orig_loop_size = orig_corner_verts.size();
 
   /* Use an array for the result of the evaluation because the mesh is reallocated before
    * the vertices are moved, and the evaluated result might reference an attribute. */
-  Array<float3> poly_offset(orig_polys.size());
-  const bke::MeshFieldContext poly_context{mesh, ATTR_DOMAIN_FACE};
-  FieldEvaluator poly_evaluator{poly_context, mesh.totpoly};
-  poly_evaluator.set_selection(selection_field);
-  poly_evaluator.add_with_destination(offset_field, poly_offset.as_mutable_span());
-  poly_evaluator.evaluate();
-  const IndexMask poly_selection = poly_evaluator.get_evaluated_selection_as_mask();
-  if (poly_selection.is_empty()) {
+  Array<float3> face_offset(orig_faces.size());
+  const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
+  FieldEvaluator face_evaluator{face_context, mesh.faces_num};
+  face_evaluator.set_selection(selection_field);
+  face_evaluator.add_with_destination(offset_field, face_offset.as_mutable_span());
+  face_evaluator.evaluate();
+  const IndexMask face_selection = face_evaluator.get_evaluated_selection_as_mask();
+  if (face_selection.is_empty()) {
     return;
   }
 
-  /* Build an array of offsets into the new data for each polygon. This is used to facilitate
+  /* Build an array of offsets into the new data for each face. This is used to facilitate
    * parallelism later on by avoiding the need to keep track of an offset when iterating through
-   * all polygons. */
+   * all faces. */
   int extrude_corner_size = 0;
-  Array<int> group_per_face_data(poly_selection.size() + 1);
-  poly_selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
+  Array<int> group_per_face_data(face_selection.size() + 1);
+  face_selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
     group_per_face_data[i_selection] = extrude_corner_size;
-    extrude_corner_size += orig_polys[index].size();
+    extrude_corner_size += orig_faces[index].size();
   });
 
   group_per_face_data.last() = extrude_corner_size;
   const OffsetIndices<int> group_per_face(group_per_face_data);
 
   const IndexRange new_vert_range{orig_vert_size, extrude_corner_size};
-  /* One edge connects each selected vertex to a new vertex on the extruded polygons. */
+  /* One edge connects each selected vertex to a new vertex on the extruded faces. */
   const IndexRange connect_edge_range{orig_edge_size, extrude_corner_size};
   /* Each selected edge is duplicated to form a single edge on the extrusion. */
   const IndexRange duplicate_edge_range = connect_edge_range.after(extrude_corner_size);
   /* Each edge selected for extrusion is extruded into a single face. */
-  const IndexRange side_poly_range{orig_polys.size(), duplicate_edge_range.size()};
-  const IndexRange side_loop_range{orig_loop_size, side_poly_range.size() * 4};
+  const IndexRange side_face_range{orig_faces.size(), duplicate_edge_range.size()};
+  const IndexRange side_loop_range{orig_loop_size, side_face_range.size() * 4};
 
   remove_non_propagated_attributes(mesh.attributes_for_write(), propagation_info);
   expand_mesh(mesh,
               new_vert_range.size(),
               connect_edge_range.size() + duplicate_edge_range.size(),
-              side_poly_range.size(),
+              side_face_range.size(),
               side_loop_range.size());
 
   MutableSpan<float3> new_positions = mesh.vert_positions_for_write().slice(new_vert_range);
   MutableSpan<int2> edges = mesh.edges_for_write();
   MutableSpan<int2> connect_edges = edges.slice(connect_edge_range);
   MutableSpan<int2> duplicate_edges = edges.slice(duplicate_edge_range);
-  MutableSpan<int> poly_offsets = mesh.poly_offsets_for_write();
-  MutableSpan<int> new_poly_offsets = poly_offsets.slice(side_poly_range);
+  MutableSpan<int> face_offsets = mesh.face_offsets_for_write();
+  MutableSpan<int> new_face_offsets = face_offsets.slice(side_face_range);
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
-  offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
-  const OffsetIndices polys = mesh.polys();
+  offset_indices::fill_constant_group_size(4, orig_loop_size, new_face_offsets);
+  const OffsetIndices faces = mesh.faces();
 
-  /* For every selected polygon, change it to use the new extruded vertices and the duplicate
+  /* For every selected face, change it to use the new extruded vertices and the duplicate
    * edges, and build the faces that form the sides of the extrusion. Build "original index"
    * arrays for the new vertices and edges so they can be accessed later.
    *
-   * Filling some of this data like the new edges or polygons could be easily split into
+   * Filling some of this data like the new edges or faces could be easily split into
    * separate loops, which may or may not be faster, but would involve more duplication. */
   Array<int> new_vert_indices(extrude_corner_size);
   Array<int> duplicate_edge_indices(extrude_corner_size);
-  poly_selection.foreach_index(
+  face_selection.foreach_index(
       GrainSize(256), [&](const int64_t index, const int64_t i_selection) {
         const IndexRange extrude_range = group_per_face[i_selection];
 
-        const IndexRange poly = polys[index];
-        MutableSpan<int> poly_verts = corner_verts.slice(poly);
-        MutableSpan<int> poly_edges = corner_edges.slice(poly);
+        const IndexRange face = faces[index];
+        MutableSpan<int> face_verts = corner_verts.slice(face);
+        MutableSpan<int> face_edges = corner_edges.slice(face);
 
-        for (const int i : IndexRange(poly.size())) {
+        for (const int i : face.index_range()) {
           const int i_extrude = extrude_range[i];
-          new_vert_indices[i_extrude] = poly_verts[i];
-          duplicate_edge_indices[i_extrude] = poly_edges[i];
+          new_vert_indices[i_extrude] = face_verts[i];
+          duplicate_edge_indices[i_extrude] = face_edges[i];
 
-          poly_verts[i] = new_vert_range[i_extrude];
-          poly_edges[i] = duplicate_edge_range[i_extrude];
+          face_verts[i] = new_vert_range[i_extrude];
+          face_edges[i] = duplicate_edge_range[i_extrude];
         }
 
-        for (const int i : IndexRange(poly.size())) {
-          const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
+        for (const int i : face.index_range()) {
+          const int i_next = (i == face.size() - 1) ? 0 : i + 1;
           const int i_extrude = extrude_range[i];
           const int i_extrude_next = extrude_range[i_next];
 
@@ -1211,16 +1212,16 @@ static void extrude_individual_mesh_faces(
 
           duplicate_edges[i_extrude] = int2(new_vert, new_vert_next);
 
-          MutableSpan<int> side_poly_verts = corner_verts.slice(side_loop_range[i_extrude * 4], 4);
-          MutableSpan<int> side_poly_edges = corner_edges.slice(side_loop_range[i_extrude * 4], 4);
-          side_poly_verts[0] = new_vert_next;
-          side_poly_edges[0] = i_duplicate_edge;
-          side_poly_verts[1] = new_vert;
-          side_poly_edges[1] = connect_edge_range[i_extrude];
-          side_poly_verts[2] = orig_vert;
-          side_poly_edges[2] = orig_edge;
-          side_poly_verts[3] = orig_vert_next;
-          side_poly_edges[3] = connect_edge_range[i_extrude_next];
+          MutableSpan<int> side_face_verts = corner_verts.slice(side_loop_range[i_extrude * 4], 4);
+          MutableSpan<int> side_face_edges = corner_edges.slice(side_loop_range[i_extrude * 4], 4);
+          side_face_verts[0] = new_vert_next;
+          side_face_edges[0] = i_duplicate_edge;
+          side_face_verts[1] = new_vert;
+          side_face_edges[1] = connect_edge_range[i_extrude];
+          side_face_verts[2] = orig_vert;
+          side_face_edges[2] = orig_edge;
+          side_face_verts[3] = orig_vert_next;
+          side_face_edges[3] = connect_edge_range[i_extrude_next];
 
           connect_edges[i_extrude] = int2(orig_vert, new_vert);
         }
@@ -1253,15 +1254,15 @@ static void extrude_individual_mesh_faces(
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> connect_data = data.slice(connect_edge_range);
-          poly_selection.foreach_index(
+          face_selection.foreach_index(
               GrainSize(512), [&](const int64_t index, const int64_t i_selection) {
-                const IndexRange poly = polys[index];
+                const IndexRange face = faces[index];
                 const IndexRange extrude_range = group_per_face[i_selection];
 
                 /* For the extruded edges, mix the data from the two neighboring original edges of
-                 * the extruded polygon. */
-                for (const int i : IndexRange(poly.size())) {
-                  const int i_prev = (i == 0) ? poly.size() - 1 : i - 1;
+                 * the extruded face. */
+                for (const int i : face.index_range()) {
+                  const int i_prev = (i == 0) ? face.size() - 1 : i - 1;
                   const int i_extrude = extrude_range[i];
                   const int i_extrude_prev = extrude_range[i_prev];
 
@@ -1285,11 +1286,11 @@ static void extrude_individual_mesh_faces(
         bke::attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
-          MutableSpan<T> new_data = data.slice(side_poly_range);
-          poly_selection.foreach_index(
-              GrainSize(1024), [&](const int64_t poly_index, const int64_t i_selection) {
+          MutableSpan<T> new_data = data.slice(side_face_range);
+          face_selection.foreach_index(
+              GrainSize(1024), [&](const int64_t face_index, const int64_t i_selection) {
                 const IndexRange extrude_range = group_per_face[i_selection];
-                new_data.slice(extrude_range).fill(data[poly_index]);
+                new_data.slice(extrude_range).fill(data[face_index]);
               });
         });
         break;
@@ -1301,25 +1302,25 @@ static void extrude_individual_mesh_faces(
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_loop_range);
-          poly_selection.foreach_index(
+          face_selection.foreach_index(
               GrainSize(256), [&](const int64_t index, const int64_t i_selection) {
-                const IndexRange poly = polys[index];
-                const Span<T> poly_loop_data = data.slice(poly);
+                const IndexRange face = faces[index];
+                const Span<T> face_loop_data = data.slice(face);
                 const IndexRange extrude_range = group_per_face[i_selection];
 
-                for (const int i : IndexRange(poly.size())) {
-                  const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
+                for (const int i : face.index_range()) {
+                  const int i_next = (i == face.size() - 1) ? 0 : i + 1;
                   const int i_extrude = extrude_range[i];
 
                   MutableSpan<T> side_loop_data = new_data.slice(i_extrude * 4, 4);
 
-                  /* The two corners on each side of the side polygon get the data from the
-                   * matching corners of the extruded polygon. This order depends on the loop
+                  /* The two corners on each side of the side face get the data from the
+                   * matching corners of the extruded face. This order depends on the loop
                    * filling the loop indices. */
-                  side_loop_data[0] = poly_loop_data[i_next];
-                  side_loop_data[1] = poly_loop_data[i];
-                  side_loop_data[2] = poly_loop_data[i];
-                  side_loop_data[3] = poly_loop_data[i_next];
+                  side_loop_data[0] = face_loop_data[i_next];
+                  side_loop_data[1] = face_loop_data[i];
+                  side_loop_data[2] = face_loop_data[i];
+                  side_loop_data[3] = face_loop_data[i_next];
                 }
               });
         });
@@ -1334,11 +1335,11 @@ static void extrude_individual_mesh_faces(
   });
 
   /* Offset the new vertices. */
-  poly_selection.foreach_index(GrainSize(1025),
+  face_selection.foreach_index(GrainSize(1025),
                                [&](const int64_t index, const int64_t i_selection) {
                                  const IndexRange extrude_range = group_per_face[i_selection];
                                  for (float3 &position : new_positions.slice(extrude_range)) {
-                                   position += poly_offset[index];
+                                   position += face_offset[index];
                                  }
                                });
 
@@ -1357,23 +1358,23 @@ static void extrude_individual_mesh_faces(
                         edge_orig_indices.slice(duplicate_edge_range));
   }
 
-  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
-  if (!poly_orig_indices.is_empty()) {
-    MutableSpan<int> new_poly_orig_indices = poly_orig_indices.slice(side_poly_range);
-    poly_selection.foreach_index(
-        GrainSize(1024), [&](const int64_t poly_i, const int64_t selection_i) {
+  MutableSpan<int> face_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  if (!face_orig_indices.is_empty()) {
+    MutableSpan<int> new_face_orig_indices = face_orig_indices.slice(side_face_range);
+    face_selection.foreach_index(
+        GrainSize(1024), [&](const int64_t face_i, const int64_t selection_i) {
           const IndexRange extrude_range = group_per_face[selection_i];
-          new_poly_orig_indices.slice(extrude_range).fill(poly_orig_indices[poly_i]);
+          new_face_orig_indices.slice(extrude_range).fill(face_orig_indices[face_i]);
         });
   }
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
-        mesh, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, poly_selection);
+        mesh, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, face_selection);
   }
   if (attribute_outputs.side_id) {
     save_selection_as_attribute(
-        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_poly_range);
+        mesh, attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE, side_face_range);
   }
 
   tag_mesh_added_faces(mesh);
@@ -1436,20 +1437,39 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Mesh", std::move(geometry_set));
 }
 
-}  // namespace blender::nodes::node_geo_extrude_mesh_cc
-
-void register_node_type_geo_extrude_mesh()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_extrude_mesh_cc;
+  static const EnumPropertyItem mode_items[] = {
+      {GEO_NODE_EXTRUDE_MESH_VERTICES, "VERTICES", 0, "Vertices", ""},
+      {GEO_NODE_EXTRUDE_MESH_EDGES, "EDGES", 0, "Edges", ""},
+      {GEO_NODE_EXTRUDE_MESH_FACES, "FACES", 0, "Faces", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_EXTRUDE_MESH_FACES);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, "Extrude Mesh", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
+  ntype.geometry_node_execute = node_geo_exec;
   node_type_storage(
       &ntype, "NodeGeometryExtrudeMesh", node_free_standard_storage, node_copy_standard_storage);
-  ntype.draw_buttons = file_ns::node_layout;
+  ntype.draw_buttons = node_layout;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_extrude_mesh_cc

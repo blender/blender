@@ -15,8 +15,10 @@
 
 #include "BLI_kdopbvh.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -151,10 +153,6 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
   BLO_write_id_struct(writer, Tex, id_address, &tex->id);
   BKE_id_blend_write(writer, &tex->id);
 
-  if (tex->adt) {
-    BKE_animdata_blend_write(writer, tex->adt);
-  }
-
   /* direct data */
   if (tex->coba) {
     BLO_write_struct(writer, ColorBand, tex->coba);
@@ -181,8 +179,6 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Tex *tex = (Tex *)id;
-  BLO_read_data_address(reader, &tex->adt);
-  BKE_animdata_blend_read_data(reader, tex->adt);
 
   BLO_read_data_address(reader, &tex->coba);
 

@@ -15,7 +15,7 @@
 
 #include "DNA_ID.h"
 
-#include "RNA_path.h"
+#include "RNA_path.hh"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -176,6 +176,16 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve);
   virtual void build_driver_data(ID *id, FCurve *fcurve);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
+
+  virtual void build_driver_scene_camera_variable(const OperationKey &driver_key,
+                                                  const RNAPathKey &self_key,
+                                                  Scene *scene,
+                                                  const char *rna_path);
+  virtual void build_driver_rna_path_variable(const OperationKey &driver_key,
+                                              const RNAPathKey &self_key,
+                                              ID *target_id,
+                                              const PointerRNA &target_prop,
+                                              const char *rna_path);
 
   /* Build operations of a property value from which is read by a driver target.
    *

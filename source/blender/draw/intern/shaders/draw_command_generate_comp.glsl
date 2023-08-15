@@ -45,7 +45,7 @@ void write_draw_call(DrawGroup group, uint group_id)
 
 void main()
 {
-  uint proto_id = gl_GlobalInvocationID.x;
+  int proto_id = int(gl_GlobalInvocationID.x);
   if (proto_id >= prototype_len) {
     return;
   }
@@ -59,7 +59,7 @@ void main()
   uint visible_instance_len = 0;
   if (visibility_word_per_draw > 0) {
     uint visibility_word = resource_index * visibility_word_per_draw;
-    for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
+    for (int i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
       /* NOTE: This assumes `proto.instance_len` is 1. */
       /* TODO: Assert. */
       visible_instance_len += bitCount(visibility_buf[visibility_word]);
@@ -103,7 +103,7 @@ void main()
   /* Fill resource_id buffer for each instance of this draw. */
   if (visibility_word_per_draw > 0) {
     uint visibility_word = resource_index * visibility_word_per_draw;
-    for (uint i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
+    for (int i = 0; i < visibility_word_per_draw; i++, visibility_word++) {
       uint word = visibility_buf[visibility_word];
       uint view_index = i * 32u;
       while (word != 0u) {

@@ -22,6 +22,8 @@
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
 #  include "BLI_math_boolean.hh"
+#  include "BLI_math_geom.h"
+#  include "BLI_math_matrix.h"
 #  include "BLI_math_mpq.hh"
 #  include "BLI_math_vector.h"
 #  include "BLI_math_vector_mpq_types.hh"
@@ -2098,7 +2100,7 @@ static Array<Face *> exact_triangulate_poly(Face *f, IMeshArena *arena)
   const double3 &poly_normal = f->plane->norm;
   int axis = math::dominant_axis(poly_normal);
   /* If project down y axis as opposed to x or z, the orientation
-   * of the polygon will be reversed.
+   * of the face will be reversed.
    * Yet another reversal happens if the poly normal in the dominant
    * direction is opposite that of the positive dominant axis. */
   bool rev1 = (axis == 1);

@@ -26,6 +26,7 @@ class GreasePencilStrokeOperation {
 namespace greasepencil {
 
 std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation();
+std::unique_ptr<GreasePencilStrokeOperation> new_erase_operation();
 
 }  // namespace greasepencil
 

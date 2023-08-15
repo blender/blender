@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -24,15 +24,15 @@
 #include "BKE_image.h"
 #include "BKE_scene.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "ED_render.h"
+#include "ED_render.hh"
 
 /* Deprecated, only provided for API compatibility. */
 const EnumPropertyItem rna_enum_render_pass_type_items[] = {
@@ -84,7 +84,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BKE_appdir.h"
 #  include "BKE_context.h"
@@ -350,7 +350,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_et.idname));
+                int(sizeof(dummy_et.idname)));
     return nullptr;
   }
 
@@ -687,11 +687,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
                                   "All pixels in the render result have been set and are final");
   parm = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_boolean(func,
+                  "cancel",
+                  false,
+                  "Cancel",
+                  "Don't mark tile as done, don't merge results unless forced");
+  RNA_def_boolean(func, "highlight", false, "Highlight", "Don't mark tile as done yet");
   RNA_def_boolean(
-      func, "cancel", 0, "Cancel", "Don't mark tile as done, don't merge results unless forced");
-  RNA_def_boolean(func, "highlight", 0, "Highlight", "Don't mark tile as done yet");
-  RNA_def_boolean(
-      func, "do_merge_results", 0, "Merge Results", "Merge results even if cancel=true");
+      func, "do_merge_results", false, "Merge Results", "Merge results even if cancel=true");
 
   func = RNA_def_function(srna, "add_pass", "RE_engine_add_pass");
   RNA_def_function_ui_description(func, "Add a pass to the render layer");
@@ -719,7 +722,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func,
                                   "Test if the render operation should been canceled, this is a "
                                   "fast call that should be used regularly for responsiveness");
-  parm = RNA_def_boolean(func, "do_break", 0, "Break", "");
+  parm = RNA_def_boolean(func, "do_break", false, "Break", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "pass_by_index_get", "RE_engine_pass_by_index_get");
@@ -743,14 +746,14 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "camera_shift_x", "RE_engine_get_camera_shift_x");
   parm = RNA_def_pointer(func, "camera", "Object", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "use_spherical_stereo", 0, "Spherical Stereo", "");
+  RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   parm = RNA_def_float(func, "shift_x", 0.0f, 0.0f, FLT_MAX, "Shift X", "", 0.0f, FLT_MAX);
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "camera_model_matrix", "RE_engine_get_camera_model_matrix");
   parm = RNA_def_pointer(func, "camera", "Object", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "use_spherical_stereo", 0, "Spherical Stereo", "");
+  RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   parm = RNA_def_float_matrix(func,
                               "r_model_matrix",
                               4,
@@ -768,7 +771,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "use_spherical_stereo", "RE_engine_get_spherical_stereo");
   parm = RNA_def_pointer(func, "camera", "Object", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "use_spherical_stereo", 0, "Spherical Stereo", "");
+  parm = RNA_def_boolean(func, "use_spherical_stereo", false, "Spherical Stereo", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "update_stats", "RE_engine_update_stats");
@@ -837,7 +840,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
                                   "combination of graphics card and scene settings");
   parm = RNA_def_pointer(func, "scene", "Scene", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "supported", 0, "Supported", "");
+  parm = RNA_def_boolean(func, "supported", false, "Supported", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "get_preview_pixel_size", "engine_get_preview_pixel_size");
@@ -861,13 +864,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "height", 0, 0, INT_MAX, "Height", "", 0, INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "highlight", 0, "Highlight", "");
+  parm = RNA_def_boolean(func, "highlight", false, "Highlight", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "tile_highlight_clear_all", "RE_engine_tile_highlight_clear_all");
   RNA_def_function_ui_description(func, "Clear highlight from all tiles");
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "is_animation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", RE_ENGINE_ANIMATION);
@@ -1004,7 +1007,15 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use Alembic Procedural", "Support loading Alembic data at render time");
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
+}
+
+static void rna_def_hydra_render_engine(BlenderRNA *brna)
+{
+  /* This is implemented in Python. */
+  StructRNA *srna = RNA_def_struct(brna, "HydraRenderEngine", "RenderEngine");
+  RNA_def_struct_sdna(srna, "RenderEngine");
+  RNA_def_struct_ui_text(srna, "Hydra Render Engine", "Base class from USD Hydra based renderers");
 }
 
 static void rna_def_render_result(BlenderRNA *brna)
@@ -1040,7 +1051,7 @@ static void rna_def_render_result(BlenderRNA *brna)
   parm = RNA_def_string(func, "value", nullptr, 0, "Value", "Value of the stamp data");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "resolution_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, nullptr, "rectx");
@@ -1074,7 +1085,7 @@ static void rna_def_render_result(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_render_view(BlenderRNA *brna)
@@ -1085,14 +1096,14 @@ static void rna_def_render_view(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "RenderView", nullptr);
   RNA_def_struct_ui_text(srna, "Render View", "");
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "name");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_struct_name_property(srna, prop);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_render_passes(BlenderRNA *brna, PropertyRNA *cprop)
@@ -1171,7 +1182,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
               0,
               INT_MAX);
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   rna_def_view_layer_common(brna, srna, false);
 
@@ -1188,7 +1199,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
                                     nullptr);
   rna_def_render_passes(brna, prop);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_render_pass(BlenderRNA *brna)
@@ -1199,7 +1210,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "RenderPass", nullptr);
   RNA_def_struct_ui_text(srna, "Render Pass", "");
 
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
 
   prop = RNA_def_property(srna, "fullname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "fullname");
@@ -1229,12 +1240,13 @@ static void rna_def_render_pass(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, nullptr, "view_id");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 void RNA_def_render(BlenderRNA *brna)
 {
   rna_def_render_engine(brna);
+  rna_def_hydra_render_engine(brna);
   rna_def_render_result(brna);
   rna_def_render_view(brna);
   rna_def_render_layer(brna);

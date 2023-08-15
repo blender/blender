@@ -374,7 +374,7 @@ extern void (*BKE_curve_batch_cache_dirty_tag_cb)(struct Curve *cu, int mode);
 extern void (*BKE_curve_batch_cache_free_cb)(struct Curve *cu);
 
 /* -------------------------------------------------------------------- */
-/** \name Decimate Curve (curve_decimate.c)
+/** \name Decimate Curve (`curve_decimate.cc`)
  *
  * Simplify curve data.
  * \{ */
@@ -396,7 +396,7 @@ void BKE_curve_decimate_nurb(struct Nurb *nu,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Deform 3D Coordinates by Curve (curve_deform.c)
+/** \name Deform 3D Coordinates by Curve (`curve_deform.cc`)
  * \{ */
 
 void BKE_curve_deform_coords(const struct Object *ob_curve,
@@ -432,7 +432,7 @@ void BKE_curve_deform_co(const struct Object *ob_curve,
 
 /** \} */
 
-/* curve_convert.c */
+/* `curve_convert.cc` */
 
 /* Create a new curve from the given object at its current state. This only works for curve and
  * text objects, otherwise NULL is returned.

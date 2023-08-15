@@ -16,7 +16,7 @@
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "../outliner_intern.hh"

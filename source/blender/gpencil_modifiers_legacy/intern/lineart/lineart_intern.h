@@ -10,7 +10,6 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_threads.h"
 
 #include "DNA_lineart_types.h"

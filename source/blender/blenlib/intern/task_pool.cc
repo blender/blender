@@ -16,7 +16,6 @@
 
 #include "DNA_listBase.h"
 
-#include "BLI_math.h"
 #include "BLI_mempool.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -27,10 +26,11 @@
 #  include <tbb/task_group.h>
 #endif
 
-/* Task
+/**
+ * Task
  *
- * Unit of work to execute. This is a C++ class to work with TBB. */
-
+ * Unit of work to execute. This is a C++ class to work with TBB.
+ */
 class Task {
  public:
   TaskPool *pool;

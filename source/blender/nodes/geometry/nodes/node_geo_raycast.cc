@@ -8,8 +8,8 @@
 #include "BKE_bvhutils.h"
 #include "BKE_mesh_sample.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -57,8 +57,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  uiItemR(layout, ptr, "mapping", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "mapping", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -223,7 +223,7 @@ class RaycastFunction : public mf::MultiFunction {
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     BLI_assert(target_.has_mesh());
-    const Mesh &mesh = *target_.get_mesh_for_read();
+    const Mesh &mesh = *target_.get_mesh();
 
     raycast_to_mesh(mask,
                     mesh,
@@ -326,7 +326,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (target.get_mesh_for_read()->totpoly == 0) {
+  if (target.get_mesh()->faces_num == 0) {
     params.error_message_add(NodeWarningType::Error, TIP_("The target mesh must have faces"));
     params.set_default_remaining_outputs();
     return;
@@ -372,23 +372,22 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 }
 
-}  // namespace blender::nodes::node_geo_raycast_cc
-
-void register_node_type_geo_raycast()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_raycast_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.updatefunc = file_ns::node_update;
+  ntype.initfunc = node_init;
+  ntype.updatefunc = node_update;
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_raycast_cc

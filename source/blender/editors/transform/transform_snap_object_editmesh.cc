@@ -6,8 +6,8 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_vector.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
@@ -17,7 +17,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_transform_snap_object_context.h"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
 #include "transform_snap_object.hh"
 
@@ -465,7 +466,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 const ID * /*id*/,
                                 const float4x4 &obmat,
                                 eSnapMode snap_to_flag,
-                                int polygon)
+                                int face)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
 
@@ -478,7 +479,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
   BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-  BMFace *f = BM_face_at_index(em->bm, polygon);
+  BMFace *f = BM_face_at_index(em->bm, face);
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   if (snap_to_flag & SCE_SNAP_TO_EDGE) {
@@ -613,7 +614,11 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
     }
   }
 
-  nearest2d.clip_planes_enable(sctx);
+  /* #XRAY_ENABLED can return false even with the XRAY flag enabled, this happens because the
+   * alpha is 1.0 in this case. But even with the alpha being 1.0, the edit mesh is still not
+   * occluded. */
+  const bool skip_occlusion_plane = XRAY_FLAG_ENABLED(sctx->runtime.v3d);
+  nearest2d.clip_planes_enable(sctx, skip_occlusion_plane);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;

@@ -25,9 +25,9 @@
 #include "BLI_linklist.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_offset_indices.hh"
 #include "BLI_rand.h"
@@ -52,7 +52,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -62,20 +62,20 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_mesh_fair.h"
-#include "BKE_mesh_mapping.h"
+#include "BKE_mesh_fair.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_subdiv_ccg.h"
-#include "BKE_subsurf.h"
+#include "BKE_subdiv_ccg.hh"
+#include "BKE_subsurf.hh"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
@@ -90,21 +90,21 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_paint.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_space_api.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
-#include "paint_intern.h"
+#include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "atomic_ops.h"
 
@@ -112,7 +112,7 @@
 #include "bmesh_log.h"
 #include "bmesh_tools.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include <math.h>
 #include <stdlib.h>
@@ -162,7 +162,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
             ss->vert_positions,
             nor,
             ss->edges,
-            ss->polys,
+            ss->faces,
             ss->poly_normals,
             (int *)ss->attrs.edge_boundary_flags->data,
             (int *)ss->attrs.boundary_flags->data,
@@ -183,7 +183,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         blender::bke::pbvh::update_edge_boundary_grids(
             edge.i,
             ss->edges,
-            ss->polys,
+            ss->faces,
             (int *)ss->attrs.edge_boundary_flags->data,
             (int *)ss->attrs.boundary_flags->data,
             ss->attrs.face_set ? (int *)ss->attrs.face_set->data : nullptr,
@@ -256,7 +256,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
                                                  ss->edges.data(),
                                                  ss->corner_verts.data(),
                                                  ss->corner_edges.data(),
-                                                 ss->polys,
+                                                 ss->faces,
                                                  ss->pmap,
                                                  vertex,
                                                  ss->sharp_edge,
@@ -278,7 +278,7 @@ static void faces_update_boundary_flags(const SculptSession *ss, const PBVHVertR
       bool ok = true;
 
       for (int poly : pmap) {
-        const IndexRange mp = ss->polys[poly];
+        const IndexRange mp = ss->faces[poly];
         if (mp.size() < 4) {
           ok = false;
         }
@@ -374,7 +374,7 @@ eSculptBoundary SCULPT_vertex_is_boundary(const SculptSession *ss,
     coord.y = vertex_index / key->grid_size;
     int v1, v2;
     const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
-        ss->subdiv_ccg, &coord, ss->corner_verts, ss->polys, &v1, &v2);
+        ss->subdiv_ccg, &coord, ss->corner_verts, ss->faces, &v1, &v2);
 
     switch (adjacency) {
       case SUBDIV_CCG_ADJACENT_VERTEX:

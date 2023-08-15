@@ -33,6 +33,7 @@
 
 struct Object;
 struct Depsgraph;
+struct Scene;
 
 namespace blender::nodes {
 
@@ -85,6 +86,7 @@ struct GeoNodesOperatorData {
   const Object *self_object = nullptr;
   /** Current evaluated depsgraph. */
   Depsgraph *depsgraph = nullptr;
+  Scene *scene = nullptr;
 };
 
 /**

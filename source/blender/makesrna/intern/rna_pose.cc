@@ -6,11 +6,11 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
@@ -20,14 +20,15 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* Bone and Group Color Sets */
 const EnumPropertyItem rna_enum_color_sets_items[] = {
@@ -77,12 +78,12 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_armature.h"
-#  include "ED_object.h"
+#  include "ED_armature.hh"
+#  include "ED_object.hh"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 static void rna_Pose_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -278,7 +279,7 @@ static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
 
   /* use API Method for conversions... */
   BKE_rotMode_change_values(
-      pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, (short)value);
+      pchan->quat, pchan->eul, pchan->rotAxis, &pchan->rotAngle, pchan->rotmode, short(value));
 
   /* finally, set the new rotation type */
   pchan->rotmode = value;
@@ -651,20 +652,13 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
 }
 
 bool rna_PoseChannel_constraints_override_apply(Main *bmain,
-                                                PointerRNA *ptr_dst,
-                                                PointerRNA *ptr_src,
-                                                PointerRNA * /*ptr_storage*/,
-                                                PropertyRNA *prop_dst,
-                                                PropertyRNA * /*prop_src*/,
-                                                PropertyRNA * /*prop_storage*/,
-                                                const int /*len_dst*/,
-                                                const int /*len_src*/,
-                                                const int /*len_storage*/,
-                                                PointerRNA * /*ptr_item_dst*/,
-                                                PointerRNA * /*ptr_item_src*/,
-                                                PointerRNA * /*ptr_item_storage*/,
-                                                IDOverrideLibraryPropertyOperation *opop)
+                                                RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
@@ -825,7 +819,8 @@ static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)
 static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *values)
 {
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-  BKE_pchan_apply_mat4(pchan, (float(*)[4])values, false); /* no compat for predictable result */
+  /* No compatibility for predictable result. */
+  BKE_pchan_apply_mat4(pchan, (const float(*)[4])values, false);
 }
 
 static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
@@ -834,9 +829,10 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
   Object *ob = (Object *)ptr->owner_id;
   float tmat[4][4];
 
-  BKE_armature_mat_pose_to_bone_ex(nullptr, ob, pchan, (float(*)[4])values, tmat);
+  BKE_armature_mat_pose_to_bone_ex(nullptr, ob, pchan, (const float(*)[4])values, tmat);
 
-  BKE_pchan_apply_mat4(pchan, tmat, false); /* no compat for predictable result */
+  /* No compatibility for predictable result. */
+  BKE_pchan_apply_mat4(pchan, tmat, false);
 }
 
 static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob,

@@ -17,7 +17,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
@@ -28,8 +28,8 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
-#include "ED_mesh.h"
-#include "ED_object.h"
+#include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "SkinInfo.h"
 #include "collada_utils.h"

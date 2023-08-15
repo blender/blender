@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  OPENCOLORIO_LIBRARY, where to find the OpenColorIO library.
 
-# If OPENCOLORIO_ROOT_DIR was defined in the environment, use it.
-IF(NOT OPENCOLORIO_ROOT_DIR AND NOT $ENV{OPENCOLORIO_ROOT_DIR} STREQUAL "")
+# If `OPENCOLORIO_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OPENCOLORIO_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OPENCOLORIO_ROOT_DIR})
   SET(OPENCOLORIO_ROOT_DIR $ENV{OPENCOLORIO_ROOT_DIR})
+ELSE()
+  SET(OPENCOLORIO_ROOT_DIR "")
 ENDIF()
 
 SET(_opencolorio_FIND_COMPONENTS

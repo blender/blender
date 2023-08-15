@@ -6,7 +6,7 @@
  * \ingroup edinterface
  */
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include <cstdio>
 #include <memory>
@@ -19,17 +19,16 @@
 #include "BKE_context.h"
 #include "BKE_light_linking.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_resources.h"
+#include "UI_resources.hh"
 #include "UI_tree_view.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_undo.h"
+#include "ED_undo.hh"
 
 namespace blender::ui::light_linking {
 
@@ -66,7 +65,7 @@ class CollectionDropTarget : public DropTargetInterface {
     return TIP_("Add to light linking collection");
   }
 
-  bool on_drop(struct bContext *C, const DragInfo &drag) const override
+  bool on_drop(bContext *C, const DragInfo &drag) const override
   {
     Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
@@ -229,9 +228,7 @@ class CollectionView : public AbstractTreeView {
 
 namespace ui = blender::ui;
 
-void uiTemplateLightLinkingCollection(struct uiLayout *layout,
-                                      struct PointerRNA *ptr,
-                                      const char *propname)
+void uiTemplateLightLinkingCollection(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
   if (!ptr->data) {
     return;

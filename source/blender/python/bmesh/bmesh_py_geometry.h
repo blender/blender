@@ -8,4 +8,12 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 PyObject *BPyInit_bmesh_geometry(void);
+
+#ifdef __cplusplus
+}
+#endif

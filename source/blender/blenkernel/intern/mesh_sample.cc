@@ -5,12 +5,13 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
@@ -127,7 +128,7 @@ void sample_corner_attribute(const Span<MLoopTri> looptris,
 }
 
 template<typename T>
-void sample_face_attribute(const Span<int> looptri_polys,
+void sample_face_attribute(const Span<int> looptri_faces,
                            const Span<int> looptri_indices,
                            const VArray<T> &src,
                            const IndexMask &mask,
@@ -135,12 +136,12 @@ void sample_face_attribute(const Span<int> looptri_polys,
 {
   mask.foreach_index([&](const int i) {
     const int looptri_index = looptri_indices[i];
-    const int poly_index = looptri_polys[looptri_index];
-    dst[i] = src[poly_index];
+    const int face_index = looptri_faces[looptri_index];
+    dst[i] = src[face_index];
   });
 }
 
-void sample_face_attribute(const Span<int> looptri_polys,
+void sample_face_attribute(const Span<int> looptri_faces,
                            const Span<int> looptri_indices,
                            const GVArray &src,
                            const IndexMask &mask,
@@ -151,7 +152,7 @@ void sample_face_attribute(const Span<int> looptri_polys,
   const CPPType &type = src.type();
   attribute_math::convert_to_static_type(type, [&](auto dummy) {
     using T = decltype(dummy);
-    sample_face_attribute<T>(looptri_polys, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
+    sample_face_attribute<T>(looptri_faces, looptri_indices, src.typed<T>(), mask, dst.typed<T>());
   });
 }
 
@@ -390,7 +391,7 @@ BaryWeightFromPositionFn::BaryWeightFromPositionFn(GeometrySet geometry)
     return signature;
   }();
   this->set_signature(&signature);
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   vert_positions_ = mesh.vert_positions();
   corner_verts_ = mesh.corner_verts();
   looptris_ = mesh.looptris();
@@ -426,7 +427,7 @@ CornerBaryWeightFromPositionFn::CornerBaryWeightFromPositionFn(GeometrySet geome
     return signature;
   }();
   this->set_signature(&signature);
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   vert_positions_ = mesh.vert_positions();
   corner_verts_ = mesh.corner_verts();
   looptris_ = mesh.looptris();
@@ -478,7 +479,7 @@ void BaryWeightSampleFn::call(const IndexMask &mask,
 
 void BaryWeightSampleFn::evaluate_source(fn::GField src_field)
 {
-  const Mesh &mesh = *source_.get_mesh_for_read();
+  const Mesh &mesh = *source_.get_mesh();
   looptris_ = mesh.looptris();
   /* Use the most complex domain for now, ensuring no information is lost. In the future, it should
    * be possible to use the most complex domain required by the field inputs, to simplify sampling

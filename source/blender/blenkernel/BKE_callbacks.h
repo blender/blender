@@ -71,7 +71,7 @@ struct PointerRNA;
  * =============
  *
  * All callbacks here must be exposed via the Python module `bpy.app.handlers`,
- * see `bpy_app_handlers.c`.
+ * see `bpy_app_handlers.cc`.
  */
 typedef enum {
   BKE_CB_EVT_FRAME_CHANGE_PRE,
@@ -109,6 +109,8 @@ typedef enum {
   BKE_CB_EVT_COMPOSITE_CANCEL,
   BKE_CB_EVT_ANIMATION_PLAYBACK_PRE,
   BKE_CB_EVT_ANIMATION_PLAYBACK_POST,
+  BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE,
+  BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST,
   BKE_CB_EVT_TOT,
 } eCbEvent;
 

@@ -14,7 +14,7 @@
 
 #include "BKE_node.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 void register_node_type_cmp_group()
 {

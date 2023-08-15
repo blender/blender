@@ -7,6 +7,7 @@ set(INC
   ..
   ../intern
   ../../editors/include
+  ../../blenkernel
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -181,6 +182,11 @@ set(SRC
   nodes/node_geo_string_to_curves.cc
   nodes/node_geo_subdivision_surface.cc
   nodes/node_geo_switch.cc
+  nodes/node_geo_tool_3d_cursor.cc
+  nodes/node_geo_tool_face_set.cc
+  nodes/node_geo_tool_selection.cc
+  nodes/node_geo_tool_set_face_set.cc
+  nodes/node_geo_tool_set_selection.cc
   nodes/node_geo_transform_geometry.cc
   nodes/node_geo_translate_instances.cc
   nodes/node_geo_triangulate.cc
@@ -190,16 +196,13 @@ set(SRC
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
 
-  node_geometry_register.cc
   node_geometry_tree.cc
   node_geometry_util.cc
 
-  node_geometry_register.hh
   node_geometry_util.hh
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_bmesh
   PRIVATE bf::dna
@@ -260,7 +263,19 @@ if(WITH_OPENVDB)
   add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
+add_node_discovery(
+  bf_nodes_geometry_generated
+  "${SRC}"
+  ${CMAKE_CURRENT_BINARY_DIR}/register_geometry_nodes.cc
+  register_geometry_nodes
+)
+
+list(APPEND LIB
+  bf_nodes_geometry_generated
+)
+
 blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
 if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_geometry PROPERTIES UNITY_BUILD ON)

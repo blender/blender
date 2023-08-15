@@ -6,7 +6,7 @@
  * \ingroup spimage
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -21,15 +21,15 @@
 #include "DNA_image_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "BKE_image.h"
 #include "BKE_main.h"
 
-#include "ED_image.h"
+#include "ED_image.hh"
 
 struct ImageFrame {
-  struct ImageFrame *next, *prev;
+  ImageFrame *next, *prev;
   int framenr;
 };
 

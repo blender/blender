@@ -10,7 +10,7 @@
 
 #include "BLI_string_ref.hh"
 
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #include "intern/builder/deg_builder_relations.h"
 

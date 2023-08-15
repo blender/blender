@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_clip.h"
+#include "ED_clip.hh"
 
 struct Mask;
 struct bContext;
@@ -16,14 +16,14 @@ struct wmOperatorType;
 
 /* internal exports only */
 
-/* mask_add.c */
+/* `mask_add.cc` */
 
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 void MASK_OT_primitive_circle_add(struct wmOperatorType *ot);
 void MASK_OT_primitive_square_add(struct wmOperatorType *ot);
 
-/* mask_ops.c */
+/* `mask_ops.cc` */
 
 struct Mask *ED_mask_new(struct bContext *C, const char *name);
 /**
@@ -56,13 +56,13 @@ void MASK_OT_duplicate(struct wmOperatorType *ot);
 void MASK_OT_copy_splines(struct wmOperatorType *ot);
 void MASK_OT_paste_splines(struct wmOperatorType *ot);
 
-/* mask_relationships.c */
+/* `mask_relationships.cc` */
 
 /** based on #OBJECT_OT_parent_set */
 void MASK_OT_parent_set(struct wmOperatorType *ot);
 void MASK_OT_parent_clear(struct wmOperatorType *ot);
 
-/* mask_select.c */
+/* `mask_select.cc` */
 
 void MASK_OT_select(struct wmOperatorType *ot);
 void MASK_OT_select_all(struct wmOperatorType *ot);
@@ -100,7 +100,7 @@ void ED_mask_view_lock_state_store(const struct bContext *C, MaskViewLockState *
 void ED_mask_view_lock_state_restore_no_jump(const struct bContext *C,
                                              const MaskViewLockState *state);
 
-/* mask_query.c */
+/* `mask_query.cc` */
 
 bool ED_mask_find_nearest_diff_point(const struct bContext *C,
                                      struct Mask *mask,
@@ -133,7 +133,7 @@ struct MaskSplinePoint *ED_mask_point_find_nearest(const struct bContext *C,
                                                    eMaskWhichHandle *r_which_handle,
                                                    float *r_score);
 
-/* mask_shapekey.c */
+/* `mask_shapekey.cc` */
 
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
 void MASK_OT_shape_key_clear(struct wmOperatorType *ot);

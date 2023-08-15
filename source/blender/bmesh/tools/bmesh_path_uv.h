@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMCalcPathUVParams {
   uint use_topology_distance : 1;
   uint use_step_face : 1;
@@ -38,3 +42,7 @@ struct LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
                                            bool (*filter_fn)(BMFace *, void *),
                                            void *user_data) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 5);
+
+#ifdef __cplusplus
+}
+#endif

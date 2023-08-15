@@ -7,7 +7,8 @@
  */
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -19,18 +20,18 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_armature.h"
-#include "ED_gizmo_library.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
 
@@ -58,12 +59,12 @@ struct BoneSplineHandle {
 };
 
 struct BoneSplineWidgetGroup {
-  struct BoneSplineHandle handles[2];
+  BoneSplineHandle handles[2];
 };
 
 static void gizmo_bbone_offset_get(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop, void *value_p)
 {
-  struct BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
+  BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
 
   float *value = static_cast<float *>(value_p);
@@ -86,7 +87,7 @@ static void gizmo_bbone_offset_set(const wmGizmo * /*gz*/,
                                    wmGizmoProperty *gz_prop,
                                    const void *value_p)
 {
-  struct BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
+  BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
 
   const float *value = static_cast<const float *>(value_p);
@@ -142,7 +143,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
-  struct BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
+  BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
       MEM_callocN(sizeof(BoneSplineWidgetGroup), __func__));
   gzgroup->customdata = bspline_group;
 
@@ -178,8 +179,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     return;
   }
 
-  struct BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
-      gzgroup->customdata);
+  BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(gzgroup->customdata);
   bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   /* Handles */

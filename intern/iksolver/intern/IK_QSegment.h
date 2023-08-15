@@ -32,7 +32,6 @@
  * The ordering of these transformations is vital, you must
  * use exactly the same transformations when displaying the segments
  */
-
 class IK_QSegment {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

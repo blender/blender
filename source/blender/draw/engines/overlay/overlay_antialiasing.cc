@@ -42,7 +42,7 @@
 
 #include "DRW_render.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "overlay_private.hh"
 

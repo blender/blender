@@ -12,9 +12,13 @@
 #                        This can also be an environment variable.
 #  CLANG_FOUND, If false, do not try to use Clang.
 
-# If CLANG_ROOT_DIR was defined in the environment, use it.
-if(NOT CLANG_ROOT_DIR AND NOT $ENV{CLANG_ROOT_DIR} STREQUAL "")
+# If `CLANG_ROOT_DIR` was defined in the environment, use it.
+if(DEFINED CLANG_ROOT_DIR)
+  # Pass.
+elseif(DEFINED ENV{CLANG_ROOT_DIR})
   set(CLANG_ROOT_DIR $ENV{CLANG_ROOT_DIR})
+else()
+  set(CLANG_ROOT_DIR "")
 endif()
 
 if(NOT LLVM_ROOT_DIR)

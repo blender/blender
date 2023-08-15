@@ -7,6 +7,8 @@
 #include "BCMath.h"
 #include "BlenderContext.h"
 
+#include "BLI_math_matrix.h"
+
 void BCQuat::rotate_to(Matrix &mat_to)
 {
   Quat qd;

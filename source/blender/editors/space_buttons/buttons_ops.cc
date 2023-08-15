@@ -6,8 +6,8 @@
  * \ingroup spbuttons
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -25,17 +25,17 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_undo.h"
+#include "ED_screen.hh"
+#include "ED_undo.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "buttons_intern.h" /* own include */
 
@@ -328,7 +328,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         is_relative = false;
       }
 
-      /* Annoying exception!, if we're dealing with the user prefs, default relative to be off. */
+      /* Annoying exception!, if we're dealing with the user preferences,
+       * default relative to be off. */
       RNA_property_boolean_set(op->ptr, prop_relpath, is_relative);
     }
   }

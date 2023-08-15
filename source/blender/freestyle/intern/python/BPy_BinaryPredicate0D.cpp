@@ -134,7 +134,7 @@ static PyGetSetDef BPy_BinaryPredicate0D_getseters[] = {
 /*-----------------------BPy_BinaryPredicate0D type definition ------------------------------*/
 
 PyTypeObject BinaryPredicate0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "BinaryPredicate0D",
     /*tp_basicsize*/ sizeof(BPy_BinaryPredicate0D),
     /*tp_itemsize*/ 0,

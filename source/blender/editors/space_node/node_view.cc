@@ -20,18 +20,18 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
-#include "ED_image.h"
-#include "ED_node.h" /* own include */
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_image.hh"
+#include "ED_node.hh" /* own include */
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -6,34 +6,33 @@
  * \ingroup spgraph
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rect.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
-#include "ED_screen.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "graph_intern.h"
 
@@ -52,7 +51,6 @@ void get_graph_keyframe_extents(bAnimContext *ac,
   Scene *scene = ac->scene;
 
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* Get data to filter, from Dopesheet. */
@@ -84,7 +82,7 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     bool foundBounds = false;
 
     /* Go through channels, finding max extents. */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       AnimData *adt = ANIM_nla_mapping_get(ac, ale);
       FCurve *fcu = (FCurve *)ale->key_data;
       rctf bounds;
@@ -139,10 +137,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     }
     else {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
       if (ymin) {
         *ymin = -5;
@@ -159,10 +157,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     /* Set default range. */
     if (ac->scene) {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
     }
     else {
@@ -227,7 +225,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_previewrange_exec;
-  /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier. */
+  /* XXX: unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -307,7 +305,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_viewall_exec;
-  /* XXX: Unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -330,7 +328,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_view_selected_exec;
-  /* XXX: Unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -386,7 +384,6 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   /* Free existing ghost curves. */
@@ -405,7 +402,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
       ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
   /* Loop through filtered data and add keys between selected keyframes on every frame. */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
     FCurve *gcu = BKE_fcurve_create();
     AnimData *adt = ANIM_nla_mapping_get(ac, ale);
@@ -470,8 +467,8 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
   /* Ghost curves are snapshots of the visible portions of the curves,
    * so set range to be the visible range. */
   v2d = &ac.region->v2d;
-  start = (int)v2d->cur.xmin;
-  end = (int)v2d->cur.xmax;
+  start = int(v2d->cur.xmin);
+  end = int(v2d->cur.xmax);
 
   /* Bake selected curves into a ghost curve. */
   create_ghost_curves(&ac, start, end);

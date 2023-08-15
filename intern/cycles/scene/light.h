@@ -34,15 +34,11 @@ class Light : public Node {
 
   NODE_SOCKET_API(LightType, light_type)
   NODE_SOCKET_API(float3, strength)
-  NODE_SOCKET_API(float3, co)
 
-  NODE_SOCKET_API(float3, dir)
   NODE_SOCKET_API(float, size)
   NODE_SOCKET_API(float, angle)
 
-  NODE_SOCKET_API(float3, axisu)
   NODE_SOCKET_API(float, sizeu)
-  NODE_SOCKET_API(float3, axisv)
   NODE_SOCKET_API(float, sizev)
   NODE_SOCKET_API(bool, ellipse)
   NODE_SOCKET_API(float, spread)
@@ -87,6 +83,12 @@ class Light : public Node {
   /* Check whether this light participates in light or shadow linking. */
   bool has_light_linking() const;
   bool has_shadow_linking() const;
+
+  /* Convenience access to transform. */
+  float3 get_co() const;
+  float3 get_dir() const;
+  float3 get_axisu() const;
+  float3 get_axisv() const;
 
   friend class LightManager;
   friend class LightTree;

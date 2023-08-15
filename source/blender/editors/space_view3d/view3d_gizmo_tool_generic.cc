@@ -6,28 +6,29 @@
  * \ingroup spview3d
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
 
@@ -142,7 +143,7 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
-    struct TransformBounds tbounds;
+    TransformBounds tbounds;
     TransformCalcParams params{};
     params.use_only_center = true;
     params.orientation_index = orientation + 1;
@@ -162,7 +163,7 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
 
 static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
                                                 wmGizmoGroup *gzgroup,
-                                                struct wmMsgBus *mbus)
+                                                wmMsgBus *mbus)
 {
   ARegion *region = CTX_wm_region(C);
 

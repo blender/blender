@@ -4,6 +4,7 @@
 
 #include "../eevee/eevee_lut.h" /* TODO: find somewhere to share blue noise Table. */
 #include "BKE_studiolight.h"
+#include "BLI_math_rotation.h"
 #include "IMB_imbuf_types.h"
 
 #include "workbench_private.hh"

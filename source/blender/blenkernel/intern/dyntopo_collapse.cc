@@ -13,7 +13,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -26,7 +27,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_dyntopo.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.h"
 

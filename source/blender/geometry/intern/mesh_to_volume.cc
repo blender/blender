@@ -6,7 +6,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_volume.h"
 #include "BKE_volume_openvdb.hh"
 

@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../../asset_system
+  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../makesrna
@@ -25,7 +26,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_curve

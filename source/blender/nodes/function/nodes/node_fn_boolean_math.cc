@@ -6,12 +6,14 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
+
+#include "NOD_rna_define.hh"
 
 #include "node_function_util.hh"
 
@@ -27,7 +29,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -126,20 +128,31 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
   builder.set_matching_fn(fn);
 }
 
-}  // namespace blender::nodes::node_fn_boolean_math_cc
-
-void register_node_type_fn_boolean_math()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_fn_boolean_math_cc;
+  RNA_def_node_enum(srna,
+                    "operation",
+                    "Operation",
+                    "",
+                    rna_enum_node_boolean_math_items,
+                    NOD_inline_enum_accessors(custom1));
+}
 
+static void node_register()
+{
   static bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
-  ntype.declare = file_ns::node_declare;
-  ntype.labelfunc = file_ns::node_label;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.build_multi_function = file_ns::node_build_multi_function;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.declare = node_declare;
+  ntype.labelfunc = node_label;
+  ntype.updatefunc = node_update;
+  ntype.build_multi_function = node_build_multi_function;
+  ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_fn_boolean_math_cc

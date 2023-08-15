@@ -14,7 +14,9 @@
 
 #include "BLI_alloca.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
@@ -23,7 +25,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -370,14 +372,14 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
   add_v3_v3(v4, c);
 
   if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv)) {
-    return 0;
+    return false;
   }
 
   mul_v2_fl(r_uv, float(res - 1));
 
   mdisp_axis_from_quad(v1, v2, v3, v4, r_axis_x, r_axis_y);
 
-  return 1;
+  return true;
 }
 
 static float bm_loop_flip_equotion(float mat[2][2],

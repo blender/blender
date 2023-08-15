@@ -30,5 +30,5 @@ class GHOST_EventPrinter : public GHOST_IEventConsumer {
    * \param key: The GHOST key code to convert.
    * \param str: The GHOST key code converted to a readable string.
    */
-  void getKeyString(GHOST_TKey key, char str[32]) const;
+  const char *getKeyString(GHOST_TKey key) const;
 };

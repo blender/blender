@@ -20,12 +20,12 @@
 
 #include "BLI_array.hh"
 #include "BLI_asan.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_endian_switch.h"
 #include "BLI_index_range.hh"
-#include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.hh"
@@ -51,10 +51,10 @@
 #include "BKE_customdata_file.h"
 #include "BKE_deform.h"
 #include "BKE_main.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_remap.h"
-#include "BKE_multires.h"
-#include "BKE_subsurf.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_remap.hh"
+#include "BKE_multires.hh"
+#include "BKE_subsurf.hh"
 
 #include "BLO_read_write.h"
 
@@ -72,6 +72,7 @@
 #include <array>
 
 using blender::Array;
+using blender::BitVector;
 using blender::float2;
 using blender::ImplicitSharingInfo;
 using blender::IndexRange;
@@ -2851,8 +2852,8 @@ int CustomData_get_layer_index_n(const CustomData *data, const eCustomDataType t
   int i = CustomData_get_layer_index(data, type);
 
   if (i != -1) {
-    BLI_assert(i + n < data->totlayer);
-    i = (data->layers[i + n].type == type) ? (i + n) : (-1);
+    /* If the value of n goes past the block of layers of the correct type, return -1. */
+    i = (i + n < data->totlayer && data->layers[i + n].type == type) ? (i + n) : (-1);
   }
 
   return i;
@@ -3790,33 +3791,6 @@ void CustomData_swap_corners(CustomData *data, const int index, const int *corne
   }
 }
 
-void CustomData_swap(CustomData *data, const int index_a, const int index_b)
-{
-  char buff_static[256];
-
-  if (index_a == index_b) {
-    return;
-  }
-
-  for (int i = 0; i < data->totlayer; i++) {
-    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(data->layers[i].type));
-    const size_t size = typeInfo->size;
-    const size_t offset_a = size * index_a;
-    const size_t offset_b = size * index_b;
-
-    void *buff = size <= sizeof(buff_static) ? buff_static : MEM_mallocN(size, __func__);
-    memcpy(buff, POINTER_OFFSET(data->layers[i].data, offset_a), size);
-    memcpy(POINTER_OFFSET(data->layers[i].data, offset_a),
-           POINTER_OFFSET(data->layers[i].data, offset_b),
-           size);
-    memcpy(POINTER_OFFSET(data->layers[i].data, offset_b), buff, size);
-
-    if (buff != buff_static) {
-      MEM_freeN(buff);
-    }
-  }
-}
-
 void *CustomData_get_for_write(CustomData *data,
                                const int index,
                                const eCustomDataType type,
@@ -4291,24 +4265,18 @@ void CustomData_bmesh_swap_data(CustomData *source,
   }
 }
 
+static bool customdata_layer_copy_check(const CustomDataLayer &source, const CustomDataLayer &dest)
+{
+  return source.type == dest.type && STREQ(source.name, dest.name) &&
+         !(source.flag & CD_FLAG_ELEM_NOCOPY);
+}
+
 void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,
                                                 const eCustomDataMask mask_exclude)
 {
-  /* Note that having a version of this function without a 'mask_exclude'
-   * would cause too much duplicate code, so add a check instead. */
-  const bool no_mask = (mask_exclude == 0);
-
-  /*
-  Note: we don't handle toolflag layers as a special case,
-  instead relying on CD_ELEM_NO_COPY semantics.
-
-  This is so BM_data_layer_add can reallocate customdata blocks without
-  zeroing those two layers.
-  */
-
   bool was_new = false;
 
   if (*dest_block == nullptr) {
@@ -4323,27 +4291,24 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     }
   }
 
-  /* The old code broke if the ordering differed between two customdata sets.
-   * Led to disappearing face sets. See PR #108683.
-   */
-  blender::Set<CustomDataLayer *> donelayers;
+  BitVector<> copied_layers(dest->totlayer);
 
-  for (const CustomDataLayer &layer_src :
-       blender::Span<CustomDataLayer>(source->layers, source->totlayer))
-  {
-    for (CustomDataLayer &layer_dst :
-         blender::MutableSpan<CustomDataLayer>(dest->layers, dest->totlayer))
-    {
-      bool ok = !(layer_src.flag & CD_FLAG_ELEM_NOCOPY);
-      ok = ok && (no_mask || !(layer_dst.flag & mask_exclude));
-      ok = ok && layer_src.type == layer_dst.type;
-      ok = ok && STREQ(layer_src.name, layer_dst.name);
+  for (int layer_src_i : IndexRange(source->totlayer)) {
+    const CustomDataLayer &layer_src = source->layers[layer_src_i];
 
-      if (!ok) {
+    if (CD_TYPE_AS_MASK(layer_src.type) & mask_exclude) {
+      continue;
+    }
+
+    for (int layer_dst_i : IndexRange(dest->totlayer)) {
+      CustomDataLayer &layer_dst = dest->layers[layer_dst_i];
+
+      if (!customdata_layer_copy_check(layer_src, layer_dst)) {
         continue;
       }
 
-      donelayers.add(&layer_dst);
+      copied_layers[layer_dst_i].set(true);
+
       const void *src_data = POINTER_OFFSET(src_block, layer_src.offset);
       void *dest_data = POINTER_OFFSET(*dest_block, layer_dst.offset);
       const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer_src.type));
@@ -4356,11 +4321,10 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     }
   }
 
-  for (CustomDataLayer &layer_dst :
-       blender::MutableSpan<CustomDataLayer>(dest->layers, dest->totlayer))
-  {
-    if (was_new && !donelayers.contains(&layer_dst)) {
-      CustomData_bmesh_set_default_n(dest, dest_block, int(&layer_dst - dest->layers));
+  /* Initialize dest layers that weren't in source. */
+  for (int layer_dst_i : IndexRange(dest->totlayer)) {
+    if (was_new && !copied_layers[layer_dst_i]) {
+      CustomData_bmesh_set_default_n(dest, dest_block, layer_dst_i);
     }
   }
 }
@@ -4766,11 +4730,10 @@ void CustomData_blend_write_prepare(CustomData &data,
   data.totlayer = layers_to_write.size();
   data.maxlayer = data.totlayer;
 
-  /* Note: data->layers may be null, this happens when adding
-   * a legacy MPoly struct to a mesh with no other face attributes.
+  /* NOTE: `data->layers` may be null, this happens when adding
+   * a legacy #MPoly struct to a mesh with no other face attributes.
    * This leaves us with no unique ID for DNA to identify the old
-   * data with when loading the file.
-   */
+   * data with when loading the file. */
   if (!data.layers && layers_to_write.size() > 0) {
     /* We just need an address that's unique. */
     data.layers = reinterpret_cast<CustomDataLayer *>(&data.layers);
@@ -5701,8 +5664,8 @@ static void blend_read_mdisps(BlendDataReader *reader,
       }
 
       if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {
-        /* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
-        /* this does swap for data written at write_mdisps() - readfile.c */
+        /* DNA_struct_switch_endian doesn't do endian swap for `(*disps)[]` */
+        /* this does swap for data written at #write_mdisps() - `readfile.cc`. */
         BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
       }
       if (!external && !mdisps[i].disps) {

@@ -15,14 +15,14 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_iterators.h"
+#include "BKE_mesh_iterators.hh"
 
 #include "BLI_bitmap.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "MEM_guardedalloc.h"
 
-/* General note on iterating verts/loops/edges/polys and end mode.
+/* General note on iterating verts/loops/edges/faces and end mode.
  *
  * The edit mesh pointer is set for both final and cage meshes in both cases when there are
  * modifiers applied and not. This helps consistency of checks in the draw manager, where the
@@ -34,8 +34,8 @@
 
 void BKE_mesh_foreach_mapped_vert(
     const Mesh *mesh,
-    void (*func)(void *userData, int index, const float co[3], const float no[3]),
-    void *userData,
+    void (*func)(void *user_data, int index, const float co[3], const float no[3]),
+    void *user_data,
     MeshForeachFlag flag)
 {
   if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
@@ -53,19 +53,20 @@ void BKE_mesh_foreach_mapped_vert(
       }
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
-        func(userData, i, positions[i], no);
+        func(user_data, i, positions[i], no);
       }
     }
     else {
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? eve->no : nullptr;
-        func(userData, i, eve->co, no);
+        func(user_data, i, eve->co, no);
       }
     }
   }
   else {
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(
+        CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
     blender::Span<blender::float3> vert_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       vert_normals = mesh->vert_normals();
@@ -78,13 +79,13 @@ void BKE_mesh_foreach_mapped_vert(
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        func(userData, orig, positions[i], no);
+        func(user_data, orig, positions[i], no);
       }
     }
     else {
       for (int i = 0; i < mesh->totvert; i++) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
-        func(userData, i, positions[i], no);
+        func(user_data, i, positions[i], no);
       }
     }
   }
@@ -93,8 +94,8 @@ void BKE_mesh_foreach_mapped_vert(
 void BKE_mesh_foreach_mapped_edge(
     Mesh *mesh,
     const int tot_edges,
-    void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
-    void *userData)
+    void (*func)(void *user_data, int index, const float v0co[3], const float v1co[3]),
+    void *user_data)
 {
   if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data) {
     BMEditMesh *em = mesh->edit_mesh;
@@ -106,7 +107,7 @@ void BKE_mesh_foreach_mapped_edge(
       const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vertexCos;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
-        func(userData,
+        func(user_data,
              i,
              positions[BM_elem_index_get(eed->v1)],
              positions[BM_elem_index_get(eed->v2)]);
@@ -114,14 +115,15 @@ void BKE_mesh_foreach_mapped_edge(
     }
     else {
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
-        func(userData, i, eed->v1->co, eed->v2->co);
+        func(user_data, i, eed->v1->co, eed->v2->co);
       }
     }
   }
   else {
     const blender::Span<blender::float3> positions = mesh->vert_positions();
     const blender::Span<blender::int2> edges = mesh->edges();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(
+        CustomData_get_layer(&mesh->edge_data, CD_ORIGINDEX));
 
     if (index) {
       for (const int i : edges.index_range()) {
@@ -130,24 +132,24 @@ void BKE_mesh_foreach_mapped_edge(
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        func(userData, orig, positions[edges[i][0]], positions[edges[i][1]]);
+        func(user_data, orig, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
     else if (mesh->totedge == tot_edges) {
       for (const int i : edges.index_range()) {
-        func(userData, i, positions[edges[i][0]], positions[edges[i][1]]);
+        func(user_data, i, positions[edges[i][0]], positions[edges[i][1]]);
       }
     }
   }
 }
 
 void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
-                                  void (*func)(void *userData,
+                                  void (*func)(void *user_data,
                                                int vertex_index,
                                                int face_index,
                                                const float co[3],
                                                const float no[3]),
-                                  void *userData,
+                                  void *user_data,
                                   MeshForeachFlag flag)
 {
 
@@ -166,7 +168,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
           mesh->totloop};
     }
 
@@ -181,7 +183,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
       do {
         const BMVert *eve = l_iter->v;
         const int v_idx = BM_elem_index_get(eve);
-        func(userData,
+        func(user_data,
              v_idx,
              f_idx,
              positions.is_empty() ? positions[v_idx] : blender::float3(eve->co),
@@ -193,38 +195,38 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     blender::Span<blender::float3> corner_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
       corner_normals = {
-          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->ldata, CD_NORMAL)),
+          static_cast<const blender::float3 *>(CustomData_get_layer(&mesh->loop_data, CD_NORMAL)),
           mesh->totloop};
     }
 
     const blender::Span<blender::float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices polys = mesh->polys();
+    const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const int *v_index = static_cast<const int *>(
-        CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
+        CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX));
     const int *f_index = static_cast<const int *>(
-        CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+        CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
 
     if (v_index || f_index) {
-      for (const int poly_i : polys.index_range()) {
-        for (const int corner : polys[poly_i]) {
+      for (const int face_i : faces.index_range()) {
+        for (const int corner : faces[face_i]) {
           const int vert = corner_verts[corner];
           const int v_idx = v_index ? v_index[vert] : vert;
-          const int f_idx = f_index ? f_index[poly_i] : poly_i;
+          const int f_idx = f_index ? f_index[face_i] : face_i;
           const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
           if (ELEM(ORIGINDEX_NONE, v_idx, f_idx)) {
             continue;
           }
-          func(userData, v_idx, f_idx, positions[vert], no);
+          func(user_data, v_idx, f_idx, positions[vert], no);
         }
       }
     }
     else {
-      for (const int poly_i : polys.index_range()) {
-        for (const int corner : polys[poly_i]) {
+      for (const int face_i : faces.index_range()) {
+        for (const int corner : faces[face_i]) {
           const int vert = corner_verts[corner];
           const float *no = corner_normals.is_empty() ? nullptr : &corner_normals[corner].x;
-          func(userData, vert, poly_i, positions[vert], no);
+          func(user_data, vert, face_i, positions[vert], no);
         }
       }
     }
@@ -233,74 +235,75 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
 
 void BKE_mesh_foreach_mapped_face_center(
     Mesh *mesh,
-    void (*func)(void *userData, int index, const float cent[3], const float no[3]),
-    void *userData,
+    void (*func)(void *user_data, int index, const float cent[3], const float no[3]),
+    void *user_data,
     MeshForeachFlag flag)
 {
   using namespace blender;
   if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
     BMEditMesh *em = mesh->edit_mesh;
     BMesh *bm = em->bm;
-    blender::Span<blender::float3> poly_centers;
-    blender::Span<blender::float3> poly_normals;
+    blender::Span<blender::float3> face_centers;
+    blender::Span<blender::float3> face_normals;
     BMFace *efa;
     BMIter iter;
     int i;
 
-    BKE_editmesh_cache_ensure_poly_centers(em, mesh->runtime->edit_data);
-    poly_centers = mesh->runtime->edit_data->polyCos; /* always set */
+    BKE_editmesh_cache_ensure_face_centers(em, mesh->runtime->edit_data);
+    face_centers = mesh->runtime->edit_data->faceCos; /* always set */
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
-      BKE_editmesh_cache_ensure_poly_normals(em, mesh->runtime->edit_data);
-      poly_normals = mesh->runtime->edit_data->polyNos; /* maybe nullptr */
+      BKE_editmesh_cache_ensure_face_normals(em, mesh->runtime->edit_data);
+      face_normals = mesh->runtime->edit_data->faceNos; /* maybe nullptr */
     }
 
-    if (!poly_normals.is_empty()) {
+    if (!face_normals.is_empty()) {
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
-        const float *no = poly_normals[i];
-        func(userData, i, poly_centers[i], no);
+        const float *no = face_normals[i];
+        func(user_data, i, face_centers[i], no);
       }
     }
     else {
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? efa->no : nullptr;
-        func(userData, i, poly_centers[i], no);
+        func(user_data, i, face_centers[i], no);
       }
     }
   }
   else {
     const blender::Span<float3> positions = mesh->vert_positions();
-    const blender::OffsetIndices polys = mesh->polys();
+    const blender::OffsetIndices faces = mesh->faces();
     const blender::Span<int> corner_verts = mesh->corner_verts();
-    const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+    const int *index = static_cast<const int *>(
+        CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
 
     if (index) {
-      for (const int i : polys.index_range()) {
+      for (const int i : faces.index_range()) {
         const int orig = *index++;
         if (orig == ORIGINDEX_NONE) {
           continue;
         }
-        const Span<int> poly_verts = corner_verts.slice(polys[i]);
-        const float3 center = bke::mesh::poly_center_calc(positions, poly_verts);
+        const Span<int> face_verts = corner_verts.slice(faces[i]);
+        const float3 center = bke::mesh::face_center_calc(positions, face_verts);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_verts);
-          func(userData, orig, center, normal);
+          const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
+          func(user_data, orig, center, normal);
         }
         else {
-          func(userData, orig, center, nullptr);
+          func(user_data, orig, center, nullptr);
         }
       }
     }
     else {
-      for (const int i : polys.index_range()) {
-        const Span<int> poly_verts = corner_verts.slice(polys[i]);
-        const float3 center = bke::mesh::poly_center_calc(positions, poly_verts);
+      for (const int i : faces.index_range()) {
+        const Span<int> face_verts = corner_verts.slice(faces[i]);
+        const float3 center = bke::mesh::face_center_calc(positions, face_verts);
         if (flag & MESH_FOREACH_USE_NORMAL) {
-          const float3 normal = bke::mesh::poly_normal_calc(positions, poly_verts);
-          func(userData, i, center, normal);
+          const float3 normal = bke::mesh::face_normal_calc(positions, face_verts);
+          func(user_data, i, center, normal);
         }
         else {
-          func(userData, i, center, nullptr);
+          func(user_data, i, center, nullptr);
         }
       }
     }
@@ -309,29 +312,30 @@ void BKE_mesh_foreach_mapped_face_center(
 
 void BKE_mesh_foreach_mapped_subdiv_face_center(
     Mesh *mesh,
-    void (*func)(void *userData, int index, const float cent[3], const float no[3]),
-    void *userData,
+    void (*func)(void *user_data, int index, const float cent[3], const float no[3]),
+    void *user_data,
     MeshForeachFlag flag)
 {
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices polys = mesh->polys();
+  const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   blender::Span<blender::float3> vert_normals;
   if (flag & MESH_FOREACH_USE_NORMAL) {
     vert_normals = mesh->vert_normals();
   }
-  const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->pdata, CD_ORIGINDEX));
+  const int *index = static_cast<const int *>(
+      CustomData_get_layer(&mesh->face_data, CD_ORIGINDEX));
   const blender::BitSpan facedot_tags = mesh->runtime->subsurf_face_dot_tags;
 
   if (index) {
-    for (const int i : polys.index_range()) {
+    for (const int i : faces.index_range()) {
       const int orig = *index++;
       if (orig == ORIGINDEX_NONE) {
         continue;
       }
-      for (const int vert : corner_verts.slice(polys[i])) {
+      for (const int vert : corner_verts.slice(faces[i])) {
         if (facedot_tags[vert]) {
-          func(userData,
+          func(user_data,
                orig,
                positions[vert],
                (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[vert].x : nullptr);
@@ -340,10 +344,10 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     }
   }
   else {
-    for (const int i : polys.index_range()) {
-      for (const int vert : corner_verts.slice(polys[i])) {
+    for (const int i : faces.index_range()) {
+      for (const int vert : corner_verts.slice(faces[i])) {
         if (facedot_tags[vert]) {
-          func(userData,
+          func(user_data,
                i,
                positions[vert],
                (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[vert].x : nullptr);

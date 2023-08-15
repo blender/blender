@@ -6,7 +6,7 @@
  * \ingroup edphys
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -22,13 +22,13 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "physics_intern.h"
 
@@ -48,7 +48,7 @@ static int rule_add_exec(bContext *C, wmOperator *op)
 
   state = boid_get_current_state(part->boids);
 
-  for (rule = static_cast<BoidRule *>(state->rules.first); rule; rule = rule->next) {
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     rule->flag &= ~BOIDRULE_CURRENT;
   }
 
@@ -92,7 +92,7 @@ static int rule_del_exec(bContext *C, wmOperator * /*op*/)
 
   state = boid_get_current_state(part->boids);
 
-  for (rule = static_cast<BoidRule *>(state->rules.first); rule; rule = rule->next) {
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     if (rule->flag & BOIDRULE_CURRENT) {
       BLI_remlink(&state->rules, rule);
       MEM_freeN(rule);
@@ -130,7 +130,6 @@ static int rule_move_up_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
   ParticleSettings *part = static_cast<ParticleSettings *>(ptr.data);
-  BoidRule *rule;
   BoidState *state;
 
   if (!part || part->phystype != PART_PHYS_BOIDS) {
@@ -138,7 +137,7 @@ static int rule_move_up_exec(bContext *C, wmOperator * /*op*/)
   }
 
   state = boid_get_current_state(part->boids);
-  for (rule = static_cast<BoidRule *>(state->rules.first); rule; rule = rule->next) {
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     if (rule->flag & BOIDRULE_CURRENT && rule->prev) {
       BLI_remlink(&state->rules, rule);
       BLI_insertlinkbefore(&state->rules, rule->prev, rule);
@@ -167,7 +166,6 @@ static int rule_move_down_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
   ParticleSettings *part = static_cast<ParticleSettings *>(ptr.data);
-  BoidRule *rule;
   BoidState *state;
 
   if (!part || part->phystype != PART_PHYS_BOIDS) {
@@ -175,7 +173,7 @@ static int rule_move_down_exec(bContext *C, wmOperator * /*op*/)
   }
 
   state = boid_get_current_state(part->boids);
-  for (rule = static_cast<BoidRule *>(state->rules.first); rule; rule = rule->next) {
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     if (rule->flag & BOIDRULE_CURRENT && rule->next) {
       BLI_remlink(&state->rules, rule);
       BLI_insertlinkafter(&state->rules, rule->next, rule);
@@ -211,7 +209,7 @@ static int state_add_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (state = static_cast<BoidState *>(part->boids->states.first); state; state = state->next) {
+  LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
     state->flag &= ~BOIDSTATE_CURRENT;
   }
 
@@ -247,7 +245,7 @@ static int state_del_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  for (state = static_cast<BoidState *>(part->boids->states.first); state; state = state->next) {
+  LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
     if (state->flag & BOIDSTATE_CURRENT) {
       BLI_remlink(&part->boids->states, state);
       MEM_freeN(state);
@@ -292,7 +290,6 @@ static int state_move_up_exec(bContext *C, wmOperator * /*op*/)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
   ParticleSettings *part = static_cast<ParticleSettings *>(ptr.data);
   BoidSettings *boids;
-  BoidState *state;
 
   if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
@@ -300,7 +297,7 @@ static int state_move_up_exec(bContext *C, wmOperator * /*op*/)
 
   boids = part->boids;
 
-  for (state = static_cast<BoidState *>(boids->states.first); state; state = state->next) {
+  LISTBASE_FOREACH (BoidState *, state, &boids->states) {
     if (state->flag & BOIDSTATE_CURRENT && state->prev) {
       BLI_remlink(&boids->states, state);
       BLI_insertlinkbefore(&boids->states, state->prev, state);
@@ -328,7 +325,6 @@ static int state_move_down_exec(bContext *C, wmOperator * /*op*/)
   PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
   ParticleSettings *part = static_cast<ParticleSettings *>(ptr.data);
   BoidSettings *boids;
-  BoidState *state;
 
   if (!part || part->phystype != PART_PHYS_BOIDS) {
     return OPERATOR_CANCELLED;
@@ -336,7 +332,7 @@ static int state_move_down_exec(bContext *C, wmOperator * /*op*/)
 
   boids = part->boids;
 
-  for (state = static_cast<BoidState *>(boids->states.first); state; state = state->next) {
+  LISTBASE_FOREACH (BoidState *, state, &boids->states) {
     if (state->flag & BOIDSTATE_CURRENT && state->next) {
       BLI_remlink(&boids->states, state);
       BLI_insertlinkafter(&boids->states, state->next, state);

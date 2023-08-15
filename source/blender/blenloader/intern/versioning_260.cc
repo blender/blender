@@ -38,16 +38,18 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_anim_visualization.h"
 #include "BKE_image.h"
-#include "BKE_main.h" /* for Main */
-#include "BKE_mesh.h" /* for ME_ defines (patching) */
-#include "BKE_mesh_legacy_convert.h"
+#include "BKE_main.h"  /* for Main */
+#include "BKE_mesh.hh" /* for ME_ defines (patching) */
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_particle.h"
@@ -76,7 +78,10 @@
 
 #include "readfile.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/** Without empty statements, clang-format fails (tested with v12 & v15). */
+#define CLANG_FORMAT_NOP_WORKAROUND ((void)0)
+
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static void do_versions_nodetree_image_default_alpha_output(bNodeTree *ntree)
@@ -163,10 +168,10 @@ static void do_versions_image_settings_2_60(Scene *sce)
   ImageFormatData *imf = &sce->r.im_format;
 
   /* we know no data loss happens here, the old values were in char range */
-  imf->imtype = (char)rd->imtype;
-  imf->planes = (char)rd->planes;
-  imf->compress = (char)rd->quality;
-  imf->quality = (char)rd->quality;
+  imf->imtype = char(rd->imtype);
+  imf->planes = char(rd->planes);
+  imf->compress = char(rd->quality);
+  imf->quality = char(rd->quality);
 
   /* default, was stored in multiple places, may override later */
   imf->depth = R_IMF_CHAN_DEPTH_8;
@@ -340,8 +345,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 /* blue and red are swapped pre 2.62.1, be sane (red == red) now! */
 static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
 {
-  for (int a = 0; a < me->ldata.totlayer; a++) {
-    CustomDataLayer *layer = &me->ldata.layers[a];
+  for (int a = 0; a < me->loop_data.totlayer; a++) {
+    CustomDataLayer *layer = &me->loop_data.layers[a];
 
     if (layer->type == CD_PROP_BYTE_COLOR) {
       MLoopCol *mloopcol = static_cast<MLoopCol *>(layer->data);
@@ -452,11 +457,6 @@ static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
 
 static const char *node_get_static_idname(int type, int treetype)
 {
-  /* use static type info header to map static int type to identifier string */
-#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-  case ID: \
-    return #Category #StructName;
-
   /* XXX hack, group types share a single static integer identifier,
    * but are registered as separate types */
   if (type == NODE_GROUP) {
@@ -471,7 +471,382 @@ static const char *node_get_static_idname(int type, int treetype)
   }
   else {
     switch (type) {
-#include "NOD_static_types.h"
+      case NODE_FRAME:
+        return "NodeFrame";
+      case NODE_GROUP:
+        return "NodeGroup";
+      case NODE_GROUP_INPUT:
+        return "NodeGroupInput";
+      case NODE_GROUP_OUTPUT:
+        return "NodeGroupOutput";
+      case NODE_REROUTE:
+        return "NodeReroute";
+      case /*SH_NODE_OUTPUT*/ 1:
+        return "ShaderNodeOutput";
+      case /*SH_NODE_MATERIAL*/ 100:
+        return "ShaderNodeMaterial";
+      case SH_NODE_RGB:
+        return "ShaderNodeRGB";
+      case SH_NODE_VALUE:
+        return "ShaderNodeValue";
+      case SH_NODE_MIX_RGB_LEGACY:
+        return "ShaderNodeMixRGB";
+      case SH_NODE_VALTORGB:
+        return "ShaderNodeValToRGB";
+      case SH_NODE_RGBTOBW:
+        return "ShaderNodeRGBToBW";
+      case /*SH_NODE_TEXTURE*/ 106:
+        return "ShaderNodeTexture";
+      case SH_NODE_NORMAL:
+        return "ShaderNodeNormal";
+      case SH_NODE_GAMMA:
+        return "ShaderNodeGamma";
+      case SH_NODE_BRIGHTCONTRAST:
+        return "ShaderNodeBrightContrast";
+      case /*SH_NODE_GEOMETRY*/ 108:
+        return "ShaderNodeGeometry";
+      case SH_NODE_MAPPING:
+        return "ShaderNodeMapping";
+      case SH_NODE_CURVE_VEC:
+        return "ShaderNodeVectorCurve";
+      case SH_NODE_CURVE_RGB:
+        return "ShaderNodeRGBCurve";
+      case SH_NODE_CAMERA:
+        return "ShaderNodeCameraData";
+      case SH_NODE_MATH:
+        return "ShaderNodeMath";
+      case SH_NODE_VECTOR_MATH:
+        return "ShaderNodeVectorMath";
+      case SH_NODE_SQUEEZE:
+        return "ShaderNodeSqueeze";
+      case /*SH_NODE_MATERIAL_EXT*/ 118:
+        return "ShaderNodeExtendedMaterial";
+      case SH_NODE_INVERT:
+        return "ShaderNodeInvert";
+      case SH_NODE_SEPRGB_LEGACY:
+        return "ShaderNodeSeparateRGB";
+      case SH_NODE_COMBRGB_LEGACY:
+        return "ShaderNodeCombineRGB";
+      case SH_NODE_HUE_SAT:
+        return "ShaderNodeHueSaturation";
+      case SH_NODE_OUTPUT_MATERIAL:
+        return "ShaderNodeOutputMaterial";
+      case SH_NODE_OUTPUT_LIGHT:
+        return "ShaderNodeOutputLamp";
+      case SH_NODE_OUTPUT_WORLD:
+        return "ShaderNodeOutputWorld";
+      case SH_NODE_FRESNEL:
+        return "ShaderNodeFresnel";
+      case SH_NODE_LAYER_WEIGHT:
+        return "ShaderNodeLayerWeight";
+      case SH_NODE_MIX_SHADER:
+        return "ShaderNodeMixShader";
+      case SH_NODE_ADD_SHADER:
+        return "ShaderNodeAddShader";
+      case SH_NODE_ATTRIBUTE:
+        return "ShaderNodeAttribute";
+      case SH_NODE_AMBIENT_OCCLUSION:
+        return "ShaderNodeAmbientOcclusion";
+      case SH_NODE_BACKGROUND:
+        return "ShaderNodeBackground";
+      case SH_NODE_HOLDOUT:
+        return "ShaderNodeHoldout";
+      case /*SH_NODE_BSDF_ANISOTROPIC*/ 131:
+        return "ShaderNodeBsdfAnisotropic";
+      case SH_NODE_BSDF_DIFFUSE:
+        return "ShaderNodeBsdfDiffuse";
+      case /*SH_NODE_BSDF_GLOSSY*/ 133:
+        return "ShaderNodeBsdfGlossy";
+      case SH_NODE_BSDF_GLASS:
+        return "ShaderNodeBsdfGlass";
+      case SH_NODE_BSDF_REFRACTION:
+        return "ShaderNodeBsdfRefraction";
+      case SH_NODE_BSDF_TRANSLUCENT:
+        return "ShaderNodeBsdfTranslucent";
+      case SH_NODE_BSDF_TRANSPARENT:
+        return "ShaderNodeBsdfTransparent";
+      case /*SH_NODE_BSDF_VELVET*/ 139:
+        return "ShaderNodeBsdfVelvet";
+      case /*SH_NODE_VOLUME_TRANSPARENT*/ 161:
+        return "ShaderNodeVolumeTransparent";
+      case /*SH_NODE_VOLUME_ISOTROPIC*/ 162:
+        return "ShaderNodeVolumeIsotropic";
+      case SH_NODE_EMISSION:
+        return "ShaderNodeEmission";
+      case SH_NODE_NEW_GEOMETRY:
+        return "ShaderNodeNewGeometry";
+      case SH_NODE_LIGHT_PATH:
+        return "ShaderNodeLightPath";
+      case SH_NODE_LIGHT_FALLOFF:
+        return "ShaderNodeLightFalloff";
+      case SH_NODE_OBJECT_INFO:
+        return "ShaderNodeObjectInfo";
+      case SH_NODE_PARTICLE_INFO:
+        return "ShaderNodeParticleInfo";
+      case SH_NODE_HAIR_INFO:
+        return "ShaderNodeHairInfo";
+      case SH_NODE_BUMP:
+        return "ShaderNodeBump";
+      case SH_NODE_NORMAL_MAP:
+        return "ShaderNodeNormalMap";
+      case SH_NODE_TANGENT:
+        return "ShaderNodeTangent";
+      case SH_NODE_SCRIPT:
+        return "ShaderNodeScript";
+      case SH_NODE_TEX_IMAGE:
+        return "ShaderNodeTexImage";
+      case SH_NODE_TEX_ENVIRONMENT:
+        return "ShaderNodeTexEnvironment";
+      case SH_NODE_TEX_SKY:
+        return "ShaderNodeTexSky";
+      case SH_NODE_TEX_GRADIENT:
+        return "ShaderNodeTexGradient";
+      case SH_NODE_TEX_NOISE:
+        return "ShaderNodeTexNoise";
+      case SH_NODE_TEX_MAGIC:
+        return "ShaderNodeTexMagic";
+      case SH_NODE_TEX_WAVE:
+        return "ShaderNodeTexWave";
+      case SH_NODE_TEX_MUSGRAVE:
+        return "ShaderNodeTexMusgrave";
+      case SH_NODE_TEX_VORONOI:
+        return "ShaderNodeTexVoronoi";
+      case SH_NODE_TEX_CHECKER:
+        return "ShaderNodeTexChecker";
+      case SH_NODE_TEX_BRICK:
+        return "ShaderNodeTexBrick";
+      case SH_NODE_TEX_COORD:
+        return "ShaderNodeTexCoord";
+      case CMP_NODE_VIEWER:
+        return "CompositorNodeViewer";
+      case CMP_NODE_RGB:
+        return "CompositorNodeRGB";
+      case CMP_NODE_VALUE:
+        return "CompositorNodeValue";
+      case CMP_NODE_MIX_RGB:
+        return "CompositorNodeMixRGB";
+      case CMP_NODE_VALTORGB:
+        return "CompositorNodeValToRGB";
+      case CMP_NODE_RGBTOBW:
+        return "CompositorNodeRGBToBW";
+      case CMP_NODE_NORMAL:
+        return "CompositorNodeNormal";
+      case CMP_NODE_CURVE_VEC:
+        return "CompositorNodeCurveVec";
+      case CMP_NODE_CURVE_RGB:
+        return "CompositorNodeCurveRGB";
+      case CMP_NODE_ALPHAOVER:
+        return "CompositorNodeAlphaOver";
+      case CMP_NODE_BLUR:
+        return "CompositorNodeBlur";
+      case CMP_NODE_FILTER:
+        return "CompositorNodeFilter";
+      case CMP_NODE_MAP_VALUE:
+        return "CompositorNodeMapValue";
+      case CMP_NODE_MAP_RANGE:
+        return "CompositorNodeMapRange";
+      case CMP_NODE_TIME:
+        return "CompositorNodeTime";
+      case CMP_NODE_VECBLUR:
+        return "CompositorNodeVecBlur";
+      case CMP_NODE_SEPRGBA_LEGACY:
+        return "CompositorNodeSepRGBA";
+      case CMP_NODE_SEPHSVA_LEGACY:
+        return "CompositorNodeSepHSVA";
+      case CMP_NODE_SETALPHA:
+        return "CompositorNodeSetAlpha";
+      case CMP_NODE_HUE_SAT:
+        return "CompositorNodeHueSat";
+      case CMP_NODE_IMAGE:
+        return "CompositorNodeImage";
+      case CMP_NODE_R_LAYERS:
+        return "CompositorNodeRLayers";
+      case CMP_NODE_COMPOSITE:
+        return "CompositorNodeComposite";
+      case CMP_NODE_OUTPUT_FILE:
+        return "CompositorNodeOutputFile";
+      case CMP_NODE_TEXTURE:
+        return "CompositorNodeTexture";
+      case CMP_NODE_TRANSLATE:
+        return "CompositorNodeTranslate";
+      case CMP_NODE_ZCOMBINE:
+        return "CompositorNodeZcombine";
+      case CMP_NODE_COMBRGBA_LEGACY:
+        return "CompositorNodeCombRGBA";
+      case CMP_NODE_DILATEERODE:
+        return "CompositorNodeDilateErode";
+      case CMP_NODE_INPAINT:
+        return "CompositorNodeInpaint";
+      case CMP_NODE_DESPECKLE:
+        return "CompositorNodeDespeckle";
+      case CMP_NODE_ROTATE:
+        return "CompositorNodeRotate";
+      case CMP_NODE_SCALE:
+        return "CompositorNodeScale";
+      case CMP_NODE_SEPYCCA_LEGACY:
+        return "CompositorNodeSepYCCA";
+      case CMP_NODE_COMBYCCA_LEGACY:
+        return "CompositorNodeCombYCCA";
+      case CMP_NODE_SEPYUVA_LEGACY:
+        return "CompositorNodeSepYUVA";
+      case CMP_NODE_COMBYUVA_LEGACY:
+        return "CompositorNodeCombYUVA";
+      case CMP_NODE_DIFF_MATTE:
+        return "CompositorNodeDiffMatte";
+      case CMP_NODE_COLOR_SPILL:
+        return "CompositorNodeColorSpill";
+      case CMP_NODE_CHROMA_MATTE:
+        return "CompositorNodeChromaMatte";
+      case CMP_NODE_CHANNEL_MATTE:
+        return "CompositorNodeChannelMatte";
+      case CMP_NODE_FLIP:
+        return "CompositorNodeFlip";
+      case CMP_NODE_SPLITVIEWER:
+        return "CompositorNodeSplitViewer";
+      case CMP_NODE_MAP_UV:
+        return "CompositorNodeMapUV";
+      case CMP_NODE_ID_MASK:
+        return "CompositorNodeIDMask";
+      case CMP_NODE_DOUBLEEDGEMASK:
+        return "CompositorNodeDoubleEdgeMask";
+      case CMP_NODE_DEFOCUS:
+        return "CompositorNodeDefocus";
+      case CMP_NODE_DISPLACE:
+        return "CompositorNodeDisplace";
+      case CMP_NODE_COMBHSVA_LEGACY:
+        return "CompositorNodeCombHSVA";
+      case CMP_NODE_MATH:
+        return "CompositorNodeMath";
+      case CMP_NODE_LUMA_MATTE:
+        return "CompositorNodeLumaMatte";
+      case CMP_NODE_BRIGHTCONTRAST:
+        return "CompositorNodeBrightContrast";
+      case CMP_NODE_GAMMA:
+        return "CompositorNodeGamma";
+      case CMP_NODE_INVERT:
+        return "CompositorNodeInvert";
+      case CMP_NODE_NORMALIZE:
+        return "CompositorNodeNormalize";
+      case CMP_NODE_CROP:
+        return "CompositorNodeCrop";
+      case CMP_NODE_DBLUR:
+        return "CompositorNodeDBlur";
+      case CMP_NODE_BILATERALBLUR:
+        return "CompositorNodeBilateralblur";
+      case CMP_NODE_PREMULKEY:
+        return "CompositorNodePremulKey";
+      case CMP_NODE_GLARE:
+        return "CompositorNodeGlare";
+      case CMP_NODE_TONEMAP:
+        return "CompositorNodeTonemap";
+      case CMP_NODE_LENSDIST:
+        return "CompositorNodeLensdist";
+      case CMP_NODE_VIEW_LEVELS:
+        return "CompositorNodeLevels";
+      case CMP_NODE_COLOR_MATTE:
+        return "CompositorNodeColorMatte";
+      case CMP_NODE_DIST_MATTE:
+        return "CompositorNodeDistanceMatte";
+      case CMP_NODE_COLORBALANCE:
+        return "CompositorNodeColorBalance";
+      case CMP_NODE_HUECORRECT:
+        return "CompositorNodeHueCorrect";
+      case CMP_NODE_MOVIECLIP:
+        return "CompositorNodeMovieClip";
+      case CMP_NODE_TRANSFORM:
+        return "CompositorNodeTransform";
+      case CMP_NODE_STABILIZE2D:
+        return "CompositorNodeStabilize";
+      case CMP_NODE_MOVIEDISTORTION:
+        return "CompositorNodeMovieDistortion";
+      case CMP_NODE_MASK_BOX:
+        return "CompositorNodeBoxMask";
+      case CMP_NODE_MASK_ELLIPSE:
+        return "CompositorNodeEllipseMask";
+      case CMP_NODE_BOKEHIMAGE:
+        return "CompositorNodeBokehImage";
+      case CMP_NODE_BOKEHBLUR:
+        return "CompositorNodeBokehBlur";
+      case CMP_NODE_SWITCH:
+        return "CompositorNodeSwitch";
+      case CMP_NODE_COLORCORRECTION:
+        return "CompositorNodeColorCorrection";
+      case CMP_NODE_MASK:
+        return "CompositorNodeMask";
+      case CMP_NODE_KEYINGSCREEN:
+        return "CompositorNodeKeyingScreen";
+      case CMP_NODE_KEYING:
+        return "CompositorNodeKeying";
+      case CMP_NODE_TRACKPOS:
+        return "CompositorNodeTrackPos";
+      case CMP_NODE_PIXELATE:
+        return "CompositorNodePixelate";
+      case TEX_NODE_OUTPUT:
+        return "TextureNodeOutput";
+      case TEX_NODE_CHECKER:
+        return "TextureNodeChecker";
+      case TEX_NODE_TEXTURE:
+        return "TextureNodeTexture";
+      case TEX_NODE_BRICKS:
+        return "TextureNodeBricks";
+      case TEX_NODE_MATH:
+        return "TextureNodeMath";
+      case TEX_NODE_MIX_RGB:
+        return "TextureNodeMixRGB";
+      case TEX_NODE_RGBTOBW:
+        return "TextureNodeRGBToBW";
+      case TEX_NODE_VALTORGB:
+        return "TextureNodeValToRGB";
+      case TEX_NODE_IMAGE:
+        return "TextureNodeImage";
+      case TEX_NODE_CURVE_RGB:
+        return "TextureNodeCurveRGB";
+      case TEX_NODE_INVERT:
+        return "TextureNodeInvert";
+      case TEX_NODE_HUE_SAT:
+        return "TextureNodeHueSaturation";
+      case TEX_NODE_CURVE_TIME:
+        return "TextureNodeCurveTime";
+      case TEX_NODE_ROTATE:
+        return "TextureNodeRotate";
+      case TEX_NODE_VIEWER:
+        return "TextureNodeViewer";
+      case TEX_NODE_TRANSLATE:
+        return "TextureNodeTranslate";
+      case TEX_NODE_COORD:
+        return "TextureNodeCoordinates";
+      case TEX_NODE_DISTANCE:
+        return "TextureNodeDistance";
+      case TEX_NODE_COMPOSE_LEGACY:
+        return "TextureNodeCompose";
+      case TEX_NODE_DECOMPOSE_LEGACY:
+        return "TextureNodeDecompose";
+      case TEX_NODE_VALTONOR:
+        return "TextureNodeValToNor";
+      case TEX_NODE_SCALE:
+        return "TextureNodeScale";
+      case TEX_NODE_AT:
+        return "TextureNodeAt";
+      case TEX_NODE_PROC + TEX_VORONOI:
+        return "TextureNodeTexVoronoi";
+      case TEX_NODE_PROC + TEX_BLEND:
+        return "TextureNodeTexBlend";
+      case TEX_NODE_PROC + TEX_MAGIC:
+        return "TextureNodeTexMagic";
+      case TEX_NODE_PROC + TEX_MARBLE:
+        return "TextureNodeTexMarble";
+      case TEX_NODE_PROC + TEX_CLOUDS:
+        return "TextureNodeTexClouds";
+      case TEX_NODE_PROC + TEX_WOOD:
+        return "TextureNodeTexWood";
+      case TEX_NODE_PROC + TEX_MUSGRAVE:
+        return "TextureNodeTexMusgrave";
+      case TEX_NODE_PROC + TEX_NOISE:
+        return "TextureNodeTexNoise";
+      case TEX_NODE_PROC + TEX_STUCCI:
+        return "TextureNodeTexStucci";
+      case TEX_NODE_PROC + TEX_DISTNOISE:
+        return "TextureNodeTexDistNoise";
     }
   }
   return "";
@@ -553,37 +928,59 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
     }
   }
 
-  /* initialize socket in_out values */
-  {LISTBASE_FOREACH (bNode *, node, &ntree->nodes){
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs){sock->in_out = SOCK_IN;
-}
-LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-  sock->in_out = SOCK_OUT;
-}
-}
-LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-  sock->in_out = SOCK_IN;
-}
-LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-  sock->in_out = SOCK_OUT;
-}
-}
+  {
+    CLANG_FORMAT_NOP_WORKAROUND;
+    /* initialize socket in_out values */
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+        sock->in_out = SOCK_IN;
+      }
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+        sock->in_out = SOCK_OUT;
+      }
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+      sock->in_out = SOCK_IN;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+      sock->in_out = SOCK_OUT;
+    }
+  }
 
-/* initialize socket identifier strings */
-{
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+  /* initialize socket identifier strings */
+  {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+        STRNCPY(sock->identifier, sock->name);
+        BLI_uniquename(&node->inputs,
+                       sock,
+                       "socket",
+                       '.',
+                       offsetof(bNodeSocket, identifier),
+                       sizeof(sock->identifier));
+      }
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+        STRNCPY(sock->identifier, sock->name);
+        BLI_uniquename(&node->outputs,
+                       sock,
+                       "socket",
+                       '.',
+                       offsetof(bNodeSocket, identifier),
+                       sizeof(sock->identifier));
+      }
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
       STRNCPY(sock->identifier, sock->name);
-      BLI_uniquename(&node->inputs,
+      BLI_uniquename(&ntree->inputs,
                      sock,
                      "socket",
                      '.',
                      offsetof(bNodeSocket, identifier),
                      sizeof(sock->identifier));
     }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
       STRNCPY(sock->identifier, sock->name);
-      BLI_uniquename(&node->outputs,
+      BLI_uniquename(&ntree->outputs,
                      sock,
                      "socket",
                      '.',
@@ -591,25 +988,6 @@ LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
                      sizeof(sock->identifier));
     }
   }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-    STRNCPY(sock->identifier, sock->name);
-    BLI_uniquename(&ntree->inputs,
-                   sock,
-                   "socket",
-                   '.',
-                   offsetof(bNodeSocket, identifier),
-                   sizeof(sock->identifier));
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-    STRNCPY(sock->identifier, sock->name);
-    BLI_uniquename(&ntree->outputs,
-                   sock,
-                   "socket",
-                   '.',
-                   offsetof(bNodeSocket, identifier),
-                   sizeof(sock->identifier));
-  }
-}
 }
 
 static bool seq_colorbalance_update_cb(Sequence *seq, void * /*user_data*/)
@@ -660,592 +1038,990 @@ static bool seq_set_wipe_angle_cb(Sequence *seq, void * /*user_data*/)
 void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (bmain->versionfile < 260) {
-    {/* set default alpha value of Image outputs in image and render layer nodes to 0 */
-     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes){
-         /* there are files with invalid audio_channels value, the real cause
-          * is unknown, but we fix it here anyway to avoid crashes */
-         if (sce->r.ffcodecdata.audio_channels == 0){sce->r.ffcodecdata.audio_channels = 2;
-  }
+    {
+      /* set default alpha value of Image outputs in image and render layer nodes to 0 */
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+        /* there are files with invalid audio_channels value, the real cause
+         * is unknown, but we fix it here anyway to avoid crashes */
+        if (sce->r.ffcodecdata.audio_channels == 0) {
+          sce->r.ffcodecdata.audio_channels = 2;
+        }
 
-  if (sce->nodetree) {
-    do_versions_nodetree_image_default_alpha_output(sce->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-  do_versions_nodetree_image_default_alpha_output(ntree);
-}
-}
-
-{
-  /* Support old particle dupli-object rotation settings. */
-  LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
-    if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
-      part->draw |= PART_DRAW_ROTATE_OB;
-
-      if (part->rotmode == 0) {
-        part->rotmode = PART_ROT_VEL;
-      }
-    }
-  }
-}
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 260, 1)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    ob->collision_boundtype = ob->boundtype;
-  }
-
-  {
-    LISTBASE_FOREACH (Camera *, cam, &bmain->cameras) {
-      if (cam->sensor_x < 0.01f) {
-        cam->sensor_x = DEFAULT_SENSOR_WIDTH;
-      }
-
-      if (cam->sensor_y < 0.01f) {
-        cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 260, 2)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_SHADER) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == SH_NODE_MAPPING) {
-          TexMapping *tex_mapping = static_cast<TexMapping *>(node->storage);
-          tex_mapping->projx = PROJ_X;
-          tex_mapping->projy = PROJ_Y;
-          tex_mapping->projz = PROJ_Z;
+        if (sce->nodetree) {
+          do_versions_nodetree_image_default_alpha_output(sce->nodetree);
         }
       }
+
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        do_versions_nodetree_image_default_alpha_output(ntree);
+      }
     }
-  }
-  FOREACH_NODETREE_END;
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 260, 4)) {
-  {/* Convert node angles to radians! */
-   LISTBASE_FOREACH (Scene *, sce, &bmain->scenes){
-       if (sce->nodetree){do_versions_nodetree_convert_angle(sce->nodetree);
-}
-}
+    {
+      /* Support old particle dupli-object rotation settings. */
+      LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+        if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+          part->draw |= PART_DRAW_ROTATE_OB;
 
-LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
-  if (mat->nodetree) {
-    do_versions_nodetree_convert_angle(mat->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-  do_versions_nodetree_convert_angle(ntree);
-}
-}
-
-{
-  /* Tomato compatibility code. */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)sl;
-          if (v3d->bundle_size == 0.0f) {
-            v3d->bundle_size = 0.2f;
-            v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
-          }
-
-          if (v3d->bundle_drawtype == 0) {
-            v3d->bundle_drawtype = OB_PLAINAXES;
-          }
-        }
-        else if (sl->spacetype == SPACE_CLIP) {
-          SpaceClip *sclip = (SpaceClip *)sl;
-          if (sclip->scopes.track_preview_height == 0) {
-            sclip->scopes.track_preview_height = 120;
+          if (part->rotmode == 0) {
+            part->rotmode = PART_ROT_VEL;
           }
         }
       }
     }
   }
 
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    if (clip->aspx < 1.0f) {
-      clip->aspx = 1.0f;
-      clip->aspy = 1.0f;
-    }
-
-    clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN | IMB_TC_FREE_RUN |
-                                IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
-
-    if (clip->proxy.build_size_flag == 0) {
-      clip->proxy.build_size_flag = IMB_PROXY_25;
-    }
-
-    if (clip->proxy.quality == 0) {
-      clip->proxy.quality = 90;
-    }
-
-    if (clip->tracking.camera.pixel_aspect < 0.01f) {
-      clip->tracking.camera.pixel_aspect = 1.0f;
-    }
-
-    MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(
-        clip->tracking.tracks_legacy.first);
-    while (track) {
-      if (track->minimum_correlation == 0.0f) {
-        track->minimum_correlation = 0.75f;
-      }
-
-      track = static_cast<MovieTrackingTrack *>(track->next);
-    }
-  }
-}
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 260, 6)) {
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    do_versions_image_settings_2_60(sce);
-  }
-
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    MovieTrackingSettings *settings = &clip->tracking.settings;
-
-    if (settings->default_pattern_size == 0.0f) {
-      settings->default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
-      settings->default_minimum_correlation = 0.75;
-      settings->default_pattern_size = 11;
-      settings->default_search_size = 51;
-    }
-  }
-
-  {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 1)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      /* convert delta addition into delta scale */
-      int i;
-      for (i = 0; i < 3; i++) {
-        if ((ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
-            (ob->scale[i] == 0.0f))   /* can't scale the dsize to give a non zero result,
-                                       * so fallback to 1.0f */
-        {
-          ob->dscale[i] = 1.0f;
+      ob->collision_boundtype = ob->boundtype;
+    }
+
+    {
+      LISTBASE_FOREACH (Camera *, cam, &bmain->cameras) {
+        if (cam->sensor_x < 0.01f) {
+          cam->sensor_x = DEFAULT_SENSOR_WIDTH;
         }
-        else {
-          ob->dscale[i] = (ob->scale[i] + ob->dsize[i]) / ob->scale[i];
-        }
-      }
-    }
-  }
-}
-/* sigh, this dscale vs dsize version patching was not done right, fix for fix,
- * this intentionally checks an exact subversion, also note this was never in a release,
- * at some point this could be removed. */
-else if (bmain->versionfile == 260 && bmain->subversionfile == 6) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (is_zero_v3(ob->dscale)) {
-      copy_vn_fl(ob->dscale, 3, 1.0f);
-    }
-  }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 260, 8)) {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
-      brush->alpha = 1.0f;
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 261, 1)) {
-  {/* update use flags for node sockets (was only temporary before) */
-   LISTBASE_FOREACH (Scene *, sce, &bmain->scenes){
-       if (sce->nodetree){do_versions_nodetree_socket_use_flags_2_62(sce->nodetree);
-}
-}
-
-LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
-  if (mat->nodetree) {
-    do_versions_nodetree_socket_use_flags_2_62(mat->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
-  if (tex->nodetree) {
-    do_versions_nodetree_socket_use_flags_2_62(tex->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (Light *, la, &bmain->lights) {
-  if (la->nodetree) {
-    do_versions_nodetree_socket_use_flags_2_62(la->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (World *, world, &bmain->worlds) {
-  if (world->nodetree) {
-    do_versions_nodetree_socket_use_flags_2_62(world->nodetree);
-  }
-}
-
-LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-  do_versions_nodetree_socket_use_flags_2_62(ntree);
-}
-}
-{
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *tracking_object = static_cast<MovieTrackingObject *>(
-        tracking->objects.first);
-
-    clip->proxy.build_tc_flag |= IMB_TC_RECORD_RUN_NO_GAPS;
-
-    if (!tracking->settings.object_distance) {
-      tracking->settings.object_distance = 1.0f;
-    }
-
-    if (BLI_listbase_is_empty(&tracking->objects)) {
-      BKE_tracking_object_add(tracking, "Camera");
-    }
-
-    while (tracking_object) {
-      if (!tracking_object->scale) {
-        tracking_object->scale = 1.0f;
-      }
-
-      tracking_object = static_cast<MovieTrackingObject *>(tracking_object->next);
-    }
-  }
-
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-      if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
-        bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con->data);
-
-        if (data->invmat[3][3] == 0.0f) {
-          unit_m4(data->invmat);
+        if (cam->sensor_y < 0.01f) {
+          cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
         }
       }
     }
   }
-}
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 261, 2)) {
-  {
-    /* convert deprecated sculpt_paint_unified_* fields to
-     * UnifiedPaintSettings */
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
-      UnifiedPaintSettings *ups = &ts->unified_paint_settings;
-      ups->size = ts->sculpt_paint_unified_size;
-      ups->unprojected_radius = ts->sculpt_paint_unified_unprojected_radius;
-      ups->alpha = ts->sculpt_paint_unified_alpha;
-      ups->flag = ts->sculpt_paint_settings;
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 261, 3)) {
-  {/* convert extended ascii to utf-8 for text editor */
-   LISTBASE_FOREACH (Text *, text, &bmain->texts){
-       if (!(text->flags & TXT_ISEXT)){LISTBASE_FOREACH (TextLine *, tl, &text->lines){
-           int added = txt_extended_ascii_as_utf8(&tl->line);
-  tl->len += added;
-
-  /* reset cursor position if line was changed */
-  if (added && tl == text->curl) {
-    text->curc = 0;
-  }
-}
-}
-}
-}
-{
-  /* set new dynamic paint values */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_DynamicPaint) {
-        DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-        if (pmd->canvas) {
-          DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
-              pmd->canvas->surfaces.first);
-          for (; surface; surface = static_cast<DynamicPaintSurface *>(surface->next)) {
-            surface->color_dry_threshold = 1.0f;
-            surface->influence_scale = 1.0f;
-            surface->radius_scale = 1.0f;
-            surface->flags |= MOD_DPAINT_USE_DRYING;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 2)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == SH_NODE_MAPPING) {
+            TexMapping *tex_mapping = static_cast<TexMapping *>(node->storage);
+            tex_mapping->projx = PROJ_X;
+            tex_mapping->projy = PROJ_Y;
+            tex_mapping->projz = PROJ_Z;
           }
         }
       }
     }
+    FOREACH_NODETREE_END;
   }
-}
-}
 
-if (bmain->versionfile < 262) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Cloth) {
-        ClothModifierData *clmd = (ClothModifierData *)md;
-        if (clmd->sim_parms) {
-          clmd->sim_parms->vel_damping = 1.0f;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 4)) {
+    {
+      /* Convert node angles to radians! */
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+        if (sce->nodetree) {
+          do_versions_nodetree_convert_angle(sce->nodetree);
         }
       }
-    }
-  }
-}
 
-if (bmain->versionfile < 263) {
-  /* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-   * try to correct it, if rate is 0.0 that's likely not intentional */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Fluidsim) {
-        FluidsimModifierData *fmd = (FluidsimModifierData *)md;
-        if (fmd->fss->animRate == 0.0f) {
-          fmd->fss->animRate = 1.0f;
+      LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+        if (mat->nodetree) {
+          do_versions_nodetree_convert_angle(mat->nodetree);
         }
       }
-    }
-  }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 262, 1)) {
-  /* update use flags for node sockets (was only temporary before) */
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (sce->nodetree) {
-      do_versions_nodetree_multi_file_output_format_2_62_1(sce, sce->nodetree);
-    }
-  }
-
-  /* XXX can't associate with scene for group nodes, image format will stay uninitialized */
-  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-    do_versions_nodetree_multi_file_output_format_2_62_1(nullptr, ntree);
-  }
-}
-
-/* only swap for pre-release bmesh merge which had MLoopCol red/blue swap */
-if (bmain->versionfile == 262 && bmain->subversionfile == 1) {
-  {
-    LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      do_versions_mesh_mloopcol_swap_2_62_1(me);
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 262, 2)) {
-  /* Set new idname of keyingsets from their now "label-only" name. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    LISTBASE_FOREACH (KeyingSet *, ks, &scene->keyingsets) {
-      if (!ks->idname[0]) {
-        STRNCPY(ks->idname, ks->name);
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        do_versions_nodetree_convert_angle(ntree);
       }
     }
-  }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 262, 3)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Lattice) {
-        LatticeModifierData *lmd = (LatticeModifierData *)md;
-        lmd->strength = 1.0f;
-      }
-    }
-  }
-}
+    {
+      /* Tomato compatibility code. */
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              if (v3d->bundle_size == 0.0f) {
+                v3d->bundle_size = 0.2f;
+                v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
+              }
 
-if (!MAIN_VERSION_ATLEAST(bmain, 262, 4)) {
-  /* Read Viscosity presets from older files */
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Fluidsim) {
-        FluidsimModifierData *fmd = (FluidsimModifierData *)md;
-        if (fmd->fss->viscosityMode == 3) {
-          fmd->fss->viscosityValue = 5.0;
-          fmd->fss->viscosityExponent = 5;
-        }
-        else if (fmd->fss->viscosityMode == 4) {
-          fmd->fss->viscosityValue = 2.0;
-          fmd->fss->viscosityExponent = 3;
-        }
-      }
-    }
-  }
-}
-
-if (bmain->versionfile < 263) {
-  /* Default for old files is to save particle rotations to pointcache */
-  LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
-    part->flag |= PART_ROTATIONS;
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 1)) {
-  /* file output node paths are now stored in the file info struct instead socket name */
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (sce->nodetree) {
-      do_versions_nodetree_multi_file_output_path_2_63_1(sce->nodetree);
-    }
-  }
-  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-    do_versions_nodetree_multi_file_output_path_2_63_1(ntree);
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 3)) {
-  /* For weight paint, each brush now gets its own weight;
-   * unified paint settings also have weight. Update unified
-   * paint settings and brushes with a default weight value. */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    ToolSettings *ts = scene->toolsettings;
-    if (ts) {
-      ts->unified_paint_settings.weight = ts->vgroup_weight;
-      ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT;
-    }
-  }
-
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    brush->weight = 0.5;
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 2)) {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_CLIP) {
-          SpaceClip *sclip = (SpaceClip *)sl;
-          bool hide = false;
-
-          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-            if (region->regiontype == RGN_TYPE_PREVIEW) {
-              if (region->alignment != RGN_ALIGN_NONE) {
-                region->flag |= RGN_FLAG_HIDDEN;
-                region->v2d.flag &= ~V2D_IS_INIT;
-                region->alignment = RGN_ALIGN_NONE;
-
-                hide = true;
+              if (v3d->bundle_drawtype == 0) {
+                v3d->bundle_drawtype = OB_PLAINAXES;
+              }
+            }
+            else if (sl->spacetype == SPACE_CLIP) {
+              SpaceClip *sclip = (SpaceClip *)sl;
+              if (sclip->scopes.track_preview_height == 0) {
+                sclip->scopes.track_preview_height = 120;
               }
             }
           }
+        }
+      }
 
-          if (hide) {
-            sclip->view = SC_VIEW_CLIP;
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        if (clip->aspx < 1.0f) {
+          clip->aspx = 1.0f;
+          clip->aspy = 1.0f;
+        }
+
+        clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN | IMB_TC_FREE_RUN |
+                                    IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+
+        if (clip->proxy.build_size_flag == 0) {
+          clip->proxy.build_size_flag = IMB_PROXY_25;
+        }
+
+        if (clip->proxy.quality == 0) {
+          clip->proxy.quality = 90;
+        }
+
+        if (clip->tracking.camera.pixel_aspect < 0.01f) {
+          clip->tracking.camera.pixel_aspect = 1.0f;
+        }
+
+        MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(
+            clip->tracking.tracks_legacy.first);
+        while (track) {
+          if (track->minimum_correlation == 0.0f) {
+            track->minimum_correlation = 0.75f;
+          }
+
+          track = static_cast<MovieTrackingTrack *>(track->next);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 6)) {
+    LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+      do_versions_image_settings_2_60(sce);
+    }
+
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTrackingSettings *settings = &clip->tracking.settings;
+
+      if (settings->default_pattern_size == 0.0f) {
+        settings->default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
+        settings->default_minimum_correlation = 0.75;
+        settings->default_pattern_size = 11;
+        settings->default_search_size = 51;
+      }
+    }
+
+    {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        /* convert delta addition into delta scale */
+        int i;
+        for (i = 0; i < 3; i++) {
+          if ((ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
+              (ob->scale[i] == 0.0f))   /* can't scale the dsize to give a non zero result,
+                                         * so fallback to 1.0f */
+          {
+            ob->dscale[i] = 1.0f;
+          }
+          else {
+            ob->dscale[i] = (ob->scale[i] + ob->dsize[i]) / ob->scale[i];
           }
         }
       }
     }
   }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 4)) {
-  LISTBASE_FOREACH (Camera *, cam, &bmain->cameras) {
-    if (cam->flag & CAM_PANORAMA) {
-      cam->type = CAM_PANO;
-      cam->flag &= ~CAM_PANORAMA;
+  /* sigh, this dscale vs dsize version patching was not done right, fix for fix,
+   * this intentionally checks an exact subversion, also note this was never in a release,
+   * at some point this could be removed. */
+  else if (bmain->versionfile == 260 && bmain->subversionfile == 6) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (is_zero_v3(ob->dscale)) {
+        copy_vn_fl(ob->dscale, 3, 1.0f);
+      }
     }
   }
 
-  LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-    if (cu->bevfac2 == 0.0f) {
-      cu->bevfac1 = 0.0f;
-      cu->bevfac2 = 1.0f;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 260, 8)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
+        brush->alpha = 1.0f;
+      }
     }
   }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 5)) {
-  {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 261, 1)) {
+    {
+      /* update use flags for node sockets (was only temporary before) */
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+        if (sce->nodetree) {
+          do_versions_nodetree_socket_use_flags_2_62(sce->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+        if (mat->nodetree) {
+          do_versions_nodetree_socket_use_flags_2_62(mat->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
+        if (tex->nodetree) {
+          do_versions_nodetree_socket_use_flags_2_62(tex->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (Light *, la, &bmain->lights) {
+        if (la->nodetree) {
+          do_versions_nodetree_socket_use_flags_2_62(la->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+        if (world->nodetree) {
+          do_versions_nodetree_socket_use_flags_2_62(world->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        do_versions_nodetree_socket_use_flags_2_62(ntree);
+      }
+    }
+    {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        MovieTracking *tracking = &clip->tracking;
+        MovieTrackingObject *tracking_object = static_cast<MovieTrackingObject *>(
+            tracking->objects.first);
+
+        clip->proxy.build_tc_flag |= IMB_TC_RECORD_RUN_NO_GAPS;
+
+        if (!tracking->settings.object_distance) {
+          tracking->settings.object_distance = 1.0f;
+        }
+
+        if (BLI_listbase_is_empty(&tracking->objects)) {
+          BKE_tracking_object_add(tracking, "Camera");
+        }
+
+        while (tracking_object) {
+          if (!tracking_object->scale) {
+            tracking_object->scale = 1.0f;
+          }
+
+          tracking_object = static_cast<MovieTrackingObject *>(tracking_object->next);
+        }
+      }
+
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
+          if (con->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+            bObjectSolverConstraint *data = static_cast<bObjectSolverConstraint *>(con->data);
+
+            if (data->invmat[3][3] == 0.0f) {
+              unit_m4(data->invmat);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 261, 2)) {
+    {
+      /* convert deprecated sculpt_paint_unified_* fields to
+       * UnifiedPaintSettings */
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        ToolSettings *ts = scene->toolsettings;
+        UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+        ups->size = ts->sculpt_paint_unified_size;
+        ups->unprojected_radius = ts->sculpt_paint_unified_unprojected_radius;
+        ups->alpha = ts->sculpt_paint_unified_alpha;
+        ups->flag = ts->sculpt_paint_settings;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 261, 3)) {
+    {
+      /* convert extended ascii to utf-8 for text editor */
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Text *, text, &bmain->texts) {
+        if (!(text->flags & TXT_ISEXT)) {
+          LISTBASE_FOREACH (TextLine *, tl, &text->lines) {
+            int added = txt_extended_ascii_as_utf8(&tl->line);
+            tl->len += added;
+
+            /* reset cursor position if line was changed */
+            if (added && tl == text->curl) {
+              text->curc = 0;
+            }
+          }
+        }
+      }
+    }
+    {
+      /* set new dynamic paint values */
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_DynamicPaint) {
+            DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
+            if (pmd->canvas) {
+              DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(
+                  pmd->canvas->surfaces.first);
+              for (; surface; surface = static_cast<DynamicPaintSurface *>(surface->next)) {
+                surface->color_dry_threshold = 1.0f;
+                surface->influence_scale = 1.0f;
+                surface->radius_scale = 1.0f;
+                surface->flags |= MOD_DPAINT_USE_DRYING;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (bmain->versionfile < 262) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Cloth) {
+          ClothModifierData *clmd = (ClothModifierData *)md;
+          if (clmd->sim_parms) {
+            clmd->sim_parms->vel_damping = 1.0f;
+          }
+        }
+      }
+    }
+  }
+
+  if (bmain->versionfile < 263) {
+    /* set fluidsim rate. the version patch for this in 2.62 was wrong, so
+     * try to correct it, if rate is 0.0 that's likely not intentional */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluidsim) {
+          FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+          if (fmd->fss->animRate == 0.0f) {
+            fmd->fss->animRate = 1.0f;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 262, 1)) {
+    /* update use flags for node sockets (was only temporary before) */
+    LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+      if (sce->nodetree) {
+        do_versions_nodetree_multi_file_output_format_2_62_1(sce, sce->nodetree);
+      }
+    }
+
+    /* XXX can't associate with scene for group nodes, image format will stay uninitialized */
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      do_versions_nodetree_multi_file_output_format_2_62_1(nullptr, ntree);
+    }
+  }
+
+  /* only swap for pre-release bmesh merge which had MLoopCol red/blue swap */
+  if (bmain->versionfile == 262 && bmain->subversionfile == 1) {
+    {
+      LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
+        do_versions_mesh_mloopcol_swap_2_62_1(me);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 262, 2)) {
+    /* Set new idname of keyingsets from their now "label-only" name. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      LISTBASE_FOREACH (KeyingSet *, ks, &scene->keyingsets) {
+        if (!ks->idname[0]) {
+          STRNCPY(ks->idname, ks->name);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 262, 3)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Lattice) {
+          LatticeModifierData *lmd = (LatticeModifierData *)md;
+          lmd->strength = 1.0f;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 262, 4)) {
+    /* Read Viscosity presets from older files */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluidsim) {
+          FluidsimModifierData *fmd = (FluidsimModifierData *)md;
+          if (fmd->fss->viscosityMode == 3) {
+            fmd->fss->viscosityValue = 5.0;
+            fmd->fss->viscosityExponent = 5;
+          }
+          else if (fmd->fss->viscosityMode == 4) {
+            fmd->fss->viscosityValue = 2.0;
+            fmd->fss->viscosityExponent = 3;
+          }
+        }
+      }
+    }
+  }
+
+  if (bmain->versionfile < 263) {
+    /* Default for old files is to save particle rotations to pointcache */
+    LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+      part->flag |= PART_ROTATIONS;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 1)) {
     /* file output node paths are now stored in the file info struct instead socket name */
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
       if (sce->nodetree) {
-        do_versions_nodetree_file_output_layers_2_64_5(sce->nodetree);
-        do_versions_nodetree_image_layer_2_64_5(sce->nodetree);
+        do_versions_nodetree_multi_file_output_path_2_63_1(sce->nodetree);
       }
     }
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      do_versions_nodetree_file_output_layers_2_64_5(ntree);
-      do_versions_nodetree_image_layer_2_64_5(ntree);
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 6)) {
-  /* update use flags for node sockets (was only temporary before) */
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (sce->nodetree) {
-      do_versions_nodetree_frame_2_64_6(sce->nodetree);
+      do_versions_nodetree_multi_file_output_path_2_63_1(ntree);
     }
   }
 
-  LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
-    if (mat->nodetree) {
-      do_versions_nodetree_frame_2_64_6(mat->nodetree);
-    }
-  }
-
-  LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
-    if (tex->nodetree) {
-      do_versions_nodetree_frame_2_64_6(tex->nodetree);
-    }
-  }
-
-  LISTBASE_FOREACH (Light *, la, &bmain->lights) {
-    if (la->nodetree) {
-      do_versions_nodetree_frame_2_64_6(la->nodetree);
-    }
-  }
-
-  LISTBASE_FOREACH (World *, world, &bmain->worlds) {
-    if (world->nodetree) {
-      do_versions_nodetree_frame_2_64_6(world->nodetree);
-    }
-  }
-
-  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-    do_versions_nodetree_frame_2_64_6(ntree);
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 7)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Fluid) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
-        if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-          int maxres = max_iii(fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]);
-          fmd->domain->scale = fmd->domain->dx * maxres;
-          fmd->domain->dx = 1.0f / fmd->domain->scale;
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 9)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_SHADER) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-          NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
-
-          tex->iuser.frames = 1;
-          tex->iuser.sfra = 1;
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 10)) {
-  {
-    /* composite redesign */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 3)) {
+    /* For weight paint, each brush now gets its own weight;
+     * unified paint settings also have weight. Update unified
+     * paint settings and brushes with a default weight value. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->nodetree) {
-        if (scene->nodetree->chunksize == 0) {
-          scene->nodetree->chunksize = 256;
+      ToolSettings *ts = scene->toolsettings;
+      if (ts) {
+        ts->unified_paint_settings.weight = ts->vgroup_weight;
+        ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT;
+      }
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->weight = 0.5;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 2)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            SpaceClip *sclip = (SpaceClip *)sl;
+            bool hide = false;
+
+            LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
+                if (region->alignment != RGN_ALIGN_NONE) {
+                  region->flag |= RGN_FLAG_HIDDEN;
+                  region->v2d.flag &= ~V2D_IS_INIT;
+                  region->alignment = RGN_ALIGN_NONE;
+
+                  hide = true;
+                }
+              }
+            }
+
+            if (hide) {
+              sclip->view = SC_VIEW_CLIP;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 4)) {
+    LISTBASE_FOREACH (Camera *, cam, &bmain->cameras) {
+      if (cam->flag & CAM_PANORAMA) {
+        cam->type = CAM_PANO;
+        cam->flag &= ~CAM_PANORAMA;
+      }
+    }
+
+    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
+      if (cu->bevfac2 == 0.0f) {
+        cu->bevfac1 = 0.0f;
+        cu->bevfac2 = 1.0f;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 5)) {
+    {
+      /* file output node paths are now stored in the file info struct instead socket name */
+      LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+        if (sce->nodetree) {
+          do_versions_nodetree_file_output_layers_2_64_5(sce->nodetree);
+          do_versions_nodetree_image_layer_2_64_5(sce->nodetree);
+        }
+      }
+      LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+        do_versions_nodetree_file_output_layers_2_64_5(ntree);
+        do_versions_nodetree_image_layer_2_64_5(ntree);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 6)) {
+    /* update use flags for node sockets (was only temporary before) */
+    LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+      if (sce->nodetree) {
+        do_versions_nodetree_frame_2_64_6(sce->nodetree);
+      }
+    }
+
+    LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
+      if (mat->nodetree) {
+        do_versions_nodetree_frame_2_64_6(mat->nodetree);
+      }
+    }
+
+    LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
+      if (tex->nodetree) {
+        do_versions_nodetree_frame_2_64_6(tex->nodetree);
+      }
+    }
+
+    LISTBASE_FOREACH (Light *, la, &bmain->lights) {
+      if (la->nodetree) {
+        do_versions_nodetree_frame_2_64_6(la->nodetree);
+      }
+    }
+
+    LISTBASE_FOREACH (World *, world, &bmain->worlds) {
+      if (world->nodetree) {
+        do_versions_nodetree_frame_2_64_6(world->nodetree);
+      }
+    }
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      do_versions_nodetree_frame_2_64_6(ntree);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 7)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+            int maxres = max_iii(fmd->domain->res[0], fmd->domain->res[1], fmd->domain->res[2]);
+            fmd->domain->scale = fmd->domain->dx * maxres;
+            fmd->domain->dx = 1.0f / fmd->domain->scale;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 9)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+            NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
+
+            tex->iuser.frames = 1;
+            tex->iuser.sfra = 1;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 10)) {
+    {
+      /* composite redesign */
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        if (scene->nodetree) {
+          if (scene->nodetree->chunksize == 0) {
+            scene->nodetree->chunksize = 256;
+          }
+        }
+      }
+
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        if (ntree->type == NTREE_COMPOSIT) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == CMP_NODE_DEFOCUS) {
+              NodeDefocus *data = static_cast<NodeDefocus *>(node->storage);
+              if (data->maxblur == 0.0f) {
+                data->maxblur = 16.0f;
+              }
+            }
+          }
+        }
+      }
+      FOREACH_NODETREE_END;
+    }
+
+    {
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_CLIP) {
+              SpaceClip *sclip = (SpaceClip *)sl;
+
+              if (sclip->around == 0) {
+                sclip->around = V3D_AROUND_CENTER_MEDIAN;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        clip->start_frame = 1;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 11)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(
+          clip->tracking.tracks_legacy.first);
+      while (track) {
+        do_versions_affine_tracker_track(track);
+
+        track = static_cast<MovieTrackingTrack *>(track->next);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 13)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_DILATEERODE) {
+            if (node->storage == nullptr) {
+              NodeDilateErode *data = MEM_cnew<NodeDilateErode>(__func__);
+              data->falloff = PROP_SMOOTH;
+              node->storage = data;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 14)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_KEYING) {
+            NodeKeyingData *data = static_cast<NodeKeyingData *>(node->storage);
+
+            if (data->despill_balance == 0.0f) {
+              data->despill_balance = 0.5f;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    /* Keep compatibility for dupli-object particle size. */
+    LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+      if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
+        if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
+          part->draw |= PART_DRAW_NO_SCALE_OB;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 17)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_MASK) {
+            if (node->storage == nullptr) {
+              NodeMask *data = MEM_cnew<NodeMask>(__func__);
+              /* move settings into own struct */
+              data->size_x = int(node->custom3);
+              data->size_y = int(node->custom4);
+              node->custom3 = 0.5f; /* default shutter */
+              node->storage = data;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 18)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_colorbalance_update_cb, nullptr);
+      }
+    }
+  }
+
+  /* color management pipeline changes compatibility code */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 19)) {
+    bool colormanagement_disabled = false;
+
+    /* make scenes which are not using color management have got None as display device,
+     * so they wouldn't perform linear-to-sRGB conversion on display
+     */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
+        ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+
+        if (display_settings->display_device[0] == 0) {
+          BKE_scene_disable_color_management(scene);
+        }
+
+        colormanagement_disabled = true;
+      }
+    }
+
+    LISTBASE_FOREACH (Image *, ima, &bmain->images) {
+      if (ima->source == IMA_SRC_VIEWER) {
+        ima->flag |= IMA_VIEW_AS_RENDER;
+      }
+      else if (colormanagement_disabled) {
+        /* if color-management not used, set image's color space to raw, so no sRGB->linear
+         * conversion would happen on display and render there's no clear way to check whether
+         * color management is enabled or not in render engine so set all images to raw if there's
+         * at least one scene with color management disabled this would still behave incorrect in
+         * cases when color management was used for only some of scenes, but such a setup is
+         * crazy anyway and think it's fair enough to break compatibility in that cases.
+         */
+
+        STRNCPY(ima->colorspace_settings.name, "Raw");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 20)) {
+    LISTBASE_FOREACH (Key *, key, &bmain->shapekeys) {
+      blo_do_versions_key_uidgen(key);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 21)) {
+    {
+      LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
+        CustomData_update_typemap(&me->vert_data);
+        CustomData_free_layers(&me->vert_data, CD_MSTICKY, me->totvert);
+      }
+    }
+  }
+
+  /* correction for files saved in blender version when BKE_pose_copy_data
+   * didn't copy animation visualization, which lead to deadlocks on motion
+   * path calculation for proxied armatures, see #32742.
+   */
+  if (bmain->versionfile < 264) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->pose) {
+        if (ob->pose->avs.path_step == 0) {
+          animviz_settings_init(&ob->pose->avs);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 1)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == SH_NODE_TEX_COORD) {
+            node->flag |= NODE_OPTIONS;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 2)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      MovieTracking *tracking = &clip->tracking;
+      LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+        if (tracking_object->keyframe1 == 0 && tracking_object->keyframe2 == 0) {
+          tracking_object->keyframe1 = tracking->settings.keyframe1_legacy;
+          tracking_object->keyframe2 = tracking->settings.keyframe2_legacy;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 3)) {
+    /* smoke branch */
+    {
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_Fluid) {
+            FluidModifierData *fmd = (FluidModifierData *)md;
+            if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+              /* keep branch saves if possible */
+              if (!fmd->domain->flame_max_temp) {
+                fmd->domain->burning_rate = 0.75f;
+                fmd->domain->flame_smoke = 1.0f;
+                fmd->domain->flame_vorticity = 0.5f;
+                fmd->domain->flame_ignition = 1.25f;
+                fmd->domain->flame_max_temp = 1.75f;
+                fmd->domain->adapt_threshold = 0.02f;
+                fmd->domain->adapt_margin = 4;
+                fmd->domain->flame_smoke_color[0] = 0.7f;
+                fmd->domain->flame_smoke_color[1] = 0.7f;
+                fmd->domain->flame_smoke_color[2] = 0.7f;
+              }
+            }
+            else if ((fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
+              if (!fmd->flow->texture_size) {
+                fmd->flow->fuel_amount = 1.0;
+                fmd->flow->surface_distance = 1.5;
+                fmd->flow->color[0] = 0.7f;
+                fmd->flow->color[1] = 0.7f;
+                fmd->flow->color[2] = 0.7f;
+                fmd->flow->texture_size = 1.0f;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* render border for viewport */
+    {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype == SPACE_VIEW3D) {
+              View3D *v3d = (View3D *)sl;
+              if (v3d->render_border.xmin == 0.0f && v3d->render_border.ymin == 0.0f &&
+                  v3d->render_border.xmax == 0.0f && v3d->render_border.ymax == 0.0f)
+              {
+                v3d->render_border.xmax = 1.0f;
+                v3d->render_border.ymax = 1.0f;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 5)) {
+    /* set a unwrapping margin and ABF by default */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings->uvcalc_margin == 0.0f) {
+        scene->toolsettings->uvcalc_margin = 0.001f;
+        scene->toolsettings->unwrapper = 0;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 7)) {
+    /* convert tiles size from resolution and number of tiles */
+    {
+      CLANG_FORMAT_NOP_WORKAROUND;
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        if (scene->r.tilex == 0 || scene->r.tiley == 1) {
+          scene->r.tilex = scene->r.tiley = 64;
+        }
+      }
+    }
+
+    /* collision masks */
+    {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->col_group == 0) {
+          ob->col_group = 0x01;
+          ob->col_mask = 0xff;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 264, 7)) {
+    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+      LISTBASE_FOREACH (MovieTrackingTrack *, track, &clip->tracking.tracks_legacy) {
+        do_versions_affine_tracker_track(track);
+      }
+
+      LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &clip->tracking.objects) {
+        LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+          do_versions_affine_tracker_track(track);
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 3)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_VIEW3D: {
+              View3D *v3d = (View3D *)sl;
+              v3d->flag2 |= V3D_SHOW_ANNOTATION;
+              break;
+            }
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
+              break;
+            }
+            case SPACE_IMAGE: {
+              SpaceImage *sima = (SpaceImage *)sl;
+              sima->flag |= SI_SHOW_GPENCIL;
+              break;
+            }
+            case SPACE_NODE: {
+              SpaceNode *snode = (SpaceNode *)sl;
+              snode->flag |= SNODE_SHOW_GPENCIL;
+              break;
+            }
+            case SPACE_CLIP: {
+              SpaceClip *sclip = (SpaceClip *)sl;
+              sclip->flag |= SC_SHOW_ANNOTATION;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_alpha_mode_cb, nullptr);
+      }
+
+      if (scene->r.bake_samples == 0) {
+        scene->r.bake_samples = 256;
+      }
+    }
+
+    LISTBASE_FOREACH (Image *, image, &bmain->images) {
+      if (image->flag & IMA_DO_PREMUL) {
+        image->alpha_mode = IMA_ALPHA_STRAIGHT;
+      }
+      else {
+        BKE_image_alpha_mode_from_extension(image);
+      }
+    }
+
+    LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
+      if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
+        Image *image = static_cast<Image *>(
+            blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima));
+
+        if (image && (image->flag & IMA_DO_PREMUL) == 0) {
+          enum { IMA_IGNORE_ALPHA = (1 << 12) };
+          image->flag |= IMA_IGNORE_ALPHA;
         }
       }
     }
@@ -1253,10 +2029,14 @@ if (!MAIN_VERSION_ATLEAST(bmain, 263, 10)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_DEFOCUS) {
-            NodeDefocus *data = static_cast<NodeDefocus *>(node->storage);
-            if (data->maxblur == 0.0f) {
-              data->maxblur = 16.0f;
+          if (node->type == CMP_NODE_IMAGE) {
+            Image *image = static_cast<Image *>(
+                blo_do_versions_newlibadr(fd, &ntree->id, ID_IS_LINKED(ntree), node->id));
+
+            if (image) {
+              if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {
+                node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
+              }
             }
           }
         }
@@ -1264,638 +2044,263 @@ if (!MAIN_VERSION_ATLEAST(bmain, 263, 10)) {
     }
     FOREACH_NODETREE_END;
   }
-
-  {LISTBASE_FOREACH (bScreen *, screen, &bmain->screens){LISTBASE_FOREACH (
-      ScrArea *, area, &screen->areabase){LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata){
-      if (sl->spacetype == SPACE_CLIP){SpaceClip *sclip = (SpaceClip *)sl;
-
-  if (sclip->around == 0) {
-    sclip->around = V3D_AROUND_CENTER_MEDIAN;
-  }
-}
-}
-}
-}
-}
-
-{
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    clip->start_frame = 1;
-  }
-}
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 11)) {
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(
-        clip->tracking.tracks_legacy.first);
-    while (track) {
-      do_versions_affine_tracker_track(track);
-
-      track = static_cast<MovieTrackingTrack *>(track->next);
+  else if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 1)) {
+    /* texture use alpha was removed for 2.66 but added back again for 2.66a,
+     * for compatibility all textures assumed it to be enabled */
+    LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
+      if (tex->type == TEX_IMAGE) {
+        tex->imaflag |= TEX_USEALPHA;
+      }
     }
   }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 13)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_DILATEERODE) {
-          if (node->storage == nullptr) {
-            NodeDilateErode *data = MEM_cnew<NodeDilateErode>(__func__);
-            data->falloff = PROP_SMOOTH;
-            node->storage = data;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 7)) {
+    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
+      if (cu->flag & (CU_FRONT | CU_BACK)) {
+        if (cu->extrude != 0.0f || cu->bevel_radius != 0.0f) {
+          LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+            int a;
+
+            if (nu->bezt) {
+              BezTriple *bezt = nu->bezt;
+              a = nu->pntsu;
+
+              while (a--) {
+                bezt->radius = 1.0f;
+                bezt++;
+              }
+            }
+            else if (nu->bp) {
+              BPoint *bp = nu->bp;
+              a = nu->pntsu * nu->pntsv;
+
+              while (a--) {
+                bp->radius = 1.0f;
+                bp++;
+              }
+            }
           }
         }
       }
     }
   }
-  FOREACH_NODETREE_END;
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 14)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_KEYING) {
-          NodeKeyingData *data = static_cast<NodeKeyingData *>(node->storage);
-
-          if (data->despill_balance == 0.0f) {
-            data->despill_balance = 0.5f;
-          }
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-
-  /* Keep compatibility for dupli-object particle size. */
-  LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
-    if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
-      if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
-        part->draw |= PART_DRAW_NO_SCALE_OB;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 17)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_MASK) {
-          if (node->storage == nullptr) {
-            NodeMask *data = MEM_cnew<NodeMask>(__func__);
-            /* move settings into own struct */
-            data->size_x = (int)node->custom3;
-            data->size_y = (int)node->custom4;
-            node->custom3 = 0.5f; /* default shutter */
-            node->storage = data;
-          }
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 18)) {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed) {
-      SEQ_for_each_callback(&scene->ed->seqbase, seq_colorbalance_update_cb, nullptr);
-    }
-  }
-}
-
-/* color management pipeline changes compatibility code */
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 19)) {
-  bool colormanagement_disabled = false;
-
-  /* make scenes which are not using color management have got None as display device,
-   * so they wouldn't perform linear-to-sRGB conversion on display
-   */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if ((scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) == 0) {
-      ColorManagedDisplaySettings *display_settings = &scene->display_settings;
-
-      if (display_settings->display_device[0] == 0) {
-        BKE_scene_disable_color_management(scene);
-      }
-
-      colormanagement_disabled = true;
-    }
-  }
-
-  LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-    if (ima->source == IMA_SRC_VIEWER) {
-      ima->flag |= IMA_VIEW_AS_RENDER;
-    }
-    else if (colormanagement_disabled) {
-      /* if color-management not used, set image's color space to raw, so no sRGB->linear
-       * conversion would happen on display and render there's no clear way to check whether
-       * color management is enabled or not in render engine so set all images to raw if there's
-       * at least one scene with color management disabled this would still behave incorrect in
-       * cases when color management was used for only some of scenes, but such a setup is
-       * crazy anyway and think it's fair enough to break compatibility in that cases.
-       */
-
-      STRNCPY(ima->colorspace_settings.name, "Raw");
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 20)) {
-  LISTBASE_FOREACH (Key *, key, &bmain->shapekeys) {
-    blo_do_versions_key_uidgen(key);
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 263, 21)) {
-  {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 9)) {
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      CustomData_update_typemap(&me->vdata);
-      CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
-    }
-  }
-}
-
-/* correction for files saved in blender version when BKE_pose_copy_data
- * didn't copy animation visualization, which lead to deadlocks on motion
- * path calculation for proxied armatures, see #32742.
- */
-if (bmain->versionfile < 264) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->pose) {
-      if (ob->pose->avs.path_step == 0) {
-        animviz_settings_init(&ob->pose->avs);
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 1)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_SHADER) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == SH_NODE_TEX_COORD) {
-          node->flag |= NODE_OPTIONS;
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 2)) {
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    MovieTracking *tracking = &clip->tracking;
-    LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-      if (tracking_object->keyframe1 == 0 && tracking_object->keyframe2 == 0) {
-        tracking_object->keyframe1 = tracking->settings.keyframe1_legacy;
-        tracking_object->keyframe2 = tracking->settings.keyframe2_legacy;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 3)) {
-  /* smoke branch */
-  {LISTBASE_FOREACH (Object *, ob, &bmain->objects){
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers){
-          if (md->type == eModifierType_Fluid){FluidModifierData *fmd = (FluidModifierData *)md;
-  if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-    /* keep branch saves if possible */
-    if (!fmd->domain->flame_max_temp) {
-      fmd->domain->burning_rate = 0.75f;
-      fmd->domain->flame_smoke = 1.0f;
-      fmd->domain->flame_vorticity = 0.5f;
-      fmd->domain->flame_ignition = 1.25f;
-      fmd->domain->flame_max_temp = 1.75f;
-      fmd->domain->adapt_threshold = 0.02f;
-      fmd->domain->adapt_margin = 4;
-      fmd->domain->flame_smoke_color[0] = 0.7f;
-      fmd->domain->flame_smoke_color[1] = 0.7f;
-      fmd->domain->flame_smoke_color[2] = 0.7f;
-    }
-  }
-  else if ((fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
-    if (!fmd->flow->texture_size) {
-      fmd->flow->fuel_amount = 1.0;
-      fmd->flow->surface_distance = 1.5;
-      fmd->flow->color[0] = 0.7f;
-      fmd->flow->color[1] = 0.7f;
-      fmd->flow->color[2] = 0.7f;
-      fmd->flow->texture_size = 1.0f;
-    }
-  }
-}
-}
-}
-}
-
-/* render border for viewport */
-{
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_VIEW3D) {
-          View3D *v3d = (View3D *)sl;
-          if (v3d->render_border.xmin == 0.0f && v3d->render_border.ymin == 0.0f &&
-              v3d->render_border.xmax == 0.0f && v3d->render_border.ymax == 0.0f)
-          {
-            v3d->render_border.xmax = 1.0f;
-            v3d->render_border.ymax = 1.0f;
-          }
-        }
-      }
-    }
-  }
-}
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 5)) {
-  /* set a unwrapping margin and ABF by default */
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->toolsettings->uvcalc_margin == 0.0f) {
-      scene->toolsettings->uvcalc_margin = 0.001f;
-      scene->toolsettings->unwrapper = 0;
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
-  /* convert tiles size from resolution and number of tiles */
-  {LISTBASE_FOREACH (Scene *, scene, &bmain->scenes){
-      if (scene->r.tilex == 0 || scene->r.tiley == 1){scene->r.tilex = scene->r.tiley = 64;
-}
-}
-}
-
-/* collision masks */
-{
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ob->col_group == 0) {
-      ob->col_group = 0x01;
-      ob->col_mask = 0xff;
-    }
-  }
-}
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 264, 7)) {
-  LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-    LISTBASE_FOREACH (MovieTrackingTrack *, track, &clip->tracking.tracks_legacy) {
-      do_versions_affine_tracker_track(track);
-    }
-
-    LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &clip->tracking.objects) {
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-        do_versions_affine_tracker_track(track);
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 3)) {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        switch (sl->spacetype) {
-          case SPACE_VIEW3D: {
-            View3D *v3d = (View3D *)sl;
-            v3d->flag2 |= V3D_SHOW_ANNOTATION;
-            break;
-          }
-          case SPACE_SEQ: {
-            SpaceSeq *sseq = (SpaceSeq *)sl;
-            sseq->flag |= SEQ_PREVIEW_SHOW_GPENCIL;
-            break;
-          }
-          case SPACE_IMAGE: {
-            SpaceImage *sima = (SpaceImage *)sl;
-            sima->flag |= SI_SHOW_GPENCIL;
-            break;
-          }
-          case SPACE_NODE: {
-            SpaceNode *snode = (SpaceNode *)sl;
-            snode->flag |= SNODE_SHOW_GPENCIL;
-            break;
-          }
-          case SPACE_CLIP: {
-            SpaceClip *sclip = (SpaceClip *)sl;
-            sclip->flag |= SC_SHOW_ANNOTATION;
-            break;
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 5)) {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    if (scene->ed) {
-      SEQ_for_each_callback(&scene->ed->seqbase, seq_set_alpha_mode_cb, nullptr);
-    }
-
-    if (scene->r.bake_samples == 0) {
-      scene->r.bake_samples = 256;
+      BKE_mesh_do_versions_cd_flag_init(me);
     }
   }
 
-  LISTBASE_FOREACH (Image *, image, &bmain->images) {
-    if (image->flag & IMA_DO_PREMUL) {
-      image->alpha_mode = IMA_ALPHA_STRAIGHT;
-    }
-    else {
-      BKE_image_alpha_mode_from_extension(image);
-    }
-  }
-
-  LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
-    if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
-      Image *image = static_cast<Image *>(
-          blo_do_versions_newlibadr(fd, &tex->id, ID_IS_LINKED(tex), tex->ima));
-
-      if (image && (image->flag & IMA_DO_PREMUL) == 0) {
-        enum { IMA_IGNORE_ALPHA = (1 << 12) };
-        image->flag |= IMA_IGNORE_ALPHA;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 10)) {
+    LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
+      if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
+        br->mtex.brush_map_mode = MTEX_MAP_MODE_TILED;
       }
     }
   }
 
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_IMAGE) {
-          Image *image = static_cast<Image *>(
-              blo_do_versions_newlibadr(fd, &ntree->id, ID_IS_LINKED(ntree), node->id));
-
-          if (image) {
-            if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {
-              node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
-            }
-          }
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-else if (!MAIN_VERSION_ATLEAST(bmain, 266, 1)) {
-  /* texture use alpha was removed for 2.66 but added back again for 2.66a,
-   * for compatibility all textures assumed it to be enabled */
-  LISTBASE_FOREACH (Tex *, tex, &bmain->textures) {
-    if (tex->type == TEX_IMAGE) {
-      tex->imaflag |= TEX_USEALPHA;
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 7)) {
-  LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-    if (cu->flag & (CU_FRONT | CU_BACK)) {
-      if (cu->extrude != 0.0f || cu->bevel_radius != 0.0f) {
-        LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-          int a;
-
-          if (nu->bezt) {
-            BezTriple *bezt = nu->bezt;
-            a = nu->pntsu;
-
-            while (a--) {
-              bezt->radius = 1.0f;
-              bezt++;
-            }
-          }
-          else if (nu->bp) {
-            BPoint *bp = nu->bp;
-            a = nu->pntsu * nu->pntsv;
-
-            while (a--) {
-              bp->radius = 1.0f;
-              bp++;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 9)) {
-  LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-    BKE_mesh_do_versions_cd_flag_init(me);
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 10)) {
-  LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-    if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
-      br->mtex.brush_map_mode = MTEX_MAP_MODE_TILED;
-    }
-  }
-}
-
-/* add storage for compositor translate nodes when not existing */
-if (!MAIN_VERSION_ATLEAST(bmain, 265, 11)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_TRANSLATE && node->storage == nullptr) {
-          node->storage = MEM_cnew<NodeTranslateData>("node translate data");
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 266, 2)) {
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    do_versions_nodetree_customnodes(ntree, ((ID *)ntree == id));
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 266, 2)) {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_NODE) {
-          SpaceNode *snode = (SpaceNode *)sl;
-
-          /* reset pointers to force tree path update from context */
-          snode->nodetree = nullptr;
-          snode->edittree = nullptr;
-          snode->id = nullptr;
-          snode->from = nullptr;
-
-          /* convert deprecated treetype setting to tree_idname */
-          switch (snode->treetype) {
-            case NTREE_COMPOSIT:
-              STRNCPY(snode->tree_idname, "CompositorNodeTree");
-              break;
-            case NTREE_SHADER:
-              STRNCPY(snode->tree_idname, "ShaderNodeTree");
-              break;
-            case NTREE_TEXTURE:
-              STRNCPY(snode->tree_idname, "TextureNodeTree");
-              break;
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 266, 3)) {
-  {
-    /* Fix for a very old issue:
-     * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
-     * to update existing node names only applied to `bmain->nodetree` (i.e. group nodes).
-     * Uniqueness is now required for proper preview mapping,
-     * so do this now to ensure old files don't break.
-     */
+  /* add storage for compositor translate nodes when not existing */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 11)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (id == &ntree->id) {
-        continue; /* already fixed for node groups */
-      }
-
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        nodeUniqueName(ntree, node);
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_TRANSLATE && node->storage == nullptr) {
+            node->storage = MEM_cnew<NodeTranslateData>("node translate data");
+          }
+        }
       }
     }
     FOREACH_NODETREE_END;
   }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 266, 4)) {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    BKE_texture_mtex_default(&brush->mask_mtex);
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 2)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      do_versions_nodetree_customnodes(ntree, ((ID *)ntree == id));
+    }
+    FOREACH_NODETREE_END;
+  }
 
-    if (brush->ob_mode & OB_MODE_TEXTURE_PAINT) {
-      brush->spacing /= 2;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 2)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)sl;
+
+            /* reset pointers to force tree path update from context */
+            snode->nodetree = nullptr;
+            snode->edittree = nullptr;
+            snode->id = nullptr;
+            snode->from = nullptr;
+
+            /* convert deprecated treetype setting to tree_idname */
+            switch (snode->treetype) {
+              case NTREE_COMPOSIT:
+                STRNCPY(snode->tree_idname, "CompositorNodeTree");
+                break;
+              case NTREE_SHADER:
+                STRNCPY(snode->tree_idname, "ShaderNodeTree");
+                break;
+              case NTREE_TEXTURE:
+                STRNCPY(snode->tree_idname, "TextureNodeTree");
+                break;
+            }
+          }
+        }
+      }
     }
   }
-}
 
-if (!MAIN_VERSION_ATLEAST(bmain, 266, 6)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 3)) {
+    {
+      /* Fix for a very old issue:
+       * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
+       * to update existing node names only applied to `bmain->nodetree` (i.e. group nodes).
+       * Uniqueness is now required for proper preview mapping,
+       * so do this now to ensure old files don't break.
+       */
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        if (id == &ntree->id) {
+          continue; /* already fixed for node groups */
+        }
+
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          nodeUniqueName(ntree, node);
+        }
+      }
+      FOREACH_NODETREE_END;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 4)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      BKE_texture_mtex_default(&brush->mask_mtex);
+
+      if (brush->ob_mode & OB_MODE_TEXTURE_PAINT) {
+        brush->spacing /= 2;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 6)) {
 #define BRUSH_TEXTURE_OVERLAY (1 << 21)
 
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    brush->overlay_flags = 0;
-    if (brush->flag & BRUSH_TEXTURE_OVERLAY) {
-      brush->overlay_flags |= (BRUSH_OVERLAY_PRIMARY | BRUSH_OVERLAY_CURSOR);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->overlay_flags = 0;
+      if (brush->flag & BRUSH_TEXTURE_OVERLAY) {
+        brush->overlay_flags |= (BRUSH_OVERLAY_PRIMARY | BRUSH_OVERLAY_CURSOR);
+      }
     }
-  }
 #undef BRUSH_TEXTURE_OVERLAY
-}
-
-if (bmain->versionfile < 267) {
-  // if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    if (brush->stencil_dimension[0] == 0) {
-      brush->stencil_dimension[0] = 256;
-      brush->stencil_dimension[1] = 256;
-      brush->stencil_pos[0] = 256;
-      brush->stencil_pos[1] = 256;
-    }
-    if (brush->mask_stencil_dimension[0] == 0) {
-      brush->mask_stencil_dimension[0] = 256;
-      brush->mask_stencil_dimension[1] = 256;
-      brush->mask_stencil_pos[0] = 256;
-      brush->mask_stencil_pos[1] = 256;
-    }
   }
 
-  /**
-   * TIP: to initialize new variables added, use the new function:
-   * `DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")`, example:
-   *
-   * \code{.cc}
-   * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit")) {
-   *     user->image_gpubuffer_limit = 10;
-   * }
-   * \endcode
-   */
-}
-
-/* default values in Freestyle settings */
-if (bmain->versionfile < 267) {
-  LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (sce->r.line_thickness_mode == 0) {
-      sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
-      sce->r.unit_line_thickness = 1.0f;
-    }
-    LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
-      if (srl->freestyleConfig.mode == 0) {
-        srl->freestyleConfig.mode = FREESTYLE_CONTROL_EDITOR_MODE;
+  if (bmain->versionfile < 267) {
+    // if (!DNA_struct_elem_find(fd->filesdna, "Brush", "int", "stencil_pos")) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->stencil_dimension[0] == 0) {
+        brush->stencil_dimension[0] = 256;
+        brush->stencil_dimension[1] = 256;
+        brush->stencil_pos[0] = 256;
+        brush->stencil_pos[1] = 256;
       }
-      if (ELEM(srl->freestyleConfig.raycasting_algorithm,
-               FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE,
-               FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL))
+      if (brush->mask_stencil_dimension[0] == 0) {
+        brush->mask_stencil_dimension[0] = 256;
+        brush->mask_stencil_dimension[1] = 256;
+        brush->mask_stencil_pos[0] = 256;
+        brush->mask_stencil_pos[1] = 256;
+      }
+    }
+
+    /**
+     * TIP: to initialize new variables added, use the new function:
+     * `DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")`, example:
+     *
+     * \code{.cc}
+     * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit")) {
+     *     user->image_gpubuffer_limit = 10;
+     * }
+     * \endcode
+     */
+  }
+
+  /* default values in Freestyle settings */
+  if (bmain->versionfile < 267) {
+    LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+      if (sce->r.line_thickness_mode == 0) {
+        sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
+        sce->r.unit_line_thickness = 1.0f;
+      }
+      LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {
+        if (srl->freestyleConfig.mode == 0) {
+          srl->freestyleConfig.mode = FREESTYLE_CONTROL_EDITOR_MODE;
+        }
+        if (ELEM(srl->freestyleConfig.raycasting_algorithm,
+                 FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE,
+                 FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL))
+        {
+          srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
+          srl->freestyleConfig.flags |= FREESTYLE_CULLING;
+        }
+      }
+
+      /* not freestyle */
       {
-        srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
-        srl->freestyleConfig.flags |= FREESTYLE_CULLING;
+        MeshStatVis *statvis = &sce->toolsettings->statvis;
+        if (statvis->thickness_samples == 0) {
+          statvis->overhang_axis = OB_NEGZ;
+          statvis->overhang_min = 0;
+          statvis->overhang_max = DEG2RADF(45.0f);
+
+          statvis->thickness_max = 0.1f;
+          statvis->thickness_samples = 1;
+
+          statvis->distort_min = DEG2RADF(5.0f);
+          statvis->distort_max = DEG2RADF(45.0f);
+
+          statvis->sharp_min = DEG2RADF(90.0f);
+          statvis->sharp_max = DEG2RADF(180.0f);
+        }
       }
     }
-
-    /* not freestyle */
-    {
-      MeshStatVis *statvis = &sce->toolsettings->statvis;
-      if (statvis->thickness_samples == 0) {
-        statvis->overhang_axis = OB_NEGZ;
-        statvis->overhang_min = 0;
-        statvis->overhang_max = DEG2RADF(45.0f);
-
-        statvis->thickness_max = 0.1f;
-        statvis->thickness_samples = 1;
-
-        statvis->distort_min = DEG2RADF(5.0f);
-        statvis->distort_max = DEG2RADF(45.0f);
-
-        statvis->sharp_min = DEG2RADF(90.0f);
-        statvis->sharp_max = DEG2RADF(180.0f);
-      }
-    }
-  }
-  LISTBASE_FOREACH (FreestyleLineStyle *, linestyle, &bmain->linestyles) {
+    LISTBASE_FOREACH (FreestyleLineStyle *, linestyle, &bmain->linestyles) {
 #if 1
-    /* disable the Misc panel for now */
-    if (linestyle->panel == LS_PANEL_MISC) {
-      linestyle->panel = LS_PANEL_STROKES;
-    }
+      /* disable the Misc panel for now */
+      if (linestyle->panel == LS_PANEL_MISC) {
+        linestyle->panel = LS_PANEL_STROKES;
+      }
 #endif
-    if (linestyle->thickness_position == 0) {
-      linestyle->thickness_position = LS_THICKNESS_CENTER;
-      linestyle->thickness_ratio = 0.5f;
-    }
-    if (linestyle->chaining == 0) {
-      linestyle->chaining = LS_CHAINING_PLAIN;
-    }
-    if (linestyle->rounds == 0) {
-      linestyle->rounds = 3;
+      if (linestyle->thickness_position == 0) {
+        linestyle->thickness_position = LS_THICKNESS_CENTER;
+        linestyle->thickness_ratio = 0.5f;
+      }
+      if (linestyle->chaining == 0) {
+        linestyle->chaining = LS_CHAINING_PLAIN;
+      }
+      if (linestyle->rounds == 0) {
+        linestyle->rounds = 3;
+      }
     }
   }
-}
 
-if (bmain->versionfile < 267) {
-  /* Initialize the active_viewer_key for compositing */
-  bNodeInstanceKey active_viewer_key = {0};
-  /* simply pick the first node space and use that for the active viewer key */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_NODE) {
-          SpaceNode *snode = (SpaceNode *)sl;
-          bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
-          if (!path) {
-            continue;
+  if (bmain->versionfile < 267) {
+    /* Initialize the active_viewer_key for compositing */
+    bNodeInstanceKey active_viewer_key = {0};
+    /* simply pick the first node space and use that for the active viewer key */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)sl;
+            bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.last);
+            if (!path) {
+              continue;
+            }
+
+            active_viewer_key = path->parent_key;
+            break;
           }
-
-          active_viewer_key = path->parent_key;
+        }
+        if (active_viewer_key.value != 0) {
           break;
         }
       }
@@ -1903,296 +2308,148 @@ if (bmain->versionfile < 267) {
         break;
       }
     }
-    if (active_viewer_key.value != 0) {
-      break;
-    }
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    /* NOTE: `scene->nodetree` is a local ID block, has been direct_link'ed. */
-    if (scene->nodetree) {
-      scene->nodetree->active_viewer_key = active_viewer_key;
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 267, 1)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Fluid) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
-        if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-          if (fmd->domain->flags & FLUID_DOMAIN_USE_HIGH_SMOOTH) {
-            fmd->domain->highres_sampling = SM_HRES_LINEAR;
-          }
-          else {
-            fmd->domain->highres_sampling = SM_HRES_NEAREST;
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 268, 1)) {
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    brush->spacing = MAX2(1, brush->spacing);
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 268, 2)) {
-#define BRUSH_FIXED (1 << 6)
-  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-    brush->flag &= ~BRUSH_FIXED;
-
-    if (brush->cursor_overlay_alpha < 2) {
-      brush->cursor_overlay_alpha = 33;
-    }
-    if (brush->texture_overlay_alpha < 2) {
-      brush->texture_overlay_alpha = 33;
-    }
-    if (brush->mask_overlay_alpha < 2) {
-      brush->mask_overlay_alpha = 33;
-    }
-  }
-#undef BRUSH_FIXED
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 268, 4)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-      if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
-        bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(con->data);
-        if (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) {
-          data->projAxis = OB_POSX;
-        }
-        else if (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) {
-          data->projAxis = OB_POSY;
-        }
-        else {
-          data->projAxis = OB_POSZ;
-        }
-        data->projAxisSpace = CONSTRAINT_SPACE_LOCAL;
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Fluid) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
-        if ((fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
-          if (!fmd->flow->particle_size) {
-            fmd->flow->particle_size = 1.0f;
-          }
-        }
-      }
-    }
-  }
-
-  /*
-   * FIX some files have a zoom level of 0, and was checked during the drawing of the node space
-   *
-   * We moved this check to the do versions to be sure the value makes any sense.
-   */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_NODE) {
-          SpaceNode *snode = (SpaceNode *)sl;
-          if (snode->zoom < 0.02f) {
-            snode->zoom = 1.0;
-          }
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 268, 5)) {
-  /* add missing (+) expander in node editor */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      if (area->spacetype == SPACE_NODE) {
-        ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
-
-        if (region) {
-          continue;
-        }
-
-        /* add subdiv level; after header */
-        region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
-
-        /* is error! */
-        if (region == nullptr) {
-          continue;
-        }
-
-        ARegion *arnew = MEM_cnew<ARegion>("node tools");
-
-        BLI_insertlinkafter(&area->regionbase, region, arnew);
-        arnew->regiontype = RGN_TYPE_TOOLS;
-        arnew->alignment = RGN_ALIGN_LEFT;
-
-        arnew->flag = RGN_FLAG_HIDDEN;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 1)) {
-  /* Removal of Cycles SSS Compatible falloff */
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_SHADER) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
-          if (node->custom1 == SHD_SUBSURFACE_COMPATIBLE) {
-            node->custom1 = SHD_SUBSURFACE_CUBIC;
-          }
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 2)) {
-  /* Initialize CDL settings for Color Balance nodes */
-  FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (ntree->type == NTREE_COMPOSIT) {
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == CMP_NODE_COLORBALANCE) {
-          NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
-          if (node->custom1 == 0) {
-            /* LGG mode stays the same, just init CDL settings */
-            ntreeCompositColorBalanceSyncFromLGG(ntree, node);
-          }
-          else if (node->custom1 == 1) {
-            /* CDL previously used same variables as LGG, copy them over
-             * and then sync LGG for comparable results in both modes.
-             */
-            copy_v3_v3(n->offset, n->lift);
-            copy_v3_v3(n->power, n->gamma);
-            copy_v3_v3(n->slope, n->gain);
-            ntreeCompositColorBalanceSyncFromCDL(ntree, node);
-          }
-        }
-      }
-    }
-  }
-  FOREACH_NODETREE_END;
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 3)) {
-  /* Update files using invalid (outdated) outlinevis Outliner values. */
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        if (sl->spacetype == SPACE_OUTLINER) {
-          SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
-
-          if (!ELEM(space_outliner->outlinevis, SO_SCENES, SO_LIBRARIES, SO_SEQUENCE, SO_DATA_API))
-          {
-            space_outliner->outlinevis = SO_SCENES;
-          }
-        }
-      }
-    }
-  }
-
-  if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
-    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-      const MovieTracking *tracking = &clip->tracking;
-      LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-        const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
-                                         &tracking->tracks_legacy :
-                                         &tracking_object->tracks;
-        LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-          track->weight = 1.0f;
-        }
-      }
-    }
-  }
-
-  if (!DNA_struct_elem_find(fd->filesdna, "TriangulateModifierData", "int", "quad_method")) {
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Triangulate) {
-          TriangulateModifierData *tmd = (TriangulateModifierData *)md;
-          if (tmd->flag & MOD_TRIANGULATE_BEAUTY) {
-            tmd->quad_method = MOD_TRIANGULATE_QUAD_BEAUTY;
-            tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
-          }
-          else {
-            tmd->quad_method = MOD_TRIANGULATE_QUAD_FIXED;
-            tmd->ngon_method = MOD_TRIANGULATE_NGON_EARCLIP;
-          }
-        }
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    /* this can now be turned off */
-    ToolSettings *ts = scene->toolsettings;
-    if (ts->sculpt) {
-      ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
-    }
-
-    /* 'Increment' mode disabled for nodes, use true grid snapping instead */
-    if (scene->toolsettings->snap_node_mode == 0) { /* SCE_SNAP_TO_INCREMENT */
-      scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_TO_GRID */
-    }
-
-#ifdef WITH_FFMPEG
-    /* Update for removed "sound-only" option in FFMPEG export settings. */
-    if (scene->r.ffcodecdata.type >= FFMPEG_INVALID) {
-      scene->r.ffcodecdata.type = FFMPEG_AVI;
-    }
-#endif
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 4)) {
-  /* Internal degrees to radians conversions... */
-  {
-    LISTBASE_FOREACH (Light *, la, &bmain->lights) {
-      la->spotsize = DEG2RADF(la->spotsize);
-    }
-
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_EdgeSplit) {
-          EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
-          emd->split_angle = DEG2RADF(emd->split_angle);
-        }
-        else if (md->type == eModifierType_Bevel) {
-          BevelModifierData *bmd = (BevelModifierData *)md;
-          bmd->bevel_angle = DEG2RADF(bmd->bevel_angle);
-        }
-      }
-    }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_wipe_angle_cb, nullptr);
+      /* NOTE: `scene->nodetree` is a local ID block, has been direct_link'ed. */
+      if (scene->nodetree) {
+        scene->nodetree->active_viewer_key = active_viewer_key;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 267, 1)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
+            if (fmd->domain->flags & FLUID_DOMAIN_USE_HIGH_SMOOTH) {
+              fmd->domain->highres_sampling = SM_HRES_LINEAR;
+            }
+            else {
+              fmd->domain->highres_sampling = SM_HRES_NEAREST;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 268, 1)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->spacing = MAX2(1, brush->spacing);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 268, 2)) {
+#define BRUSH_FIXED (1 << 6)
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->flag &= ~BRUSH_FIXED;
+
+      if (brush->cursor_overlay_alpha < 2) {
+        brush->cursor_overlay_alpha = 33;
+      }
+      if (brush->texture_overlay_alpha < 2) {
+        brush->texture_overlay_alpha = 33;
+      }
+      if (brush->mask_overlay_alpha < 2) {
+        brush->mask_overlay_alpha = 33;
+      }
+    }
+#undef BRUSH_FIXED
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 268, 4)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
+        if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
+          bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(con->data);
+          if (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) {
+            data->projAxis = OB_POSX;
+          }
+          else if (data->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) {
+            data->projAxis = OB_POSY;
+          }
+          else {
+            data->projAxis = OB_POSZ;
+          }
+          data->projAxisSpace = CONSTRAINT_SPACE_LOCAL;
+        }
       }
     }
 
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if ((fmd->type & MOD_FLUID_TYPE_FLOW) && fmd->flow) {
+            if (!fmd->flow->particle_size) {
+              fmd->flow->particle_size = 1.0f;
+            }
+          }
+        }
+      }
+    }
+
+    /*
+     * FIX some files have a zoom level of 0, and was checked during the drawing of the node space
+     *
+     * We moved this check to the do versions to be sure the value makes any sense.
+     */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_NODE) {
+            SpaceNode *snode = (SpaceNode *)sl;
+            if (snode->zoom < 0.02f) {
+              snode->zoom = 1.0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 268, 5)) {
+    /* add missing (+) expander in node editor */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        if (area->spacetype == SPACE_NODE) {
+          ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
+
+          if (region) {
+            continue;
+          }
+
+          /* add subdiv level; after header */
+          region = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
+
+          /* is error! */
+          if (region == nullptr) {
+            continue;
+          }
+
+          ARegion *arnew = MEM_cnew<ARegion>("node tools");
+
+          BLI_insertlinkafter(&area->regionbase, region, arnew);
+          arnew->regiontype = RGN_TYPE_TOOLS;
+          arnew->alignment = RGN_ALIGN_LEFT;
+
+          arnew->flag = RGN_FLAG_HIDDEN;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 1)) {
+    /* Removal of Cycles SSS Compatible falloff */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_COMPOSIT) {
+      if (ntree->type == NTREE_SHADER) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_BOKEHIMAGE) {
-            NodeBokehImage *n = static_cast<NodeBokehImage *>(node->storage);
-            n->angle = DEG2RADF(n->angle);
-          }
-          if (node->type == CMP_NODE_MASK_BOX) {
-            NodeBoxMask *n = static_cast<NodeBoxMask *>(node->storage);
-            n->rotation = DEG2RADF(n->rotation);
-          }
-          if (node->type == CMP_NODE_MASK_ELLIPSE) {
-            NodeEllipseMask *n = static_cast<NodeEllipseMask *>(node->storage);
-            n->rotation = DEG2RADF(n->rotation);
+          if (node->type == SH_NODE_SUBSURFACE_SCATTERING) {
+            if (node->custom1 == SHD_SUBSURFACE_COMPATIBLE) {
+              node->custom1 = SHD_SUBSURFACE_CUBIC;
+            }
           }
         }
       }
@@ -2200,94 +2457,239 @@ if (!MAIN_VERSION_ATLEAST(bmain, 269, 4)) {
     FOREACH_NODETREE_END;
   }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
-    LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
-      LISTBASE_FOREACH (
-          MovieTrackingPlaneTrack *, plane_track, &clip->tracking.plane_tracks_legacy) {
-        plane_track->image_opacity = 1.0f;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 7)) {
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    Sculpt *sd = scene->toolsettings->sculpt;
-
-    if (sd) {
-      enum {
-        SCULPT_SYMM_X = (1 << 0),
-        SCULPT_SYMM_Y = (1 << 1),
-        SCULPT_SYMM_Z = (1 << 2),
-        SCULPT_SYMMETRY_FEATHER = (1 << 6),
-      };
-      int symmetry_flags = sd->flags & 7;
-
-      if (symmetry_flags & SCULPT_SYMM_X) {
-        sd->paint.symmetry_flags |= PAINT_SYMM_X;
-      }
-      if (symmetry_flags & SCULPT_SYMM_Y) {
-        sd->paint.symmetry_flags |= PAINT_SYMM_Y;
-      }
-      if (symmetry_flags & SCULPT_SYMM_Z) {
-        sd->paint.symmetry_flags |= PAINT_SYMM_Z;
-      }
-      if (symmetry_flags & SCULPT_SYMMETRY_FEATHER) {
-        sd->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 8)) {
-  LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-    if (cu->str) {
-      cu->len_char32 = BLI_strlen_utf8(cu->str);
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 9)) {
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type == eModifierType_Build) {
-        BuildModifierData *bmd = (BuildModifierData *)md;
-        if (bmd->randomize) {
-          bmd->flag |= MOD_BUILD_FLAG_RANDOMIZE;
-        }
-      }
-    }
-  }
-}
-
-if (!MAIN_VERSION_ATLEAST(bmain, 269, 11)) {
-  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
-        if (space_link->spacetype == SPACE_IMAGE) {
-          ListBase *lb;
-
-          if (space_link == area->spacedata.first) {
-            lb = &area->regionbase;
-          }
-          else {
-            lb = &space_link->regionbase;
-          }
-
-          LISTBASE_FOREACH (ARegion *, region, lb) {
-            if (region->regiontype == RGN_TYPE_PREVIEW) {
-              region->regiontype = RGN_TYPE_TOOLS;
-              region->alignment = RGN_ALIGN_LEFT;
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 2)) {
+    /* Initialize CDL settings for Color Balance nodes */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_COLORBALANCE) {
+            NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
+            if (node->custom1 == 0) {
+              /* LGG mode stays the same, just init CDL settings */
+              ntreeCompositColorBalanceSyncFromLGG(ntree, node);
             }
-            else if (region->regiontype == RGN_TYPE_UI) {
-              region->alignment = RGN_ALIGN_RIGHT;
+            else if (node->custom1 == 1) {
+              /* CDL previously used same variables as LGG, copy them over
+               * and then sync LGG for comparable results in both modes.
+               */
+              copy_v3_v3(n->offset, n->lift);
+              copy_v3_v3(n->power, n->gamma);
+              copy_v3_v3(n->slope, n->gain);
+              ntreeCompositColorBalanceSyncFromCDL(ntree, node);
             }
           }
         }
       }
     }
+    FOREACH_NODETREE_END;
   }
-}
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 3)) {
+    /* Update files using invalid (outdated) outlinevis Outliner values. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
+
+            if (!ELEM(
+                    space_outliner->outlinevis, SO_SCENES, SO_LIBRARIES, SO_SEQUENCE, SO_DATA_API))
+            {
+              space_outliner->outlinevis = SO_SCENES;
+            }
+          }
+        }
+      }
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingTrack", "float", "weight")) {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        const MovieTracking *tracking = &clip->tracking;
+        LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+          const ListBase *tracksbase = (tracking_object->flag & TRACKING_OBJECT_CAMERA) ?
+                                           &tracking->tracks_legacy :
+                                           &tracking_object->tracks;
+          LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+            track->weight = 1.0f;
+          }
+        }
+      }
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "TriangulateModifierData", "int", "quad_method")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_Triangulate) {
+            TriangulateModifierData *tmd = (TriangulateModifierData *)md;
+            if (tmd->flag & MOD_TRIANGULATE_BEAUTY) {
+              tmd->quad_method = MOD_TRIANGULATE_QUAD_BEAUTY;
+              tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
+            }
+            else {
+              tmd->quad_method = MOD_TRIANGULATE_QUAD_FIXED;
+              tmd->ngon_method = MOD_TRIANGULATE_NGON_EARCLIP;
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      /* this can now be turned off */
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->sculpt) {
+        ts->sculpt->flags |= SCULPT_DYNTOPO_SUBDIVIDE;
+      }
+
+      /* 'Increment' mode disabled for nodes, use true grid snapping instead */
+      if (scene->toolsettings->snap_node_mode == 0) { /* SCE_SNAP_TO_INCREMENT */
+        scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_TO_GRID */
+      }
+
+#ifdef WITH_FFMPEG
+      /* Update for removed "sound-only" option in FFMPEG export settings. */
+      if (scene->r.ffcodecdata.type >= FFMPEG_INVALID) {
+        scene->r.ffcodecdata.type = FFMPEG_AVI;
+      }
+#endif
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 4)) {
+    /* Internal degrees to radians conversions... */
+    {
+      LISTBASE_FOREACH (Light *, la, &bmain->lights) {
+        la->spotsize = DEG2RADF(la->spotsize);
+      }
+
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_EdgeSplit) {
+            EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
+            emd->split_angle = DEG2RADF(emd->split_angle);
+          }
+          else if (md->type == eModifierType_Bevel) {
+            BevelModifierData *bmd = (BevelModifierData *)md;
+            bmd->bevel_angle = DEG2RADF(bmd->bevel_angle);
+          }
+        }
+      }
+
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        if (scene->ed) {
+          SEQ_for_each_callback(&scene->ed->seqbase, seq_set_wipe_angle_cb, nullptr);
+        }
+      }
+
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        if (ntree->type == NTREE_COMPOSIT) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type == CMP_NODE_BOKEHIMAGE) {
+              NodeBokehImage *n = static_cast<NodeBokehImage *>(node->storage);
+              n->angle = DEG2RADF(n->angle);
+            }
+            if (node->type == CMP_NODE_MASK_BOX) {
+              NodeBoxMask *n = static_cast<NodeBoxMask *>(node->storage);
+              n->rotation = DEG2RADF(n->rotation);
+            }
+            if (node->type == CMP_NODE_MASK_ELLIPSE) {
+              NodeEllipseMask *n = static_cast<NodeEllipseMask *>(node->storage);
+              n->rotation = DEG2RADF(n->rotation);
+            }
+          }
+        }
+      }
+      FOREACH_NODETREE_END;
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "MovieTrackingPlaneTrack", "float", "image_opacity")) {
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        LISTBASE_FOREACH (
+            MovieTrackingPlaneTrack *, plane_track, &clip->tracking.plane_tracks_legacy) {
+          plane_track->image_opacity = 1.0f;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 7)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Sculpt *sd = scene->toolsettings->sculpt;
+
+      if (sd) {
+        enum {
+          SCULPT_SYMM_X = (1 << 0),
+          SCULPT_SYMM_Y = (1 << 1),
+          SCULPT_SYMM_Z = (1 << 2),
+          SCULPT_SYMMETRY_FEATHER = (1 << 6),
+        };
+        int symmetry_flags = sd->flags & 7;
+
+        if (symmetry_flags & SCULPT_SYMM_X) {
+          sd->paint.symmetry_flags |= PAINT_SYMM_X;
+        }
+        if (symmetry_flags & SCULPT_SYMM_Y) {
+          sd->paint.symmetry_flags |= PAINT_SYMM_Y;
+        }
+        if (symmetry_flags & SCULPT_SYMM_Z) {
+          sd->paint.symmetry_flags |= PAINT_SYMM_Z;
+        }
+        if (symmetry_flags & SCULPT_SYMMETRY_FEATHER) {
+          sd->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 8)) {
+    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
+      if (cu->str) {
+        cu->len_char32 = BLI_strlen_utf8(cu->str);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 9)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Build) {
+          BuildModifierData *bmd = (BuildModifierData *)md;
+          if (bmd->randomize) {
+            bmd->flag |= MOD_BUILD_FLAG_RANDOMIZE;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 269, 11)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
+          if (space_link->spacetype == SPACE_IMAGE) {
+            ListBase *lb;
+
+            if (space_link == area->spacedata.first) {
+              lb = &area->regionbase;
+            }
+            else {
+              lb = &space_link->regionbase;
+            }
+
+            LISTBASE_FOREACH (ARegion *, region, lb) {
+              if (region->regiontype == RGN_TYPE_PREVIEW) {
+                region->regiontype = RGN_TYPE_TOOLS;
+                region->alignment = RGN_ALIGN_LEFT;
+              }
+              else if (region->regiontype == RGN_TYPE_UI) {
+                region->alignment = RGN_ALIGN_RIGHT;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 void do_versions_after_linking_260(Main *bmain)
@@ -2305,7 +2707,7 @@ void do_versions_after_linking_260(Main *bmain)
    * NOTE: this always runs, without it links with nullptr fromnode and tonode remain
    * which causes problems.
    */
-  if (!MAIN_VERSION_ATLEAST(bmain, 266, 3)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 3)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       bNode *input_node = nullptr, *output_node = nullptr;
       int num_inputs = 0, num_outputs = 0;
@@ -2314,7 +2716,7 @@ void do_versions_after_linking_260(Main *bmain)
        * New file versions already have input/output nodes with duplicate links,
        * in that case just remove the invalid links.
        */
-      const bool create_io_nodes = MAIN_VERSION_OLDER(bmain, 266, 2);
+      const bool create_io_nodes = MAIN_VERSION_FILE_OLDER(bmain, 266, 2);
 
       float input_locx = 1000000.0f, input_locy = 0.0f;
       float output_locx = -1000000.0f, output_locy = 0.0f;
@@ -2396,7 +2798,7 @@ void do_versions_after_linking_260(Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 280, 60)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 60)) {
     /* From this point we no longer write incomplete links for forward
      * compatibility with 2.66, we have to clean them up for all previous
      * versions. */

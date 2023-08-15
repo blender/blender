@@ -6,17 +6,18 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -95,7 +96,7 @@ static void ElementBoneSize(TransInfo *t,
   td->loc[1] = oldy;
 }
 
-static void applyBoneSize(TransInfo *t, const int[2] /*mval*/)
+static void applyBoneSize(TransInfo *t)
 {
   float mat[3][3];
   int i;
@@ -143,7 +144,7 @@ static void applyBoneSize(TransInfo *t, const int[2] /*mval*/)
     }
   }
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

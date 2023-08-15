@@ -11,8 +11,6 @@
 #include "COLLADASWColor.h"
 #include "COLLADASWLight.h"
 
-#include "BLI_math.h"
-
 #include "LightExporter.h"
 #include "collada_internal.h"
 

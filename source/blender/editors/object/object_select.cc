@@ -6,10 +6,10 @@
  * \ingroup edobj
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -24,8 +24,8 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_bits.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -42,7 +42,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -50,23 +50,25 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
+#include "ED_armature.hh"
+#include "ED_keyframing.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "ANIM_bone_collections.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "object_intern.h"
 
@@ -102,7 +104,7 @@ void ED_object_base_active_refresh(Main *bmain, Scene *scene, ViewLayer *view_la
 {
   WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  struct wmMsgBus *mbus = ((wmWindowManager *)bmain->wm.first)->message_bus;
+  wmMsgBus *mbus = ((wmWindowManager *)bmain->wm.first)->message_bus;
   if (mbus != nullptr) {
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }
@@ -311,10 +313,7 @@ bool ED_object_jump_to_bone(bContext *C,
       if (reveal_hidden) {
         /* Unhide the bone. */
         ebone->flag &= ~BONE_HIDDEN_A;
-
-        if ((arm->layer & ebone->layer) == 0) {
-          arm->layer |= 1U << bitscan_forward_uint(ebone->layer);
-        }
+        ANIM_armature_ensure_layer_enabled_from_ebone(arm, ebone);
       }
 
       /* Select it. */
@@ -338,10 +337,7 @@ bool ED_object_jump_to_bone(bContext *C,
       if (reveal_hidden) {
         /* Unhide the bone. */
         pchan->bone->flag &= ~BONE_HIDDEN_P;
-
-        if ((arm->layer & pchan->bone->layer) == 0) {
-          arm->layer |= 1U << bitscan_forward_uint(pchan->bone->layer);
-        }
+        ANIM_armature_ensure_layer_enabled_from_pchan(arm, pchan);
       }
 
       /* Select it. */
@@ -371,13 +367,13 @@ static bool objects_selectable_poll(bContext *C)
   Object *obact = CTX_data_active_object(C);
 
   if (CTX_data_edit_object(C)) {
-    return 0;
+    return false;
   }
   if (obact && obact->mode) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /** \} */
@@ -541,11 +537,7 @@ static bool object_select_all_by_particle(bContext *C, Object *ob)
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
       /* Loop through other particles. */
-      ParticleSystem *psys;
-
-      for (psys = static_cast<ParticleSystem *>(base->object->particlesystem.first); psys;
-           psys = psys->next)
-      {
+      LISTBASE_FOREACH (ParticleSystem *, psys, &base->object->particlesystem) {
         if (psys->part == psys_act->part) {
           ED_object_base_select(base, BA_SELECT);
           changed = true;
@@ -778,7 +770,7 @@ static bool select_grouped_children(bContext *C, Object *ob, const bool recursiv
       }
 
       if (recursive) {
-        changed |= select_grouped_children(C, base->object, 1);
+        changed |= select_grouped_children(C, base->object, true);
       }
     }
   }
@@ -797,7 +789,7 @@ static bool select_grouped_parent(bContext *C)
 
   if (!basact || !(basact->object->parent)) {
     /* We know BKE_view_layer_active_object_get is valid. */
-    return 0;
+    return false;
   }
 
   BKE_view_layer_synced_ensure(scene, view_layer);
@@ -834,7 +826,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
   }
 
   if (!collection_count) {
-    return 0;
+    return false;
   }
   if (collection_count == 1) {
     collection = ob_collections[0];
@@ -858,7 +850,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)
     collection = ob_collections[i];
     uiItemStringO(layout,
                   collection->id.name + 2,
-                  0,
+                  ICON_NONE,
                   "OBJECT_OT_select_same_collection",
                   "collection",
                   collection->id.name + 2);
@@ -876,10 +868,9 @@ static bool select_grouped_object_hooks(bContext *C, Object *ob)
 
   bool changed = false;
   Base *base;
-  ModifierData *md;
   HookModifierData *hmd;
 
-  for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
     if (md->type == eModifierType_Hook) {
       hmd = (HookModifierData *)md;
       if (hmd->object) {
@@ -1002,12 +993,9 @@ static bool select_grouped_keyingset(bContext *C, Object * /*ob*/, ReportList *r
   CTX_DATA_BEGIN (C, Base *, base, selectable_bases) {
     /* only check for this object if it isn't selected already, to limit time wasted */
     if ((base->flag & BASE_SELECTED) == 0) {
-      KS_Path *ksp;
-
-      /* this is the slow way... we could end up with > 500 items here,
-       * with none matching, but end up doing this on 1000 objects...
-       */
-      for (ksp = static_cast<KS_Path *>(ks->paths.first); ksp; ksp = ksp->next) {
+      /* This is the slow way... we could end up with > 500 items here,
+       * with none matching, but end up doing this on 1000 objects. */
+      LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
         /* if id matches, select then stop looping (match found) */
         if (ksp->id == (ID *)base->object) {
           ED_object_base_select(base, BA_SELECT);
@@ -1299,8 +1287,11 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(
-      ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+  RNA_def_boolean(ot->srna,
+                  "extend",
+                  false,
+                  "Extend",
+                  "Extend selection instead of deselecting everything first");
 }
 
 /** \} */
@@ -1327,7 +1318,6 @@ static bool object_select_more_less(bContext *C, const bool select)
   }
 
   ListBase ctx_base_list;
-  CollectionPointerLink *ctx_base;
   CTX_data_selectable_bases(C, &ctx_base_list);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
@@ -1335,9 +1325,7 @@ static bool object_select_more_less(bContext *C, const bool select)
   }
   CTX_DATA_END;
 
-  for (ctx_base = static_cast<CollectionPointerLink *>(ctx_base_list.first); ctx_base;
-       ctx_base = ctx_base->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_base, &ctx_base_list) {
     Object *ob = ((Base *)ctx_base->ptr.data)->object;
     if (ob->parent) {
       if ((ob->flag & OB_DONE) != (ob->parent->flag & OB_DONE)) {
@@ -1351,9 +1339,7 @@ static bool object_select_more_less(bContext *C, const bool select)
   const short select_mode = select ? BA_SELECT : BA_DESELECT;
   const short select_flag = select ? BASE_SELECTED : 0;
 
-  for (ctx_base = static_cast<CollectionPointerLink *>(ctx_base_list.first); ctx_base;
-       ctx_base = ctx_base->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_base, &ctx_base_list) {
     Base *base = static_cast<Base *>(ctx_base->ptr.data);
     Object *ob = base->object;
     if ((ob->id.tag & LIB_TAG_DOIT) && ((base->flag & BASE_SELECTED) != select_flag)) {
@@ -1447,10 +1433,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
   int elem_map_len = 0;
   Base **elem_map = static_cast<Base **>(MEM_mallocN(sizeof(*elem_map) * tot, __func__));
 
-  CollectionPointerLink *ctx_link;
-  for (ctx_link = static_cast<CollectionPointerLink *>(ctx_data_list.first); ctx_link;
-       ctx_link = ctx_link->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_link, &ctx_data_list) {
     elem_map[elem_map_len++] = static_cast<Base *>(ctx_link->ptr.data);
   }
   BLI_freelistN(&ctx_data_list);

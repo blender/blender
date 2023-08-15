@@ -151,7 +151,8 @@ static PyGetSetDef BPy_ViewVertex_getseters[] = {
 /*-----------------------BPy_ViewVertex type definition ------------------------------*/
 
 PyTypeObject ViewVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "ViewVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "ViewVertex",
     /*tp_basicsize*/ sizeof(BPy_ViewVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -187,7 +188,7 @@ PyTypeObject ViewVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)ViewVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

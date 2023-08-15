@@ -8,13 +8,14 @@
 
 #pragma once
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "ED_select_utils.h"
+#include "ED_select_utils.hh"
 
 #include "DNA_scene_types.h"
 
@@ -45,6 +46,10 @@ struct CoNo {
   float co[3];
   float no[3];
 };
+
+#include "DNA_listBase.h"
+#include "DNA_scene_types.h"
+#include "ED_view3d.hh"
 
 /* paint_stroke.cc */
 
@@ -105,13 +110,27 @@ bool PAINT_brush_tool_poll(bContext *C);
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */
-void paint_cursor_delete_textures(void);
+void paint_cursor_delete_textures();
+
+/**
+ * used by various actions that have their own spacing that
+ * is coarser then the brush spacing. e.g. sculpt dyntopo.
+ *
+ * \param state: pointer to a float used for internal state, should be initialized to zero at start
+ * of stroke \return false if the action should be skipped.
+ *
+ */
+bool paint_stroke_apply_subspacing(PaintStroke *stroke,
+                                   const float spacing,
+                                   const enum ePaintMode mode,
+                                   float *state);
 
 /* paint_vertex.c */
 
 bool weight_paint_poll(bContext *C);
 bool weight_paint_poll_ignore_tool(bContext *C);
 bool weight_paint_mode_poll(bContext *C);
+bool weight_paint_mode_region_view3d_poll(bContext *C);
 bool vertex_paint_poll(bContext *C);
 bool vertex_paint_poll_ignore_tool(bContext *C);
 /**
@@ -135,6 +154,8 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_vertex_paint(wmOperatorType *ot);
+
+unsigned int vpaint_get_current_color(Scene *scene, VPaint *vp, bool secondary);
 
 /**
  * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
@@ -208,7 +229,7 @@ struct ImagePaintPartialRedraw {
 bool image_texture_paint_poll(bContext *C);
 void imapaint_image_update(
     SpaceImage *sima, Image *image, ImBuf *ibuf, ImageUser *iuser, short texpaint);
-ImagePaintPartialRedraw *get_imapaintpartial(void);
+ImagePaintPartialRedraw *get_imapaintpartial();
 void set_imapaintpartial(ImagePaintPartialRedraw *ippr);
 void imapaint_region_tiles(
     ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th);
@@ -313,7 +334,7 @@ void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
 
 void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot);
 
-/* paint_utils.cc */
+/* paint_utils.c */
 
 /**
  * Convert the object-space axis-aligned bounding box (expressed as
@@ -356,7 +377,7 @@ bool paint_get_tex_pixel(const MTex *mtex,
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
-void paint_stroke_operator_properties(wmOperatorType *ot, bool skip_save);
+void paint_stroke_operator_properties(wmOperatorType *ot, bool mode_skip_save);
 
 void BRUSH_OT_curve_preset(wmOperatorType *ot);
 void BRUSH_OT_sculpt_curves_falloff_preset(wmOperatorType *ot);
@@ -384,6 +405,7 @@ bool mask_paint_poll(bContext *C);
 bool paint_curve_poll(bContext *C);
 
 bool facemask_paint_poll(bContext *C);
+
 /**
  * Uses symm to selectively flip any axis of a coordinate.
  */
@@ -444,42 +466,42 @@ BLI_INLINE void flip_qt(float quat[4], const ePaintSymmetryFlags symm)
 }
 
 /* stroke operator */
-typedef enum BrushStrokeMode {
+enum BrushStrokeMode {
   BRUSH_STROKE_NORMAL,
   BRUSH_STROKE_INVERT,
   BRUSH_STROKE_SMOOTH,
-} BrushStrokeMode;
+};
 
 /* paint_hide.cc */
 
-typedef enum {
+enum PartialVisAction {
   PARTIALVIS_HIDE,
   PARTIALVIS_SHOW,
-} PartialVisAction;
+};
 
-typedef enum {
+enum PartialVisArea {
   PARTIALVIS_INSIDE,
   PARTIALVIS_OUTSIDE,
   PARTIALVIS_ALL,
   PARTIALVIS_MASKED,
-} PartialVisArea;
+};
 
 void PAINT_OT_hide_show(wmOperatorType *ot);
 
 /* paint_mask.c */
 
 /* The gesture API doesn't write to this enum type,
- * it writes to eSelectOp from ED_select_utils.h.
+ * it writes to eSelectOp from ED_select_utils.hh.
  * We must thus map the modes here to the desired
  * eSelectOp modes.
  *
  * Fixes #102349.
  */
-typedef enum {
+enum PaintMaskFloodMode {
   PAINT_MASK_FLOOD_VALUE = SEL_OP_SUB,
   PAINT_MASK_FLOOD_VALUE_INVERSE = SEL_OP_ADD,
   PAINT_MASK_INVERT = SEL_OP_XOR,
-} PaintMaskFloodMode;
+};
 
 void PAINT_OT_mask_flood_fill(wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot);
@@ -517,3 +539,54 @@ void paint_init_pivot(Object *ob, Scene *scene);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
+
+namespace blender::ed::sculpt_paint::vwpaint {
+struct NormalAnglePrecalc {
+  bool do_mask_normal;
+  /* what angle to mask at */
+  float angle;
+  /* cos(angle), faster to compare */
+  float angle__cos;
+  float angle_inner;
+  float angle_inner__cos;
+  /* difference between angle and angle_inner, for easy access */
+  float angle_range;
+};
+
+void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_mask_normal);
+float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a, float angle_cos, float *mask_p);
+bool test_brush_angle_falloff(const Brush &brush,
+                              const NormalAnglePrecalc &normal_angle_precalc,
+                              const float angle_cos,
+                              float *brush_strength);
+bool use_normal(const VPaint *vp);
+
+bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode);
+bool brush_use_accumulate(const VPaint *vp);
+
+void get_brush_alpha_data(const Scene *scene,
+                          const SculptSession *ss,
+                          const Brush *brush,
+                          float *r_brush_size_pressure,
+                          float *r_brush_alpha_value,
+                          float *r_brush_alpha_pressure);
+
+void init_stroke(Depsgraph *depsgraph, Object *ob);
+void init_session_data(const ToolSettings *ts, Object *ob);
+void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
+
+Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush *brush);
+
+void mode_enter_generic(
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag);
+void mode_exit_generic(Object *ob, const eObjectMode mode_flag);
+bool mode_toggle_poll_test(bContext *C);
+
+void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache);
+void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
+
+void update_cache_variants(bContext *C, VPaint *vp, Object *ob, PointerRNA *ptr);
+void update_cache_invariants(
+    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mval[2]);
+void last_stroke_update(Scene *scene, const float location[3]);
+}  // namespace blender::ed::sculpt_paint::vwpaint

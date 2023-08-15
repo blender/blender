@@ -9,7 +9,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -26,15 +27,15 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_keyframing.h"
+#include "ED_armature.hh"
+#include "ED_keyframing.hh"
 
 #include "armature_intern.h"
 
@@ -214,10 +215,8 @@ void poseAnim_mapping_refresh(bContext *C, Scene * /*scene*/, Object *ob)
 
 void poseAnim_mapping_reset(ListBase *pfLinks)
 {
-  tPChanFCurveLink *pfl;
-
   /* iterate over each pose-channel affected, restoring all channels to their original values */
-  for (pfl = static_cast<tPChanFCurveLink *>(pfLinks->first); pfl; pfl = pfl->next) {
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
     bPoseChannel *pchan = pfl->pchan;
 
     /* just copy all the values over regardless of whether they changed or not */
@@ -277,13 +276,12 @@ void poseAnim_mapping_autoKeyframe(bContext *C, Scene *scene, ListBase *pfLinks,
   /* Insert keyframes as necessary if auto-key-framing. */
   KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
   ListBase dsources = {nullptr, nullptr};
-  tPChanFCurveLink *pfl;
 
   /* iterate over each pose-channel affected, tagging bones to be keyed */
   /* XXX: here we already have the information about what transforms exist, though
    * it might be easier to just overwrite all using normal mechanisms
    */
-  for (pfl = static_cast<tPChanFCurveLink *>(pfLinks->first); pfl; pfl = pfl->next) {
+  LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pfLinks) {
     bPoseChannel *pchan = pfl->pchan;
 
     if ((pfl->ob->id.tag & LIB_TAG_DOIT) == 0) {

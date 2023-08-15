@@ -37,20 +37,21 @@
 
 #include "DEG_depsgraph_build.h"
 
-#include "ED_node.h" /* own include */
+#include "ED_node.hh" /* own include */
 #include "ED_node.hh"
-#include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_node_preview.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "NOD_common.h"
 #include "NOD_composite.h"
@@ -190,6 +191,7 @@ static int node_group_edit_exec(bContext *C, wmOperator *op)
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
 
@@ -460,10 +462,10 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     nodeRemoveNode(bmain, ntree, node, false);
   }
 
+  update_nested_node_refs_after_ungroup(*ntree, *ngroup, *gnode, node_identifier_map);
+
   /* delete the group instance and dereference group tree */
   nodeRemoveNode(bmain, ntree, gnode, true);
-
-  update_nested_node_refs_after_ungroup(*ntree, *ngroup, *gnode, node_identifier_map);
 
   return true;
 }
@@ -649,6 +651,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   int type = RNA_enum_get(op->ptr, "type");
 
   ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  stop_preview_job(*CTX_wm_manager(C));
 
   /* are we inside of a group? */
   bNodeTree *ngroup = snode->edittree;
@@ -690,8 +693,8 @@ static int node_group_separate_invoke(bContext *C, wmOperator * /*op*/, const wm
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, 0, "type", NODE_GS_COPY);
-  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, 0, "type", NODE_GS_MOVE);
+  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, ICON_NONE, "type", NODE_GS_COPY);
+  uiItemEnumO(layout, "NODE_OT_group_separate", nullptr, ICON_NONE, "type", NODE_GS_MOVE);
 
   UI_popup_menu_end(C, pup);
 
@@ -928,45 +931,46 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     const Map<int32_t, int32_t> &node_identifier_map)
 {
   /* Update nested node references in the parent and child node tree. */
-  RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+  RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
   Vector<bNestedNodeRef> new_nested_node_refs;
   /* Keep all nested node references that were in the group before. */
-  for (const bNestedNodeRef &state_id : group.nested_node_refs_span()) {
-    new_nested_node_refs.append(state_id);
+  for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
+    new_nested_node_refs.append(ref);
   }
   Set<int32_t> used_nested_node_ref_ids;
   for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
     used_nested_node_ref_ids.add(ref.id);
   }
   Map<bNestedNodePath, int32_t> new_id_by_old_path;
-  for (bNestedNodeRef &state_id : ntree.nested_node_refs_span()) {
-    const int32_t new_node_id = node_identifier_map.lookup_default(state_id.path.node_id, -1);
+  for (bNestedNodeRef &ref : ntree.nested_node_refs_span()) {
+    const int32_t new_node_id = node_identifier_map.lookup_default(ref.path.node_id, -1);
     if (new_node_id == -1) {
       /* The node was not moved between node groups. */
       continue;
     }
-    bNestedNodeRef new_state_id = state_id;
-    new_state_id.path.node_id = new_node_id;
+    bNestedNodeRef new_ref = ref;
+    new_ref.path.node_id = new_node_id;
     /* Find new unique identifier for the nested node ref. */
     while (true) {
       const int32_t new_id = rng.get_int32(INT32_MAX);
       if (used_nested_node_ref_ids.add(new_id)) {
-        new_state_id.id = new_id;
+        new_ref.id = new_id;
         break;
       }
     }
-    new_id_by_old_path.add_new(state_id.path, new_state_id.id);
-    new_nested_node_refs.append(new_state_id);
+    new_id_by_old_path.add_new(ref.path, new_ref.id);
+    new_nested_node_refs.append(new_ref);
     /* Updated the nested node ref in the parent so that it points to the same node that is now
      * inside of a nested group. */
-    state_id.path.node_id = gnode.identifier;
-    state_id.path.id_in_node = new_state_id.id;
+    ref.path.node_id = gnode.identifier;
+    ref.path.id_in_node = new_ref.id;
   }
   MEM_SAFE_FREE(group.nested_node_refs);
   group.nested_node_refs = static_cast<bNestedNodeRef *>(
       MEM_malloc_arrayN(new_nested_node_refs.size(), sizeof(bNestedNodeRef), __func__));
   uninitialized_copy_n(
       new_nested_node_refs.data(), new_nested_node_refs.size(), group.nested_node_refs);
+  group.nested_node_refs_num = new_nested_node_refs.size();
 }
 
 static void node_group_make_insert_selected(const bContext &C,
@@ -1260,6 +1264,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   VectorSet<bNode *> nodes_to_group = get_nodes_to_group(ntree, nullptr);
   if (!node_group_make_test_selected(ntree, nodes_to_group, ntree_idname, *op->reports)) {
@@ -1313,6 +1318,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
   const char *node_idname = node_group_idname(C);
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  stop_preview_job(*CTX_wm_manager(C));
 
   bNode *gnode = node_group_get_active(C, node_idname);
   if (!gnode || !gnode->id) {

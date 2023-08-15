@@ -15,13 +15,14 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"
+#include "BLI_math_color.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 
 #include "GPU_uniform_buffer.h"
 
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
 #define HSV_SATURATION 0.5
 #define HSV_VALUE 0.8

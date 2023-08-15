@@ -12,7 +12,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_object_types.h"
@@ -24,20 +26,20 @@
 #include "BKE_global.h"
 #include "BKE_layer.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
-#include "ED_image.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
+#include "ED_image.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
@@ -77,7 +79,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
     case SPACE_IMAGE: {
       const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
       Object *obedit = CTX_data_edit_object(C);
-      if (!ED_space_image_show_uvedit(sima, obedit, CTX_data_active_object(C), false)) {
+      if (!ED_space_image_show_uvedit(sima, obedit)) {
         return false;
       }
       break;
@@ -504,10 +506,10 @@ static void gizmo2d_xform_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 
     /* assign operator */
     ptr = WM_gizmo_operator_set(ggd->cage, 0, ot_translate, nullptr);
-    RNA_boolean_set(ptr, "release_confirm", 1);
+    RNA_boolean_set(ptr, "release_confirm", true);
 
-    const bool constraint_x[3] = {1, 0, 0};
-    const bool constraint_y[3] = {0, 1, 0};
+    const bool constraint_x[3] = {true, false, false};
+    const bool constraint_y[3] = {false, true, false};
 
     ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X, ot_resize, nullptr);
     PropertyRNA *prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");

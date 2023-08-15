@@ -6,6 +6,7 @@ set(INC
   ../include
   ../../asset_system
   ../../blenfont
+  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../compositor
@@ -42,6 +43,7 @@ set(SRC
   node_ops.cc
   node_relationships.cc
   node_select.cc
+  node_shader_preview.cc
   node_templates.cc
   node_view.cc
   space_node.cc
@@ -50,7 +52,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_screen

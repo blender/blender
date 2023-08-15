@@ -7,6 +7,7 @@
 #include "curves_sculpt_intern.hh"
 
 #include "BLI_kdtree.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
@@ -17,7 +18,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -25,8 +26,8 @@
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
-#include "BKE_paint.h"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_paint.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -37,12 +38,12 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:

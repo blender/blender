@@ -31,13 +31,14 @@
 #include "BKE_geometry_set.hh"
 
 #include "GPU_batch.h"
+#include "GPU_context.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
 
 #include "DRW_render.h"
 
 #include "draw_attributes.hh"
-#include "draw_cache_impl.h" /* own include */
+#include "draw_cache_impl.hh" /* own include */
 #include "draw_cache_inline.h"
 #include "draw_curves_private.hh" /* own include */
 #include "draw_shader.h"
@@ -417,16 +418,54 @@ static void curves_batch_cache_ensure_procedural_final_points(CurvesEvalCache &c
                          cache.final[subdiv].strands_res * cache.strands_len);
 }
 
-static void curves_batch_cache_fill_segments_indices(const bke::CurvesGeometry &curves,
+static void curves_batch_cache_fill_segments_indices(GPUPrimType prim_type,
+                                                     const bke::CurvesGeometry &curves,
                                                      const int res,
                                                      GPUIndexBufBuilder &elb)
 {
-  uint curr_point = 0;
-  for ([[maybe_unused]] const int i : IndexRange(curves.curves_num())) {
-    for (int k = 0; k < res; k++) {
-      GPU_indexbuf_add_generic_vert(&elb, curr_point++);
-    }
-    GPU_indexbuf_add_primitive_restart(&elb);
+  switch (prim_type) {
+    /* Populate curves using compressed restart-compatible types. */
+    case GPU_PRIM_LINE_STRIP:
+    case GPU_PRIM_TRI_STRIP: {
+      uint curr_point = 0;
+      for ([[maybe_unused]] const int i : IndexRange(curves.curves_num())) {
+        for (int k = 0; k < res; k++) {
+          GPU_indexbuf_add_generic_vert(&elb, curr_point++);
+        }
+        GPU_indexbuf_add_primitive_restart(&elb);
+      }
+    } break;
+
+    /* Generate curves using independent line segments. */
+    case GPU_PRIM_LINES: {
+      uint curr_point = 0;
+      for ([[maybe_unused]] const int i : IndexRange(curves.curves_num())) {
+        for (int k = 0; k < res / 2; k++) {
+          GPU_indexbuf_add_line_verts(&elb, curr_point, curr_point + 1);
+          curr_point++;
+        }
+        /* Skip to next primitive base index. */
+        curr_point++;
+      }
+    } break;
+
+    /* Generate curves using independent two-triangle segments. */
+    case GPU_PRIM_TRIS: {
+      uint curr_point = 0;
+      for ([[maybe_unused]] const int i : IndexRange(curves.curves_num())) {
+        for (int k = 0; k < res / 6; k++) {
+          GPU_indexbuf_add_tri_verts(&elb, curr_point, curr_point + 1, curr_point + 2);
+          GPU_indexbuf_add_tri_verts(&elb, curr_point + 1, curr_point + 3, curr_point + 2);
+          curr_point += 2;
+        }
+        /* Skip to next primitive base index. */
+        curr_point += 2;
+      }
+    } break;
+
+    default:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -441,10 +480,26 @@ static void curves_batch_cache_ensure_procedural_indices(const bke::CurvesGeomet
     return;
   }
 
-  int verts_per_curve = cache.final[subdiv].strands_res * thickness_res;
-  /* +1 for primitive restart */
-  int element_count = (verts_per_curve + 1) * cache.strands_len;
-  GPUPrimType prim_type = (thickness_res == 1) ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
+  /* Determine prim type and element count.
+   * NOTE: Metal backend uses non-restart prim types for optimal HW performance. */
+  bool use_strip_prims = (GPU_backend_get_type() != GPU_BACKEND_METAL);
+  int verts_per_curve;
+  int element_count;
+  GPUPrimType prim_type;
+
+  if (use_strip_prims) {
+    /* +1 for primitive restart */
+    verts_per_curve = cache.final[subdiv].strands_res * thickness_res;
+    element_count = (verts_per_curve + 1) * cache.strands_len;
+    prim_type = (thickness_res == 1) ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
+  }
+  else {
+    /* Use full primitive type. */
+    prim_type = (thickness_res == 1) ? GPU_PRIM_LINES : GPU_PRIM_TRIS;
+    int verts_per_segment = ((prim_type == GPU_PRIM_LINES) ? 2 : 6);
+    verts_per_curve = (cache.final[subdiv].strands_res - 1) * verts_per_segment;
+    element_count = verts_per_curve * cache.strands_len;
+  }
 
   static GPUVertFormat format = {0};
   GPU_vertformat_clear(&format);
@@ -458,7 +513,7 @@ static void curves_batch_cache_ensure_procedural_indices(const bke::CurvesGeomet
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init_ex(&elb, prim_type, element_count, element_count);
 
-  curves_batch_cache_fill_segments_indices(curves, verts_per_curve, elb);
+  curves_batch_cache_fill_segments_indices(prim_type, curves, verts_per_curve, elb);
 
   cache.final[subdiv].proc_hairs[thickness_res - 1] = GPU_batch_create_ex(
       prim_type, vbo, GPU_indexbuf_build(&elb), GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);

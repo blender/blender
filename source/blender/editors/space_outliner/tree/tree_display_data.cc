@@ -11,7 +11,7 @@
 
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"

@@ -10,7 +10,15 @@
 
 #pragma once
 
-/* bpy_interface.c */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* bpy_interface.cc */
 
 extern struct CLG_LogRef *BPY_LOG_RNA;
 extern struct CLG_LogRef *BPY_LOG_CONTEXT;
+
+#ifdef __cplusplus
+}
+#endif

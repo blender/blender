@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -19,13 +19,13 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 /* enum definitions */
@@ -35,13 +35,13 @@
 
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DNA_workspace_types.h"
 
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
-#  include "UI_interface.h"
+#  include "UI_interface.hh"
 
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
@@ -461,7 +461,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(temp_buffers.idname));
+                int(sizeof(temp_buffers.idname)));
     return nullptr;
   }
 
@@ -846,7 +846,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(temp_buffers.idname));
+                int(sizeof(temp_buffers.idname)));
     return nullptr;
   }
 
@@ -1043,7 +1043,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   /* -------------------------------------------------------------------- */
   /* Registerable Variables */
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->idname");
@@ -1052,7 +1052,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   // RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_flag(prop, PROP_REGISTER);
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 
   /* wmGizmo.draw */
   func = RNA_def_function(srna, "draw", nullptr);
@@ -1135,7 +1135,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "cancel", 0, "Cancel, otherwise confirm", "");
+  parm = RNA_def_boolean(func, "cancel", false, "Cancel, otherwise confirm", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* wmGizmo.cursor_get */
@@ -1366,7 +1366,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   /* -------------------------------------------------------------------- */
   /* Registration */
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->idname");
@@ -1448,7 +1448,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 
   /* Functions */
 
@@ -1456,7 +1456,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   func = RNA_def_function(srna, "poll", nullptr);
   RNA_def_function_ui_description(func, "Test if the gizmo group can be called or not");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -1518,7 +1518,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
       "Has Reports",
       "GizmoGroup has a set of reports (warnings and errors) from last execution");
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "gizmos", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "gizmos", nullptr);
@@ -1537,7 +1537,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   rna_def_gizmo(brna, prop);
   rna_def_gizmos(brna, prop);
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 
   RNA_api_gizmogroup(srna);
 

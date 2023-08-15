@@ -4,10 +4,10 @@
 
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "ED_viewer_path.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /**
  * Checks if the viewer path stored in the workspace is still active and resets it if not.

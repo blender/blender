@@ -18,7 +18,6 @@ set(INC_SYS
   ${EIGEN3_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${ZSTD_INCLUDE_DIRS}
-  ${GMP_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -267,7 +266,6 @@ set(SRC
   BLI_listbase_wrapper.hh
   BLI_map.hh
   BLI_map_slots.hh
-  BLI_math.h
   BLI_math_angle_types.hh
   BLI_math_axis_angle.hh
   BLI_math_axis_angle_types.hh
@@ -348,7 +346,7 @@ set(SRC
   BLI_string.h
   BLI_string_cursor_utf8.h
   BLI_string_ref.hh
-  BLI_string_search.h
+  BLI_string_search.hh
   BLI_string_utf8.h
   BLI_string_utf8_symbols.h
   BLI_string_utils.h

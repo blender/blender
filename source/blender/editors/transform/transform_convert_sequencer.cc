@@ -11,14 +11,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "ED_markers.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_markers.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "SEQ_animation.h"
 #include "SEQ_channels.h"
@@ -31,7 +32,7 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -132,7 +133,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 
     /* Count */
 
-    /* Non nested strips (resect selection and handles) */
+    /* Non nested strips (reset selection and handles). */
     if ((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq)) {
       *r_count = 0;
       *r_flag = 0;
@@ -152,10 +153,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 
 static int SeqTransCount(TransInfo *t, ListBase *seqbase)
 {
-  Sequence *seq;
   int tot = 0, count, flag;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     SeqTransInfo(t, seq, &count, &flag); /* ignore the flag */
     tot += count;
   }
@@ -231,12 +231,11 @@ static TransData *SeqToTransData(Scene *scene,
 static int SeqToTransData_build(
     TransInfo *t, ListBase *seqbase, TransData *td, TransData2D *td2d, TransDataSeq *tdsq)
 {
-  Sequence *seq;
   Scene *scene = t->scene;
   int count, flag;
   int tot = 0;
 
-  for (seq = static_cast<Sequence *>(seqbase->first); seq; seq = seq->next) {
+  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
 
     SeqTransInfo(t, seq, &count, &flag);
 
@@ -558,8 +557,8 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
     else {
       /* Edge panning functions expect window coordinates, mval is relative to region */
       const int xy[2] = {
-          t->region->winrct.xmin + t->mval[0],
-          t->region->winrct.ymin + t->mval[1],
+          t->region->winrct.xmin + int(t->mval[0]),
+          t->region->winrct.ymin + int(t->mval[1]),
       };
       UI_view2d_edge_pan_apply(t->context, &ts->edge_pan, xy);
     }
@@ -739,7 +738,7 @@ void transform_convert_sequencer_channel_clamp(TransInfo *t, float r_val[2])
 
 TransConvertTypeInfo TransConvertType_Sequencer = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransSeqData,
-    /*recalcData*/ recalcData_sequencer,
+    /*create_trans_data*/ createTransSeqData,
+    /*recalc_data*/ recalcData_sequencer,
     /*special_aftertrans_update*/ special_aftertrans_update__sequencer,
 };

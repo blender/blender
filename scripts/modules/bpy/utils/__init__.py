@@ -305,15 +305,15 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False):
         bl_app_template_utils.reset(reload_scripts=reload_scripts)
         del bl_app_template_utils
 
-    # deal with addons separately
-    _initialize = getattr(_addon_utils, "_initialize", None)
-    if _initialize is not None:
-        # first time, use fast-path
-        _initialize()
-        del _addon_utils._initialize
+    # Deal with add-ons separately.
+    _initialize_once = getattr(_addon_utils, "_initialize_once", None)
+    if _initialize_once is not None:
+        # First time, use fast-path.
+        _initialize_once()
+        del _addon_utils._initialize_once
     else:
         _addon_utils.reset_all(reload_scripts=reload_scripts)
-    del _initialize
+    del _initialize_once
 
     if reload_scripts:
         _bpy.context.window_manager.tag_script_reload()

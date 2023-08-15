@@ -11,8 +11,8 @@
 #include "BKE_context.h"
 #include "BKE_tracking.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "tracking_ops_intern.h" /* own include */
 

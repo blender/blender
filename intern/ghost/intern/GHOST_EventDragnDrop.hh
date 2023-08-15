@@ -74,7 +74,7 @@ class GHOST_EventDragnDrop : public GHOST_Event {
   ~GHOST_EventDragnDrop()
   {
     /* Free the dropped object data. */
-    if (m_dragnDropEventData.data == NULL)
+    if (m_dragnDropEventData.data == nullptr)
       return;
 
     switch (m_dragnDropEventData.dataType) {

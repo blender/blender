@@ -22,7 +22,6 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -33,11 +32,11 @@
 #include "BKE_fcurve.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 #include "COLLADASWBaseInputElement.h"
 #include "COLLADASWConstants.h"

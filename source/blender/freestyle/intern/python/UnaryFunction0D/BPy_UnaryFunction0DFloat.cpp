@@ -150,7 +150,7 @@ static PyObject *UnaryFunction0DFloat___call__(BPy_UnaryFunction0DFloat *self,
 /*-----------------------BPy_UnaryFunction0DFloat type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DFloat_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DFloat",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DFloat),
     /*tp_itemsize*/ 0,

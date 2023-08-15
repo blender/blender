@@ -253,7 +253,6 @@ class ViewLayerTesting(unittest.TestCase):
         import bpy
         import os
         import tempfile
-        import filecmp
 
         ROOT = self.get_root()
         with tempfile.TemporaryDirectory() as dirpath:
@@ -350,7 +349,6 @@ class ViewLayerTesting(unittest.TestCase):
         import bpy
         import os
         import tempfile
-        import filecmp
 
         ROOT = self.get_root()
         with tempfile.TemporaryDirectory() as dirpath:
@@ -386,7 +384,6 @@ class ViewLayerTesting(unittest.TestCase):
         import bpy
         import os
         import tempfile
-        import filecmp
 
         ROOT = self.get_root()
         with tempfile.TemporaryDirectory() as dirpath:

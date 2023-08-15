@@ -434,7 +434,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  * Generic function to set a unique name. It is only designed to be used in situations
  * where the name is part of the struct.
  *
- * For places where this is used, see constraint.c for example...
+ * For places where this is used, see `constraint.cc` for example...
  *
  * \param name_offset: should be calculated using `offsetof(structname, membername)`
  * macro from `stddef.h`

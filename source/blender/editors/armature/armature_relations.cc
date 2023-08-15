@@ -17,7 +17,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BLT_translation.h"
 
@@ -35,19 +36,19 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_object.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_object.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "armature_intern.h"
 
@@ -65,16 +66,14 @@ static void joined_armature_fix_links_constraints(Main *bmain,
                                                   EditBone *curbone,
                                                   ListBase *lb)
 {
-  bConstraint *con;
   bool changed = false;
 
-  for (con = static_cast<bConstraint *>(lb->first); con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, lb) {
     ListBase targets = {nullptr, nullptr};
-    bConstraintTarget *ct;
 
     /* constraint targets */
     if (BKE_constraint_targets_get(con, &targets)) {
-      for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
         if (ct->tar == srcArm) {
           if (ct->subtarget[0] == '\0') {
             ct->tar = tarArm;
@@ -88,7 +87,7 @@ static void joined_armature_fix_links_constraints(Main *bmain,
         }
       }
 
-      BKE_constraint_targets_flush(con, &targets, 0);
+      BKE_constraint_targets_flush(con, &targets, false);
     }
 
     /* action constraint? (pose constraints only) */
@@ -158,7 +157,6 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
   /* Driver targets */
   if (fcu->driver) {
     ChannelDriver *driver = fcu->driver;
-    DriverVar *dvar;
 
     /* Ensure that invalid drivers gets re-evaluated in case they become valid once the join
      * operation is finished. */
@@ -166,7 +164,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
     driver->flag &= ~DRIVER_FLAG_INVALID;
 
     /* Fix driver references to invalid ID's */
-    for (dvar = static_cast<DriverVar *>(driver->variables.first); dvar; dvar = dvar->next) {
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
       /* only change the used targets, since the others will need fixing manually anyway */
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
         /* change the ID's used... */
@@ -218,7 +216,6 @@ static void joined_armature_fix_links(
 {
   Object *ob;
   bPose *pose;
-  bPoseChannel *pchant;
 
   /* let's go through all objects in database */
   for (ob = static_cast<Object *>(bmain->objects.first); ob;
@@ -226,8 +223,7 @@ static void joined_armature_fix_links(
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
       pose = ob->pose;
-      for (pchant = static_cast<bPoseChannel *>(pose->chanbase.first); pchant;
-           pchant = pchant->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchant, &pose->chanbase) {
         joined_armature_fix_links_constraints(
             bmain, ob, tarArm, srcArm, pchan, curbone, &pchant->constraints);
       }
@@ -449,8 +445,6 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *newArm)
 {
   Object *ob;
-  bPoseChannel *pchan;
-  bConstraint *con;
   ListBase *opchans, *npchans;
 
   /* Get reference to list of bones in original and new armatures. */
@@ -462,15 +456,13 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
        ob = static_cast<Object *>(ob->id.next)) {
     /* do some object-type specific things */
     if (ob->type == OB_ARMATURE) {
-      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-           pchan = pchan->next) {
-        for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = con->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
           ListBase targets = {nullptr, nullptr};
-          bConstraintTarget *ct;
 
           /* constraint targets */
           if (BKE_constraint_targets_get(con, &targets)) {
-            for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+            LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
               /* Any targets which point to original armature
                * are redirected to the new one only if:
                * - The target isn't origArm/newArm itself.
@@ -490,7 +482,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
               }
             }
 
-            BKE_constraint_targets_flush(con, &targets, 0);
+            BKE_constraint_targets_flush(con, &targets, false);
           }
         }
       }
@@ -498,13 +490,12 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
 
     /* fix object-level constraints */
     if (ob != origArm) {
-      for (con = static_cast<bConstraint *>(ob->constraints.first); con; con = con->next) {
+      LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
         ListBase targets = {nullptr, nullptr};
-        bConstraintTarget *ct;
 
         /* constraint targets */
         if (BKE_constraint_targets_get(con, &targets)) {
-          for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
             /* any targets which point to original armature are redirected to the new one only if:
              * - the target isn't origArm/newArm itself
              * - the target is one that can be found in newArm/origArm
@@ -523,7 +514,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
             }
           }
 
-          BKE_constraint_targets_flush(con, &targets, 0);
+          BKE_constraint_targets_flush(con, &targets, false);
         }
       }
     }
@@ -781,7 +772,7 @@ static void bone_connect_to_new_parent(ListBase *edbo,
     add_v3_v3(selbone->tail, offset);
 
     /* offset for all its children */
-    for (ebone = static_cast<EditBone *>(edbo->first); ebone; ebone = ebone->next) {
+    LISTBASE_FOREACH (EditBone *, ebone, edbo) {
       EditBone *par;
 
       for (par = ebone->parent; par; par = par->parent) {
@@ -929,11 +920,11 @@ static int armature_parent_set_invoke(bContext *C, wmOperator * /*op*/, const wm
 
   uiLayout *row_offset = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row_offset, enable_offset);
-  uiItemEnumO(row_offset, "ARMATURE_OT_parent_set", nullptr, 0, "type", ARM_PAR_OFFSET);
+  uiItemEnumO(row_offset, "ARMATURE_OT_parent_set", nullptr, ICON_NONE, "type", ARM_PAR_OFFSET);
 
   uiLayout *row_connect = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row_connect, enable_connect);
-  uiItemEnumO(row_connect, "ARMATURE_OT_parent_set", nullptr, 0, "type", ARM_PAR_CONNECT);
+  uiItemEnumO(row_connect, "ARMATURE_OT_parent_set", nullptr, ICON_NONE, "type", ARM_PAR_CONNECT);
 
   UI_popup_menu_end(C, pup);
 
@@ -1051,12 +1042,16 @@ static int armature_parent_clear_invoke(bContext *C,
 
   uiLayout *row_clear = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row_clear, enable_clear);
-  uiItemEnumO(row_clear, "ARMATURE_OT_parent_clear", nullptr, 0, "type", ARM_PAR_CLEAR);
+  uiItemEnumO(row_clear, "ARMATURE_OT_parent_clear", nullptr, ICON_NONE, "type", ARM_PAR_CLEAR);
 
   uiLayout *row_disconnect = uiLayoutRow(layout, false);
   uiLayoutSetEnabled(row_disconnect, enable_disconnect);
-  uiItemEnumO(
-      row_disconnect, "ARMATURE_OT_parent_clear", nullptr, 0, "type", ARM_PAR_CLEAR_DISCONNECT);
+  uiItemEnumO(row_disconnect,
+              "ARMATURE_OT_parent_clear",
+              nullptr,
+              ICON_NONE,
+              "type",
+              ARM_PAR_CLEAR_DISCONNECT);
 
   UI_popup_menu_end(C, pup);
 

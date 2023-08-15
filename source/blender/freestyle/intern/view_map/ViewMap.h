@@ -34,17 +34,16 @@ namespace Freestyle {
 /*                                */
 /**********************************/
 
-/* Density
- * Mean area depth value
- * distance to a point
- */
-
 class ViewVertex;
 class ViewEdge;
 class ViewShape;
 class TVertex;
 
-/** Class defining the ViewMap. */
+/**
+ * Class defining the ViewMap.
+ *
+ * \note density is the mean area depth value distance to a point.
+ */
 class ViewMap {
  public:
   typedef vector<ViewEdge *> viewedges_container;
@@ -76,7 +75,7 @@ class ViewMap {
   ViewMap()
   {
     _pInstance = this;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   /** Destructor. */
@@ -141,7 +140,7 @@ class ViewMap {
     return _VEdges.size();
   }
 
-  ViewShape *viewShape(unsigned id);
+  ViewShape *viewShape(uint id);
 
   id_to_index_map &shapeIdToIndexMap()
   {
@@ -286,13 +285,13 @@ class ViewVertex : public Interface0D {
   /** Default constructor. */
   inline ViewVertex()
   {
-    userdata = NULL;
+    userdata = nullptr;
     _Nature = Nature::VIEW_VERTEX;
   }
 
   inline ViewVertex(Nature::VertexNature nature)
   {
-    userdata = NULL;
+    userdata = nullptr;
     _Nature = Nature::VIEW_VERTEX | nature;
   }
 
@@ -302,7 +301,7 @@ class ViewVertex : public Interface0D {
   {
     _Nature = iBrother._Nature;
     iBrother.userdata = this;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   /** Cloning method. */
@@ -474,8 +473,8 @@ class TVertex : public ViewVertex {
   /** Default constructor. */
   inline TVertex() : ViewVertex(Nature::T_VERTEX)
   {
-    _FrontSVertex = NULL;
-    _BackSVertex = NULL;
+    _FrontSVertex = nullptr;
+    _BackSVertex = nullptr;
     _FrontEdgeA.first = 0;
     _FrontEdgeB.first = 0;
     _BackEdgeA.first = 0;
@@ -591,7 +590,7 @@ class TVertex : public ViewVertex {
         return _BackSVertex;
       }
     }
-    return NULL;
+    return nullptr;
   }
 
   virtual void Replace(ViewEdge *iOld, ViewEdge *iNew);
@@ -614,7 +613,7 @@ class TVertex : public ViewVertex {
     if (iEdgeA == _BackEdgeB.first) {
       return _BackEdgeA.first;
     }
-    return NULL;
+    return nullptr;
   }
 
   /* iterators access */
@@ -749,7 +748,7 @@ class NonTVertex : public ViewVertex {
   /** Default constructor. */
   inline NonTVertex() : ViewVertex(Nature::NON_T_VERTEX)
   {
-    _SVertex = NULL;
+    _SVertex = nullptr;
   }
 
   /** Builds a NonTVertex from a SVertex. */
@@ -933,7 +932,7 @@ class ViewEdge : public Interface1D {
   FEdge *_FEdgeA;              // first edge of the embedded fedges chain
   FEdge *_FEdgeB;              // last edge of the embedded fedges chain
   Id _Id;
-  unsigned _ChainingTimeStamp;
+  uint _ChainingTimeStamp;
   // The silhouette view edge separates two 2D spaces. The one on the left is necessarily the Shape
   // _Shape (the one to which this edge belongs to) and _aShape is the one on its right NOT HANDLED
   // BY THE COPY CONSTRUCTOR
@@ -954,15 +953,15 @@ class ViewEdge : public Interface1D {
   /** Default constructor. */
   inline ViewEdge()
   {
-    __A = NULL;
-    __B = NULL;
-    _FEdgeA = NULL;
-    _FEdgeB = NULL;
+    __A = nullptr;
+    __B = nullptr;
+    _FEdgeA = nullptr;
+    _FEdgeB = nullptr;
     _ChainingTimeStamp = 0;
     _qi = 0;
-    _aShape = NULL;
-    userdata = NULL;
-    _splittingId = NULL;
+    _aShape = nullptr;
+    userdata = nullptr;
+    _splittingId = nullptr;
     _isInImage = true;
   }
 
@@ -970,14 +969,14 @@ class ViewEdge : public Interface1D {
   {
     __A = iA;
     __B = iB;
-    _FEdgeA = NULL;
-    _FEdgeB = NULL;
+    _FEdgeA = nullptr;
+    _FEdgeB = nullptr;
     _Shape = 0;
     _ChainingTimeStamp = 0;
     _qi = 0;
-    _aShape = NULL;
-    userdata = NULL;
-    _splittingId = NULL;
+    _aShape = nullptr;
+    userdata = nullptr;
+    _splittingId = nullptr;
     _isInImage = true;
   }
 
@@ -986,13 +985,13 @@ class ViewEdge : public Interface1D {
     __A = iA;
     __B = iB;
     _FEdgeA = iFEdgeA;
-    _FEdgeB = NULL;
-    _Shape = NULL;
+    _FEdgeB = nullptr;
+    _Shape = nullptr;
     _ChainingTimeStamp = 0;
     _qi = 0;
-    _aShape = NULL;
-    userdata = NULL;
-    _splittingId = NULL;
+    _aShape = nullptr;
+    userdata = nullptr;
+    _splittingId = nullptr;
     _isInImage = true;
   }
 
@@ -1006,9 +1005,9 @@ class ViewEdge : public Interface1D {
     _Shape = iShape;
     _ChainingTimeStamp = 0;
     _qi = 0;
-    _aShape = NULL;
-    userdata = NULL;
-    _splittingId = NULL;
+    _aShape = nullptr;
+    userdata = nullptr;
+    _splittingId = nullptr;
     _isInImage = true;
     UpdateFEdges();  // tells every FEdge between iFEdgeA and iFEdgeB that this is theit ViewEdge
   }
@@ -1022,15 +1021,15 @@ class ViewEdge : public Interface1D {
     _FEdgeA = iBrother._FEdgeA;
     _FEdgeB = iBrother._FEdgeB;
     _Nature = iBrother._Nature;
-    _Shape = NULL;
+    _Shape = nullptr;
     _Id = iBrother._Id;
     _ChainingTimeStamp = iBrother._ChainingTimeStamp;
     _aShape = iBrother._aShape;
     _qi = iBrother._qi;
-    _splittingId = NULL;
+    _splittingId = nullptr;
     _isInImage = iBrother._isInImage;
     iBrother.userdata = this;
-    userdata = NULL;
+    userdata = nullptr;
   }
 
   /** Cloning method. */
@@ -1047,7 +1046,7 @@ class ViewEdge : public Interface1D {
 #if 0
     if (_aFace) {
       delete _aFace;
-      _aFace = NULL;
+      _aFace = nullptr;
     }
 #endif
     // only the last splitted deletes this id
@@ -1090,7 +1089,7 @@ class ViewEdge : public Interface1D {
   }
 
   /** Returns the shape that is occluded by the ViewShape to which this ViewEdge belongs to. If no
-   * object is occluded, NULL is returned. \return The occluded ViewShape.
+   * object is occluded, nullptr is returned. \return The occluded ViewShape.
    */
   inline ViewShape *aShape()
   {
@@ -1107,7 +1106,7 @@ class ViewEdge : public Interface1D {
   }
 
   /** Returns the time stamp of this ViewEdge. */
-  inline unsigned getChainingTimeStamp()
+  inline uint getChainingTimeStamp()
   {
     return _ChainingTimeStamp;
   }
@@ -1196,7 +1195,7 @@ class ViewEdge : public Interface1D {
   }
 
   /** Sets the time stamp value. */
-  inline void setChainingTimeStamp(unsigned ts)
+  inline void setChainingTimeStamp(uint ts)
   {
     _ChainingTimeStamp = ts;
   }
@@ -1408,14 +1407,14 @@ class ViewShape {
   /** Default constructor. */
   inline ViewShape()
   {
-    userdata = NULL;
-    _SShape = NULL;
+    userdata = nullptr;
+    _SShape = nullptr;
   }
 
   /** Builds a ViewShape from a SShape. */
   inline ViewShape(SShape *iSShape)
   {
-    userdata = NULL;
+    userdata = nullptr;
     _SShape = iSShape;
     //_SShape->setViewShape(this);
   }
@@ -1423,7 +1422,7 @@ class ViewShape {
   /** Copy constructor. */
   inline ViewShape(ViewShape &iBrother)
   {
-    userdata = NULL;
+    userdata = nullptr;
     vector<ViewVertex *>::iterator vv, vvend;
     vector<ViewEdge *>::iterator ve, veend;
 
@@ -1491,20 +1490,20 @@ class ViewShape {
       (*ve)->UpdateFEdges();
     }
 
-    // reset all brothers userdata to NULL:
+    // reset all brothers userdata to nullptr:
     //-------------------------------------
     //---------
     // vertices
     //---------
     for (vv = vvertices.begin(), vvend = vvertices.end(); vv != vvend; vv++) {
-      (*vv)->userdata = NULL;
+      (*vv)->userdata = nullptr;
     }
 
     //------
     // edges
     //------
     for (ve = vvedges.begin(), veend = vvedges.end(); ve != veend; ve++) {
-      (*ve)->userdata = NULL;
+      (*ve)->userdata = nullptr;
     }
   }
 

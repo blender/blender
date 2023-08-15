@@ -7,8 +7,6 @@
  * \ingroup bke
  */
 
-#include "BLI_math.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

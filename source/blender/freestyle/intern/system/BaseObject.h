@@ -14,6 +14,8 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include "BLI_sys_types.h"
+
 namespace Freestyle {
 
 class BaseObject {
@@ -49,7 +51,7 @@ class BaseObject {
   }
 
  private:
-  unsigned _ref_counter;
+  uint _ref_counter;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:BaseObject")

@@ -15,7 +15,7 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "overlay_private.hh"
 

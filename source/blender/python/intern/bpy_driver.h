@@ -26,11 +26,11 @@ int bpy_pydriver_create_dict(void);
 extern PyObject *bpy_pydriver_Dict;
 
 extern bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
-                                               PyObject *namespace_array[],
+                                               PyObject *py_namespace_array[],
                                                const bool verbose,
                                                const char *error_prefix);
 extern bool BPY_driver_secure_bytecode_test(PyObject *expr_code,
-                                            PyObject *namespace,
+                                            PyObject *py_namespace,
                                             const bool verbose);
 
 #ifdef __cplusplus

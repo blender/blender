@@ -8,17 +8,18 @@
  * This file contains implementation of 2D image stabilization.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_sort_utils.h"
 #include "BLI_task.h"
@@ -1285,7 +1286,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   discard_stabilization_working_context(ctx);
 }
 
-typedef void (*interpolation_func)(const ImBuf *, ImBuf *, float, float, int, int);
+using interpolation_func = void (*)(const ImBuf *, ImBuf *, float, float, int, int);
 
 struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;

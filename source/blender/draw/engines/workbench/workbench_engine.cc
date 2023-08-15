@@ -5,14 +5,14 @@
 #include "BKE_editmesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "DEG_depsgraph_query.h"
 #include "DNA_fluid_types.h"
-#include "ED_paint.h"
-#include "ED_view3d.h"
+#include "ED_paint.hh"
+#include "ED_view3d.hh"
 #include "GPU_capabilities.h"
 #include "IMB_imbuf_types.h"
 
@@ -805,40 +805,45 @@ extern "C" {
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
 DrawEngineType draw_engine_workbench_next = {
-    nullptr,
-    nullptr,
-    N_("Workbench"),
-    &workbench_data_size,
-    &workbench_engine_init,
-    nullptr,
-    &workbench_instance_free,
-    &workbench_cache_init,
-    &workbench_cache_populate,
-    &workbench_cache_finish,
-    &workbench_draw_scene,
-    &workbench_view_update,
-    &workbench_id_update,
-    &workbench_render_to_image,
-    nullptr,
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ N_("Workbench"),
+    /*vedata_size*/ &workbench_data_size,
+    /*engine_init*/ &workbench_engine_init,
+    /*engine_free*/ nullptr,
+    /*instance_free*/ &workbench_instance_free,
+    /*cache_init*/ &workbench_cache_init,
+    /*cache_populate*/ &workbench_cache_populate,
+    /*cache_finish*/ &workbench_cache_finish,
+    /*draw_scene*/ &workbench_draw_scene,
+    /*view_update*/ &workbench_view_update,
+    /*id_update*/ &workbench_id_update,
+    /*render_to_image*/ &workbench_render_to_image,
+    /*store_metadata*/ nullptr,
 };
 
 RenderEngineType DRW_engine_viewport_workbench_next_type = {
-    nullptr,
-    nullptr,
-    "BLENDER_WORKBENCH_NEXT",
-    N_("Workbench Next"),
-    RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
-    nullptr,
-    &DRW_render_to_image,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    &workbench_render_update_passes,
-    &draw_engine_workbench_next,
-    {nullptr, nullptr, nullptr},
+    /*next*/ nullptr,
+    /*prev*/ nullptr,
+    /*idname*/ "BLENDER_WORKBENCH_NEXT",
+    /*name*/ N_("Workbench Next"),
+    /*flag*/ RE_INTERNAL | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
+    /*update*/ nullptr,
+    /*render*/ &DRW_render_to_image,
+    /*render_frame_finish*/ nullptr,
+    /*draw*/ nullptr,
+    /*bake*/ nullptr,
+    /*view_update*/ nullptr,
+    /*view_draw*/ nullptr,
+    /*update_script_node*/ nullptr,
+    /*update_render_passes*/ &workbench_render_update_passes,
+    /*draw_engine*/ &draw_engine_workbench_next,
+    /*rna_ext*/
+    {
+        /*data*/ nullptr,
+        /*srna*/ nullptr,
+        /*call*/ nullptr,
+    },
 };
 }
 

@@ -21,19 +21,18 @@
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
-#include "ED_screen.h"
+#include "ED_asset.hh"
+#include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "interface_intern.hh"
 
@@ -128,7 +127,7 @@ static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, 
   uiLayout *row = uiLayoutRow(layout, false);
 
   uiLayout *subrow = uiLayoutRow(row, true);
-  uiItemR(subrow, &listptr, "filter_name", 0, "", ICON_NONE);
+  uiItemR(subrow, &listptr, "filter_name", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(subrow,
           &listptr,
           "use_filter_invert",
@@ -876,7 +875,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       but = uiDefIconTextButR_prop(block,
                                    UI_BTYPE_NUM,
                                    0,
-                                   0,
+                                   ICON_NONE,
                                    numstr,
                                    0,
                                    0,

@@ -22,13 +22,6 @@ TreeElementSequence::TreeElementSequence(TreeElement &legacy_te, Sequence &seque
     : AbstractTreeElement(legacy_te), sequence_(sequence)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE);
-
-  /*
-   * The idcode is a little hack, but the outliner
-   * only check te->idcode if te->type is equal to zero,
-   * so this is "safe".
-   */
-  legacy_te.idcode = sequence_.type;
   legacy_te.name = sequence_.name + 2;
 }
 
@@ -62,6 +55,11 @@ Sequence &TreeElementSequence::getSequence() const
   return sequence_;
 }
 
+SequenceType TreeElementSequence::getSequenceType() const
+{
+  return SequenceType(sequence_.type);
+}
+
 /* -------------------------------------------------------------------- */
 /* Strip */
 
@@ -86,8 +84,6 @@ TreeElementSequenceStripDuplicate::TreeElementSequenceStripDuplicate(TreeElement
     : AbstractTreeElement(legacy_te), sequence_(sequence)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE_DUP);
-
-  legacy_te_.idcode = sequence.type;
   legacy_te_.name = sequence.strip->stripdata->filename;
 }
 

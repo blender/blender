@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../../blenkernel
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -20,27 +21,26 @@ set(INC_SYS
 )
 
 set(SRC
-  gizmo_draw_utils.c
+  gizmo_draw_utils.cc
   gizmo_geometry.h
   gizmo_library_intern.h
-  gizmo_library_presets.c
-  gizmo_library_utils.c
-  geometry/geom_arrow_gizmo.c
-  geometry/geom_cube_gizmo.c
-  geometry/geom_dial_gizmo.c
-  gizmo_types/arrow3d_gizmo.c
-  gizmo_types/blank3d_gizmo.c
-  gizmo_types/button2d_gizmo.c
-  gizmo_types/cage2d_gizmo.c
-  gizmo_types/cage3d_gizmo.c
-  gizmo_types/dial3d_gizmo.c
-  gizmo_types/move3d_gizmo.c
-  gizmo_types/primitive3d_gizmo.c
-  gizmo_types/snap3d_gizmo.c
+  gizmo_library_presets.cc
+  gizmo_library_utils.cc
+  geometry/geom_arrow_gizmo.cc
+  geometry/geom_cube_gizmo.cc
+  geometry/geom_dial_gizmo.cc
+  gizmo_types/arrow3d_gizmo.cc
+  gizmo_types/blank3d_gizmo.cc
+  gizmo_types/button2d_gizmo.cc
+  gizmo_types/cage2d_gizmo.cc
+  gizmo_types/cage3d_gizmo.cc
+  gizmo_types/dial3d_gizmo.cc
+  gizmo_types/move3d_gizmo.cc
+  gizmo_types/primitive3d_gizmo.cc
+  gizmo_types/snap3d_gizmo.cc
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

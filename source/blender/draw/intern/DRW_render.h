@@ -672,8 +672,8 @@ DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState 
  */
 void DRW_pass_link(DRWPass *first, DRWPass *second);
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgroup),
-                              void *userData);
+                              void (*callback)(void *user_data, DRWShadingGroup *shgroup),
+                              void *user_data);
 /**
  * Sort Shading groups by decreasing Z of their first draw call.
  * This is useful for order dependent effect such as alpha-blending.

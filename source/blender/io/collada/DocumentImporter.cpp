@@ -35,7 +35,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -55,10 +55,10 @@
 #include "DNA_camera_types.h"
 #include "DNA_light_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -387,8 +387,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
                                                bool is_library_node)
 {
   // fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ?
-  // instance_node->getOriginalId().c_str() : NULL, source_node ?
-  // source_node->getOriginalId().c_str() : NULL);
+  // instance_node->getOriginalId().c_str() : nullptr, source_node ?
+  // source_node->getOriginalId().c_str() : nullptr);
 
   Main *bmain = CTX_data_main(mContext);
   Object *obn = (Object *)BKE_id_copy(bmain, &source_ob->id);

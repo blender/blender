@@ -6,10 +6,10 @@
  * \ingroup edobj
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,18 +36,18 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "object_intern.h"
 
@@ -100,9 +100,7 @@ static bool UNUSED_FUNCTION(object_has_shaderfx)(const Object *ob,
                                                  const ShaderFxData *exclude,
                                                  ShaderFxType type)
 {
-  ShaderFxData *fx;
-
-  for (fx = static_cast<ShaderFxData *>(ob->shader_fx.first); fx; fx = fx->next) {
+  LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
     if ((fx != exclude) && (fx->type == type)) {
       return true;
     }
@@ -120,7 +118,7 @@ static bool object_shaderfx_remove(Main *bmain,
    * get called twice on same effect, so make
    * sure it is in list. */
   if (BLI_findindex(&ob->shader_fx, fx) == -1) {
-    return 0;
+    return false;
   }
 
   DEG_relations_tag_update(bmain);
@@ -129,7 +127,7 @@ static bool object_shaderfx_remove(Main *bmain,
   BKE_shaderfx_free(fx);
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, ShaderFxData *fx)
@@ -141,13 +139,13 @@ bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, Sha
 
   if (!ok) {
     BKE_reportf(reports, RPT_ERROR, "Effect '%s' not in object '%s'", fx->name, ob->id.name);
-    return 0;
+    return false;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
 
-  return 1;
+  return true;
 }
 
 void ED_object_shaderfx_clear(Main *bmain, Object *ob)

@@ -6,15 +6,15 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
 #include "DNA_vfont_types.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -23,9 +23,9 @@
 
 #  include "DEG_depsgraph.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
-/* Matching function in rna_ID.c */
+/* Matching function in rna_ID.cc */
 static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   VFont *vfont = (VFont *)ptr->owner_id;

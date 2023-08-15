@@ -316,7 +316,7 @@ static void geom_add_polygon(Geometry *geom,
   else {
     /* Remove just-added corners for the invalid face. */
     geom->face_corners_.resize(orig_corners_size);
-    geom->has_invalid_polys_ = true;
+    geom->has_invalid_faces_ = true;
   }
 }
 
@@ -433,7 +433,7 @@ static void geom_new_object(const char *p,
       r_curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
 }
 
-OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_size = 64 * 1024)
+OBJParser::OBJParser(const OBJImportParams &import_params, size_t read_buffer_size)
     : import_params_(import_params), read_buffer_size_(read_buffer_size)
 {
   obj_file_ = BLI_fopen(import_params_.filepath, "rb");

@@ -17,6 +17,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_geom.h"
 
 #include "BLT_translation.h"
 
@@ -33,20 +34,20 @@
 
 #include "DEG_depsgraph_build.h"
 
-#include "ED_asset.h"
-#include "ED_node.h" /* own include */
-#include "ED_render.h"
-#include "ED_screen.h"
+#include "ED_asset.hh"
+#include "ED_node.hh" /* own include */
+#include "ED_render.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 #include "node_intern.hh" /* own include */
 
@@ -453,19 +454,19 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
-static char *node_add_group_asset_get_description(bContext *C,
-                                                  wmOperatorType * /*op*/,
-                                                  PointerRNA * /*values*/)
+static std::string node_add_group_asset_get_description(bContext *C,
+                                                        wmOperatorType * /*op*/,
+                                                        PointerRNA * /*values*/)
 {
   const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
-    return nullptr;
+    return "";
   }
   const AssetMetaData &asset_data = asset->get_metadata();
   if (!asset_data.description) {
-    return nullptr;
+    return "";
   }
-  return BLI_strdup(DATA_(asset_data.description));
+  return TIP_(asset_data.description);
 }
 
 void NODE_OT_add_group_asset(wmOperatorType *ot)
@@ -546,8 +547,7 @@ static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 static bool node_add_object_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
-         !UI_but_active_drop_name(C);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
 }
 
 void NODE_OT_add_object(wmOperatorType *ot)
@@ -633,8 +633,7 @@ static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent
 static bool node_add_collection_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY) &&
-         !UI_but_active_drop_name(C);
+  return ED_operator_node_editable(C) && ELEM(snode->nodetree->type, NTREE_GEOMETRY);
 }
 
 void NODE_OT_add_collection(wmOperatorType *ot)

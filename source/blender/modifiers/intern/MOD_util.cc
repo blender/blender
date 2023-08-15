@@ -28,7 +28,7 @@
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.h"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_object.h"
 
 #include "BKE_modifier.h"
@@ -94,32 +94,27 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
 
   /* UVs need special handling, since they come from faces */
   if (texmapping == MOD_DISP_MAP_UV) {
-    if (CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
-      const OffsetIndices polys = mesh->polys();
+    if (CustomData_has_layer(&mesh->loop_data, CD_PROP_FLOAT2)) {
+      const OffsetIndices faces = mesh->faces();
       const Span<int> corner_verts = mesh->corner_verts();
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-      CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
+      CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, dmd->uvlayer_name, uvname);
       const float(*mloop_uv)[2] = static_cast<const float(*)[2]>(
-          CustomData_get_layer_named(&mesh->ldata, CD_PROP_FLOAT2, uvname));
+          CustomData_get_layer_named(&mesh->loop_data, CD_PROP_FLOAT2, uvname));
 
       /* verts are given the UV from the first face that uses them */
-      for (const int i : polys.index_range()) {
-        const IndexRange poly = polys[i];
-        uint fidx = poly.size() - 1;
-
-        do {
-          uint lidx = poly.start() + fidx;
-          const int vidx = corner_verts[lidx];
-
-          if (!BLI_BITMAP_TEST(done, vidx)) {
+      for (const int i : faces.index_range()) {
+        const IndexRange face = faces[i];
+        for (const int corner : face) {
+          const int vert = corner_verts[corner];
+          if (!BLI_BITMAP_TEST(done, vert)) {
             /* remap UVs from [0, 1] to [-1, 1] */
-            r_texco[vidx][0] = (mloop_uv[lidx][0] * 2.0f) - 1.0f;
-            r_texco[vidx][1] = (mloop_uv[lidx][1] * 2.0f) - 1.0f;
-            BLI_BITMAP_ENABLE(done, vidx);
+            r_texco[vert][0] = (mloop_uv[corner][0] * 2.0f) - 1.0f;
+            r_texco[vert][1] = (mloop_uv[corner][1] * 2.0f) - 1.0f;
+            BLI_BITMAP_ENABLE(done, vert);
           }
-
-        } while (fidx--);
+        }
       }
 
       MEM_freeN(done);

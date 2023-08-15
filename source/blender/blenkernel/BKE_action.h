@@ -26,6 +26,7 @@ struct bArmature;
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct AnimationEvalContext;
 struct FCurve;
+struct ID;
 struct Main;
 struct Object;
 struct bAction;
@@ -388,13 +389,15 @@ void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose) ATTR_NONNULL(1,
 
 void BKE_pose_blend_write(struct BlendWriter *writer, struct bPose *pose, struct bArmature *arm)
     ATTR_NONNULL(1, 2, 3);
-void BKE_pose_blend_read_data(struct BlendDataReader *reader, struct bPose *pose) ATTR_NONNULL(1);
+void BKE_pose_blend_read_data(struct BlendDataReader *reader,
+                              struct ID *id_owner,
+                              struct bPose *pose) ATTR_NONNULL(1, 2);
 void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose)
     ATTR_NONNULL(1, 2);
 void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose)
     ATTR_NONNULL(1);
 
-/* action_mirror.c */
+/* `action_mirror.cc` */
 
 void BKE_action_flip_with_pose(struct bAction *act, struct Object *ob_arm) ATTR_NONNULL(1, 2);
 

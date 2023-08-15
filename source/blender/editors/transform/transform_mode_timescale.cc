@@ -6,20 +6,20 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_anim_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_nla.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -77,7 +77,7 @@ static void applyTimeScaleValue(TransInfo *t, float value)
   }
 }
 
-static void applyTimeScale(TransInfo *t, const int[2] /*mval*/)
+static void applyTimeScale(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
 
@@ -89,7 +89,7 @@ static void applyTimeScale(TransInfo *t, const int[2] /*mval*/)
 
   applyTimeScaleValue(t, t->values_final[0]);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

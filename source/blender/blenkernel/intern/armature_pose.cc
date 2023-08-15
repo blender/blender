@@ -18,7 +18,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
 using namespace blender::bke;
 

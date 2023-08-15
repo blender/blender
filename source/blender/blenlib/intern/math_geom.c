@@ -6,10 +6,15 @@
  * \ingroup bli
  */
 
+#include "BLI_math_base.h"
+#include "BLI_math_geom.h"
+
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
 #include "BLI_math_bits.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h"
@@ -795,14 +800,15 @@ void dist_squared_to_projected_aabb_precalc(struct DistProjectedAABBPrecalc *pre
   float projmat_trans[4][4];
   transpose_m4_m4(projmat_trans, projmat);
   if (!isect_plane_plane_plane_v3(
-          projmat_trans[0], projmat_trans[1], projmat_trans[3], precalc->ray_origin)) {
+          projmat_trans[0], projmat_trans[1], projmat_trans[3], precalc->ray_origin))
+  {
     /* Orthographic projection. */
     isect_plane_plane_v3(px, py, precalc->ray_origin, precalc->ray_direction);
   }
   else {
     /* Perspective projection. */
     cross_v3_v3v3(precalc->ray_direction, py, px);
-    //normalize_v3(precalc->ray_direction);
+    // normalize_v3(precalc->ray_direction);
   }
 #else
   if (!isect_plane_plane_v3(px, py, precalc->ray_origin, precalc->ray_direction)) {
@@ -1870,7 +1876,7 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
    * otherwise we won't match any of the other intersect functions here...
    * which would be confusing. */
 #if 0
-        || (sign_T > *r_lambda * xor_signmask(det, sign_mask))
+      || (sign_T > *r_lambda * xor_signmask(det, sign_mask))
 #endif
   )
   {

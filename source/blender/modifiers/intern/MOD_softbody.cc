@@ -23,10 +23,10 @@
 #include "BKE_screen.h"
 #include "BKE_softbody.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.h"
@@ -37,23 +37,23 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-static void deformVerts(ModifierData * /*md*/,
-                        const ModifierEvalContext *ctx,
-                        Mesh * /*mesh*/,
-                        float (*vertexCos)[3],
-                        int verts_num)
+static void deform_verts(ModifierData * /*md*/,
+                         const ModifierEvalContext *ctx,
+                         Mesh * /*mesh*/,
+                         float (*vertexCos)[3],
+                         int verts_num)
 {
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   sbObjectStep(
       ctx->depsgraph, scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, verts_num);
 }
 
-static bool dependsOnTime(Scene * /*scene*/, ModifierData * /*md*/)
+static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)
 {
   return true;
 }
 
-static void updateDepsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgraphContext *ctx)
+static void update_depsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgraphContext *ctx)
 {
   if (ctx->object->soft) {
     /* Actual code uses ccd_build_deflector_hash */
@@ -81,15 +81,16 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_panel_end(layout, ptr);
 }
 
-static void panelRegister(ARegionType *region_type)
+static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_Softbody, panel_draw);
 }
 
 ModifierTypeInfo modifierType_Softbody = {
+    /*idname*/ "Softbody",
     /*name*/ N_("Softbody"),
-    /*structName*/ "SoftbodyModifierData",
-    /*structSize*/ sizeof(SoftbodyModifierData),
+    /*struct_name*/ "SoftbodyModifierData",
+    /*struct_size*/ sizeof(SoftbodyModifierData),
     /*srna*/ &RNA_SoftBodyModifier,
     /*type*/ eModifierTypeType_OnlyDeform,
     /*flags*/ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
@@ -97,26 +98,26 @@ ModifierTypeInfo modifierType_Softbody = {
         eModifierTypeFlag_UsesPointCache,
     /*icon*/ ICON_MOD_SOFT,
 
-    /*copyData*/ nullptr,
+    /*copy_data*/ nullptr,
 
-    /*deformVerts*/ deformVerts,
-    /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ nullptr,
-    /*deformMatricesEM*/ nullptr,
-    /*modifyMesh*/ nullptr,
-    /*modifyGeometrySet*/ nullptr,
+    /*deform_verts*/ deform_verts,
+    /*deform_matrices*/ nullptr,
+    /*deform_verts_EM*/ nullptr,
+    /*deform_matrices_EM*/ nullptr,
+    /*modify_mesh*/ nullptr,
+    /*modify_geometry_set*/ nullptr,
 
-    /*initData*/ nullptr,
-    /*requiredDataMask*/ nullptr,
-    /*freeData*/ nullptr,
-    /*isDisabled*/ nullptr,
-    /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ dependsOnTime,
-    /*dependsOnNormals*/ nullptr,
-    /*foreachIDLink*/ nullptr,
-    /*foreachTexLink*/ nullptr,
-    /*freeRuntimeData*/ nullptr,
-    /*panelRegister*/ panelRegister,
-    /*blendWrite*/ nullptr,
-    /*blendRead*/ nullptr,
+    /*init_data*/ nullptr,
+    /*required_data_mask*/ nullptr,
+    /*free_data*/ nullptr,
+    /*is_disabled*/ nullptr,
+    /*update_depsgraph*/ update_depsgraph,
+    /*depends_on_time*/ depends_on_time,
+    /*depends_on_normals*/ nullptr,
+    /*foreach_ID_link*/ nullptr,
+    /*foreach_tex_link*/ nullptr,
+    /*free_runtime_data*/ nullptr,
+    /*panel_register*/ panel_register,
+    /*blend_write*/ nullptr,
+    /*blend_read*/ nullptr,
 };

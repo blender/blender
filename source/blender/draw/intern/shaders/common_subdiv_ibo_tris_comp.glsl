@@ -16,7 +16,7 @@ layout(std430, binding = 2) writeonly buffer outputTriangles
 #ifndef SINGLE_MATERIAL
 layout(std430, binding = 3) readonly buffer inputPolygonMatOffset
 {
-  int polygon_mat_offset[];
+  int face_mat_offset[];
 };
 #endif
 
@@ -34,13 +34,12 @@ void main()
 
   uint loop_index = quad_index * 4;
 
-  uint coarse_quad_index = coarse_polygon_index_from_subdiv_quad_index(quad_index,
-                                                                       coarse_poly_count);
+  uint coarse_quad_index = coarse_face_index_from_subdiv_quad_index(quad_index, coarse_face_count);
 
 #ifdef SINGLE_MATERIAL
   uint triangle_loop_index = quad_index * 6;
 #else
-  int mat_offset = polygon_mat_offset[coarse_quad_index];
+  int mat_offset = face_mat_offset[coarse_quad_index];
 
   int triangle_loop_index = (int(quad_index) + mat_offset) * 6;
 #endif

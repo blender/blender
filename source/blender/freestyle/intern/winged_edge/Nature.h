@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 /** \file
  * \ingroup freestyle
  * \brief Different natures for both vertices and edges
@@ -17,7 +19,7 @@ namespace Nature {
 /* XXX Why not using enums??? */
 /* In order to optimize for space (enum is int) - T.K. */
 
-typedef unsigned short VertexNature;
+typedef ushort VertexNature;
 /** true for any 0D element */
 static const VertexNature POINT = 0;  // 0
 /** true for SVertex */
@@ -31,7 +33,7 @@ static const VertexNature T_VERTEX = (1 << 3);  // 8
 /** true for CUSP */
 static const VertexNature CUSP = (1 << 4);  // 16
 
-typedef unsigned short EdgeNature;
+typedef ushort EdgeNature;
 /** true for non feature edges (always false for 1D elements of the ViewMap) */
 static const EdgeNature NO_FEATURE = 0;  // 0
 /** true for silhouettes */

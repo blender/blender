@@ -8,11 +8,10 @@
 
 #pragma once
 
-#include "BlenderTypes.h"
-
 #include "BKE_object.h"
-
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
+#include "BlenderTypes.h"
 
 class BCQuat {
  private:

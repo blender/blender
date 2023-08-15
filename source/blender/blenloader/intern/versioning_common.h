@@ -9,7 +9,9 @@
 #pragma once
 
 #ifdef __cplusplus
+#  include "BLI_function_ref.hh"
 #  include "BLI_map.hh"
+using blender::FunctionRef;
 #endif
 
 struct ARegion;
@@ -149,4 +151,10 @@ void node_tree_relink_with_socket_id_map(bNodeTree &ntree,
                                          bNode &old_node,
                                          bNode &new_node,
                                          const blender::Map<std::string, std::string> &map);
+void version_update_node_input(
+    bNodeTree *ntree,
+    FunctionRef<bool(bNode *)> check_node,
+    const char *socket_identifier,
+    FunctionRef<void(bNode *, bNodeSocket *)> update_input,
+    FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
 #endif

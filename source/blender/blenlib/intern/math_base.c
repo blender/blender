@@ -6,8 +6,7 @@
  * \ingroup bli
  */
 
-#include "BLI_math.h"
-
+#include "BLI_math_base.h"
 #include "BLI_strict_flags.h"
 
 int pow_i(int base, int exp)

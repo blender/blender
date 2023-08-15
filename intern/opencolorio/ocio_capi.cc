@@ -189,6 +189,11 @@ OCIO_ConstCPUProcessorRcPtr *OCIO_processorGetCPUProcessor(OCIO_ConstProcessorRc
   return impl->processorGetCPUProcessor(processor);
 }
 
+bool OCIO_cpuProcessorIsNoOp(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
+{
+  return impl->cpuProcessorIsNoOp(cpu_processor);
+}
+
 void OCIO_cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img)
 {
   impl->cpuProcessorApply(cpu_processor, img);
@@ -290,7 +295,8 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                const float exponent,
                                const float dither,
                                const bool use_predivide,
-                               const bool use_overlay)
+                               const bool use_overlay,
+                               const bool use_hdr)
 {
   return impl->gpuDisplayShaderBind(config,
                                     input,
@@ -302,7 +308,8 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     exponent,
                                     dither,
                                     use_predivide,
-                                    use_overlay);
+                                    use_overlay,
+                                    use_hdr);
 }
 
 void OCIO_gpuDisplayShaderUnbind()

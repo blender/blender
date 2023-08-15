@@ -10,7 +10,7 @@
  * needed to hook up the gizmo system with Blender's window manager. It's
  * mostly the event system that needs to communicate with gizmo code.
  *
- * Only included in wm.h and lower level files.
+ * Only included in `wm.hh` and lower level files.
  */
 
 #pragma once
@@ -28,7 +28,7 @@ extern "C" {
 /** \name #wmGizmo
  * \{ */
 
-/* wm_gizmo_type.c, for init/exit */
+/* `wm_gizmo_type.cc`, for init/exit */
 
 void wm_gizmotype_free(void);
 /**

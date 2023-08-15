@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "ED_file_indexer.h"
+#include "ED_file_indexer.hh"
 
 #ifdef __cplusplus
 extern "C" {

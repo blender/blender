@@ -12,7 +12,7 @@
 #include "BLI_alloca.h"
 #include "BLI_ghash.h"
 #include "BLI_gsqueue.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rand.h"
 #include "BLI_task.h"
@@ -31,19 +31,19 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_attribute.h"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mirror.h"
-#include "BKE_mesh_types.h"
+#include "BKE_mesh_mirror.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
+#include "BKE_multires.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -53,28 +53,28 @@
 
 #include "IMB_colormanagement.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_image.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_space_api.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_view3d.h"
+#include "ED_image.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_space_api.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_view3d.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_state.h"
@@ -333,7 +333,7 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
      * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
     /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
      * initialized, which is used is some operators that modify the mesh topology to perform
-     * certain actions in the new polys. After these operations are finished, all polys should have
+     * certain actions in the new faces. After these operations are finished, all faces should have
      * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
      * visibility correctly. */
     /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
@@ -450,7 +450,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
       bool need_bmlog = !ob->sculpt->bm_log;
 
-      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, ob);
 
       if (has_undo) {
         SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_DYNTOPO_BEGIN);
@@ -760,7 +760,7 @@ static bool sculpt_sample_color_update_from_base(bContext *C,
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, object_sample);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MPropCol *vcol = static_cast<MPropCol *>(
-      CustomData_get_layer_for_write(&me_eval->vdata, CD_PROP_COLOR, me_eval->totvert));
+      CustomData_get_layer_for_write(&me_eval->vert_data, CD_PROP_COLOR, me_eval->totvert));
 
   if (!vcol) {
     return false;
@@ -891,7 +891,7 @@ static void SCULPT_OT_sample_color(wmOperatorType *ot)
   ot->modal = sculpt_sample_color_modal;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
 /**
@@ -1494,13 +1494,13 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case AUTOMASK_SETTINGS_OPERATOR: {
-      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "blur_steps", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "invert", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "use_curve", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "blur_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "invert", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr;
@@ -1513,9 +1513,9 @@ static void cavity_bake_ui(bContext *C, wmOperator *op)
     }
     case AUTOMASK_SETTINGS_BRUSH:
     case AUTOMASK_SETTINGS_SCENE:
-      uiItemR(layout, op->ptr, "mix_mode", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", 0, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "settings_source", 0, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "settings_source", UI_ITEM_NONE, nullptr, ICON_NONE);
 
       break;
   }
@@ -1628,7 +1628,7 @@ static int sculpt_reveal_all_exec(bContext *C, wmOperator *op)
     /* As an optimization, free the hide attribute when making all geometry visible. This allows
      * reduced memory usage without manually clearing it later, and allows sculpt operations to
      * avoid checking element's hide status. */
-    CustomData_free_layer_named(&mesh->pdata, ".hide_poly", mesh->totpoly);
+    CustomData_free_layer_named(&mesh->face_data, ".hide_poly", mesh->faces_num);
     ss->hide_poly = nullptr;
   }
   else {
@@ -1700,7 +1700,7 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_mask_expand);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
   WM_operatortype_append(SCULPT_OT_face_sets_create);
-  WM_operatortype_append(SCULPT_OT_face_sets_change_visibility);
+  WM_operatortype_append(SCULPT_OT_face_set_change_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_invert_visibility);
   WM_operatortype_append(SCULPT_OT_face_sets_randomize_colors);
   WM_operatortype_append(SCULPT_OT_cloth_filter);

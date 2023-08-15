@@ -7,7 +7,7 @@
  * Implementation of Bone Groups operators and editing API's.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -22,18 +22,18 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_outliner.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_outliner.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "armature_intern.h"
 
@@ -293,7 +293,6 @@ static int group_move_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_pose_object_from_context(C);
   bPose *pose = (ob) ? ob->pose : nullptr;
-  bPoseChannel *pchan;
   bActionGroup *grp;
   int dir = RNA_enum_get(op->ptr, "direction");
 
@@ -317,8 +316,7 @@ static int group_move_exec(bContext *C, wmOperator *op)
 
     pose->active_group += dir;
     /* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
-    {
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (pchan->agrp_index == grpIndexB) {
         pchan->agrp_index = grpIndexA;
       }
@@ -381,7 +379,6 @@ static int group_sort_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = ED_pose_object_from_context(C);
   bPose *pose = (ob) ? ob->pose : nullptr;
-  bPoseChannel *pchan;
   tSortActionGroup *agrp_array;
   bActionGroup *agrp;
 
@@ -414,7 +411,7 @@ static int group_sort_exec(bContext *C, wmOperator * /*op*/)
   }
 
   /* Fix changed bone group indices in bones. */
-  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     for (i = 0; i < agrp_count; i++) {
       if (pchan->agrp_index == agrp_array[i].index) {
         pchan->agrp_index = i + 1;
@@ -478,7 +475,7 @@ static int pose_group_select_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  pose_group_select(ob, 1);
+  pose_group_select(ob, true);
 
   /* notifiers for updates */
   bArmature *arm = static_cast<bArmature *>(ob->data);
@@ -513,7 +510,7 @@ static int pose_group_deselect_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  pose_group_select(ob, 0);
+  pose_group_select(ob, false);
 
   /* notifiers for updates */
   bArmature *arm = static_cast<bArmature *>(ob->data);

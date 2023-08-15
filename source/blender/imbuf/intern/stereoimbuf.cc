@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -20,9 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_math.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"

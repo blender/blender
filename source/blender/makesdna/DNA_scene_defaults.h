@@ -159,6 +159,18 @@
     .viewport_aa = SCE_DISPLAY_AA_FXAA, \
   }
 
+#define _DNA_DEFAULT_RaytraceEEVEE \
+  { \
+    .flag = RAYTRACE_EEVEE_USE_DENOISE, \
+    .denoise_stages = RAYTRACE_EEVEE_DENOISE_SPATIAL | \
+                    RAYTRACE_EEVEE_DENOISE_TEMPORAL | \
+                    RAYTRACE_EEVEE_DENOISE_BILATERAL, \
+    .screen_trace_quality = 0.25f, \
+    .screen_trace_thickness = 0.2f, \
+    .sample_clamp = 10.0f, \
+    .resolution_scale = 2, \
+  }
+
 #define _DNA_DEFAULT_PhysicsSettings \
   { \
     .gravity = {0.0f, 0.0f, -9.81f}, \
@@ -174,6 +186,7 @@
     .gi_irradiance_draw_size = 0.1f, \
     .gi_irradiance_smoothing = 0.1f, \
     .gi_filter_quality = 3.0f, \
+    .gi_irradiance_pool_size = 16, \
  \
     .taa_samples = 16, \
     .taa_render_samples = 64, \
@@ -220,6 +233,12 @@
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
  \
+    .ray_split_settings = 0, \
+    .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
+ \
+    .reflection_options = _DNA_DEFAULT_RaytraceEEVEE, \
+    .refraction_options = _DNA_DEFAULT_RaytraceEEVEE, \
+ \
     .light_cache_data = NULL, \
     .light_threshold = 0.01f, \
  \
@@ -228,6 +247,11 @@
     .flag = SCE_EEVEE_VOLUMETRIC_LIGHTS | SCE_EEVEE_GTAO_BENT_NORMALS | \
                     SCE_EEVEE_GTAO_BOUNCE | SCE_EEVEE_TAA_REPROJECTION | \
                     SCE_EEVEE_SSR_HALF_RESOLUTION | SCE_EEVEE_SHADOW_SOFT, \
+  }
+
+#define _DNA_DEFAULT_SceneHydra \
+  { \
+    .export_method = SCE_HYDRA_EXPORT_HYDRA, \
   }
 
 #define _DNA_DEFAULT_Scene \
@@ -243,6 +267,8 @@
     .safe_areas = _DNA_DEFAULT_DisplaySafeAreas, \
  \
     .eevee = _DNA_DEFAULT_SceneEEVEE, \
+ \
+    .hydra = _DNA_DEFAULT_SceneHydra, \
   }
 
 /** \} */

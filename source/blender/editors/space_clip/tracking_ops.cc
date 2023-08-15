@@ -13,7 +13,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -24,14 +25,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_clip.h"
-#include "ED_screen.h"
+#include "ED_clip.hh"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "BLT_translation.h"
 
@@ -63,7 +64,7 @@ static bool add_marker(const bContext *C, float x, float y)
 
   track = BKE_tracking_track_add(tracking, &tracking_object->tracks, x, y, framenr, width, height);
 
-  BKE_tracking_track_select(&tracking_object->tracks, track, TRACK_AREA_ALL, 0);
+  BKE_tracking_track_select(&tracking_object->tracks, track, TRACK_AREA_ALL, false);
   BKE_tracking_plane_tracks_deselect_all(&tracking_object->plane_tracks);
 
   tracking_object->active_track = track;
@@ -332,16 +333,16 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 /** \name Slide Marker Operator
  * \{ */
 
-typedef enum eSlideAction {
+enum eSlideAction {
   SLIDE_ACTION_NONE,
 
   SLIDE_ACTION_POS,
   SLIDE_ACTION_SIZE,
   SLIDE_ACTION_OFFSET,
   SLIDE_ACTION_TILT_SIZE,
-} eSlideAction;
+};
 
-typedef struct {
+struct SlideMarkerData {
   short area;
   eSlideAction action;
   MovieTrackingTrack *track;
@@ -357,7 +358,7 @@ typedef struct {
   float old_search_min[2], old_search_max[2], old_pos[2];
   float old_corners[4][2];
   float (*old_markers)[2];
-} SlideMarkerData;
+};
 
 static void slide_marker_tilt_slider_relative(const float pattern_corners[4][2], float r_slider[2])
 {
@@ -891,7 +892,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
                "Clear action to execute");
   RNA_def_boolean(ot->srna,
                   "clear_active",
-                  0,
+                  false,
                   "Clear Active",
                   "Clear active track only instead of all selected tracks");
 }
@@ -1030,7 +1031,7 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
+  RNA_def_boolean(ot->srna, "unselected", false, "Unselected", "Hide unselected tracks");
 }
 
 /** \} */
@@ -1313,7 +1314,7 @@ static int average_tracks_exec(bContext *C, wmOperator *op)
   /* Update selection, making the result track active and selected. */
   /* TODO(sergey): Should become some sort of utility function available for all operators. */
 
-  BKE_tracking_track_select(&tracking_object->tracks, result_track, TRACK_AREA_ALL, 0);
+  BKE_tracking_track_select(&tracking_object->tracks, result_track, TRACK_AREA_ALL, false);
   BKE_tracking_plane_tracks_deselect_all(&tracking_object->plane_tracks);
 
   tracking_object->active_track = result_track;
@@ -1365,7 +1366,7 @@ void CLIP_OT_average_tracks(wmOperatorType *ot)
   /* Properties. */
   PropertyRNA *prop;
 
-  prop = RNA_def_boolean(ot->srna, "keep_original", 1, "Keep Original", "Keep original tracks");
+  prop = RNA_def_boolean(ot->srna, "keep_original", true, "Keep Original", "Keep original tracks");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
@@ -1591,7 +1592,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
       if (frames) {
         if (len < frames) {
           segok = 0;
-          ok = 0;
+          ok = false;
 
           if (!del) {
             break;
@@ -1634,7 +1635,7 @@ static bool is_track_clean(MovieTrackingTrack *track, int frames, int del)
   }
 
   if (del && count == 0) {
-    ok = 0;
+    ok = false;
   }
 
   if (del) {
@@ -1761,8 +1762,8 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
               0,
               INT_MAX,
               "Tracked Frames",
-              "Effect on tracks which are tracked less than "
-              "specified amount of frames",
+              "Affect tracks which are tracked less than the "
+              "specified number of frames",
               0,
               INT_MAX);
   RNA_def_float(ot->srna,
@@ -1771,7 +1772,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
                 0.0f,
                 FLT_MAX,
                 "Reprojection Error",
-                "Effect on tracks which have got larger reprojection error",
+                "Affect tracks which have a larger reprojection error",
                 0.0f,
                 100.0f);
   RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
@@ -1900,7 +1901,7 @@ static bool paste_tracks_poll(bContext *C)
     return BKE_tracking_clipboard_has_tracks();
   }
 
-  return 0;
+  return false;
 }
 
 static int paste_tracks_exec(bContext *C, wmOperator * /*op*/)

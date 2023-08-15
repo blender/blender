@@ -114,7 +114,7 @@ static PyMethodDef module_functions[] = {
 /*-----------------------Integrator module definition--------------------------------------*/
 
 static PyModuleDef module_definition = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "Freestyle.Integrator",
     /*m_doc*/ module_docstring,
     /*m_size*/ -1,
@@ -146,7 +146,7 @@ PyDoc_STRVAR(IntegrationType_doc,
              "  last of the values obtained for the 0D elements.");
 
 PyTypeObject IntegrationType_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IntegrationType",
     /*tp_basicsize*/ sizeof(PyLongObject),
     /*tp_itemsize*/ 0,

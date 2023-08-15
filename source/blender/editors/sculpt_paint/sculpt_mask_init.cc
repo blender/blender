@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_hash.h"
-#include "BLI_math.h"
 #include "BLI_task.h"
 
 #include "PIL_time.h"
@@ -21,17 +20,17 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "sculpt_intern.hh"
 

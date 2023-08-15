@@ -82,7 +82,7 @@ GHOST_DropTargetX11::GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX1
 
   Window wnd = window->getXWindow();
 
-  xdnd_set_dnd_aware(&m_dndClass, wnd, 0);
+  xdnd_set_dnd_aware(&m_dndClass, wnd, nullptr);
   xdnd_set_type_list(&m_dndClass, wnd, m_dndTypes);
 
   m_draggedObjectType = GHOST_kDragnDropTypeUnknown;

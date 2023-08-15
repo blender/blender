@@ -41,7 +41,7 @@
  *
  *   Ignored structs can only be referred to from non-ignored structs
  *   when referred to as a pointer (where they're usually allocated
- *   and cleared in `readfile.c`).
+ *   and cleared in `readfile.cc`).
  *
  * - %Path to the header files
  *

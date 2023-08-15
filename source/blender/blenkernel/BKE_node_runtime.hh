@@ -95,6 +95,12 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   uint8_t runtime_flag = 0;
 
   /**
+   * Contains a number increased for each node-tree update.
+   * Store a state variable in the #NestedTreePreviews structure to compare if they differ.
+   */
+  uint32_t previews_refresh_state = 0;
+
+  /**
    * Storage of nodes based on their identifier. Also used as a contiguous array of nodes to
    * allow simpler and more cache friendly iteration. Supports lookup by integer or by node.
    * Unlike other caches, this is maintained eagerly while changing the tree.
@@ -111,7 +117,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * Execution data is generated from the tree once at execution start and can then be used
    * as long as necessary, even while the tree is being modified.
    */
-  struct bNodeTreeExec *execdata = nullptr;
+  bNodeTreeExec *execdata = nullptr;
 
   /* Callbacks. */
   void (*progress)(void *, float progress) = nullptr;
@@ -244,7 +250,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   uint8_t need_exec = 0;
 
   /** The original node in the tree (for localized tree). */
-  struct bNode *original = nullptr;
+  bNode *original = nullptr;
 
   /**
    * XXX TODO
@@ -526,16 +532,6 @@ inline blender::Span<const bNodeLink *> bNodeTree::all_links() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->links;
-}
-
-inline blender::Span<const bNodePanel *> bNodeTree::panels() const
-{
-  return blender::Span(panels_array, panels_num);
-}
-
-inline blender::MutableSpan<bNodePanel *> bNodeTree::panels_for_write()
-{
-  return blender::MutableSpan(panels_array, panels_num);
 }
 
 inline blender::MutableSpan<bNestedNodeRef> bNodeTree::nested_node_refs_span()

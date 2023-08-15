@@ -18,7 +18,7 @@
 
 #include "BLF_api.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "interface_intern.hh"
 

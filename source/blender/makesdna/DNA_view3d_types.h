@@ -10,7 +10,7 @@
 
 struct BoundBox;
 struct Object;
-struct RenderEngine;
+struct ViewRender;
 struct SmoothView3DStore;
 struct SpaceLink;
 struct bGPdata;
@@ -58,7 +58,7 @@ typedef struct RegionView3D {
 
   /** Allocated backup of itself while in local-view. */
   struct RegionView3D *localvd;
-  struct RenderEngine *render_engine;
+  struct ViewRender *view_render;
 
   /** Animated smooth view. */
   struct SmoothView3DStore *sms;

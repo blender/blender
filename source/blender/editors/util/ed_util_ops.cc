@@ -19,24 +19,24 @@
 #include "BKE_context.h"
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
-#include "BKE_lib_override.h"
+#include "BKE_lib_override.hh"
 #include "BKE_main.h"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"
 
-#include "ED_asset.h"
-#include "ED_render.h"
-#include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_asset.hh"
+#include "ED_render.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name ID Previews

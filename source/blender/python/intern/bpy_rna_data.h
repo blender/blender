@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int BPY_rna_data_context_type_ready(void);
 
 extern PyMethodDef BPY_rna_data_context_method_def;

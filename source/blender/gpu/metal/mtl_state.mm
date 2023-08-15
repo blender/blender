@@ -143,7 +143,7 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
     pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_PSO_FLAG;
   }
 
-  if (changed.depth_range[0] != 0 || changed.depth_range[1] != 0) {
+  if (float_as_uint(changed.depth_range[0]) != 0 || float_as_uint(changed.depth_range[1]) != 0) {
     /* TODO remove, should modify the projection matrix instead. */
     mtl_depth_range(state.depth_range[0], state.depth_range[1]);
   }

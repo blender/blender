@@ -187,7 +187,7 @@ class Grid {
    *    nb
    *      The number of cells of the grid
    */
-  virtual void configure(const Vec3r &orig, const Vec3r &size, unsigned nb);
+  virtual void configure(const Vec3r &orig, const Vec3r &size, uint nb);
 
   /** returns a vector of integer containing the coordinates of the cell containing the point
    * passed as argument
@@ -202,7 +202,7 @@ class Grid {
       if (tmp < 0) {
         res[i] = 0;
       }
-      else if ((unsigned int)tmp >= _cells_nb[i]) {
+      else if ((uint)tmp >= _cells_nb[i]) {
         res[i] = _cells_nb[i] - 1;
       }
       else {
@@ -218,7 +218,7 @@ class Grid {
   virtual Cell *getCell(const Vec3u &coord) = 0;
 
   /** returns the cell containing the point passed as argument.
-   *  If the cell is empty (contains no occluder),  NULL is returned:
+   *  If the cell is empty (contains no occluder), nullptr is returned:
    *    p
    *      The point for which we're looking the cell
    */
@@ -238,7 +238,7 @@ class Grid {
    */
   inline void getCellOrigin(const Vec3u &cell_coord, Vec3r &orig)
   {
-    for (unsigned int i = 0; i < 3; i++) {
+    for (uint i = 0; i < 3; i++) {
       orig[i] = _orig[i] + cell_coord[i] * _cell_size[i];
     }
   }
@@ -273,10 +273,10 @@ class Grid {
    *  Returns the list of occluders contained in the cells intersected by this ray
    *  Starts with a call to InitRay.
    */
-  void castRay(const Vec3r &orig, const Vec3r &end, OccludersSet &occluders, unsigned timestamp);
+  void castRay(const Vec3r &orig, const Vec3r &end, OccludersSet &occluders, uint timestamp);
 
   // Prepares to cast ray without generating OccludersSet
-  void initAcceleratedRay(const Vec3r &orig, const Vec3r &end, unsigned timestamp);
+  void initAcceleratedRay(const Vec3r &orig, const Vec3r &end, uint timestamp);
 
   /** Casts an infinite ray (still finishing at the end of the grid) from a starting point and in a
    * given direction. Returns the list of occluders contained in the cells intersected by this ray
@@ -285,25 +285,25 @@ class Grid {
   void castInfiniteRay(const Vec3r &orig,
                        const Vec3r &dir,
                        OccludersSet &occluders,
-                       unsigned timestamp);
+                       uint timestamp);
 
   // Prepares to cast ray without generating OccludersSet.
-  bool initAcceleratedInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timestamp);
+  bool initAcceleratedInfiniteRay(const Vec3r &orig, const Vec3r &dir, uint timestamp);
 
   /** Casts an infinite ray (still finishing at the end of the grid) from a starting point and in a
    * given direction. Returns the first intersection (occluder,t,u,v) or null. Starts with a call
    * to InitRay.
    */
   Polygon3r *castRayToFindFirstIntersection(
-      const Vec3r &orig, const Vec3r &dir, double &t, double &u, double &v, unsigned timestamp);
+      const Vec3r &orig, const Vec3r &dir, double &t, double &u, double &v, uint timestamp);
 
   /** Init all structures and values for computing the cells intersected by this new ray */
-  void initRay(const Vec3r &orig, const Vec3r &end, unsigned timestamp);
+  void initRay(const Vec3r &orig, const Vec3r &end, uint timestamp);
 
   /** Init all structures and values for computing the cells intersected by this infinite ray.
    * Returns false if the ray doesn't intersect the grid.
    */
-  bool initInfiniteRay(const Vec3r &orig, const Vec3r &dir, unsigned timestamp);
+  bool initInfiniteRay(const Vec3r &orig, const Vec3r &dir, uint timestamp);
 
   /** Accessors */
   inline const Vec3r &getOrigin() const
@@ -339,7 +339,7 @@ class Grid {
   /** Core of castRay and castInfiniteRay, find occluders along the given ray */
   inline void castRayInternal(GridVisitor &visitor)
   {
-    Cell *current_cell = NULL;
+    Cell *current_cell = nullptr;
     do {
       current_cell = getCell(_current_cell);
       if (current_cell) {
@@ -360,7 +360,7 @@ class Grid {
   /** returns the  cell next to the cell passed as argument. */
   bool nextRayCell(Vec3u &current_cell, Vec3u &next_cell);
 
-  unsigned int _timestamp;
+  uint _timestamp;
 
   Vec3u _cells_nb;   // number of cells for x,y,z axis
   Vec3r _cell_size;  // cell x,y,z dimensions

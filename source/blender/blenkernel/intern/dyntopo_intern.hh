@@ -1,7 +1,7 @@
 //#define DYNTOPO_VALIDATE_LOG
 
 #include "BKE_dyntopo.hh"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.hh"
 

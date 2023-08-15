@@ -8,37 +8,41 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "DNA_meshdata_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_context.h"
 #include "BKE_kelvinlet.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_sculpt.hh"
+#include "ED_view3d.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "bmesh.h"
 
 #include <cmath>
 #include <cstdlib>
 
-void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const char *undo_name)
+void ED_sculpt_init_transform(bContext *C,
+                              Object *ob,
+                              const float mval_fl[2],
+                              const char *undo_name)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -62,7 +66,7 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0, 1.0f);
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval_fl, 5.0, 1.0f);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 

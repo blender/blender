@@ -6,8 +6,8 @@
  * \ingroup spstatusbar
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -16,18 +16,18 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLO_read_write.h"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
 /* ******************** default callbacks for statusbar space ******************** */
 
@@ -72,7 +72,7 @@ static void statusbar_header_region_init(wmWindowManager * /*wm*/, ARegion *regi
   ED_region_header_init(region);
 }
 
-static void statusbar_operatortypes(void) {}
+static void statusbar_operatortypes() {}
 
 static void statusbar_keymap(wmKeyConfig * /*keyconf*/) {}
 
@@ -113,7 +113,7 @@ static void statusbar_header_region_listener(const wmRegionListenerParams *param
 
 static void statusbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};

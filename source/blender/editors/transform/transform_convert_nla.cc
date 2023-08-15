@@ -6,7 +6,7 @@
  * \ingroup edtransform
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"
@@ -14,19 +14,20 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_nla.h"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "transform.hh"
@@ -111,7 +112,7 @@ static float transdata_get_time_shuffle_offset_side(ListBase *trans_datas, const
         }
 
         /* Allow overlap with transitions. */
-        if (non_xformed_strip->type & NLASTRIP_TYPE_TRANSITION) {
+        if (non_xformed_strip->type == NLASTRIP_TYPE_TRANSITION) {
           continue;
         }
 
@@ -446,7 +447,6 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 
   bAnimContext ac;
   ListBase anim_data = {nullptr, nullptr};
-  bAnimListElem *ale;
   int filter;
 
   int count = 0;
@@ -475,15 +475,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   }
 
   /* loop 1: count how many strips are selected (consider each strip as 2 points) */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     NlaTrack *nlt = (NlaTrack *)ale->data;
-    NlaStrip *strip;
 
     /* make some meta-strips for chains of selected strips */
-    BKE_nlastrips_make_metas(&nlt->strips, 1);
+    BKE_nlastrips_make_metas(&nlt->strips, true);
 
     /* only consider selected strips */
-    for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       /* TODO: we can make strips have handles later on. */
       /* transition strips can't get directly transformed */
       if (strip->type != NLASTRIP_TYPE_TRANSITION) {
@@ -504,9 +503,9 @@ static void createTransNlaData(bContext *C, TransInfo *t)
     /* clear temp metas that may have been created but aren't needed now
      * because they fell on the wrong side of scene->r.cfra
      */
-    for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
-      BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+      BKE_nlastrips_clear_metas(&nlt->strips, false, true);
     }
 
     /* cleanup temp list */
@@ -525,15 +524,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
   tc->custom.type.use_free = true;
 
   /* loop 2: build transdata array */
-  for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     /* only if a real NLA-track */
     if (ale->type == ANIMTYPE_NLATRACK) {
       AnimData *adt = ale->adt;
       NlaTrack *nlt = (NlaTrack *)ale->data;
-      NlaStrip *strip;
 
       /* only consider selected strips */
-      for (strip = static_cast<NlaStrip *>(nlt->strips.first); strip; strip = strip->next) {
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         /* TODO: we can make strips have handles later on. */
         /* transition strips can't get directly transformed */
         if (strip->type != NLASTRIP_TYPE_TRANSITION) {
@@ -825,7 +823,7 @@ static void recalcData_nla(TransInfo *t)
  * \{ */
 
 struct IDGroupedTransData {
-  struct IDGroupedTransData *next, *prev;
+  IDGroupedTransData *next, *prev;
 
   ID *id;
   ListBase trans_datas;
@@ -977,7 +975,7 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *t)
     BKE_nlatrack_sort_strips(nlt);
 
     /* remove the temp metas */
-    BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+    BKE_nlastrips_clear_metas(&nlt->strips, false, true);
   }
 
   /* General refresh for the outliner because the following might have happened:
@@ -1000,7 +998,7 @@ static void special_aftertrans_update__nla(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_NLA = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransNlaData,
-    /*recalcData*/ recalcData_nla,
+    /*create_trans_data*/ createTransNlaData,
+    /*recalc_data*/ recalcData_nla,
     /*special_aftertrans_update*/ special_aftertrans_update__nla,
 };

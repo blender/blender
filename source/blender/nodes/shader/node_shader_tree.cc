@@ -33,14 +33,14 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "GPU_material.h"
 
 #include "RE_texture.h"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "NOD_common.h"
 
@@ -893,7 +893,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
             case SH_NODE_BSDF_TOON:
             case SH_NODE_BSDF_TRANSLUCENT:
             case SH_NODE_BSDF_TRANSPARENT:
-            case SH_NODE_BSDF_VELVET:
+            case SH_NODE_BSDF_SHEEN:
             case SH_NODE_EEVEE_SPECULAR:
             case SH_NODE_EMISSION:
             case SH_NODE_HOLDOUT:
@@ -950,7 +950,7 @@ static bool closure_node_filter(const bNode *node)
     case SH_NODE_BSDF_TOON:
     case SH_NODE_BSDF_TRANSLUCENT:
     case SH_NODE_BSDF_TRANSPARENT:
-    case SH_NODE_BSDF_VELVET:
+    case SH_NODE_BSDF_SHEEN:
     case SH_NODE_EEVEE_SPECULAR:
     case SH_NODE_EMISSION:
     case SH_NODE_HOLDOUT:

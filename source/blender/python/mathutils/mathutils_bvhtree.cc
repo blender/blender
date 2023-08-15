@@ -15,7 +15,9 @@
 
 #include "BLI_ghash.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
@@ -37,7 +39,7 @@
 #  include "BKE_editmesh_bvh.h"
 #  include "BKE_lib_id.h"
 #  include "BKE_mesh.hh"
-#  include "BKE_mesh_runtime.h"
+#  include "BKE_mesh_runtime.hh"
 #  include "BKE_object.h"
 
 #  include "DEG_depsgraph_query.h"
@@ -1145,7 +1147,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
 
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<MLoopTri> looptris = mesh->looptris();
-  const blender::Span<int> looptri_polys = mesh->looptri_polys();
+  const blender::Span<int> looptri_faces = mesh->looptri_faces();
 
   /* Get data for tessellation */
 
@@ -1167,11 +1169,11 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
   if (tree) {
     orig_index = static_cast<int *>(
         MEM_mallocN(sizeof(*orig_index) * size_t(looptris.size()), __func__));
-    if (!BKE_mesh_poly_normals_are_dirty(mesh)) {
-      const blender::Span<blender::float3> poly_normals = mesh->poly_normals();
+    if (!BKE_mesh_face_normals_are_dirty(mesh)) {
+      const blender::Span<blender::float3> face_normals = mesh->face_normals();
       orig_normal = static_cast<blender::float3 *>(
-          MEM_malloc_arrayN(size_t(mesh->totpoly), sizeof(blender::float3), __func__));
-      blender::MutableSpan(orig_normal, poly_normals.size()).copy_from(poly_normals);
+          MEM_malloc_arrayN(size_t(mesh->faces_num), sizeof(blender::float3), __func__));
+      blender::MutableSpan(orig_normal, face_normals.size()).copy_from(face_normals);
     }
 
     for (const int64_t i : looptris.index_range()) {
@@ -1186,7 +1188,7 @@ static PyObject *C_BVHTree_FromObject(PyObject * /*cls*/, PyObject *args, PyObje
       copy_v3_v3(co[2], coords[tris[i][2]]);
 
       BLI_bvhtree_insert(tree, int(i), co[0], 3);
-      orig_index[i] = int(looptri_polys[i]);
+      orig_index[i] = int(looptri_faces[i]);
     }
 
     BLI_bvhtree_balance(tree);
@@ -1256,7 +1258,7 @@ static PyMethodDef py_bvhtree_methods[] = {
 #endif
 
 PyTypeObject PyBVHTree_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "BVHTree",
     /*tp_basicsize*/ sizeof(PyBVHTree),
     /*tp_itemsize*/ 0,
@@ -1313,7 +1315,7 @@ PyTypeObject PyBVHTree_Type = {
 PyDoc_STRVAR(py_bvhtree_doc,
              "BVH tree structures for proximity searches and ray casts on geometry.");
 static PyModuleDef bvhtree_moduledef = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.bvhtree",
     /*m_doc*/ py_bvhtree_doc,
     /*m_size*/ 0,

@@ -15,7 +15,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_mempool_private.h"
 #include "BLI_task.h"

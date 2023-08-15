@@ -14,8 +14,6 @@
 
 #include "../system/FreestyleConfig.h"
 
-#include "BLI_math.h"
-
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
 #endif
@@ -48,9 +46,9 @@ class GaussianFilter {
    * value. The sigma value determines the mask size (~ 2 x sigma).
    * \param map: The image we wish to work on.
    * The Map template must implement the following methods:
-   * - float pixel(unsigned int x,unsigned int y) const;
-   * - unsigned width() const;
-   * - unsigned height() const;
+   * - float pixel(uint x, uint y) const;
+   * - uint width() const;
+   * - uint height() const;
    *  \param x:
    *    The abscissa of the pixel where we want to evaluate the gaussian blur.
    *  \param y:

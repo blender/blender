@@ -27,8 +27,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};

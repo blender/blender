@@ -95,7 +95,7 @@ PyDoc_STRVAR(Nature_doc,
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
 PyTypeObject Nature_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Nature",
     /*tp_basicsize*/ sizeof(PyLongObject),
     /*tp_itemsize*/ 0,

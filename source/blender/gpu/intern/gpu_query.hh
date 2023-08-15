@@ -14,9 +14,9 @@ namespace blender::gpu {
 
 #define QUERY_MIN_LEN 16
 
-typedef enum GPUQueryType {
+enum GPUQueryType {
   GPU_QUERY_OCCLUSION = 0,
-} GPUQueryType;
+};
 
 class QueryPool {
  public:

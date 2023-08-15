@@ -6,9 +6,10 @@ void node_attribute_color(vec4 attr, out vec4 out_attr)
 
 void node_attribute_temperature(vec4 attr, out vec4 out_attr)
 {
-  out_attr.x = attr_load_temperature_post(attr.x);
-  out_attr.y = 0.0;
-  out_attr.z = 0.0;
+  float temperature = attr_load_temperature_post(attr.x);
+  out_attr.x = temperature;
+  out_attr.y = temperature;
+  out_attr.z = temperature;
   out_attr.w = 1.0;
 }
 

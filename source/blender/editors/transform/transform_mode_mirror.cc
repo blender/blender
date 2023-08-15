@@ -6,18 +6,19 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
-#include "BLI_math.h"
 #include "BLI_math_bits.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_string.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "BLT_translation.h"
 
@@ -152,7 +153,7 @@ static void ElementMirror(TransInfo *t, TransDataContainer *tc, TransData *td, i
   }
 }
 
-static void applyMirror(TransInfo *t, const int[2] /*mval*/)
+static void applyMirror(TransInfo *t)
 {
   int i;
   char str[UI_MAX_DRAW_STR];
@@ -189,7 +190,7 @@ static void applyMirror(TransInfo *t, const int[2] /*mval*/)
       }
     }
 
-    recalcData(t);
+    recalc_data(t);
 
     ED_area_status_text(t->area, str);
   }
@@ -205,7 +206,7 @@ static void applyMirror(TransInfo *t, const int[2] /*mval*/)
       }
     }
 
-    recalcData(t);
+    recalc_data(t);
 
     if (t->flag & T_2D_EDIT) {
       ED_area_status_text(t->area, TIP_("Select a mirror axis (X, Y)"));

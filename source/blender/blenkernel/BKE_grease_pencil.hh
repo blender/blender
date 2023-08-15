@@ -9,6 +9,8 @@
  * \brief Low-level operations for grease pencil.
  */
 
+#include <atomic>
+
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -62,6 +64,13 @@ class DrawingRuntime {
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
+
+  /**
+   * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
+   * Different frames can refer to the same drawing, so we need to make sure we count these users
+   * and remove a drawing if it has zero users.
+   */
+  mutable std::atomic<int> user_count = 1;
 };
 
 class Drawing : public ::GreasePencilDrawing {
@@ -77,6 +86,7 @@ class Drawing : public ::GreasePencilDrawing {
    */
   Span<uint3> triangles() const;
   void tag_positions_changed();
+  void tag_topology_changed();
 
   /**
    * Radii of the points. Values are expected to be in blender units.
@@ -91,6 +101,22 @@ class Drawing : public ::GreasePencilDrawing {
    */
   VArray<float> opacities() const;
   MutableSpan<float> opacities_for_write();
+
+  /**
+   * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
+   * modify this drawings data.
+   */
+  void add_user() const;
+  /**
+   * Removes a user from this drawing. Note that this does not handle deleting the drawing if it
+   * has not users.
+   */
+  void remove_user() const;
+  /**
+   * Returns true for when this drawing has more than one user.
+   */
+  bool is_instanced() const;
+  bool has_users() const;
 };
 
 class LayerGroup;
@@ -166,6 +192,30 @@ class LayerMask : public ::GreasePencilLayerMask {
   ~LayerMask();
 };
 
+/**
+ * Structure used to transform frames in a grease pencil layer.
+ */
+struct LayerTransformData {
+  enum FrameTransformationStatus { TRANS_CLEAR, TRANS_INIT, TRANS_RUNNING };
+
+  /* Map of frame keys describing the transformation of the frames. Keys of the map are the source
+   * frame indices, and the values of the map are the destination frame indices. */
+  Map<int, int> frames_destination;
+
+  /* Copy of the layer frames map. This allows to display the transformation while running, without
+   * removing any drawing. */
+  Map<int, GreasePencilFrame> frames_copy;
+  /* Map containing the duration (in frames) for each frame in the layer that has a fixed duration,
+   * i.e. each frame that is not an implicit hold. */
+  Map<int, int> frames_duration;
+
+  FrameTransformationStatus status{TRANS_CLEAR};
+};
+
+/* The key of a GreasePencilFrame in the frames map is the starting scene frame number (int) of
+ * that frame. */
+using FramesMapKey = int;
+
 class LayerRuntime {
  public:
   /**
@@ -193,16 +243,19 @@ class LayerRuntime {
    * referenced drawings are discarded. If the frame is longer than the number of referenced
    * drawings, then the last referenced drawing is held for the rest of the duration.
    */
-  Map<int, GreasePencilFrame> frames_;
+  Map<FramesMapKey, GreasePencilFrame> frames_;
   /**
    * Caches a sorted vector of the keys of `frames_`.
    */
-  mutable SharedCache<Vector<int>> sorted_keys_cache_;
+  mutable SharedCache<Vector<FramesMapKey>> sorted_keys_cache_;
   /**
    * A vector of LayerMask. This layer will be masked by the layers referenced in the masks.
    * A layer can have zero or more layer masks.
    */
   Vector<LayerMask> masks_;
+
+  /* Runtime data used for frame transformations.*/
+  LayerTransformData trans_data_;
 };
 
 /**
@@ -236,36 +289,68 @@ class Layer : public ::GreasePencilLayer {
   /**
    * \returns the frames mapping.
    */
-  const Map<int, GreasePencilFrame> &frames() const;
-  Map<int, GreasePencilFrame> &frames_for_write();
+  const Map<FramesMapKey, GreasePencilFrame> &frames() const;
+  Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
 
   bool is_visible() const;
   bool is_locked() const;
   bool is_editable() const;
+  bool is_empty() const;
+  bool is_selected() const;
+
+  bool use_onion_skinning() const;
 
   /**
    * Adds a new frame into the layer frames map.
-   * Fails if there already exists a frame at \a frame_number that is not a null-frame.
-   * Null-frame at \a frame_number and subsequent null-frames are removed.
+   * Fails if there already exists a frame at \a key that is not a null-frame.
+   * Null-frame at \a key and subsequent null-frames are removed.
    *
    * If \a duration is 0, the frame is marked as an implicit hold (see `GP_FRAME_IMPLICIT_HOLD`).
-   * Otherwise adds an additional null-frame at \a frame_number + \a duration, if necessary, to
+   * Otherwise adds an additional null-frame at \a key + \a duration, if necessary, to
    * indicate the end of the added frame.
    *
    * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  GreasePencilFrame *add_frame(int frame_number, int drawing_index, int duration = 0);
+  GreasePencilFrame *add_frame(FramesMapKey key, int drawing_index, int duration = 0);
+  /**
+   * Removes a frame with \a key from the frames map.
+   *
+   * Fails if the map does not contain a frame with \a key or in the specific case where
+   * the previous frame has a fixed duration (is not marked as an implicit hold) and the frame to
+   * remove is a null frame.
+   *
+   * Will remove null frames after the frame to remove.
+   * \return true on success.
+   */
+  bool remove_frame(FramesMapKey key);
 
   /**
-   * Returns the sorted (start) frame numbers of the frames of this layer.
+   * Returns the sorted keys (start frame numbers) of the frames of this layer.
    * \note This will cache the keys lazily.
    */
-  Span<int> sorted_keys() const;
+  Span<FramesMapKey> sorted_keys() const;
 
   /**
-   * \returns the index of the drawing at frame \a frame or -1 if there is no drawing.
+   * \returns the index of the active drawing at frame \a frame_number or -1 if there is no
+   * drawing. */
+  int drawing_index_at(const int frame_number) const;
+
+  /**
+   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
    */
-  int drawing_index_at(const int frame) const;
+  FramesMapKey frame_key_at(int frame_number) const;
+
+  /**
+   * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
+   */
+  const GreasePencilFrame *frame_at(const int frame_number) const;
+  GreasePencilFrame *frame_at(const int frame_number);
+
+  /**
+   * \returns the frame duration of the active frame at \a frame_number or -1 if there is no active
+   * frame or the active frame is the last frame.
+   */
+  int get_frame_duration_at(const int frame_number) const;
 
   void tag_frames_map_changed();
 
@@ -276,7 +361,18 @@ class Layer : public ::GreasePencilLayer {
   void tag_frames_map_keys_changed();
 
  private:
+  using SortedKeysIterator = const int *;
+
+ private:
   GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
+
+  /**
+   * Removes null frames starting from \a begin until \a end (excluded) or until a non-null frame
+   * is reached. \param begin, end: Iterators into the `sorted_keys` span. \returns an iterator to
+   * the element after the last null-frame that was removed.
+   */
+  SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
+                                                         SortedKeysIterator end);
 };
 
 class LayerGroupRuntime {
@@ -408,6 +504,22 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void tag_nodes_cache_dirty() const;
 };
 
+inline void Drawing::add_user() const
+{
+  this->runtime->user_count.fetch_add(1, std::memory_order_relaxed);
+}
+inline void Drawing::remove_user() const
+{
+  this->runtime->user_count.fetch_sub(1, std::memory_order_relaxed);
+}
+inline bool Drawing::is_instanced() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 1;
+}
+inline bool Drawing::has_users() const
+{
+  return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
+}
 inline const TreeNode &LayerGroup::as_node() const
 {
   return *reinterpret_cast<const TreeNode *>(this);
@@ -496,6 +608,11 @@ inline bool GreasePencilFrame::is_implicit_hold() const
   return (this->flag & GP_FRAME_IMPLICIT_HOLD) != 0;
 }
 
+inline bool GreasePencilFrame::is_selected() const
+{
+  return (this->flag & GP_FRAME_SELECTED) != 0;
+}
+
 inline blender::bke::greasepencil::TreeNode &GreasePencilLayerTreeNode::wrap()
 {
   return *reinterpret_cast<blender::bke::greasepencil::TreeNode *>(this);
@@ -523,6 +640,15 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
+inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index) const
+{
+  return this->drawings()[index];
+}
+inline GreasePencilDrawingBase *GreasePencil::drawings(int64_t index)
+{
+  return this->drawings()[index];
+}
+
 inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const
 {
   return this->root_group_ptr->wrap();
@@ -539,10 +665,9 @@ inline bool GreasePencil::has_active_layer() const
 
 void *BKE_grease_pencil_add(Main *bmain, const char *name);
 GreasePencil *BKE_grease_pencil_new_nomain();
+GreasePencil *BKE_grease_pencil_copy_for_eval(const GreasePencil *grease_pencil_src);
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob);
-void BKE_grease_pencil_data_update(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
-                                   struct Object *object);
+void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,

@@ -150,7 +150,7 @@ static PyGetSetDef BPy_SVertexIterator_getseters[] = {
 /*-----------------------BPy_SVertexIterator type definition ------------------------------*/
 
 PyTypeObject SVertexIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "SVertexIterator",
     /*tp_basicsize*/ sizeof(BPy_SVertexIterator),
     /*tp_itemsize*/ 0,

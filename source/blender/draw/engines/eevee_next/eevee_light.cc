@@ -14,6 +14,8 @@
 
 #include "eevee_light.hh"
 
+#include "BLI_math_rotation.h"
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */

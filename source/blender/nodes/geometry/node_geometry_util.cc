@@ -7,9 +7,11 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_space_types.h"
 
+#include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_pointcloud.h"
 
 #include "NOD_add_node_search.hh"
@@ -42,6 +44,30 @@ std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSoc
 std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
 {
   return node_data_type_to_custom_data_type(eNodeSocketDatatype(socket.type));
+}
+
+bool check_tool_context_and_error(GeoNodeExecParams &params)
+{
+  if (!params.user_data()->operator_data) {
+    params.error_message_add(NodeWarningType::Error, "Node must be run as tool");
+    params.set_default_remaining_outputs();
+    return false;
+  }
+  return true;
+}
+
+void search_link_ops_for_for_tool_node(GatherAddNodeSearchParams &params)
+{
+  const SpaceNode &snode = *CTX_wm_space_node(&params.context());
+  if (snode.geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    search_node_add_ops_for_basic_node(params);
+  }
+}
+void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
+{
+  if (params.space_node().geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    search_link_ops_for_basic_node(params);
+  }
 }
 
 }  // namespace blender::nodes

@@ -30,7 +30,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -40,15 +40,15 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 #include "interface_intern.hh"
 
 /* For key-map item access. */
@@ -168,7 +168,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
   MenuSearch_Item *item = nullptr;
 
   /* Use override if the name is empty, this can happen with popovers. */
-  const char *drawstr_override = nullptr;
+  std::string drawstr_override;
   const char *drawstr_sep = (but->flag & UI_BUT_HAS_SEP_CHAR) ?
                                 strrchr(but->drawstr, UI_SEP_CHAR) :
                                 nullptr;
@@ -237,7 +237,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
 
   if (item != nullptr) {
     /* Handle shared settings. */
-    if (drawstr_override != nullptr) {
+    if (!drawstr_override.empty()) {
       const char *drawstr_suffix = drawstr_sep ? drawstr_sep : "";
       std::string drawstr = std::string("(") + drawstr_override + ")" + drawstr_suffix;
       item->drawstr = strdup_memarena(memarena, drawstr.c_str());
@@ -299,7 +299,7 @@ static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
       *drawstr_sep = '\0';
     }
 
-    but->icon = (BIFIconID)item->icon;
+    but->icon = item->icon;
     but->str = but->strdata;
   }
 
@@ -1005,24 +1005,19 @@ static void menu_search_update_fn(const bContext * /*C*/,
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
 
-  StringSearch *search = BLI_string_search_new();
+  blender::string_search::StringSearch<MenuSearch_Item> search;
 
   LISTBASE_FOREACH (MenuSearch_Item *, item, &data->items) {
-    BLI_string_search_add(search, item->drawwstr_full, item, 0);
+    search.add(item->drawwstr_full, item);
   }
 
-  MenuSearch_Item **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
+  const blender::Vector<MenuSearch_Item *> filtered_items = search.query(str);
 
-  for (int i = 0; i < filtered_amount; i++) {
-    MenuSearch_Item *item = filtered_items[i];
+  for (MenuSearch_Item *item : filtered_items) {
     if (!UI_search_item_add(items, item->drawwstr_full, item, item->icon, item->state, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
 }
 
 /** \} */

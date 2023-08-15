@@ -234,8 +234,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_fr
     return nullptr;
   }
 
-  return BKE_preferences_asset_library_find_from_name(&U,
-                                                      asset_reference.asset_library_identifier);
+  return BKE_preferences_asset_library_find_by_name(&U, asset_reference.asset_library_identifier);
 }
 
 AssetLibrary *AssetLibraryService::find_loaded_on_disk_asset_library_from_name(
@@ -428,7 +427,7 @@ bUserAssetLibrary *AssetLibraryService::find_custom_asset_library_from_library_r
   BLI_assert(library_reference.type == ASSET_LIBRARY_CUSTOM);
   BLI_assert(library_reference.custom_library_index >= 0);
 
-  return BKE_preferences_asset_library_find_from_index(&U, library_reference.custom_library_index);
+  return BKE_preferences_asset_library_find_index(&U, library_reference.custom_library_index);
 }
 
 std::string AssetLibraryService::root_path_from_library_ref(

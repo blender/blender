@@ -58,13 +58,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_scanfill.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
 
@@ -523,7 +524,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
       }
     }
 
-    if (1) {
+    if (true) {
       /* Now convert link-nodes into arrays for faster per pixel access. */
       uint **buckets_face = MEM_cnew_array<uint *>(bucket_tot, __func__);
       uint bucket_index;

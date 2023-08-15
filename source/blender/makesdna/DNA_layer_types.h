@@ -11,6 +11,8 @@
 #include "DNA_freestyle_types.h"
 #include "DNA_listBase.h"
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +51,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_TRANSPARENT = (1 << 20),
 } eViewLayerEEVEEPassType;
 #define EEVEE_RENDER_PASS_MAX_BIT 20
+ENUM_OPERATORS(eViewLayerEEVEEPassType, 1 << EEVEE_RENDER_PASS_MAX_BIT)
 
 /* #ViewLayerAOV.type */
 typedef enum eViewLayerAOVType {
@@ -68,6 +71,7 @@ typedef enum eViewLayerCryptomatteFlags {
   VIEW_LAYER_CRYPTOMATTE_ASSET = (1 << 2),
   VIEW_LAYER_CRYPTOMATTE_ACCURATE = (1 << 3),
 } eViewLayerCryptomatteFlags;
+ENUM_OPERATORS(eViewLayerCryptomatteFlags, VIEW_LAYER_CRYPTOMATTE_ACCURATE)
 #define VIEW_LAYER_CRYPTOMATTE_ALL \
   (VIEW_LAYER_CRYPTOMATTE_OBJECT | VIEW_LAYER_CRYPTOMATTE_MATERIAL | VIEW_LAYER_CRYPTOMATTE_ASSET)
 
@@ -103,7 +107,7 @@ typedef struct ViewLayerEngineData {
 typedef struct LayerCollection {
   struct LayerCollection *next, *prev;
   struct Collection *collection;
-  struct SceneCollection *scene_collection DNA_DEPRECATED;
+  void *_pad1;
   short flag;
   short runtime_flag;
   char _pad[4];
@@ -274,27 +278,6 @@ enum {
   VIEW_LAYER_FREESTYLE = (1 << 2),
   VIEW_LAYER_OUT_OF_SYNC = (1 << 3),
 };
-
-/****************************** Deprecated ******************************/
-
-/* Compatibility with collections saved in early 2.8 versions,
- * used in file reading and versioning code. */
-#define USE_COLLECTION_COMPAT_28
-
-typedef struct SceneCollection {
-  struct SceneCollection *next, *prev;
-  /** MAX_NAME. */
-  char name[64];
-  /** For UI. */
-  int active_object_index;
-  short flag;
-  char type;
-  char _pad;
-  /** (Object *)LinkData->data. */
-  ListBase objects;
-  /** Nested collections. */
-  ListBase scene_collections;
-} SceneCollection;
 
 #ifdef __cplusplus
 }

@@ -31,7 +31,7 @@
 
 #include "UI_interface.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 struct bContext;
 struct uiBlock;
@@ -88,6 +88,8 @@ class AbstractView {
 
   virtual void draw_overlays(const ARegion &region) const;
 
+  virtual void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
+
   /**
    * Makes \a item valid for display in this view. Behavior is undefined for items not registered
    * with this.
@@ -109,6 +111,15 @@ class AbstractView {
 
  protected:
   AbstractView() = default;
+
+  /**
+   * Items may want to do additional work when state changes. But these state changes can only be
+   * reliably detected after the view has completed reconstruction (see #is_reconstructed()). So
+   * the actual state changes are done in a delayed manner through this function.
+   *
+   * Overrides should call the base class implementation.
+   */
+  virtual void change_state_delayed();
 
   virtual void update_children_from_old(const AbstractView &old_view) = 0;
 
@@ -150,6 +161,20 @@ class AbstractViewItem {
   virtual ~AbstractViewItem() = default;
 
   virtual void build_context_menu(bContext &C, uiLayout &column) const;
+
+  /**
+   * Called when the view changes an item's state from inactive to active. Will only be called if
+   * the state change is triggered through the view, not through external changes. E.g. a click on
+   * an item calls it, a change in the value returned by #should_be_active() to reflect an external
+   * state change does not.
+   */
+  virtual void on_activate(bContext &C);
+  /**
+   * If the result is not empty, it controls whether the item should be active or not, usually
+   * depending on the data that the view represents. Note that since this is meant to reflect
+   * externally managed state changes, #on_activate() will never be called if this returns true.
+   */
+  virtual std::optional<bool> should_be_active() const;
 
   /**
    * Queries if the view item supports renaming in principle. Renaming may still fail, e.g. if
@@ -204,7 +229,17 @@ class AbstractViewItem {
   bool is_interactive() const;
 
   void disable_activatable();
-
+  /**
+   * Activates this item, deactivates other items, and calls the #AbstractViewItem::on_activate()
+   * function. Should only be called when the item was activated through the view (e.g. through a
+   * click), not if the view reflects an external change (e.g.
+   * #AbstractViewItem::should_be_active() changes from returning false to returning true).
+   *
+   * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise the
+   * actual item state is unknown, possibly calling state-change update functions incorrectly.
+   */
+  void activate(bContext &C);
+  void deactivate();
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.
@@ -239,6 +274,20 @@ class AbstractViewItem {
    * \note Always call the base class implementation when overriding this!
    */
   virtual void update_from_old(const AbstractViewItem &old);
+
+  /**
+   * Like #activate() but does not call #on_activate(). Use it to reflect changes in the active
+   * state that happened externally.
+   * Can be overridden to customize behavior but should always call the base class implementation.
+   * \return true of the item was activated.
+   */
+  virtual bool set_state_active();
+
+  /**
+   * See #AbstractView::change_state_delayed(). Overrides should call the base class
+   * implementation.
+   */
+  virtual void change_state_delayed();
 
   /**
    * \note Do not call this directly to avoid constantly rechecking the filter state. Instead use

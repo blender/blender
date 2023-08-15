@@ -4,6 +4,7 @@
 
 set(INC
   .
+  ../blenkernel
   ../bmesh
   ../draw
   ../functions
@@ -150,7 +151,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
@@ -170,6 +171,8 @@ blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_dependencies(bf_depsgraph bf_rna)
 
 if(WITH_GTESTS)
+  set(TEST_INC
+  )
   set(TEST_SRC
     intern/builder/deg_builder_rna_test.cc
   )

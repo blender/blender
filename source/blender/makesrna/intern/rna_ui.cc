@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -18,17 +18,17 @@
 
 #include "BLI_listbase.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
-#include "RNA_enum_types.h"
+#include "RNA_enum_types.hh"
 #include "rna_internal.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-/* see WM_types.h */
+/* see WM_types.hh */
 const EnumPropertyItem rna_enum_operator_context_items[] = {
     {WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
     {WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
@@ -56,7 +56,7 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BLI_dynstr.h"
 
@@ -65,7 +65,7 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_report.h"
 #  include "BKE_screen.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 static ARegionType *region_type_find(ReportList *reports, int space_type, int region_type)
 {
@@ -279,7 +279,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_pt.idname));
+                int(sizeof(dummy_pt.idname)));
     return nullptr;
   }
 
@@ -716,7 +716,7 @@ static StructRNA *rna_UIList_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_ult.idname));
+                int(sizeof(dummy_ult.idname)));
     return nullptr;
   }
 
@@ -844,7 +844,7 @@ static StructRNA *rna_Header_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_ht.idname));
+                int(sizeof(dummy_ht.idname)));
     return nullptr;
   }
 
@@ -1002,7 +1002,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_mt.idname));
+                int(sizeof(dummy_mt.idname)));
     return nullptr;
   }
 
@@ -1076,6 +1076,184 @@ static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 {
   Menu *menu = (Menu *)mtr->data;
   return (menu->type && menu->type->rna_ext.srna) ? menu->type->rna_ext.srna : &RNA_Menu;
+}
+
+/* Asset Shelf */
+
+static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const AssetHandle *asset)
+{
+  extern FunctionRNA rna_AssetShelf_asset_poll_func;
+
+  PointerRNA ptr;
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  FunctionRNA *func = &rna_AssetShelf_asset_poll_func;
+
+  ParameterList list;
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  shelf_type->rna_ext.call(nullptr, &ptr, func, &list);
+
+  void *ret;
+  RNA_parameter_get_lookup(&list, "visible", &ret);
+  /* Get the value before freeing. */
+  const bool is_visible = *(bool *)ret;
+
+  RNA_parameter_list_free(&list);
+
+  return is_visible;
+}
+
+static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type)
+{
+  extern FunctionRNA rna_AssetShelf_poll_func;
+
+  PointerRNA ptr;
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  FunctionRNA *func = &rna_AssetShelf_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
+
+  ParameterList list;
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "context", &C);
+  shelf_type->rna_ext.call((bContext *)C, &ptr, func, &list);
+
+  void *ret;
+  RNA_parameter_get_lookup(&list, "visible", &ret);
+  /* Get the value before freeing. */
+  const bool is_visible = *(bool *)ret;
+
+  RNA_parameter_list_free(&list);
+
+  return is_visible;
+}
+
+static void asset_shelf_draw_context_menu(const bContext *C,
+                                          const AssetShelfType *shelf_type,
+                                          const AssetHandle *asset,
+                                          uiLayout *layout)
+{
+  extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
+
+  PointerRNA ptr;
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+
+  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func;
+  // RNA_struct_find_function(&ptr, "draw_context_menu");
+
+  ParameterList list;
+  RNA_parameter_list_create(&list, &ptr, func);
+  RNA_parameter_set_lookup(&list, "context", &C);
+  RNA_parameter_set_lookup(&list, "asset_handle", &asset);
+  RNA_parameter_set_lookup(&list, "layout", &layout);
+  shelf_type->rna_ext.call((bContext *)C, &ptr, func, &list);
+
+  RNA_parameter_list_free(&list);
+}
+
+static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
+{
+  AssetShelfType *shelf_type = static_cast<AssetShelfType *>(RNA_struct_blender_type_get(type));
+
+  if (!shelf_type) {
+    return false;
+  }
+
+  SpaceType *space_type = BKE_spacetype_from_id(shelf_type->space_type);
+  if (!space_type) {
+    return false;
+  }
+
+  RNA_struct_free_extension(type, &shelf_type->rna_ext);
+  RNA_struct_free(&BLENDER_RNA, type);
+
+  BLI_freelinkN(&space_type->asset_shelf_types, shelf_type);
+
+  /* update while blender is running */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+
+  return true;
+}
+
+static StructRNA *rna_AssetShelf_register(Main *bmain,
+                                          ReportList *reports,
+                                          void *data,
+                                          const char *identifier,
+                                          StructValidateFunc validate,
+                                          StructCallbackFunc call,
+                                          StructFreeFunc free)
+{
+  AssetShelfType dummy_shelf_type = {};
+  AssetShelf dummy_shelf = {};
+  PointerRNA dummy_shelf_ptr;
+
+  /* setup dummy shelf & shelf type to store static properties in */
+  dummy_shelf.type = &dummy_shelf_type;
+  RNA_pointer_create(nullptr, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_ptr);
+
+  bool have_function[3];
+
+  /* validate the python class */
+  if (validate(&dummy_shelf_ptr, data, have_function) != 0) {
+    return nullptr;
+  }
+
+  if (strlen(identifier) >= sizeof(dummy_shelf_type.idname)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Registering asset shelf class: '%s' is too long, maximum length is %d",
+                identifier,
+                (int)sizeof(dummy_shelf_type.idname));
+    return nullptr;
+  }
+
+  SpaceType *space_type = BKE_spacetype_from_id(dummy_shelf_type.space_type);
+  if (!space_type) {
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+
+  /* Check if we have registered this asset shelf type before, and remove it. */
+  LISTBASE_FOREACH (AssetShelfType *, iter_shelf_type, &space_type->asset_shelf_types) {
+    if (STREQ(iter_shelf_type->idname, dummy_shelf_type.idname)) {
+      if (iter_shelf_type->rna_ext.srna) {
+        rna_AssetShelf_unregister(bmain, iter_shelf_type->rna_ext.srna);
+      }
+      break;
+    }
+  }
+  if (!RNA_struct_available_or_report(reports, dummy_shelf_type.idname)) {
+    return nullptr;
+  }
+  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_shelf_type.idname, "_AST_")) {
+    return nullptr;
+  }
+
+  /* Create the new shelf type. */
+  AssetShelfType *shelf_type = static_cast<AssetShelfType *>(
+      MEM_mallocN(sizeof(*shelf_type), __func__));
+  memcpy(shelf_type, &dummy_shelf_type, sizeof(*shelf_type));
+
+  shelf_type->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, shelf_type->idname, &RNA_AssetShelf);
+  shelf_type->rna_ext.data = data;
+  shelf_type->rna_ext.call = call;
+  shelf_type->rna_ext.free = free;
+  RNA_struct_blender_type_set(shelf_type->rna_ext.srna, shelf_type);
+
+  shelf_type->poll = have_function[0] ? asset_shelf_poll : nullptr;
+  shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : nullptr;
+  shelf_type->draw_context_menu = have_function[2] ? asset_shelf_draw_context_menu : nullptr;
+
+  BLI_addtail(&space_type->asset_shelf_types, shelf_type);
+
+  /* update while blender is running */
+  WM_main_add_notifier(NC_WINDOW, nullptr);
+
+  return shelf_type->rna_ext.srna;
+}
+
+static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
+{
+  AssetShelf *shelf = (AssetShelf *)shelf_ptr->data;
+  return (shelf->type && shelf->type->rna_ext.srna) ? shelf->type->rna_ext.srna : &RNA_AssetShelf;
 }
 
 static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
@@ -1167,22 +1345,22 @@ static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 #  if 0
 static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
-  return uiLayoutGetRedAlert(static_cast<  uiLayout*>(ptr->data));
+  return uiLayoutGetRedAlert(static_cast<uiLayout *>(ptr->data));
 }
 
 static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
-  uiLayoutSetRedAlert(static_cast<  uiLayout*>(ptr->data), value);
+  uiLayoutSetRedAlert(static_cast<uiLayout *>(ptr->data), value);
 }
 
 static bool rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
-  return uiLayoutGetKeepAspect(static_cast<  uiLayout*>(ptr->data));
+  return uiLayoutGetKeepAspect(static_cast<uiLayout *>(ptr->data));
 }
 
 static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
 {
-  uiLayoutSetKeepAspect(static_cast<  uiLayout*>(ptr->data), value);
+  uiLayoutSetKeepAspect(static_cast<uiLayout *>(ptr->data), value);
 }
 #  endif
 
@@ -1444,7 +1622,7 @@ static void rna_def_panel(BlenderRNA *brna)
   RNA_def_function_ui_description(
       func, "If this method returns a non-null output, then the panel can be drawn");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -1751,7 +1929,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_function_output(func, prop);
 
   /* "Constants"! */
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "bitflag_filter_item", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(
@@ -1783,7 +1961,7 @@ static void rna_def_header(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "layout");
@@ -1818,7 +1996,7 @@ static void rna_def_header(BlenderRNA *brna)
                            "The region where the header is going to be used in "
                            "(defaults to header region)");
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_menu(BlenderRNA *brna)
@@ -1841,7 +2019,7 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_function_ui_description(
       func, "If this method returns a non-null output, then the menu can be drawn");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
@@ -1892,7 +2070,108 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "type->owner_id");
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
+}
+
+static void rna_def_asset_shelf(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem asset_shelf_flag_items[] = {
+      {ASSET_SHELF_TYPE_FLAG_NO_ASSET_DRAG,
+       "NO_ASSET_DRAG",
+       0,
+       "No Asset Dragging",
+       "Disable the default asset dragging on drag events. Useful for implementing custom "
+       "dragging via custom key-map items"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  srna = RNA_def_struct(brna, "AssetShelf", nullptr);
+  RNA_def_struct_ui_text(srna, "Asset Shelf", "Regions for quick access to assets");
+  RNA_def_struct_refine_func(srna, "rna_AssetShelf_refine");
+  RNA_def_struct_register_funcs(
+      srna, "rna_AssetShelf_register", "rna_AssetShelf_unregister", nullptr);
+  RNA_def_struct_translation_context(srna, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  RNA_def_struct_flag(srna, STRUCT_PUBLIC_NAMESPACE_INHERIT);
+
+  /* registration */
+
+  prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "type->idname");
+  RNA_def_property_flag(prop, PROP_REGISTER);
+  RNA_def_property_ui_text(prop,
+                           "ID Name",
+                           "If this is set, the asset gets a custom ID, otherwise it takes the "
+                           "name of the class used to define the menu (for example, if the "
+                           "class name is \"OBJECT_AST_hello\", and bl_idname is not set by the "
+                           "script, then bl_idname = \"OBJECT_AST_hello\")");
+
+  prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type->space_type");
+  RNA_def_property_enum_items(prop, rna_enum_space_type_items);
+  RNA_def_property_flag(prop, PROP_REGISTER);
+  RNA_def_property_ui_text(
+      prop, "Space Type", "The space where the asset shelf is going to be used in");
+
+  prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "type->flag");
+  RNA_def_property_enum_items(prop, asset_shelf_flag_items);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
+  RNA_def_property_ui_text(prop, "Options", "Options for this asset shelf type");
+
+  PropertyRNA *parm;
+  FunctionRNA *func;
+
+  func = RNA_def_function(srna, "poll", nullptr);
+  RNA_def_function_ui_description(
+      func, "If this method returns a non-null output, the asset shelf will be visible");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "asset_poll", nullptr);
+  RNA_def_function_ui_description(
+      func,
+      "Determine if an asset should be visible in the asset shelf. If this method returns a "
+      "non-null output, the asset will be visible");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
+  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  func = RNA_def_function(srna, "draw_context_menu", nullptr);
+  RNA_def_function_ui_description(
+      func, "Draw UI elements into the context menu UI layout displayed on right click");
+  RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
+  parm = RNA_def_pointer(func, "context", "Context", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "settings.display_flag", ASSETSHELF_SHOW_NAMES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Names",
+      "Show the asset name together with the preview. Otherwise only the preview will be visible");
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
+
+  prop = RNA_def_property(srna, "preview_size", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "settings.preview_size");
+  RNA_def_property_range(prop, 32, 256);
+  RNA_def_property_ui_text(prop, "Preview Size", "Size of the asset preview thumbnails in pixels");
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
+
+  prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "settings.search_string");
+  RNA_def_property_ui_text(prop, "Display Filter", "Filter assets by name");
+  RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
+  RNA_def_property_update(prop, NC_SPACE | ND_REGIONS_ASSET_SHELF, nullptr);
 }
 
 void RNA_def_ui(BlenderRNA *brna)
@@ -1902,6 +2181,7 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_uilist(brna);
   rna_def_header(brna);
   rna_def_menu(brna);
+  rna_def_asset_shelf(brna);
 }
 
 #endif /* RNA_RUNTIME */

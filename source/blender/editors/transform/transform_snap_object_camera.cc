@@ -6,7 +6,6 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math.h"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_bvhutils.h"
@@ -14,7 +13,7 @@
 #include "BKE_object.h"
 #include "BKE_tracking.h"
 
-#include "ED_transform_snap_object_context.h"
+#include "ED_transform_snap_object_context.hh"
 
 #include "transform_snap_object.hh"
 

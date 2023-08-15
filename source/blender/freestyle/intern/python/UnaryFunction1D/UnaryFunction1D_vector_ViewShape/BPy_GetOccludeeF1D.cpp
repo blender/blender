@@ -53,7 +53,7 @@ static int GetOccludeeF1D___init__(BPy_GetOccludeeF1D *self, PyObject *args, PyO
 /*-----------------------BPy_GetOccludeeF1D type definition ------------------------------*/
 
 PyTypeObject GetOccludeeF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetOccludeeF1D",
     /*tp_basicsize*/ sizeof(BPy_GetOccludeeF1D),
     /*tp_itemsize*/ 0,

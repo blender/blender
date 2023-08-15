@@ -6,9 +6,9 @@
  * \ingroup edgeometry
  */
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "ED_geometry.h"
+#include "ED_geometry.hh"
 
 #include "geometry_intern.hh"
 

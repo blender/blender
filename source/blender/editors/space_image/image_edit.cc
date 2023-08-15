@@ -28,15 +28,15 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_image.h" /* own include */
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh" /* own include */
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 /* NOTE: image_panel_properties() uses pointer to sima->image directly. */
 Image *ED_space_image(const SpaceImage *sima)
@@ -101,7 +101,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
 
   /* Track image assigned to active face in edit mode. */
   Object *ob = CTX_data_active_object(C);
-  if (!(ob && (ob->mode & OB_MODE_EDIT) && ED_space_image_show_uvedit(sima, ob, ob, false))) {
+  if (!(ob && (ob->mode & OB_MODE_EDIT) && ED_space_image_show_uvedit(sima, ob))) {
     return;
   }
 
@@ -280,10 +280,10 @@ void ED_space_image_get_zoom(SpaceImage *sima,
 
   ED_space_image_get_size(sima, &width, &height);
 
-  *r_zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
-             (float)(BLI_rctf_size_x(&region->v2d.cur) * width);
-  *r_zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
-             (float)(BLI_rctf_size_y(&region->v2d.cur) * height);
+  *r_zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
+             float(BLI_rctf_size_x(&region->v2d.cur) * width);
+  *r_zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) /
+             float(BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy)
@@ -459,10 +459,33 @@ bool ED_space_image_show_paint(const SpaceImage *sima)
   return (sima->mode == SI_MODE_PAINT);
 }
 
+bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit)
+{
+  if (sima) {
+    if (ED_space_image_show_render(sima)) {
+      return false;
+    }
+    if (sima->mode != SI_MODE_UV) {
+      return false;
+    }
+  }
+
+  if (obedit && obedit->type == OB_MESH) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool ret;
+
+    ret = EDBM_uv_check(em);
+
+    return ret;
+  }
+
+  return false;
+}
+
 bool ED_space_image_check_show_maskedit(SpaceImage *sima, Object *obedit)
 {
   /* check editmode - this is reserved for UV editing */
-  if (obedit && ED_space_image_show_uvedit(sima, obedit, NULL, false)) {
+  if (obedit && ED_space_image_show_uvedit(sima, obedit)) {
     return false;
   }
 

@@ -6,9 +6,9 @@
  * \ingroup spview3d
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
@@ -25,17 +25,17 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_mesh.h"
-#include "ED_undo.h"
+#include "ED_mesh.hh"
+#include "ED_undo.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "view3d_intern.h"
 
@@ -97,7 +97,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_VERTEXSEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_VERTEX);
   uiItemFullO_ptr(row,
@@ -106,7 +106,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_EDGESEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_EDGE);
   uiItemFullO_ptr(row,
@@ -115,7 +115,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ICON_FACESEL,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,
-                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : 0,
+                  (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : UI_ITEM_NONE,
                   &op_ptr);
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }

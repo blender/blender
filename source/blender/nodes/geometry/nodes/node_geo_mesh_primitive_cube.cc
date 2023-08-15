@@ -113,19 +113,18 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   Mesh *mesh = create_cube_mesh(size, verts_x, verts_y, verts_z, uv_map_id.get());
 
-  params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
+  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
 }
 
-}  // namespace blender::nodes::node_geo_mesh_primitive_cube_cc
-
-void register_node_type_geo_mesh_primitive_cube()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_mesh_primitive_cube_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CUBE, "Cube", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_mesh_primitive_cube_cc

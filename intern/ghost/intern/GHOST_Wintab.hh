@@ -149,8 +149,9 @@ class GHOST_Wintab {
    * \param wtY: Wintab cursor y position.
    * \return True if Win32 and Wintab cursor positions match within tolerance.
    *
-   * NOTE: Only test coordinates on button press, not release. This prevents issues when async
-   * mismatch causes mouse movement to replay and snap back, which is only an issue while drawing.
+   * NOTE: Only test coordinates on button press, not release.
+   * This prevents issues when asynchronous mismatch causes mouse movement to replay
+   * and snap back, which is only an issue while drawing.
    */
   bool testCoordinates(int sysX, int sysY, int wtX, int wtY);
 

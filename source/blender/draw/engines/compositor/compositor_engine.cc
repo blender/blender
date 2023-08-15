@@ -20,7 +20,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "DRW_render.h"
 
@@ -79,11 +79,6 @@ class Context : public realtime_compositor::Context {
   bool use_composite_output() const override
   {
     return false;
-  }
-
-  bool use_texture_color_management() const override
-  {
-    return BKE_scene_check_color_management_enabled(DRW_context_state_get()->scene);
   }
 
   const RenderData &get_render_data() const override

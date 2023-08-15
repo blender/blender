@@ -8,7 +8,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -17,17 +16,17 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -182,7 +181,7 @@ static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  SeqRenderData context = {0};
+  SeqRenderData context = {nullptr};
 
   /* Taking rectx and recty as 0 as dimensions not known here, and context is used to calculate
    * hash key but not necessary as other variables of SeqRenderData are unique enough. */

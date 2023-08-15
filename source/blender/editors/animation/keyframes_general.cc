@@ -6,15 +6,15 @@
  * \ingroup edanimation
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -30,13 +30,13 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
-#include "RNA_path.h"
+#include "RNA_access.hh"
+#include "RNA_enum_types.hh"
+#include "RNA_path.hh"
 
-#include "ED_anim_api.h"
-#include "ED_keyframes_edit.h"
-#include "ED_keyframing.h"
+#include "ED_anim_api.hh"
+#include "ED_keyframes_edit.hh"
+#include "ED_keyframing.hh"
 
 /* This file contains code for various keyframe-editing tools which are 'destructive'
  * (i.e. they will modify the order of the keyframes, and change the size of the array).
@@ -390,6 +390,11 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
 
 /* ---------------- */
 
+struct ButterworthCoefficients {
+  double *A, *d1, *d2;
+  int filter_order;
+};
+
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
   ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
@@ -415,7 +420,7 @@ void ED_anim_calculate_butterworth_coefficients(const float cutoff_frequency,
                                                 const float sampling_frequency,
                                                 ButterworthCoefficients *bw_coeff)
 {
-  double s = (double)sampling_frequency;
+  double s = double(sampling_frequency);
   const double a = tan(M_PI * cutoff_frequency / s);
   const double a2 = a * a;
   double r;
@@ -466,7 +471,7 @@ static float butterworth_calculate_blend_value(float *samples,
 
   if (sample_index - start_index <= blend_in_out) {
     const int blend_index = sample_index - start_index;
-    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_in_out_factor = clamp_f(float(blend_index) / blend_in_out, 0.0f, 1.0f);
     const float blend_value = interpf(blend_in_y_filtered +
                                           slope_in_filtered * (blend_in_out - blend_index),
                                       blend_in_y_samples + slope_in_samples * blend_index,
@@ -475,7 +480,7 @@ static float butterworth_calculate_blend_value(float *samples,
   }
   if (end_index - sample_index <= blend_in_out) {
     const int blend_index = end_index - sample_index;
-    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_in_out_factor = clamp_f(float(blend_index) / blend_in_out, 0.0f, 1.0f);
     const float blend_value = interpf(blend_out_y_filtered +
                                           slope_out_filtered * (blend_in_out - blend_index),
                                       blend_out_y_samples + slope_out_samples * blend_index,
@@ -486,8 +491,8 @@ static float butterworth_calculate_blend_value(float *samples,
 }
 
 /**
- * \param samples are expected to start at the first frame of the segment with a buffer of size
- * segment->filter_order at the left.
+ * \param samples: Are expected to start at the first frame of the segment with a buffer of size
+ * `segment->filter_order` at the left.
  */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,
@@ -512,9 +517,9 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
   const float fwd_offset = samples[0];
 
   for (int i = 0; i < sample_count; i++) {
-    const double x = (double)(samples[i] - fwd_offset);
+    const double x = double(samples[i] - fwd_offset);
     const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
-    filtered_values[i] = (float)(filtered_value) + fwd_offset;
+    filtered_values[i] = float(filtered_value) + fwd_offset;
   }
 
   for (int i = 0; i < filter_order; i++) {
@@ -527,9 +532,9 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
 
   /* Run the filter backwards as well to remove phase offset. */
   for (int i = sample_count - 1; i >= 0; i--) {
-    const double x = (double)(filtered_values[i] - bwd_offset);
+    const double x = double(filtered_values[i] - bwd_offset);
     const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
-    filtered_values[i] = (float)(filtered_value) + bwd_offset;
+    filtered_values[i] = float(filtered_value) + bwd_offset;
   }
 
   const int segment_end_index = segment->start_index + segment->length;
@@ -537,7 +542,7 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
   BezTriple right_bezt = fcu->bezt[segment_end_index - 1];
 
   const int samples_start_index = filter_order * sample_rate;
-  const int samples_end_index = (int)(right_bezt.vec[1][0] - left_bezt.vec[1][0] + filter_order) *
+  const int samples_end_index = int(right_bezt.vec[1][0] - left_bezt.vec[1][0] + filter_order) *
                                 sample_rate;
 
   const int blend_in_out_clamped = min_ii(blend_in_out,
@@ -549,11 +554,10 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
       blend_in_out_factor = 1;
     }
     else if (i < segment->start_index + segment->length / 2) {
-      blend_in_out_factor = min_ff((float)(i - segment->start_index) / blend_in_out_clamped, 1.0f);
+      blend_in_out_factor = min_ff(float(i - segment->start_index) / blend_in_out_clamped, 1.0f);
     }
     else {
-      blend_in_out_factor = min_ff((float)(segment_end_index - i - 1) / blend_in_out_clamped,
-                                   1.0f);
+      blend_in_out_factor = min_ff(float(segment_end_index - i - 1) / blend_in_out_clamped, 1.0f);
     }
 
     const float x_delta = fcu->bezt[i].vec[1][0] - left_bezt.vec[1][0] + filter_order;
@@ -669,6 +673,101 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
     }
 
     const float key_y_value = left_y + normalized_y * key_y_range;
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
+  }
+}
+
+/* ---------------- */
+
+void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  float y_delta;
+
+  if (factor > 0) {
+    const BezTriple segment_last_key = fcu->bezt[segment->start_index + segment->length - 1];
+    y_delta = right_key->vec[1][1] - segment_last_key.vec[1][1];
+  }
+  else {
+    const BezTriple segment_first_key = fcu->bezt[segment->start_index];
+    y_delta = left_key->vec[1][1] - segment_first_key.vec[1][1];
+  }
+
+  const float offset_value = y_delta * fabs(factor);
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+    const float key_y_value = fcu->bezt[i].vec[1][1] + offset_value;
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
+  }
+}
+
+/* ---------------- */
+
+static float s_curve(float x, float slope, float width, float height, float xshift, float yshift)
+{
+  /* Formula for 'S' curve we use for the "ease" sliders.
+   * The shift values move the curve vertically or horizontally.
+   * The range of the curve used is from 0 to 1 on "x" and "y"
+   * so we can scale it (width and height) and move it (`xshift` and y `yshift`)
+   * to crop the part of the curve we need. Slope determines how curvy the shape is. */
+  float y = height * pow((x - xshift), slope) /
+                (pow((x - xshift), slope) + pow((width - (x - xshift)), slope)) +
+            yshift;
+
+  /* The curve doesn't do what we want beyond our margins so we clamp the values. */
+  if (x > xshift + width) {
+    y = height + yshift;
+  }
+  else if (x < xshift) {
+    y = yshift;
+  }
+  return y;
+}
+
+void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+{
+  const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
+  const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
+
+  const float key_x_range = right_key->vec[1][0] - left_key->vec[1][0];
+  const float key_y_range = right_key->vec[1][1] - left_key->vec[1][1];
+
+  /* Happens if there is only 1 key on the FCurve. Needs to be skipped because it
+   * would be a divide by 0. */
+  if (IS_EQF(key_x_range, 0.0f)) {
+    return;
+  }
+
+  const float slope = 3.0;
+  /* By doubling the size of the "S" curve we just one side of it, a "C" shape. */
+  const float width = 2.0;
+  const float height = 2.0;
+  float xy_shift;
+
+  /* Shifting the x and y values we can decide what side of the "S" shape to use. */
+  if (factor > 0) {
+    xy_shift = -1.0;
+  }
+  else {
+    xy_shift = 0.0;
+  }
+
+  for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
+
+    const float x = (fcu->bezt[i].vec[1][0] - left_key->vec[1][0]) / key_x_range;
+    const float ease = s_curve(x, slope, width, height, xy_shift, xy_shift);
+    const float base = left_key->vec[1][1] + key_y_range * ease;
+
+    float y_delta;
+    if (factor > 0) {
+      y_delta = base - fcu->bezt[i].vec[1][1];
+    }
+    else {
+      y_delta = fcu->bezt[i].vec[1][1] - base;
+    }
+
+    const float key_y_value = fcu->bezt[i].vec[1][1] + y_delta * factor;
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
@@ -941,7 +1040,7 @@ void sample_fcurve_segment(FCurve *fcu,
                            const int sample_count)
 {
   for (int i = 0; i < sample_count; i++) {
-    const float evaluation_time = start_frame + ((float)i / sample_rate);
+    const float evaluation_time = start_frame + (float(i) / sample_rate);
     samples[i] = evaluate_fcurve(fcu, evaluation_time);
   }
 }
@@ -981,8 +1080,8 @@ void sample_fcurve(FCurve *fcu)
          * keyframes while sampling will affect the outcome...
          * - only start sampling+adding from index=1, so that we don't overwrite original keyframe
          */
-        range = (int)ceil(end->vec[1][0] - start->vec[1][0]);
-        sfra = (int)floor(start->vec[1][0]);
+        range = int(ceil(end->vec[1][0] - start->vec[1][0]));
+        sfra = int(floor(start->vec[1][0]));
 
         if (range) {
           value_cache = static_cast<TempFrameValCache *>(
@@ -990,7 +1089,7 @@ void sample_fcurve(FCurve *fcu)
 
           /* sample values */
           for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
-            fp->frame = (float)(sfra + n);
+            fp->frame = float(sfra + n);
             fp->val = evaluate_fcurve(fcu, fp->frame);
           }
 
@@ -1045,7 +1144,7 @@ static float animcopy_cfra = 0.0;
 
 /* datatype for use in copy/paste buffer */
 struct tAnimCopybufItem {
-  struct tAnimCopybufItem *next, *prev;
+  tAnimCopybufItem *next, *prev;
 
   ID *id;            /* ID which owns the curve */
   bActionGroup *grp; /* Action Group */
@@ -1091,14 +1190,13 @@ void ANIM_fcurves_copybuf_free()
 
 short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
 {
-  bAnimListElem *ale;
   Scene *scene = ac->scene;
 
   /* clear buffer first */
   ANIM_fcurves_copybuf_free();
 
   /* assume that each of these is an F-Curve */
-  for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
     tAnimCopybufItem *aci;
     BezTriple *bezt, *nbezt, *newbuf;
@@ -1591,13 +1689,13 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   /* methods of offset */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset[0] = (float)(scene->r.cfra - animcopy_firstframe);
+      offset[0] = float(scene->r.cfra - animcopy_firstframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset[0] = (float)(scene->r.cfra - animcopy_lastframe);
+      offset[0] = float(scene->r.cfra - animcopy_lastframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset[0] = (float)(scene->r.cfra - animcopy_cfra);
+      offset[0] = float(scene->r.cfra - animcopy_cfra);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset[0] = 0.0f;
@@ -1626,7 +1724,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
     for (pass = 0; pass < 3; pass++) {
       uint totmatch = 0;
 
-      for (ale = static_cast<bAnimListElem *>(anim_data->first); ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
         /* Find buffer item to paste from:
          * - If names don't matter (i.e. only 1 channel in buffer), don't check id/group
          * - If names do matter, only check if id-type is ok for now
@@ -1660,9 +1758,9 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 
           offset[1] = paste_get_y_offset(ac, aci, ale, value_offset_mode);
           if (adt) {
-            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 0, 0);
+            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), false, false);
             paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);
-            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), 1, 0);
+            ANIM_nla_mapping_apply_fcurve(adt, static_cast<FCurve *>(ale->key_data), true, false);
           }
           else {
             paste_animedit_keys_fcurve(fcu, aci, offset, merge_mode, flip);

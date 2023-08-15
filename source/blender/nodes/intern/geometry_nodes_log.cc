@@ -81,7 +81,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         }
       });
 
-  for (const bke::GeometryComponent *component : geometry_set.get_components_for_read()) {
+  for (const bke::GeometryComponent *component : geometry_set.get_components()) {
     this->component_types.append(component->type());
     switch (component->type()) {
       case bke::GeometryComponent::Type::Mesh: {
@@ -124,6 +124,10 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         break;
       }
       case bke::GeometryComponent::Type::Volume: {
+        break;
+      }
+      case bke::GeometryComponent::Type::GreasePencil: {
+        /* TODO. Do nothing for now. */
         break;
       }
     }

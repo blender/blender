@@ -15,15 +15,15 @@
 
 #include "BLI_span.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_gizmo_utils.h"
+#include "ED_gizmo_library.hh"
+#include "ED_gizmo_utils.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_retiming.h"

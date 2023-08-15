@@ -21,6 +21,9 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
@@ -397,7 +400,7 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
     for (j = 0; j < dv->totweight; j++) {
       bool found = false;
       dw = &dv->dw[j];
-      for (ld = (LinkData *)result->first; ld; ld = ld->next) {
+      LISTBASE_FOREACH (LinkData *, ld, result) {
         if (ld->data == POINTER_FROM_INT(dw->def_nr)) {
           found = true;
           break;
@@ -418,7 +421,6 @@ static void stroke_defvert_create_nr_list(MDeformVert *dv_list,
 static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase *def_nr_list)
 {
   int i, j;
-  LinkData *ld;
   MDeformVert *dst = (MDeformVert *)MEM_mallocN(count * sizeof(MDeformVert), "new_deformVert");
 
   for (i = 0; i < count; i++) {
@@ -427,7 +429,7 @@ static MDeformVert *stroke_defvert_new_count(int count, int totweight, ListBase 
     dst[i].totweight = totweight;
     j = 0;
     /* re-assign deform groups */
-    for (ld = (LinkData *)def_nr_list->first; ld; ld = ld->next) {
+    LISTBASE_FOREACH (LinkData *, ld, def_nr_list) {
       dst[i].dw[j].def_nr = POINTER_AS_INT(ld->data);
       j++;
     }
@@ -458,7 +460,6 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
   bGPDspoint *pt = gps->points;
   bGPDspoint *pt1 = nullptr;
   bGPDspoint *pt2 = nullptr;
-  LinkData *ld;
   ListBase def_nr_list = {nullptr};
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
@@ -563,7 +564,7 @@ bool BKE_gpencil_stroke_sample(bGPdata *gpd,
     /* Free original weight data. */
     BKE_gpencil_free_stroke_weights(gps);
     MEM_freeN(gps->dvert);
-    while ((ld = (LinkData *)BLI_pophead(&def_nr_list))) {
+    while (LinkData *ld = (LinkData *)BLI_pophead(&def_nr_list)) {
       MEM_freeN(ld);
     }
 
@@ -654,7 +655,7 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps,
   if (!isfinite(used_percent_length)) {
     /* #used_percent_length must always be finite, otherwise a segfault occurs.
      * Since this function should never segfault, set #used_percent_length to a safe fallback. */
-    /* NOTE: This fallback is used if gps->totpoints == 2, see MOD_gpencil_legacy_length.c */
+    /* NOTE: This fallback is used if `gps->totpoints == 2`, see `MOD_gpencil_legacy_length.cc`. */
     used_percent_length = 0.1f;
   }
 
@@ -1049,14 +1050,14 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
 
   /* This function uses a binomial kernel, which is the discrete version of gaussian blur.
    * The weight for a vertex at the relative index point_index is
-   * w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n
+   * `w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n`
    * All weights together sum up to 1
    * This is equivalent to doing multiple iterations of averaging neighbors,
    * where n = iterations * 2 and -n/2 <= j <= n/2
    *
-   * Now the problem is that nCr(n, j + n/2) is very hard to compute for n > 500, since even
+   * Now the problem is that `nCr(n, j + n/2)` is very hard to compute for `n > 500`, since even
    * double precision isn't sufficient. A very good robust approximation for n > 20 is
-   * nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)
+   * `nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)`
    *
    * There is one more problem left: The old smooth algorithm was doing a more aggressive
    * smooth. To solve that problem, choose a different n/2, which does not match the range and
@@ -1064,8 +1065,8 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
    *
    * keep_shape is a new option to stop the stroke from severely deforming.
    * It uses different partially negative weights.
-   * w = 2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))
-   *   ~ 2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))
+   * w = `2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))`
+   *   ~ `2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))`
    * All weights still sum up to 1.
    * Note these weights only work because the averaging is done in relative coordinates.
    */
@@ -1117,7 +1118,7 @@ bool BKE_gpencil_stroke_smooth_point(bGPDstroke *gps,
   }
   total_w += w - w2;
   /* The accumulated weight total_w should be
-   * ~sqrt(M_PI * n_half) * exp((iterations * iterations) / n_half) < 100
+   * `~sqrt(M_PI * n_half) * exp((iterations * iterations) / n_half) < 100`
    * here, but sometimes not quite. */
   mul_v3_fl(sco, float(1.0 / total_w));
   /* Shift back to global coordinates. */
@@ -2720,9 +2721,9 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   const Span<float3> positions = me_eval->vert_positions();
-  const OffsetIndices polys = me_eval->polys();
+  const OffsetIndices faces = me_eval->faces();
   const Span<int> corner_verts = me_eval->corner_verts();
-  int polys_len = me_eval->totpoly;
+  int faces_len = me_eval->faces_num;
   char element_name[200];
 
   /* Need at least an edge. */
@@ -2746,7 +2747,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
   }
 
   /* Export faces as filled strokes. */
-  if (use_faces && polys_len > 0) {
+  if (use_faces && faces_len > 0) {
     /* Read all polygons and create fill for each. */
     make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
     /* Create Layer and Frame. */
@@ -2760,8 +2761,8 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
     const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
         "material_index", ATTR_DOMAIN_FACE, 0);
-    for (i = 0; i < polys_len; i++) {
-      const IndexRange poly = polys[i];
+    for (i = 0; i < faces_len; i++) {
+      const IndexRange face = faces[i];
 
       /* Find material. */
       int mat_idx = 0;
@@ -2781,19 +2782,19 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
       }
 
-      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, poly.size(), 10, false);
+      bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, face.size(), 10, false);
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
       const Span<MDeformVert> dverts = me_eval->deform_verts();
       if (use_vgroups && !dverts.is_empty()) {
-        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * poly.size(),
+        gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * face.size(),
                                                      "gp_fill_dverts");
       }
 
       /* Add points to strokes. */
-      for (int j = 0; j < poly.size(); j++) {
-        const int vert = corner_verts[poly[j]];
+      for (int j = 0; j < face.size(); j++) {
+        const int vert = corner_verts[face[j]];
 
         bGPDspoint *pt = &gps_fill->points[j];
         copy_v3_v3(&pt->x, positions[vert]);
@@ -2815,7 +2816,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         }
       }
       /* If has only 3 points subdivide. */
-      if (poly.size() == 3) {
+      if (face.size() == 3) {
         BKE_gpencil_stroke_subdivide(gpd, gps_fill, 1, GP_SUBDIV_SIMPLE);
       }
 

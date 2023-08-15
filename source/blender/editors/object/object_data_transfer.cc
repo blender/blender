@@ -12,16 +12,16 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_mesh_remap.h"
-#include "BKE_mesh_runtime.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_remap.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_report.h"
 
@@ -30,15 +30,15 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_object.h"
+#include "ED_object.hh"
 
 #include "object_intern.h"
 
@@ -188,14 +188,14 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
       *r_free = true;
       return item;
     }
-    int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_PROP_FLOAT2);
+    int num_data = CustomData_number_of_layers(&me_eval->loop_data, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (int i = 0; i < num_data; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->ldata, CD_PROP_FLOAT2, i);
+          &me_eval->loop_data, CD_PROP_FLOAT2, i);
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
@@ -225,10 +225,10 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
-      dt_add_vcol_layers(&me_eval->vdata, cddata_masks.vmask, &item, &totitem);
+      dt_add_vcol_layers(&me_eval->vert_data, cddata_masks.vmask, &item, &totitem);
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
-      dt_add_vcol_layers(&me_eval->ldata, cddata_masks.lmask, &item, &totitem);
+      dt_add_vcol_layers(&me_eval->loop_data, cddata_masks.lmask, &item, &totitem);
     }
   }
 
@@ -357,16 +357,13 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
                                                   ListBase *ctx_objects,
                                                   const bool reverse_transfer)
 {
-  CollectionPointerLink *ctx_ob;
   CTX_data_selected_editable_objects(C, ctx_objects);
 
   if (reverse_transfer) {
     return; /* Nothing else to do in this case... */
   }
 
-  for (ctx_ob = static_cast<CollectionPointerLink *>(ctx_objects->first); ctx_ob;
-       ctx_ob = ctx_ob->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, ctx_objects) {
     Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
     Mesh *me;
     if ((ob == ob_src) || (ob->type != OB_MESH)) {
@@ -428,7 +425,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   ListBase ctx_objects;
-  CollectionPointerLink *ctx_ob_dst;
 
   bool changed = false;
 
@@ -489,9 +485,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
   data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
-  for (ctx_ob_dst = static_cast<CollectionPointerLink *>(ctx_objects.first); ctx_ob_dst;
-       ctx_ob_dst = ctx_ob_dst->next)
-  {
+  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
     Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
 
     if (reverse_transfer) {
@@ -632,7 +626,7 @@ static bool data_transfer_poll_property(const bContext * /*C*/,
     }
   }
   else if (STREQ(prop_id, "poly_mapping")) {
-    if (!DT_DATATYPE_IS_POLY(data_type)) {
+    if (!DT_DATATYPE_IS_FACE(data_type)) {
       return false;
     }
   }
@@ -646,18 +640,18 @@ static bool data_transfer_poll_property(const bContext * /*C*/,
   return true;
 }
 
-static char *data_transfer_get_description(bContext * /*C*/,
-                                           wmOperatorType * /*ot*/,
-                                           PointerRNA *ptr)
+static std::string data_transfer_get_description(bContext * /*C*/,
+                                                 wmOperatorType * /*ot*/,
+                                                 PointerRNA *ptr)
 {
   const bool reverse_transfer = RNA_boolean_get(ptr, "use_reverse_transfer");
 
   if (reverse_transfer) {
-    return BLI_strdup(TIP_(
-        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one"));
+    return TIP_(
+        "Transfer data layer(s) (weights, edge sharp, etc.) from selected meshes to active one");
   }
 
-  return nullptr;
+  return "";
 }
 
 void OBJECT_OT_data_transfer(wmOperatorType *ot)
@@ -868,7 +862,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
     Object *ob_src = ob_act;
 
     ListBase ctx_objects;
-    CollectionPointerLink *ctx_ob_dst;
 
     const int data_type = RNA_enum_get(op->ptr, "data_type");
     const bool use_delete = RNA_boolean_get(op->ptr, "use_delete");
@@ -888,9 +881,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
-    for (ctx_ob_dst = static_cast<CollectionPointerLink *>(ctx_objects.first); ctx_ob_dst;
-         ctx_ob_dst = ctx_ob_dst->next)
-    {
+    LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
       Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
       if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
         BKE_object_data_transfer_layout(depsgraph,

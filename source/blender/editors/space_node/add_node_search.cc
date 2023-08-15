@@ -9,7 +9,7 @@
 #include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string_search.h"
+#include "BLI_string_search.hh"
 
 #include "DNA_space_types.h"
 
@@ -25,14 +25,14 @@
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 #include "NOD_add_node_search.hh"
 
-#include "ED_asset.h"
-#include "ED_node.h"
+#include "ED_asset.hh"
+#include "ED_node.hh"
 
 #include "node_intern.hh"
 
@@ -185,27 +185,22 @@ static void add_node_search_update_fn(
     storage.update_items_tag = false;
   }
 
-  StringSearch *search = BLI_string_search_new();
+  string_search::StringSearch<nodes::AddNodeItem> search;
 
   for (nodes::AddNodeItem &item : storage.search_add_items) {
-    BLI_string_search_add(search, item.ui_name.c_str(), &item, item.weight);
+    search.add(item.ui_name, &item, item.weight);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
    * so the items are in the same order they will appear in while searching. */
   const char *string = is_first ? "" : str;
-  nodes::AddNodeItem **filtered_items;
-  const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
+  const Vector<nodes::AddNodeItem *> filtered_items = search.query(string);
 
-  for (const int i : IndexRange(filtered_amount)) {
-    nodes::AddNodeItem &item = *filtered_items[i];
-    if (!UI_search_item_add(items, item.ui_name.c_str(), &item, ICON_NONE, 0, 0)) {
+  for (nodes::AddNodeItem *item : filtered_items) {
+    if (!UI_search_item_add(items, item->ui_name.c_str(), item, ICON_NONE, 0, 0)) {
       break;
     }
   }
-
-  MEM_freeN(filtered_items);
-  BLI_string_search_free(search);
 }
 
 static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)

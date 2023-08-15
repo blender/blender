@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_geom.h"
+
 #include "COM_KeyingDespillOperation.h"
 
 namespace blender::compositor {

@@ -37,14 +37,14 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppv_
   if (!ppv_obj) {
     return E_INVALIDARG;
   }
-  *ppv_obj = NULL;
+  *ppv_obj = nullptr;
 
   if (riid == IID_IUnknown || riid == IID_IDropTarget) {
     AddRef();
     *ppv_obj = (void *)this;
     return S_OK;
   }
-  *ppv_obj = NULL;
+  *ppv_obj = nullptr;
   return E_NOINTERFACE;
 }
 
@@ -87,7 +87,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragEnter(IDataObject *p_data_object,
 
   m_draggedObjectType = getGhostType(p_data_object);
   m_system->pushDragDropEvent(
-      GHOST_kEventDraggingEntered, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
+      GHOST_kEventDraggingEntered, m_draggedObjectType, m_window, pt.x, pt.y, nullptr);
   return S_OK;
 }
 
@@ -107,7 +107,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
     // *pdw_effect = DROPEFFECT_COPY;
   }
   m_system->pushDragDropEvent(
-      GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, NULL);
+      GHOST_kEventDraggingUpdated, m_draggedObjectType, m_window, pt.x, pt.y, nullptr);
   return S_OK;
 }
 
@@ -117,7 +117,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::DragOver(DWORD /*grf_key_state*/,
 HRESULT __stdcall GHOST_DropTargetWin32::DragLeave(void)
 {
   m_system->pushDragDropEvent(
-      GHOST_kEventDraggingExited, m_draggedObjectType, m_window, 0, 0, NULL);
+      GHOST_kEventDraggingExited, m_draggedObjectType, m_window, 0, 0, nullptr);
   m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
   return S_OK;
 }
@@ -194,14 +194,14 @@ void *GHOST_DropTargetWin32::getGhostData(IDataObject *p_data_object)
 #ifdef WITH_GHOST_DEBUG
       ::printf("\nGHOST_kDragnDropTypeUnknown");
 #endif /* WITH_GHOST_DEBUG */
-      return NULL;
+      return nullptr;
   }
-  return NULL;
+  return nullptr;
 }
 
 void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *p_data_object)
 {
-  GHOST_TStringArray *str_array = NULL;
+  GHOST_TStringArray *str_array = nullptr;
   FORMATETC fmtetc = {CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
 
   /* Check if data-object supplies the format we want.
@@ -211,7 +211,7 @@ void *GHOST_DropTargetWin32::getDropDataAsFilenames(IDataObject *p_data_object)
     if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
       const HDROP hdrop = (HDROP)::GlobalLock(stgmed.hGlobal);
 
-      const uint totfiles = ::DragQueryFileW(hdrop, -1, NULL, 0);
+      const uint totfiles = ::DragQueryFileW(hdrop, -1, nullptr, 0);
       if (totfiles) {
         str_array = (GHOST_TStringArray *)::malloc(sizeof(GHOST_TStringArray));
         str_array->count = 0;
@@ -284,23 +284,23 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *p_data_object)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
 {
   int size;
-  out = NULL; /* caller should free if != NULL */
+  out = nullptr; /* caller should free if != nullptr */
 
   /* Get the required size. */
   size = ::WideCharToMultiByte(CP_ACP,     /* System Default Codepage */
                                0x00000400, /* WC_NO_BEST_FIT_CHARS */
                                in,
                                -1, /* -1 null terminated, makes output null terminated too. */
-                               NULL,
+                               nullptr,
                                0,
-                               NULL,
-                               NULL);
+                               nullptr,
+                               nullptr);
 
   if (!size) {
 #ifdef WITH_GHOST_DEBUG
@@ -315,14 +315,14 @@ int GHOST_DropTargetWin32::WideCharToANSI(LPCWSTR in, char *&out)
     return 0;
   }
 
-  size = ::WideCharToMultiByte(CP_ACP, 0x00000400, in, -1, (LPSTR)out, size, NULL, NULL);
+  size = ::WideCharToMultiByte(CP_ACP, 0x00000400, in, -1, (LPSTR)out, size, nullptr, nullptr);
 
   if (!size) {
 #ifdef WITH_GHOST_DEBUG
     ::printLastError();
 #endif /* WITH_GHOST_DEBUG */
     ::free(out);
-    out = NULL;
+    out = nullptr;
   }
   return size;
 }
@@ -335,12 +335,12 @@ void printLastError(void)
 
   err = GetLastError();
   if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                    NULL,
+                    nullptr,
                     err,
                     0,
                     (LPTSTR)&s,
                     0,
-                    NULL))
+                    nullptr))
   {
     printf("\nLastError: (%d) %s\n", int(err), s);
     LocalFree(s);

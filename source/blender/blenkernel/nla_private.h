@@ -10,7 +10,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
-#include "RNA_types.h"
+#include "RNA_types.hh"
 
 #ifdef __cplusplus
 extern "C" {

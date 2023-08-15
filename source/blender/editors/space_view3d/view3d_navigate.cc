@@ -11,7 +11,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
 #include "BLT_translation.h"
@@ -21,75 +24,418 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_vfont.h"
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_mesh.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_transform.h"
+#include "ED_mesh.hh"
+#include "ED_particle.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "view3d_intern.h"
 
 #include "view3d_navigate.hh" /* own include */
 
 /* Prototypes. */
-static void viewops_data_init_context(bContext *C, ViewOpsData *vod);
-static void viewops_data_init_navigation(bContext *C,
-                                         const wmEvent *event,
-                                         const eV3D_OpMode nav_type,
-                                         const bool use_cursor_init,
-                                         ViewOpsData *vod);
-static void viewops_data_end_navigation(bContext *C, ViewOpsData *vod);
-static int viewpan_invoke_impl(ViewOpsData *vod, PointerRNA *ptr);
+static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname);
 
-const char *viewops_operator_idname_get(eV3D_OpMode nav_type)
+static eViewOpsFlag viewops_flag_from_prefs()
 {
-  switch (nav_type) {
-    case V3D_OP_MODE_ZOOM:
-      return "VIEW3D_OT_zoom";
-    case V3D_OP_MODE_ROTATE:
-      return "VIEW3D_OT_rotate";
-    case V3D_OP_MODE_MOVE:
-      return "VIEW3D_OT_move";
-    case V3D_OP_MODE_VIEW_PAN:
-      return "VIEW3D_OT_view_pan";
-    case V3D_OP_MODE_VIEW_ROLL:
-      return "VIEW3D_OT_view_roll";
-    case V3D_OP_MODE_DOLLY:
-      return "VIEW3D_OT_dolly";
-#ifdef WITH_INPUT_NDOF
-    case V3D_OP_MODE_NDOF_ORBIT:
-      return "VIEW3D_OT_ndof_orbit";
-    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
-      return "VIEW3D_OT_ndof_orbit_zoom";
-    case V3D_OP_MODE_NDOF_PAN:
-      return "VIEW3D_OT_ndof_pan";
-    case V3D_OP_MODE_NDOF_ALL:
-      return "VIEW3D_OT_ndof_all";
-#endif
-    case V3D_OP_MODE_NONE:
-      break;
+  const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
+  const bool use_depth = (U.uiflag & USER_DEPTH_NAVIGATE) != 0;
+  const bool use_zoom_to_mouse = (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0;
+  const bool use_auto_persp = (U.uiflag & USER_AUTOPERSP) != 0;
+
+  enum eViewOpsFlag flag = VIEWOPS_FLAG_INIT_ZFAC;
+  if (use_select) {
+    flag |= VIEWOPS_FLAG_ORBIT_SELECT;
   }
-  BLI_assert(false);
-  return nullptr;
+  if (use_depth) {
+    flag |= VIEWOPS_FLAG_DEPTH_NAVIGATE;
+  }
+  if (use_zoom_to_mouse) {
+    flag |= VIEWOPS_FLAG_ZOOM_TO_MOUSE;
+  }
+  if (use_auto_persp) {
+    flag |= VIEWOPS_FLAG_PERSP_ENSURE;
+  }
+
+  return flag;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name ViewOpsData definition
+ * \{ */
+
+void ViewOpsData::init_context(bContext *C)
+{
+  /* Store data. */
+  this->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  this->scene = CTX_data_scene(C);
+  this->area = CTX_wm_area(C);
+  this->region = CTX_wm_region(C);
+  this->v3d = static_cast<View3D *>(this->area->spacedata.first);
+  this->rv3d = static_cast<RegionView3D *>(this->region->regiondata);
+}
+
+void ViewOpsData::state_backup()
+{
+  copy_v3_v3(this->init.ofs, rv3d->ofs);
+  copy_v3_v3(this->init.ofs_lock, rv3d->ofs_lock);
+  this->init.camdx = rv3d->camdx;
+  this->init.camdy = rv3d->camdy;
+  this->init.camzoom = rv3d->camzoom;
+  this->init.dist = rv3d->dist;
+  copy_qt_qt(this->init.quat, rv3d->viewquat);
+
+  this->init.persp = rv3d->persp;
+  this->init.view = rv3d->view;
+  this->init.view_axis_roll = rv3d->view_axis_roll;
+}
+
+void ViewOpsData::state_restore()
+{
+  /* DOLLY, MOVE, ROTATE and ZOOM. */
+  {
+    /* For Move this only changes when offset is not locked. */
+    /* For Rotate this only changes when rotating around objects or last-brush. */
+    /* For Zoom this only changes when zooming to mouse position. */
+    /* Note this does not remove auto-keys on locked cameras. */
+    copy_v3_v3(this->rv3d->ofs, this->init.ofs);
+  }
+
+  /* MOVE and ZOOM. */
+  {
+    /* For Move this only changes when offset is not locked. */
+    /* For Zoom this only changes when zooming to mouse position in camera view. */
+    this->rv3d->camdx = this->init.camdx;
+    this->rv3d->camdy = this->init.camdy;
+  }
+
+  /* MOVE. */
+  {
+    if ((this->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(this->v3d, this->rv3d)) {
+      // this->rv3d->camdx = this->init.camdx;
+      // this->rv3d->camdy = this->init.camdy;
+    }
+    else if (ED_view3d_offset_lock_check(this->v3d, this->rv3d)) {
+      copy_v2_v2(this->rv3d->ofs_lock, this->init.ofs_lock);
+    }
+    else {
+      // copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
+      if (RV3D_LOCK_FLAGS(this->rv3d) & RV3D_BOXVIEW) {
+        view3d_boxview_sync(this->area, this->region);
+      }
+    }
+  }
+
+  /* ZOOM. */
+  {
+    this->rv3d->camzoom = this->init.camzoom;
+  }
+
+  /* ROTATE and ZOOM. */
+  {
+    /**
+     * For Rotate this only changes when orbiting from a camera view.
+     * In this case the `dist` is calculated based on the camera relative to the `ofs`.
+     */
+    /* Note this does not remove auto-keys on locked cameras. */
+    this->rv3d->dist = this->init.dist;
+  }
+
+  /* ROLL and ROTATE. */
+  {
+    /* Note this does not remove auto-keys on locked cameras. */
+    copy_qt_qt(this->rv3d->viewquat, this->init.quat);
+  }
+
+  /* ROTATE. */
+  {
+    this->rv3d->persp = this->init.persp;
+    this->rv3d->view = this->init.view;
+    this->rv3d->view_axis_roll = this->init.view_axis_roll;
+  }
+
+  /* NOTE: there is no need to restore "last" values (as set by #ED_view3d_lastview_store). */
+
+  ED_view3d_camera_lock_sync(this->depsgraph, this->v3d, this->rv3d);
+}
+
+static eViewOpsFlag navigate_pivot_get(bContext *C,
+                                       Depsgraph *depsgraph,
+                                       ARegion *region,
+                                       View3D *v3d,
+                                       const wmEvent *event,
+                                       eViewOpsFlag viewops_flag,
+                                       const float dyn_ofs_override[3],
+                                       float r_pivot[3])
+{
+  if ((viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) && view3d_orbit_calc_center(C, r_pivot)) {
+    return VIEWOPS_FLAG_ORBIT_SELECT;
+  }
+
+  wmWindow *win = CTX_wm_window(C);
+
+  if (!(viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE)) {
+    ED_view3d_autodist_last_clear(win);
+
+    /* Uses the `lastofs` in #view3d_orbit_calc_center. */
+    BLI_assert(viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT);
+    return VIEWOPS_FLAG_ORBIT_SELECT;
+  }
+
+  if (dyn_ofs_override) {
+    ED_view3d_win_to_3d_int(v3d, region, dyn_ofs_override, event->mval, r_pivot);
+    return VIEWOPS_FLAG_DEPTH_NAVIGATE;
+  }
+
+  const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
+
+  if (use_depth_last) {
+    ED_view3d_autodist_last_get(win, r_pivot);
+  }
+  else {
+    float fallback_depth_pt[3];
+    negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
+
+    const bool is_set = ED_view3d_autodist(
+        depsgraph, region, v3d, event->mval, r_pivot, true, fallback_depth_pt);
+
+    ED_view3d_autodist_last_set(win, event, r_pivot, is_set);
+  }
+
+  return VIEWOPS_FLAG_DEPTH_NAVIGATE;
+}
+
+void ViewOpsData::init_navigation(bContext *C,
+                                  const wmEvent *event,
+                                  const ViewOpsType *nav_type,
+                                  const float dyn_ofs_override[3],
+                                  const bool use_cursor_init)
+{
+  this->nav_type = nav_type;
+  eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
+
+  if (!use_cursor_init) {
+    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE);
+  }
+
+  bool calc_rv3d_dist = true;
+#ifdef WITH_INPUT_NDOF
+  if (ELEM(nav_type,
+           &ViewOpsType_ndof_orbit,
+           &ViewOpsType_ndof_orbit_zoom,
+           &ViewOpsType_ndof_pan,
+           &ViewOpsType_ndof_all))
+  {
+    calc_rv3d_dist = false;
+  }
+#endif
+
+  /* Set the view from the camera, if view locking is enabled.
+   * we may want to make this optional but for now its needed always. */
+  ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, calc_rv3d_dist);
+
+  this->state_backup();
+
+  if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
+    if (ED_view3d_persp_ensure(depsgraph, this->v3d, this->region)) {
+      /* If we're switching from camera view to the perspective one,
+       * need to tag viewport update, so camera view and borders are properly updated. */
+      ED_region_tag_redraw(this->region);
+    }
+  }
+
+  if (viewops_flag & (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT)) {
+    float pivot_new[3];
+    eViewOpsFlag pivot_type = navigate_pivot_get(
+        C, depsgraph, region, v3d, event, viewops_flag, dyn_ofs_override, pivot_new);
+
+    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT);
+    viewops_flag |= pivot_type;
+
+    negate_v3_v3(this->dyn_ofs, pivot_new);
+    this->use_dyn_ofs = true;
+
+    if (!(nav_type->flag & VIEWOPS_FLAG_ORBIT_SELECT)) {
+      /* Calculate new #RegionView3D::ofs and #RegionView3D::dist. */
+
+      if (rv3d->is_persp) {
+        float my_origin[3]; /* Original #RegionView3D.ofs. */
+        float my_pivot[3];  /* View pivot. */
+        float dvec[3];
+
+        /* locals for dist correction */
+        float mat[3][3];
+        float upvec[3];
+
+        negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
+
+        /* Set the dist value to be the distance from this 3d point this means you'll
+         * always be able to zoom into it and panning won't go bad when dist was zero. */
+
+        /* remove dist value */
+        upvec[0] = upvec[1] = 0;
+        upvec[2] = rv3d->dist;
+        copy_m3_m4(mat, rv3d->viewinv);
+
+        mul_m3_v3(mat, upvec);
+        add_v3_v3v3(my_pivot, my_origin, upvec);
+
+        /* find a new ofs value that is along the view axis
+         * (rather than the mouse location) */
+        closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
+
+        negate_v3_v3(rv3d->ofs, dvec);
+        rv3d->dist = len_v3v3(my_pivot, dvec);
+      }
+      else {
+        const float mval_region_mid[2] = {float(region->winx) / 2.0f, float(region->winy) / 2.0f};
+        ED_view3d_win_to_3d(v3d, region, pivot_new, mval_region_mid, rv3d->ofs);
+        negate_v3(rv3d->ofs);
+      }
+
+      /* XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
+       * This causes the state when canceling a navigation operation to not be fully restored. */
+      this->init.dist = rv3d->dist;
+      copy_v3_v3(this->init.ofs, rv3d->ofs);
+    }
+  }
+
+  if (viewops_flag & VIEWOPS_FLAG_INIT_ZFAC) {
+    float tvec[3];
+    negate_v3_v3(tvec, rv3d->ofs);
+    this->init.zfac = ED_view3d_calc_zfac(rv3d, tvec);
+  }
+
+  this->init.persp_with_auto_persp_applied = rv3d->persp;
+
+  if (event) {
+    this->init.event_type = event->type;
+    copy_v2_v2_int(this->init.event_xy, event->xy);
+    copy_v2_v2_int(this->prev.event_xy, event->xy);
+
+    if (use_cursor_init) {
+      zero_v2_int(this->init.event_xy_offset);
+    }
+    else {
+      /* Simulate the event starting in the middle of the region. */
+      this->init.event_xy_offset[0] = BLI_rcti_cent_x(&this->region->winrct) - event->xy[0];
+      this->init.event_xy_offset[1] = BLI_rcti_cent_y(&this->region->winrct) - event->xy[1];
+    }
+
+    /* For dolly */
+    const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
+    ED_view3d_win_to_vector(region, mval, this->init.mousevec);
+
+    {
+      int event_xy_offset[2];
+      add_v2_v2v2_int(event_xy_offset, event->xy, this->init.event_xy_offset);
+
+      /* For rotation with trackball rotation. */
+      calctrackballvec(&region->winrct, event_xy_offset, this->init.trackvec);
+    }
+  }
+
+  copy_qt_qt(this->curr.viewquat, rv3d->viewquat);
+
+  this->reverse = 1.0f;
+  if (rv3d->persmat[2][1] < 0.0f) {
+    this->reverse = -1.0f;
+  }
+
+  this->viewops_flag = viewops_flag;
+
+  /* Default. */
+  this->use_dyn_ofs_ortho_correction = false;
+
+  rv3d->rflag |= RV3D_NAVIGATING;
+}
+
+void ViewOpsData::end_navigation(bContext *C)
+{
+  this->rv3d->rflag &= ~RV3D_NAVIGATING;
+
+  if (this->timer) {
+    WM_event_timer_remove(CTX_wm_manager(C), this->timer->win, this->timer);
+  }
+
+  MEM_SAFE_FREE(this->init.dial);
+
+  /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
+   * faster while navigation operator runs. */
+  ED_region_tag_redraw(this->region);
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Operator Callback Utils
  * \{ */
+
+/* Used for navigation utility in operators. */
+struct ViewOpsData_Utility : ViewOpsData {
+  /* To track only the navigation #wmKeyMapItem items and allow changes to them, an internal
+   * #wmKeyMap is created with their copy. */
+  ListBase keymap_items;
+
+  /* Used by #ED_view3d_navigation_do. */
+  bool is_modal_event;
+
+  ViewOpsData_Utility(bContext *C, const bool use_alt_navigation = false)
+      : ViewOpsData(), keymap_items(), is_modal_event(false)
+  {
+    this->init_context(C);
+
+    wmKeyMap *keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
+    wmKeyMap keymap_tmp = {};
+
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
+      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
+        continue;
+      }
+      if (kmi->flag & KMI_INACTIVE) {
+        continue;
+      }
+      if (view3d_navigation_type_from_idname(kmi->idname) == nullptr) {
+        continue;
+      }
+
+      wmKeyMapItem *kmi_copy = WM_keymap_add_item_copy(&keymap_tmp, kmi);
+      if (use_alt_navigation) {
+        kmi_copy->alt = true;
+      }
+    }
+
+    /* Weak, but only the keymap items from the #wmKeyMap struct are needed here. */
+    this->keymap_items = keymap_tmp.items;
+  }
+
+  ~ViewOpsData_Utility()
+  {
+    /* Weak, but rebuild the struct #wmKeyMap to clear the keymap items. */
+    wmKeyMap keymap_tmp = {};
+    keymap_tmp.items = this->keymap_items;
+    WM_keymap_clear(&keymap_tmp);
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("ViewOpsData_Utility")
+#endif
+};
 
 static bool view3d_navigation_poll_impl(bContext *C, const char viewlock)
 {
@@ -119,11 +465,11 @@ static eV3D_OpEvent view3d_navigate_event(ViewOpsData *vod, const wmEvent *event
       case VIEWROT_MODAL_SWITCH_ZOOM:
       case VIEWROT_MODAL_SWITCH_MOVE:
       case VIEWROT_MODAL_SWITCH_ROTATE: {
-        const eV3D_OpMode nav_type_new = (event->val == VIEWROT_MODAL_SWITCH_ZOOM) ?
-                                             V3D_OP_MODE_ZOOM :
-                                         (event->val == VIEWROT_MODAL_SWITCH_MOVE) ?
-                                             V3D_OP_MODE_MOVE :
-                                             V3D_OP_MODE_ROTATE;
+        const ViewOpsType *nav_type_new = (event->val == VIEWROT_MODAL_SWITCH_ZOOM) ?
+                                              &ViewOpsType_zoom :
+                                          (event->val == VIEWROT_MODAL_SWITCH_MOVE) ?
+                                              &ViewOpsType_move :
+                                              &ViewOpsType_rotate;
         if (nav_type_new == vod->nav_type) {
           break;
         }
@@ -151,71 +497,36 @@ static eV3D_OpEvent view3d_navigate_event(ViewOpsData *vod, const wmEvent *event
   return VIEW_PASS;
 }
 
-static int view3d_navigation_modal(bContext *C,
-                                   ViewOpsData *vod,
-                                   const eV3D_OpEvent event_code,
-                                   const int xy[2])
-{
-  switch (vod->nav_type) {
-    case V3D_OP_MODE_ZOOM:
-      return viewzoom_modal_impl(C, vod, event_code, xy);
-    case V3D_OP_MODE_ROTATE:
-      return viewrotate_modal_impl(C, vod, event_code, xy);
-    case V3D_OP_MODE_MOVE:
-      return viewmove_modal_impl(C, vod, event_code, xy);
-    default:
-      break;
-  }
-  return OPERATOR_CANCELLED;
-}
-
 static int view3d_navigation_invoke_generic(bContext *C,
                                             ViewOpsData *vod,
                                             const wmEvent *event,
                                             PointerRNA *ptr,
-                                            const eV3D_OpMode nav_type)
+                                            const ViewOpsType *nav_type,
+                                            const float dyn_ofs_override[3])
 {
+  if (!nav_type->init_fn) {
+    return OPERATOR_CANCELLED;
+  }
+
   bool use_cursor_init = false;
   if (PropertyRNA *prop = RNA_struct_find_property(ptr, "use_cursor_init")) {
     use_cursor_init = RNA_property_boolean_get(ptr, prop);
   }
 
-  viewops_data_init_navigation(C, event, nav_type, use_cursor_init, vod);
+  vod->init_navigation(C, event, nav_type, dyn_ofs_override, use_cursor_init);
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
-  switch (nav_type) {
-    case V3D_OP_MODE_ZOOM:
-      return viewzoom_invoke_impl(C, vod, event, ptr);
-    case V3D_OP_MODE_ROTATE:
-      return viewrotate_invoke_impl(vod, event);
-    case V3D_OP_MODE_MOVE:
-      return viewmove_invoke_impl(vod, event);
-    case V3D_OP_MODE_VIEW_PAN:
-      return viewpan_invoke_impl(vod, ptr);
-#ifdef WITH_INPUT_NDOF
-    case V3D_OP_MODE_NDOF_ORBIT:
-      return ndof_orbit_invoke_impl(C, vod, event);
-    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
-      return ndof_orbit_zoom_invoke_impl(C, vod, event);
-    case V3D_OP_MODE_NDOF_PAN:
-      return ndof_pan_invoke_impl(C, vod, event);
-    case V3D_OP_MODE_NDOF_ALL:
-      return ndof_all_invoke_impl(C, vod, event);
-#endif
-    default:
-      break;
-  }
-  return OPERATOR_CANCELLED;
+  return nav_type->init_fn(C, vod, event, ptr);
 }
 
 int view3d_navigate_invoke_impl(bContext *C,
                                 wmOperator *op,
                                 const wmEvent *event,
-                                const eV3D_OpMode nav_type)
+                                const ViewOpsType *nav_type)
 {
-  ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
-  viewops_data_init_context(C, vod);
-  int ret = view3d_navigation_invoke_generic(C, vod, event, op->ptr, nav_type);
+  ViewOpsData *vod = new ViewOpsData();
+  vod->init_context(C);
+  int ret = view3d_navigation_invoke_generic(C, vod, event, op->ptr, nav_type, nullptr);
   op->customdata = (void *)vod;
 
   if (ret == OPERATOR_RUNNING_MODAL) {
@@ -253,17 +564,16 @@ int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
 
-  const eV3D_OpMode nav_type_prev = vod->nav_type;
+  const ViewOpsType *nav_type_prev = vod->nav_type;
   const eV3D_OpEvent event_code = view3d_navigate_event(vod, event);
   if (nav_type_prev != vod->nav_type) {
-    wmOperatorType *ot_new = WM_operatortype_find(viewops_operator_idname_get(vod->nav_type),
-                                                  false);
+    wmOperatorType *ot_new = WM_operatortype_find(vod->nav_type->idname, false);
     WM_operator_type_set(op, ot_new);
-    viewops_data_end_navigation(C, vod);
-    return view3d_navigation_invoke_generic(C, vod, event, op->ptr, vod->nav_type);
+    vod->end_navigation(C);
+    return view3d_navigation_invoke_generic(C, vod, event, op->ptr, vod->nav_type, nullptr);
   }
 
-  int ret = view3d_navigation_modal(C, vod, event_code, event->xy);
+  int ret = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
 
   if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
     if (ret & OPERATOR_FINISHED) {
@@ -303,7 +613,7 @@ void view3d_operator_properties_common(wmOperatorType *ot, const enum eV3D_OpPro
   if (flag & V3D_OP_PROP_USE_ALL_REGIONS) {
     PropertyRNA *prop;
     prop = RNA_def_boolean(
-        ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
+        ot->srna, "use_all_regions", false, "All Regions", "View selected for all regions");
     RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   }
   if (flag & V3D_OP_PROP_USE_MOUSE_INIT) {
@@ -511,360 +821,24 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   return is_set;
 }
 
-static eViewOpsFlag viewops_flag_from_prefs()
-{
-  const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
-  const bool use_depth = (U.uiflag & USER_DEPTH_NAVIGATE) != 0;
-  const bool use_zoom_to_mouse = (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0;
-
-  enum eViewOpsFlag flag = VIEWOPS_FLAG_NONE;
-  if (use_select) {
-    flag |= VIEWOPS_FLAG_ORBIT_SELECT;
-  }
-  if (use_depth) {
-    flag |= VIEWOPS_FLAG_DEPTH_NAVIGATE;
-  }
-  if (use_zoom_to_mouse) {
-    flag |= VIEWOPS_FLAG_ZOOM_TO_MOUSE;
-  }
-
-  return flag;
-}
-
-static void viewops_data_init_context(bContext *C, ViewOpsData *vod)
-{
-  /* Store data. */
-  vod->bmain = CTX_data_main(C);
-  vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  vod->scene = CTX_data_scene(C);
-  vod->area = CTX_wm_area(C);
-  vod->region = CTX_wm_region(C);
-  vod->v3d = static_cast<View3D *>(vod->area->spacedata.first);
-  vod->rv3d = static_cast<RegionView3D *>(vod->region->regiondata);
-}
-
-static void viewops_data_state_backup(ViewOpsData *vod, const bool calc_dist)
-{
-  Depsgraph *depsgraph = vod->depsgraph;
-  View3D *v3d = vod->v3d;
-  RegionView3D *rv3d = vod->rv3d;
-
-  /* Set the view from the camera, if view locking is enabled.
-   * we may want to make this optional but for now its needed always.
-   * NOTE: This changes the value of `rv3d->dist`. */
-  ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, calc_dist);
-
-  copy_v3_v3(vod->init.ofs, rv3d->ofs);
-  copy_v3_v3(vod->init.ofs_lock, rv3d->ofs_lock);
-  vod->init.camdx = rv3d->camdx;
-  vod->init.camdy = rv3d->camdy;
-  vod->init.camzoom = rv3d->camzoom;
-  vod->init.dist = rv3d->dist;
-  copy_qt_qt(vod->init.quat, rv3d->viewquat);
-
-  vod->init.persp = rv3d->persp;
-  vod->init.view = rv3d->view;
-  vod->init.view_axis_roll = rv3d->view_axis_roll;
-}
-
-void viewops_data_state_restore(ViewOpsData *vod)
-{
-  /* DOLLY, MOVE, ROTATE and ZOOM. */
-  {
-    /* For Move this only changes when offset is not locked. */
-    /* For Rotate this only changes when rotating around objects or last-brush. */
-    /* For Zoom this only changes when zooming to mouse position. */
-    /* Note this does not remove auto-keys on locked cameras. */
-    copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
-  }
-
-  /* MOVE and ZOOM. */
-  {
-    /* For Move this only changes when offset is not locked. */
-    /* For Zoom this only changes when zooming to mouse position in camera view. */
-    vod->rv3d->camdx = vod->init.camdx;
-    vod->rv3d->camdy = vod->init.camdy;
-  }
-
-  /* MOVE. */
-  {
-    if ((vod->rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(vod->v3d, vod->rv3d)) {
-      // vod->rv3d->camdx = vod->init.camdx;
-      // vod->rv3d->camdy = vod->init.camdy;
-    }
-    else if (ED_view3d_offset_lock_check(vod->v3d, vod->rv3d)) {
-      copy_v2_v2(vod->rv3d->ofs_lock, vod->init.ofs_lock);
-    }
-    else {
-      // copy_v3_v3(vod->rv3d->ofs, vod->init.ofs);
-      if (RV3D_LOCK_FLAGS(vod->rv3d) & RV3D_BOXVIEW) {
-        view3d_boxview_sync(vod->area, vod->region);
-      }
-    }
-  }
-
-  /* ZOOM. */
-  {
-    vod->rv3d->camzoom = vod->init.camzoom;
-  }
-
-  /* ROTATE and ZOOM. */
-  {
-    /**
-     * For Rotate this only changes when orbiting from a camera view.
-     * In this case the `dist` is calculated based on the camera relative to the `ofs`.
-     */
-    /* Note this does not remove auto-keys on locked cameras. */
-    vod->rv3d->dist = vod->init.dist;
-  }
-
-  /* ROLL and ROTATE. */
-  {
-    /* Note this does not remove auto-keys on locked cameras. */
-    copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
-  }
-
-  /* ROTATE. */
-  {
-    vod->rv3d->persp = vod->init.persp;
-    vod->rv3d->view = vod->init.view;
-    vod->rv3d->view_axis_roll = vod->init.view_axis_roll;
-  }
-
-  /* NOTE: there is no need to restore "last" values (as set by #ED_view3d_lastview_store). */
-
-  ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
-}
-
-static void viewops_data_init_navigation(bContext *C,
-                                         const wmEvent *event,
-                                         const eV3D_OpMode nav_type,
-                                         const bool use_cursor_init,
-                                         ViewOpsData *vod)
-{
-  Depsgraph *depsgraph = vod->depsgraph;
-  ARegion *region = vod->region;
-  View3D *v3d = vod->v3d;
-  RegionView3D *rv3d = vod->rv3d;
-
-  eViewOpsFlag viewops_flag = viewops_flag_from_prefs();
-  bool calc_rv3d_dist = true;
-
-  if (use_cursor_init) {
-    viewops_flag |= VIEWOPS_FLAG_USE_MOUSE_INIT;
-  }
-
-  switch (nav_type) {
-    case V3D_OP_MODE_ZOOM:
-    case V3D_OP_MODE_MOVE:
-    case V3D_OP_MODE_VIEW_PAN:
-    case V3D_OP_MODE_DOLLY:
-      viewops_flag &= ~VIEWOPS_FLAG_ORBIT_SELECT;
-      break;
-    case V3D_OP_MODE_ROTATE:
-      viewops_flag |= VIEWOPS_FLAG_PERSP_ENSURE;
-      break;
-#ifdef WITH_INPUT_NDOF
-    case V3D_OP_MODE_NDOF_PAN:
-      viewops_flag &= ~VIEWOPS_FLAG_ORBIT_SELECT;
-      [[fallthrough]];
-    case V3D_OP_MODE_NDOF_ORBIT:
-    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
-    case V3D_OP_MODE_NDOF_ALL:
-      viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
-      calc_rv3d_dist = false;
-      break;
-#endif
-    default:
-      break;
-  }
-
-  /* Could do this more nicely. */
-  if ((viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) == 0) {
-    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ZOOM_TO_MOUSE);
-  }
-
-  /* we need the depth info before changing any viewport options */
-  if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    wmWindow *win = CTX_wm_window(C);
-    const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
-
-    if (use_depth_last) {
-      vod->use_dyn_ofs = ED_view3d_autodist_last_get(win, vod->dyn_ofs);
-    }
-    else {
-      float fallback_depth_pt[3];
-
-      view3d_operator_needs_opengl(C); /* Needed for Z-buffer drawing. */
-
-      negate_v3_v3(fallback_depth_pt, rv3d->ofs);
-
-      vod->use_dyn_ofs = ED_view3d_autodist(
-          depsgraph, vod->region, vod->v3d, event->mval, vod->dyn_ofs, true, fallback_depth_pt);
-
-      ED_view3d_autodist_last_set(win, event, vod->dyn_ofs, vod->use_dyn_ofs);
-    }
-  }
-  else {
-    wmWindow *win = CTX_wm_window(C);
-    ED_view3d_autodist_last_clear(win);
-
-    vod->use_dyn_ofs = false;
-  }
-
-  viewops_data_state_backup(vod, calc_rv3d_dist);
-
-  if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
-    if (ED_view3d_persp_ensure(depsgraph, vod->v3d, vod->region)) {
-      /* If we're switching from camera view to the perspective one,
-       * need to tag viewport update, so camera view and borders are properly updated. */
-      ED_region_tag_redraw(vod->region);
-    }
-  }
-
-  vod->init.persp_with_auto_persp_applied = rv3d->persp;
-  copy_v2_v2_int(vod->init.event_xy, event->xy);
-  copy_v2_v2_int(vod->prev.event_xy, event->xy);
-
-  if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
-    zero_v2_int(vod->init.event_xy_offset);
-  }
-  else {
-    /* Simulate the event starting in the middle of the region. */
-    vod->init.event_xy_offset[0] = BLI_rcti_cent_x(&vod->region->winrct) - event->xy[0];
-    vod->init.event_xy_offset[1] = BLI_rcti_cent_y(&vod->region->winrct) - event->xy[1];
-  }
-
-  vod->init.event_type = event->type;
-  copy_qt_qt(vod->curr.viewquat, rv3d->viewquat);
-
-  if (viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) {
-    float ofs[3];
-    if (view3d_orbit_calc_center(C, ofs) || (vod->use_dyn_ofs == false)) {
-      vod->use_dyn_ofs = true;
-      negate_v3_v3(vod->dyn_ofs, ofs);
-      viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
-    }
-  }
-
-  if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    if (vod->use_dyn_ofs) {
-      if (rv3d->is_persp) {
-        float my_origin[3]; /* Original #RegionView3D.ofs. */
-        float my_pivot[3];  /* View pivot. */
-        float dvec[3];
-
-        /* locals for dist correction */
-        float mat[3][3];
-        float upvec[3];
-
-        negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
-
-        /* Set the dist value to be the distance from this 3d point this means you'll
-         * always be able to zoom into it and panning won't go bad when dist was zero. */
-
-        /* remove dist value */
-        upvec[0] = upvec[1] = 0;
-        upvec[2] = rv3d->dist;
-        copy_m3_m4(mat, rv3d->viewinv);
-
-        mul_m3_v3(mat, upvec);
-        sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
-        negate_v3(my_pivot); /* ofs is flipped */
-
-        /* find a new ofs value that is along the view axis
-         * (rather than the mouse location) */
-        closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
-        rv3d->dist = len_v3v3(my_pivot, dvec);
-
-        negate_v3_v3(rv3d->ofs, dvec);
-      }
-      else {
-        const float mval_region_mid[2] = {float(region->winx) / 2.0f, float(region->winy) / 2.0f};
-
-        ED_view3d_win_to_3d(v3d, region, vod->dyn_ofs, mval_region_mid, rv3d->ofs);
-        negate_v3(rv3d->ofs);
-      }
-      negate_v3(vod->dyn_ofs);
-
-      /* XXX: The initial state captured by #viewops_data_state_backup is being modified here.
-       * This causes the state when canceling a navigation operation to not be fully restored. */
-      vod->init.dist = rv3d->dist;
-      copy_v3_v3(vod->init.ofs, rv3d->ofs);
-    }
-  }
-
-  /* For dolly */
-  const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
-  ED_view3d_win_to_vector(region, mval, vod->init.mousevec);
-
-  {
-    int event_xy_offset[2];
-    add_v2_v2v2_int(event_xy_offset, event->xy, vod->init.event_xy_offset);
-
-    /* For rotation with trackball rotation. */
-    calctrackballvec(&region->winrct, event_xy_offset, vod->init.trackvec);
-  }
-
-  {
-    float tvec[3];
-    negate_v3_v3(tvec, rv3d->ofs);
-    vod->init.zfac = ED_view3d_calc_zfac(rv3d, tvec);
-  }
-
-  vod->reverse = 1.0f;
-  if (rv3d->persmat[2][1] < 0.0f) {
-    vod->reverse = -1.0f;
-  }
-
-  vod->nav_type = nav_type;
-  vod->viewops_flag = viewops_flag;
-
-  /* Default. */
-  vod->use_dyn_ofs_ortho_correction = false;
-
-  rv3d->rflag |= RV3D_NAVIGATING;
-}
-
 ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
-                                 const eV3D_OpMode nav_type,
+                                 const ViewOpsType *nav_type,
                                  const bool use_cursor_init)
 {
-  ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
-  viewops_data_init_context(C, vod);
-  viewops_data_init_navigation(C, event, nav_type, use_cursor_init, vod);
+  ViewOpsData *vod = new ViewOpsData();
+  vod->init_context(C);
+  vod->init_navigation(C, event, nav_type, nullptr, use_cursor_init);
   return vod;
-}
-
-static void viewops_data_end_navigation(bContext *C, ViewOpsData *vod)
-{
-  ARegion *region;
-  if (vod) {
-    region = vod->region;
-    vod->rv3d->rflag &= ~RV3D_NAVIGATING;
-
-    if (vod->timer) {
-      WM_event_timer_remove(CTX_wm_manager(C), vod->timer->win, vod->timer);
-    }
-
-    MEM_SAFE_FREE(vod->init.dial);
-  }
-  else {
-    region = CTX_wm_region(C);
-  }
-
-  /* Need to redraw because drawing code uses RV3D_NAVIGATING to draw
-   * faster while navigation operator runs. */
-  ED_region_tag_redraw(region);
 }
 
 void viewops_data_free(bContext *C, ViewOpsData *vod)
 {
-  viewops_data_end_navigation(C, vod);
-  if (vod) {
-    MEM_freeN(vod);
+  if (!vod) {
+    return;
   }
+  vod->end_navigation(C);
+  delete vod;
 }
 
 /** \} */
@@ -876,15 +850,15 @@ void viewops_data_free(bContext *C, ViewOpsData *vod)
 /**
  * \param align_to_quat: When not nullptr, set the axis relative to this rotation.
  */
-static void axis_set_view(bContext *C,
-                          View3D *v3d,
-                          ARegion *region,
-                          const float quat_[4],
-                          char view,
-                          char view_axis_roll,
-                          int perspo,
-                          const float *align_to_quat,
-                          const int smooth_viewtx)
+void axis_set_view(bContext *C,
+                   View3D *v3d,
+                   ARegion *region,
+                   const float quat_[4],
+                   char view,
+                   char view_axis_roll,
+                   int perspo,
+                   const float *align_to_quat,
+                   const int smooth_viewtx)
 {
   /* no nullptr check is needed, poll checks */
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
@@ -1010,1100 +984,53 @@ void viewmove_apply(ViewOpsData *vod, int x, int y)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View All Operator
- *
- * Move & Zoom the view to fit all of its contents.
- * \{ */
-
-static bool view3d_object_skip_minmax(const View3D *v3d,
-                                      const RegionView3D *rv3d,
-                                      const Object *ob,
-                                      const bool skip_camera,
-                                      bool *r_only_center)
-{
-  BLI_assert(ob->id.orig_id == nullptr);
-  *r_only_center = false;
-
-  if (skip_camera && (ob == v3d->camera)) {
-    return true;
-  }
-
-  if ((ob->type == OB_EMPTY) && (ob->empty_drawtype == OB_EMPTY_IMAGE) &&
-      !BKE_object_empty_image_frame_is_visible_in_view3d(ob, rv3d))
-  {
-    *r_only_center = true;
-    return false;
-  }
-
-  return false;
-}
-
-static void view3d_object_calc_minmax(Depsgraph *depsgraph,
-                                      Scene *scene,
-                                      Object *ob_eval,
-                                      const bool only_center,
-                                      float min[3],
-                                      float max[3])
-{
-  /* Account for duplis. */
-  if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
-    /* Use if duplis aren't found. */
-    if (only_center) {
-      minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
-    }
-    else {
-      BKE_object_minmax(ob_eval, min, max, false);
-    }
-  }
-}
-
-static void view3d_from_minmax(bContext *C,
-                               View3D *v3d,
-                               ARegion *region,
-                               const float min[3],
-                               const float max[3],
-                               bool ok_dist,
-                               const int smooth_viewtx)
-{
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-  float afm[3];
-  float size;
-
-  ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-  /* SMOOTHVIEW */
-  float new_ofs[3];
-  float new_dist;
-
-  sub_v3_v3v3(afm, max, min);
-  size = max_fff(afm[0], afm[1], afm[2]);
-
-  if (ok_dist) {
-    char persp;
-
-    if (rv3d->is_persp) {
-      if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {
-        persp = RV3D_CAMOB;
-      }
-      else {
-        persp = RV3D_PERSP;
-      }
-    }
-    else { /* ortho */
-      if (size < 0.0001f) {
-        /* bounding box was a single point so do not zoom */
-        ok_dist = false;
-      }
-      else {
-        /* adjust zoom so it looks nicer */
-        persp = RV3D_ORTHO;
-      }
-    }
-
-    if (ok_dist) {
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      new_dist = ED_view3d_radius_to_dist(
-          v3d, region, depsgraph, persp, true, (size / 2) * VIEW3D_MARGIN);
-      if (rv3d->is_persp) {
-        /* don't zoom closer than the near clipping plane */
-        new_dist = max_ff(new_dist, v3d->clip_start * 1.5f);
-      }
-    }
-  }
-
-  mid_v3_v3v3(new_ofs, min, max);
-  negate_v3(new_ofs);
-
-  V3D_SmoothParams sview = {nullptr};
-  sview.ofs = new_ofs;
-  sview.dist = ok_dist ? &new_dist : nullptr;
-  /* The caller needs to use undo begin/end calls. */
-  sview.undo_str = nullptr;
-
-  if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
-    rv3d->persp = RV3D_PERSP;
-    sview.camera_old = v3d->camera;
-  }
-
-  ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-
-  /* Smooth-view does view-lock #RV3D_BOXVIEW copy. */
-}
-
-/**
- * Same as #view3d_from_minmax but for all regions (except cameras).
- */
-static void view3d_from_minmax_multi(bContext *C,
-                                     View3D *v3d,
-                                     const float min[3],
-                                     const float max[3],
-                                     const bool ok_dist,
-                                     const int smooth_viewtx)
-{
-  ScrArea *area = CTX_wm_area(C);
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-      /* when using all regions, don't jump out of camera view,
-       * but _do_ allow locked cameras to be moved */
-      if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
-        view3d_from_minmax(C, v3d, region, min, max, ok_dist, smooth_viewtx);
-      }
-    }
-  }
-}
-
-static int view3d_all_exec(bContext *C, wmOperator *op)
-{
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-
-  const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
-  const bool skip_camera = (ED_view3d_camera_lock_check(v3d, rv3d) ||
-                            /* any one of the regions may be locked */
-                            (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
-  const bool center = RNA_boolean_get(op->ptr, "center");
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-  float min[3], max[3];
-  bool changed = false;
-
-  if (center) {
-    /* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
-    View3DCursor *cursor = &scene->cursor;
-    zero_v3(min);
-    zero_v3(max);
-    zero_v3(cursor->location);
-    float mat3[3][3];
-    unit_m3(mat3);
-    BKE_scene_cursor_mat3_to_rot(cursor, mat3, false);
-  }
-  else {
-    INIT_MINMAX(min, max);
-  }
-
-  BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
-  LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-    if (BASE_VISIBLE(v3d, base_eval)) {
-      bool only_center = false;
-      Object *ob = DEG_get_original_object(base_eval->object);
-      if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
-        continue;
-      }
-      view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
-      changed = true;
-    }
-  }
-
-  if (center) {
-    wmMsgBus *mbus = CTX_wm_message_bus(C);
-    WM_msg_publish_rna_prop(mbus, &scene->id, &scene->cursor, View3DCursor, location);
-
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
-  }
-
-  if (!changed) {
-    ED_region_tag_redraw(region);
-    /* TODO: should this be cancel?
-     * I think no, because we always move the cursor, with or without
-     * object, but in this case there is no change in the scene,
-     * only the cursor so I choice a ED_region_tag like
-     * view3d_smooth_view do for the center_cursor.
-     * See bug #22640.
-     */
-    return OPERATOR_FINISHED;
-  }
-
-  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    /* This is an approximation, see function documentation for details. */
-    ED_view3d_clipping_clamp_minmax(rv3d, min, max);
-  }
-  ED_view3d_smooth_view_undo_begin(C, area);
-
-  if (use_all_regions) {
-    view3d_from_minmax_multi(C, v3d, min, max, true, smooth_viewtx);
-  }
-  else {
-    view3d_from_minmax(C, v3d, region, min, max, true, smooth_viewtx);
-  }
-
-  ED_view3d_smooth_view_undo_end(C, area, op->type->name, false);
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_all(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Frame All";
-  ot->description = "View all objects in scene";
-  ot->idname = "VIEW3D_OT_view_all";
-
-  /* api callbacks */
-  ot->exec = view3d_all_exec;
-  ot->poll = ED_operator_region_view3d_active;
-
-  /* flags */
-  ot->flag = 0;
-
-  /* properties */
-  view3d_operator_properties_common(ot, V3D_OP_PROP_USE_ALL_REGIONS);
-  RNA_def_boolean(ot->srna, "center", 0, "Center", "");
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Frame Selected Operator
- *
- * Move & Zoom the view to fit selected contents.
- * \{ */
-
-static int viewselected_exec(bContext *C, wmOperator *op)
-{
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = CTX_wm_region(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  Scene *scene = CTX_data_scene(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-  BKE_view_layer_synced_ensure(scene_eval, view_layer_eval);
-  Object *ob_eval = BKE_view_layer_active_object_get(view_layer_eval);
-  Object *obedit = CTX_data_edit_object(C);
-  const bGPdata *gpd_eval = ob_eval && (ob_eval->type == OB_GPENCIL_LEGACY) ?
-                                static_cast<const bGPdata *>(ob_eval->data) :
-                                nullptr;
-  const bool is_gp_edit = gpd_eval ? GPENCIL_ANY_MODE(gpd_eval) : false;
-  const bool is_face_map = ((is_gp_edit == false) && region->gizmo_map &&
-                            WM_gizmomap_is_any_selected(region->gizmo_map));
-  float min[3], max[3];
-  bool ok = false, ok_dist = true;
-  const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
-  const bool skip_camera = (ED_view3d_camera_lock_check(v3d, rv3d) ||
-                            /* any one of the regions may be locked */
-                            (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-  INIT_MINMAX(min, max);
-  if (is_face_map) {
-    ob_eval = nullptr;
-  }
-
-  if (ob_eval && (ob_eval->mode & OB_MODE_WEIGHT_PAINT)) {
-    /* hard-coded exception, we look for the one selected armature */
-    /* this is weak code this way, we should make a generic
-     * active/selection callback interface once... */
-    Base *base_eval;
-    for (base_eval = (Base *)BKE_view_layer_object_bases_get(view_layer_eval)->first; base_eval;
-         base_eval = base_eval->next)
-    {
-      if (BASE_SELECTED_EDITABLE(v3d, base_eval)) {
-        if (base_eval->object->type == OB_ARMATURE) {
-          if (base_eval->object->mode & OB_MODE_POSE) {
-            break;
-          }
-        }
-      }
-    }
-    if (base_eval) {
-      ob_eval = base_eval->object;
-    }
-  }
-
-  if (is_gp_edit) {
-    CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
-      /* we're only interested in selected points here... */
-      if ((gps->flag & GP_STROKE_SELECT) && (gps->flag & GP_STROKE_3DSPACE)) {
-        ok |= BKE_gpencil_stroke_minmax(gps, true, min, max);
-      }
-      if (gps->editcurve != nullptr) {
-        for (int i = 0; i < gps->editcurve->tot_curve_points; i++) {
-          BezTriple *bezt = &gps->editcurve->curve_points[i].bezt;
-          if (bezt->f1 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[0]);
-            ok = true;
-          }
-          if (bezt->f2 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[1]);
-            ok = true;
-          }
-          if (bezt->f3 & SELECT) {
-            minmax_v3v3_v3(min, max, bezt->vec[2]);
-            ok = true;
-          }
-        }
-      }
-    }
-    CTX_DATA_END;
-
-    if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->object_to_world, min);
-      mul_m4_v3(ob_eval->object_to_world, max);
-    }
-  }
-  else if (is_face_map) {
-    ok = WM_gizmomap_minmax(region->gizmo_map, true, true, min, max);
-  }
-  else if (obedit) {
-    /* only selected */
-    FOREACH_OBJECT_IN_MODE_BEGIN (
-        scene_eval, view_layer_eval, v3d, obedit->type, obedit->mode, ob_eval_iter)
-    {
-      ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
-    }
-    FOREACH_OBJECT_IN_MODE_END;
-  }
-  else if (ob_eval && (ob_eval->mode & OB_MODE_POSE)) {
-    FOREACH_OBJECT_IN_MODE_BEGIN (
-        scene_eval, view_layer_eval, v3d, ob_eval->type, ob_eval->mode, ob_eval_iter)
-    {
-      ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
-    }
-    FOREACH_OBJECT_IN_MODE_END;
-  }
-  else if (BKE_paint_select_face_test(ob_eval)) {
-    ok = paintface_minmax(ob_eval, min, max);
-  }
-  else if (ob_eval && (ob_eval->mode & OB_MODE_PARTICLE_EDIT)) {
-    ok = PE_minmax(depsgraph, scene, CTX_data_view_layer(C), min, max);
-  }
-  else if (ob_eval && (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT |
-                                        OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
-  {
-    BKE_paint_stroke_get_average(scene, ob_eval, min);
-    copy_v3_v3(max, min);
-    ok = true;
-    ok_dist = 0; /* don't zoom */
-  }
-  else {
-    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
-      if (BASE_SELECTED(v3d, base_eval)) {
-        bool only_center = false;
-        Object *ob = DEG_get_original_object(base_eval->object);
-        if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
-          continue;
-        }
-        view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
-        ok = 1;
-      }
-    }
-  }
-
-  if (ok == 0) {
-    return OPERATOR_FINISHED;
-  }
-
-  if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-    /* This is an approximation, see function documentation for details. */
-    ED_view3d_clipping_clamp_minmax(rv3d, min, max);
-  }
-
-  ED_view3d_smooth_view_undo_begin(C, area);
-
-  if (use_all_regions) {
-    view3d_from_minmax_multi(C, v3d, min, max, ok_dist, smooth_viewtx);
-  }
-  else {
-    view3d_from_minmax(C, v3d, region, min, max, ok_dist, smooth_viewtx);
-  }
-
-  ED_view3d_smooth_view_undo_end(C, area, op->type->name, false);
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_selected(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Frame Selected";
-  ot->description = "Move the view to the selection center";
-  ot->idname = "VIEW3D_OT_view_selected";
-
-  /* api callbacks */
-  ot->exec = viewselected_exec;
-  ot->poll = view3d_zoom_or_dolly_poll;
-
-  /* flags */
-  ot->flag = 0;
-
-  /* properties */
-  view3d_operator_properties_common(ot, V3D_OP_PROP_USE_ALL_REGIONS);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Center Cursor Operator
- * \{ */
-
-static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
-{
-  View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  Scene *scene = CTX_data_scene(C);
-
-  if (rv3d) {
-    ARegion *region = CTX_wm_region(C);
-    const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-    ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-    /* non camera center */
-    float new_ofs[3];
-    negate_v3_v3(new_ofs, scene->cursor.location);
-
-    V3D_SmoothParams sview = {nullptr};
-    sview.ofs = new_ofs;
-    sview.undo_str = op->type->name;
-    ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-
-    /* Smooth view does view-lock #RV3D_BOXVIEW copy. */
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Center View to Cursor";
-  ot->description = "Center the view so that the cursor is in the middle of the view";
-  ot->idname = "VIEW3D_OT_view_center_cursor";
-
-  /* api callbacks */
-  ot->exec = viewcenter_cursor_exec;
-  ot->poll = view3d_location_poll;
-
-  /* flags */
-  ot->flag = 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Center Pick Operator
- * \{ */
-
-static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  View3D *v3d = CTX_wm_view3d(C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  ARegion *region = CTX_wm_region(C);
-
-  if (rv3d) {
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    float new_ofs[3];
-    const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-    ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-    view3d_operator_needs_opengl(C);
-
-    if (ED_view3d_autodist(depsgraph, region, v3d, event->mval, new_ofs, false, nullptr)) {
-      /* pass */
-    }
-    else {
-      /* fallback to simple pan */
-      negate_v3_v3(new_ofs, rv3d->ofs);
-      ED_view3d_win_to_3d_int(v3d, region, new_ofs, event->mval, new_ofs);
-    }
-    negate_v3(new_ofs);
-
-    V3D_SmoothParams sview = {nullptr};
-    sview.ofs = new_ofs;
-    sview.undo_str = op->type->name;
-
-    ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Center View to Mouse";
-  ot->description = "Center the view to the Z-depth position under the mouse cursor";
-  ot->idname = "VIEW3D_OT_view_center_pick";
-
-  /* api callbacks */
-  ot->invoke = viewcenter_pick_invoke;
-  ot->poll = view3d_location_poll;
-
-  /* flags */
-  ot->flag = 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Axis Operator
- * \{ */
-
-static const EnumPropertyItem prop_view_items[] = {
-    {RV3D_VIEW_LEFT, "LEFT", ICON_TRIA_LEFT, "Left", "View from the left"},
-    {RV3D_VIEW_RIGHT, "RIGHT", ICON_TRIA_RIGHT, "Right", "View from the right"},
-    {RV3D_VIEW_BOTTOM, "BOTTOM", ICON_TRIA_DOWN, "Bottom", "View from the bottom"},
-    {RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View from the top"},
-    {RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View from the front"},
-    {RV3D_VIEW_BACK, "BACK", 0, "Back", "View from the back"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static int view_axis_exec(bContext *C, wmOperator *op)
-{
-  View3D *v3d;
-  ARegion *region;
-  RegionView3D *rv3d;
-  static int perspo = RV3D_PERSP;
-  int viewnum;
-  int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-  /* no nullptr check is needed, poll checks */
-  ED_view3d_context_user_region(C, &v3d, &region);
-  rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-  ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-  viewnum = RNA_enum_get(op->ptr, "type");
-
-  float align_quat_buf[4];
-  float *align_quat = nullptr;
-
-  if (RNA_boolean_get(op->ptr, "align_active")) {
-    /* align to active object */
-    Object *obact = CTX_data_active_object(C);
-    if (obact != nullptr) {
-      float twmat[3][3];
-      const Scene *scene = CTX_data_scene(C);
-      ViewLayer *view_layer = CTX_data_view_layer(C);
-      Object *obedit = CTX_data_edit_object(C);
-      /* same as transform gizmo when normal is set */
-      ED_getTransformOrientationMatrix(
-          scene, view_layer, v3d, obact, obedit, V3D_AROUND_ACTIVE, twmat);
-      align_quat = align_quat_buf;
-      mat3_to_quat(align_quat, twmat);
-      invert_qt_normalized(align_quat);
-    }
-  }
-
-  if (RNA_boolean_get(op->ptr, "relative")) {
-    float quat_rotate[4];
-    float quat_test[4];
-
-    if (viewnum == RV3D_VIEW_LEFT) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], -M_PI_2);
-    }
-    else if (viewnum == RV3D_VIEW_RIGHT) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[1], M_PI_2);
-    }
-    else if (viewnum == RV3D_VIEW_TOP) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], -M_PI_2);
-    }
-    else if (viewnum == RV3D_VIEW_BOTTOM) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI_2);
-    }
-    else if (viewnum == RV3D_VIEW_FRONT) {
-      unit_qt(quat_rotate);
-    }
-    else if (viewnum == RV3D_VIEW_BACK) {
-      axis_angle_to_quat(quat_rotate, rv3d->viewinv[0], M_PI);
-    }
-    else {
-      BLI_assert(0);
-    }
-
-    mul_qt_qtqt(quat_test, rv3d->viewquat, quat_rotate);
-
-    float angle_best = FLT_MAX;
-    int view_best = -1;
-    int view_axis_roll_best = -1;
-    for (int i = RV3D_VIEW_FRONT; i <= RV3D_VIEW_BOTTOM; i++) {
-      for (int j = RV3D_VIEW_AXIS_ROLL_0; j <= RV3D_VIEW_AXIS_ROLL_270; j++) {
-        float quat_axis[4];
-        ED_view3d_quat_from_axis_view(i, j, quat_axis);
-        if (align_quat) {
-          mul_qt_qtqt(quat_axis, quat_axis, align_quat);
-        }
-        const float angle_test = fabsf(angle_signed_qtqt(quat_axis, quat_test));
-        if (angle_best > angle_test) {
-          angle_best = angle_test;
-          view_best = i;
-          view_axis_roll_best = j;
-        }
-      }
-    }
-    if (view_best == -1) {
-      view_best = RV3D_VIEW_FRONT;
-      view_axis_roll_best = RV3D_VIEW_AXIS_ROLL_0;
-    }
-
-    /* Disallow non-upright views in turn-table modes,
-     * it's too difficult to navigate out of them. */
-    if ((U.flag & USER_TRACKBALL) == 0) {
-      if (!ELEM(view_best, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-        view_axis_roll_best = RV3D_VIEW_AXIS_ROLL_0;
-      }
-    }
-
-    viewnum = view_best;
-    view_axis_roll = view_axis_roll_best;
-  }
-
-  /* Use this to test if we started out with a camera */
-  const int nextperspo = (rv3d->persp == RV3D_CAMOB) ? rv3d->lpersp : perspo;
-  float quat[4];
-  ED_view3d_quat_from_axis_view(viewnum, view_axis_roll, quat);
-  axis_set_view(
-      C, v3d, region, quat, viewnum, view_axis_roll, nextperspo, align_quat, smooth_viewtx);
-
-  perspo = rv3d->persp;
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_axis(wmOperatorType *ot)
-{
-  PropertyRNA *prop;
-
-  /* identifiers */
-  ot->name = "View Axis";
-  ot->description = "Use a preset viewpoint";
-  ot->idname = "VIEW3D_OT_view_axis";
-
-  /* api callbacks */
-  ot->exec = view_axis_exec;
-  ot->poll = ED_operator_rv3d_user_region_poll;
-
-  /* flags */
-  ot->flag = 0;
-
-  ot->prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "Preset viewpoint to use");
-  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
-  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
-
-  prop = RNA_def_boolean(
-      ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  prop = RNA_def_boolean(
-      ot->srna, "relative", 0, "Relative", "Rotate relative to the current orientation");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Camera Operator
- * \{ */
-
-static int view_camera_exec(bContext *C, wmOperator *op)
-{
-  View3D *v3d;
-  ARegion *region;
-  RegionView3D *rv3d;
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-
-  /* no nullptr check is needed, poll checks */
-  ED_view3d_context_user_region(C, &v3d, &region);
-  rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-  ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    Scene *scene = CTX_data_scene(C);
-
-    if (rv3d->persp != RV3D_CAMOB) {
-      BKE_view_layer_synced_ensure(scene, view_layer);
-      Object *ob = BKE_view_layer_active_object_get(view_layer);
-
-      if (!rv3d->smooth_timer) {
-        /* store settings of current view before allowing overwriting with camera view
-         * only if we're not currently in a view transition */
-
-        ED_view3d_lastview_store(rv3d);
-      }
-
-      /* first get the default camera for the view lock type */
-      if (v3d->scenelock) {
-        /* sets the camera view if available */
-        v3d->camera = scene->camera;
-      }
-      else {
-        /* use scene camera if one is not set (even though we're unlocked) */
-        if (v3d->camera == nullptr) {
-          v3d->camera = scene->camera;
-        }
-      }
-
-      /* if the camera isn't found, check a number of options */
-      if (v3d->camera == nullptr && ob && ob->type == OB_CAMERA) {
-        v3d->camera = ob;
-      }
-
-      if (v3d->camera == nullptr) {
-        v3d->camera = BKE_view_layer_camera_find(scene, view_layer);
-      }
-
-      /* couldn't find any useful camera, bail out */
-      if (v3d->camera == nullptr) {
-        return OPERATOR_CANCELLED;
-      }
-
-      /* important these don't get out of sync for locked scenes */
-      if (v3d->scenelock && scene->camera != v3d->camera) {
-        scene->camera = v3d->camera;
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
-      }
-
-      /* finally do snazzy view zooming */
-      rv3d->persp = RV3D_CAMOB;
-
-      V3D_SmoothParams sview = {nullptr};
-      sview.camera = v3d->camera;
-      sview.ofs = rv3d->ofs;
-      sview.quat = rv3d->viewquat;
-      sview.dist = &rv3d->dist;
-      sview.lens = &v3d->lens;
-      /* No undo because this changes cameras (and wont move the camera). */
-      sview.undo_str = nullptr;
-
-      ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-    }
-    else {
-      /* return to settings of last view */
-      /* does view3d_smooth_view too */
-      axis_set_view(C,
-                    v3d,
-                    region,
-                    rv3d->lviewquat,
-                    rv3d->lview,
-                    rv3d->lview_axis_roll,
-                    rv3d->lpersp,
-                    nullptr,
-                    smooth_viewtx);
-    }
-  }
-
-  return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_view_camera(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "View Camera";
-  ot->description = "Toggle the camera view";
-  ot->idname = "VIEW3D_OT_view_camera";
-
-  /* api callbacks */
-  ot->exec = view_camera_exec;
-  ot->poll = ED_operator_rv3d_user_region_poll;
-
-  /* flags */
-  ot->flag = 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Orbit Operator
- *
- * Rotate (orbit) in incremental steps. For interactive orbit see #VIEW3D_OT_rotate.
- * \{ */
-
-enum {
-  V3D_VIEW_STEPLEFT = 1,
-  V3D_VIEW_STEPRIGHT,
-  V3D_VIEW_STEPDOWN,
-  V3D_VIEW_STEPUP,
-};
-
-static const EnumPropertyItem prop_view_orbit_items[] = {
-    {V3D_VIEW_STEPLEFT, "ORBITLEFT", 0, "Orbit Left", "Orbit the view around to the left"},
-    {V3D_VIEW_STEPRIGHT, "ORBITRIGHT", 0, "Orbit Right", "Orbit the view around to the right"},
-    {V3D_VIEW_STEPUP, "ORBITUP", 0, "Orbit Up", "Orbit the view up"},
-    {V3D_VIEW_STEPDOWN, "ORBITDOWN", 0, "Orbit Down", "Orbit the view down"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static int vieworbit_exec(bContext *C, wmOperator *op)
-{
-  View3D *v3d;
-  ARegion *region;
-  RegionView3D *rv3d;
-  int orbitdir;
-  char view_opposite;
-  PropertyRNA *prop_angle = RNA_struct_find_property(op->ptr, "angle");
-  float angle = RNA_property_is_set(op->ptr, prop_angle) ?
-                    RNA_property_float_get(op->ptr, prop_angle) :
-                    DEG2RADF(U.pad_rot_angle);
-
-  /* no nullptr check is needed, poll checks */
-  v3d = CTX_wm_view3d(C);
-  region = CTX_wm_region(C);
-  rv3d = static_cast<RegionView3D *>(region->regiondata);
-
-  /* support for switching to the opposite view (even when in locked views) */
-  view_opposite = (fabsf(angle) == float(M_PI)) ? ED_view3d_axis_view_opposite(rv3d->view) :
-                                                  char(RV3D_VIEW_USER);
-  orbitdir = RNA_enum_get(op->ptr, "type");
-
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
-    /* no nullptr check is needed, poll checks */
-    ED_view3d_context_user_region(C, &v3d, &region);
-    rv3d = static_cast<RegionView3D *>(region->regiondata);
-  }
-
-  ED_view3d_smooth_view_force_finish(C, v3d, region);
-
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0 || (view_opposite != RV3D_VIEW_USER)) {
-    const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
-    if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
-      if (is_camera_lock) {
-        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
-      }
-      int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-      float quat_mul[4];
-      float quat_new[4];
-
-      if (view_opposite == RV3D_VIEW_USER) {
-        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        ED_view3d_persp_ensure(depsgraph, v3d, region);
-      }
-
-      if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
-        if (orbitdir == V3D_VIEW_STEPRIGHT) {
-          angle = -angle;
-        }
-
-        /* z-axis */
-        axis_angle_to_quat_single(quat_mul, 'Z', angle);
-      }
-      else {
-
-        if (orbitdir == V3D_VIEW_STEPDOWN) {
-          angle = -angle;
-        }
-
-        /* horizontal axis */
-        axis_angle_to_quat(quat_mul, rv3d->viewinv[0], angle);
-      }
-
-      mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
-
-      /* avoid precision loss over time */
-      normalize_qt(quat_new);
-
-      if (view_opposite != RV3D_VIEW_USER) {
-        rv3d->view = view_opposite;
-        /* avoid float in-precision, just get a new orientation */
-        ED_view3d_quat_from_axis_view(view_opposite, rv3d->view_axis_roll, quat_new);
-      }
-      else {
-        rv3d->view = RV3D_VIEW_USER;
-      }
-
-      float dyn_ofs[3], *dyn_ofs_pt = nullptr;
-
-      if (U.uiflag & USER_ORBIT_SELECTION) {
-        if (view3d_orbit_calc_center(C, dyn_ofs)) {
-          negate_v3(dyn_ofs);
-          dyn_ofs_pt = dyn_ofs;
-        }
-      }
-
-      V3D_SmoothParams sview = {nullptr};
-      sview.quat = quat_new;
-      sview.dyn_ofs = dyn_ofs_pt;
-      sview.lens = &v3d->lens;
-      /* Group as successive orbit may run by holding a key. */
-      sview.undo_str = op->type->name;
-      sview.undo_grouped = true;
-
-      ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-
-      return OPERATOR_FINISHED;
-    }
-  }
-
-  return OPERATOR_CANCELLED;
-}
-
-void VIEW3D_OT_view_orbit(wmOperatorType *ot)
-{
-  PropertyRNA *prop;
-
-  /* identifiers */
-  ot->name = "View Orbit";
-  ot->description = "Orbit the view";
-  ot->idname = "VIEW3D_OT_view_orbit";
-
-  /* api callbacks */
-  ot->exec = vieworbit_exec;
-  ot->poll = ED_operator_rv3d_user_region_poll;
-
-  /* flags */
-  ot->flag = 0;
-
-  /* properties */
-  prop = RNA_def_float(ot->srna, "angle", 0, -FLT_MAX, FLT_MAX, "Roll", "", -FLT_MAX, FLT_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name View Pan Operator
- *
- * Move (pan) in incremental steps. For interactive pan see #VIEW3D_OT_move.
- * \{ */
-
-enum {
-  V3D_VIEW_PANLEFT = 1,
-  V3D_VIEW_PANRIGHT,
-  V3D_VIEW_PANDOWN,
-  V3D_VIEW_PANUP,
-};
-
-static const EnumPropertyItem prop_view_pan_items[] = {
-    {V3D_VIEW_PANLEFT, "PANLEFT", 0, "Pan Left", "Pan the view to the left"},
-    {V3D_VIEW_PANRIGHT, "PANRIGHT", 0, "Pan Right", "Pan the view to the right"},
-    {V3D_VIEW_PANUP, "PANUP", 0, "Pan Up", "Pan the view up"},
-    {V3D_VIEW_PANDOWN, "PANDOWN", 0, "Pan Down", "Pan the view down"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-static int viewpan_invoke_impl(ViewOpsData *vod, PointerRNA *ptr)
-{
-  int x = 0, y = 0;
-  int pandir = RNA_enum_get(ptr, "type");
-
-  if (pandir == V3D_VIEW_PANRIGHT) {
-    x = -32;
-  }
-  else if (pandir == V3D_VIEW_PANLEFT) {
-    x = 32;
-  }
-  else if (pandir == V3D_VIEW_PANUP) {
-    y = -25;
-  }
-  else if (pandir == V3D_VIEW_PANDOWN) {
-    y = 25;
-  }
-
-  viewmove_apply(vod, vod->prev.event_xy[0] + x, vod->prev.event_xy[1] + y);
-
-  return OPERATOR_FINISHED;
-}
-
-static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_VIEW_PAN);
-}
-
-void VIEW3D_OT_view_pan(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Pan View Direction";
-  ot->description = "Pan the view in a given direction";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_VIEW_PAN);
-
-  /* api callbacks */
-  ot->invoke = viewpan_invoke;
-  ot->poll = view3d_location_poll;
-
-  /* flags */
-  ot->flag = 0;
-
-  /* Properties */
-  ot->prop = RNA_def_enum(
-      ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Navigation Utilities
  * \{ */
 
 /* Detect the navigation operation, by the name of the navigation operator (obtained by
  * `wmKeyMapItem::idname`) */
-static eV3D_OpMode view3d_navigation_type_from_idname(const char *idname)
+static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
 {
+  const blender::Array<const ViewOpsType *> nav_types = {
+      &ViewOpsType_zoom,
+      &ViewOpsType_rotate,
+      &ViewOpsType_move,
+      &ViewOpsType_pan,
+//    &ViewOpsType_orbit,
+//    &ViewOpsType_roll,
+//    &ViewOpsType_dolly,
+#ifdef WITH_INPUT_NDOF
+      &ViewOpsType_ndof_orbit,
+      &ViewOpsType_ndof_orbit_zoom,
+      &ViewOpsType_ndof_pan,
+      &ViewOpsType_ndof_all,
+#endif
+  };
+
   const char *op_name = idname + sizeof("VIEW3D_OT_");
-  for (int i = 0; i < V3D_OP_MODE_LEN; i++) {
-    if (STREQ(op_name, viewops_operator_idname_get((eV3D_OpMode)i) + sizeof("VIEW3D_OT_"))) {
-      return (eV3D_OpMode)i;
+  for (const ViewOpsType *nav_type : nav_types) {
+    if (STREQ(op_name, nav_type->idname + sizeof("VIEW3D_OT_"))) {
+      return nav_type;
     }
   }
-  return V3D_OP_MODE_NONE;
+  return nullptr;
 }
 
 /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
  * with an array of `wmKeyMapItem`s used for navigation. */
-ViewOpsData *ED_view3d_navigation_init(bContext *C)
+ViewOpsData *ED_view3d_navigation_init(bContext *C, const bool use_alt_navigation)
 {
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;
   }
 
-  ViewOpsData *vod = MEM_cnew<ViewOpsData>(__func__);
-  viewops_data_init_context(C, vod);
-
-  vod->keymap = WM_keymap_find_all(CTX_wm_manager(C), "3D View", SPACE_VIEW3D, 0);
-  return vod;
+  return new ViewOpsData_Utility(C, use_alt_navigation);
 }
 
-/* Checks and initializes the navigation modal operation. */
-static int view3d_navigation_invoke(
-    bContext *C, ViewOpsData *vod, const wmEvent *event, wmKeyMapItem *kmi, eV3D_OpMode nav_type)
-{
-  switch (nav_type) {
-    case V3D_OP_MODE_ZOOM:
-      if (!view3d_zoom_or_dolly_poll(C)) {
-        return OPERATOR_CANCELLED;
-      }
-      break;
-    case V3D_OP_MODE_MOVE:
-    case V3D_OP_MODE_VIEW_PAN:
-      if (!view3d_location_poll(C)) {
-        return OPERATOR_CANCELLED;
-      }
-      break;
-    case V3D_OP_MODE_ROTATE:
-      if (!view3d_rotation_poll(C)) {
-        return OPERATOR_CANCELLED;
-      }
-      break;
-    case V3D_OP_MODE_VIEW_ROLL:
-    case V3D_OP_MODE_DOLLY:
-#ifdef WITH_INPUT_NDOF
-    case V3D_OP_MODE_NDOF_ORBIT:
-    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
-    case V3D_OP_MODE_NDOF_PAN:
-    case V3D_OP_MODE_NDOF_ALL:
-#endif
-    case V3D_OP_MODE_NONE:
-      break;
-  }
-
-  return view3d_navigation_invoke_generic(C, vod, event, kmi->ptr, nav_type);
-}
-
-bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event)
+bool ED_view3d_navigation_do(bContext *C,
+                             ViewOpsData *vod,
+                             const wmEvent *event,
+                             const float depth_loc_override[3])
 {
   if (!vod) {
     return false;
@@ -2120,36 +1047,34 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
 
   int op_return = OPERATOR_CANCELLED;
 
-  if (vod->is_modal_event) {
+  ViewOpsData_Utility *vod_intern = static_cast<ViewOpsData_Utility *>(vod);
+  if (vod_intern->is_modal_event) {
     const eV3D_OpEvent event_code = view3d_navigate_event(vod, event);
-    op_return = view3d_navigation_modal(C, vod, event_code, event->xy);
+    op_return = vod->nav_type->apply_fn(C, vod, event_code, event->xy);
     if (op_return != OPERATOR_RUNNING_MODAL) {
-      viewops_data_end_navigation(C, vod);
-      vod->is_modal_event = false;
+      vod->end_navigation(C);
+      vod_intern->is_modal_event = false;
     }
   }
   else {
-    eV3D_OpMode nav_type;
-    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod->keymap->items) {
-      if (!STRPREFIX(kmi->idname, "VIEW3D")) {
-        continue;
-      }
-      if (kmi->flag & KMI_INACTIVE) {
-        continue;
-      }
-      if ((nav_type = view3d_navigation_type_from_idname(kmi->idname)) == V3D_OP_MODE_NONE) {
-        continue;
-      }
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &vod_intern->keymap_items) {
       if (!WM_event_match(event, kmi)) {
         continue;
       }
 
-      op_return = view3d_navigation_invoke(C, vod, event, kmi, nav_type);
+      const ViewOpsType *nav_type = view3d_navigation_type_from_idname(kmi->idname);
+      if (nav_type->poll_fn && !nav_type->poll_fn(C)) {
+        break;
+      }
+
+      op_return = view3d_navigation_invoke_generic(
+          C, vod, event, kmi->ptr, nav_type, depth_loc_override);
+
       if (op_return == OPERATOR_RUNNING_MODAL) {
-        vod->is_modal_event = true;
+        vod_intern->is_modal_event = true;
       }
       else {
-        viewops_data_end_navigation(C, vod);
+        vod->end_navigation(C);
         /* Postpone the navigation confirmation to the next call.
          * This avoids constant updating of the transform operation for example. */
         vod->rv3d->rflag |= RV3D_NAVIGATING;
@@ -2177,7 +1102,9 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
 
 void ED_view3d_navigation_free(bContext *C, ViewOpsData *vod)
 {
-  viewops_data_free(C, vod);
+  ViewOpsData_Utility *vod_intern = static_cast<ViewOpsData_Utility *>(vod);
+  vod_intern->end_navigation(C);
+  delete vod_intern;
 }
 
 /** \} */

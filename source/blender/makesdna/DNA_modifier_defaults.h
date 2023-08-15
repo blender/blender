@@ -444,7 +444,7 @@
     .offset = {0.0f, 0.0f, 0.0f}, \
   }
 
-/* Some fields are initialized in #initData. */
+/* Some fields are initialized in #init_data. */
 #define _DNA_DEFAULT_OceanModifierData \
   { \
     .ocean = NULL, \

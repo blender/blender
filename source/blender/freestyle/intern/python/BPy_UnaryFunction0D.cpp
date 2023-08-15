@@ -110,7 +110,7 @@ static PyGetSetDef BPy_UnaryFunction0D_getseters[] = {
 /*-----------------------BPy_UnaryFunction0D type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0D",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0D),
     /*tp_itemsize*/ 0,

@@ -8,10 +8,11 @@
  * Dynamic remesher for PBVH
  */
 
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "BLI_math.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #define DYNTOPO_CD_INTERP

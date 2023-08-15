@@ -15,8 +15,8 @@
 
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
-#include "BKE_subdiv.h"
+#include "BKE_multires.hh"
+#include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
 
 void BKE_multires_subdiv_settings_init(SubdivSettings *settings, const MultiresModifierData *mmd)

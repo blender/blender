@@ -23,25 +23,26 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
-#include "ED_node.h"
-#include "ED_render.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
+#include "ED_node.hh"
+#include "ED_node_preview.hh"
+#include "ED_render.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DEG_depsgraph.h"
 
 #include "BLO_read_write.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "node_intern.hh" /* own include */
 
@@ -327,6 +328,15 @@ static void node_init(wmWindowManager * /*wm*/, ScrArea *area)
 
   if (snode->runtime == nullptr) {
     snode->runtime = MEM_new<SpaceNode_Runtime>(__func__);
+  }
+}
+
+static void node_exit(wmWindowManager *wm, ScrArea *area)
+{
+  SpaceNode *snode = static_cast<SpaceNode *>(area->spacedata.first);
+
+  if (snode->runtime) {
+    free_previews(*wm, *snode);
   }
 }
 
@@ -666,14 +676,14 @@ static bool node_group_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *
   return WM_drag_is_ID_type(drag, ID_NT);
 }
 
-static bool node_object_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_object_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_OB);
+  return WM_drag_is_ID_type(drag, ID_OB) && !UI_but_active_drop_name(C);
 }
 
-static bool node_collection_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
-  return WM_drag_is_ID_type(drag, ID_GR);
+  return WM_drag_is_ID_type(drag, ID_GR) && !UI_but_active_drop_name(C);
 }
 
 static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -691,23 +701,23 @@ static bool node_mask_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * 
   return WM_drag_is_ID_type(drag, ID_MSK);
 }
 
-static void node_group_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void node_group_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
 
   RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
-static void node_id_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void node_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
 
   RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
 }
 
-static void node_id_path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void node_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
-  ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
+  ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
 
   if (id) {
     RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
@@ -1131,6 +1141,7 @@ void ED_spacetype_node()
   st->create = node_create;
   st->free = node_free;
   st->init = node_init;
+  st->exit = node_exit;
   st->duplicate = node_duplicate;
   st->operatortypes = node_operatortypes;
   st->keymap = node_keymap;

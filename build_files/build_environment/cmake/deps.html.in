@@ -1,0 +1,7 @@
+<html>
+<body>
+<table border=1>
+@HTMLCONTENTS@
+<table>
+</body>
+</html>

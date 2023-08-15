@@ -13,7 +13,8 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
@@ -27,20 +28,20 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_gizmo_library.h"
-#include "ED_markers.h"
-#include "ED_node.h"
-#include "ED_transform_snap_object_context.h"
-#include "ED_uvedit.h"
-#include "ED_view3d.h"
+#include "ED_gizmo_library.hh"
+#include "ED_markers.hh"
+#include "ED_node.hh"
+#include "ED_transform_snap_object_context.hh"
+#include "ED_uvedit.hh"
+#include "ED_view3d.hh"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
@@ -52,6 +53,8 @@
 #include "transform_convert.hh"
 #include "transform_mode.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* use half of flt-max so we can scale up without an exception */
 
@@ -275,7 +278,6 @@ void drawSnapping(const bContext *C, TransInfo *t)
   }
   else if (t->spacetype == SPACE_NODE) {
     ARegion *region = CTX_wm_region(C);
-    TransSnapPoint *p;
     float size;
 
     size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
@@ -286,7 +288,7 @@ void drawSnapping(const bContext *C, TransInfo *t)
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-    for (p = static_cast<TransSnapPoint *>(t->tsnap.points.first); p; p = p->next) {
+    LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
       if (p == t->tsnap.selectedPoint) {
         immUniformColor4ubv(selectedCol);
       }
@@ -1000,12 +1002,11 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
   eRedrawFlag status = TREDRAW_NOTHING;
 
   if (t->tsnap.status & SNAP_MULTI_POINTS) {
-    TransSnapPoint *p, *closest_p = nullptr;
+    TransSnapPoint *closest_p = nullptr;
     float dist_min_sq = TRANSFORM_SNAP_MAX_PX;
-    const float mval_fl[2] = {float(t->mval[0]), float(t->mval[1])};
     float screen_loc[2];
 
-    for (p = static_cast<TransSnapPoint *>(t->tsnap.points.first); p; p = p->next) {
+    LISTBASE_FOREACH (TransSnapPoint *, p, &t->tsnap.points) {
       float dist_sq;
 
       if (ED_view3d_project_float_global(t->region, p->co, screen_loc, V3D_PROJ_TEST_NOP) !=
@@ -1014,7 +1015,7 @@ eRedrawFlag updateSelectedSnapPoint(TransInfo *t)
         continue;
       }
 
-      dist_sq = len_squared_v2v2(mval_fl, screen_loc);
+      dist_sq = len_squared_v2v2(t->mval, screen_loc);
 
       if (dist_sq < dist_min_sq) {
         closest_p = p;
@@ -1095,22 +1096,18 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   BLI_assert(t->spacetype == SPACE_VIEW3D);
   float loc[3];
   float no[3];
-  float mval[2];
   bool found = false;
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
-  mval[0] = t->mval[0];
-  mval[1] = t->mval[1];
-
   if (t->tsnap.mode & SCE_SNAP_TO_GEOM) {
     zero_v3(no); /* objects won't set this */
-    snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
+    snap_elem = snapObjectsTransform(t, t->mval, &dist_px, loc, no);
     found = (snap_elem != SCE_SNAP_TO_NONE);
   }
   if ((found == false) && (t->tsnap.mode & SCE_SNAP_TO_VOLUME)) {
     bool use_peel = (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0;
-    found = peelObjectsTransform(t, mval, use_peel, loc, no, nullptr);
+    found = peelObjectsTransform(t, t->mval, use_peel, loc, no, nullptr);
 
     if (found) {
       snap_elem = SCE_SNAP_TO_VOLUME;
@@ -1454,9 +1451,7 @@ bool peelObjectsTransform(TransInfo *t,
     if (use_peel_object) {
       /* if peeling objects, take the first and last from each object */
       hit_max = hit_min;
-      for (SnapObjectHitDepth *iter = static_cast<SnapObjectHitDepth *>(depths_peel.first); iter;
-           iter = iter->next)
-      {
+      LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
         if ((iter->depth > hit_max->depth) && (iter->ob_uuid == hit_min->ob_uuid)) {
           hit_max = iter;
         }
@@ -1464,9 +1459,7 @@ bool peelObjectsTransform(TransInfo *t,
     }
     else {
       /* otherwise, pair first with second and so on */
-      for (SnapObjectHitDepth *iter = static_cast<SnapObjectHitDepth *>(depths_peel.first); iter;
-           iter = iter->next)
-      {
+      LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
         if ((iter != hit_min) && (iter->ob_uuid == hit_min->ob_uuid)) {
           if (hit_max == nullptr) {
             hit_max = iter;
@@ -1530,7 +1523,7 @@ static bool snapNode(ToolSettings *ts,
                      SpaceNode * /*snode*/,
                      ARegion *region,
                      bNode *node,
-                     const int mval[2],
+                     const float2 &mval,
                      float r_loc[2],
                      float *r_dist_px,
                      char *r_node_border)
@@ -1589,19 +1582,18 @@ static bool snapNode(ToolSettings *ts,
 static bool snapNodes(ToolSettings *ts,
                       SpaceNode *snode,
                       ARegion *region,
-                      const int mval[2],
+                      const float2 &mval,
                       eSnapTargetOP snap_target_select,
                       float r_loc[2],
                       float *r_dist_px,
                       char *r_node_border)
 {
   bNodeTree *ntree = snode->edittree;
-  bNode *node;
   bool retval = false;
 
   *r_node_border = 0;
 
-  for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (snapNodeTest(&region->v2d, node, snap_target_select)) {
       retval |= snapNode(ts, snode, region, node, mval, r_loc, r_dist_px, r_node_border);
     }
@@ -1611,7 +1603,7 @@ static bool snapNodes(ToolSettings *ts,
 }
 
 bool snapNodesTransform(
-    TransInfo *t, const int mval[2], float r_loc[2], float *r_dist_px, char *r_node_border)
+    TransInfo *t, const float2 &mval, float r_loc[2], float *r_dist_px, char *r_node_border)
 {
   return snapNodes(t->settings,
                    static_cast<SpaceNode *>(t->area->spacedata.first),

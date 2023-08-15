@@ -14,7 +14,7 @@
 
 #include "BKE_pointcache.h"
 
-#include "ED_particle.h"
+#include "ED_particle.hh"
 
 #include "overlay_private.hh"
 

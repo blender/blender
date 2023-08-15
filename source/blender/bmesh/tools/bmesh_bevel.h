@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct CurveProfile;
 struct MDeformVert;
 
@@ -46,3 +50,7 @@ void BM_mesh_bevel(BMesh *bm,
                    float smoothresh,
                    const struct CurveProfile *custom_profile,
                    int vmesh_method);
+
+#ifdef __cplusplus
+}
+#endif

@@ -21,21 +21,21 @@
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
-#include "ED_anim_api.h"
-#include "ED_markers.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_anim_api.hh"
+#include "ED_markers.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "BLO_read_write.h"
 
@@ -243,7 +243,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* markers */
-  UI_view2d_view_orthoSpecial(region, v2d, 1);
+  UI_view2d_view_orthoSpecial(region, v2d, true);
   int marker_draw_flag = DRAW_MARKERS_MARGIN;
   if (snla->flag & SNLA_SHOW_MARKERS) {
     ED_markers_draw(C, marker_draw_flag);
@@ -436,6 +436,12 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   }
 }
 
+static void nla_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
+{
+  View2D *v2d = &region->v2d;
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -497,7 +503,7 @@ static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeP
    * so just whitelist the entire struct for updates
    */
   {
-    wmMsgParams_RNA msg_key_params = {{0}};
+    wmMsgParams_RNA msg_key_params = {{nullptr}};
     StructRNA *type_array[] = {
         &RNA_DopeSheet,
     };
@@ -619,6 +625,7 @@ void ED_spacetype_nla()
   art->draw_overlay = nla_main_region_draw_overlay;
   art->listener = nla_main_region_listener;
   art->message_subscribe = nla_main_region_message_subscribe;
+  art->on_view2d_changed = nla_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);

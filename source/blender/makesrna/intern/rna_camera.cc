@@ -6,21 +6,21 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_camera_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -147,21 +147,14 @@ char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const PointerRNA *p
   return nullptr;
 }
 
-static bool rna_Camera_background_images_override_apply(Main *bmain,
-                                                        PointerRNA *ptr_dst,
-                                                        PointerRNA *ptr_src,
-                                                        PointerRNA * /*ptr_storage*/,
-                                                        PropertyRNA *prop_dst,
-                                                        PropertyRNA * /*prop_src*/,
-                                                        PropertyRNA * /*prop_storage*/,
-                                                        const int /*len_dst*/,
-                                                        const int /*len_src*/,
-                                                        const int /*len_storage*/,
-                                                        PointerRNA * /*ptr_item_dst*/,
-                                                        PointerRNA * /*ptr_item_src*/,
-                                                        PointerRNA * /*ptr_item_storage*/,
-                                                        IDOverrideLibraryPropertyOperation *opop)
+static bool rna_Camera_background_images_override_apply(
+    Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
                  "Unsupported RNA override operation on background images collection");
 

@@ -4,6 +4,8 @@
 
 #include "COM_KeyingOperation.h"
 
+#include "BLI_math_geom.h"
+
 namespace blender::compositor {
 
 static float get_pixel_saturation(const float pixel_color[4],

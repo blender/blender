@@ -15,9 +15,13 @@
 # also defined, but not for general use are
 #  LIBSNDFILE_LIBRARY, where to find the SndFile library.
 
-# If LIBSNDFILE_ROOT_DIR was defined in the environment, use it.
-IF(NOT LIBSNDFILE_ROOT_DIR AND NOT $ENV{LIBSNDFILE_ROOT_DIR} STREQUAL "")
+# If `LIBSNDFILE_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED LIBSNDFILE_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{LIBSNDFILE_ROOT_DIR})
   SET(LIBSNDFILE_ROOT_DIR $ENV{LIBSNDFILE_ROOT_DIR})
+ELSE()
+  SET(LIBSNDFILE_ROOT_DIR "")
 ENDIF()
 
 SET(_sndfile_SEARCH_DIRS

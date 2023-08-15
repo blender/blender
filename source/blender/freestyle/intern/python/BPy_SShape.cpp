@@ -138,7 +138,7 @@ static PyObject *SShape_compute_bbox(BPy_SShape *self)
   Py_RETURN_NONE;
 }
 
-// const Material &     material (unsigned i) const
+// const Material &     material (uint i) const
 // const vector< Material > &   materials () const
 // void     SetMaterials (const vector< Material > &iMaterials)
 
@@ -269,7 +269,7 @@ static PyGetSetDef BPy_SShape_getseters[] = {
 /*-----------------------BPy_SShape type definition ------------------------------*/
 
 PyTypeObject SShape_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "SShape",
     /*tp_basicsize*/ sizeof(BPy_SShape),
     /*tp_itemsize*/ 0,

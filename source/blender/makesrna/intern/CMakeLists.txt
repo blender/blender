@@ -12,9 +12,18 @@ if(HAVE_MALLOC_STATS_H)
   add_definitions(-DHAVE_MALLOC_STATS_H)
 endif()
 
-# files rna_access.cc rna_define.c makesrna.c intentionally excluded.
+# There is some code in `makesrna.cc` that forces files to be regenerated even if they have not
+# changed to keep make out of some dependency problem. Ninja and VisualStudios `msbuild` do not
+# appear to be requiring this and much time can be saved by not rebuilding hundreds of files
+# when not required, both generators have been whitelisted here not to take this code-path,
+# all other generators will take the conservative route and regenerate.
+if(CMAKE_GENERATOR MATCHES ".*Unix Makefiles")
+  add_definitions(-DUSE_MAKEFILE_WORKAROUND)
+endif()
+
+# files rna_access.cc rna_define.cc makesrna.cc intentionally excluded.
 set(DEFSRC
-  rna_ID.c
+  rna_ID.cc
   rna_action.cc
   rna_animation.cc
   rna_animviz.cc
@@ -55,6 +64,7 @@ set(DEFSRC
   rna_movieclip.cc
   rna_nla.cc
   rna_nodetree.cc
+  rna_node_socket.cc
   rna_object.cc
   rna_object_force.cc
   rna_packedfile.cc
@@ -63,8 +73,8 @@ set(DEFSRC
   rna_pointcloud.cc
   rna_pose.cc
   rna_render.cc
-  rna_rigidbody.c
-  rna_rna.c
+  rna_rigidbody.cc
+  rna_rna.cc
   rna_scene.cc
   rna_screen.cc
   rna_sculpt_paint.cc
@@ -73,7 +83,7 @@ set(DEFSRC
   rna_sound.cc
   rna_space.cc
   rna_speaker.cc
-  rna_test.c
+  rna_test.cc
   rna_text.cc
   rna_texture.cc
   rna_timeline.cc
@@ -88,6 +98,13 @@ set(DEFSRC
   rna_world.cc
   rna_xr.cc
 )
+
+if(WITH_USD)
+  list(APPEND DEFSRC
+    rna_usd.cc
+  )
+  add_definitions(-DWITH_USD)
+endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
@@ -187,18 +204,18 @@ unset(CMAKE_C_CLANG_TIDY)
 unset(CMAKE_CXX_CLANG_TIDY)
 
 set(SRC_RNA_INC
-  ../RNA_access.h
-  ../RNA_define.h
-  ../RNA_documentation.h
-  ../RNA_enum_items.h
-  ../RNA_enum_types.h
-  ../RNA_path.h
-  ../RNA_types.h
+  ../RNA_access.hh
+  ../RNA_define.hh
+  ../RNA_documentation.hh
+  ../RNA_enum_items.hh
+  ../RNA_enum_types.hh
+  ../RNA_path.hh
+  ../RNA_types.hh
 )
 
 set(SRC
-  makesrna.c
-  rna_define.c
+  makesrna.cc
+  rna_define.cc
   ${DEFSRC}
   ${APISRC}
   ../../../../intern/clog/clog.c
@@ -228,6 +245,7 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
+  ../../io/usd
   ../../modifiers
   ../../nodes
   ../../sequencer
@@ -489,4 +507,3 @@ set(LIB
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

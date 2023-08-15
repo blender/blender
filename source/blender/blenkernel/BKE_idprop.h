@@ -92,7 +92,7 @@ void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
 
 /*-------- ID Type -------*/
 
-typedef void (*IDPWalkFunc)(void *userData, struct IDProperty *idp);
+typedef void (*IDPWalkFunc)(void *user_data, struct IDProperty *idp);
 
 void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
 

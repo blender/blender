@@ -13,6 +13,7 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 
 vec4 closure_to_rgba(Closure cl)
 {
@@ -111,8 +112,11 @@ void main()
 
 #ifdef MAT_RENDER_PASS_SUPPORT
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
-  vec4 cryptomatte_output = vec4(cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
-  imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
+  if (imageSize(rp_cryptomatte_img).x > 1) {
+    vec4 cryptomatte_output = vec4(
+        cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
+    imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
+  }
   output_renderpass_color(rp_buf.normal_id, vec4(out_normal, 1.0));
   output_renderpass_color(rp_buf.diffuse_color_id, vec4(g_diffuse_data.color, 1.0));
   output_renderpass_color(rp_buf.diffuse_light_id, vec4(diffuse_light, 1.0));
@@ -121,6 +125,20 @@ void main()
   output_renderpass_color(rp_buf.emission_id, vec4(g_emission, 1.0));
   output_renderpass_value(rp_buf.shadow_id, shadow);
   /** NOTE: AO is done on its own pass. */
+#endif
+
+#ifdef MAT_TRANSPARENT
+  /* Volumetric resolve and compositing. */
+  vec2 uvs = gl_FragCoord.xy * volumes_info_buf.viewport_size_inv;
+  VolumeResolveSample vol = volume_resolve(
+      vec3(uvs, gl_FragCoord.z), volume_transmittance_tx, volume_scattering_tx);
+
+  /* Removes the part of the volume scattering that has
+   * already been added to the destination pixels by the opaque resolve.
+   * Since we do that using the blending pipeline we need to account for material transmittance. */
+  vol.scattering -= vol.scattering * g_transmittance;
+
+  out_radiance.rgb = out_radiance.rgb * vol.transmittance + vol.scattering;
 #endif
 
   out_radiance.rgb *= 1.0 - g_holdout;

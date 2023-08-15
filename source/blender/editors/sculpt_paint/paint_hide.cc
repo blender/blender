@@ -10,6 +10,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -22,21 +24,21 @@
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.hh"
-#include "BKE_multires.h"
-#include "BKE_paint.h"
+#include "BKE_multires.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_subsurf.h"
+#include "BKE_subsurf.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_screen.h"
-#include "ED_view3d.h"
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "bmesh.h"
 
@@ -80,13 +82,13 @@ static void partialvis_update_mesh(Object *ob,
 
   BKE_pbvh_node_num_verts(pbvh, node, nullptr, &totvert);
   const int *vert_indices = BKE_pbvh_node_get_vert_indices(node);
-  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vdata, CD_PAINT_MASK));
+  paint_mask = static_cast<const float *>(CustomData_get_layer(&me->vert_data, CD_PAINT_MASK));
 
-  bool *hide_vert = static_cast<bool *>(
-      CustomData_get_layer_named_for_write(&me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert));
+  bool *hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &me->vert_data, CD_PROP_BOOL, ".hide_vert", me->totvert));
   if (hide_vert == nullptr) {
     hide_vert = static_cast<bool *>(CustomData_add_layer_named(
-        &me->vdata, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
+        &me->vert_data, CD_PROP_BOOL, CD_SET_DEFAULT, me->totvert, ".hide_vert"));
   }
 
   SCULPT_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -123,7 +125,8 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 {
   CCGElem **grids;
   BLI_bitmap **grid_hidden;
-  int *grid_indices, totgrid;
+  const int *grid_indices;
+  int totgrid;
   bool any_changed = false, any_visible = false;
 
   /* Get PBVH data. */

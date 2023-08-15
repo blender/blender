@@ -6,7 +6,7 @@
  * \ingroup spuserpref
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -17,22 +17,23 @@
 #endif
 #include "BLI_path_util.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_preferences.h"
 
 #include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_types.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_userpref.h"
+#include "ED_userpref.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -234,6 +235,127 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Add Extension Repository Operator
+ * \{ */
+
+static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
+{
+  char name[FILE_MAXFILE];
+  char directory[FILE_MAX];
+
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+
+  RNA_string_get(op->ptr, "directory", directory);
+  BLI_path_slash_rstrip(directory);
+
+  BLI_path_split_file_part(directory, name, sizeof(name));
+
+  const char *module = name;
+  bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(&U, name, module, directory);
+
+  /* Activate new repository in the UI for further setup. */
+  U.active_extension_repo = BLI_findindex(&U.extension_repos, new_repo);
+  U.runtime.is_dirty = true;
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+
+  /* There's no dedicated notifier for the Preferences. */
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static int preferences_extension_repo_add_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
+{
+  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
+    WM_event_add_fileselect(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  return preferences_extension_repo_add_exec(C, op);
+}
+
+static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
+{
+  ot->name = "Add Extension Repository";
+  ot->idname = "PREFERENCES_OT_extension_repo_add";
+  ot->description = "Add a directory to be used as a local extensions repository";
+
+  ot->exec = preferences_extension_repo_add_exec;
+  ot->invoke = preferences_extension_repo_add_invoke;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_DIRECTORY,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Extension Repository Operator
+ * \{ */
+
+static bool preferences_extension_repo_remove_poll(bContext *C)
+{
+  if (BLI_listbase_is_empty(&U.extension_repos)) {
+    CTX_wm_operator_poll_msg_set(C, "There is no extension repository to remove");
+    return false;
+  }
+  return true;
+}
+
+static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
+{
+  const int index = RNA_int_get(op->ptr, "index");
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
+      BLI_findlink(&U.extension_repos, index));
+  if (!repo) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+
+  BKE_preferences_extension_repo_remove(&U, repo);
+  const int count_remaining = BLI_listbase_count(&U.extension_repos);
+  /* Update active repo index to be in range. */
+  CLAMP(U.active_extension_repo, 0, count_remaining - 1);
+  U.runtime.is_dirty = true;
+
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
+
+  /* There's no dedicated notifier for the Preferences. */
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
+{
+  ot->name = "Remove Extension Repository";
+  ot->idname = "PREFERENCES_OT_extension_repo_remove";
+  ot->description = "Remove an extensions repository";
+
+  ot->exec = preferences_extension_repo_remove_exec;
+  ot->poll = preferences_extension_repo_remove_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+
+  RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Associate File Type Operator (Windows only)
  * \{ */
 
@@ -358,6 +480,9 @@ void ED_operatortypes_userpref()
 
   WM_operatortype_append(PREFERENCES_OT_asset_library_add);
   WM_operatortype_append(PREFERENCES_OT_asset_library_remove);
+
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_add);
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_remove);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
   WM_operatortype_append(PREFERENCES_OT_unassociate_blend);

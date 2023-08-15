@@ -6,11 +6,11 @@
  * \ingroup bke
  */
 
+#include <climits>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
-#include <limits.h>
-#include <math.h>
 #include <memory.h>
-#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -26,8 +26,9 @@
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
-#include "BLI_math.h"
 #include "BLI_math_base.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
@@ -48,7 +49,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "libmv-capi.h"

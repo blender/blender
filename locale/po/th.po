@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-08-14 09:28:55\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -316,6 +316,10 @@ msgstr "การตั้งค่า"
 
 msgid "Edit persistent configuration settings"
 msgstr "การตั้งค่าของผู้ใช้"
+
+
+msgid "ID Name"
+msgstr "ชื่อ ID"
 
 
 msgid "Data Type"
@@ -1597,10 +1601,6 @@ msgid "Movie File"
 msgstr "ไฟล์ภาพยนตร์"
 
 
-msgid "ID Name"
-msgstr "ชื่อ ID"
-
-
 msgid "Label"
 msgstr "ข้อความ"
 
@@ -1647,6 +1647,18 @@ msgstr "คุณภาพการเรนเดอร์"
 
 msgid "Quality when rendering"
 msgstr "คุณภาพเมื่อกำลังเรนเดอร์"
+
+
+msgid "Edit"
+msgstr "แก้ไข"
+
+
+msgid "Sculpt"
+msgstr "แกะสลัก"
+
+
+msgid "Mesh"
+msgstr "เมช"
 
 
 msgid "Bounding Box"
@@ -2028,10 +2040,6 @@ msgid "Add"
 msgstr "เพิ่ม"
 
 
-msgid "Edit"
-msgstr "แก้ไข"
-
-
 msgid "Layout"
 msgstr "เค้าโครง"
 
@@ -2042,10 +2050,6 @@ msgstr "ช้อความ"
 
 msgid "Math"
 msgstr "คณิตศาสตร์"
-
-
-msgid "Mesh"
-msgstr "เมช"
 
 
 msgid "Node"
@@ -2147,10 +2151,6 @@ msgstr "เมนูบริบทวัตถุ"
 
 msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
-
-
-msgid "Sculpt"
-msgstr "แกะสลัก"
 
 
 msgid "Mask Edit"
@@ -2394,6 +2394,10 @@ msgid "Object Info"
 msgstr "ข้อมูลวัตถุ"
 
 
+msgid "Selection"
+msgstr "การเลือก"
+
+
 msgid "Background"
 msgstr "พื้นหลัง"
 
@@ -2550,10 +2554,6 @@ msgstr "ภาษา"
 msgctxt "Operator"
 msgid "Paste from Clipboard"
 msgstr "วางจากคลิปบอร์ด"
-
-
-msgid "Selection"
-msgstr "การเลือก"
 
 
 msgid "Report"
@@ -3646,8 +3646,8 @@ msgid "FPS"
 msgstr "อัตราเฟรม"
 
 
-msgid "Resolution %"
-msgstr "ความละเอียด ร้อยละ (%)"
+msgid "Resolution Scale"
+msgstr "ขนาดความละเอียด"
 
 
 msgid "Text Color"
@@ -4607,10 +4607,6 @@ msgstr "รายงานข้อผิดพลาด"
 msgctxt "Operator"
 msgid "Developer Documentation"
 msgstr "เอกสารผู้พัฒนา"
-
-
-msgid "Resolution Scale"
-msgstr "ขนาดความละเอียด"
 
 
 msgid "Splash Screen"

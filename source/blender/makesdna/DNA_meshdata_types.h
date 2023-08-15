@@ -52,11 +52,11 @@ enum {
  * any changes to the underlying mesh invalidate the #MLoopTri array,
  * which will need to be re-calculated.
  *
- * Users normally access this via #BKE_mesh_runtime_looptri_ensure.
- * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
+ * Users normally access this via #Mesh::looptris().
+ * In rare cases its calculated directly, with #bke::mesh::looptris_calc.
  *
  * Typical usage includes:
- * - OpenGL drawing.
+ * - Viewport drawing.
  * - #BVHTree creation.
  * - Physics/collision detection.
  *
@@ -86,15 +86,15 @@ enum {
  *
  * #MLoopTri's are allocated in an array, where each polygon's #MLoopTri's are stored contiguously,
  * the number of triangles for each polygon is guaranteed to be the corner count - 2,
- * even for degenerate geometry. See #ME_POLY_TRI_TOT macro.
+ * even for degenerate geometry. See #ME_FACE_TRI_TOT macro.
  *
- * It's also possible to perform a reverse lookup (find all #MLoopTri's for any given poly).
+ * It's also possible to perform a reverse lookup (find all #MLoopTri's for any given face).
  *
  * \code{.c}
  * // loop over all looptri's for a given polygon: i
- * const IndexRange poly = polys[i];
- * MLoopTri *lt = &looptri[poly_to_tri_count(i, poly.start())];
- * int j, lt_tot = ME_POLY_TRI_TOT(poly.size());
+ * const IndexRange face = faces[i];
+ * MLoopTri *lt = &looptri[poly_to_tri_count(i, face.start())];
+ * int j, lt_tot = ME_FACE_TRI_TOT(face.size());
  *
  * for (j = 0; j < lt_tot; j++, lt++) {
  *     int vtri[3] = {
@@ -329,8 +329,8 @@ enum {
 /** \name Utility Macros
  * \{ */
 
-/** Number of tri's that make up this polygon once tessellated. */
-#define ME_POLY_TRI_TOT(size) (size - 2)
+/** Number of triangles that make up this face once tessellated. */
+#define ME_FACE_TRI_TOT(face_loop_num) ((face_loop_num)-2)
 
 /** \} */
 
@@ -375,7 +375,7 @@ enum {
  * This only stores the polygon size & flags, the vertex & edge indices are stored in the "corner
  * edges" array.
  *
- * Typically accessed with #Mesh.polys().
+ * Typically accessed with #Mesh.faces().
  */
 typedef struct MPoly {
   /** Offset into loop array and number of loops in the face. */
@@ -453,7 +453,7 @@ typedef struct MLoop {
 #endif
 
 /**
- * Used in Blender pre 2.63, See #Mesh::corner_verts(), #Mesh::polys() for face data stored in the
+ * Used in Blender pre 2.63, See #Mesh::corner_verts(), #Mesh::faces() for face data stored in the
  * blend file. Use for reading old files and in a handful of cases which should be removed
  * eventually.
  */

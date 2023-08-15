@@ -11,9 +11,9 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 #include "interface_intern.hh"
 
 #include "UI_abstract_view.hh"
@@ -28,6 +28,69 @@ void AbstractViewItem::update_from_old(const AbstractViewItem &old)
 {
   is_active_ = old.is_active_;
   is_renaming_ = old.is_renaming_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Active Item State
+ * \{ */
+
+void AbstractViewItem::on_activate(bContext & /*C*/)
+{
+  /* Do nothing by default. */
+}
+
+std::optional<bool> AbstractViewItem::should_be_active() const
+{
+  return std::nullopt;
+}
+
+bool AbstractViewItem::set_state_active()
+{
+  BLI_assert_msg(get_view().is_reconstructed(),
+                 "Item activation can't be done until reconstruction is completed");
+
+  if (!is_activatable_) {
+    return false;
+  }
+  if (is_active()) {
+    return false;
+  }
+
+  /* Deactivate other items in the view. */
+  get_view().foreach_view_item([](auto &item) { item.deactivate(); });
+
+  is_active_ = true;
+  return true;
+}
+
+void AbstractViewItem::activate(bContext &C)
+{
+  if (set_state_active()) {
+    on_activate(C);
+  }
+}
+
+void AbstractViewItem::deactivate()
+{
+  is_active_ = false;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name General State Management
+ * \{ */
+
+void AbstractViewItem::change_state_delayed()
+{
+  const std::optional<bool> should_be_active = this->should_be_active();
+  if (should_be_active.has_value() && *should_be_active) {
+    /* Don't call #activate() here, since this reflects an external state change and therefore
+     * shouldn't call #on_activate(). */
+    set_state_active();
+  }
 }
 
 /** \} */
@@ -300,6 +363,11 @@ class ViewItemAPIWrapper {
     return !view.is_renaming() && item.supports_renaming();
   }
 
+  static bool supports_drag(const AbstractViewItem &item)
+  {
+    return item.create_drag_controller() != nullptr;
+  }
+
   static bool drag_start(bContext &C, const AbstractViewItem &item)
   {
     const std::unique_ptr<AbstractViewItemDragController> drag_controller =
@@ -371,6 +439,12 @@ void UI_view_item_context_menu_build(bContext *C,
 {
   const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
   item.build_context_menu(*C, *column);
+}
+
+bool UI_view_item_supports_drag(const uiViewItemHandle *item_)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
+  return ViewItemAPIWrapper::supports_drag(item);
 }
 
 bool UI_view_item_drag_start(bContext *C, const uiViewItemHandle *item_)

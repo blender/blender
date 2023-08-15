@@ -36,32 +36,32 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "ED_datafiles.h"
-#include "ED_keyframes_draw.h"
-#include "ED_keyframes_keylist.h"
-#include "ED_render.h"
+#include "ED_keyframes_draw.hh"
+#include "ED_keyframes_keylist.hh"
+#include "ED_render.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "interface_intern.hh"
 
@@ -161,7 +161,7 @@ static const IconType icontypes[] = {
 #  define DEF_ICON_VECTOR(name) {ICON_TYPE_VECTOR, 0},
 #  define DEF_ICON_COLOR(name) {ICON_TYPE_COLOR_TEXTURE, 0},
 #  define DEF_ICON_BLANK(name) {ICON_TYPE_BLANK, 0},
-#  include "UI_icons.h"
+#  include "UI_icons.hh"
 };
 
 /* **************************************************** */

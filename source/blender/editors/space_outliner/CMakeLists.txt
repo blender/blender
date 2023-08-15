@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../depsgraph
@@ -49,14 +50,19 @@ set(SRC
   tree/tree_element_anim_data.cc
   tree/tree_element_bone.cc
   tree/tree_element_collection.cc
+  tree/tree_element_constraint.cc
+  tree/tree_element_defgroup.cc
   tree/tree_element_driver.cc
   tree/tree_element_edit_bone.cc
+  tree/tree_element_gpencil_effect.cc
   tree/tree_element_gpencil_layer.cc
+  tree/tree_element_grease_pencil_node.cc
   tree/tree_element_id.cc
   tree/tree_element_id_armature.cc
   tree/tree_element_id_collection.cc
   tree/tree_element_id_curve.cc
   tree/tree_element_id_gpencil_legacy.cc
+  tree/tree_element_id_grease_pencil.cc
   tree/tree_element_id_library.cc
   tree/tree_element_id_linestyle.cc
   tree/tree_element_id_mesh.cc
@@ -67,6 +73,9 @@ set(SRC
   tree/tree_element_label.cc
   tree/tree_element_nla.cc
   tree/tree_element_overrides.cc
+  tree/tree_element_particle_system.cc
+  tree/tree_element_pose.cc
+  tree/tree_element_pose_group.cc
   tree/tree_element_rna.cc
   tree/tree_element_scene_objects.cc
   tree/tree_element_seq.cc
@@ -80,14 +89,19 @@ set(SRC
   tree/tree_element_anim_data.hh
   tree/tree_element_bone.hh
   tree/tree_element_collection.hh
+  tree/tree_element_constraint.hh
+  tree/tree_element_defgroup.hh
   tree/tree_element_driver.hh
   tree/tree_element_edit_bone.hh
   tree/tree_element_gpencil_layer.hh
+  tree/tree_element_grease_pencil_node.hh
   tree/tree_element_id.hh
   tree/tree_element_id_armature.hh
   tree/tree_element_id_collection.hh
   tree/tree_element_id_curve.hh
+  tree/tree_element_gpencil_effect.hh
   tree/tree_element_id_gpencil_legacy.hh
+  tree/tree_element_id_grease_pencil.hh
   tree/tree_element_id_library.hh
   tree/tree_element_id_linestyle.hh
   tree/tree_element_id_mesh.hh
@@ -98,6 +112,9 @@ set(SRC
   tree/tree_element_label.hh
   tree/tree_element_nla.hh
   tree/tree_element_overrides.hh
+  tree/tree_element_particle_system.hh
+  tree/tree_element_pose.hh
+  tree/tree_element_pose_group.hh
   tree/tree_element_rna.hh
   tree/tree_element_scene_objects.hh
   tree/tree_element_seq.hh
@@ -106,7 +123,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_undo

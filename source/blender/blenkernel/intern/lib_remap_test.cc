@@ -12,7 +12,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_define.h"
+#include "RNA_define.hh"
 
 #include "BKE_appdir.h"
 #include "BKE_context.h"
@@ -28,7 +28,7 @@
 
 #include "IMB_imbuf.h"
 
-#include "ED_node.h"
+#include "ED_node.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -11,7 +11,7 @@ StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 # Private dummy object use for comparison only.
 _sentinel = object()
 
-# Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
+# Note that methods extended in C are defined in: `bpy_rna_types_capi.cc`.
 
 
 class Context(StructRNA):
@@ -106,7 +106,7 @@ class Library(bpy_types.ID):
         """ID data blocks which use this library"""
         import bpy
 
-        # See: readblenentry.c, IDTYPE_FLAGS_ISLINKABLE,
+        # See: `readblenentry.cc`, IDTYPE_FLAGS_ISLINKABLE,
         # we could make this an attribute in rna.
         attr_links = (
             "actions", "armatures", "brushes", "cameras",
@@ -178,7 +178,8 @@ class Object(bpy_types.ID):
 
     @property
     def children(self):
-        """All the children of this object.
+        """
+        All the children of this object.
 
         :type: tuple of :class:`Object`
 
@@ -189,7 +190,8 @@ class Object(bpy_types.ID):
 
     @property
     def children_recursive(self):
-        """A list of all children from this object.
+        """
+        A list of all children from this object.
 
         :type: tuple of :class:`Object`
 
@@ -231,7 +233,8 @@ class Object(bpy_types.ID):
 
     @property
     def users_scene(self):
-        """The scenes this object is in.
+        """
+        The scenes this object is in.
 
         :type: tuple of :class:`Scene`
 
@@ -935,11 +938,11 @@ class PropertyGroup(StructRNA, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
 
-class RenderEngine(StructRNA, metaclass=RNAMeta):
+class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
-class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
+class USDHook(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 
@@ -1180,6 +1183,10 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             layout.menu(cls.__name__, icon='COLLAPSEMENU')
 
 
+class AssetShelf(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
 class NodeTree(bpy_types.ID, metaclass=RNAMetaPropGroup):
     __slots__ = ()
 
@@ -1249,3 +1256,71 @@ class GeometryNode(NodeInternal):
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'GeometryNodeTree'
+
+
+class RenderEngine(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
+class HydraRenderEngine(RenderEngine):
+    __slots__ = ()
+
+    bl_use_shading_nodes_custom = False
+    bl_delegate_id = 'HdStormRendererPlugin'
+
+    def __init__(self):
+        self.engine_ptr = None
+
+    def __del__(self):
+        if hasattr(self, 'engine_ptr'):
+            if self.engine_ptr:
+                import _bpy_hydra
+                _bpy_hydra.engine_free(self.engine_ptr)
+
+    def get_render_settings(self, engine_type: str):
+        """
+        Provide render settings for `HdRenderDelegate`.
+        """
+        return {}
+
+    # Final render.
+    def update(self, data, depsgraph):
+        import _bpy_hydra
+
+        engine_type = 'PREVIEW' if self.is_preview else 'FINAL'
+        if not self.engine_ptr:
+            self.engine_ptr = _bpy_hydra.engine_create(self, engine_type, self.bl_delegate_id)
+        if not self.engine_ptr:
+            return
+
+        _bpy_hydra.engine_update(self.engine_ptr, depsgraph, None)
+
+        for key, val in self.get_render_settings('PREVIEW' if self.is_preview else 'FINAL').items():
+            _bpy_hydra.engine_set_render_setting(self.engine_ptr, key, val)
+
+    def render(self, depsgraph):
+        if not self.engine_ptr:
+            return
+
+        import _bpy_hydra
+        _bpy_hydra.engine_render(self.engine_ptr)
+
+    # Viewport render.
+    def view_update(self, context, depsgraph):
+        import _bpy_hydra
+        if not self.engine_ptr:
+            self.engine_ptr = _bpy_hydra.engine_create(self, 'VIEWPORT', self.bl_delegate_id)
+        if not self.engine_ptr:
+            return
+
+        _bpy_hydra.engine_update(self.engine_ptr, depsgraph, context)
+
+        for key, val in self.get_render_settings('VIEWPORT').items():
+            _bpy_hydra.engine_set_render_setting(self.engine_ptr, key, val)
+
+    def view_draw(self, context, depsgraph):
+        if not self.engine_ptr:
+            return
+
+        import _bpy_hydra
+        _bpy_hydra.engine_view_draw(self.engine_ptr, context)

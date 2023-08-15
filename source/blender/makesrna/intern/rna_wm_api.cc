@@ -6,26 +6,26 @@
  * \ingroup RNA
  */
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_utildefines.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "wm_cursors.h"
-#include "wm_event_types.h"
+#include "wm_cursors.hh"
+#include "wm_event_types.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "rna_internal.h" /* own include */
 
@@ -67,7 +67,7 @@ extern "C" void wm_autosave_write(Main *bmain, wmWindowManager *wm);
 #  include "BKE_context.h"
 #  include "BKE_undo_system.h"
 
-#  include "WM_types.h"
+#  include "WM_types.hh"
 
 /* Needed since RNA doesn't use `const` in function signatures. */
 static bool rna_KeyMapItem_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
@@ -197,8 +197,8 @@ static void rna_progress_update(wmWindowManager *wm, float value)
     /* Map to cursor_time range [0,9999] */
     wmWindow *win = wm->winactive;
     if (win) {
-      int val = (int)(10000 * (value - wm_progress_state.min) /
-                      (wm_progress_state.max - wm_progress_state.min));
+      int val = int(10000 * (value - wm_progress_state.min) /
+                    (wm_progress_state.max - wm_progress_state.min));
       WM_cursor_time(win, val);
     }
   }
@@ -771,10 +771,10 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
   RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "", "", INT_MIN, INT_MAX);
 
-  RNA_def_boolean(func, "shift", 0, "Shift", "");
-  RNA_def_boolean(func, "ctrl", 0, "Ctrl", "");
-  RNA_def_boolean(func, "alt", 0, "Alt", "");
-  RNA_def_boolean(func, "oskey", 0, "OS Key", "");
+  RNA_def_boolean(func, "shift", false, "Shift", "");
+  RNA_def_boolean(func, "ctrl", false, "Ctrl", "");
+  RNA_def_boolean(func, "alt", false, "Alt", "");
+  RNA_def_boolean(func, "oskey", false, "OS Key", "");
   parm = RNA_def_pointer(func, "event", "Event", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
 }
@@ -805,7 +805,8 @@ void RNA_api_wm(StructRNA *srna)
   parm = RNA_def_pointer(func, "operator", "Operator", "", "Operator to call");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_function_return(
-      func, RNA_def_boolean(func, "handle", 1, "", "Whether adding the handler was successful"));
+      func,
+      RNA_def_boolean(func, "handle", true, "", "Whether adding the handler was successful"));
 
   func = RNA_def_function(srna, "event_timer_add", "rna_event_timer_add");
   RNA_def_function_ui_description(
@@ -923,7 +924,7 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
   RNA_def_function_return(func, parm);
   RNA_def_boolean(
-      func, "from_active_button", 0, "Use Button", "Use the active button for positioning");
+      func, "from_active_button", false, "Use Button", "Use the active button for positioning");
 
   /* wrap UI_popover_end */
   func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");
@@ -997,7 +998,7 @@ void RNA_api_operator(StructRNA *srna)
   func = RNA_def_function(srna, "is_repeat", "rna_Operator_is_repeat");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   /* return */
-  parm = RNA_def_boolean(func, "result", 0, "result", "");
+  parm = RNA_def_boolean(func, "result", false, "result", "");
   RNA_def_function_return(func, parm);
 
   /* Registration */
@@ -1006,7 +1007,7 @@ void RNA_api_operator(StructRNA *srna)
   func = RNA_def_function(srna, "poll", nullptr);
   RNA_def_function_ui_description(func, "Test if the operator can be called or not");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -1030,7 +1031,7 @@ void RNA_api_operator(StructRNA *srna)
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
-  parm = RNA_def_boolean(func, "result", 0, "result", ""); /* better name? */
+  parm = RNA_def_boolean(func, "result", false, "result", ""); /* better name? */
   RNA_def_function_return(func, parm);
 
   /* invoke */
@@ -1106,7 +1107,7 @@ void RNA_api_macro(StructRNA *srna)
   func = RNA_def_function(srna, "poll", nullptr);
   RNA_def_function_ui_description(func, "Test if the operator can be called or not");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
-  RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
+  RNA_def_function_return(func, RNA_def_boolean(func, "visible", true, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -1151,7 +1152,7 @@ void RNA_api_keymapitem(StructRNA *srna)
   func = RNA_def_function(srna, "compare", "rna_KeyMapItem_compare");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "result", 0, "Comparison result", "");
+  parm = RNA_def_boolean(func, "result", false, "Comparison result", "");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "to_string", "rna_KeyMapItem_to_string");
@@ -1174,7 +1175,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "any", 0, "Any", "");
+  RNA_def_boolean(func, "any", false, "Any", "");
   RNA_def_int(func, "shift", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Shift", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
@@ -1184,7 +1185,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   RNA_def_boolean(func,
                   "head",
-                  0,
+                  false,
                   "At Head",
                   "Force item to be added at start (not end) of key map so that "
                   "it doesn't get blocked by an existing key map item");
@@ -1199,7 +1200,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "value", rna_enum_event_value_items, 0, "Value", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "any", 0, "Any", "");
+  RNA_def_boolean(func, "any", false, "Any", "");
   RNA_def_int(func, "shift", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Shift", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "ctrl", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Ctrl", "", KM_ANY, KM_MOD_HELD);
   RNA_def_int(func, "alt", KM_NOTHING, KM_ANY, KM_MOD_HELD, "Alt", "", KM_ANY, KM_MOD_HELD);
@@ -1214,7 +1215,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Item to use as a reference");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  RNA_def_boolean(func, "head", 0, "At Head", "");
+  RNA_def_boolean(func, "head", false, "At Head", "");
   parm = RNA_def_pointer(func, "result", "KeyMapItem", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
 
@@ -1272,8 +1273,8 @@ void RNA_api_keymaps(StructRNA *srna)
   RNA_def_enum(func, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
   RNA_def_enum(
       func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
-  RNA_def_boolean(func, "modal", 0, "Modal", "Keymap for modal operators");
-  RNA_def_boolean(func, "tool", 0, "Tool", "Keymap for active tools");
+  RNA_def_boolean(func, "modal", false, "Modal", "Keymap for modal operators");
+  RNA_def_boolean(func, "tool", false, "Tool", "Keymap for active tools");
   parm = RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Added key map");
   RNA_def_function_return(func, parm);
 

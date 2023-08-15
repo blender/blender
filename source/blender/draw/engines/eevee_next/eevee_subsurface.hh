@@ -60,7 +60,7 @@ struct SubsurfaceModule {
     pass->bind_ubo("sss_buf", data_);
   }
 
-  GPUTexture **transmittance_tx_get(void)
+  GPUTexture **transmittance_tx_get()
   {
     return &transmittance_tx_;
   }

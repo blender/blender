@@ -7,8 +7,9 @@
  *
  * Abstractions to manage runtime asset lists with a global cache for multiple UI elements to
  * access.
- * Internally this uses the #FileList API and structures from `filelist.c`. This is just because it
- * contains most necessary logic already and there's not much time for a more long-term solution.
+ * Internally this uses the #FileList API and structures from `filelist.cc`.
+ * This is just because it contains most necessary logic already and
+ * there's not much time for a more long-term solution.
  */
 
 #include <optional>
@@ -26,16 +27,16 @@
 
 #include "BKE_preferences.h"
 
-#include "WM_api.h"
+#include "WM_api.hh"
 
 /* XXX uses private header of file-space. */
-#include "../space_file/file_indexer.h"
-#include "../space_file/filelist.h"
+#include "../space_file/file_indexer.hh"
+#include "../space_file/filelist.hh"
 
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
-#include "ED_screen.h"
+#include "ED_screen.hh"
 #include "asset_library_reference.hh"
 
 namespace blender::ed::asset {
@@ -121,6 +122,7 @@ class AssetList : NonCopyable {
 
   bool needsRefetch() const;
   bool isLoaded() const;
+  bool isAssetPreviewLoading(const AssetHandle &asset) const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListHandleIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
@@ -191,6 +193,11 @@ bool AssetList::needsRefetch() const
 bool AssetList::isLoaded() const
 {
   return filelist_is_ready(filelist_);
+}
+
+bool AssetList::isAssetPreviewLoading(const AssetHandle &asset) const
+{
+  return filelist_file_is_preview_pending(filelist_, asset.file_data);
 }
 
 asset_system::AssetLibrary *AssetList::asset_library() const
@@ -530,6 +537,13 @@ asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
   AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
                                                                     asset_index);
   return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
+}
+
+bool ED_assetlist_asset_image_is_loading(const AssetLibraryReference *library_reference,
+                                         const AssetHandle *asset_handle)
+{
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->isAssetPreviewLoading(*asset_handle);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)

@@ -114,7 +114,7 @@ static void set_position_in_component(GeometrySet &geometry,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  const GeometryComponent &component = *geometry.get_component_for_read(component_type);
+  const GeometryComponent &component = *geometry.get_component(component_type);
   const eAttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;
@@ -161,16 +161,15 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Geometry", std::move(geometry));
 }
 
-}  // namespace blender::nodes::node_geo_set_position_cc
-
-void register_node_type_geo_set_position()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_set_position_cc;
-
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_POSITION, "Set Position", NODE_CLASS_GEOMETRY);
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.declare = file_ns::node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.declare = node_declare;
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_set_position_cc

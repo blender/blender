@@ -4,6 +4,7 @@
 
 set(INC
   .
+  ../blenkernel
   ../blentranslation
   ../functions
   ../makesrna
@@ -15,7 +16,6 @@ set(SRC
   intern/curve_constraints.cc
   intern/fillet_curves.cc
   intern/mesh_copy_selection.cc
-  intern/mesh_flip_faces.cc
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
   intern/mesh_split_edges.cc
@@ -36,7 +36,6 @@ set(SRC
   GEO_curve_constraints.hh
   GEO_fillet_curves.hh
   GEO_mesh_copy_selection.hh
-  GEO_mesh_flip_faces.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
   GEO_mesh_split_edges.hh
@@ -55,7 +54,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
+  bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

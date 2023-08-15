@@ -159,7 +159,7 @@ void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
   for (ModifierDataBackup &backup : modifier_runtime_data.values()) {
     const ModifierTypeInfo *modifier_type_info = BKE_modifier_get_info(backup.type);
     BLI_assert(modifier_type_info != nullptr);
-    modifier_type_info->freeRuntimeData(backup.runtime);
+    modifier_type_info->free_runtime_data(backup.runtime);
   }
 }
 

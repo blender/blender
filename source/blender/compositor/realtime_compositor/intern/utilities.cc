@@ -12,6 +12,7 @@
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
+#include "IMB_imbuf.h"
 
 #include "DNA_node_types.h"
 
@@ -220,7 +221,7 @@ void compute_preview_from_result(Context &context, const DNode &node, Result &in
       for (const int64_t x : IndexRange(preview_size.x)) {
         const int index = (y * preview_size.x + x) * 4;
         IMB_colormanagement_processor_apply_v4(color_processor, preview_pixels + index);
-        rgba_float_to_uchar(preview->rect + index, preview_pixels + index);
+        rgba_float_to_uchar(preview->ibuf->byte_buffer.data + index, preview_pixels + index);
       }
     }
   });

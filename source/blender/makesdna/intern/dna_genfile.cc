@@ -12,10 +12,10 @@
  * SDNA and the SDNA of the current (running) version of Blender.
  */
 
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
@@ -45,13 +45,13 @@
  * \code{.unparsed}
  *     SDNA (4 bytes) (magic number)
  *     NAME (4 bytes)
- *     <nr> (4 bytes) amount of names (int)
+ *     <nr> (4 bytes) amount of names `int`.
  *     <string>
  *     <string>
  *     ...
  *     ...
  *     TYPE (4 bytes)
- *     <nr> amount of types (int)
+ *     <nr> amount of types `int`.
  *     <string>
  *     <string>
  *     ...
@@ -62,7 +62,7 @@
  *     ...
  *     ...
  *     STRC (4 bytes)
- *     <nr> amount of structs (int)
+ *     <nr> amount of structs `int`.
  *     <typenr><nr_of_elems> <typenr><namenr> <typenr><namenr> ...
  * \endcode
  *
@@ -113,7 +113,7 @@
 
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
+#  define MAKE_ID(a, b, c, d) (int(a) << 24 | int(b) << 16 | (c) << 8 | (d))
 #else
 /* Little Endian */
 #  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
@@ -174,7 +174,7 @@ int DNA_elem_size_nr(const SDNA *sdna, short type, short name)
   }
   else if (sdna->types_size[type]) {
     /* has the name an extra length? (array) */
-    len = (int)sdna->types_size[type] * sdna->names_array_len[name];
+    len = int(sdna->types_size[type]) * sdna->names_array_len[name];
   }
 
   return len;
@@ -860,7 +860,7 @@ static bool elem_streq(const char *name, const char *oname)
 {
   int a = 0;
 
-  while (1) {
+  while (true) {
     if (name[a] != oname[a]) {
       return false;
     }
@@ -978,11 +978,11 @@ static int elem_offset(const SDNA *sdna,
 }
 
 /* Each struct member belongs to one of the categories below. */
-typedef enum eStructMemberCategory {
+enum eStructMemberCategory {
   STRUCT_MEMBER_CATEGORY_STRUCT,
   STRUCT_MEMBER_CATEGORY_PRIMITIVE,
   STRUCT_MEMBER_CATEGORY_POINTER,
-} eStructMemberCategory;
+};
 
 static eStructMemberCategory get_struct_member_category(const SDNA *sdna,
                                                         const SDNA_StructMember *member)
@@ -1063,7 +1063,7 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
         break;
       }
       case STRUCT_MEMBER_CATEGORY_POINTER: {
-        /* See `readfile.c` (#bh4_from_bh8 swap endian argument),
+        /* See `readfile.cc` (#bh4_from_bh8 swap endian argument),
          * this is only done when reducing the size of a pointer from 4 to 8. */
         if (sizeof(void *) < 8) {
           if (sdna->pointer_size == 8) {
@@ -1077,16 +1077,16 @@ void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
   }
 }
 
-typedef enum eReconstructStepType {
+enum eReconstructStepType {
   RECONSTRUCT_STEP_MEMCPY,
   RECONSTRUCT_STEP_CAST_PRIMITIVE,
   RECONSTRUCT_STEP_CAST_POINTER_TO_32,
   RECONSTRUCT_STEP_CAST_POINTER_TO_64,
   RECONSTRUCT_STEP_SUBSTRUCT,
   RECONSTRUCT_STEP_INIT_ZERO,
-} eReconstructStepType;
+};
 
-typedef struct ReconstructStep {
+struct ReconstructStep {
   eReconstructStepType type;
   union {
     struct {
@@ -1114,16 +1114,16 @@ typedef struct ReconstructStep {
       short new_struct_nr;
     } substruct;
   } data;
-} ReconstructStep;
+};
 
-typedef struct DNA_ReconstructInfo {
+struct DNA_ReconstructInfo {
   const SDNA *oldsdna;
   const SDNA *newsdna;
   const char *compare_flags;
 
   int *step_counts;
   ReconstructStep **steps;
-} DNA_ReconstructInfo;
+};
 
 static void reconstruct_structs(const DNA_ReconstructInfo *reconstruct_info,
                                 const int blocks,
@@ -1408,9 +1408,9 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
       printf(
           "cast element, old type: %d ('%s'), new type: %d ('%s'), old offset: %d, new offset: "
           "%d, length: %d",
-          (int)step->data.cast_primitive.old_type,
+          int(step->data.cast_primitive.old_type),
           oldsdna->types[step->data.cast_primitive.old_type],
-          (int)step->data.cast_primitive.new_type,
+          int(step->data.cast_primitive.new_type),
           newsdna->types[step->data.cast_primitive.new_type],
           step->data.cast_primitive.old_offset,
           step->data.cast_primitive.new_offset,

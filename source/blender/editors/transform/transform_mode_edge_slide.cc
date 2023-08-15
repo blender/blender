@@ -6,11 +6,11 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
@@ -24,16 +24,16 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_mesh.h"
-#include "ED_screen.h"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 
@@ -371,7 +371,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
                                      EdgeSlideData *sld,
                                      const int *sv_table,
                                      const int loop_nr,
-                                     const float mval[2],
+                                     const blender::float2 &mval,
                                      const bool use_occlude_geometry,
                                      const bool use_calc_direction)
 {
@@ -492,7 +492,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 static void calcEdgeSlide_even(TransInfo *t,
                                TransDataContainer *tc,
                                EdgeSlideData *sld,
-                               const float mval[2])
+                               const blender::float2 &mval)
 {
   TransDataEdgeSlideVert *sv = sld->sv;
 
@@ -536,7 +536,6 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  const float mval[2] = {float(t->mval[0]), float(t->mval[1])};
   int numsel, i, loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = nullptr;
@@ -614,7 +613,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
   STACK_DECLARE(sv_array);
   STACK_INIT(sv_array, sv_tot);
 
-  while (1) {
+  while (true) {
     float vec_a[3], vec_b[3];
     BMLoop *l_a, *l_b;
     BMLoop *l_a_prev, *l_b_prev;
@@ -863,7 +862,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 
   // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-  BLI_assert(STACK_SIZE(sv_array) == (uint)sv_tot);
+  BLI_assert(STACK_SIZE(sv_array) == uint(sv_tot));
 
   sld->sv = sv_array;
   sld->totsv = sv_tot;
@@ -876,10 +875,10 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
                             !XRAY_ENABLED(v3d));
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, true);
+  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, true);
 
   if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, mval);
+    calcEdgeSlide_even(t, tc, sld, t->mval);
   }
 
   MEM_freeN(sv_table);
@@ -901,7 +900,6 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  const float mval[2] = {float(t->mval[0]), float(t->mval[1])};
   int loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = nullptr;
@@ -998,7 +996,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
 
         j = sv_tot;
 
-        while (1) {
+        while (true) {
           BMVert *v_other = BM_edge_other_vert(e_step, v);
           int endpoint = ((sv_table[BM_elem_index_get(v_other)] != -1) +
                           (BM_vert_is_edge_pair(v_other) == false));
@@ -1061,10 +1059,10 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
                             !XRAY_ENABLED(v3d));
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, mval, use_occlude_geometry, false);
+  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, false);
 
   if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, mval);
+    calcEdgeSlide_even(t, tc, sld, t->mval);
   }
 
   MEM_freeN(sv_table);
@@ -1433,7 +1431,7 @@ static void doEdgeSlide(TransInfo *t, float perc)
   }
 }
 
-static void applyEdgeSlide(TransInfo *t, const int[2] /*mval*/)
+static void applyEdgeSlide(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
@@ -1483,7 +1481,7 @@ static void applyEdgeSlide(TransInfo *t, const int[2] /*mval*/)
   /* do stuff here */
   doEdgeSlide(t, final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

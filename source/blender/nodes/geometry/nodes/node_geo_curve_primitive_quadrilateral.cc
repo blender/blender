@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "NOD_rna_define.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_socket_search_link.hh"
 
@@ -72,7 +74,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "mode", 0, "", ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -262,27 +264,64 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
   }
 
-  params.set_output("Curve", GeometrySet::create_with_curves(curves_id));
+  params.set_output("Curve", GeometrySet::from_curves(curves_id));
 }
 
-}  // namespace blender::nodes::node_geo_curve_primitive_quadrilateral_cc
-
-void register_node_type_geo_curve_primitive_quadrilateral()
+static void node_rna(StructRNA *srna)
 {
-  namespace file_ns = blender::nodes::node_geo_curve_primitive_quadrilateral_cc;
+  static EnumPropertyItem mode_items[] = {
+      {GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE,
+       "RECTANGLE",
+       0,
+       "Rectangle",
+       "Create a rectangle"},
+      {GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_PARALLELOGRAM,
+       "PARALLELOGRAM",
+       0,
+       "Parallelogram",
+       "Create a parallelogram"},
+      {GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_TRAPEZOID,
+       "TRAPEZOID",
+       0,
+       "Trapezoid",
+       "Create a trapezoid"},
+      {GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_KITE, "KITE", 0, "Kite", "Create a Kite / Dart"},
+      {GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_POINTS,
+       "POINTS",
+       0,
+       "Points",
+       "Create a quadrilateral from four points"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
+  RNA_def_node_enum(srna,
+                    "mode",
+                    "Mode",
+                    "",
+                    mode_items,
+                    NOD_storage_enum_accessors(mode),
+                    GEO_NODE_CURVE_PRIMITIVE_QUAD_MODE_RECTANGLE);
+}
+
+static void node_register()
+{
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRILATERAL, "Quadrilateral", NODE_CLASS_GEOMETRY);
-  ntype.declare = file_ns::node_declare;
-  ntype.geometry_node_execute = file_ns::node_geo_exec;
-  ntype.draw_buttons = file_ns::node_layout;
-  ntype.updatefunc = file_ns::node_update;
-  ntype.initfunc = file_ns::node_init;
+  ntype.declare = node_declare;
+  ntype.geometry_node_execute = node_geo_exec;
+  ntype.draw_buttons = node_layout;
+  ntype.updatefunc = node_update;
+  ntype.initfunc = node_init;
   node_type_storage(&ntype,
                     "NodeGeometryCurvePrimitiveQuad",
                     node_free_standard_storage,
                     node_copy_standard_storage);
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
+  ntype.gather_link_search_ops = node_gather_link_searches;
   nodeRegisterType(&ntype);
+
+  node_rna(ntype.rna_ext.srna);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_curve_primitive_quadrilateral_cc

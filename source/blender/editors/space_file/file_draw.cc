@@ -16,16 +16,18 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
+#include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BKE_blendfile.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 #include "BLT_translation.h"
 
@@ -36,27 +38,27 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
-#include "filelist.h"
+#include "filelist.hh"
 
-#include "file_intern.h" /* own include */
+#include "file_intern.hh" /* own include */
 
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,
@@ -184,7 +186,7 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int x = tile_draw_rect->xmin;
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
-  /* For uiDefIconBut(), if a1==1.0 then a2 is alpha 0.0 - 1.0 */
+  /* For #uiDefIconBut(): if `a1==1.0` then a2 is alpha `0.0 - 1.0`. */
   const float a1 = dimmed ? 1.0f : 0.0f;
   const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
@@ -360,7 +362,7 @@ static void file_draw_preview(const FileList *files,
   bool show_outline = !is_icon && (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
                                                      FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
-  const bool is_loading = !filelist_is_ready(files) || file->flags & FILE_ENTRY_PREVIEW_LOADING;
+  const bool is_loading = filelist_file_is_preview_pending(files, file);
 
   BLI_assert(imb != nullptr);
 
@@ -1033,11 +1035,11 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (FILE_IMGDISPLAY == params->display) {
       const int icon = filelist_geticon(files, i, false);
-      is_icon = 0;
+      is_icon = false;
       const ImBuf *imb = filelist_getimage(files, i);
       if (!imb) {
         imb = filelist_geticon_image(files, i);
-        is_icon = 1;
+        is_icon = true;
       }
 
       float scale = 0;
@@ -1082,7 +1084,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      0,
                                      0,
                                      0,
-                                     0);
+                                     nullptr);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
         }
@@ -1177,12 +1179,11 @@ void file_draw_list(const bContext *C, ARegion *region)
   layout->curr_size = params->thumbnail_size;
 }
 
-static void file_draw_invalid_library_hint(const bContext *C,
-                                           const SpaceFile *sfile,
-                                           ARegion *region)
+static void file_draw_invalid_asset_library_hint(const bContext *C,
+                                                 const SpaceFile *sfile,
+                                                 ARegion *region,
+                                                 FileAssetSelectParams *asset_params)
 {
-  const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-
   char library_ui_path[PATH_MAX];
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
@@ -1237,21 +1238,112 @@ static void file_draw_invalid_library_hint(const bContext *C,
   }
 }
 
+static void file_draw_invalid_library_hint(const bContext * /*C*/,
+                                           const SpaceFile *sfile,
+                                           ARegion *region,
+                                           const char *blendfile_path,
+                                           ReportList *reports)
+{
+  uchar text_col[4];
+  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+
+  const View2D *v2d = &region->v2d;
+  const int pad = sfile->layout->tile_border_x;
+  const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
+  const int line_height = sfile->layout->textheight;
+  int sx = v2d->tot.xmin + pad;
+  /* For some reason no padding needed. */
+  int sy = v2d->tot.ymax;
+
+  {
+    const char *message = TIP_("Unreadable Blender library file:");
+    file_draw_string_multiline(sx, sy, message, width, line_height, text_col, nullptr, &sy);
+
+    sy -= line_height;
+    file_draw_string(sx, sy, blendfile_path, width, line_height, UI_STYLE_TEXT_LEFT, text_col);
+  }
+
+  /* Separate a bit further. */
+  sy -= line_height * 2.2f;
+
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
+    const short report_type = report->type;
+    if (report_type <= RPT_INFO) {
+      continue;
+    }
+
+    int icon = ICON_INFO;
+    if (report_type > RPT_WARNING) {
+      icon = ICON_ERROR;
+    }
+    UI_icon_draw(sx, sy - UI_UNIT_Y, icon);
+
+    file_draw_string_multiline(sx + UI_UNIT_X,
+                               sy,
+                               TIP_(report->message),
+                               width - UI_UNIT_X,
+                               line_height,
+                               text_col,
+                               nullptr,
+                               &sy);
+    sy -= line_height;
+  }
+}
+
 bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegion *region)
 {
-  FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-  /* Only for asset browser. */
-  if (!ED_fileselect_is_asset_browser(sfile)) {
-    return false;
-  }
-  /* Check if the library exists. */
-  if ((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
-      filelist_is_dir(sfile->files, asset_params->base_params.dir))
-  {
-    return false;
+  char blendfile_path[FILE_MAX_LIBEXTRA];
+  const bool is_asset_browser = ED_fileselect_is_asset_browser(sfile);
+  const bool is_library_browser = !is_asset_browser &&
+                                  filelist_islibrary(sfile->files, blendfile_path, nullptr);
+
+  if (is_asset_browser) {
+    FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
+
+    /* Check if the asset library exists. */
+    if (!((asset_params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) ||
+          filelist_is_dir(sfile->files, asset_params->base_params.dir)))
+    {
+      file_draw_invalid_asset_library_hint(C, sfile, region, asset_params);
+      return true;
+    }
   }
 
-  file_draw_invalid_library_hint(C, sfile, region);
+  /* Check if the blendfile library is valid (has entries). */
+  if (is_library_browser) {
+    if (!filelist_is_ready(sfile->files)) {
+      return false;
+    }
 
-  return true;
+    const int numfiles = filelist_files_num_entries(sfile->files);
+    if (numfiles > 0) {
+      return false;
+    }
+
+    /* This could all be part of the file-list loading:
+     *   - When loading fails this could be saved in the file-list, e.g. when
+     *     `BLO_blendhandle_from_file()` returns null in `filelist_readjob_list_lib()`, a
+     *     `FL_HAS_INVALID_LIBRARY` file-list flag could be set.
+     *   - Reports from it could also be stored in `FileList` rather than being ignored
+     *     (`RPT_STORE` must be set!).
+     *   - Then we could just check for `is_library_browser` and the `FL_HAS_INVALID_LIBRARY` flag
+     *     here, and draw the hint with the reports in the file-list. (We would not draw a hint for
+     *     recursive loading, even if the file-list has the "has invalid library" flag set, which
+     *     seems like the wanted behavior.)
+     *   - The call to BKE_blendfile_is_readable() would not be needed then.
+     */
+    if (!sfile->runtime->is_blendfile_status_set) {
+      BKE_reports_clear(&sfile->runtime->is_blendfile_readable_reports);
+      sfile->runtime->is_blendfile_readable = BKE_blendfile_is_readable(
+          blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
+      sfile->runtime->is_blendfile_status_set = true;
+    }
+    if (!sfile->runtime->is_blendfile_readable) {
+      file_draw_invalid_library_hint(
+          C, sfile, region, blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
+      return true;
+    }
+  }
+
+  return false;
 }

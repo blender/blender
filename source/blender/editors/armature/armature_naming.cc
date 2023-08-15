@@ -9,7 +9,7 @@
  * This file contains functions/API's for renaming bones and/or working with them.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -40,14 +40,14 @@
 
 #include "DEG_depsgraph.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "ED_armature.h"
-#include "ED_screen.h"
+#include "ED_armature.hh"
+#include "ED_screen.hh"
 
 #include "armature_intern.h"
 
@@ -91,8 +91,7 @@ static bool bone_unique_check(void *arg, const char *name)
 
 static void ed_armature_bone_unique_name(bArmature *arm, char *name)
 {
-  BLI_uniquename_cb(
-      bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(((Bone *)nullptr)->name));
+  BLI_uniquename_cb(bone_unique_check, (void *)arm, DATA_("Bone"), '.', name, sizeof(Bone::name));
 }
 
 /** \} */
@@ -107,15 +106,12 @@ static void constraint_bone_name_fix(Object *ob,
                                      const char *oldname,
                                      const char *newname)
 {
-  bConstraint *curcon;
-  bConstraintTarget *ct;
-
-  for (curcon = static_cast<bConstraint *>(conlist->first); curcon; curcon = curcon->next) {
+  LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
     ListBase targets = {nullptr, nullptr};
 
     /* constraint targets */
     if (BKE_constraint_targets_get(curcon, &targets)) {
-      for (ct = static_cast<bConstraintTarget *>(targets.first); ct; ct = ct->next) {
+      LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
         if (ct->tar == ob) {
           if (STREQ(ct->subtarget, oldname)) {
             STRNCPY(ct->subtarget, newname);
@@ -123,13 +119,14 @@ static void constraint_bone_name_fix(Object *ob,
         }
       }
 
-      BKE_constraint_targets_flush(curcon, &targets, 0);
+      BKE_constraint_targets_flush(curcon, &targets, false);
     }
 
     /* action constraints */
     if (curcon->type == CONSTRAINT_TYPE_ACTION) {
       bActionConstraint *actcon = (bActionConstraint *)curcon->data;
-      BKE_action_fix_paths_rename(&ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, 1);
+      BKE_action_fix_paths_rename(
+          &ob->id, actcon->act, "pose.bones", oldname, newname, 0, 0, true);
     }
   }
 }
@@ -191,7 +188,6 @@ void ED_armature_bone_rename(Main *bmain,
     /* do entire dbase - objects */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
          ob = static_cast<Object *>(ob->id.next)) {
-      ModifierData *md;
 
       /* we have the object using the armature */
       if (arm == ob->data) {
@@ -227,9 +223,7 @@ void ED_armature_bone_rename(Main *bmain,
             constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
           }
           if (cob->pose) {
-            bPoseChannel *pchan;
-            for (pchan = static_cast<bPoseChannel *>(cob->pose->chanbase.first); pchan;
-                 pchan = pchan->next) {
+            LISTBASE_FOREACH (bPoseChannel *, pchan, &cob->pose->chanbase) {
               constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
             }
           }
@@ -255,7 +249,7 @@ void ED_armature_bone_rename(Main *bmain,
       }
 
       /* fix modifiers that might be using this name */
-      for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         switch (md->type) {
           case eModifierType_Hook: {
             HookModifierData *hmd = (HookModifierData *)md;
@@ -357,11 +351,9 @@ void ED_armature_bone_rename(Main *bmain,
       for (screen = static_cast<bScreen *>(bmain->screens.first); screen;
            screen = static_cast<bScreen *>(screen->id.next))
       {
-        ScrArea *area;
         /* add regions */
-        for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
-          SpaceLink *sl;
-          for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
               if (v3d->ob_center && v3d->ob_center->data == arm) {
@@ -384,7 +376,7 @@ void ED_armature_bone_rename(Main *bmain,
  * \{ */
 
 struct BoneFlipNameData {
-  struct BoneFlipNameData *next, *prev;
+  BoneFlipNameData *next, *prev;
   char *name;
   char name_flip[MAXBONENAME];
 };
@@ -422,7 +414,7 @@ void ED_armature_bones_flip_names(Main *bmain,
    * Note that if the other bone was not selected, its name was not flipped,
    * so conflict remains and that second rename simply generates a new numbered alternative name.
    */
-  for (bfn = static_cast<BoneFlipNameData *>(bones_names_conflicts.first); bfn; bfn = bfn->next) {
+  LISTBASE_FOREACH (BoneFlipNameData *, bfn, &bones_names_conflicts) {
     ED_armature_bone_rename(bmain, arm, bfn->name, bfn->name_flip);
   }
 }
@@ -609,7 +601,7 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* settings */
-  ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
+  ot->prop = RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis to tag names with");
 }
 
 /** \} */

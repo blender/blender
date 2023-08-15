@@ -286,7 +286,7 @@ class SubdivisionSet(Operator):
                 else:
                     mod = obj.modifiers.new("Subdivision", 'SUBSURF')
                     mod.levels = level
-            except:
+            except BaseException:
                 self.report({'WARNING'},
                             "Modifiers cannot be added to object: " + obj.name)
 

@@ -13,24 +13,23 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_time_scrub_ui.h"
+#include "ED_time_scrub_ui.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_timecode.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 void ED_time_scrub_region_rect_get(const ARegion *region, rcti *rect)
@@ -228,8 +227,8 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   uiLayoutSetScaleY(layout, (UI_UNIT_Y - padding_y) / UI_UNIT_Y);
   UI_block_layout_set_current(block, layout);
   UI_block_align_begin(block);
-  uiItemR(layout, &ptr, "filter_text", 0, "", ICON_NONE);
-  uiItemR(layout, &ptr, "use_filter_invert", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(layout, &ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, &ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   UI_block_align_end(block);
   UI_block_layout_resolve(block, nullptr, nullptr);
 

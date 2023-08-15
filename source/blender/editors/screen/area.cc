@@ -6,8 +6,8 @@
  * \ingroup edscr
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +15,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -26,19 +25,21 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
+#include "RNA_access.hh"
+#include "RNA_types.hh"
 
-#include "WM_api.h"
-#include "WM_message.h"
+#include "WM_api.hh"
+#include "WM_message.hh"
 #include "WM_toolsystem.h"
-#include "WM_types.h"
+#include "WM_types.hh"
 
-#include "ED_buttons.h"
-#include "ED_screen.h"
-#include "ED_screen_types.h"
-#include "ED_space_api.h"
-#include "ED_time_scrub_ui.h"
+#include "ED_asset.hh"
+#include "ED_asset_shelf.h"
+#include "ED_buttons.hh"
+#include "ED_screen.hh"
+#include "ED_screen_types.hh"
+#include "ED_space_api.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -51,10 +52,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_metadata.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "screen_intern.h"
 
@@ -752,6 +753,37 @@ void ED_area_tag_refresh(ScrArea *area)
   }
 }
 
+void ED_area_tag_region_size_update(ScrArea *area, ARegion *changed_region)
+{
+  if (!area || (area->flag & AREA_FLAG_REGION_SIZE_UPDATE)) {
+    return;
+  }
+
+  area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+
+  /* Floating regions don't affect other regions, so the following can be skipped. */
+  if (changed_region->alignment == RGN_ALIGN_FLOAT) {
+    return;
+  }
+
+  /* Tag the following regions for redraw, since the size change of this region may affect the
+   * available space for them. */
+  for (ARegion *following_region = changed_region->next; following_region;
+       following_region = following_region->next)
+  {
+    /* Overlapping and non-overlapping regions don't affect each others space. So layout changes
+     * of one don't require redrawing the other. */
+    if (changed_region->overlap != following_region->overlap) {
+      continue;
+    }
+    /* Floating regions don't affect space of other regions. */
+    if (following_region->alignment == RGN_ALIGN_FLOAT) {
+      continue;
+    }
+    ED_region_tag_redraw(following_region);
+  }
+}
+
 /* *************************************************************** */
 
 const char *ED_area_region_search_filter_get(const ScrArea *area, const ARegion *region)
@@ -1270,7 +1302,9 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_UI,
                RGN_TYPE_TOOL_PROPS,
                RGN_TYPE_FOOTER,
-               RGN_TYPE_TOOL_HEADER))
+               RGN_TYPE_TOOL_HEADER,
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_HEADER))
       {
         return true;
       }
@@ -1314,8 +1348,8 @@ static void region_rect_recursive(
     alignment = RGN_ALIGN_NONE;
   }
 
-  /* If both the #ARegion.sizex/y and the #ARegionType.prefsizex/y are 0,
-   * the region is tagged as too small, even before the layout for dynamic regions is created.
+  /* If both the #ARegion.sizex/y and the #ARegionType.prefsizex/y are 0, the region is tagged as
+   * too small, even before the layout for dynamically sized regions is created.
    * #wm_draw_window_offscreen() allows the layout to be created despite the #RGN_FLAG_TOO_SMALL
    * flag being set. But there may still be regions that don't have a separate #ARegionType.layout
    * callback. For those, set a default #ARegionType.prefsizex/y so they can become visible. */
@@ -1333,11 +1367,7 @@ static void region_rect_recursive(
                   ((region->sizex > 1) ? region->sizex + 0.5f : region->type->prefsizex);
   int prefsizey;
 
-  if (region->flag & RGN_FLAG_PREFSIZE_OR_HIDDEN) {
-    prefsizex = UI_SCALE_FAC * region->type->prefsizex;
-    prefsizey = UI_SCALE_FAC * region->type->prefsizey;
-  }
-  else if (region->regiontype == RGN_TYPE_HEADER) {
+  if (region->regiontype == RGN_TYPE_HEADER) {
     prefsizey = ED_area_headersize();
   }
   else if (region->regiontype == RGN_TYPE_TOOL_HEADER) {
@@ -1345,6 +1375,13 @@ static void region_rect_recursive(
   }
   else if (region->regiontype == RGN_TYPE_FOOTER) {
     prefsizey = ED_area_footersize();
+  }
+  else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
+    prefsizey = region->sizey > 1 ? (UI_SCALE_FAC * (region->sizey + 0.5f)) :
+                                    ED_asset_shelf_region_prefsizey();
+  }
+  else if (region->regiontype == RGN_TYPE_ASSET_SHELF_HEADER) {
+    prefsizey = ED_asset_shelf_header_region_size();
   }
   else if (ED_area_is_global(area)) {
     prefsizey = ED_region_global_size_y();
@@ -1757,6 +1794,11 @@ static void ed_default_handlers(
     wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Region Context Menu", 0, 0);
     WM_event_add_keymap_handler(&region->handlers, keymap);
   }
+  if (flag & ED_KEYMAP_ASSET_SHELF) {
+    /* standard keymap for asset shelf regions */
+    wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Asset Shelf", 0, 0);
+    WM_event_add_keymap_handler(&region->handlers, keymap);
+  }
 
   /* Keep last because of LMB/RMB handling, see: #57527. */
   if (flag & ED_KEYMAP_GPENCIL) {
@@ -1925,6 +1967,39 @@ bool ED_area_has_shared_border(ScrArea *a, ScrArea *b)
   return area_getorientation(a, b) != -1;
 }
 
+/**
+ * Setup a known space type in the event a file with an unknown space-type is loaded.
+ */
+static void area_init_type_fallback(ScrArea *area, eSpace_Type space_type)
+{
+  BLI_assert(area->type == nullptr);
+  area->spacetype = space_type;
+  area->type = BKE_spacetype_from_id(area->spacetype);
+
+  SpaceLink *sl = nullptr;
+  LISTBASE_FOREACH (SpaceLink *, sl_iter, &area->spacedata) {
+    if (sl_iter->spacetype == space_type) {
+      sl = sl_iter;
+      break;
+    }
+  }
+  if (sl) {
+    SpaceLink *sl_old = static_cast<SpaceLink *>(area->spacedata.first);
+    if (LIKELY(sl != sl_old)) {
+      BLI_remlink(&area->spacedata, sl);
+      BLI_addhead(&area->spacedata, sl);
+
+      /* swap regions */
+      sl_old->regionbase = area->regionbase;
+      area->regionbase = sl->regionbase;
+      BLI_listbase_clear(&sl->regionbase);
+    }
+  }
+  else {
+    screen_area_spacelink_add(nullptr, area, space_type);
+  }
+}
+
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -1943,8 +2018,8 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   area->type = BKE_spacetype_from_id(area->spacetype);
 
   if (area->type == nullptr) {
-    area->spacetype = SPACE_VIEW3D;
-    area->type = BKE_spacetype_from_id(area->spacetype);
+    area_init_type_fallback(area, SPACE_VIEW3D);
+    BLI_assert(area->type != nullptr);
   }
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
@@ -2009,11 +2084,9 @@ static void area_offscreen_init(ScrArea *area)
 {
   area->flag |= AREA_FLAG_OFFSCREEN;
   area->type = BKE_spacetype_from_id(area->spacetype);
-
-  if (area->type == nullptr) {
-    area->spacetype = SPACE_VIEW3D;
-    area->type = BKE_spacetype_from_id(area->spacetype);
-  }
+  /* Off screen areas are only ever created at run-time,
+   * so there is no reason for the type to be unknown. */
+  BLI_assert(area->type != nullptr);
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     region->type = BKE_regiontype_from_id_or_first(area->type, region->regiontype);
@@ -2673,12 +2746,9 @@ static ThemeColorID region_background_color_id(const bContext *C, const ARegion 
   }
 }
 
-static void region_clear_color(const bContext *C, const ARegion *region, ThemeColorID colorid)
+void ED_region_clear(const bContext *C, const ARegion *region, const int /*ThemeColorID*/ colorid)
 {
-  if (region->alignment == RGN_ALIGN_FLOAT) {
-    /* handle our own drawing. */
-  }
-  else if (region->overlap) {
+  if (region->overlap) {
     /* view should be in pixelspace */
     UI_view2d_view_restore(C);
 
@@ -3080,7 +3150,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       if ((region->sizex != size_dyn[0]) || (region->sizey != size_dyn[1])) {
         region->sizex = size_dyn[0];
         region->sizey = size_dyn[1];
-        area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+        ED_area_tag_region_size_update(area, region);
       }
       y = fabsf(region->sizey * UI_SCALE_FAC - 1);
     }
@@ -3123,7 +3193,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   if (region->alignment != RGN_ALIGN_FLOAT) {
-    region_clear_color(
+    ED_region_clear(
         C, region, (region->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
   }
 
@@ -3401,7 +3471,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
       ScrArea *area = CTX_wm_area(C);
 
       region->sizex = new_sizex;
-      area->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+      ED_area_tag_region_size_update(area, region);
     }
 
     UI_block_end(C, block);
@@ -3425,7 +3495,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
 void ED_region_header_draw(const bContext *C, ARegion *region)
 {
   /* clear */
-  region_clear_color(C, region, region_background_color_id(C, region));
+  ED_region_clear(C, region, region_background_color_id(C, region));
 
   UI_view2d_view_ortho(&region->v2d);
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "stdcycles.h"
 
@@ -33,11 +34,17 @@ shader node_normal_map(float Strength = 1.0,
     if (getattribute(attr_name, tangent) && getattribute(attr_sign_name, tangent_sign) &&
         (!is_smooth || getattribute("geom:normal_map_normal", ninterp)))
     {
-      // apply normal map
+      /* apply normal map */
       vector B = tangent_sign * cross(ninterp, tangent);
+
+      /* apply strength */
+      mcolor[0] *= Strength;
+      mcolor[1] *= Strength;
+      mcolor[2] = mix(1.0, mcolor[2], clamp(Strength, 0.0, 1.0));
+
       Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * ninterp);
 
-      // transform to world space
+      /* transform to world space */
       Normal = normalize(transform("object", "world", Normal));
     }
     else {
@@ -70,6 +77,6 @@ shader node_normal_map(float Strength = 1.0,
     Normal = -Normal;
   }
 
-  if (Strength != 1.0)
+  if (Strength != 1.0 && space != "tangent")
     Normal = normalize(N + (Normal - N) * max(Strength, 0.0));
 }

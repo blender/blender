@@ -6,8 +6,8 @@
  * \ingroup RNA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_action_types.h"
 #include "DNA_brush_types.h"
@@ -24,7 +24,9 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -35,19 +37,19 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_object_deform.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
-#include "ED_mesh.h"
+#include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.hh */
+#include "ED_mesh.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -312,8 +314,6 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "BLI_math.h"
-
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
@@ -322,7 +322,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DNA_node_types.h"
 
 #  include "BKE_armature.h"
-#  include "BKE_brush.h"
+#  include "BKE_brush.hh"
 #  include "BKE_constraint.h"
 #  include "BKE_context.h"
 #  include "BKE_curve.h"
@@ -333,8 +333,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_key.h"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.h"
-#  include "BKE_mesh.h"
-#  include "BKE_mesh_wrapper.h"
+#  include "BKE_mesh.hh"
+#  include "BKE_mesh_wrapper.hh"
 #  include "BKE_modifier.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
@@ -343,10 +343,10 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_curve.h"
-#  include "ED_lattice.h"
-#  include "ED_object.h"
-#  include "ED_particle.h"
+#  include "ED_curve.hh"
+#  include "ED_lattice.hh"
+#  include "ED_object.hh"
+#  include "ED_particle.hh"
 
 static void rna_Object_internal_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -361,7 +361,7 @@ static void rna_Object_internal_update_draw(Main * /*bmain*/, Scene * /*scene*/,
 
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  /* don't use compat so we get predictable rotation */
+  /* Don't use compatibility so we get predictable rotation. */
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   BKE_object_apply_mat4(ob, ob->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);
@@ -644,20 +644,18 @@ static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value, ReportList 
 }
 
 static bool rna_Object_parent_override_apply(Main *bmain,
-                                             PointerRNA *ptr_dst,
-                                             PointerRNA *ptr_src,
-                                             PointerRNA *ptr_storage,
-                                             PropertyRNA *prop_dst,
-                                             PropertyRNA *prop_src,
-                                             PropertyRNA * /*prop_storage*/,
-                                             const int len_dst,
-                                             const int len_src,
-                                             const int len_storage,
-                                             PointerRNA * /*ptr_item_dst*/,
-                                             PointerRNA * /*ptr_item_src*/,
-                                             PointerRNA * /*ptr_item_storage*/,
-                                             IDOverrideLibraryPropertyOperation *opop)
+                                             RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on object parent pointer");
@@ -697,20 +695,18 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 }
 
 static bool rna_Object_parent_type_override_apply(Main *bmain,
-                                                  PointerRNA *ptr_dst,
-                                                  PointerRNA *ptr_src,
-                                                  PointerRNA *ptr_storage,
-                                                  PropertyRNA *prop_dst,
-                                                  PropertyRNA *prop_src,
-                                                  PropertyRNA * /*prop_storage*/,
-                                                  const int len_dst,
-                                                  const int len_src,
-                                                  const int len_storage,
-                                                  PointerRNA * /*ptr_item_dst*/,
-                                                  PointerRNA * /*ptr_item_src*/,
-                                                  PointerRNA * /*ptr_item_storage*/,
-                                                  IDOverrideLibraryPropertyOperation *opop)
+                                                  RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on object parent pointer");
@@ -782,20 +778,18 @@ static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
 }
 
 static bool rna_Object_parent_bone_override_apply(Main *bmain,
-                                                  PointerRNA *ptr_dst,
-                                                  PointerRNA *ptr_src,
-                                                  PointerRNA *ptr_storage,
-                                                  PropertyRNA *prop_dst,
-                                                  PropertyRNA *prop_src,
-                                                  PropertyRNA * /*prop_storage*/,
-                                                  const int len_dst,
-                                                  const int len_src,
-                                                  const int len_storage,
-                                                  PointerRNA * /*ptr_item_dst*/,
-                                                  PointerRNA * /*ptr_item_src*/,
-                                                  PointerRNA * /*ptr_item_storage*/,
-                                                  IDOverrideLibraryPropertyOperation *opop)
+                                                  RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PointerRNA *ptr_storage = &rnaapply_ctx.ptr_storage;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  const int len_dst = rnaapply_ctx.len_src;
+  const int len_src = rnaapply_ctx.len_src;
+  const int len_storage = rnaapply_ctx.len_storage;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on object parent bone property");
@@ -1051,8 +1045,8 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr,
   if (ob->type == OB_MESH && ob->data) {
     me = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < me->ldata.totlayer; a++) {
-      layer = &me->ldata.layers[a];
+    for (a = 0; a < me->loop_data.totlayer; a++) {
+      layer = &me->loop_data.layers[a];
 
       if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);
@@ -1077,8 +1071,8 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
   if (ob->type == OB_MESH && ob->data) {
     me = static_cast<Mesh *>(ob->data);
 
-    for (a = 0; a < me->fdata.totlayer; a++) {
-      layer = &me->fdata.layers[a];
+    for (a = 0; a < me->fdata_legacy.totlayer; a++) {
+      layer = &me->fdata_legacy.layers[a];
 
       if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
         BLI_strncpy(result, value, result_maxncpy);
@@ -1221,7 +1215,7 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 
   /* use API Method for conversions... */
   BKE_rotMode_change_values(
-      ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, (short)value);
+      ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, short(value));
 
   /* finally, set the new rotation type */
   ob->rotmode = value;
@@ -1323,7 +1317,7 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 static int rna_MaterialSlot_index(const PointerRNA *ptr)
 {
   /* There is an offset, so that `ptr->data` is not null and unique across IDs. */
-  return (uintptr_t)ptr->data - (uintptr_t)ptr->owner_id;
+  return uintptr_t(ptr->data) - uintptr_t(ptr->owner_id);
 }
 
 static int rna_MaterialSlot_index_get(PointerRNA *ptr)
@@ -1496,7 +1490,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   RNA_pointer_create(id,
                      &RNA_MaterialSlot,
                      /* Add offset, so that `ptr->data` is not null and unique across IDs. */
-                     (void *)(iter->internal.count.item + (uintptr_t)id),
+                     (void *)(iter->internal.count.item + uintptr_t(id)),
                      &ptr);
   return ptr;
 }
@@ -1673,20 +1667,13 @@ static bConstraint *rna_Object_constraints_copy(Object *object, Main *bmain, Poi
 }
 
 bool rna_Object_constraints_override_apply(Main *bmain,
-                                           PointerRNA *ptr_dst,
-                                           PointerRNA *ptr_src,
-                                           PointerRNA * /*ptr_storage*/,
-                                           PropertyRNA *prop_dst,
-                                           PropertyRNA * /*prop_src*/,
-                                           PropertyRNA * /*prop_storage*/,
-                                           const int /*len_dst*/,
-                                           const int /*len_src*/,
-                                           const int /*len_storage*/,
-                                           PointerRNA * /*ptr_item_dst*/,
-                                           PointerRNA * /*ptr_item_src*/,
-                                           PointerRNA * /*ptr_item_storage*/,
-                                           IDOverrideLibraryPropertyOperation *opop)
+                                           RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
@@ -1802,20 +1789,13 @@ static void rna_Object_active_modifier_set(PointerRNA *ptr, PointerRNA value, Re
 }
 
 bool rna_Object_modifiers_override_apply(Main *bmain,
-                                         PointerRNA *ptr_dst,
-                                         PointerRNA *ptr_src,
-                                         PointerRNA * /*ptr_storage*/,
-                                         PropertyRNA *prop_dst,
-                                         PropertyRNA * /*prop_src*/,
-                                         PropertyRNA * /*prop_storage*/,
-                                         const int /*len_dst*/,
-                                         const int /*len_src*/,
-                                         const int /*len_storage*/,
-                                         PointerRNA * /*ptr_item_dst*/,
-                                         PointerRNA * /*ptr_item_src*/,
-                                         PointerRNA * /*ptr_item_storage*/,
-                                         IDOverrideLibraryPropertyOperation *opop)
+                                         RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
@@ -1918,21 +1898,14 @@ static void rna_Object_greasepencil_modifier_clear(Object *object, bContext *C)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
-bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
-                                                      PointerRNA *ptr_dst,
-                                                      PointerRNA *ptr_src,
-                                                      PointerRNA * /*ptr_storage*/,
-                                                      PropertyRNA *prop_dst,
-                                                      PropertyRNA * /*prop_src*/,
-                                                      PropertyRNA * /*prop_storage*/,
-                                                      const int /*len_dst*/,
-                                                      const int /*len_src*/,
-                                                      const int /*len_storage*/,
-                                                      PointerRNA * /*ptr_item_dst*/,
-                                                      PointerRNA * /*ptr_item_src*/,
-                                                      PointerRNA * /*ptr_item_storage*/,
-                                                      IDOverrideLibraryPropertyOperation *opop)
+bool rna_Object_greasepencil_modifiers_override_apply(
+    Main *bmain, RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
@@ -2092,8 +2065,8 @@ static void rna_Object_vgroup_clear(Object *ob, Main *bmain, ReportList *reports
 static void rna_VertexGroup_vertex_add(ID *id,
                                        bDeformGroup *def,
                                        ReportList *reports,
-                                       int index_len,
-                                       int *index,
+                                       const int *index,
+                                       int index_num,
                                        float weight,
                                        int assignmode)
 {
@@ -2105,7 +2078,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
     return;
   }
 
-  while (index_len--) {
+  while (index_num--) {
     /* XXX: not efficient calling within loop. */
     ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
   }
@@ -2115,7 +2088,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
 }
 
 static void rna_VertexGroup_vertex_remove(
-    ID *id, bDeformGroup *dg, ReportList *reports, int index_len, int *index)
+    ID *id, bDeformGroup *dg, ReportList *reports, const int *index, int index_num)
 {
   Object *ob = reinterpret_cast<Object *>(id);
 
@@ -2125,7 +2098,7 @@ static void rna_VertexGroup_vertex_remove(
     return;
   }
 
-  while (index_len--) {
+  while (index_num--) {
     ED_vgroup_vert_remove(ob, dg, *index++);
   }
 
@@ -2570,7 +2543,8 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active EditBone", "Armatures active edit bone");
   // RNA_def_property_update(prop, 0, "rna_Armature_act_editbone_update");
-  RNA_def_property_pointer_funcs(prop, nullptr, "rna_Armature_act_edit_bone_set", nullptr, nullptr);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_Armature_act_edit_bone_set", nullptr, nullptr);
 
   /* TODO: redraw. */
   // RNA_def_property_collection_active(prop, prop_act);
@@ -3418,8 +3392,16 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "Constraints", "Constraints affecting the transformation of the object");
   RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Object_constraints_override_apply");
 #  if 0
-  RNA_def_property_collection_funcs(
-      prop, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, "constraints__add", "constraints__remove");
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "constraints__add",
+                                    "constraints__remove");
 #  endif
   rna_def_object_constraints(brna, prop);
 

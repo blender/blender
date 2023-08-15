@@ -6,23 +6,23 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_unit.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "UI_interface.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
@@ -71,7 +71,7 @@ static void applySeqSlideValue(TransInfo *t, const float val[2])
   }
 }
 
-static void applySeqSlide(TransInfo *t, const int[2] /*mval*/)
+static void applySeqSlide(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   float values_final[3] = {0.0f};
@@ -103,7 +103,7 @@ static void applySeqSlide(TransInfo *t, const int[2] /*mval*/)
   headerSeqSlide(t, t->values_final, str);
   applySeqSlideValue(t, t->values_final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

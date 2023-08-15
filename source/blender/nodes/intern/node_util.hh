@@ -9,11 +9,12 @@
 #pragma once
 
 struct bNode;
+struct bNodeInstanceHash;
 struct bNodeTree;
 
 /* data for initializing node execution */
 struct bNodeExecContext {
-  struct bNodeInstanceHash *previews;
+  bNodeInstanceHash *previews;
 };
 
 struct bNodeExecData {

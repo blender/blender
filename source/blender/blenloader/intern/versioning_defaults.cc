@@ -16,13 +16,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_defaults.h"
 #include "DNA_camera_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_defaults.h"
@@ -42,7 +42,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_attribute.hh"
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.h"
@@ -57,7 +57,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
@@ -67,7 +67,7 @@
 
 #include "versioning_common.h"
 
-/* Make preferences read-only, use versioning_userdef.c. */
+/* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))
 
 static bool blo_is_builtin_template(const char *app_template)
@@ -350,12 +350,12 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   if (ts->sculpt) {
-    *ts->sculpt = *DNA_struct_default_get(Sculpt);
+    ts->sculpt->flags = static_cast<const Sculpt *>(DNA_struct_default_get(Sculpt))->flags;
   }
 
   /* Correct default startup UVs. */
   Mesh *me = static_cast<Mesh *>(BLI_findstring(&bmain->meshes, "Cube", offsetof(ID, name) + 2));
-  if (me && (me->totloop == 24) && CustomData_has_layer(&me->ldata, CD_PROP_FLOAT2)) {
+  if (me && (me->totloop == 24) && CustomData_has_layer(&me->loop_data, CD_PROP_FLOAT2)) {
     const float uv_values[24][2] = {
         {0.625, 0.50}, {0.875, 0.50}, {0.875, 0.75}, {0.625, 0.75}, {0.375, 0.75}, {0.625, 0.75},
         {0.625, 1.00}, {0.375, 1.00}, {0.375, 0.00}, {0.625, 0.00}, {0.625, 0.25}, {0.375, 0.25},
@@ -363,7 +363,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
         {0.625, 0.75}, {0.375, 0.75}, {0.375, 0.25}, {0.625, 0.25}, {0.625, 0.50}, {0.375, 0.50},
     };
     float(*mloopuv)[2] = static_cast<float(*)[2]>(
-        CustomData_get_layer_for_write(&me->ldata, CD_PROP_FLOAT2, me->totloop));
+        CustomData_get_layer_for_write(&me->loop_data, CD_PROP_FLOAT2, me->totloop));
     memcpy(mloopuv, uv_values, sizeof(float[2]) * me->totloop);
   }
 
@@ -578,8 +578,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     }
     else {
       /* Remove sculpt-mask data in default mesh objects for all non-sculpt templates. */
-      CustomData_free_layers(&mesh->vdata, CD_PAINT_MASK, mesh->totvert);
-      CustomData_free_layers(&mesh->ldata, CD_GRID_PAINT_MASK, mesh->totloop);
+      CustomData_free_layers(&mesh->vert_data, CD_PAINT_MASK, mesh->totvert);
+      CustomData_free_layers(&mesh->loop_data, CD_GRID_PAINT_MASK, mesh->totloop);
     }
     mesh->attributes_for_write().remove(".sculpt_face_set");
   }

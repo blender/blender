@@ -743,7 +743,11 @@ bool OptiXDevice::load_osl_kernels()
             group.get(), "ptx_compiled_version", OSL::TypeDesc::PTR, &osl_ptx);
 
         int groupdata_size = 0;
-        osl_globals.ss->getattribute(group.get(), "groupdata_size", groupdata_size);
+        osl_globals.ss->getattribute(group.get(), "llvm_groupdata_size", groupdata_size);
+        if (groupdata_size == 0) {
+          // Old attribute name from our patched OSL version as fallback.
+          osl_globals.ss->getattribute(group.get(), "groupdata_size", groupdata_size);
+        }
         if (groupdata_size > 2048) { /* See 'group_data' array in kernel/osl/osl.h */
           set_error(
               string_printf("Requested OSL group data size (%d) is greater than the maximum "

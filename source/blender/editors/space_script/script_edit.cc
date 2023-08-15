@@ -6,8 +6,8 @@
  * \ingroup spscript
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -17,14 +17,14 @@
 
 #include "BLT_translation.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 #include "wm_event_system.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "script_intern.h" /* own include */
 
@@ -72,12 +72,8 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 #ifdef WITH_PYTHON
 static bool script_test_modal_operators(bContext *C)
 {
-  wmWindowManager *wm;
-  wmWindow *win;
-
-  wm = CTX_wm_manager(C);
-
-  for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
+  wmWindowManager *wm = CTX_wm_manager(C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;

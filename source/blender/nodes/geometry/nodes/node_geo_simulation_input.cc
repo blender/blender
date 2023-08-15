@@ -7,8 +7,8 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
@@ -59,15 +59,20 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
   {
     const GeoNodesLFUserData &user_data = *static_cast<const GeoNodesLFUserData *>(
         context.user_data);
-    const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
-    if (modifier_data.current_simulation_state == nullptr) {
+    if (!user_data.modifier_data) {
       params.set_default_remaining_outputs();
       return;
     }
+    const GeoNodesModifierData &modifier_data = *user_data.modifier_data;
 
     if (!params.output_was_set(0)) {
       const float delta_time = modifier_data.simulation_time_delta;
       params.set_output(0, fn::ValueOrField<float>(delta_time));
+    }
+
+    if (modifier_data.current_simulation_state == nullptr) {
+      this->pass_through(params, user_data);
+      return;
     }
 
     const std::optional<bke::sim::SimulationZoneID> zone_id = get_simulation_zone_id(
@@ -94,22 +99,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       }
     }
 
-    /* When there is no previous state already, create the initial state. */
-    Array<void *> input_values(simulation_items_.size(), nullptr);
-    for (const int i : simulation_items_.index_range()) {
-      input_values[i] = params.try_get_input_data_ptr_or_request(i);
-    }
-    if (input_values.as_span().contains(nullptr)) {
-      /* Wait until all inputs are available. */
-      return;
-    }
-
-    /* Instead of outputting the initial values directly, convert them to a simulation state and
-     * then back. This ensures that the first frame behaves consistently with all other frames
-     * which are necessarily stored in the simulation cache. */
-    bke::sim::SimulationZoneState initial_zone_state;
-    move_values_to_simulation_state(simulation_items_, input_values, initial_zone_state);
-    this->output_simulation_state_move(params, user_data, initial_zone_state);
+    this->pass_through(params, user_data);
   }
 
   void output_simulation_state_copy(lf::Params &params,
@@ -148,6 +138,24 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
     }
+  }
+
+  void pass_through(lf::Params &params, const GeoNodesLFUserData &user_data) const
+  {
+    Array<void *> input_values(inputs_.size());
+    for (const int i : inputs_.index_range()) {
+      input_values[i] = params.try_get_input_data_ptr_or_request(i);
+    }
+    if (input_values.as_span().contains(nullptr)) {
+      /* Wait for inputs to be computed. */
+      return;
+    }
+    /* Instead of outputting the initial values directly, convert them to a simulation state and
+     * then back. This ensures that some geometry processing happens on the data consistently (e.g.
+     * removing anonymous attributes). */
+    bke::sim::SimulationZoneState state;
+    move_values_to_simulation_state(simulation_items_, input_values, state);
+    this->output_simulation_state_move(params, user_data, state);
   }
 };
 
@@ -240,17 +248,13 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
   return true;
 }
 
-}  // namespace blender::nodes::node_geo_simulation_input_cc
-
-void register_node_type_geo_simulation_input()
+static void node_register()
 {
-  namespace file_ns = blender::nodes::node_geo_simulation_input_cc;
-
   static bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SIMULATION_INPUT, "Simulation Input", NODE_CLASS_INTERFACE);
-  ntype.initfunc = file_ns::node_init;
-  ntype.declare_dynamic = file_ns::node_declare_dynamic;
-  ntype.insert_link = file_ns::node_insert_link;
+  ntype.initfunc = node_init;
+  ntype.declare_dynamic = node_declare_dynamic;
+  ntype.insert_link = node_insert_link;
   ntype.gather_add_node_search_ops = nullptr;
   ntype.gather_link_search_ops = nullptr;
   node_type_storage(&ntype,
@@ -259,6 +263,9 @@ void register_node_type_geo_simulation_input()
                     node_copy_standard_storage);
   nodeRegisterType(&ntype);
 }
+NOD_REGISTER_NODE(node_register)
+
+}  // namespace blender::nodes::node_geo_simulation_input_cc
 
 bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
                                                        const bNode *simulation_input_node)

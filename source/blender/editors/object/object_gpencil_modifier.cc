@@ -6,10 +6,10 @@
  * \ingroup edobj
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -37,20 +37,20 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_object.h"
-#include "ED_screen.h"
+#include "ED_object.hh"
+#include "ED_screen.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "object_intern.h"
 
@@ -232,7 +232,7 @@ static bool gpencil_modifier_apply_obdata(
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       GpencilModifierType(md->type));
 
-  if (mti->isDisabled && mti->isDisabled(md, 0)) {
+  if (mti->is_disabled && mti->is_disabled(md, false)) {
     BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
     return false;
   }
@@ -241,11 +241,11 @@ static bool gpencil_modifier_apply_obdata(
     if (ELEM(nullptr, ob, ob->data)) {
       return false;
     }
-    if (mti->bakeModifier == nullptr) {
+    if (mti->bake_modifier == nullptr) {
       BKE_report(reports, RPT_ERROR, "Not implemented");
       return false;
     }
-    mti->bakeModifier(bmain, depsgraph, md, ob);
+    mti->bake_modifier(bmain, depsgraph, md, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else {

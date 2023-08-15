@@ -12,11 +12,11 @@
 
 #include "DNA_object_types.h"
 
-#include "ED_uvedit.h"
+#include "ED_uvedit.hh"
 
 #include "extract_mesh.hh"
 
-#include "draw_cache_impl.h"
+#include "draw_cache_impl.hh"
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist)
 {
@@ -32,7 +32,7 @@ eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
 {
   eMRIterType type = (eMRIterType)0;
   SET_FLAG_FROM_TEST(type, (ext->iter_looptri_bm || ext->iter_looptri_mesh), MR_ITER_LOOPTRI);
-  SET_FLAG_FROM_TEST(type, (ext->iter_poly_bm || ext->iter_poly_mesh), MR_ITER_POLY);
+  SET_FLAG_FROM_TEST(type, (ext->iter_face_bm || ext->iter_face_mesh), MR_ITER_POLY);
   SET_FLAG_FROM_TEST(
       type, (ext->iter_loose_edge_bm || ext->iter_loose_edge_mesh), MR_ITER_LOOSE_EDGE);
   SET_FLAG_FROM_TEST(
@@ -92,29 +92,29 @@ const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
 /** \name Extract Edit Flag Utils
  * \{ */
 
-void mesh_render_data_face_flag(const MeshRenderData *mr,
+void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
                                 const BMUVOffsets offsets,
                                 EditLoopData *eattr)
 {
-  if (efa == mr->efa_act) {
+  if (efa == mr.efa_act) {
     eattr->v_flag |= VFLAG_FACE_ACTIVE;
   }
   if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
     eattr->v_flag |= VFLAG_FACE_SELECTED;
   }
 
-  if (efa == mr->efa_act_uv) {
+  if (efa == mr.efa_act_uv) {
     eattr->v_flag |= VFLAG_FACE_UV_ACTIVE;
   }
-  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr->toolsettings, (BMFace *)efa, offsets)) {
+  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, (BMFace *)efa, offsets)) {
     eattr->v_flag |= VFLAG_FACE_UV_SELECT;
   }
 
 #ifdef WITH_FREESTYLE
-  if (mr->freestyle_face_ofs != -1) {
-    const FreestyleFace *ffa = (const FreestyleFace *)BM_ELEM_CD_GET_VOID_P(
-        efa, mr->freestyle_face_ofs);
+  if (mr.freestyle_face_ofs != -1) {
+    const FreestyleFace *ffa = (const FreestyleFace *)BM_ELEM_CD_GET_VOID_P(efa,
+                                                                            mr.freestyle_face_ofs);
     if (ffa->flag & FREESTYLE_FACE_MARK) {
       eattr->v_flag |= VFLAG_FACE_FREESTYLE;
     }
@@ -122,7 +122,7 @@ void mesh_render_data_face_flag(const MeshRenderData *mr,
 #endif
 }
 
-void mesh_render_data_loop_flag(const MeshRenderData *mr,
+void mesh_render_data_loop_flag(const MeshRenderData &mr,
                                 BMLoop *l,
                                 const BMUVOffsets offsets,
                                 EditLoopData *eattr)
@@ -133,12 +133,12 @@ void mesh_render_data_loop_flag(const MeshRenderData *mr,
   if (BM_ELEM_CD_GET_BOOL(l, offsets.pin)) {
     eattr->v_flag |= VFLAG_VERT_UV_PINNED;
   }
-  if (uvedit_uv_select_test_ex(mr->toolsettings, l, offsets)) {
+  if (uvedit_uv_select_test_ex(mr.toolsettings, l, offsets)) {
     eattr->v_flag |= VFLAG_VERT_UV_SELECT;
   }
 }
 
-void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
+void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      BMLoop *l,
                                      const BMUVOffsets offsets,
                                      EditLoopData *eattr)
@@ -146,7 +146,7 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData *mr,
   if (offsets.uv == -1) {
     return;
   }
-  if (uvedit_edge_select_test_ex(mr->toolsettings, l, offsets)) {
+  if (uvedit_edge_select_test_ex(mr.toolsettings, l, offsets)) {
     eattr->v_flag |= VFLAG_EDGE_UV_SELECT;
     eattr->v_flag |= VFLAG_VERT_UV_SELECT;
   }

@@ -41,6 +41,11 @@ class MemLeakPrinter {
            double(mem_in_use) / 1024 / 1024);
     MEM_printmemlist();
 
+    /* In guarded implementation, the fact that all allocated memory blocks are stored in the
+     * static `membase` listbase is enough for LSAN to not detect them as leaks. Clearing it solves
+     * that issue. */
+    mem_clearmemlist();
+
     if (fail_on_memleak) {
       /* There are many other ways to change the exit code to failure here:
        * - Make the destructor `noexcept(false)` and throw an exception.

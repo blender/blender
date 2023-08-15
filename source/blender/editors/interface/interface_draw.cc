@@ -15,7 +15,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_screen_types.h"
 
-#include "BLI_math.h"
+#include "BLI_math_rotation.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -33,7 +33,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-#include "BIF_glutil.h"
+#include "BIF_glutil.hh"
 
 #include "BLF_api.h"
 
@@ -46,7 +46,7 @@
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 /* own include */
 #include "interface_intern.hh"

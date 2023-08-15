@@ -8,14 +8,13 @@
 #include "BKE_context.h"
 #include "BKE_volume.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "UI_interface.h"
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 #include "BLT_translation.h"
 
@@ -41,7 +40,7 @@ class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
                               StringRef label,
                               BIFIconID icon);
 
-  void on_activate() override;
+  void on_activate(bContext &C) override;
 
   void build_row(uiLayout &row) override;
 
@@ -56,7 +55,6 @@ class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
 
 class GeometryDataSetTreeView : public ui::AbstractTreeView {
   bke::GeometrySet geometry_set_;
-  const bContext &C_;
   SpaceSpreadsheet &sspreadsheet_;
   bScreen &screen_;
 
@@ -65,7 +63,6 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
  public:
   GeometryDataSetTreeView(bke::GeometrySet geometry_set, const bContext &C)
       : geometry_set_(std::move(geometry_set)),
-        C_(C),
         sspreadsheet_(*CTX_wm_space_spreadsheet(&C)),
         screen_(*CTX_wm_screen(&C))
   {
@@ -129,10 +126,9 @@ GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(
   label_ = label;
 }
 
-void GeometryDataSetTreeViewItem::on_activate()
+void GeometryDataSetTreeViewItem::on_activate(bContext &C)
 {
   GeometryDataSetTreeView &tree_view = this->get_tree();
-  bContext &C = const_cast<bContext &>(tree_view.C_);
   SpaceSpreadsheet &sspreadsheet = tree_view.sspreadsheet_;
   tree_view.sspreadsheet_.geometry_component_type = uint8_t(component_type_);
   if (domain_) {
@@ -191,7 +187,7 @@ std::optional<int> GeometryDataSetTreeViewItem::count() const
 
   /* Special case for volumes since there is no grid domain. */
   if (component_type_ == bke::GeometryComponent::Type::Volume) {
-    if (const Volume *volume = geometry.get_volume_for_read()) {
+    if (const Volume *volume = geometry.get_volume()) {
       return BKE_volume_num_grids(volume);
     }
     return 0;
@@ -201,7 +197,7 @@ std::optional<int> GeometryDataSetTreeViewItem::count() const
     return std::nullopt;
   }
 
-  if (const bke::GeometryComponent *component = geometry.get_component_for_read(component_type_)) {
+  if (const bke::GeometryComponent *component = geometry.get_component(component_type_)) {
     return component->attribute_domain_size(*domain_);
   }
 

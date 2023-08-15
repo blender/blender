@@ -10,10 +10,10 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "interface_intern.hh"
 

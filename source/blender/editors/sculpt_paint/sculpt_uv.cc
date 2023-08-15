@@ -11,6 +11,8 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -18,32 +20,32 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_brush.h"
+#include "BKE_brush.hh"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_image.h"
-#include "BKE_mesh_mapping.h"
-#include "BKE_paint.h"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_paint.hh"
 
 #include "DEG_depsgraph.h"
 
-#include "ED_image.h"
-#include "ED_mesh.h"
-#include "ED_screen.h"
-#include "ED_uvedit.h"
+#include "ED_image.hh"
+#include "ED_mesh.hh"
+#include "ED_screen.hh"
+#include "ED_uvedit.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "paint_intern.hh"
 #include "uvedit_intern.h"
 
-#include "UI_view2d.h"
+#include "UI_view2d.hh"
 
 /* When set, the UV element is on the boundary of the graph.
  * i.e. Instead of a 2-dimensional laplace operator, use a 1-dimensional version.
@@ -1006,5 +1008,9 @@ void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
+  PropertyRNA *prop;
+
+  prop = RNA_def_enum(
+      ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
 }

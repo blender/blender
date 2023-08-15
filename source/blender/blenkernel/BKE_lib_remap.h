@@ -21,6 +21,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,8 +89,8 @@ enum {
   ID_REMAP_FORCE_USER_REFCOUNT = 1 << 17,
   /**
    * Do NOT handle user count for IDs (used in some cases when dealing with IDs from different
-   * BMains, if usercount will be recomputed anyway afterwards, like e.g. in memfile reading during
-   * undo step decoding).
+   * BMains, if user-count will be recomputed anyway afterwards, like e.g.
+   * in memfile reading during undo step decoding).
    */
   ID_REMAP_SKIP_USER_REFCOUNT = 1 << 18,
   /**
@@ -226,7 +227,7 @@ typedef enum IDRemapperApplyOptions {
    * NOTE: Currently unused by main remapping code, since user-count is handled by
    * `foreach_libblock_remap_callback_apply` there, depending on whether the remapped pointer does
    * use it or not. Need for rare cases in UI handling though (see e.g. `image_id_remap` in
-   * `space_image.c`).
+   * `space_image.cc`).
    */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
 
@@ -246,6 +247,7 @@ typedef enum IDRemapperApplyOptions {
 
   ID_REMAP_APPLY_DEFAULT = 0,
 } IDRemapperApplyOptions;
+ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
 typedef void (*IDRemapperIterFunction)(struct ID *old_id, struct ID *new_id, void *user_data);
 

@@ -6,9 +6,9 @@
  * \ingroup bke
  */
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv.hh"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "PIL_time.h"
 

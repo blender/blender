@@ -62,18 +62,13 @@ def draw_root_assets(layout):
 
 def add_simulation_zone(layout, label):
     """Add simulation zone to a menu."""
-    target_bl_rna = bpy.types.Node.bl_rna_get_subclass("GeometryNodeSimulationOutput")
-    if target_bl_rna:
-        translation_context = target_bl_rna.translation_context
-    else:
-        translation_context = i18n_contexts.default
-    props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=translation_context)
+    props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=i18n_contexts.default)
     props.use_transform = True
     return props
 
 
 def add_repeat_zone(layout, label):
-    props = layout.operator("node.add_repeat_zone", text=label)
+    props = layout.operator("node.add_repeat_zone", text=label, text_ctxt=i18n_contexts.default)
     props.use_transform = True
     return props
 

@@ -11,18 +11,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
-#include "ED_clip.h"
-#include "ED_image.h"
-#include "ED_keyframing.h"
-#include "ED_mask.h"
+#include "ED_clip.hh"
+#include "ED_image.hh"
+#include "ED_keyframing.hh"
+#include "ED_mask.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -250,7 +251,6 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
-  MaskLayer *masklay;
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
   TransDataMasking *tdm = nullptr;
@@ -267,16 +267,12 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   }
 
   /* count */
-  for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-       masklay = masklay->next) {
-    MaskSpline *spline;
-
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    for (spline = static_cast<MaskSpline *>(masklay->splines.first); spline; spline = spline->next)
-    {
+    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       int i;
 
       for (i = 0; i < spline->tot_point; i++) {
@@ -328,16 +324,12 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   tc->custom.type.use_free = true;
 
   /* create data */
-  for (masklay = static_cast<MaskLayer *>(mask->masklayers.first); masklay;
-       masklay = masklay->next) {
-    MaskSpline *spline;
-
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
     }
 
-    for (spline = static_cast<MaskSpline *>(masklay->splines.first); spline; spline = spline->next)
-    {
+    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       int i;
 
       for (i = 0; i < spline->tot_point; i++) {
@@ -475,7 +467,7 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_Mask = {
     /*flags*/ (T_POINTS | T_2D_EDIT),
-    /*createTransData*/ createTransMaskingData,
-    /*recalcData*/ recalcData_mask_common,
+    /*create_trans_data*/ createTransMaskingData,
+    /*recalc_data*/ recalcData_mask_common,
     /*special_aftertrans_update*/ special_aftertrans_update__mask,
 };

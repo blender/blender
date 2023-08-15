@@ -6,7 +6,8 @@
  * \ingroup spview3d
  */
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -19,17 +20,17 @@
 #include "DNA_light_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_gizmo_library.h"
-#include "ED_screen.h"
+#include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
-#include "UI_resources.h"
+#include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
 
@@ -52,7 +53,7 @@ static void gizmo_empty_image_prop_matrix_get(const wmGizmo *gz,
 {
   float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
-  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+  EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
       gz_prop->custom_func.user_data);
   const Object *ob = igzgroup->state.ob;
 
@@ -75,7 +76,7 @@ static void gizmo_empty_image_prop_matrix_set(const wmGizmo *gz,
 {
   const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
-  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+  EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
       gz_prop->custom_func.user_data);
   Object *ob = igzgroup->state.ob;
 
@@ -120,7 +121,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType * /
 
 static void WIDGETGROUP_empty_image_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+  EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
       MEM_mallocN(sizeof(EmptyImageWidgetGroup), __func__));
   igzgroup->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
   wmGizmo *gz = igzgroup->gizmo;
@@ -136,8 +137,7 @@ static void WIDGETGROUP_empty_image_setup(const bContext * /*C*/, wmGizmoGroup *
 
 static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
-      gzgroup->customdata);
+  EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(gzgroup->customdata);
   wmGizmo *gz = igzgroup->gizmo;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

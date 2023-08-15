@@ -169,7 +169,7 @@ void VectorBlurOperation::generate_vector_blur(float *data,
 /* -------------------------------------------------------------------- */
 /** \name Spans
  *
- * Duplicated logic from `zbuf.c`.
+ * Duplicated logic from `zbuf.cc`.
  * \{ */
 
 /** Span fill in method, is also used to localize data for Z-buffering. */
@@ -336,7 +336,7 @@ struct DrawBufPixel {
 };
 
 /**
- * \note Near duplicate of `zspan_scanconvert` in `zbuf.c` with some minor adjustments.
+ * \note Near duplicate of `zspan_scanconvert` in `zbuf.cc` with some minor adjustments.
  */
 static void zbuf_fill_in_rgba(
     ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)

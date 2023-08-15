@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../../blenfont
+  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../bmesh
@@ -50,7 +51,6 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

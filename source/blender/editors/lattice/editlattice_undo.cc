@@ -6,9 +6,9 @@
  * \ingroup edlattice
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -32,13 +32,13 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_lattice.h"
-#include "ED_object.h"
-#include "ED_undo.h"
-#include "ED_util.h"
+#include "ED_lattice.hh"
+#include "ED_object.hh"
+#include "ED_undo.hh"
+#include "ED_util.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "lattice_intern.h"
 

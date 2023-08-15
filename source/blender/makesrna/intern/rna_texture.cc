@@ -6,9 +6,9 @@
  * \ingroup RNA
  */
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cstdio>
+#include <cstdlib>
 
 #include "DNA_brush_types.h"
 #include "DNA_light_types.h"
@@ -24,17 +24,17 @@
 
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 
 #include "BLT_translation.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem texture_filter_items[] = {
@@ -130,7 +130,7 @@ static const EnumPropertyItem blend_type_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 #  include "BKE_colorband.h"
 #  include "BKE_context.h"
@@ -141,8 +141,8 @@ static const EnumPropertyItem blend_type_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_node.h"
-#  include "ED_render.h"
+#  include "ED_node.hh"
+#  include "ED_render.hh"
 
 static StructRNA *rna_Texture_refine(PointerRNA *ptr)
 {

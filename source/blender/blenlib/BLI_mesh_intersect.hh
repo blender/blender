@@ -239,7 +239,6 @@ class IMeshArena : NonCopyable, NonMovable {
  * internal structures for indexing exactly the set of needed Verts,
  * and also going from a Vert pointer to the index in that system.
  */
-
 class IMesh {
   Array<Face *> face_;                   /* Not `const` so can lazily populate planes. */
   Array<const Vert *> vert_;             /* Only valid if vert_populated_. */

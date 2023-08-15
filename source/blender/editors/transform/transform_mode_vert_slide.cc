@@ -6,11 +6,11 @@
  * \ingroup edtransform
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -21,15 +21,15 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BLT_translation.h"
 
@@ -38,6 +38,8 @@
 #include "transform_convert.hh"
 #include "transform_mode.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Vert Slide)
@@ -113,12 +115,11 @@ static void calcVertSlideCustomPoints(TransInfo *t)
 /**
  * Run once when initializing vert slide to find the reference edge
  */
-static void calcVertSlideMouseActiveVert(TransInfo *t, const int mval[2])
+static void calcVertSlideMouseActiveVert(TransInfo *t, const float2 &mval_fl)
 {
   /* Active object may have no selected vertices. */
   VertSlideData *sld = static_cast<VertSlideData *>(
       TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data);
-  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
   TransDataVertSlideVert *sv;
 
   /* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
@@ -142,12 +143,10 @@ static void calcVertSlideMouseActiveVert(TransInfo *t, const int mval[2])
 /**
  * Run while moving the mouse to slide along the edge matching the mouse direction
  */
-static void calcVertSlideMouseActiveEdges(TransInfo *t, const int mval[2])
+static void calcVertSlideMouseActiveEdges(TransInfo *t, const float2 &mval_fl)
 {
   VertSlideData *sld = static_cast<VertSlideData *>(
       TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data);
-  const float imval_fl[2] = {float(t->mouse.imval[0]), float(t->mouse.imval[1])};
-  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   float dir[3];
   TransDataVertSlideVert *sv;
@@ -158,7 +157,7 @@ static void calcVertSlideMouseActiveEdges(TransInfo *t, const int mval[2])
    * However this skews the outcome with non-uniform-scale. */
 
   /* First get the direction of the original mouse position. */
-  sub_v2_v2v2(dir, imval_fl, mval_fl);
+  sub_v2_v2v2(dir, t->mouse.imval, mval_fl);
   ED_view3d_win_to_delta(t->region, dir, t->zfac, dir);
   normalize_v3(dir);
 
@@ -342,7 +341,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
         /* don't recalculate the best edge */
         const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
         if (is_clamp) {
-          calcVertSlideMouseActiveEdges(t, event->mval);
+          calcVertSlideMouseActiveEdges(t, float2(event->mval));
         }
         calcVertSlideCustomPoints(t);
         break;
@@ -422,14 +421,12 @@ static void drawVertSlide(TransInfo *t)
       immUnbindProgram();
 
       /* direction from active vertex! */
-      if ((t->mval[0] != t->mouse.imval[0]) || (t->mval[1] != t->mouse.imval[1])) {
+      if (!compare_v2v2(t->mval, t->mouse.imval, FLT_EPSILON)) {
         float zfac;
-        float xy_delta[2];
         float co_orig_3d[3];
         float co_dest_3d[3];
 
-        xy_delta[0] = t->mval[0] - t->mouse.imval[0];
-        xy_delta[1] = t->mval[1] - t->mouse.imval[1];
+        float2 xy_delta = t->mval - t->mouse.imval;
 
         mul_v3_m4v3(co_orig_3d,
                     TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world,
@@ -561,7 +558,7 @@ static void vert_slide_snap_apply(TransInfo *t, float *value)
   *value = line_point_factor_v3(snap_point, co_orig_3d, co_curr_3d);
 }
 
-static void applyVertSlide(TransInfo *t, const int[2] /*mval*/)
+static void applyVertSlide(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
@@ -611,7 +608,7 @@ static void applyVertSlide(TransInfo *t, const int[2] /*mval*/)
   /* do stuff here */
   doVertSlide(t, final);
 
-  recalcData(t);
+  recalc_data(t);
 
   ED_area_status_text(t->area, str);
 }

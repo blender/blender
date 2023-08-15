@@ -6,10 +6,10 @@
  * \ingroup edtransform
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -21,19 +21,20 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 
-#include "ED_view3d.h"
+#include "ED_view3d.hh"
 
 #include "BLT_translation.h"
 
-#include "UI_resources.h"
-#include "UI_view2d.h"
+#include "UI_resources.hh"
+#include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_gizmo.hh"
@@ -1071,7 +1072,8 @@ static void setNearestAxis2d(TransInfo *t)
   t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 
   /* no correction needed... just use whichever one is lower */
-  if (abs(t->mval[0] - t->mouse.imval[0]) < abs(t->mval[1] - t->mouse.imval[1])) {
+  blender::float2 dvec = t->mval - t->mouse.imval;
+  if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
     STRNCPY(t->con.text, TIP_(" along Y axis"));
   }
@@ -1092,8 +1094,8 @@ static void setNearestAxis3d(TransInfo *t)
   int i;
 
   /* calculate mouse movement */
-  mvec[0] = float(t->mval[0] - t->mouse.imval[0]);
-  mvec[1] = float(t->mval[1] - t->mouse.imval[1]);
+  mvec[0] = t->mval[0] - t->mouse.imval[0];
+  mvec[1] = t->mval[1] - t->mouse.imval[1];
   mvec[2] = 0.0f;
 
   /* We need to correct axis length for the current zoom-level of view,

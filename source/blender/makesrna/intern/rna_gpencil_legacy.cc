@@ -6,9 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
-
-#include "BLI_math.h"
+#include <cstdlib>
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -19,17 +17,20 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_types.h"
+#include "WM_types.hh"
 
 /* parent type */
 static const EnumPropertyItem parent_type_items[] = {
@@ -152,7 +153,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
@@ -171,7 +172,8 @@ static void rna_GPencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
 #  if 0
   /* In case a property on a layer changed, tag it with a light update. */
   if (ptr->type == &RNA_GPencilLayer) {
-    BKE_gpencil_tag_light_update((bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), nullptr, nullptr);
+    BKE_gpencil_tag_light_update(
+        (bGPdata *)(ptr->owner_id), (bGPDlayer *)(ptr->data), nullptr, nullptr);
   }
 #  endif
   DEG_id_tag_update(ptr->owner_id, ID_RECALC_GEOMETRY);
@@ -1214,7 +1216,7 @@ static void rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_set(PointerRNA *ptr
 static bool rna_GpencilCurvePoint_BezTriple_hide_get(PointerRNA *ptr)
 {
   bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
-  return (bool)cpt->bezt.hide;
+  return bool(cpt->bezt.hide);
 }
 
 static void rna_GpencilCurvePoint_BezTriple_hide_set(PointerRNA *ptr, const bool value)
@@ -1881,7 +1883,7 @@ static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
                      MINAFRAME,
                      MAXFRAME);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_boolean(func, "active", 0, "Active", "");
+  RNA_def_boolean(func, "active", false, "Active", "");
   parm = RNA_def_pointer(func, "frame", "GPencilFrame", "", "The newly created frame");
   RNA_def_function_return(func, parm);
 
@@ -2474,7 +2476,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "mat", "totcol");
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_ui_text(prop, "Materials", "");
-  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
+  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.cc */
   RNA_def_property_collection_funcs(prop,
                                     nullptr,
                                     nullptr,

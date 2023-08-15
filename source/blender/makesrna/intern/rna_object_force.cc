@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "BLT_translation.h"
 
@@ -20,13 +20,13 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 static const EnumPropertyItem effector_shape_items[] = {
     {PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
@@ -53,7 +53,7 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 #  include "BLI_math_base.h"
 
-#  include "RNA_access.h"
+#  include "RNA_access.hh"
 
 /* type specific return values only used from functions */
 static const EnumPropertyItem curve_shape_items[] = {
@@ -113,7 +113,7 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_object.h"
+#  include "ED_object.hh"
 
 static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **scene)
 {
@@ -247,20 +247,14 @@ static void rna_Cache_toggle_disk_cache(Main * /*bmain*/, Scene * /*scene*/, Poi
 }
 
 bool rna_Cache_use_disk_cache_override_apply(Main * /*bmain*/,
-                                             PointerRNA *ptr_dst,
-                                             PointerRNA *ptr_src,
-                                             PointerRNA * /*ptr_storage*/,
-                                             PropertyRNA *prop_dst,
-                                             PropertyRNA *prop_src,
-                                             PropertyRNA * /*prop_storage*/,
-                                             const int /*len_dst*/,
-                                             const int /*len_src*/,
-                                             const int /*len_storage*/,
-                                             PointerRNA * /*ptr_item_dst*/,
-                                             PointerRNA * /*ptr_item_src*/,
-                                             PointerRNA * /*ptr_item_storage*/,
-                                             IDOverrideLibraryPropertyOperation *opop)
+                                             RNAPropertyOverrideApplyContext &rnaapply_ctx)
 {
+  PointerRNA *ptr_dst = &rnaapply_ctx.ptr_dst;
+  PointerRNA *ptr_src = &rnaapply_ctx.ptr_src;
+  PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
+  PropertyRNA *prop_src = rnaapply_ctx.prop_src;
+  IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
   BLI_assert(RNA_property_type(prop_dst) == PROP_BOOLEAN);
   BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE);
   UNUSED_VARS_NDEBUG(opop);
@@ -445,7 +439,7 @@ int rna_Cache_info_length(PointerRNA *ptr)
     BKE_ptcache_update_info(&pid);
   }
 
-  return (int)strlen(cache->info);
+  return int(strlen(cache->info));
 }
 
 static char *rna_CollisionSettings_path(const PointerRNA * /*ptr*/)
@@ -1054,8 +1048,7 @@ static void rna_def_pointcache_common(StructRNA *srna)
   /* Note that we do not actually need a getter here, `rna_Cache_info_length` will update the info
    * string just as well. */
   RNA_def_property_string_funcs(prop, nullptr, "rna_Cache_info_length", nullptr);
-  RNA_def_property_string_maxlength(
-      prop, sizeof(((PointCache *)0)->info) / sizeof(*(((PointCache *)0)->info)));
+  RNA_def_property_string_maxlength(prop, sizeof(PointCache::info) / sizeof(*PointCache::info));
   RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status");
 
   prop = RNA_def_property(srna, "use_external", PROP_BOOLEAN, PROP_NONE);

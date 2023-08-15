@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -227,6 +227,14 @@ msgid "Specular"
 msgstr "Ацырцырра"
 
 
+msgid "Edit"
+msgstr "Аиҭакра"
+
+
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
 msgid "Circle"
 msgstr "Аицыгьежь"
 
@@ -260,16 +268,8 @@ msgid "3D Cursor"
 msgstr "3Д Ахырхага"
 
 
-msgid "Edit"
-msgstr "Аиҭакра"
-
-
 msgid "Text"
 msgstr "Аҳәоу"
-
-
-msgid "Mesh"
-msgstr "Аҿарҧага"
 
 
 msgid "File"

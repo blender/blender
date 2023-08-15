@@ -49,23 +49,23 @@
 
 #include "BLF_api.h"
 
-#include "ED_fileselect.h"
-#include "ED_screen.h"
+#include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
-#include "RNA_access.h"
+#include "RNA_access.hh"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_view2d.h"
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_view2d.hh"
 
 #include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
-#include "file_intern.h"
-#include "filelist.h"
+#include "file_intern.hh"
+#include "filelist.hh"
 
 #define VERTLIST_MAJORCOLUMN_WIDTH (25 * UI_UNIT_X)
 
@@ -172,7 +172,7 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     const bool is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != nullptr);
 
     BLI_strncpy_utf8(
-        params->title, WM_operatortype_name(op->type, op->ptr), sizeof(params->title));
+        params->title, WM_operatortype_name(op->type, op->ptr).c_str(), sizeof(params->title));
 
     if ((prop = RNA_struct_find_property(op->ptr, "filemode"))) {
       params->type = RNA_property_int_get(op->ptr, prop);
@@ -424,8 +424,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
   if (library->type == ASSET_LIBRARY_CUSTOM) {
     BLI_assert(library->custom_library_index >= 0);
 
-    user_library = BKE_preferences_asset_library_find_from_index(&U,
-                                                                 library->custom_library_index);
+    user_library = BKE_preferences_asset_library_find_index(&U, library->custom_library_index);
     if (!user_library) {
       library->type = ASSET_LIBRARY_ALL;
     }
@@ -712,7 +711,7 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
     sfile_udata_new->temp_win_sizey = temp_win_size[1];
   }
 
-  /* Tag prefs as dirty if something has changed. */
+  /* Tag preferences as dirty if something has changed. */
   if (memcmp(sfile_udata_new, &sfile_udata_old, sizeof(sfile_udata_old)) != 0) {
     U.runtime.is_dirty = true;
   }
@@ -1410,7 +1409,7 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
       params->rename_flag = FILE_PARAMS_RENAME_POSTSCROLL_ACTIVE;
     }
   }
-  /* File listing is now async, only reset renaming if matching entry is not found
+  /* File listing is now asynchronous, only reset renaming if matching entry is not found
    * when file listing is not done. */
   else if (filelist_is_ready(sfile->files)) {
     file_params_renamefile_clear(params);

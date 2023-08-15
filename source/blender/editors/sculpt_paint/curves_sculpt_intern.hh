@@ -16,8 +16,8 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
-#include "ED_curves_sculpt.h"
+#include "ED_curves.hh"
+#include "ED_curves_sculpt.hh"
 
 struct ARegion;
 struct RegionView3D;
@@ -173,5 +173,5 @@ struct CurvesConstraintSolver {
 
 }  // namespace blender::ed::sculpt_paint
 
-bool CURVES_SCULPT_mode_poll(struct bContext *C);
-bool CURVES_SCULPT_mode_poll_view3d(struct bContext *C);
+bool CURVES_SCULPT_mode_poll(bContext *C);
+bool CURVES_SCULPT_mode_poll_view3d(bContext *C);

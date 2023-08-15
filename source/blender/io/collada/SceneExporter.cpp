@@ -198,10 +198,9 @@ void SceneExporter::writeNode(Object *ob)
 
           ListBase targets = {nullptr, nullptr};
           if (BKE_constraint_targets_get(con, &targets)) {
-            bConstraintTarget *ct;
             Object *obtar;
 
-            for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
+            LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
               obtar = ct->tar;
               std::string tar_id((obtar) ? id_name(obtar) : "");
               colladaNode.addExtraTechniqueChildParameter("blender", con_tag, "target_id", tar_id);

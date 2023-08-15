@@ -187,8 +187,8 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
   for (int i = 0; i < numberOfEdges(); i++) {
     WSFace *bface = (WSFace *)GetBordingFace(i);
     if (bface) {
-      if ((front()) ^
-          (bface->front())) {  // fA->front XOR fB->front (true if one is 0 and the other is 1)
+      if ((front()) ^ (bface->front()))
+      {  // fA->front XOR fB->front (true if one is 0 and the other is 1)
         // that means that the edge i of the face is a silhouette edge
         // CHECK FIRST WHETHER THE EXACTSILHOUETTEEDGE HAS
         // NOT YET BEEN BUILT ON THE OTHER FACE (1 is enough).
@@ -296,10 +296,11 @@ WFace *WXShape::MakeFace(vector<WVertex *> &iVertexList,
   Vec3f center;
   for (vector<WVertex *>::iterator wv = iVertexList.begin(), wvend = iVertexList.end();
        wv != wvend;
-       ++wv) {
+       ++wv)
+  {
     center += (*wv)->GetVertex();
   }
-  center /= (float)iVertexList.size();
+  center /= float(iVertexList.size());
   ((WXFace *)face)->setCenter(center);
 #endif
 

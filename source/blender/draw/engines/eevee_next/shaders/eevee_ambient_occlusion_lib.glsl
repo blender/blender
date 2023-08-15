@@ -155,7 +155,8 @@ OcclusionData ambient_occlusion_search(vec3 vP,
   for (int i = 0; i < 2; i++) {
     Ray ray;
     ray.origin = vP;
-    ray.direction = vec3(dir * radius, 0.0);
+    ray.direction = vec3(dir, 0.0);
+    ray.max_time = radius;
 
     ScreenSpaceRay ssray;
 

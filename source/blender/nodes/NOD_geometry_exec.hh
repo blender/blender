@@ -207,6 +207,9 @@ class GeoNodeExecParams {
       if (data->modifier_data) {
         return data->modifier_data->self_object;
       }
+      if (data->operator_data) {
+        return data->operator_data->self_object;
+      }
     }
     return nullptr;
   }

@@ -7,7 +7,7 @@
  */
 
 #include "atomic_ops.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,7 +15,7 @@
 #include "DNA_object_types.h" /* SELECT */
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -278,8 +278,7 @@ static MovieTrackingMarker libmv_marker_to_dna_marker(const libmv_Marker &libmv_
 /* -------------------------------------------------------------------- */
 /** \name General helpers.
  *
- * TODO(sergey): Should be moved to tracking_util.c
- *
+ * TODO(sergey): Should be moved to `tracking_util.cc`.
  * \{ */
 
 /* Returns false if marker crossed margin area from frame bounds. */

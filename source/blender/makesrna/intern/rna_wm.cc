@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -22,14 +22,14 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "rna_internal.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -139,7 +139,7 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 /**
  * Job types for use in the `bpy.app.is_job_running(job_type)` call.
  *
- * This is a subset of the `WM_JOB_TYPE_...` anonymous enum defined in `WM_api.h`. It is
+ * This is a subset of the `WM_JOB_TYPE_...` anonymous enum defined in `WM_api.hh`. It is
  * intentionally kept as a subset, such that by default how jobs are handled is kept as an
  * "internal implementation detail" of Blender, rather than a public, reliable part of the API.
  *
@@ -545,14 +545,14 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 
 #  include "BLI_string_utils.h"
 
-#  include "WM_api.h"
+#  include "WM_api.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_workspace_types.h"
 
-#  include "ED_screen.h"
+#  include "ED_screen.hh"
 
-#  include "UI_interface.h"
+#  include "UI_interface.hh"
 
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
@@ -1184,7 +1184,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_kpt_rt.idname));
+                int(sizeof(dummy_kpt_rt.idname)));
     return nullptr;
   }
 
@@ -1267,14 +1267,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
   wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(ptr->data);
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  strcpy(value, ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
+  strcpy(value, ot ? WM_operatortype_name(ot, kmi->ptr).c_str() : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(ptr->data);
   wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-  return strlen(ot ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname);
+  return strlen(ot ? WM_operatortype_name(ot, kmi->ptr).c_str() : kmi->idname);
 }
 
 static bool rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
@@ -1465,7 +1465,9 @@ static void rna_operator_cancel_cb(bContext *C, wmOperator *op)
   RNA_parameter_list_free(&list);
 }
 
-static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, PointerRNA *prop_ptr)
+static std::string rna_operator_description_cb(bContext *C,
+                                               wmOperatorType *ot,
+                                               PointerRNA *prop_ptr)
 {
   extern FunctionRNA rna_Operator_description_func;
 
@@ -1473,7 +1475,6 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
   ParameterList list;
   FunctionRNA *func;
   void *ret;
-  char *result;
 
   RNA_pointer_create(nullptr, ot->rna_ext.srna, nullptr, &ptr); /* dummy */
   func = &rna_Operator_description_func; /* RNA_struct_find_function(&ptr, "description"); */
@@ -1484,14 +1485,7 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
   ot->rna_ext.call(C, &ptr, func, &list);
 
   RNA_parameter_get_lookup(&list, "result", &ret);
-  result = (char *)ret;
-
-  if (result && result[0]) {
-    result = BLI_strdup(result);
-  }
-  else {
-    result = nullptr;
-  }
+  std::string result = ret ? std::string(static_cast<const char *>(ret)) : "";
 
   RNA_parameter_list_free(&list);
 
@@ -1500,7 +1494,7 @@ static char *rna_operator_description_cb(bContext *C, wmOperatorType *ot, Pointe
 
 static bool rna_Operator_unregister(Main *bmain, StructRNA *type);
 
-/* bpy_operator_wrap.c */
+/* `bpy_operator_wrap.cc` */
 
 extern "C" void BPY_RNA_operator_wrapper(wmOperatorType *ot, void *userdata);
 extern "C" void BPY_RNA_operator_macro_wrapper(wmOperatorType *ot, void *userdata);
@@ -2135,7 +2129,7 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Event", "Window Manager Event");
   RNA_def_struct_sdna(srna, "wmEvent");
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* strings */
   prop = RNA_def_property(srna, "ascii", PROP_STRING, PROP_NONE);
@@ -2301,7 +2295,7 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "OS Key", "True when the Cmd key is held");
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_timer(BlenderRNA *brna)
@@ -2313,7 +2307,7 @@ static void rna_def_timer(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Timer", "Window event timer");
   RNA_def_struct_sdna(srna, "wmTimer");
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* could wrap more, for now this is enough */
   prop = RNA_def_property(srna, "time_step", PROP_FLOAT, PROP_NONE);
@@ -2331,7 +2325,7 @@ static void rna_def_timer(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Delta", "Time since last step in seconds");
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_popup_menu_wrapper(BlenderRNA *brna,
@@ -2347,14 +2341,14 @@ static void rna_def_popup_menu_wrapper(BlenderRNA *brna,
   RNA_def_struct_ui_text(srna, rna_type, "");
   RNA_def_struct_sdna(srna, c_type);
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   /* could wrap more, for now this is enough */
   prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "UILayout");
   RNA_def_property_pointer_funcs(prop, layout_get_fn, nullptr, nullptr, nullptr);
 
-  RNA_define_verify_sdna(1); /* not in sdna */
+  RNA_define_verify_sdna(true); /* not in sdna */
 }
 
 static void rna_def_popupmenu(BlenderRNA *brna)
@@ -2613,11 +2607,11 @@ static void rna_def_keyconfig_prefs(BlenderRNA *brna)
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES); /* Mandatory! */
 
   /* registration */
-  RNA_define_verify_sdna(0);
+  RNA_define_verify_sdna(false);
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "idname");
   RNA_def_property_flag(prop, PROP_REGISTER);
-  RNA_define_verify_sdna(1);
+  RNA_define_verify_sdna(true);
 }
 
 static void rna_def_keyconfig(BlenderRNA *brna)

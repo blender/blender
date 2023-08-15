@@ -6,6 +6,7 @@ remove_extra_strict_flags()
 
 set(INC
   .
+  ../blenkernel
 )
 
 set(INC_SYS
@@ -13,14 +14,13 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/ikplugin_api.c
+  intern/ikplugin_api.cc
 
   BIK_api.h
   intern/ikplugin_api.h
 )
 
 set(LIB
-  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
@@ -34,7 +34,7 @@ if(WITH_IK_SOLVER)
     ../../../intern/iksolver/extern
   )
   list(APPEND SRC
-    intern/iksolver_plugin.c
+    intern/iksolver_plugin.cc
     intern/iksolver_plugin.h
   )
   add_definitions(-DWITH_IK_SOLVER)
@@ -51,7 +51,7 @@ if(WITH_IK_ITASC)
     ${EIGEN3_INCLUDE_DIRS}
   )
   list(APPEND SRC
-    intern/itasc_plugin.cpp
+    intern/itasc_plugin.cc
     intern/itasc_plugin.h
   )
   add_definitions(-DWITH_IK_ITASC)

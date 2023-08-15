@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct ID;
 struct LibraryForeachIDData;
 struct Main;
 struct NlaStrip;
@@ -484,7 +485,9 @@ float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
 /* .blend file API */
 
 void BKE_nla_blend_write(struct BlendWriter *writer, struct ListBase *tracks);
-void BKE_nla_blend_read_data(struct BlendDataReader *reader, struct ListBase *tracks);
+void BKE_nla_blend_read_data(struct BlendDataReader *reader,
+                             struct ID *id_owner,
+                             struct ListBase *tracks);
 void BKE_nla_blend_read_lib(struct BlendLibReader *reader, struct ID *id, struct ListBase *tracks);
 void BKE_nla_blend_read_expand(struct BlendExpander *expander, struct ListBase *tracks);
 

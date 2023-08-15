@@ -8,6 +8,7 @@
 
 #include "BLI_array_utils.hh"
 #include "BLI_lasso_2d.h"
+#include "BLI_math_geom.h"
 #include "BLI_rand.hh"
 #include "BLI_rect.h"
 
@@ -15,10 +16,10 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
-#include "ED_object.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_curves.hh"
+#include "ED_object.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
 namespace blender::ed::curves {
 

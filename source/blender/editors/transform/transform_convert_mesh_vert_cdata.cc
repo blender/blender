@@ -11,7 +11,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
@@ -19,7 +20,7 @@
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
 
-#include "ED_mesh.h"
+#include "ED_mesh.hh"
 
 #include "DEG_depsgraph_query.h"
 
@@ -32,9 +33,9 @@
 /** \name Edit Mesh Bevel Weight and Crease Transform Creation
  * \{ */
 
-static float *tc_mesh_cdata_transdata_center(const TransIslandData *island_data,
-                                             const int island_index,
-                                             BMVert *eve)
+static float *mesh_cdata_transdata_center(const TransIslandData *island_data,
+                                          const int island_index,
+                                          BMVert *eve)
 {
   if (island_data->center && island_index != -1) {
     return island_data->center[island_index];
@@ -42,11 +43,11 @@ static float *tc_mesh_cdata_transdata_center(const TransIslandData *island_data,
   return eve->co;
 }
 
-static void tc_mesh_cdata_transdata_create(TransDataBasic *td,
-                                           BMVert *eve,
-                                           float *weight,
-                                           const TransIslandData *island_data,
-                                           const int island_index)
+static void mesh_cdata_transdata_create(TransDataBasic *td,
+                                        BMVert *eve,
+                                        float *weight,
+                                        const TransIslandData *island_data,
+                                        const int island_index)
 {
   BLI_assert(BM_elem_flag_test(eve, BM_ELEM_HIDDEN) == 0);
 
@@ -57,7 +58,7 @@ static void tc_mesh_cdata_transdata_create(TransDataBasic *td,
     td->flag |= TD_SELECTED;
   }
 
-  copy_v3_v3(td->center, tc_mesh_cdata_transdata_center(island_data, island_index, eve));
+  copy_v3_v3(td->center, mesh_cdata_transdata_center(island_data, island_index, eve));
   td->extra = eve;
 }
 
@@ -198,7 +199,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
 
       float *weight = static_cast<float *>(BM_ELEM_CD_GET_VOID_P(eve, cd_offset));
       if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
-        tc_mesh_cdata_transdata_create(
+        mesh_cdata_transdata_create(
             (TransDataBasic *)td_mirror, eve, weight, &island_data, island_index);
 
         int elem_index = mirror_data.vert_map[a].index;
@@ -209,8 +210,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
         td_mirror++;
       }
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        tc_mesh_cdata_transdata_create(
-            (TransDataBasic *)td, eve, weight, &island_data, island_index);
+        mesh_cdata_transdata_create((TransDataBasic *)td, eve, weight, &island_data, island_index);
 
         if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
           createSpaceNormal(td->axismtx, eve->no);
@@ -227,7 +227,6 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
             td->dist = dists[a];
           }
           else {
-            td->flag |= TD_NOTCONNECTED;
             td->dist = FLT_MAX;
           }
         }
@@ -264,7 +263,7 @@ static void createTransMeshVertCData(bContext * /*C*/, TransInfo *t)
 /** \name Recalc Mesh Data
  * \{ */
 
-static void tc_mesh_cdata_apply_to_mirror(TransInfo *t)
+static void mesh_cdata_apply_to_mirror(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->use_mirror_axis_any) {
@@ -282,7 +281,7 @@ static void recalcData_mesh_cdata(TransInfo *t)
   /* mirror modifier clipping? */
   if (!is_canceling) {
     if (!(t->flag & T_NO_MIRROR)) {
-      tc_mesh_cdata_apply_to_mirror(t);
+      mesh_cdata_apply_to_mirror(t);
     }
   }
 
@@ -297,7 +296,7 @@ static void recalcData_mesh_cdata(TransInfo *t)
 
 TransConvertTypeInfo TransConvertType_MeshVertCData = {
     /*flags*/ (T_EDIT | T_POINTS),
-    /*createTransData*/ createTransMeshVertCData,
-    /*recalcData*/ recalcData_mesh_cdata,
+    /*create_trans_data*/ createTransMeshVertCData,
+    /*recalc_data*/ recalcData_mesh_cdata,
     /*special_aftertrans_update*/ nullptr,
 };

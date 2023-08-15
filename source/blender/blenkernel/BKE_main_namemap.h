@@ -45,8 +45,8 @@ void BKE_main_namemap_clear(struct Main *bmain) ATTR_NONNULL();
  *
  * In case of name collisions, the name will be adjusted to be unique.
  *
- * \param do_unique_in_bmain if `true`, ensure that the final name is unique in the whole Main (for
- * the given ID type), not only in the set of IDs from the same library.
+ * \param do_unique_in_bmain: if `true`, ensure that the final name is unique in the whole Main
+ * (for the given ID type), not only in the set of IDs from the same library.
  *
  * \return true if the name had to be adjusted for uniqueness.
  */

@@ -15,8 +15,8 @@
 #endif
 
 // static callback functions need to talk to these objects:
-static GHOST_SystemCocoa *ghost_system = NULL;
-static GHOST_NDOFManager *ndof_manager = NULL;
+static GHOST_SystemCocoa *ghost_system = nullptr;
+static GHOST_NDOFManager *ndof_manager = nullptr;
 
 static uint16_t clientID = 0;
 
@@ -73,7 +73,7 @@ typedef int16_t (*ConnexionClientControl_ptr)(uint16_t clientID,
                                               int32_t param,
                                               int32_t *result);
 
-#define DECLARE_FUNC(name) name##_ptr name = NULL
+#define DECLARE_FUNC(name) name##_ptr name = nullptr
 
 DECLARE_FUNC(SetConnexionHandlers);
 DECLARE_FUNC(InstallConnexionHandlers);
@@ -115,14 +115,14 @@ static bool load_driver_functions()
   if (module) {
     LOAD_FUNC(SetConnexionHandlers);
 
-    if (SetConnexionHandlers != NULL) {
+    if (SetConnexionHandlers != nullptr) {
       driver_loaded = true;
       has_new_driver = true;
     }
     else {
       LOAD_FUNC(InstallConnexionHandlers);
 
-      driver_loaded = (InstallConnexionHandlers != NULL);
+      driver_loaded = (InstallConnexionHandlers != nullptr);
     }
 
     if (driver_loaded) {
@@ -132,7 +132,7 @@ static bool load_driver_functions()
       LOAD_FUNC(UnregisterConnexionClient);
       LOAD_FUNC(ConnexionClientControl);
 
-      has_old_driver = (SetConnexionClientButtonMask == NULL);
+      has_old_driver = (SetConnexionClientButtonMask == nullptr);
     }
   }
 #if DEBUG_NDOF_DRIVER
@@ -259,8 +259,8 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
     CleanupConnexionHandlers();
     unload_driver();
 
-    ghost_system = NULL;
-    ndof_manager = NULL;
+    ghost_system = nullptr;
+    ndof_manager = nullptr;
   }
 }
 

@@ -5,7 +5,7 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_screen.h"
+#include "ED_screen.hh"
 
 #include "BLI_listbase.h"
 
@@ -13,11 +13,11 @@
 
 #include "BKE_context.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter.hh"

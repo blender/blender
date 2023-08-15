@@ -15,9 +15,13 @@
 #  OSL_LIBRARY_VERSION_MAJOR, OSL_LIBRARY_VERSION_MINOR,  the major
 #                and minor versions of OSL library if found.
 
-# If OSL_ROOT_DIR was defined in the environment, use it.
-IF(NOT OSL_ROOT_DIR AND NOT $ENV{OSL_ROOT_DIR} STREQUAL "")
+# If `OSL_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED OSL_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{OSL_ROOT_DIR})
   SET(OSL_ROOT_DIR $ENV{OSL_ROOT_DIR})
+ELSE()
+  SET(OSL_ROOT_DIR "")
 ENDIF()
 
 SET(_osl_FIND_COMPONENTS
@@ -100,10 +104,14 @@ IF(OSL_FOUND)
        REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+[0-9]+.*$")
   FILE(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_MINOR
        REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+[0-9]+.*$")
+  FILE(STRINGS "${OSL_INCLUDE_DIR}/OSL/oslversion.h" OSL_LIBRARY_VERSION_PATCH
+       REGEX "^[ \t]*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+[0-9]+.*$")
   STRING(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MAJOR[ \t]+([.0-9]+).*"
          "\\1" OSL_LIBRARY_VERSION_MAJOR ${OSL_LIBRARY_VERSION_MAJOR})
   STRING(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_MINOR[ \t]+([.0-9]+).*"
          "\\1" OSL_LIBRARY_VERSION_MINOR ${OSL_LIBRARY_VERSION_MINOR})
+  STRING(REGEX REPLACE ".*#define[ \t]+OSL_LIBRARY_VERSION_PATCH[ \t]+([.0-9]+).*"
+         "\\1" OSL_LIBRARY_VERSION_PATCH ${OSL_LIBRARY_VERSION_PATCH})
 ENDIF()
 
 MARK_AS_ADVANCED(

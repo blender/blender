@@ -14,6 +14,10 @@ struct wmKeyConfig;
 
 #include "wm_gizmo_fn.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -------------------------------------------------------------------- */
 /* wmGizmo */
 
@@ -149,3 +153,7 @@ bool wm_gizmomap_deselect_all(struct wmGizmoMap *gzmap);
 void wm_gizmomap_select_array_shrink(struct wmGizmoMap *gzmap, int len_subtract);
 void wm_gizmomap_select_array_push_back(struct wmGizmoMap *gzmap, wmGizmo *gz);
 void wm_gizmomap_select_array_remove(struct wmGizmoMap *gzmap, wmGizmo *gz);
+
+#ifdef __cplusplus
+}
+#endif

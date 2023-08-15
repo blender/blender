@@ -6,14 +6,16 @@
  * \ingroup edmeta
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
-#include "BLI_math.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
@@ -22,8 +24,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
@@ -34,14 +36,14 @@
 
 #include "GPU_select.h"
 
-#include "ED_mball.h"
-#include "ED_object.h"
-#include "ED_screen.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
+#include "ED_mball.hh"
+#include "ED_object.hh"
+#include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_view3d.hh"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include "mball_intern.h"
 
@@ -220,9 +222,8 @@ static void mball_select_similar_type_get(
     Object *obedit, MetaBall *mb, int type, KDTree_1d *tree_1d, KDTree_3d *tree_3d)
 {
   float tree_entry[3] = {0.0f, 0.0f, 0.0f};
-  MetaElem *ml;
   int tree_index = 0;
-  for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
     if (ml->flag & SELECT) {
       switch (type) {
         case SIMMBALL_RADIUS: {
@@ -267,9 +268,8 @@ static bool mball_select_similar_type(Object *obedit,
                                       const KDTree_3d *tree_3d,
                                       const float thresh)
 {
-  MetaElem *ml;
   bool changed = false;
-  for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+  LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
     bool select = false;
     switch (type) {
       case SIMMBALL_RADIUS: {
@@ -359,8 +359,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 
     switch (type) {
       case SIMMBALL_TYPE: {
-        MetaElem *ml;
-        for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+        LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
           if (ml->flag & SELECT) {
             short mball_type = 1 << (ml->type + 1);
             type_ref |= mball_type;
@@ -395,8 +394,7 @@ static int mball_select_similar_exec(bContext *C, wmOperator *op)
 
     switch (type) {
       case SIMMBALL_TYPE: {
-        MetaElem *ml;
-        for (ml = static_cast<MetaElem *>(mb->editelems->first); ml; ml = ml->next) {
+        LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
           short mball_type = 1 << (ml->type + 1);
           if (mball_type & type_ref) {
             ml->flag |= SELECT;
@@ -652,7 +650,7 @@ static int hide_metaelems_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   MetaBall *mb = (MetaBall *)obedit->data;
   MetaElem *ml;
-  const bool invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : 0;
+  const bool invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : false;
 
   ml = static_cast<MetaElem *>(mb->editelems->first);
 
@@ -850,7 +848,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   return found;
 }
 
-bool ED_mball_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
+bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
   Base *base = nullptr;
   MetaElem *ml = nullptr;

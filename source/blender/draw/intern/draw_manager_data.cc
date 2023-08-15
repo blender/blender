@@ -18,13 +18,13 @@
 #include "BKE_image.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
-#include "BKE_paint.h"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_volume.h"
 
 /* For debug cursor position. */
-#include "WM_api.h"
-#include "wm_window.h"
+#include "WM_api.hh"
+#include "wm_window.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
@@ -1221,7 +1221,7 @@ static float sculpt_debug_colors[9][4] = {
 
 static void sculpt_draw_cb(DRWSculptCallbackData *scd,
                            PBVHBatches *batches,
-                           PBVH_GPU_Args *pbvh_draw_args)
+                           const PBVH_GPU_Args &pbvh_draw_args)
 {
   if (!batches) {
     return;
@@ -1270,10 +1270,10 @@ void DRW_sculpt_debug_cb(
 
 #if 0 /* Nodes hierarchy. */
   if (flag & PBVH_Leaf) {
-    DRW_debug_bbox(&bb, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
+    DRW_debug_bbox(&bb, blender::float4{0.0f, 1.0f, 0.0f, 1.0f});
   }
   else {
-    DRW_debug_bbox(&bb, (float[4]){0.5f, 0.5f, 0.5f, 0.6f});
+    DRW_debug_bbox(&bb, blender::float4{0.5f, 0.5f, 0.5f, 0.6f});
   }
 #else /* Color coded leaf bounds. */
   if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
@@ -1366,7 +1366,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    update_only_visible,
                    &update_frustum,
                    &draw_frustum,
-                   (void (*)(void *, PBVHBatches *, PBVH_GPU_Args *))sculpt_draw_cb,
+                   (void (*)(void *, PBVHBatches *, const PBVH_GPU_Args &))sculpt_draw_cb,
                    scd,
                    scd->use_mats,
                    scd->attrs,
@@ -1399,10 +1399,8 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
   scd.use_mats = false;
   scd.use_mask = use_mask;
 
-  PBVHAttrReq attrs[16];
+  PBVHAttrReq attrs[16] = {};
   int attrs_num = 0;
-
-  memset(attrs, 0, sizeof(attrs));
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
   attrs[attrs_num++].type = (eCustomDataType)CD_PBVH_CO_TYPE;
@@ -1427,20 +1425,20 @@ void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
       attrs[attrs_num].type = eCustomDataType(layer->type);
       attrs[attrs_num].domain = domain;
 
-      STRNCPY(attrs[attrs_num].name, layer->name);
+      attrs[attrs_num].name = layer->name;
       attrs_num++;
     }
   }
 
   if (use_uv) {
-    int layer_i = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
+    int layer_i = CustomData_get_active_layer_index(&me->loop_data, CD_PROP_FLOAT2);
     if (layer_i != -1) {
-      CustomDataLayer *layer = me->ldata.layers + layer_i;
+      CustomDataLayer *layer = me->loop_data.layers + layer_i;
 
       if (!(layer->flag & CD_FLAG_TEMPORARY)) {
         attrs[attrs_num].type = CD_PROP_FLOAT2;
         attrs[attrs_num].domain = ATTR_DOMAIN_CORNER;
-        STRNCPY(attrs[attrs_num].name, layer->name);
+        attrs[attrs_num].name = layer->name;
 
         attrs_num++;
       }
@@ -1489,7 +1487,7 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
     attrs[attrs_i].type = req->cd_type;
     attrs[attrs_i].domain = req->domain;
-    STRNCPY(attrs[attrs_i].name, req->attribute_name);
+    attrs[attrs_i].name = req->attribute_name;
     attrs_i++;
     real_attrs_num++;
   }
@@ -1499,13 +1497,13 @@ void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
 
   for (uint i = 0; i < 32; i++) {
     if (cd_needed.uv & (1 << i)) {
-      int layer_i = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
-      CustomDataLayer *layer = layer_i != -1 ? me->ldata.layers + layer_i : nullptr;
+      int layer_i = CustomData_get_layer_index_n(&me->loop_data, CD_PROP_FLOAT2, i);
+      CustomDataLayer *layer = layer_i != -1 ? me->loop_data.layers + layer_i : nullptr;
 
       if (layer && !(layer->flag & CD_FLAG_TEMPORARY)) {
         attrs[attrs_i].type = CD_PROP_FLOAT2;
         attrs[attrs_i].domain = ATTR_DOMAIN_CORNER;
-        STRNCPY(attrs[attrs_i].name, layer->name);
+        attrs[attrs_i].name = layer->name;
         attrs_i++;
         real_attrs_num++;
       }
@@ -2015,7 +2013,7 @@ static void draw_frustum_boundbox_calc(const float (*viewinv)[4],
 
 #if 0 /* Equivalent to this but it has accuracy problems. */
   BKE_boundbox_init_from_minmax(
-      &bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
+      &bbox, blender::float3{-1.0f, -1.0f, -1.0f}, blender::float3{1.0f, 1.0f, 1.0f});
   for (int i = 0; i < 8; i++) {
     mul_project_m4_v3(projinv, bbox.vec[i]);
   }
@@ -2318,8 +2316,8 @@ void DRW_view_update(DRWView *view,
 #ifdef DRW_DEBUG_CULLING
   if (G.debug_value != 0) {
     DRW_debug_sphere(
-        view->frustum_bsphere.center, view->frustum_bsphere.radius, (const float[4]){1, 1, 0, 1});
-    DRW_debug_bbox(&view->frustum_corners, (const float[4]){1, 1, 0, 1});
+        view->frustum_bsphere.center, view->frustum_bsphere.radius, blender::float4{1, 1, 0, 1});
+    DRW_debug_bbox(&view->frustum_corners, blender::float4{1, 1, 0, 1});
   }
 #endif
 }
@@ -2466,11 +2464,11 @@ bool DRW_pass_is_empty(DRWPass *pass)
 }
 
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgrp),
-                              void *userData)
+                              void (*callback)(void *user_data, DRWShadingGroup *shgrp),
+                              void *user_data)
 {
   LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
-    callback(userData, shgroup);
+    callback(user_data, shgroup);
   }
 }
 
