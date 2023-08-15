@@ -1274,6 +1274,7 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
     p->tool_slots = static_cast<PaintToolSlot *>(MEM_callocN(expected_size, "PaintToolSlot"));
   }
 
+  p->paint_cursor = nullptr;
   BKE_paint_runtime_init(scene->toolsettings, p);
 }
 
@@ -1287,9 +1288,6 @@ void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
       }
     }
     BLO_read_id_address(reader, &sce->id, &p->palette);
-    p->paint_cursor = nullptr;
-
-    BKE_paint_runtime_init(sce->toolsettings, p);
   }
 }
 
