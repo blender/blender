@@ -5154,6 +5154,11 @@ static void def_sh_tex_noise(StructRNA *srna)
   RNA_def_property_enum_items(prop, rna_enum_node_tex_dimensions_items);
   RNA_def_property_ui_text(prop, "Dimensions", "Number of dimensions to output noise for");
   RNA_def_property_update(prop, 0, "rna_ShaderNode_socket_update");
+
+  prop = RNA_def_property(srna, "normalize", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "normalize", 0);
+  RNA_def_property_ui_text(prop, "Normalize", "Normalize outputs to 0.0 to 1.0 range");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_sh_tex_checker(StructRNA *srna)

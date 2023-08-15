@@ -636,6 +636,20 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 16)) {
+    /* Set Normalize property of Noise Texture node to true. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_CUSTOM) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == SH_NODE_TEX_NOISE) {
+            ((NodeTexNoise *)node->storage)->normalize = true;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

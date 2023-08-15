@@ -175,7 +175,8 @@ class WaveFunction : public mf::MultiFunction {
 
       if (distortion[i] != 0.0f) {
         n += distortion[i] *
-             (noise::perlin_fractal(p * dscale[i], detail[i], droughness[i]) * 2.0f - 1.0f);
+             (noise::perlin_fractal(p * dscale[i], detail[i], droughness[i], 2.0f, true) * 2.0f -
+              1.0f);
       }
 
       switch (wave_profile_) {

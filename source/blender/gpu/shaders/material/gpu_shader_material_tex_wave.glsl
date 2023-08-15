@@ -51,7 +51,8 @@ float calc_wave(vec3 p,
   n += phase;
 
   if (distortion != 0.0) {
-    n += distortion * (fractal_noise(p * detail_scale, detail, detail_roughness) * 2.0 - 1.0);
+    n += distortion *
+         (fractal_noise(p * detail_scale, detail, detail_roughness, 2.0, true) * 2.0 - 1.0);
   }
 
   if (wave_profile == 0) { /* profile sin */
