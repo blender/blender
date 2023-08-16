@@ -231,7 +231,7 @@ def main() -> None:
         long_description=long_description,
         long_description_content_type='text/markdown',
         license="GPL-3.0",
-        author="Blender Authors",
+        author="Blender Foundation",
         author_email="bf-committers@blender.org",
         url="https://www.blender.org"
     )

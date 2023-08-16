@@ -1957,7 +1957,7 @@ except ModuleNotFoundError:
     fw("  'papersize': 'a4paper',\n")
     fw("}\n\n")
 
-    fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Authors', 'manual'), ]\n")
+    fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
 
     # Workaround for useless links leading to compile errors
     # See https://github.com/sphinx-doc/sphinx/issues/3866

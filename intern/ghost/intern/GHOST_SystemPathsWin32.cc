@@ -31,7 +31,7 @@ const char *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) co
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
     CoTaskMemFree(knownpath_16);
-    strcat(knownpath, "\\Blender Authors\\Blender\\");
+    strcat(knownpath, "\\Blender Foundation\\Blender\\");
     strcat(knownpath, versionstr);
     return knownpath;
   }
@@ -50,7 +50,7 @@ const char *GHOST_SystemPathsWin32::getUserDir(int, const char *versionstr) cons
   if (hResult == S_OK) {
     conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
     CoTaskMemFree(knownpath_16);
-    strcat(knownpath, "\\Blender Authors\\Blender\\");
+    strcat(knownpath, "\\Blender Foundation\\Blender\\");
     strcat(knownpath, versionstr);
     return knownpath;
   }

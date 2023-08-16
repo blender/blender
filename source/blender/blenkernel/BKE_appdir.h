@@ -62,7 +62,7 @@ bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
 /**
  * Get the user's cache directory, i.e.
  * - Linux: `$HOME/.cache/blender/`
- * - Windows: `%USERPROFILE%\AppData\Local\Blender Authors\Blender\`
+ * - Windows: `%USERPROFILE%\AppData\Local\Blender Foundation\Blender\`
  * - MacOS: `/Library/Caches/Blender`
  *
  * \returns True if the path is valid. It doesn't create or checks format
