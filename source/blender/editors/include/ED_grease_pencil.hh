@@ -66,6 +66,11 @@ void select_frames_region(KeyframeEditData *ked,
                           const short tool,
                           const short select_mode);
 
+void select_frames_range(bke::greasepencil::Layer &layer,
+                         const float min,
+                         const float max,
+                         const short select_mode);
+
 /**
  * Returns true if any frame of the \a layer is selected.
  */

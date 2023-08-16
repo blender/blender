@@ -8,6 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
@@ -103,6 +104,19 @@ void select_frames_region(KeyframeEditData *ked,
       {
         select_frame(frame, select_mode);
       }
+    }
+  }
+}
+
+void select_frames_range(bke::greasepencil::Layer &layer,
+                         const float min,
+                         const float max,
+                         const short select_mode)
+{
+  /* Only select those frames which are in bounds. */
+  for (auto [frame_number, frame] : layer.frames_for_write().items()) {
+    if (IN_RANGE(float(frame_number), min, max)) {
+      select_frame(frame, select_mode);
     }
   }
 }
