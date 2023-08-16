@@ -69,7 +69,7 @@ const EnumPropertyItem rna_enum_node_socket_in_out_items[] = {{SOCK_IN, "IN", 0,
                                                               {SOCK_OUT, "OUT", 0, "Output", ""},
                                                               {0, nullptr, 0, nullptr, nullptr}};
 
-const EnumPropertyItem node_socket_data_type_items[] = {
+const EnumPropertyItem rna_node_socket_data_type_items[] = {
     {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
     {SOCK_INT, "INT", 0, "Integer", ""},
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
@@ -1944,7 +1944,7 @@ static const EnumPropertyItem *rna_GeometryNodeSwitch_type_itemf(bContext * /*C*
                                                                  bool *r_free)
 {
   *r_free = true;
-  return itemf_function_check(node_socket_data_type_items, switch_type_supported);
+  return itemf_function_check(rna_node_socket_data_type_items, switch_type_supported);
 }
 
 static bool geometry_node_asset_trait_flag_get(PointerRNA *ptr,
@@ -3412,7 +3412,7 @@ static const EnumPropertyItem *rna_SimulationStateItem_socket_type_itemf(bContex
                                                                          bool *r_free)
 {
   *r_free = true;
-  return itemf_function_check(node_socket_data_type_items,
+  return itemf_function_check(rna_node_socket_data_type_items,
                               rna_SimulationStateItem_socket_type_supported);
 }
 
@@ -3427,7 +3427,8 @@ static const EnumPropertyItem *rna_RepeatItem_socket_type_itemf(bContext * /*C*/
                                                                 bool *r_free)
 {
   *r_free = true;
-  return itemf_function_check(node_socket_data_type_items, rna_RepeatItem_socket_type_supported);
+  return itemf_function_check(rna_node_socket_data_type_items,
+                              rna_RepeatItem_socket_type_supported);
 }
 
 static void rna_SimulationStateItem_name_set(PointerRNA *ptr, const char *value)
@@ -9177,7 +9178,7 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_SimulationStateItem_update");
 
   prop = RNA_def_property(srna, "socket_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, node_socket_data_type_items);
+  RNA_def_property_enum_items(prop, rna_node_socket_data_type_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_SimulationStateItem_socket_type_itemf");
   RNA_def_property_ui_text(prop, "Socket Type", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -9215,7 +9216,7 @@ static void rna_def_geo_simulation_output_items(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_enum(func,
                       "socket_type",
-                      node_socket_data_type_items,
+                      rna_node_socket_data_type_items,
                       SOCK_GEOMETRY,
                       "Socket Type",
                       "Socket type of the item");
@@ -9292,7 +9293,7 @@ static void rna_def_repeat_item(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_RepeatItem_update");
 
   prop = RNA_def_property(srna, "socket_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, node_socket_data_type_items);
+  RNA_def_property_enum_items(prop, rna_node_socket_data_type_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_RepeatItem_socket_type_itemf");
   RNA_def_property_ui_text(prop, "Socket Type", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -9321,7 +9322,7 @@ static void rna_def_geo_repeat_output_items(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_enum(func,
                       "socket_type",
-                      node_socket_data_type_items,
+                      rna_node_socket_data_type_items,
                       SOCK_GEOMETRY,
                       "Socket Type",
                       "Socket type of the item");
@@ -9453,7 +9454,7 @@ static void def_geo_switch(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeSwitch", "storage");
   prop = RNA_def_property(srna, "input_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "input_type");
-  RNA_def_property_enum_items(prop, node_socket_data_type_items);
+  RNA_def_property_enum_items(prop, rna_node_socket_data_type_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_GeometryNodeSwitch_type_itemf");
   RNA_def_property_ui_text(prop, "Input Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");

@@ -2255,13 +2255,18 @@ def write_rst_enum_items_and_index(basepath):
         fw(".. toctree::\n")
         fw("\n")
         for key, enum_items in rna_enum_dict.items():
-            if not key.startswith("rna_enum_"):
-                raise Exception("Found RNA enum identifier that doesn't use the 'rna_enum_' prefix, found %r!" % key)
+            valid_prefix = key.startswith("rna_enum_") or key.startswith("rna_node_")
+            if not valid_prefix:
+                raise Exception(
+                    "Found RNA enum identifier that doesn't use the 'rna_enum_' or 'rna_node_' prefix, found %r!" %
+                    key)
             key_no_prefix = key.removeprefix("rna_enum_")
+            key_no_prefix = key.removeprefix("rna_node_")
             fw("   %s\n" % key_no_prefix)
 
         for key, enum_items in rna_enum_dict.items():
             key_no_prefix = key.removeprefix("rna_enum_")
+            key_no_prefix = key.removeprefix("rna_node_")
             write_rst_enum_items(basepath_bpy_types_rna_enum, key, key_no_prefix, enum_items)
         fw("\n")
 
