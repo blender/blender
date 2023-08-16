@@ -27,7 +27,7 @@ void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer 
   using namespace blender::bke::greasepencil;
 
   if (layer != nullptr) {
-    layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
+    layer->set_selected(true);
   }
 
   if (grease_pencil.active_layer != layer) {

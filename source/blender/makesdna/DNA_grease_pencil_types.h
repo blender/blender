@@ -246,7 +246,7 @@ typedef struct GreasePencilLayerTreeNode {
   /**
    * Name of the layer/group. Dynamic length.
    */
-  char *name;
+  char *name_ptr;
   /**
    * One of `GreasePencilLayerTreeNodeType`.
    * Indicates the type of struct this element is.
@@ -475,9 +475,7 @@ typedef struct GreasePencil {
       blender::StringRefNull name) const;
   blender::bke::greasepencil::LayerGroup *find_group_by_name(blender::StringRefNull name);
 
-  void rename_layer(blender::bke::greasepencil::Layer &layer, blender::StringRefNull new_name);
-  void rename_group(blender::bke::greasepencil::LayerGroup &group,
-                    blender::StringRefNull new_name);
+  void rename_node(blender::bke::greasepencil::TreeNode &node, blender::StringRefNull new_name);
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 

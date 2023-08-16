@@ -295,12 +295,7 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
         using namespace blender::bke::greasepencil;
         GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
         Layer *layer = static_cast<Layer *>(ale->data);
-        if (grease_pencil->is_layer_active(layer)) {
-          layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
-        }
-        else {
-          layer->base.flag &= ~GP_LAYER_TREE_NODE_SELECT;
-        }
+        layer->set_selected(grease_pencil->is_layer_active(layer));
         break;
     }
   }

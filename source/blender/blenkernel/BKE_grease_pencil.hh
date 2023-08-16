@@ -122,6 +122,67 @@ class Drawing : public ::GreasePencilDrawing {
 class LayerGroup;
 class Layer;
 
+/* Defines the common functions used by #TreeNode, #Layer, and #LayerGroup.
+ * Note: Because we cannot mix C-style and C++ inheritance (all of these three classes wrap a
+ * C-struct that already uses "inheritance"), we define and implement these methods on all these
+ * classes individually. This just means that we can call `layer->name()` directly instead of
+ * having to write `layer->as_node().name()`. For #Layer and #LayerGroup the calls are just
+ * forwarded to #TreeNode. */
+#define TREENODE_COMMON_METHODS \
+  StringRefNull name() const; \
+  void set_name(StringRefNull new_name); \
+  bool is_visible() const; \
+  void set_visible(bool visible); \
+  bool is_locked() const; \
+  void set_locked(bool locked); \
+  bool is_editable() const; \
+  bool is_selected() const; \
+  void set_selected(bool selected); \
+  bool use_onion_skinning() const;
+
+/* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
+#define TREENODE_COMMON_METHODS_FORWARD_IMPL(class_name) \
+  inline StringRefNull class_name::name() const \
+  { \
+    return this->as_node().name(); \
+  } \
+  inline void class_name::set_name(StringRefNull new_name) \
+  { \
+    return this->as_node().set_name(new_name); \
+  } \
+  inline bool class_name::is_visible() const \
+  { \
+    return this->as_node().is_visible(); \
+  } \
+  inline void class_name::set_visible(const bool visible) \
+  { \
+    this->as_node().set_visible(visible); \
+  } \
+  inline bool class_name::is_locked() const \
+  { \
+    return this->as_node().is_locked(); \
+  } \
+  inline void class_name::set_locked(const bool locked) \
+  { \
+    this->as_node().set_locked(locked); \
+  } \
+  inline bool class_name::is_editable() const \
+  { \
+    return this->as_node().is_editable(); \
+  } \
+  inline bool class_name::is_selected() const \
+  { \
+    return this->as_node().is_selected(); \
+  } \
+  inline void class_name::set_selected(const bool selected) \
+  { \
+    this->as_node().set_selected(selected); \
+  } \
+  inline bool class_name::use_onion_skinning() const \
+  { \
+    return this->as_node().use_onion_skinning(); \
+  }
+
 /**
  * A TreeNode represents one node in the layer tree.
  * It can either be a layer or a group. The node has zero children if it is a layer or zero or
@@ -135,50 +196,34 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
   TreeNode(const TreeNode &other);
 
  public:
+  /* Define the common functions for #TreeNode. */
+  TREENODE_COMMON_METHODS;
   /**
-   * \returns true if this node is a LayerGroup.
+   * \returns true if this node is a #LayerGroup.
    */
-  bool is_group() const
-  {
-    return this->type == GP_LAYER_TREE_GROUP;
-  }
+  bool is_group() const;
+  /**
+   * \returns true if this node is a #Layer.
+   */
+  bool is_layer() const;
 
   /**
-   * \returns true if this node is a Layer.
+   * \returns this node as a #Layer.
    */
-  bool is_layer() const
-  {
-    return this->type == GP_LAYER_TREE_LEAF;
-  }
-
-  /**
-   * \returns this tree node as a LayerGroup.
-   * \note This results in undefined behavior if the node is not a LayerGroup.
-   */
-  const LayerGroup &as_group() const;
-
-  /**
-   * \returns this tree node as a Layer.
-   * \note This results in undefined behavior if the node is not a Layer.
-   */
+  Layer &as_layer();
   const Layer &as_layer() const;
 
   /**
-   * \returns this tree node as a mutable LayerGroup.
-   * \note This results in undefined behavior if the node is not a LayerGroup.
+   * \returns this node as a #LayerGroup.
    */
-  LayerGroup &as_group_for_write();
-
-  /**
-   * \returns this tree node as a mutable Layer.
-   * \note This results in undefined behavior if the node is not a Layer.
-   */
-  Layer &as_layer_for_write();
+  LayerGroup &as_group();
+  const LayerGroup &as_group() const;
 
   /**
    * \returns the parent layer group or nullptr for the root group.
    */
   LayerGroup *parent_group() const;
+  TreeNode *parent_node() const;
 };
 
 /**
@@ -269,17 +314,9 @@ class Layer : public ::GreasePencilLayer {
   Layer(const Layer &other);
   ~Layer();
 
-  /**
-   * \returns the layer name.
-   */
-  StringRefNull name() const;
-  void set_name(StringRefNull new_name);
-
-  /**
-   * \returns the parent layer group.
-   */
-  LayerGroup &parent_group() const;
-
+ public:
+  /* Define the common functions for #TreeNode. */
+  TREENODE_COMMON_METHODS;
   /**
    * \returns the layer as a `TreeNode`.
    */
@@ -287,18 +324,17 @@ class Layer : public ::GreasePencilLayer {
   TreeNode &as_node();
 
   /**
+   * \returns the parent #LayerGroup of this layer.
+   */
+  LayerGroup &parent_group() const;
+
+  /**
    * \returns the frames mapping.
    */
   const Map<FramesMapKey, GreasePencilFrame> &frames() const;
   Map<FramesMapKey, GreasePencilFrame> &frames_for_write();
 
-  bool is_visible() const;
-  bool is_locked() const;
-  bool is_editable() const;
   bool is_empty() const;
-  bool is_selected() const;
-
-  bool use_onion_skinning() const;
 
   /**
    * Adds a new frame into the layer frames map.
@@ -406,12 +442,8 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   ~LayerGroup();
 
  public:
-  StringRefNull name() const;
-  void set_name(StringRefNull new_name);
-
-  bool is_visible() const;
-  bool is_locked() const;
-
+  /* Define the common functions for #TreeNode. */
+  TREENODE_COMMON_METHODS;
   /**
    * \returns the group as a `TreeNode`.
    */
@@ -520,6 +552,53 @@ inline bool Drawing::has_users() const
 {
   return this->runtime->user_count.load(std::memory_order_relaxed) > 0;
 }
+
+inline bool TreeNode::is_group() const
+{
+  return this->type == GP_LAYER_TREE_GROUP;
+}
+inline bool TreeNode::is_layer() const
+{
+  return this->type == GP_LAYER_TREE_LEAF;
+}
+inline bool TreeNode::is_visible() const
+{
+  return ((this->flag & GP_LAYER_TREE_NODE_HIDE) == 0) &&
+         (!this->parent_group() || this->parent_group()->as_node().is_visible());
+}
+inline void TreeNode::set_visible(const bool visible)
+{
+  SET_FLAG_FROM_TEST(this->flag, !visible, GP_LAYER_TREE_NODE_HIDE);
+}
+inline bool TreeNode::is_locked() const
+{
+  return ((this->flag & GP_LAYER_TREE_NODE_LOCKED) != 0) ||
+         (!this->parent_group() || this->parent_group()->as_node().is_locked());
+}
+inline void TreeNode::set_locked(const bool locked)
+{
+  SET_FLAG_FROM_TEST(this->flag, locked, GP_LAYER_TREE_NODE_LOCKED);
+}
+inline bool TreeNode::is_editable() const
+{
+  return this->is_visible() && !this->is_locked();
+}
+inline bool TreeNode::is_selected() const
+{
+  return (this->flag & GP_LAYER_TREE_NODE_SELECT) != 0;
+}
+inline void TreeNode::set_selected(const bool selected)
+{
+  SET_FLAG_FROM_TEST(this->flag, selected, GP_LAYER_TREE_NODE_SELECT);
+}
+inline bool TreeNode::use_onion_skinning() const
+{
+  return ((this->flag & GP_LAYER_TREE_NODE_USE_ONION_SKINNING) != 0);
+}
+inline StringRefNull TreeNode::name() const
+{
+  return this->name_ptr;
+}
 inline const TreeNode &LayerGroup::as_node() const
 {
   return *reinterpret_cast<const TreeNode *>(this);
@@ -538,20 +617,17 @@ inline TreeNode &Layer::as_node()
   return *reinterpret_cast<TreeNode *>(this);
 }
 
-inline StringRefNull Layer::name() const
+TREENODE_COMMON_METHODS_FORWARD_IMPL(Layer);
+inline bool Layer::is_empty() const
 {
-  return this->base.name;
+  return (this->frames().size() == 0);
 }
-
 inline LayerGroup &Layer::parent_group() const
 {
-  return this->base.parent->wrap();
+  return *this->as_node().parent_group();
 }
 
-inline StringRefNull LayerGroup::name() const
-{
-  return this->base.name;
-}
+TREENODE_COMMON_METHODS_FORWARD_IMPL(LayerGroup);
 
 namespace convert {
 

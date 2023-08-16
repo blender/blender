@@ -864,16 +864,9 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* The node already has the new name set. To properly rename the node, we need to first
            * store the new name, restore the old name in the node, and then call the rename
            * function. */
-
-          std::string new_name(node.name);
-          node.name = BLI_strdup(oldname);
-
-          if (node.is_group()) {
-            grease_pencil.rename_group(node.as_group_for_write(), new_name);
-          }
-          else if (node.is_layer()) {
-            grease_pencil.rename_layer(node.as_layer_for_write(), new_name);
-          }
+          std::string new_name(node.name());
+          node.set_name(oldname);
+          grease_pencil.rename_node(node, new_name);
           DEG_id_tag_update(&grease_pencil.id, ID_RECALC_COPY_ON_WRITE);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           break;
@@ -1549,7 +1542,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                   -1,
                                   nullptr);
           UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-          if (!node.parent_group()->is_visible()) {
+          if (node.parent_group() && node.parent_group()->is_visible()) {
             UI_but_flag_enable(bt, UI_BUT_INACTIVE);
           }
         }
@@ -3328,12 +3321,7 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
     case TSE_GREASE_PENCIL_NODE: {
       bke::greasepencil::TreeNode &node =
           tree_element_cast<TreeElementGreasePencilNode>(te)->node();
-      if (node.is_layer()) {
-        return !node.as_layer().is_visible();
-      }
-      if (node.is_group()) {
-        return !node.as_group().is_visible();
-      }
+      return !node.is_visible();
     }
   }
 

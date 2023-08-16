@@ -190,11 +190,9 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
         grease_pencil.root_group(), StringRefNull(gpl->info, BLI_strnlen(gpl->info, 128)));
 
     /* Flags. */
-    SET_FLAG_FROM_TEST(new_layer.base.flag, (gpl->flag & GP_LAYER_HIDE), GP_LAYER_TREE_NODE_HIDE);
-    SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_LOCKED), GP_LAYER_TREE_NODE_LOCKED);
-    SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_SELECT), GP_LAYER_TREE_NODE_SELECT);
+    new_layer.set_visible((gpl->flag & GP_LAYER_HIDE) == 0);
+    new_layer.set_locked((gpl->flag & GP_LAYER_LOCKED) != 0);
+    new_layer.set_selected((gpl->flag & GP_LAYER_SELECT) != 0);
     SET_FLAG_FROM_TEST(
         new_layer.base.flag, (gpl->flag & GP_LAYER_FRAMELOCK), GP_LAYER_TREE_NODE_MUTE);
     SET_FLAG_FROM_TEST(

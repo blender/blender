@@ -21,7 +21,7 @@ TreeElementGreasePencilNode::TreeElementGreasePencilNode(TreeElement &legacy_te,
     : AbstractTreeElement(legacy_te), node_(node)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_GREASE_PENCIL_NODE);
-  legacy_te.name = node.name;
+  legacy_te.name = node.name().c_str();
 }
 
 void TreeElementGreasePencilNode::expand(SpaceOutliner &space_outliner) const

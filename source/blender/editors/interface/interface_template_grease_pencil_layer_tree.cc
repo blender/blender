@@ -57,7 +57,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
     Layer &drag_layer = drag_grease_pencil->layer->wrap();
 
     std::string_view drag_name = drag_layer.name();
-    std::string_view drop_name = drop_tree_node_.name;
+    std::string_view drop_name = drop_tree_node_.name();
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
@@ -99,7 +99,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
                        "Inserting should not be possible for layers, only for groups, because "
                        "only groups use DropBehavior::Reorder_and_Insert");
 
-        LayerGroup &drop_group = drop_tree_node_.as_group_for_write();
+        LayerGroup &drop_group = drop_tree_node_.as_group();
         drag_parent.unlink_node(&drag_layer.as_node());
         drop_group.add_layer(&drag_layer);
         return true;
@@ -202,7 +202,7 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   bool rename(StringRefNull new_name) override
   {
-    grease_pencil_.rename_layer(layer_, new_name);
+    grease_pencil_.rename_node(layer_.as_node(), new_name);
     return true;
   }
 
@@ -311,7 +311,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
 
   bool rename(StringRefNull new_name) override
   {
-    grease_pencil_.rename_group(group_, new_name);
+    grease_pencil_.rename_node(group_.as_node(), new_name);
     return true;
   }
 
@@ -354,12 +354,12 @@ void LayerTreeView::build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &
   using namespace blender::bke::greasepencil;
   if (node.is_layer()) {
     LayerViewItem &item = parent.add_tree_item<LayerViewItem>(this->grease_pencil_,
-                                                              node.as_layer_for_write());
+                                                              node.as_layer());
     item.set_collapsed(false);
   }
   else if (node.is_group()) {
-    LayerGroupViewItem &group_item = parent.add_tree_item<LayerGroupViewItem>(
-        this->grease_pencil_, node.as_group_for_write());
+    LayerGroupViewItem &group_item = parent.add_tree_item<LayerGroupViewItem>(this->grease_pencil_,
+                                                                              node.as_group());
     group_item.set_collapsed(false);
     LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
       build_tree_node_recursive(group_item, node_->wrap());

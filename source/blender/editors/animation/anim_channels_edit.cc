@@ -3658,7 +3658,7 @@ static int click_select_channel_grease_pencil_layer(bContext *C,
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(ale->id);
 
   if (selectmode == SELECT_INVERT) {
-    layer->base.flag ^= GP_LAYER_TREE_NODE_SELECT;
+    layer->set_selected(!layer->is_selected());
   }
   else if (selectmode == SELECT_EXTEND_RANGE) {
     ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_EXTEND_RANGE);
@@ -3666,7 +3666,7 @@ static int click_select_channel_grease_pencil_layer(bContext *C,
   }
   else {
     ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
-    layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
+    layer->set_selected(true);
   }
 
   /* Active channel is not changed during range select. */
