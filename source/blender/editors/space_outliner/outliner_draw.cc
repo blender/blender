@@ -864,8 +864,10 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* The node already has the new name set. To properly rename the node, we need to first
            * store the new name, restore the old name in the node, and then call the rename
            * function. */
+
           std::string new_name(node.name);
-          node.name = oldname;
+          node.name = BLI_strdup(oldname);
+
           if (node.is_group()) {
             grease_pencil.rename_group(node.as_group_for_write(), new_name);
           }
