@@ -48,7 +48,7 @@ set(OPENVDB_PATCH ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATC
 if(APPLE)
   set(OPENVDB_PATCH
     ${OPENVDB_PATCH} &&
-    ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_metal.diff
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_metal.diff
   )
 endif()
 
