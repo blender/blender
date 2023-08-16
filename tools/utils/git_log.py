@@ -7,6 +7,7 @@
 import os
 import subprocess
 import datetime
+import re
 
 from typing import (
     List,
@@ -14,6 +15,9 @@ from typing import (
     Optional,
     Tuple,
 )
+
+
+_GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*([^\n]+)$", re.MULTILINE)
 
 
 class GitCommit:
@@ -24,7 +28,6 @@ class GitCommit:
 
         # cached values
         "_author",
-        "_email",
         "_date",
         "_body",
         "_files",
@@ -37,7 +40,6 @@ class GitCommit:
         self._git_dir = git_dir
 
         self._author: Optional[str] = None
-        self._email: Optional[str] = None
         self._date: Optional[datetime.datetime] = None
         self._body: Optional[str] = None
         self._files: Optional[List[bytes]] = None
@@ -50,7 +52,6 @@ class GitCommit:
         (except for diff as it's significantly larger than other members).
         """
         self.author
-        self.email
         self.date
         self.body
         self.files
@@ -99,19 +100,20 @@ class GitCommit:
     def author(self) -> str:
         ret = self._author
         if ret is None:
-            content = self._log_format("%an")[:-1]
+            content = self._log_format("%an <%ae>")[:-1]
             ret = content.decode("utf8", errors="ignore")
             self._author = ret
         return ret
 
     @property
-    def email(self) -> str:
-        ret = self._email
-        if ret is None:
-            content = self._log_format("%ae")[:-1]
-            ret = content.decode("utf8", errors="ignore")
-            self._email = ret
-        return ret
+    def co_authors(self) -> List[str]:
+        authors = []
+        for author in _GIT_COMMIT_COAUTHORS_RE.findall(self.body):
+            if not ("<" in author and ">" in author):
+                # Always follow `Name <>` spec, even when no email is given.
+                author = author + " <>"
+            authors.append(author)
+        return authors
 
     @property
     def date(self) -> datetime.datetime:
