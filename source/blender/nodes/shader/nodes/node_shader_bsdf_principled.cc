@@ -103,7 +103,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR);
 #define SOCK_CLEARCOAT_ROUGHNESS_ID 16
-  b.add_input<decl::Float>("IOR").default_value(1.45f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("IOR").default_value(1.45f).min(1.0f).max(1000.0f);
 #define SOCK_IOR_ID 17
   b.add_input<decl::Float>("Transmission")
       .default_value(0.0f)
