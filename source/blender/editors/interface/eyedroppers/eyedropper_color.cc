@@ -315,7 +315,6 @@ static bool eyedropper_cryptomatte_sample_fl(bContext *C,
 
 void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   ScrArea *area = nullptr;
 
   int mval[2];
