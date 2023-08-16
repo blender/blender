@@ -15,6 +15,9 @@
 # See python fnmatch module documentation for more information.
 #
 # Please keep the list sorted.
+#
+# The individual authors section can be regenerated using:
+#   make authors
 
 # BEGIN individuals section.
 Aaron Carlisle <carlisle.aaron00@gmail.com>

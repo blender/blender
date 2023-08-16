@@ -96,6 +96,9 @@ Spell Checkers
 Utilities
    Not associated with building Blender.
 
+   * authors:
+     Update the AUTHORS file using GIT history.
+
    * icons:
      Updates PNG icons from SVG files.
 
@@ -547,6 +550,8 @@ source_archive_complete: .FORCE
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 
+authors: .FORCE
+	@$(PYTHON) ./tools/utils/authors_git_gen.py
 
 INKSCAPE_BIN?="inkscape"
 icons: .FORCE
