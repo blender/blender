@@ -1367,12 +1367,13 @@ static int collection_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEven
     }
 
     if (from) {
-      DEG_id_tag_update(&from->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
+      DEG_id_tag_update(&from->id,
+                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
     }
   }
 
   /* Update dependency graph. */
-  DEG_id_tag_update(&data.to->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&data.to->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_HIERARCHY);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
