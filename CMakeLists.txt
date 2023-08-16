@@ -650,7 +650,8 @@ if(NOT APPLE)
   # Radeon VII (gfx906) not currently working with HIP SDK, so left out of the list.
   set(CYCLES_HIP_BINARIES_ARCH
     gfx900 gfx90c gfx902
-    gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035
+    gfx1010 gfx1011 gfx1012
+    gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 gfx1036
     gfx1100 gfx1101 gfx1102
     CACHE STRING "AMD HIP architectures to build binaries for"
   )
