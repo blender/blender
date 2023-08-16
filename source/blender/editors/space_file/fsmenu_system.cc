@@ -234,9 +234,9 @@ static void fsmenu_add_windows_folder(FSMenu *fsmenu,
   char line[FILE_MAXDIR];
   if (SHGetKnownFolderPath(rfid, 0, nullptr, &pPath) == S_OK) {
     BLI_strncpy_wchar_as_utf8(line, pPath, FILE_MAXDIR);
-    CoTaskMemFree(pPath);
     fsmenu_insert_entry(fsmenu, category, line, name, icon, flag);
   }
+  CoTaskMemFree(pPath);
 }
 #endif
 

@@ -35,7 +35,7 @@ const char *GHOST_SystemPathsWin32::getSystemDir(int, const char *versionstr) co
     strcat(knownpath, versionstr);
     return knownpath;
   }
-
+  CoTaskMemFree(knownpath_16);
   return nullptr;
 }
 
@@ -54,7 +54,7 @@ const char *GHOST_SystemPathsWin32::getUserDir(int, const char *versionstr) cons
     strcat(knownpath, versionstr);
     return knownpath;
   }
-
+  CoTaskMemFree(knownpath_16);
   return nullptr;
 }
 
@@ -100,7 +100,6 @@ const char *GHOST_SystemPathsWin32::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     CoTaskMemFree(knownpath_16);
     return knownpath;
   }
-
   CoTaskMemFree(knownpath_16);
   return nullptr;
 }
