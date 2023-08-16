@@ -6,7 +6,7 @@
 """
 Generates 'userdef_default_theme.c' from a 'userpref.blend' file.
 
-Pass your user preferenes blend file to this script to update the C source file.
+Pass your user preferences blend file to this script to update the C source file.
 
 eg:
 
