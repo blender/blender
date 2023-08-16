@@ -42,4 +42,4 @@ std::ostream &operator<<(std::ostream &stream, const CartesianBasis &rot)
   return stream << "CartesianBasis" << rot.axes;
 }
 
-} // namespace blender::math
+}  // namespace blender::math

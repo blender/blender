@@ -20,4 +20,4 @@ std::ostream &operator<<(std::ostream &stream, StringRefNull ref)
   return stream;
 }
 
-}
+}  // namespace blender

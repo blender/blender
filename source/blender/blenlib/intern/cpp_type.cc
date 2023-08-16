@@ -27,4 +27,4 @@ void CPPType::print_or_default(const void *value,
   }
 }
 
-} // namespace blender
+}  // namespace blender

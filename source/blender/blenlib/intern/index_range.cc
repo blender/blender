@@ -14,4 +14,4 @@ std::ostream &operator<<(std::ostream &stream, IndexRange range)
   return stream;
 }
 
-} // namespace blender
+}  // namespace blender
