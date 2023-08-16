@@ -755,6 +755,7 @@ bool nodeGroupPoll(const struct bNodeTree *nodetree,
 void node_type_base_custom(struct bNodeType *ntype,
                            const char *idname,
                            const char *name,
+                           const char *enum_name,
                            short nclass);
 
 /**

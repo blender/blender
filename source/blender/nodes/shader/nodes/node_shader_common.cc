@@ -85,7 +85,7 @@ void register_node_type_sh_group()
   /* NOTE: cannot use #sh_node_type_base for node group, because it would map the node type
    * to the shared #NODE_GROUP integer type id. */
 
-  node_type_base_custom(&ntype, "ShaderNodeGroup", "Group", NODE_CLASS_GROUP);
+  node_type_base_custom(&ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.type = NODE_GROUP;
   ntype.poll = sh_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
