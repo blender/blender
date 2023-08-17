@@ -13,6 +13,8 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
+#include "BKE_main.h"
+#include "BKE_packedFile.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -76,21 +78,46 @@ static std::string cache_image_file(
 
 std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, ImageUser *iuser)
 {
+  char str[FILE_MAX];
   std::string file_path;
+  bool do_check_extension = false;
   if (image->source == IMA_SRC_GENERATED) {
     file_path = cache_image_file(bmain, scene, image, iuser, false);
   }
   else if (BKE_image_has_packedfile(image)) {
-    file_path = cache_image_file(bmain, scene, image, iuser, true);
+    do_check_extension = true;
+    std::string dir_path = image_cache_file_path();
+    char *cached_path;
+    char subfolder[FILE_MAXDIR];
+    snprintf(subfolder, sizeof(subfolder), "unpack_%p", image);
+    LISTBASE_FOREACH (ImagePackedFile *, ipf, &image->packedfiles) {
+      char path[FILE_MAX];
+      BLI_path_join(path, sizeof(path), dir_path.c_str(), subfolder, BLI_path_basename(ipf->filepath));
+      cached_path = BKE_packedfile_unpack_to_file(nullptr,
+                    BKE_main_blendfile_path(bmain),
+                    dir_path.c_str(),
+                    path,
+                    ipf->packedfile,
+                    PF_WRITE_LOCAL);
+
+      /* Take first succesfully unpacked image. */
+      if (cached_path != nullptr) {
+        if (file_path.empty()) {
+          file_path = cached_path;
+        }
+        MEM_freeN(cached_path);
+      }
+    }
   }
   else {
-    char str[FILE_MAX];
+    do_check_extension = true;
     BKE_image_user_file_path_ex(bmain, iuser, image, str, false, true);
     file_path = str;
+  }
 
-    if (!pxr::HioImageRegistry::GetInstance().IsSupportedImageFile(file_path)) {
-      file_path = cache_image_file(bmain, scene, image, iuser, true);
-    }
+  if (do_check_extension && !pxr::HioImageRegistry::GetInstance().IsSupportedImageFile(file_path))
+  {
+    file_path = cache_image_file(bmain, scene, image, iuser, true);
   }
 
   CLOG_INFO(LOG_HYDRA_SCENE, 1, "%s -> %s", image->id.name, file_path.c_str());
