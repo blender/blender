@@ -399,6 +399,46 @@ inline int get_location_count(const Type &type)
   return 1;
 }
 
+static void print_interface_as_attributes(std::ostream &os,
+                                          const std::string &prefix,
+                                          const StageInterfaceInfo &iface,
+                                          int &location)
+{
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp) << " "
+       << to_string(inout.type) << " " << inout.name << ";\n";
+    location += get_location_count(inout.type);
+  }
+}
+
+static void print_interface_as_struct(std::ostream &os,
+                                      const std::string &prefix,
+                                      const StageInterfaceInfo &iface,
+                                      int &location,
+                                      const StringRefNull &suffix)
+{
+  std::string struct_name = prefix + iface.name;
+  std::string interp_qualifier;
+  if (prefix == "in") {
+    interp_qualifier = to_string(Interpolation::FLAT);
+  }
+  else {
+    interp_qualifier = to_string(iface.inouts[0].interp);
+  }
+
+  os << "struct " << struct_name << " {\n";
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    os << "  " << to_string(inout.type) << " " << inout.name << ";\n";
+  }
+  os << "};\n";
+  os << "layout(location=" << location << ") " << prefix << " " << interp_qualifier << " "
+     << struct_name << " " << iface.instance_name << suffix << ";\n";
+
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    location += get_location_count(inout.type);
+  }
+}
+
 static void print_interface(std::ostream &os,
                             const std::string &prefix,
                             const StageInterfaceInfo &iface,
@@ -406,44 +446,10 @@ static void print_interface(std::ostream &os,
                             const StringRefNull &suffix = "")
 {
   if (iface.instance_name.is_empty()) {
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      os << "layout(location=" << location << ") " << prefix << " " << to_string(inout.interp)
-         << " " << to_string(inout.type) << " " << inout.name << ";\n";
-      location += get_location_count(inout.type);
-    }
+    print_interface_as_attributes(os, prefix, iface, location);
   }
   else {
-    std::string struct_name = prefix + iface.name;
-    std::string iface_attribute;
-    if (iface.instance_name.is_empty()) {
-      iface_attribute = "iface_";
-    }
-    else {
-      iface_attribute = iface.instance_name;
-    }
-    std::string flat = "";
-    if (prefix == "in") {
-      flat = "flat ";
-    }
-    const bool add_defines = iface.instance_name.is_empty();
-
-    os << "struct " << struct_name << " {\n";
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      os << "  " << to_string(inout.type) << " " << inout.name << ";\n";
-    }
-    os << "};\n";
-    os << "layout(location=" << location << ") " << prefix << " " << flat << struct_name << " "
-       << iface_attribute << suffix << ";\n";
-
-    if (add_defines) {
-      for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-        os << "#define " << inout.name << " (" << iface_attribute << "." << inout.name << ")\n";
-      }
-    }
-
-    for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
-      location += get_location_count(inout.type);
-    }
+    print_interface_as_struct(os, prefix, iface, location, suffix);
   }
 }
 
