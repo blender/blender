@@ -1148,6 +1148,17 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 
       STRNCPY(view_settings->look, default_look_name);
     }
+    else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
+      printf(
+          "Color management: %s look \"%s\" is not compatible with view \"%s\", setting default "
+          "\"%s\".\n",
+          what,
+          view_settings->look,
+          view_settings->view_transform,
+          default_look->name);
+
+      STRNCPY(view_settings->look, default_look->name);
+    }
   }
 
   /* OCIO_TODO: move to do_versions() */
