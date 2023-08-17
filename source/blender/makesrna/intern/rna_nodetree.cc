@@ -8826,14 +8826,35 @@ static void def_cmp_kuwahara(StructRNA *srna)
   RNA_def_property_ui_text(prop, "", "Variation of Kuwahara filter to use");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "smoothing", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "smoothing");
+  prop = RNA_def_property(srna, "uniformity", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "uniformity");
   RNA_def_property_range(prop, 0.0, 50.0);
   RNA_def_property_ui_range(prop, 0, 50, 1, -1);
   RNA_def_property_ui_text(prop,
-                           "Smoothing",
-                           "Smoothing degree before applying filter. Higher values remove details "
-                           "and give smoother edges");
+                           "Uniformity",
+                           "Controls the uniformity of the direction of the filter. Higher values "
+                           "produces more uniform directions");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "sharpness", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "sharpness");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+  RNA_def_property_ui_text(prop,
+                           "Sharpness",
+                           "Controls the sharpness of the filter. 0 means completely smooth while "
+                           "1 means completely sharp");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "eccentricity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "eccentricity");
+  RNA_def_property_range(prop, 0.0f, 2.0f);
+  RNA_def_property_ui_range(prop, 0.0f, 2.0f, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop,
+      "Eccentricity",
+      "Controls how directional the filter is. 0 means the filter is completely omnidirectional "
+      "while 2 means it is maximally directed along the edges of the image");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
