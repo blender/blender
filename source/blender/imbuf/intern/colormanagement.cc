@@ -1155,9 +1155,9 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
           what,
           view_settings->look,
           view_settings->view_transform,
-          default_look->name);
+          default_look_name);
 
-      STRNCPY(view_settings->look, default_look->name);
+      STRNCPY(view_settings->look, default_look_name);
     }
   }
 
