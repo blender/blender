@@ -66,9 +66,11 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire_clipped)
     .do_static_compilation(true)
     .additional_info("overlay_outline_prepass_wire", "drw_clipped");
 
-GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_gpencil_iface, "gp_interp")
+GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_gpencil_noperspective_iface,
+                          "gp_interp_noperspective")
     .no_perspective(Type::VEC2, "thickness")
-    .no_perspective(Type::FLOAT, "hardness")
+    .no_perspective(Type::FLOAT, "hardness");
+GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_gpencil_flat_iface, "gp_interp_flat")
     .flat(Type::VEC2, "aspect")
     .flat(Type::VEC4, "sspos");
 
@@ -76,7 +78,8 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_gpencil)
     .do_static_compilation(true)
     .push_constant(Type::BOOL, "isTransform")
     .vertex_out(overlay_outline_prepass_iface)
-    .vertex_out(overlay_outline_prepass_gpencil_iface)
+    .vertex_out(overlay_outline_prepass_gpencil_flat_iface)
+    .vertex_out(overlay_outline_prepass_gpencil_noperspective_iface)
     .vertex_source("overlay_outline_prepass_gpencil_vert.glsl")
     .push_constant(Type::BOOL, "gpStrokeOrder3d") /* TODO(fclem): Move to a GPencil object UBO. */
     .push_constant(Type::VEC4, "gpDepthPlane")    /* TODO(fclem): Move to a GPencil object UBO. */
