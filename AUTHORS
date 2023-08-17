@@ -17,7 +17,7 @@
 # Please keep the list sorted.
 #
 # The individual authors section can be regenerated using:
-#   make authors
+#   python ./tools/utils/authors_git_gen.py
 
 # BEGIN individuals section.
 Aaron Carlisle <carlisle.aaron00@gmail.com>
