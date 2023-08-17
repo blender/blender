@@ -1355,7 +1355,7 @@ bool IMB_colormanagement_space_is_data(ColorSpace *colorspace)
 
 static void colormanage_ensure_srgb_scene_linear_info(ColorSpace *colorspace)
 {
-  if (!colorspace->info.cached) {
+  if (colorspace && !colorspace->info.cached) {
     OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
     OCIO_ConstColorSpaceRcPtr *ocio_colorspace = OCIO_configGetColorSpace(config,
                                                                           colorspace->name);
