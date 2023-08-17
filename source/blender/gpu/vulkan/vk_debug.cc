@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include <sstream>
+
 #include "BKE_global.h"
 #include "CLG_log.h"
 

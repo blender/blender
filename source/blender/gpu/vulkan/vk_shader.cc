@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include <sstream>
+
 #include "vk_shader.hh"
 
 #include "vk_backend.hh"
