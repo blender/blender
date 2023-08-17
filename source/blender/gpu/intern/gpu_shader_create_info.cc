@@ -33,6 +33,58 @@ using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
 static CreateInfoDictionnary *g_create_infos = nullptr;
 static InterfaceDictionnary *g_interfaces = nullptr;
 
+/* -------------------------------------------------------------------- */
+/** \name Check Backend Support
+ *
+ * \{ */
+
+static bool is_vulkan_compatible_interface(const StageInterfaceInfo &iface)
+{
+  if (iface.instance_name.is_empty()) {
+    return true;
+  }
+
+  bool use_flat = false;
+  bool use_smooth = false;
+  bool use_noperspective = false;
+  for (const StageInterfaceInfo::InOut &attr : iface.inouts) {
+    switch (attr.interp) {
+      case Interpolation::FLAT:
+        use_flat = true;
+        break;
+      case Interpolation::SMOOTH:
+        use_smooth = true;
+        break;
+      case Interpolation::NO_PERSPECTIVE:
+        use_noperspective = true;
+        break;
+    }
+  }
+  int num_used_interpolation_types = (use_flat ? 1 : 0) + (use_smooth ? 1 : 0) +
+                                     (use_noperspective ? 1 : 0);
+
+  return num_used_interpolation_types <= 1;
+}
+
+bool ShaderCreateInfo::is_vulkan_compatible() const
+{
+  /* Vulkan doesn't support setting an interpolation mode per attribute in a struct. */
+  for (const StageInterfaceInfo *iface : vertex_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+  for (const StageInterfaceInfo *iface : geometry_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/** \} */
+
 void ShaderCreateInfo::finalize()
 {
   if (finalized_) {

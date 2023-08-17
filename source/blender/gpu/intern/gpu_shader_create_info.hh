@@ -882,6 +882,7 @@ struct ShaderCreateInfo {
   void finalize();
 
   std::string check_error() const;
+  bool is_vulkan_compatible() const;
 
   /** Error detection that some backend compilers do not complain about. */
   void validate_merge(const ShaderCreateInfo &other_info);
