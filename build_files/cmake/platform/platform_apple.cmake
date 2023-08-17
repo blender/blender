@@ -145,9 +145,10 @@ endif()
 
 # FreeType compiled with Brotli compression for woff2.
 find_package(Freetype REQUIRED)
-list(APPEND FREETYPE_LIBRARIES
+set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/libbrotlicommon-static.a
-  ${LIBDIR}/brotli/lib/libbrotlidec-static.a)
+  ${LIBDIR}/brotli/lib/libbrotlidec-static.a
+)
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)

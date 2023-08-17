@@ -364,9 +364,12 @@ set(FREETYPE_INCLUDE_DIRS
 )
 set(FREETYPE_LIBRARIES
   ${LIBDIR}/freetype/lib/freetype2ST.lib
+)
+set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/brotlidec-static.lib
   ${LIBDIR}/brotli/lib/brotlicommon-static.lib
 )
+
 windows_find_package(Freetype REQUIRED)
 
 if(WITH_FFTW3)

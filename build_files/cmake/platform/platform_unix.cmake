@@ -144,6 +144,9 @@ if(NOT WITH_SYSTEM_FREETYPE)
     # list(APPEND FREETYPE_LIBRARIES
     #   ${BROTLI_LIBRARIES}
     # )
+  else()
+    # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+    set(BROTLI_LIBRARIES "")
   endif()
   check_freetype_for_brotli()
 endif()
@@ -604,6 +607,8 @@ if(WITH_SYSTEM_FREETYPE)
     message(FATAL_ERROR "Failed finding system FreeType version!")
   endif()
   check_freetype_for_brotli()
+  # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+  set(BROTLI_LIBRARIES "")
 endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
