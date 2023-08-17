@@ -121,6 +121,7 @@ void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_ease(struct wmOperatorType *ot);
 void GRAPH_OT_blend_offset(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_ease(struct wmOperatorType *ot);
+void GRAPH_OT_match_slope(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
 void GRAPH_OT_butterworth_smooth(struct wmOperatorType *ot);
