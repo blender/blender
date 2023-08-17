@@ -1739,6 +1739,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
     CXX_WARN_UNUSED_PARAMETER -Wunused-parameter
     CXX_WARN_WRITE_STRINGS -Wwrite-strings
     CXX_WARN_UNDEF -Wundef
+    CXX_WARN_COMMA_SUBSCRIPT -Wcomma-subscript
     CXX_WARN_FORMAT_SIGN -Wformat-signedness
     CXX_WARN_RESTRICT -Wrestrict
     CXX_WARN_NO_SUGGEST_OVERRIDE -Wno-suggest-override
