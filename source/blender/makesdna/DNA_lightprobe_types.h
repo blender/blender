@@ -81,10 +81,6 @@ typedef struct LightProbe {
    */
   int resolution;
 
-  void *_pad2;
-
-  /** Image to use on as lighting data. */
-  struct Image *image;
   /** Object visibility group, inclusive or exclusive. */
   struct Collection *visibility_grp;
 } LightProbe;
