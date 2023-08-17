@@ -418,12 +418,13 @@ static void print_interface_as_struct(std::ostream &os,
                                       const StringRefNull &suffix)
 {
   std::string struct_name = prefix + iface.name;
-  std::string interp_qualifier;
-  if (prefix == "in") {
-    interp_qualifier = to_string(Interpolation::FLAT);
-  }
-  else {
-    interp_qualifier = to_string(iface.inouts[0].interp);
+  Interpolation qualifier = iface.inouts[0].interp;
+
+  /* Workaround for shader that have not been converted yet. */
+  for (const StageInterfaceInfo::InOut &inout : iface.inouts) {
+    if (inout.interp == Interpolation::FLAT) {
+      qualifier = Interpolation::FLAT;
+    }
   }
 
   os << "struct " << struct_name << " {\n";
@@ -431,7 +432,7 @@ static void print_interface_as_struct(std::ostream &os,
     os << "  " << to_string(inout.type) << " " << inout.name << ";\n";
   }
   os << "};\n";
-  os << "layout(location=" << location << ") " << prefix << " " << interp_qualifier << " "
+  os << "layout(location=" << location << ") " << prefix << " " << to_string(qualifier) << " "
      << struct_name << " " << iface.instance_name << suffix << ";\n";
 
   for (const StageInterfaceInfo::InOut &inout : iface.inouts) {

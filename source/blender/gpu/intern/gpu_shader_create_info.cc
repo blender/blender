@@ -63,6 +63,12 @@ static bool is_vulkan_compatible_interface(const StageInterfaceInfo &iface)
   int num_used_interpolation_types = (use_flat ? 1 : 0) + (use_smooth ? 1 : 0) +
                                      (use_noperspective ? 1 : 0);
 
+#if 0
+  if (num_used_interpolation_types > 1) {
+    std::cout << "'" << iface.name << "' uses multiple interpolation types\n";
+  }
+#endif
+
   return num_used_interpolation_types <= 1;
 }
 
