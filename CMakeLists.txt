@@ -1973,6 +1973,12 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   unset(_WARNINGS)
 endif()
 
+# Xcode enables additional warning flags by default. Disable some to match
+# command line build and other platforms more closely.
+if(XCODE)
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_WARN_64_TO_32_BIT_CONVERSION NO)
+endif()
+
 # ensure python header is found since detection can fail, this could happen
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
