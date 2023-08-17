@@ -1190,15 +1190,15 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
     BLI_freelistN(&segments);
   }
 
-  if(!all_segments_valid) {
-    if (factor >= 0){
+  if (!all_segments_valid) {
+    if (factor >= 0) {
       WM_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection.");
     }
     else {
       WM_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection.");
     }
   }
-  
+
   ANIM_animdata_update(ac, &anim_data);
   ANIM_animdata_freelist(&anim_data);
 }
