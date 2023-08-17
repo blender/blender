@@ -52,7 +52,7 @@ FIND_LIBRARY(USD_LIBRARY
   DOC "Universal Scene Description (USD) monolithic library"
 )
 
-IF(${USD_LIBRARY_NOTFOUND})
+IF(NOT USD_LIBRARY)
   set(USD_FOUND FALSE)
 ELSE()
   # handle the QUIETLY and REQUIRED arguments and set USD_FOUND to TRUE if
