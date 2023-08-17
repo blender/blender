@@ -29,7 +29,7 @@ void main()
                               interp.curves_time_width);
 
   interp.N = cross(interp.curves_tangent, interp.curves_binormal);
-  interp.curves_strand_id = hair_get_strand_id();
+  interp_flat.curves_strand_id = hair_get_strand_id();
   interp.barycentric_coords = hair_get_barycentric();
 #ifdef MAT_VELOCITY
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve

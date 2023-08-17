@@ -64,7 +64,7 @@ void init_globals_curves()
   g_data.is_strand = true;
   g_data.hair_time = interp.curves_time;
   g_data.hair_thickness = interp.curves_thickness;
-  g_data.hair_strand_id = interp.curves_strand_id;
+  g_data.hair_strand_id = interp_flat.curves_strand_id;
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_CURVES)
   g_data.barycentric_coords = hair_resolve_barycentric(interp.barycentric_coords);
 #endif
@@ -120,7 +120,7 @@ void init_interface()
   interp.curves_time = 0.0;
   interp.curves_time_width = 0.0;
   interp.curves_thickness = 0.0;
-  interp.curves_strand_id = 0;
+  interp_flat.curves_strand_id = 0;
   drw_ResourceID_iface.resource_index = resource_id;
 #endif
 }

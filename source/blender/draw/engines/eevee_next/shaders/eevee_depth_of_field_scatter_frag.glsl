@@ -12,24 +12,24 @@
 
 void main()
 {
-  vec4 coc4 = vec4(interp.color_and_coc1.w,
-                   interp.color_and_coc2.w,
-                   interp.color_and_coc3.w,
-                   interp.color_and_coc4.w);
+  vec4 coc4 = vec4(interp_flat.color_and_coc1.w,
+                   interp_flat.color_and_coc2.w,
+                   interp_flat.color_and_coc3.w,
+                   interp_flat.color_and_coc4.w);
   vec4 shapes;
   if (use_bokeh_lut) {
-    shapes = vec4(texture(bokeh_lut_tx, interp.rect_uv1).r,
-                  texture(bokeh_lut_tx, interp.rect_uv2).r,
-                  texture(bokeh_lut_tx, interp.rect_uv3).r,
-                  texture(bokeh_lut_tx, interp.rect_uv4).r);
+    shapes = vec4(texture(bokeh_lut_tx, interp_noperspective.rect_uv1).r,
+                  texture(bokeh_lut_tx, interp_noperspective.rect_uv2).r,
+                  texture(bokeh_lut_tx, interp_noperspective.rect_uv3).r,
+                  texture(bokeh_lut_tx, interp_noperspective.rect_uv4).r);
   }
   else {
-    shapes = vec4(length(interp.rect_uv1),
-                  length(interp.rect_uv2),
-                  length(interp.rect_uv3),
-                  length(interp.rect_uv4));
+    shapes = vec4(length(interp_noperspective.rect_uv1),
+                  length(interp_noperspective.rect_uv2),
+                  length(interp_noperspective.rect_uv3),
+                  length(interp_noperspective.rect_uv4));
   }
-  shapes *= interp.distance_scale;
+  shapes *= interp_flat.distance_scale;
   /* Becomes signed distance field in pixel units. */
   shapes -= coc4;
   /* Smooth the edges a bit to fade out the undersampling artifacts. */
@@ -52,8 +52,8 @@ void main()
     shapes *= variance * safe_rcp(variance + sqr(max(coc4 * correction_fac - mean, 0.0)));
   }
 
-  out_color = (interp.color_and_coc1 * shapes[0] + interp.color_and_coc2 * shapes[1] +
-               interp.color_and_coc3 * shapes[2] + interp.color_and_coc4 * shapes[3]);
+  out_color = (interp_flat.color_and_coc1 * shapes[0] + interp_flat.color_and_coc2 * shapes[1] +
+               interp_flat.color_and_coc3 * shapes[2] + interp_flat.color_and_coc4 * shapes[3]);
   /* Do not accumulate alpha. This has already been accumulated by the gather pass. */
   out_color.a = 0.0;
 

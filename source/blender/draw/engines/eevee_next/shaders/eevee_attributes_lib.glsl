@@ -184,7 +184,7 @@ int g_curves_attr_id = 0;
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id()
 {
-  int id = interp.curves_strand_id;
+  int id = interp_flat.curves_strand_id;
   if (drw_curves.is_point_attribute[g_curves_attr_id][0] != 0u) {
 #  ifdef COMMON_HAIR_LIB
     id = hair_get_base_id();
@@ -202,11 +202,11 @@ vec4 attr_load_tangent(samplerBuffer cd_buf)
 }
 vec3 attr_load_uv(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, interp.curves_strand_id).rgb;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgb;
 }
 vec4 attr_load_color(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, interp.curves_strand_id).rgba;
+  return texelFetch(cd_buf, interp_flat.curves_strand_id).rgba;
 }
 vec4 attr_load_vec4(samplerBuffer cd_buf)
 {

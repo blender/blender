@@ -41,7 +41,8 @@ GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
 
 GPU_SHADER_INTERFACE_INFO(eevee_surf_point_cloud_iface, "point_cloud_interp")
     .smooth(Type::FLOAT, "radius")
-    .smooth(Type::VEC3, "position")
+    .smooth(Type::VEC3, "position");
+GPU_SHADER_INTERFACE_INFO(eevee_surf_point_cloud_flat_iface, "point_cloud_interp_flat")
     .flat(Type::INT, "id");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
@@ -49,10 +50,11 @@ GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
     .define("MAT_GEOM_POINT_CLOUD")
     .vertex_source("eevee_geom_point_cloud_vert.glsl")
     .vertex_out(eevee_surf_point_cloud_iface)
+    .vertex_out(eevee_surf_point_cloud_flat_iface)
     /* TODO(Miguel Pozo): Remove once we get rid of old EEVEE. */
     .define("pointRadius", "point_cloud_interp.radius")
     .define("pointPosition", "point_cloud_interp.position")
-    .define("pointID", "point_cloud_interp.id")
+    .define("pointID", "point_cloud_interp_flat.id")
     .additional_info("draw_pointcloud_new",
                      "draw_modelmat_new",
                      "draw_resource_id_varying",
@@ -95,7 +97,8 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_iface, "interp")
     .smooth(Type::VEC3, "curves_binormal")
     .smooth(Type::FLOAT, "curves_time")
     .smooth(Type::FLOAT, "curves_time_width")
-    .smooth(Type::FLOAT, "curves_thickness")
+    .smooth(Type::FLOAT, "curves_thickness");
+GPU_SHADER_INTERFACE_INFO(eevee_surf_flat_iface, "interp_flat")
     .flat(Type::INT, "curves_strand_id");
 
 #define image_out(slot, qualifier, format, name) \
@@ -115,6 +118,7 @@ GPU_SHADER_CREATE_INFO(eevee_cryptomatte_out)
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
     /* Direct output. (Emissive, Holdout) */
@@ -135,6 +139,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     /* Early fragment test is needed for render passes support for forward surfaces. */
     /* NOTE: This removes the possibility of using gl_FragDepth. */
     .early_fragment_test(true)
@@ -157,6 +162,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_forward)
 
 GPU_SHADER_CREATE_INFO(eevee_surf_capture)
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     .define("MAT_CAPTURE")
     .storage_buf(SURFEL_BUF_SLOT, Qualifier::WRITE, "Surfel", "surfel_buf[]")
     .storage_buf(CAPTURE_BUF_SLOT, Qualifier::READ_WRITE, "CaptureInfoData", "capture_info_buf")
@@ -166,11 +172,13 @@ GPU_SHADER_CREATE_INFO(eevee_surf_capture)
 GPU_SHADER_CREATE_INFO(eevee_surf_depth)
     .define("MAT_DEPTH")
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     .fragment_source("eevee_surf_depth_frag.glsl")
     .additional_info("eevee_sampling_data", "eevee_camera", "eevee_utility_texture");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     .push_constant(Type::FLOAT, "world_opacity_fade")
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
@@ -185,6 +193,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
     .define("DRW_VIEW_LEN", "64")
     .define("MAT_SHADOW")
     .vertex_out(eevee_surf_iface)
+    .vertex_out(eevee_surf_flat_iface)
     .vertex_out(eevee_shadow_iface)
     .sampler(SHADOW_RENDER_MAP_SLOT, ImageType::UINT_2D_ARRAY, "shadow_render_map_tx")
     .image(SHADOW_ATLAS_SLOT,

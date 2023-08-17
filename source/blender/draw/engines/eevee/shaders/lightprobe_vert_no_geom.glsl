@@ -22,14 +22,15 @@ void main()
                                  vec3(0.0, 0.0, -1.0),
                                  vec3(0.0, -1.0, 0.0),
                                  vec3(0.0, -1.0, 0.0));
-  geom_iface.fFace = gl_InstanceID;
+  geom_iface_flat.fFace = gl_InstanceID;
   gl_Position = vec4(pos.xyz, 1.0);
-  geom_iface.worldPosition = x_axis[geom_iface.fFace] * pos.x + y_axis[geom_iface.fFace] * pos.y +
-                             maj_axes[geom_iface.fFace];
+  geom_iface.worldPosition = x_axis[geom_iface_flat.fFace] * pos.x +
+                             y_axis[geom_iface_flat.fFace] * pos.y +
+                             maj_axes[geom_iface_flat.fFace];
 
 #ifdef GPU_METAL
   /* In the Metal API, gl_Layer equivalent is specified in the vertex shader for multilayered
    * rendering support. */
-  gpu_Layer = Layer + geom_iface.fFace;
+  gpu_Layer = Layer + geom_iface_flat.fFace;
 #endif
 }

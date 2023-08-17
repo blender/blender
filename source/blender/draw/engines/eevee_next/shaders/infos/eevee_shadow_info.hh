@@ -84,7 +84,8 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
 
 GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_iface, "interp")
     .smooth(Type::VEC3, "P")
-    .smooth(Type::VEC3, "vP")
+    .smooth(Type::VEC3, "vP");
+GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_flat_iface, "interp_flat")
     .flat(Type::VEC3, "ls_aabb_min")
     .flat(Type::VEC3, "ls_aabb_max");
 
@@ -99,6 +100,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
     .push_constant(Type::IVEC2, "fb_resolution")
     .push_constant(Type::INT, "fb_lod")
     .vertex_out(eevee_shadow_tag_transparent_iface)
+    .vertex_out(eevee_shadow_tag_transparent_flat_iface)
     .additional_info("eevee_shared",
                      "draw_resource_id_varying",
                      "draw_view",
