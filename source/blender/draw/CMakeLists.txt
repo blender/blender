@@ -29,7 +29,9 @@ set(INC
 
   ../../../intern/clog
   ../../../intern/opensubdiv
+)
 
+set(INC_SYS
 )
 
 set(SRC

@@ -37,7 +37,8 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
 )
 
-if(WITH_OPENMP_STATIC)
+
+if(WITH_OPENMP AND WITH_OPENMP_STATIC)
   list(APPEND LIB
     ${OpenMP_LIBRARIES}
   )

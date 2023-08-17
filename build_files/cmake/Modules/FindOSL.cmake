@@ -24,6 +24,13 @@ ELSE()
   SET(OSL_ROOT_DIR "")
 ENDIF()
 
+# If `OSLHOME` was defined in the environment, use it.
+IF(DEFINED ENV{OSLHOME})
+  SET(OSL_HOME_DIR $ENV{OSLHOME})
+ELSE()
+  SET(OSL_HOME_DIR "")
+ENDIF()
+
 SET(_osl_FIND_COMPONENTS
   oslnoise
   oslcomp
@@ -83,7 +90,7 @@ FIND_PATH(OSL_SHADER_DIR
   HINTS
     ${OSL_ROOT_DIR}
     ${OSL_SHADER_HINT}
-    $ENV{OSLHOME}
+    ${OSL_HOME_DIR}
     /usr/share/OSL/
     /usr/include/OSL/
   PATH_SUFFIXES

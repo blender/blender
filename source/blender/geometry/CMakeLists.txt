@@ -11,6 +11,9 @@ set(INC
   ../../../intern/eigen
 )
 
+set(INC_SYS
+)
+
 set(SRC
   intern/add_curves_on_mesh.cc
   intern/curve_constraints.cc

@@ -24,6 +24,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   curves_sculpt_add.cc
   curves_sculpt_brush.cc

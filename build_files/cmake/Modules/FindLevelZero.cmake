@@ -11,8 +11,13 @@
 #                 This can also be an environment variable.
 #  LEVEL_ZERO_FOUND, If false, then don't try to use L0.
 
-IF(NOT LEVEL_ZERO_ROOT_DIR AND NOT $ENV{LEVEL_ZERO_ROOT_DIR} STREQUAL "")
+# If `LEVEL_ZERO_ROOT_DIR` was defined in the environment, use it.
+IF(DEFINED LEVEL_ZERO_ROOT_DIR)
+  # Pass.
+ELSEIF(DEFINED ENV{LEVEL_ZERO_ROOT_DIR})
   SET(LEVEL_ZERO_ROOT_DIR $ENV{LEVEL_ZERO_ROOT_DIR})
+ELSE()
+  SET(LEVEL_ZERO_ROOT_DIR "")
 ENDIF()
 
 SET(_level_zero_search_dirs

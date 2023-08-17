@@ -19,6 +19,9 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
+
 set(SRC
   intern/curves_add.cc
   intern/curves_data.cc

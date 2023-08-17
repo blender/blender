@@ -37,6 +37,10 @@ FIND_PATH(USD_INCLUDE_DIR
   DOC "Universal Scene Description (USD) header files"
 )
 
+IF(NOT DEFINED PXR_LIB_PREFIX)
+  SET(PXR_LIB_PREFIX "")
+ENDIF()
+
 # Since USD 21.11 the libraries are prefixed with "usd_", i.e.
 # "libusd_m.a" became "libusd_usd_m.a".
 # See https://github.com/PixarAnimationStudios/USD/blob/release/CHANGELOG.md#2111---2021-11-01
