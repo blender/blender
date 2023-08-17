@@ -250,7 +250,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     if(WITH_X11_XF86VMODE)
       add_definitions(-DWITH_X11_XF86VMODE)
       list(APPEND INC_SYS
-        ${X11_Xxf86vmode_INCLUDE_PATH}
+        ${X11_Xxf86vm_INCLUDE_PATH}
       )
       list(APPEND LIB
         ${X11_Xxf86vmode_LIB}
