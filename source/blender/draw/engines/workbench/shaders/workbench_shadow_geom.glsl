@@ -43,7 +43,8 @@ void main()
 #endif
 
 #ifdef WORKBENCH_NEXT
-  vec2 facing = vec2(dot(n1, vData[0].light_direction_os), dot(n2, vData[0].light_direction_os));
+  vec2 facing = vec2(dot(n1, vData_flat[0].light_direction_os),
+                     dot(n2, vData_flat[0].light_direction_os));
 #else
   vec2 facing = vec2(dot(n1, lightDirection), dot(n2, lightDirection));
 #endif

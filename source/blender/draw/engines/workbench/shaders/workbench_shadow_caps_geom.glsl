@@ -35,7 +35,7 @@ void main()
 
   vec3 n = cross(v12, v10);
 #ifdef WORKBENCH_NEXT
-  float facing = dot(n, vData[0].light_direction_os);
+  float facing = dot(n, vData_flat[0].light_direction_os);
 #else
   float facing = dot(n, lightDirection);
 #endif
