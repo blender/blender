@@ -146,7 +146,9 @@ std::list<OCIO_GPUDisplayShader> SHADER_CACHE;
 /** \name Shader
  * \{ */
 
-void string_replace_all(std::string &haystack, const std::string &needle, const std::string &other)
+static void string_replace_all(std::string &haystack,
+                               const std::string &needle,
+                               const std::string &other)
 {
   size_t i = 0, index;
   while ((index = haystack.find(needle, i)) != std::string::npos) {
