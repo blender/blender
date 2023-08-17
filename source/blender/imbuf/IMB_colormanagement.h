@@ -343,6 +343,9 @@ const char *IMB_colormanagement_view_get_indexed_name(int index);
 
 int IMB_colormanagement_look_get_named_index(const char *name);
 const char *IMB_colormanagement_look_get_indexed_name(int index);
+const char *IMB_colormanagement_look_get_default_name(void);
+const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
+                                                       const char *look_name);
 
 /** \} */
 
