@@ -45,7 +45,7 @@ void do_vertex(int index, vec4 pos, vec2 ofs, float flip)
   interp.clip = clip_g[index];
 #endif
 
-  interp.smoothline = flip * (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective.smoothline = flip * (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += flip * ofs * pos.w;
 }

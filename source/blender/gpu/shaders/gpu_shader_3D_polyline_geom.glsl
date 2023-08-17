@@ -32,12 +32,12 @@ void do_vertex(const int i, vec4 pos, vec2 ofs)
   interp_out.clip = interp_in[i].clip;
 #endif
 
-  interp_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += ofs * pos.w;
   EmitVertex();
 
-  interp_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy -= ofs * pos.w;
   EmitVertex();
