@@ -147,27 +147,21 @@ static void linestyle_foreach_id(ID *id, LibraryForeachIDData *data)
     if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
       LineStyleColorModifier_DistanceFromObject *p = (LineStyleColorModifier_DistanceFromObject *)
           lsm;
-      if (p->target) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
-      }
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
     }
   }
   LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->alpha_modifiers) {
     if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
       LineStyleAlphaModifier_DistanceFromObject *p = (LineStyleAlphaModifier_DistanceFromObject *)
           lsm;
-      if (p->target) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
-      }
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
     }
   }
   LISTBASE_FOREACH (LineStyleModifier *, lsm, &linestyle->thickness_modifiers) {
     if (lsm->type == LS_MODIFIER_DISTANCE_FROM_OBJECT) {
       LineStyleThicknessModifier_DistanceFromObject *p =
           (LineStyleThicknessModifier_DistanceFromObject *)lsm;
-      if (p->target) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
-      }
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, p->target, IDWALK_CB_NOP);
     }
   }
 }
