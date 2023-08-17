@@ -9,11 +9,11 @@
 #                     This can also be an environment variable.
 #  LibEpoxy_FOUND, If false, do not try to use libepoxy.
 
-IF(NOT EPOXY_ROOT_DIR AND NOT $ENV{EPOXY_ROOT_DIR} STREQUAL "")
-  SET(EPOXY_ROOT_DIR $ENV{EPOXY_ROOT_DIR})
-ENDIF()
+if(NOT EPOXY_ROOT_DIR AND NOT $ENV{EPOXY_ROOT_DIR} STREQUAL "")
+  set(EPOXY_ROOT_DIR $ENV{EPOXY_ROOT_DIR})
+endif()
 
-FIND_PATH(LibEpoxy_INCLUDE_DIR
+find_path(LibEpoxy_INCLUDE_DIR
   NAMES
     epoxy/gl.h
   HINTS
@@ -22,7 +22,7 @@ FIND_PATH(LibEpoxy_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(LibEpoxy_LIBRARY
+find_library(LibEpoxy_LIBRARY
   NAMES
     epoxy
   HINTS
@@ -33,16 +33,16 @@ FIND_LIBRARY(LibEpoxy_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set LibEpoxy_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibEpoxy DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LibEpoxy DEFAULT_MSG
     LibEpoxy_LIBRARY LibEpoxy_INCLUDE_DIR)
 
-IF(LibEpoxy_FOUND)
-  SET(LibEpoxy_INCLUDE_DIRS ${LibEpoxy_INCLUDE_DIR})
-  SET(LibEpoxy_LIBRARIES ${LibEpoxy_LIBRARY})
-ENDIF()
+if(LibEpoxy_FOUND)
+  set(LibEpoxy_INCLUDE_DIRS ${LibEpoxy_INCLUDE_DIR})
+  set(LibEpoxy_LIBRARIES ${LibEpoxy_LIBRARY})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   LibEpoxy_INCLUDE_DIR
   LibEpoxy_LIBRARY
 )

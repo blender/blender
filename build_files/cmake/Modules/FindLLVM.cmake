@@ -83,10 +83,10 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LLVM DEFAULT_MSG
     LLVM_LIBRARY)
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   LLVM_LIBRARY
 )

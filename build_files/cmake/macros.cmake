@@ -906,7 +906,7 @@ macro(remove_cc_flag_unsigned_char)
   endif()
 endmacro()
 
-function(ADD_CHECK_C_COMPILER_FLAG_IMPL
+function(add_check_c_compiler_flag_impl
   _CFLAGS
   _CACHE_VAR
   _FLAG
@@ -923,7 +923,7 @@ function(ADD_CHECK_C_COMPILER_FLAG_IMPL
   endif()
 endfunction()
 
-function(ADD_CHECK_CXX_COMPILER_FLAG_IMPL
+function(add_check_cxx_compiler_flag_impl
   _CXXFLAGS
   _CACHE_VAR
   _FLAG
@@ -945,7 +945,7 @@ function(ADD_CHECK_C_COMPILER_FLAGS _CFLAGS)
   set(cache_var "")
   foreach(arg ${ARGN})
     if(cache_var)
-      ADD_CHECK_C_COMPILER_FLAG_IMPL("${_CFLAGS}" "${cache_var}" "${arg}")
+      add_check_c_compiler_flag_impl("${_CFLAGS}" "${cache_var}" "${arg}")
       set(cache_var "")
     else()
       set(cache_var "${arg}")
@@ -959,7 +959,7 @@ function(ADD_CHECK_CXX_COMPILER_FLAGS _CXXFLAGS)
   set(cache_var "")
   foreach(arg ${ARGN})
     if(cache_var)
-      ADD_CHECK_CXX_COMPILER_FLAG_IMPL("${_CXXFLAGS}" "${cache_var}" "${arg}")
+      add_check_cxx_compiler_flag_impl("${_CXXFLAGS}" "${cache_var}" "${arg}")
       set(cache_var "")
     else()
       set(cache_var "${arg}")

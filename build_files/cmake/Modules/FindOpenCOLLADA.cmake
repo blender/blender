@@ -21,15 +21,15 @@
 # /opt/opencollada/COLLADABaseUtils/include/COLLADABUPlatform.h
 
 # If `OPENCOLLADA_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED OPENCOLLADA_ROOT_DIR)
+if(DEFINED OPENCOLLADA_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{OPENCOLLADA_ROOT_DIR})
-  SET(OPENCOLLADA_ROOT_DIR $ENV{OPENCOLLADA_ROOT_DIR})
-ELSE()
-  SET(OPENCOLLADA_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{OPENCOLLADA_ROOT_DIR})
+  set(OPENCOLLADA_ROOT_DIR $ENV{OPENCOLLADA_ROOT_DIR})
+else()
+  set(OPENCOLLADA_ROOT_DIR "")
+endif()
 
-SET(_opencollada_FIND_INCLUDES
+set(_opencollada_FIND_INCLUDES
   COLLADAStreamWriter
   COLLADABaseUtils
   COLLADAFramework
@@ -37,7 +37,7 @@ SET(_opencollada_FIND_INCLUDES
   GeneratedSaxParser
 )
 
-SET(_opencollada_FIND_COMPONENTS
+set(_opencollada_FIND_COMPONENTS
   OpenCOLLADAStreamWriter
   OpenCOLLADASaxFrameworkLoader
   OpenCOLLADAFramework
@@ -48,23 +48,23 @@ SET(_opencollada_FIND_COMPONENTS
 
 # Fedora openCOLLADA package links these statically
 # note that order is important here or it won't link
-SET(_opencollada_FIND_STATIC_COMPONENTS
+set(_opencollada_FIND_STATIC_COMPONENTS
   buffer
   ftoa
   UTF
 )
 
-SET(_opencollada_SEARCH_DIRS
+set(_opencollada_SEARCH_DIRS
   ${OPENCOLLADA_ROOT_DIR}
   /opt/lib/opencollada
 )
 
-SET(_opencollada_INCLUDES)
-FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+set(_opencollada_INCLUDES)
+foreach(COMPONENT ${_opencollada_FIND_INCLUDES})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
   # need to use this even thouh we are looking for a dir
-  FIND_FILE(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR
+  find_file(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR
     NAMES
       ${COMPONENT}/include
       ${COMPONENT}
@@ -77,16 +77,16 @@ FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
     HINTS
       ${_opencollada_SEARCH_DIRS}
     )
-  MARK_AS_ADVANCED(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR)
-  LIST(APPEND _opencollada_INCLUDES "${OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR}")
-ENDFOREACH()
+  mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR)
+  list(APPEND _opencollada_INCLUDES "${OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR}")
+endforeach()
 
 
-SET(_opencollada_LIBRARIES)
-FOREACH(COMPONENT ${_opencollada_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+set(_opencollada_LIBRARIES)
+foreach(COMPONENT ${_opencollada_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY
+  find_library(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY
     NAMES
       ${COMPONENT}
     HINTS
@@ -96,14 +96,14 @@ FOREACH(COMPONENT ${_opencollada_FIND_COMPONENTS})
       # Ubuntu ppa needs this.
       lib64/opencollada lib/opencollada
     )
-  MARK_AS_ADVANCED(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
-  LIST(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
-ENDFOREACH()
+  mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
+  list(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
+endforeach()
 
-FOREACH(COMPONENT ${_opencollada_FIND_STATIC_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+foreach(COMPONENT ${_opencollada_FIND_STATIC_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY
+  find_library(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY
     NAMES
       ${COMPONENT}
     HINTS
@@ -113,26 +113,26 @@ FOREACH(COMPONENT ${_opencollada_FIND_STATIC_COMPONENTS})
       # Ubuntu ppa needs this.
       lib64/opencollada lib/opencollada
     )
-  MARK_AS_ADVANCED(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
-  IF(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
-    LIST(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
-  ENDIF()
-ENDFOREACH()
+  mark_as_advanced(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
+  if(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
+    list(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
+  endif()
+endforeach()
 
 
 # handle the QUIETLY and REQUIRED arguments and set OPENCOLLADA_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenCOLLADA  DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenCOLLADA  DEFAULT_MSG
     _opencollada_LIBRARIES _opencollada_INCLUDES)
 
 
-IF(OPENCOLLADA_FOUND)
-  SET(OPENCOLLADA_LIBRARIES ${_opencollada_LIBRARIES})
-  SET(OPENCOLLADA_INCLUDE_DIRS ${_opencollada_INCLUDES})
-ENDIF()
+if(OPENCOLLADA_FOUND)
+  set(OPENCOLLADA_LIBRARIES ${_opencollada_LIBRARIES})
+  set(OPENCOLLADA_INCLUDE_DIRS ${_opencollada_INCLUDES})
+endif()
 
-UNSET(COMPONENT)
-UNSET(UPPERCOMPONENT)
-UNSET(_opencollada_LIBRARIES)
-UNSET(_opencollada_INCLUDES)
+unset(COMPONENT)
+unset(UPPERCOMPONENT)
+unset(_opencollada_LIBRARIES)
+unset(_opencollada_INCLUDES)

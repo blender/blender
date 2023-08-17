@@ -13,26 +13,26 @@
 #  OPENSUBDIV_FOUND, if false, do not try to use OpenSubdiv.
 
 # If `OPENSUBDIV_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED OPENSUBDIV_ROOT_DIR)
+if(DEFINED OPENSUBDIV_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{OPENSUBDIV_ROOT_DIR})
-  SET(OPENSUBDIV_ROOT_DIR $ENV{OPENSUBDIV_ROOT_DIR})
-ELSE()
-  SET(OPENSUBDIV_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{OPENSUBDIV_ROOT_DIR})
+  set(OPENSUBDIV_ROOT_DIR $ENV{OPENSUBDIV_ROOT_DIR})
+else()
+  set(OPENSUBDIV_ROOT_DIR "")
+endif()
 
-SET(_opensubdiv_FIND_COMPONENTS
+set(_opensubdiv_FIND_COMPONENTS
   osdGPU
   osdCPU
 )
 
-SET(_opensubdiv_SEARCH_DIRS
+set(_opensubdiv_SEARCH_DIRS
   ${OPENSUBDIV_ROOT_DIR}
   /opt/lib/opensubdiv
   /opt/lib/osd # install_deps.sh
 )
 
-FIND_PATH(OPENSUBDIV_INCLUDE_DIR
+find_path(OPENSUBDIV_INCLUDE_DIR
   NAMES
     opensubdiv/osd/mesh.h
   HINTS
@@ -41,11 +41,11 @@ FIND_PATH(OPENSUBDIV_INCLUDE_DIR
     include
 )
 
-SET(_opensubdiv_LIBRARIES)
-FOREACH(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+set(_opensubdiv_LIBRARIES)
+foreach(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY
+  find_library(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY
     NAMES
       ${COMPONENT}
     HINTS
@@ -53,35 +53,35 @@ FOREACH(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
     PATH_SUFFIXES
       lib64 lib
     )
-  LIST(APPEND _opensubdiv_LIBRARIES "${OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY}")
-ENDFOREACH()
+  list(APPEND _opensubdiv_LIBRARIES "${OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY}")
+endforeach()
 
-MACRO(OPENSUBDIV_CHECK_CONTROLLER
+macro(OPENSUBDIV_CHECK_CONTROLLER
       controller_include_file
       variable_name)
-  IF(EXISTS "${OPENSUBDIV_INCLUDE_DIR}/opensubdiv/osd/${controller_include_file}")
-    SET(${variable_name} TRUE)
-  ELSE()
-    SET(${variable_name} FALSE)
-  ENDIF()
-ENDMACRO()
+  if(EXISTS "${OPENSUBDIV_INCLUDE_DIR}/opensubdiv/osd/${controller_include_file}")
+    set(${variable_name} TRUE)
+  else()
+    set(${variable_name} FALSE)
+  endif()
+endmacro()
 
 
 # handle the QUIETLY and REQUIRED arguments and set OPENSUBDIV_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenSubdiv DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenSubdiv DEFAULT_MSG
     _opensubdiv_LIBRARIES OPENSUBDIV_INCLUDE_DIR)
 
-IF(OPENSUBDIV_FOUND)
-  SET(OPENSUBDIV_LIBRARIES ${_opensubdiv_LIBRARIES})
-  SET(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
-ENDIF()
+if(OPENSUBDIV_FOUND)
+  set(OPENSUBDIV_LIBRARIES ${_opensubdiv_LIBRARIES})
+  set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   OPENSUBDIV_INCLUDE_DIR
 )
-FOREACH(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
-  MARK_AS_ADVANCED(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY)
-ENDFOREACH()
+foreach(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+  mark_as_advanced(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY)
+endforeach()
