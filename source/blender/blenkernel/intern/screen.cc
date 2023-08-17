@@ -128,6 +128,9 @@ bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
   screen->regionbase.first = screen->regionbase.last = nullptr;
   screen->context = nullptr;
   screen->active_region = nullptr;
+  screen->animtimer = nullptr; /* saved in rare cases */
+  screen->tool_tip = nullptr;
+  screen->scrubbing = false;
 
   BLO_read_data_address(reader, &screen->preview);
   BKE_previewimg_blend_read(reader, screen->preview);
@@ -147,10 +150,6 @@ static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
   bScreen *screen = (bScreen *)id;
   /* deprecated, but needed for versioning (will be nullptr'ed then) */
   BLO_read_id_address(reader, id, &screen->scene);
-
-  screen->animtimer = nullptr; /* saved in rare cases */
-  screen->tool_tip = nullptr;
-  screen->scrubbing = false;
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     BKE_screen_area_blend_read_lib(reader, &screen->id, area);
