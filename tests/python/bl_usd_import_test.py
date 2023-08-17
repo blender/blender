@@ -371,9 +371,12 @@ class USDImportTest(AbstractUSDTest):
         # Verify expected deform groups.
         # There are 4 points in each group.
         for i in range(4):
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Hand'].weight(i), 1.0, 2, "Unexpected weight for Hand deform vert")
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Shoulder'].weight(4 + i), 1.0, 2, "Unexpected weight for Shoulder deform vert")
-            self.assertAlmostEqual(mesh_obj.vertex_groups['Elbow'].weight(8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Hand'].weight(
+                i), 1.0, 2, "Unexpected weight for Hand deform vert")
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Shoulder'].weight(
+                4 + i), 1.0, 2, "Unexpected weight for Shoulder deform vert")
+            self.assertAlmostEqual(mesh_obj.vertex_groups['Elbow'].weight(
+                8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
 
         action = bpy.data.actions['SkelAction']
 
