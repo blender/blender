@@ -298,6 +298,10 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   BLO_read_pointer_array(reader, (void **)&mesh->mat);
+  /* This check added for python created meshes. */
+  if (!mesh->mat) {
+    mesh->totcol = 0;
+  }
 
   /* Deprecated pointers to custom data layers are read here for backward compatibility
    * with files where these were owning pointers rather than a view into custom data. */
@@ -352,14 +356,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Mesh *me = reinterpret_cast<Mesh *>(id);
-  /* This check added for python created meshes. */
-  if (me->mat) {
-    for (int i = 0; i < me->totcol; i++) {
-      BLO_read_id_address(reader, id, &me->mat[i]);
-    }
-  }
-  else {
-    me->totcol = 0;
+  for (int i = 0; i < me->totcol; i++) {
+    BLO_read_id_address(reader, id, &me->mat[i]);
   }
 
   BLO_read_id_address(reader, id, &me->ipo);  // XXX: deprecated: old anim sys
