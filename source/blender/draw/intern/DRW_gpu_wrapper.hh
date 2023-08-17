@@ -630,6 +630,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(extent, layers, 0, mip_len, format, usage, data, true, false);
   }
 
@@ -657,6 +658,7 @@ class Texture : NonCopyable {
                        float *data = nullptr,
                        int mip_len = 1)
   {
+    BLI_assert(layers > 0);
     return ensure_impl(UNPACK2(extent), layers, mip_len, format, usage, data, true, false);
   }
 

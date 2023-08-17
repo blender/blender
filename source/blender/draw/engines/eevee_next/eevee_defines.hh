@@ -56,16 +56,20 @@
    SHADOW_TILEMAP_LOD3_LEN + SHADOW_TILEMAP_LOD4_LEN + SHADOW_TILEMAP_LOD5_LEN)
 #define SHADOW_PAGE_CLEAR_GROUP_SIZE 32
 #define SHADOW_PAGE_RES 256
+#define SHADOW_PAGE_LOD 8 /* LOG2(SHADOW_PAGE_RES) */
 #define SHADOW_DEPTH_SCAN_GROUP_SIZE 8
 #define SHADOW_AABB_TAG_GROUP_SIZE 64
 #define SHADOW_MAX_TILEMAP 4096
 #define SHADOW_MAX_TILE (SHADOW_MAX_TILEMAP * SHADOW_TILEDATA_PER_TILEMAP)
 #define SHADOW_MAX_PAGE 4096
-#define SHADOW_PAGE_PER_ROW 64
-#define SHADOW_ATLAS_SLOT 5
 #define SHADOW_BOUNDS_GROUP_SIZE 64
 #define SHADOW_CLIPMAP_GROUP_SIZE 64
 #define SHADOW_VIEW_MAX 64 /* Must match DRW_VIEW_MAX. */
+#define SHADOW_RENDER_MAP_SIZE (SHADOW_VIEW_MAX * SHADOW_TILEMAP_LOD0_LEN)
+#define SHADOW_ATOMIC 1
+#define SHADOW_PAGE_PER_ROW 4
+#define SHADOW_PAGE_PER_COL 4
+#define SHADOW_PAGE_PER_LAYER (SHADOW_PAGE_PER_ROW * SHADOW_PAGE_PER_COL)
 
 /* Ray-tracing. */
 #define RAYTRACE_GROUP_SIZE 8
@@ -131,8 +135,6 @@
 #define REFLECTION_PROBE_TEX_SLOT 8
 #define VOLUME_SCATTERING_TEX_SLOT 9
 #define VOLUME_TRANSMITTANCE_TEX_SLOT 10
-/* Only during shadow rendering. */
-#define SHADOW_RENDER_MAP_SLOT 4
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0
@@ -145,6 +147,8 @@
 #define VOLUME_PROP_EXTINCTION_IMG_SLOT 1
 #define VOLUME_PROP_EMISSION_IMG_SLOT 2
 #define VOLUME_PROP_PHASE_IMG_SLOT 3
+/* Only during shadow rendering. */
+#define SHADOW_ATLAS_IMG_SLOT 4
 
 /* Uniform Buffers. */
 /* Slot 0 is GPU_NODE_TREE_UBO_SLOT. */
@@ -157,6 +161,7 @@
 #define VOLUMES_INFO_BUF_SLOT 6
 /* SLOT 6 is used by render shaders (Film, DoF and Motion Blur). Need to check if it should be
  * assigned a different slot. */
+/* TODO(fclem): This is above the limit of slot 6 for engines. Keep it lower by merging others. */
 #define REFLECTION_PROBE_BUF_SLOT 7
 /* Only during pre-pass. */
 #define VELOCITY_CAMERA_PREV_BUF 3
@@ -169,14 +174,16 @@
 #define LIGHT_ZBIN_BUF_SLOT 2
 #define LIGHT_TILE_BUF_SLOT 3
 #define IRRADIANCE_BRICK_BUF_SLOT 4
+#define SAMPLING_BUF_SLOT 6
+#define CRYPTOMATTE_BUF_SLOT 7
 /* Only during surface capture. */
 #define SURFEL_BUF_SLOT 4
 /* Only during surface capture. */
 #define CAPTURE_BUF_SLOT 5
 /* Only during shadow rendering. */
+#define SHADOW_RENDER_MAP_BUF_SLOT 3
 #define SHADOW_PAGE_INFO_SLOT 4
-#define SAMPLING_BUF_SLOT 6
-#define CRYPTOMATTE_BUF_SLOT 7
+#define SHADOW_VIEWPORT_INDEX_BUF_SLOT 5
 
 /* Only during pre-pass. */
 #define VELOCITY_OBJ_PREV_BUF_SLOT 0

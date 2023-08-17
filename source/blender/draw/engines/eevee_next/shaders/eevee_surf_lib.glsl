@@ -124,3 +124,21 @@ void init_interface()
   drw_ResourceID_iface.resource_index = resource_id;
 #endif
 }
+
+#ifdef GPU_VERTEX_SHADER
+void shadow_viewport_layer_set(int view_id, int lod)
+{
+  /* We still render to a layered framebuffer in the case of Metal + Tile Based Renderer.
+   * Since it needs correct depth buffering, each view needs to not overlap each others.
+   * It doesn't matter much for other platform, so we use that as a way to pass the view id. */
+  gpu_Layer = view_id;
+  gpu_ViewportIndex = lod;
+}
+#endif
+
+#ifdef GPU_FRAGMENT_SHADER
+int shadow_view_id_get()
+{
+  return gpu_Layer;
+}
+#endif
