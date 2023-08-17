@@ -922,6 +922,16 @@ static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data
      * data pointers too, not just ID ones. See #40046. */
     MEM_SAFE_FREE(sbuts->path);
   }
+
+  if (sbuts->texuser) {
+    ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ct->texture, IDWALK_CB_NOP);
+
+    if (!is_readonly) {
+      BLI_freelistN(&ct->users);
+      ct->user = nullptr;
+    }
+  }
 }
 
 static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
