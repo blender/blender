@@ -604,13 +604,30 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   V3DSnapCursorData *snap_data = &data_intern->snap_data;
   ToolSettings *tool_settings = scene->toolsettings;
 
-  const bool use_surface_nor = tool_settings->plane_orient == V3D_PLACE_ORIENT_SURFACE;
-  const bool use_surface_co = tool_settings->plane_depth == V3D_PLACE_DEPTH_SURFACE;
+  eSnapMode snap_elements = v3d_cursor_snap_elements(tool_settings);
   const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
+
+  snap_data->is_enabled = true;
+  if (!(state->flag & V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE)) {
+#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
+    snap_data->is_snap_invert = v3d_cursor_is_snap_invert(data_intern, wm);
+#endif
+
+    if (snap_data->is_snap_invert != !(tool_settings->snap_flag & SCE_SNAP)) {
+      snap_data->is_enabled = false;
+      if (!calc_plane_omat) {
+        snap_data->snap_elem = SCE_SNAP_TO_NONE;
+        return;
+      }
+      snap_elements = SCE_SNAP_TO_NONE;
+    }
+  }
+
+  const bool use_surface_nor = tool_settings->plane_orient == V3D_PLACE_ORIENT_SURFACE;
+  const bool use_surface_co = snap_data->is_enabled || tool_settings->plane_depth == V3D_PLACE_DEPTH_SURFACE;
 
   float co[3], no[3], face_nor[3], obmat[4][4], omat[3][3];
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
-  eSnapMode snap_elements = v3d_cursor_snap_elements(tool_settings);
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
 
@@ -627,23 +644,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       data_intern->snap_elem_hidden = SCE_SNAP_TO_FACE;
       snap_elements |= SCE_SNAP_TO_FACE;
     }
-
-    snap_data->is_enabled = true;
-#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-    if (!(state->flag & V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE)) {
-      snap_data->is_snap_invert = v3d_cursor_is_snap_invert(data_intern, wm);
-
-      const ToolSettings *ts = scene->toolsettings;
-      if (snap_data->is_snap_invert != !(ts->snap_flag & SCE_SNAP)) {
-        snap_data->is_enabled = false;
-        if (!calc_plane_omat) {
-          snap_data->snap_elem = SCE_SNAP_TO_NONE;
-          return;
-        }
-        snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_TO_FACE;
-      }
-    }
-#endif
 
     if (snap_elements & SCE_SNAP_TO_GEOM) {
       float prev_co[3] = {0.0f};
