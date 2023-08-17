@@ -57,19 +57,19 @@ uint square_uint(uint v)
 {
   return v * v;
 }
-float square_f(float v)
+float square(float v)
 {
   return v * v;
 }
-vec2 square_f(vec2 v)
+vec2 square(vec2 v)
 {
   return v * v;
 }
-vec3 square_f(vec3 v)
+vec3 square(vec3 v)
 {
   return v * v;
 }
-vec4 square_f(vec4 v)
+vec4 square(vec4 v)
 {
   return v * v;
 }

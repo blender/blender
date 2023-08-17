@@ -34,7 +34,7 @@ float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
 float bilateral_spatial_weight(float sigma, vec2 offset_from_center)
 {
   /* From https://github.com/tranvansang/bilateral-filter/blob/master/fshader.frag */
-  float fac = -1.0 / square_f(sigma);
+  float fac = -1.0 / square(sigma);
   /* Take two standard deviation. */
   fac *= 2.0;
   float weight = exp2(fac * length_squared(offset_from_center));

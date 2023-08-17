@@ -171,6 +171,11 @@ template<typename T> inline T pow(const T &x, const T &power)
   return std::pow(x, power);
 }
 
+template<typename T> inline T square(const T &a)
+{
+  return a * a;
+}
+
 template<typename T> inline T exp(const T &x)
 {
   return std::exp(x);

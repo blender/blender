@@ -206,6 +206,17 @@ template<typename T, int Size>
   return result;
 }
 
+/** Per-element square. */
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> square(const VecBase<T, Size> &a)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::square(a[i]);
+  }
+  return result;
+}
+
 /* Per-element exponent. */
 template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> exp(const VecBase<T, Size> &x)
 {

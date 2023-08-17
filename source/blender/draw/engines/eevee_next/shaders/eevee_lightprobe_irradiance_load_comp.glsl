@@ -81,7 +81,7 @@ void main()
             continue;
           }
           float dist_sqr = length_squared(vec3(offset));
-          if (dist_sqr > square_f(dilation_radius)) {
+          if (dist_sqr > square(dilation_radius)) {
             continue;
           }
           float weight = 1.0 / dist_sqr;

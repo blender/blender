@@ -180,4 +180,13 @@ TEST(math_vector, exp)
   EXPECT_NEAR(result.z, 20.085536923187668f, 1e-6f);
 }
 
+TEST(math_vector, square)
+{
+  const float3 a(1.0f, 2.0f, 3.0f);
+  const float3 result = math::square(a);
+  EXPECT_NEAR(result.x, 1.0f, 1e-6f);
+  EXPECT_NEAR(result.y, 4.0f, 1e-6f);
+  EXPECT_NEAR(result.z, 9.0f, 1e-6f);
+}
+
 }  // namespace blender::tests

@@ -60,14 +60,14 @@ LocalStatistics local_statistics_get(ivec2 texel, vec3 center_radiance)
       /* Use YCoCg for clamping and accumulation to avoid color shift artifacts. */
       vec3 radiance_YCoCg = colorspace_YCoCg_from_scene_linear(radiance.rgb);
       result.mean += radiance_YCoCg;
-      result.moment += square_f(radiance_YCoCg);
+      result.moment += square(radiance_YCoCg);
       weight_accum += 1.0;
     }
   }
   float inv_weight = safe_rcp(weight_accum);
   result.mean *= inv_weight;
   result.moment *= inv_weight;
-  result.variance = abs(result.moment - square_f(result.mean));
+  result.variance = abs(result.moment - square(result.mean));
   result.deviation = max(vec3(1e-4), sqrt(result.variance));
   result.clamp_min = result.mean - result.deviation;
   result.clamp_max = result.mean + result.deviation;
