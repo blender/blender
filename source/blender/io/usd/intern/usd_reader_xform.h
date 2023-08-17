@@ -12,6 +12,10 @@
 
 namespace blender::io::usd {
 
+/** A transformation matrix and a boolean indicating
+ * whether the matrix is constant over time. */
+using XformResult = std::tuple<pxr::GfMatrix4f, bool>;
+
 class USDXformReader : public USDPrimReader {
  private:
   bool use_parent_xform_;
@@ -50,6 +54,18 @@ class USDXformReader : public USDPrimReader {
  protected:
   /* Returns true if the contained USD prim is the root of a transform hierarchy. */
   bool is_root_xform_prim() const;
+
+  /**
+   * Return the USD prim's local transformation.
+   *
+   * \param time: Time code for evaluating the transform.
+   *
+   * \return: Optional tuple with the following elements:
+   *          - The transform matrix.
+   *          - A boolean flag indicating whether the matrix
+   *            is constant over time.
+   */
+  virtual std::optional<XformResult> get_local_usd_xform(float time) const;
 };
 
 }  // namespace blender::io::usd

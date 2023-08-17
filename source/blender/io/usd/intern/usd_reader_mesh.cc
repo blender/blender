@@ -7,6 +7,7 @@
 
 #include "usd_reader_mesh.h"
 #include "usd_reader_material.h"
+#include "usd_skel_convert.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
@@ -43,6 +44,7 @@
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdSkel/bindingAPI.h>
 
 #include <iostream>
 
@@ -266,6 +268,14 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
     if (subdivScheme == pxr::UsdGeomTokens->catmullClark) {
       add_subdiv_modifier();
     }
+  }
+
+  if (import_params_.import_blendshapes) {
+    import_blendshapes(bmain, object_, prim_);
+  }
+
+  if (import_params_.import_skeletons) {
+    import_mesh_skel_bindings(bmain, object_, prim_);
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
@@ -1097,6 +1107,59 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   }
 
   return active_mesh;
+}
+
+std::string USDMeshReader::get_skeleton_path() const
+{
+  /* Make sure we can apply UsdSkelBindingAPI to the prim.
+   * Attempting to apply the API to instance proxies generates
+   * a USD error. */
+  if (!prim_ || prim_.IsInstanceProxy()) {
+    return "";
+  }
+
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_);
+
+  if (!skel_api) {
+    return "";
+  }
+
+  if (pxr::UsdSkelSkeleton skel = skel_api.GetInheritedSkeleton()) {
+    return skel.GetPath().GetAsString();
+  }
+
+  return "";
+}
+
+std::optional<XformResult> USDMeshReader::get_local_usd_xform(const float time) const
+{
+  if (!import_params_.import_skeletons || prim_.IsInstanceProxy()) {
+    /* Use the standard transform computation, since we are ignoring
+     * skinning data. Note that applying the UsdSkelBinding API to an
+     * instance proxy generates a USD error. */
+    return USDXformReader::get_local_usd_xform(time);
+  }
+
+  if (pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(prim_)) {
+    if (skel_api.GetGeomBindTransformAttr().HasAuthoredValue()) {
+      pxr::GfMatrix4d bind_xf;
+      if (skel_api.GetGeomBindTransformAttr().Get(&bind_xf)) {
+        /* The USD bind transform is a matrix of doubles,
+         * but we cast it to GfMatrix4f because Blender expects
+         * a matrix of floats. Also, we assume the transform
+         * is constant over time. */
+        return XformResult(pxr::GfMatrix4f(bind_xf), true);
+      }
+      else {
+        WM_reportf(RPT_WARNING,
+                   "%s: Couldn't compute geom bind transform for %s",
+                   __func__,
+                   prim_.GetPath().GetAsString().c_str());
+      }
+    }
+  }
+
+  return USDXformReader::get_local_usd_xform(time);
 }
 
 }  // namespace blender::io::usd
