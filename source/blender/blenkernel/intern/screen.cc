@@ -1186,6 +1186,8 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
   BLI_listbase_clear(&area->handlers);
   area->type = nullptr; /* spacetype callbacks */
 
+  memset(&area->runtime, 0x0, sizeof(area->runtime));
+
   /* Should always be unset so that rna_Area_type_get works correctly. */
   area->butspacetype = SPACE_EMPTY;
 
@@ -1276,8 +1278,6 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
 void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
   BLO_read_id_address(reader, parent_id, &area->full);
-
-  memset(&area->runtime, 0x0, sizeof(area->runtime));
 
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
