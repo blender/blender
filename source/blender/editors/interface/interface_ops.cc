@@ -1326,7 +1326,7 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
   }
 
   if (lptr.data == ptr->data) {
-    /* temp_ptr might not be the same as ptr_link! */
+    /* The source & destination are the same, so there is nothing to copy. */
     return false;
   }
 
