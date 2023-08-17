@@ -21,10 +21,13 @@ struct ARegion;
 struct Bone;
 struct Collection;
 struct EditBone;
+struct GpencilModifierData;
 struct ID;
 struct LayerCollection;
 struct ListBase;
 struct Main;
+struct ModifierData;
+struct ModifierDataStoreElem;
 struct Object;
 struct Scene;
 struct ShaderFxData;
@@ -315,6 +318,11 @@ struct DeformGroupElementCreateData {
 struct GPencilEffectElementCreateData {
   Object *object;
   ShaderFxData *fx;
+};
+
+struct ModifierCreateElementData {
+  Object *object;
+  ModifierDataStoreElem *md;
 };
 
 struct ParticleSystemElementCreateData {
