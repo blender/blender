@@ -83,9 +83,9 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
-
-      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
     }
+
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
 
     if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
       LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
