@@ -47,14 +47,14 @@ AUTHOR_LINES_LIMIT = 100
 # name change requested by the authors.
 
 # Some projects prefer not to have their developers listed.
-author_table_exclude = {
-    "Jason Fielder <jason-fielder@noreply.localhost>",
-    "Matt McLin <mmclin@apple.com>",
-    "Michael B Johnson <wave@noreply.localhost>",
-    "Michael Jones <michael_p_jones@apple.com>",
-    "Michael Parkin-White <mparkinwhite@apple.com>",
-    "pwflocal <drwave@apple.com>",
+author_exclude_individuals = {
+    "Jason Fielder <jason-fielder@noreply.localhost>",  # `@apple.com` developer.
+    "Michael B Johnson <wave@noreply.localhost>",  # `@apple.com` developer.
 }
+
+author_exclude_glob = (
+    "* <*@apple.com>",
+)
 
 
 author_table = git_data_canonical_authors.canonical_author_map()
@@ -201,9 +201,16 @@ class Credits:
             *,
             use_metadata: bool = False,
     ) -> None:
+        import fnmatch
+        import re
 
         commit_word = "commit", "commits"
         metadata_right_margin = 79
+
+        author_exclude_regex = tuple(
+            (match_glob, re.compile(fnmatch.translate(match_glob)))
+            for match_glob in author_exclude_glob
+        )
 
         sorted_authors = dict(sorted(self.users.items()))
         for author_with_email, cu in sorted_authors.items():
@@ -213,8 +220,17 @@ class Credits:
             if cu.lines_change <= AUTHOR_LINES_SKIP:
                 print("Skipping:", author_with_email, cu.lines_change, "line(s) changed.")
                 continue
-            if author_with_email in author_table_exclude:
+            if author_with_email in author_exclude_individuals:
                 print("Skipping:", author_with_email, "explicit exclusion requested.")
+                continue
+            if author_with_email in author_exclude_individuals:
+                print("Skipping:", author_with_email, "explicit exclusion requested.")
+                continue
+            if match_glob_found := next(iter([
+                    match_glob for match_glob, match_regex in author_exclude_regex
+                    if match_regex.match(author_with_email)
+            ]), None):
+                print("Skipping:", author_with_email, "glob exclusion \"{:s}\" requested.".format(match_glob_found))
                 continue
 
             if use_metadata:

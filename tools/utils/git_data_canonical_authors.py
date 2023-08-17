@@ -119,6 +119,7 @@ def canonical_author_map() -> Dict[str, str]:
         "Brian Savery <brian.savery@gmail.com>": (
             "Brian Savery (AMD) <briansavery@noreply.localhost>",
             "Brian Savery <bsavery>",
+            "bsavery <brian.savery@gmail.com>",
         ),
         "Campbell Barton <campbell@blender.org>": (
             "Campbell Barton <campbellbarton>",
