@@ -69,7 +69,8 @@ GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_outline_iface, "geom_in")
     .smooth(Type::VEC3, "vPos")
     .smooth(Type::VEC2, "ssPos")
     .smooth(Type::VEC2, "ssNor")
-    .smooth(Type::VEC4, "vColSize")
+    .smooth(Type::VEC4, "vColSize");
+GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_outline_flat_iface, "geom_flat_in")
     .flat(Type::INT, "inverted");
 
 GPU_SHADER_INTERFACE_INFO(overlay_armature_shape_outline_no_geom_iface, "")
@@ -85,6 +86,7 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline)
     .vertex_in(2, Type::VEC4, "color")
     .vertex_in(3, Type::MAT4, "inst_obmat")
     .vertex_out(overlay_armature_shape_outline_iface)
+    .vertex_out(overlay_armature_shape_outline_flat_iface)
     .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
     .geometry_out(overlay_armature_wire_iface)
     .vertex_source("overlay_armature_shape_outline_vert.glsl")

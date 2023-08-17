@@ -28,7 +28,7 @@ void main(void)
     }
   }
 
-  n0 = (geom_in[0].inverted == 1) ? -n0 : n0;
+  n0 = (geom_flat_in[0].inverted == 1) ? -n0 : n0;
   /* Don't outline if concave edge. */
   if (dot(n0, v13) > 0.0001) {
     return;

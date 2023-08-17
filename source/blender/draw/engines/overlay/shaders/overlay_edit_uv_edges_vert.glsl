@@ -23,5 +23,6 @@ void main()
   gl_Position.z = depth;
 
   /* Avoid precision loss. */
-  geom_in.stippleStart = geom_in.stipplePos = 500.0 + 500.0 * (gl_Position.xy / gl_Position.w);
+  geom_flat_in.stippleStart = geom_noperspective_in.stipplePos = 500.0 + 500.0 * (gl_Position.xy /
+                                                                                  gl_Position.w);
 }

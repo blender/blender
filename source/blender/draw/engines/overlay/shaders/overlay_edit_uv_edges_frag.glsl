@@ -17,8 +17,9 @@ void main()
   vec4 inner_color = vec4(vec3(0.0), 1.0);
   vec4 outer_color = vec4(0.0);
 
-  vec2 dd = fwidth(geom_out.stipplePos);
-  float line_distance = distance(geom_out.stipplePos, geom_out.stippleStart) / max(dd.x, dd.y);
+  vec2 dd = fwidth(geom_noperspective_out.stipplePos);
+  float line_distance = distance(geom_noperspective_out.stipplePos, geom_flat_out.stippleStart) /
+                        max(dd.x, dd.y);
 
   if (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) {
 #ifdef USE_EDGE_SELECT
@@ -47,7 +48,7 @@ void main()
     inner_color = colorUVShadow;
   }
 
-  float dist = abs(geom_out.edgeCoord) - max(sizeEdge - 0.5, 0.0);
+  float dist = abs(geom_noperspective_out.edgeCoord) - max(sizeEdge - 0.5, 0.0);
   float dist_outer = dist - max(sizeEdge, 1.0);
   float mix_w;
   float mix_w_outer;

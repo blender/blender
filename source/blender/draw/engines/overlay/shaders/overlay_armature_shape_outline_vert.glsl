@@ -19,7 +19,8 @@ void main()
   geom_in.vPos = view_pos.xyz;
   geom_in.pPos = drw_view.winmat * view_pos;
 
-  geom_in.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0);
+  geom_flat_in.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) <
+                              0.0);
 
   /* This is slow and run per vertex, but it's still faster than
    * doing it per instance on CPU and sending it on via instance attribute. */
