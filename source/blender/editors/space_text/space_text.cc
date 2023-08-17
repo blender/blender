@@ -17,6 +17,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
@@ -396,6 +397,12 @@ static void text_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper
   BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
+static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceText *st = reinterpret_cast<SpaceText *>(space_link);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, st->text, IDWALK_CB_USER_ONE);
+}
+
 static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceText *st = (SpaceText *)sl;
@@ -433,6 +440,7 @@ void ED_spacetype_text()
   st->context = text_context;
   st->dropboxes = text_dropboxes;
   st->id_remap = text_id_remap;
+  st->foreach_id = text_foreach_id;
   st->blend_read_data = text_space_blend_read_data;
   st->blend_read_lib = text_space_blend_read_lib;
   st->blend_write = text_space_blend_write;

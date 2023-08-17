@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 
@@ -20,6 +21,7 @@
 #include "BLI_math_base.h"
 
 #include "BKE_global.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer_offscreen.h"
@@ -925,6 +927,12 @@ static void sequencer_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRem
   BKE_id_remapper_apply(mappings, (ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
 }
 
+static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceSeq *sseq = reinterpret_cast<SpaceSeq *>(space_link);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sseq->gpd, IDWALK_CB_USER);
+}
+
 /* ************************************* */
 
 static bool sequencer_channel_region_poll(const RegionPollParams *params)
@@ -1012,6 +1020,7 @@ void ED_spacetype_sequencer()
   st->refresh = sequencer_refresh;
   st->listener = sequencer_listener;
   st->id_remap = sequencer_id_remap;
+  st->foreach_id = sequencer_foreach_id;
   st->blend_read_data = sequencer_space_blend_read_data;
   st->blend_read_lib = sequencer_space_blend_read_lib;
   st->blend_write = sequencer_space_blend_write;

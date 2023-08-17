@@ -18,6 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
@@ -570,6 +571,19 @@ static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper 
       mappings, reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
+static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(space_link);
+
+  /* NOTE: Could be deduplicated with the #bDopeSheet handling of #SpaceAction and #SpaceGraph. */
+  if (snla->ads == nullptr) {
+    return;
+  }
+
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snla->ads->source, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snla->ads->filter_grp, IDWALK_CB_NOP);
+}
+
 static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
@@ -613,6 +627,7 @@ void ED_spacetype_nla()
   st->listener = nla_listener;
   st->keymap = nla_keymap;
   st->id_remap = nla_id_remap;
+  st->foreach_id = nla_foreach_id;
   st->blend_read_data = nla_space_blend_read_data;
   st->blend_read_lib = nla_space_blend_read_lib;
   st->blend_write = nla_space_blend_write;

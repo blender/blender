@@ -105,6 +105,13 @@ typedef struct SpaceType {
   /* Used when we want to replace an ID by another (or NULL). */
   void (*id_remap)(struct ScrArea *area, struct SpaceLink *sl, const struct IDRemapper *mappings);
 
+  /**
+   * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's
+   * #BKE_library_foreach_ID_link when #IDWALK_INCLUDE_UI bitflag is set (through WM's foreach_id
+   * usage of #BKE_screen_foreach_id_screen_area).
+   */
+  void (*foreach_id)(struct SpaceLink *space_link, struct LibraryForeachIDData *data);
+
   int (*space_subtype_get)(struct ScrArea *area);
   void (*space_subtype_set)(struct ScrArea *area, int value);
   void (*space_subtype_item_extend)(struct bContext *C, EnumPropertyItem **item, int *totitem);

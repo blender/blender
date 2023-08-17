@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_nla.h"
 #include "BKE_screen.h"
@@ -805,6 +806,25 @@ static void action_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapp
   BKE_id_remapper_apply(mappings, &sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
 
+static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceAction *sact = reinterpret_cast<SpaceAction *>(space_link);
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sact->action, IDWALK_CB_NOP);
+
+  /* NOTE: Could be deduplicated with the #bDopeSheet handling of #SpaceNla and #SpaceGraph. */
+  BKE_LIB_FOREACHID_PROCESS_ID(data, sact->ads.source, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sact->ads.filter_grp, IDWALK_CB_NOP);
+
+  if (!is_readonly) {
+    /* Force recalc of list of channels, potentially updating the active action while we're
+     * at it (as it can only be updated that way) #28962. */
+    sact->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+  }
+}
+
 /**
  * \note Used for splitting out a subset of modes is more involved,
  * The previous non-timeline mode is stored so switching back to the
@@ -884,6 +904,7 @@ void ED_spacetype_action()
   st->listener = action_listener;
   st->refresh = action_refresh;
   st->id_remap = action_id_remap;
+  st->foreach_id = action_foreach_id;
   st->space_subtype_item_extend = action_space_subtype_item_extend;
   st->space_subtype_get = action_space_subtype_get;
   st->space_subtype_set = action_space_subtype_set;
