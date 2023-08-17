@@ -1517,7 +1517,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             int icon = ED_file_extension_icon((char *)stra->strings[a]);
             wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
             WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
-            /* void poin should point to string, it makes a copy */
+            /* Void pointer should point to string, it makes a copy. */
             break; /* only one drop element supported now */
           }
         }

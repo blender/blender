@@ -6,7 +6,7 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Class to define a chain of viewedges.
+ * \brief Class to define a chain of view-edges.
  */
 
 #include "Curve.h"

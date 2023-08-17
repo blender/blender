@@ -650,7 +650,7 @@ GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Raytraced Reflections
+/** \name Ray-Traced Reflections
  * \{ */
 
 GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get()

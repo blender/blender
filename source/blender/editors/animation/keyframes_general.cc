@@ -800,7 +800,7 @@ bool match_slope_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
   }
 
   /* This delta values are used to get the relationship between the bookend keys and the
-   * reference keys beyong those. */
+   * reference keys beyond those. */
   const float y_delta = beyond_key.vec[1][1] - reference_key->vec[1][1];
   const float x_delta = beyond_key.vec[1][0] - reference_key->vec[1][0];
 

@@ -249,7 +249,7 @@ typedef struct PTCacheEdit {
   struct ParticleSystemModifierData *psmd;
   struct ParticleSystemModifierData *psmd_eval;
   struct KDTree_3d *emitter_field;
-  /* Localspace face centers and normals (average of its verts), from the derived mesh. */
+  /** Local-space face centers and normals (average of its verts), from the derived mesh. */
   float *emitter_cosnos;
   int *mirror_cache;
 

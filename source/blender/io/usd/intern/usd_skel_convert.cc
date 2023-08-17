@@ -206,7 +206,7 @@ void import_skeleton_curves(Main *bmain,
   /* The curve for each joint represents the transform relative
    * to the bind transform in joint-local space. I.e.,
    *
-   * jointLocalTransform * inv(jointLocalBindTransform)
+   * `jointLocalTransform * inv(jointLocalBindTransform)`
    *
    * There doesn't appear to be a way to query the joint-local
    * bind transform through the API, so we have to compute it
@@ -418,8 +418,8 @@ void import_blendshapes(Main *bmain,
   KeyBlock *kb = BKE_keyblock_add(key, "Basis");
   BKE_keyblock_convert_from_mesh(mesh, key, kb);
 
-  /* Keep track of the shapkeys we're adding, for
-   * validation when creating curves later. */
+  /* Keep track of the shape-keys we're adding,
+   * for validation when creating curves later. */
   std::set<pxr::TfToken> shapekey_names;
 
   for (int i = 0; i < targets.size(); ++i) {
@@ -431,7 +431,7 @@ void import_blendshapes(Main *bmain,
       continue;
     }
 
-    /* Get the blend shape offests. */
+    /* Get the blend shape offsets. */
     if (!blendshape.GetOffsetsAttr().HasAuthoredValue()) {
       /* Blend shape has no authored offsets. */
       continue;
@@ -576,7 +576,7 @@ void import_blendshapes(Main *bmain,
 
   for (auto blendshape_name : blendshapes) {
     if (shapekey_names.find(blendshape_name) == shapekey_names.end()) {
-      /* We didn't create a shapekey fo this blendshape, so we don't
+      /* We didn't create a shape-key for this blend-shape, so we don't
        * create a curve and insert a null placeholder in the curve array. */
       curves.push_back(nullptr);
       continue;
@@ -706,13 +706,13 @@ void import_skeleton(Main *bmain,
 
   /* Check if any bone matrices have negative determinants,
    * indicating negative scales, possibly due to mirroring
-   * operations.  Such matrices can't be propery converted
+   * operations.  Such matrices can't be properly converted
    * to Blender's axis/roll bone representation (see
    * https://projects.blender.org/blender/blender/issues/82930).
    * If we detect such matrices, we will flag an error and won't
    * try to import the animation, since the rotations would
-   * be incorrect in such cases.  Unfortunately, the Pixar
-   * UsdSkel examples of the "HumanFemale" suffer from
+   * be incorrect in such cases. Unfortunately, the Pixar
+   * `UsdSkel` examples of the "HumanFemale" suffer from
    * this issue. */
   bool negative_determinant = false;
 
@@ -903,9 +903,8 @@ void import_mesh_skel_bindings(Main *bmain, Object *mesh_obj, const pxr::UsdPrim
     return;
   }
 
-  /* Element size specifies the number of joints that might influece a given point.
-   * This is the stride we take when accessing the indices and weights for a
-   * given point. */
+  /* Element size specifies the number of joints that might influence a given point.
+   * This is the stride we take when accessing the indices and weights for a given point. */
   int joint_indices_elem_size = joint_indices_primvar.GetElementSize();
   int joint_weights_elem_size = joint_weights_primvar.GetElementSize();
 

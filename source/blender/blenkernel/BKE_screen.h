@@ -107,7 +107,7 @@ typedef struct SpaceType {
 
   /**
    * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's
-   * #BKE_library_foreach_ID_link when #IDWALK_INCLUDE_UI bitflag is set (through WM's foreach_id
+   * #BKE_library_foreach_ID_link when #IDWALK_INCLUDE_UI bit-flag is set (through WM's foreach_id
    * usage of #BKE_screen_foreach_id_screen_area).
    */
   void (*foreach_id)(struct SpaceLink *space_link, struct LibraryForeachIDData *data);

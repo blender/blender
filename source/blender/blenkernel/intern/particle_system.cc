@@ -1493,7 +1493,7 @@ static void integrate_particle(
           madd_v3_v3v3fl(states[1].co, states->co, states->vel, dtime * 0.5f);
           madd_v3_v3v3fl(states[1].vel, states->vel, acceleration, dtime * 0.5f);
           states[1].time = dtime * 0.5f;
-          /*fra=sim->psys->cfra+0.5f*dfra;*/
+          // fra = sim->psys->cfra + 0.5f * dfra;
         }
         else {
           madd_v3_v3v3fl(pa->state.co, states->co, states[1].vel, dtime);
@@ -1511,7 +1511,7 @@ static void integrate_particle(
             madd_v3_v3v3fl(states[1].co, states->co, dx[0], 0.5f);
             madd_v3_v3v3fl(states[1].vel, states->vel, dv[0], 0.5f);
             states[1].time = dtime * 0.5f;
-            /*fra=sim->psys->cfra+0.5f*dfra;*/
+            // fra = sim->psys->cfra + 0.5f * dfra;
             break;
           case 1:
             madd_v3_v3v3fl(dx[1], states->vel, dv[0], 0.5f);
@@ -1532,7 +1532,7 @@ static void integrate_particle(
             add_v3_v3v3(states[3].co, states->co, dx[2]);
             add_v3_v3v3(states[3].vel, states->vel, dv[2]);
             states[3].time = dtime;
-            /*fra=cfra;*/
+            // fra = cfra;
             break;
           case 3:
             add_v3_v3v3(dx[3], states->vel, dv[2]);

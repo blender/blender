@@ -3359,7 +3359,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
 {
   BLI_assert(ntree != nullptr);
   /* This function is not for localized node trees, we do not want
-   * do to ID user reference-counting and removal of animdation data then. */
+   * do to ID user reference-counting and removal of animation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
   bool node_has_id = false;

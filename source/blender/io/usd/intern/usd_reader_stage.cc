@@ -335,7 +335,7 @@ void USDStageReader::collect_readers(Main *bmain)
 
 void USDStageReader::process_armature_modifiers() const
 {
-  /* Iteratate over the skeleton readers to create the
+  /* Iterate over the skeleton readers to create the
    * armature object map, which maps a USD skeleton prim
    * path to the corresponding armature object. */
   std::map<std::string, Object *> usd_path_to_armature;

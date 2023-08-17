@@ -87,6 +87,7 @@ dict_custom = {
     "decrement",
     "decrementing",
     "deduplicate",
+    "deduplicated",
     "deduplicates",
     "deduplicating",
     "deduplication",

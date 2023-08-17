@@ -791,16 +791,16 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 
     a = s / dot_lfvector(d, q, numverts);
 
-    /* X = X + d*a; */
+    /* `X = X + d*a;` */
     add_lfvector_lfvectorS(ldV, ldV, d, a, numverts);
 
-    /* r = r - q*a; */
+    /* `r = r - q*a;` */
     sub_lfvector_lfvectorS(r, r, q, a, numverts);
 
     s_prev = s;
     s = dot_lfvector(r, r, numverts);
 
-    // d = r+d*(s/s_prev);
+    /* `d = r+d*(s/s_prev);` */
     add_lfvector_lfvectorS(d, r, d, (s / s_prev), numverts);
 
     filter(d, S);

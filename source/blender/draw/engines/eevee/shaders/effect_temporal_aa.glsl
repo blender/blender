@@ -2,13 +2,15 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-/*uniform sampler2D colorBuffer;
+#if 0
+uniform sampler2D colorBuffer;
 uniform depth2D depthBuffer;
 uniform sampler2D colorHistoryBuffer;
 
 uniform mat4 prevViewProjectionMatrix;
 
-out vec4 FragColor;*/
+out vec4 FragColor;
+#endif
 
 #ifdef USE_REPROJECTION
 

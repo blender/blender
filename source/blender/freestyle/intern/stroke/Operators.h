@@ -198,7 +198,7 @@ class Operators {
                             UnaryPredicate1D &pred,
                             float sampling = 0.0f);
 
-  /** Sorts the current set of chains (or viewedges)
+  /** Sorts the current set of chains (or view-edges)
    *  according to the comparison predicate given as argument.
    *  \param pred:
    *           The binary predicate used for the comparison

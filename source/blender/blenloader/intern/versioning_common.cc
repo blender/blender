@@ -492,7 +492,7 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
    *     decision to apply some versioning on some data should mostly rely on the data itself.
    *   - Unlike the regular do_version code, this one should _not_ be assumed as 'valid forever'.
    *     It is closer to the Editing or BKE code in that respect, changes to the logic or data
-   *     model of an ID will require carefull update here as well.
+   *     model of an ID will require a careful update here as well.
    *
    * Another critical weakness of this code is that it is currently _not_ performed on data linked
    * during an editing session, but only on data linked while reading a whole blendfile. This will

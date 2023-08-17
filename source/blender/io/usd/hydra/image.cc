@@ -101,7 +101,7 @@ std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, Ima
                                                   ipf->packedfile,
                                                   PF_WRITE_LOCAL);
 
-      /* Take first succesfully unpacked image. */
+      /* Take first successfully unpacked image. */
       if (cached_path != nullptr) {
         if (file_path.empty()) {
           file_path = cached_path;

@@ -2915,7 +2915,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       }
     }
 
-    /* 2.8x dropped support for non-empty dupli instances. but propoer do-versionning was never
+    /* 2.8x dropped support for non-empty dupli instances. but proper do-versioning was never
      * done correctly. So added here as a 'safe' place version wise, always better than in
      * readfile lib-linking code! */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {

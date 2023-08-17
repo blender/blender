@@ -206,7 +206,7 @@ void KuwaharaAnisotropicOperation::execute_pixel_sampled(float output[4],
       float2 rotated_disk_point = M_SQRT1_2 *
                                   float2(disk_point.x - disk_point.y, disk_point.x + disk_point.y);
 
-      /* Finally, we compute every other odd-index 4 weights starting from the 45 degreed rotated
+      /* Finally, we compute every other odd-index 4 weights starting from the 45 degree rotated
        * disk point. */
       float2 rotated_polynomial = sector_center_overlap_parameter -
                                   cross_sector_overlap_parameter * square(rotated_disk_point);
@@ -453,7 +453,7 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
         float2 rotated_disk_point = M_SQRT1_2 * float2(disk_point.x - disk_point.y,
                                                        disk_point.x + disk_point.y);
 
-        /* Finally, we compute every other odd-index 4 weights starting from the 45 degreed rotated
+        /* Finally, we compute every other odd-index 4 weights starting from the 45 degree rotated
          * disk point. */
         float2 rotated_polynomial = sector_center_overlap_parameter -
                                     cross_sector_overlap_parameter * square(rotated_disk_point);
