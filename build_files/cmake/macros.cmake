@@ -786,6 +786,7 @@ macro(remove_strict_flags)
   if(CMAKE_COMPILER_IS_GNUCC)
     remove_cc_flag(
       "-Wstrict-prototypes"
+      "-Wsuggest-attribute=format"
       "-Wmissing-prototypes"
       "-Wmissing-declarations"
       "-Wmissing-format-attribute"
