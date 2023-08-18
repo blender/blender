@@ -194,6 +194,7 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
   explicit TreeNode(GreasePencilLayerTreeNodeType type);
   explicit TreeNode(GreasePencilLayerTreeNodeType type, StringRefNull name);
   TreeNode(const TreeNode &other);
+  ~TreeNode();
 
  public:
   /* Define the common functions for #TreeNode. */
