@@ -663,11 +663,6 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   if (compilation_failed_) {
     return false;
   }
-#if DEBUG
-  if (!info->is_vulkan_compatible()) {
-    std::cout << "'" << info->name_ << "' stage interfaces are not compatible with Vulkan.\n";
-  }
-#endif
 
   VKShaderInterface *vk_interface = new VKShaderInterface();
   vk_interface->init(*info);

@@ -232,6 +232,14 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
+#ifdef DEBUG
+  if (!this->is_vulkan_compatible()) {
+    error += this->name_ +
+             " contains a stage interface using an instance name and mixed interpolation modes. "
+             "This is not compatible with Vulkan and need to be adjusted.\n";
+  }
+#endif
+
   return error;
 }
 
