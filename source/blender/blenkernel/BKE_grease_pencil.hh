@@ -573,7 +573,7 @@ inline void TreeNode::set_visible(const bool visible)
 inline bool TreeNode::is_locked() const
 {
   return ((this->flag & GP_LAYER_TREE_NODE_LOCKED) != 0) ||
-         (!this->parent_group() || this->parent_group()->as_node().is_locked());
+         (this->parent_group() && this->parent_group()->as_node().is_locked());
 }
 inline void TreeNode::set_locked(const bool locked)
 {
