@@ -1775,8 +1775,8 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
 
     if (!ELEM(id->override_library->hierarchy_root, id_root, nullptr)) {
-      /* FIXME This is probably never actually reached with current code? Check above for non-null
-       * hierarchy root pointer either skip the rest of the loop, or reset it to nullptr. */
+      /* In case the detected hierarchy root does not match with the currently defined one, this is
+       * likely an issue and is worth a warning. */
       CLOG_WARN(&LOG,
                 "Potential inconsistency in library override hierarchy of ID '%s' (current root "
                 "%s), detected as part of the hierarchy of '%s' (current root '%s')",
