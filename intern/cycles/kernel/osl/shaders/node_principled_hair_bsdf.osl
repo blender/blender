@@ -30,7 +30,8 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
                                  color Tint = 1.0,
                                  color AbsorptionCoefficient = color(0.245531, 0.52, 1.365),
                                  normal Normal = Ng,
-                                 string parametrization = "Absorption coefficient",
+                                 string model = "Huang",
+                                 string parametrization = "Direct Coloring",
                                  float Offset = radians(2),
                                  float Roughness = 0.3,
                                  float RadialRoughness = 0.3,
@@ -39,6 +40,10 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
                                  float IOR = 1.55,
                                  string AttrRandom = "geom:curve_random",
                                  float Random = 0.0,
+                                 float AspectRatio = 0.85,
+                                 float Rlobe = 1.0,
+                                 float TTlobe = 1.0,
+                                 float TRTlobe = 1.0,
 
                                  output closure color BSDF = 0)
 {
@@ -89,5 +94,15 @@ shader node_principled_hair_bsdf(color Color = color(0.017513, 0.005763, 0.00205
     sigma = sigma_from_concentration(0.0, 0.8054375);
   }
 
-  BSDF = principled_hair(Normal, sigma, roughness, radial_roughness, m0_roughness, Offset, IOR);
+  if (model == "Huang") {
+    normal major_axis = Normal;
+    if (AspectRatio != 1.0) {
+      getattribute("geom:N", major_axis);
+    }
+    BSDF = hair_huang(
+        major_axis, sigma, roughness, Offset, IOR, AspectRatio, Rlobe, TTlobe, TRTlobe);
+  }
+  else {
+    BSDF = hair_chiang(Normal, sigma, roughness, radial_roughness, m0_roughness, Offset, IOR);
+  }
 }

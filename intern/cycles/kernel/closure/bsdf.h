@@ -16,7 +16,8 @@
 #include "kernel/closure/bsdf_ashikhmin_shirley.h"
 #include "kernel/closure/bsdf_toon.h"
 #include "kernel/closure/bsdf_hair.h"
-#include "kernel/closure/bsdf_hair_principled.h"
+#include "kernel/closure/bsdf_principled_hair_chiang.h"
+#include "kernel/closure/bsdf_principled_hair_huang.h"
 #include "kernel/closure/bssrdf.h"
 #include "kernel/closure/volume.h"
 // clang-format on
@@ -195,8 +196,11 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
           sc, Ng, sd->wi, rand_xy, eval, wo, pdf, sampled_roughness);
       *eta = 1.0f;
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      label = bsdf_principled_hair_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+    case CLOSURE_BSDF_HAIR_CHIANG_ID:
+      label = bsdf_hair_chiang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
+      break;
+    case CLOSURE_BSDF_HAIR_HUANG_ID:
+      label = bsdf_hair_huang_sample(kg, sc, sd, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       label = bsdf_sheen_sample(sc, Ng, sd->wi, rand_xy, eval, wo, pdf);
@@ -325,10 +329,15 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
                                ((ccl_private HairBsdf *)sc)->roughness2);
       *eta = 1.0f;
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      alpha = ((ccl_private PrincipledHairBSDF *)sc)->m0_roughness;
+    case CLOSURE_BSDF_HAIR_CHIANG_ID:
+      alpha = ((ccl_private ChiangHairBSDF *)sc)->m0_roughness;
       *roughness = make_float2(alpha, alpha);
-      *eta = ((ccl_private PrincipledHairBSDF *)sc)->eta;
+      *eta = ((ccl_private ChiangHairBSDF *)sc)->eta;
+      break;
+    case CLOSURE_BSDF_HAIR_HUANG_ID:
+      alpha = ((ccl_private HuangHairBSDF *)sc)->roughness;
+      *roughness = make_float2(alpha, alpha);
+      *eta = ((ccl_private HuangHairBSDF *)sc)->eta;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       alpha = ((ccl_private SheenBsdf *)sc)->roughness;
@@ -405,11 +414,14 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
     case CLOSURE_BSDF_HAIR_TRANSMISSION_ID:
       label = LABEL_TRANSMIT | LABEL_GLOSSY;
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
+    case CLOSURE_BSDF_HAIR_CHIANG_ID:
       if (bsdf_is_transmission(sc, wo))
         label = LABEL_TRANSMIT | LABEL_GLOSSY;
       else
         label = LABEL_REFLECT | LABEL_GLOSSY;
+      break;
+    case CLOSURE_BSDF_HAIR_HUANG_ID:
+      label = LABEL_REFLECT | LABEL_GLOSSY;
       break;
     case CLOSURE_BSDF_SHEEN_ID:
       label = LABEL_REFLECT | LABEL_DIFFUSE;
@@ -493,8 +505,11 @@ ccl_device_inline
     case CLOSURE_BSDF_GLOSSY_TOON_ID:
       eval = bsdf_glossy_toon_eval(sc, sd->wi, wo, pdf);
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      eval = bsdf_principled_hair_eval(kg, sd, sc, wo, pdf);
+    case CLOSURE_BSDF_HAIR_CHIANG_ID:
+      eval = bsdf_hair_chiang_eval(kg, sd, sc, wo, pdf);
+      break;
+    case CLOSURE_BSDF_HAIR_HUANG_ID:
+      eval = bsdf_hair_huang_eval(kg, sd, sc, wo, pdf);
       break;
     case CLOSURE_BSDF_HAIR_REFLECTION_ID:
       eval = bsdf_hair_reflection_eval(sc, sd->wi, wo, pdf);
@@ -551,8 +566,11 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       bsdf_ashikhmin_shirley_blur(sc, roughness);
       break;
-    case CLOSURE_BSDF_HAIR_PRINCIPLED_ID:
-      bsdf_principled_hair_blur(sc, roughness);
+    case CLOSURE_BSDF_HAIR_CHIANG_ID:
+      bsdf_hair_chiang_blur(sc, roughness);
+      break;
+    case CLOSURE_BSDF_HAIR_HUANG_ID:
+      bsdf_hair_huang_blur(sc, roughness);
       break;
     default:
       break;
@@ -581,10 +599,13 @@ ccl_device_inline Spectrum bsdf_albedo(KernelGlobals kg,
     albedo *= bsdf_microfacet_estimate_albedo(
         kg, sd, (ccl_private const MicrofacetBsdf *)sc, reflection, transmission);
   }
-  else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
+  else if (sc->type == CLOSURE_BSDF_HAIR_CHIANG_ID) {
     /* TODO(lukas): Principled Hair could also be split into a glossy and a transmission component,
      * similar to Glass BSDFs. */
-    albedo *= bsdf_principled_hair_albedo(sd, sc);
+    albedo *= bsdf_hair_chiang_albedo(sd, sc);
+  }
+  else if (sc->type == CLOSURE_BSDF_HAIR_HUANG_ID) {
+    albedo *= bsdf_hair_huang_albedo(sd, sc);
   }
 #endif
   return albedo;

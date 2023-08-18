@@ -1,6 +1,9 @@
 /* SPDX-FileCopyrightText: 2018-2022 Blender Foundation
  *
- * SPDX-License-Identifier: Apache-2.0 */
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * This code implements the paper [A practical and controllable hair and fur model for production
+ * path tracing](https://doi.org/10.1145/2775280.2792559) by Chiang, Matt Jen-Yuan, et al. */
 
 #pragma once
 
@@ -12,12 +15,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct PrincipledHairExtra {
+typedef struct ChiangHairExtra {
   /* Geometry data. */
   float4 geom;
-} PrincipledHairExtra;
+} ChiangHairExtra;
 
-typedef struct PrincipledHairBSDF {
+typedef struct ChiangHairBSDF {
   SHADER_CLOSURE_BASE;
 
   /* Absorption coefficient. */
@@ -34,13 +37,11 @@ typedef struct PrincipledHairBSDF {
   float m0_roughness;
 
   /* Extra closure. */
-  ccl_private PrincipledHairExtra *extra;
-} PrincipledHairBSDF;
+  ccl_private ChiangHairExtra *extra;
+} ChiangHairBSDF;
 
-static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairBSDF),
-              "PrincipledHairBSDF is too large!");
-static_assert(sizeof(ShaderClosure) >= sizeof(PrincipledHairExtra),
-              "PrincipledHairExtra is too large!");
+static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairBSDF), "ChiangHairBSDF is too large!");
+static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairExtra), "ChiangHairExtra is too large!");
 
 /* Gives the change in direction in the normal plane for the given angles and p-th-order
  * scattering. */
@@ -158,10 +159,9 @@ ccl_device_inline float longitudinal_scattering(
 
 #ifdef __HAIR__
 /* Set up the hair closure. */
-ccl_device int bsdf_principled_hair_setup(ccl_private ShaderData *sd,
-                                          ccl_private PrincipledHairBSDF *bsdf)
+ccl_device int bsdf_hair_chiang_setup(ccl_private ShaderData *sd, ccl_private ChiangHairBSDF *bsdf)
 {
-  bsdf->type = CLOSURE_BSDF_HAIR_PRINCIPLED_ID;
+  bsdf->type = CLOSURE_BSDF_HAIR_CHIANG_ID;
   bsdf->v = clamp(bsdf->v, 0.001f, 1.0f);
   bsdf->s = clamp(bsdf->s, 0.001f, 1.0f);
   /* Apply Primary Reflection Roughness modifier. */
@@ -252,15 +252,15 @@ ccl_device_inline void hair_alpha_angles(float sin_theta_i,
 }
 
 /* Evaluation function for our shader. */
-ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
-                                              ccl_private const ShaderData *sd,
-                                              ccl_private const ShaderClosure *sc,
-                                              const float3 wo,
-                                              ccl_private float *pdf)
+ccl_device Spectrum bsdf_hair_chiang_eval(KernelGlobals kg,
+                                          ccl_private const ShaderData *sd,
+                                          ccl_private const ShaderClosure *sc,
+                                          const float3 wo,
+                                          ccl_private float *pdf)
 {
   kernel_assert(isfinite_safe(sd->P) && isfinite_safe(sd->ray_length));
 
-  ccl_private const PrincipledHairBSDF *bsdf = (ccl_private const PrincipledHairBSDF *)sc;
+  ccl_private const ChiangHairBSDF *bsdf = (ccl_private const ChiangHairBSDF *)sc;
   const float3 Y = float4_to_float3(bsdf->extra->geom);
 
   const float3 X = safe_normalize(sd->dPdu);
@@ -334,17 +334,17 @@ ccl_device Spectrum bsdf_principled_hair_eval(KernelGlobals kg,
 }
 
 /* Sampling function for the hair shader. */
-ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
-                                           ccl_private const ShaderClosure *sc,
-                                           ccl_private ShaderData *sd,
-                                           float3 rand,
-                                           ccl_private Spectrum *eval,
-                                           ccl_private float3 *wo,
-                                           ccl_private float *pdf,
-                                           ccl_private float2 *sampled_roughness,
-                                           ccl_private float *eta)
+ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
+                                       ccl_private const ShaderClosure *sc,
+                                       ccl_private ShaderData *sd,
+                                       float3 rand,
+                                       ccl_private Spectrum *eval,
+                                       ccl_private float3 *wo,
+                                       ccl_private float *pdf,
+                                       ccl_private float2 *sampled_roughness,
+                                       ccl_private float *eta)
 {
-  ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
+  ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 
   *sampled_roughness = make_float2(bsdf->m0_roughness, bsdf->m0_roughness);
   *eta = bsdf->eta;
@@ -456,28 +456,20 @@ ccl_device int bsdf_principled_hair_sample(KernelGlobals kg,
 }
 
 /* Implements Filter Glossy by capping the effective roughness. */
-ccl_device void bsdf_principled_hair_blur(ccl_private ShaderClosure *sc, float roughness)
+ccl_device void bsdf_hair_chiang_blur(ccl_private ShaderClosure *sc, float roughness)
 {
-  ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
+  ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 
   bsdf->v = fmaxf(roughness, bsdf->v);
   bsdf->s = fmaxf(roughness, bsdf->s);
   bsdf->m0_roughness = fmaxf(roughness, bsdf->m0_roughness);
 }
 
-/* Hair Albedo */
-
-ccl_device_inline float bsdf_principled_hair_albedo_roughness_scale(
-    const float azimuthal_roughness)
+/* Hair Albedo. */
+ccl_device Spectrum bsdf_hair_chiang_albedo(ccl_private const ShaderData *sd,
+                                            ccl_private const ShaderClosure *sc)
 {
-  const float x = azimuthal_roughness;
-  return (((((0.245f * x) + 5.574f) * x - 10.73f) * x + 2.532f) * x - 0.215f) * x + 5.969f;
-}
-
-ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderData *sd,
-                                                ccl_private const ShaderClosure *sc)
-{
-  ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)sc;
+  ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 
   const float cos_theta_o = cos_from_sin(dot(sd->wi, safe_normalize(sd->dPdu)));
   const float cos_gamma_o = cos_from_sin(bsdf->extra->geom.w);
@@ -486,24 +478,6 @@ ccl_device Spectrum bsdf_principled_hair_albedo(ccl_private const ShaderData *sd
   const float roughness_scale = bsdf_principled_hair_albedo_roughness_scale(bsdf->v);
   /* TODO(lukas): Adding the Fresnel term here as a workaround until the proper refactor. */
   return exp(-sqrt(bsdf->sigma) * roughness_scale) + make_spectrum(f);
-}
-
-ccl_device_inline Spectrum
-bsdf_principled_hair_sigma_from_reflectance(const Spectrum color, const float azimuthal_roughness)
-{
-  const Spectrum sigma = log(color) /
-                         bsdf_principled_hair_albedo_roughness_scale(azimuthal_roughness);
-  return sigma * sigma;
-}
-
-ccl_device_inline Spectrum bsdf_principled_hair_sigma_from_concentration(const float eumelanin,
-                                                                         const float pheomelanin)
-{
-  const float3 eumelanin_color = make_float3(0.506f, 0.841f, 1.653f);
-  const float3 pheomelanin_color = make_float3(0.343f, 0.733f, 1.924f);
-
-  return eumelanin * rgb_to_spectrum(eumelanin_color) +
-         pheomelanin * rgb_to_spectrum(pheomelanin_color);
 }
 
 CCL_NAMESPACE_END

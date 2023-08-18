@@ -818,26 +818,26 @@ ccl_device void osl_closure_hair_transmission_setup(
   sd->flag |= bsdf_hair_transmission_setup(bsdf);
 }
 
-ccl_device void osl_closure_principled_hair_setup(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
-                                                  uint32_t path_flag,
-                                                  float3 weight,
-                                                  ccl_private const PrincipledHairClosure *closure,
-                                                  float3 *layer_albedo)
+ccl_device void osl_closure_hair_chiang_setup(KernelGlobals kg,
+                                              ccl_private ShaderData *sd,
+                                              uint32_t path_flag,
+                                              float3 weight,
+                                              ccl_private const ChiangHairClosure *closure,
+                                              float3 *layer_albedo)
 {
 #ifdef __HAIR__
   if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY)) {
     return;
   }
 
-  ccl_private PrincipledHairBSDF *bsdf = (ccl_private PrincipledHairBSDF *)bsdf_alloc(
-      sd, sizeof(PrincipledHairBSDF), rgb_to_spectrum(weight));
+  ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)bsdf_alloc(
+      sd, sizeof(ChiangHairBSDF), rgb_to_spectrum(weight));
   if (!bsdf) {
     return;
   }
 
-  ccl_private PrincipledHairExtra *extra = (ccl_private PrincipledHairExtra *)closure_alloc_extra(
-      sd, sizeof(PrincipledHairExtra));
+  ccl_private ChiangHairExtra *extra = (ccl_private ChiangHairExtra *)closure_alloc_extra(
+      sd, sizeof(ChiangHairExtra));
   if (!extra) {
     return;
   }
@@ -852,7 +852,51 @@ ccl_device void osl_closure_principled_hair_setup(KernelGlobals kg,
 
   bsdf->extra = extra;
 
-  sd->flag |= bsdf_principled_hair_setup(sd, bsdf);
+  sd->flag |= bsdf_hair_chiang_setup(sd, bsdf);
+#endif
+}
+
+ccl_device void osl_closure_hair_huang_setup(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
+                                             uint32_t path_flag,
+                                             float3 weight,
+                                             ccl_private const HuangHairClosure *closure,
+                                             float3 *layer_albedo)
+{
+#ifdef __HAIR__
+  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY)) {
+    return;
+  }
+
+  if (closure->r_lobe <= 0.0f && closure->tt_lobe <= 0.0f && closure->trt_lobe <= 0.0f) {
+    return;
+  }
+
+  ccl_private HuangHairBSDF *bsdf = (ccl_private HuangHairBSDF *)bsdf_alloc(
+      sd, sizeof(HuangHairBSDF), rgb_to_spectrum(weight));
+  if (!bsdf) {
+    return;
+  }
+
+  ccl_private HuangHairExtra *extra = (ccl_private HuangHairExtra *)closure_alloc_extra(
+      sd, sizeof(HuangHairExtra));
+  if (!extra) {
+    return;
+  }
+
+  bsdf->N = closure->N;
+  bsdf->sigma = closure->sigma;
+  bsdf->roughness = closure->roughness;
+  bsdf->tilt = closure->tilt;
+  bsdf->eta = closure->eta;
+  bsdf->aspect_ratio = closure->aspect_ratio;
+
+  bsdf->extra = extra;
+  bsdf->extra->R = closure->r_lobe;
+  bsdf->extra->TT = closure->tt_lobe;
+  bsdf->extra->TRT = closure->trt_lobe;
+
+  sd->flag |= bsdf_hair_huang_setup(sd, bsdf, path_flag);
 #endif
 }
 

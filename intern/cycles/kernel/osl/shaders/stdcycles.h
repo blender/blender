@@ -39,13 +39,22 @@ closure color
 hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
 closure color
 hair_transmission(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
-closure color principled_hair(normal N,
-                              color sigma,
-                              float roughnessu,
-                              float roughnessv,
-                              float coat,
-                              float alpha,
-                              float eta) BUILTIN;
+closure color hair_chiang(normal N,
+                          color sigma,
+                          float roughnessu,
+                          float roughnessv,
+                          float coat,
+                          float alpha,
+                          float eta) BUILTIN;
+closure color hair_huang(normal N,
+                         color sigma,
+                         float roughness,
+                         float tilt,
+                         float eta,
+                         float aspect_ratio,
+                         float r_lobe,
+                         float tt_lobe,
+                         float trt_lobe) BUILTIN;
 
 // Volume
 closure color henyey_greenstein(float g) BUILTIN;
