@@ -490,6 +490,19 @@ class USERPREF_PT_edit_text_editor(EditingPanel, CenterAlignMixIn, Panel):
         layout.prop(edit, "use_text_edit_auto_close")
 
 
+class USERPREF_PT_edit_node_editor(EditingPanel, CenterAlignMixIn, Panel):
+    bl_label = "Node Editor"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_centered(self, context, layout):
+        prefs = context.preferences
+        edit = prefs.edit
+
+        col = layout.column()
+        col.prop(edit, "node_margin", text="Auto-Offset Margin")
+        col.prop(edit, "node_preview_resolution", text="Preview Resolution")
+
+
 class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
     bl_label = "Miscellaneous"
     bl_options = {'DEFAULT_CLOSED'}
@@ -500,8 +513,6 @@ class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
 
         col = layout.column()
         col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
-        col.prop(edit, "node_margin", text="Node Auto-Offset Margin")
-        col.prop(edit, "node_preview_resolution", text="Node Preview Resolution")
 
 
 # -----------------------------------------------------------------------------
@@ -2565,6 +2576,7 @@ classes = (
     USERPREF_PT_edit_weight_paint,
     USERPREF_PT_edit_gpencil,
     USERPREF_PT_edit_text_editor,
+    USERPREF_PT_edit_node_editor,
     USERPREF_PT_edit_misc,
 
     USERPREF_PT_animation_timeline,
