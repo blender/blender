@@ -18,7 +18,6 @@ BLACKLIST_ALL = [
     "hair_instancer_uv.blend",
     "principled_hair_directcoloring.blend",
     "visibility_particles.blend",
-    "microfacet_hair_orientation.blend"
 ]
 
 BLACKLIST_OSL = [
