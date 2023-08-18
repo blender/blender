@@ -608,6 +608,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(
               roughness_socket->default_value);
           roughness_data->value = 0.5f;
+          node->custom1 = SHD_GLOSSY_MULTI_GGX;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }

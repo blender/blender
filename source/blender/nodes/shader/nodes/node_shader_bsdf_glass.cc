@@ -22,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_init_glass(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = SHD_GLOSSY_BECKMANN;
+  node->custom1 = SHD_GLOSSY_MULTI_GGX;
 }
 
 static int node_shader_gpu_bsdf_glass(GPUMaterial *mat,

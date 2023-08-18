@@ -137,7 +137,7 @@ static void node_shader_buts_principled(uiLayout *layout, bContext * /*C*/, Poin
 
 static void node_shader_init_principled(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = SHD_GLOSSY_GGX;
+  node->custom1 = SHD_GLOSSY_MULTI_GGX;
   node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
 }
 
