@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <type_traits>
 
 #include "BLI_string_ref.hh"
+#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.h"
@@ -40,6 +42,17 @@ enum class OutputSocketFieldType {
    * The subset is defined by the vector of indices. */
   PartiallyDependent,
 };
+
+/**
+ * A bit-field that maps to the realtime_compositor::InputRealizationOptions.
+ */
+enum class CompositorInputRealizationOptions : uint8_t {
+  None = 0,
+  RealizeOnOperationDomain = (1 << 0),
+  RealizeRotation = (1 << 1),
+  RealizeScale = (1 << 2),
+};
+ENUM_OPERATORS(CompositorInputRealizationOptions, CompositorInputRealizationOptions::RealizeScale)
 
 /**
  * Contains information about how a node output's field state depends on inputs of the same node.
@@ -166,13 +179,12 @@ class SocketDeclaration {
   OutputFieldDependency output_field_dependency;
 
  private:
+  CompositorInputRealizationOptions compositor_realization_options_ =
+      CompositorInputRealizationOptions::RealizeOnOperationDomain;
+
   /** The priority of the input for determining the domain of the node. See
    * realtime_compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
-
-  /** This input shouldn't be realized on the operation domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
-  bool compositor_skip_realization_ = false;
 
   /** This input expects a single value and can't operate on non-single values. See
    * realtime_compositor::InputDescriptor for more information. */
@@ -208,8 +220,8 @@ class SocketDeclaration {
    */
   void make_available(bNode &node) const;
 
+  const CompositorInputRealizationOptions &compositor_realization_options() const;
   int compositor_domain_priority() const;
-  bool compositor_skip_realization() const;
   bool compositor_expects_single_value() const;
 
   const ImplicitInputValueFn *implicit_input_fn() const
@@ -424,19 +436,17 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
     return *(Self *)this;
   }
 
+  Self &compositor_realization_options(CompositorInputRealizationOptions value)
+  {
+    decl_->compositor_realization_options_ = value;
+    return *(Self *)this;
+  }
+
   /** The priority of the input for determining the domain of the node. See
    * realtime_compositor::InputDescriptor for more information. */
   Self &compositor_domain_priority(int priority)
   {
     decl_->compositor_domain_priority_ = priority;
-    return *(Self *)this;
-  }
-
-  /** This input shouldn't be realized on the operation domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
-  Self &compositor_skip_realization(bool value = true)
-  {
-    decl_->compositor_skip_realization_ = value;
     return *(Self *)this;
   }
 
@@ -666,14 +676,15 @@ inline bool operator!=(const FieldInferencingInterface &a, const FieldInferencin
 /** \name #SocketDeclaration Inline Methods
  * \{ */
 
+inline const CompositorInputRealizationOptions &SocketDeclaration::compositor_realization_options()
+    const
+{
+  return compositor_realization_options_;
+}
+
 inline int SocketDeclaration::compositor_domain_priority() const
 {
   return compositor_domain_priority_;
-}
-
-inline bool SocketDeclaration::compositor_skip_realization() const
-{
-  return compositor_skip_realization_;
 }
 
 inline bool SocketDeclaration::compositor_expects_single_value() const

@@ -2,7 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_angle_types.hh"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
@@ -16,6 +19,10 @@
 #include "COM_utilities.hh"
 
 namespace blender::realtime_compositor {
+
+/* ------------------------------------------------------------------------------------------------
+ * Realize On Domain Operation
+ */
 
 RealizeOnDomainOperation::RealizeOnDomainOperation(Context &context,
                                                    Domain domain,
@@ -119,8 +126,8 @@ SimpleOperation *RealizeOnDomainOperation::construct_if_needed(
     const InputDescriptor &input_descriptor,
     const Domain &operation_domain)
 {
-  /* This input wants to skip realization, the operation is not needed. */
-  if (input_descriptor.skip_realization) {
+  /* This input doesn't need realization, the operation is not needed. */
+  if (!input_descriptor.realization_options.realize_on_operation_domain) {
     return nullptr;
   }
 
@@ -143,6 +150,70 @@ SimpleOperation *RealizeOnDomainOperation::construct_if_needed(
 
   /* Otherwise, realization is needed. */
   return new RealizeOnDomainOperation(context, operation_domain, input_descriptor.type);
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Realize Transformation Operation
+ */
+
+Domain RealizeTransformationOperation::compute_target_domain(
+    const Domain &input_domain, const InputRealizationOptions &realization_options)
+{
+  if (!realization_options.realize_rotation && !realization_options.realize_scale) {
+    return input_domain;
+  }
+
+  math::AngleRadian rotation;
+  float2 translation, scale;
+  float2 size = float2(input_domain.size);
+  math::to_loc_rot_scale(input_domain.transformation, translation, rotation, scale);
+
+  /* Set the rotation to zero and expand the domain size to fit the bounding box of the rotated
+   * result. */
+  if (realization_options.realize_rotation) {
+    const float sine = math::abs(math::sin(rotation));
+    const float cosine = math::abs(math::cos(rotation));
+    size = float2(size.x * sine + size.y * cosine, size.x * cosine + size.y * sine);
+    rotation = 0.0f;
+  }
+
+  /* Set the scale to 1 and scale the domain size to adapt to the new domain. */
+  if (realization_options.realize_scale) {
+    size *= scale;
+    scale = float2(1.0f);
+  }
+
+  const float3x3 transformation = math::from_loc_rot_scale<float3x3>(translation, rotation, scale);
+
+  return Domain(int2(math::ceil(size)), transformation);
+}
+
+SimpleOperation *RealizeTransformationOperation::construct_if_needed(
+    Context &context, const Result &input_result, const InputDescriptor &input_descriptor)
+{
+  /* The input expects a single value and if no single value is provided, it will be ignored and a
+   * default value will be used, so no need to realize it and the operation is not needed. */
+  if (input_descriptor.expects_single_value) {
+    return nullptr;
+  }
+
+  /* Input result is a single value and does not need realization, the operation is not needed. */
+  if (input_result.is_single_value()) {
+    return nullptr;
+  }
+
+  const Domain target_domain = compute_target_domain(input_result.domain(),
+                                                     input_descriptor.realization_options);
+
+  /* The input have an identical domain to the target domain, either because the input doesn't need
+   * to realize its transformations or because it has identity transformations, so no need to
+   * realize it and the operation is not needed. */
+  if (target_domain == input_result.domain()) {
+    return nullptr;
+  }
+
+  /* Otherwise, realization on the target domain is needed. */
+  return new RealizeOnDomainOperation(context, target_domain, input_descriptor.type);
 }
 
 }  // namespace blender::realtime_compositor
