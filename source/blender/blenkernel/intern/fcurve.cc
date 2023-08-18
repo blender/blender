@@ -2617,6 +2617,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
           }
           else {
             dtar->rna_path = nullptr;
+            dtar->id = nullptr;
           }
         }
         DRIVER_TARGETS_LOOPER_END;
@@ -2642,13 +2643,7 @@ void BKE_fcurve_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fcurves
       ChannelDriver *driver = fcu->driver;
       LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
         DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          /* only relink if still used */
-          if (tarIndex < dvar->num_targets) {
-            BLO_read_id_address(reader, id, &dtar->id);
-          }
-          else {
-            dtar->id = nullptr;
-          }
+          BLO_read_id_address(reader, id, &dtar->id);
         }
         DRIVER_TARGETS_LOOPER_END;
       }
