@@ -330,17 +330,15 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
     default: {
       if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
         float value;
-        float percentage = RNA_property_float_get(op->ptr, gso->factor_prop);
-
-        /* Grab percentage from numeric input, and store this new value for redo
-         * NOTE: users see ints, while internally we use a 0-1 float.
-         */
-        value = percentage * 100.0f;
         applyNumInput(&gso->num, &value);
 
-        percentage = value / 100.0f;
-        ED_slider_factor_set(gso->slider, percentage);
-        RNA_property_float_set(op->ptr, gso->factor_prop, percentage);
+        /* Grab percentage from numeric input, and store this new value for redo
+         * NOTE: users see ints, while internally we use a 0-1 float. */
+        if (ED_slider_mode_get(gso->slider) == SLIDER_MODE_PERCENT) {
+          value = value / 100.0f;
+        }
+        ED_slider_factor_set(gso->slider, value);
+        RNA_property_float_set(op->ptr, gso->factor_prop, value);
 
         gso->modal_update(C, op);
         break;
