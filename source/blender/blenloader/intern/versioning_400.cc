@@ -22,6 +22,7 @@
 
 #include "DNA_defaults.h"
 #include "DNA_genfile.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
@@ -29,6 +30,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.h"
@@ -77,6 +79,14 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
         version_composite_nodetree_null_id(scene->nodetree, scene);
+      }
+    }
+
+    /* XXX This was added many years ago (1c19940198) in 'lib_link` code of particles as a bugfix.
+     * But this is actually versioning. Should be safe enough here. */
+    LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
+      if (!part->effector_weights) {
+        part->effector_weights = BKE_effector_add_weights(part->force_group);
       }
     }
 

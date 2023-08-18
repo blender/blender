@@ -390,9 +390,6 @@ static void particle_settings_blend_read_lib(BlendLibReader *reader, ID *id)
   if (part->effector_weights) {
     BLO_read_id_address(reader, id, &part->effector_weights->group);
   }
-  else {
-    part->effector_weights = BKE_effector_add_weights(part->force_group);
-  }
 
   if (part->instance_weights.first && part->instance_collection) {
     LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
@@ -400,7 +397,7 @@ static void particle_settings_blend_read_lib(BlendLibReader *reader, ID *id)
     }
   }
   else {
-    BLI_listbase_clear(&part->instance_weights);
+    BLI_freelistN(&part->instance_weights);
   }
 
   if (part->boids) {
