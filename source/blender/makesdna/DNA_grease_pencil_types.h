@@ -246,7 +246,7 @@ typedef struct GreasePencilLayerTreeNode {
   /**
    * Name of the layer/group. Dynamic length.
    */
-  char *name_ptr;
+  char *name;
   /**
    * One of `GreasePencilLayerTreeNodeType`.
    * Indicates the type of struct this element is.

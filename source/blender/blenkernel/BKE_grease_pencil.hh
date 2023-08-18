@@ -597,7 +597,9 @@ inline bool TreeNode::use_onion_skinning() const
 }
 inline StringRefNull TreeNode::name() const
 {
-  return (this->name_ptr != nullptr) ? this->name_ptr : StringRefNull();
+  return (this->GreasePencilLayerTreeNode::name != nullptr) ?
+             this->GreasePencilLayerTreeNode::name :
+             StringRefNull();
 }
 inline const TreeNode &LayerGroup::as_node() const
 {
