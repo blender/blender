@@ -944,11 +944,11 @@ Include the files needed for debugging python scripts with visual studio 2017+."
   option(WITH_WINDOWS_SCCACHE "Use sccache to speed up builds (Ninja builder only)" OFF)
   mark_as_advanced(WITH_WINDOWS_SCCACHE)
 
-  option(WITH_WINDOWS_PDB "Generate a pdb file for client side stacktraces" ON)
-  mark_as_advanced(WITH_WINDOWS_PDB)
+  option(WITH_WINDOWS_RELEASE_PDB "Generate a pdb file for client side stacktraces for release builds" ON)
+  mark_as_advanced(WITH_WINDOWS_RELEASE_PDB)
 
-  option(WITH_WINDOWS_STRIPPED_PDB "Use a stripped PDB file" ON)
-  mark_as_advanced(WITH_WINDOWS_STRIPPED_PDB)
+  option(WITH_WINDOWS_RELEASE_STRIPPED_PDB "Use a stripped PDB file for release builds" ON)
+  mark_as_advanced(WITH_WINDOWS_RELEASE_STRIPPED_PDB)
 
 endif()
 
