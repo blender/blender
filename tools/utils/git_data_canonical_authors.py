@@ -242,6 +242,9 @@ def canonical_author_map() -> Dict[str, str]:
             "Gaia Clary <gaiaclary>",
             "gaiaclary <gaia.clary@machinimatrix.org>",
         ),
+        "Georgiy Markelov <georgiy.m.markelov@gmail.com>": (
+            "georgiy.m.markelov@gmail.com <georgiy.m.markelov@gmail.com>",
+        ),
         "Germano Cavalcante <germano.costa@ig.com.br>": (
             "Germano <germano.costa@ig.com.br>",
             "Germano Cavalcante <grmncv@gmail.com>",
