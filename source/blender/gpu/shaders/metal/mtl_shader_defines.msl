@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** Special header for mapping commonly defined tokens to API-specific variations.
  * Where possible, this will adhere closely to base GLSL, where semantics are the same.

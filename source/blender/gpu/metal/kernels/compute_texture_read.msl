@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* MATCHING eGPUTextureType. */
 #define GPU_TEXTURE_1D (1 << 0)
 #define GPU_TEXTURE_2D (1 << 1)

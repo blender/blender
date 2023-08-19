@@ -94,6 +94,8 @@ def filename_is_c_compat(filename: str) -> bool:
             ".cu",
             # Metal.
             ".metal",
+            # Metal Shading Language.
+            ".msl",
             # Open Shading Language.
             ".osl",
             # Cycles uses this extension.
