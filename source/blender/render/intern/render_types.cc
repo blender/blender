@@ -62,7 +62,7 @@ void Render::display_update(RenderResult *render_result, rcti *rect)
   }
 }
 
-void Render::current_scene_update(struct Scene *scene)
+void Render::current_scene_update(Scene *scene)
 {
   if (current_scene_update_cb) {
     current_scene_update_cb(suh, scene);
@@ -105,7 +105,7 @@ bool Render::test_break()
   return test_break_cb(tbh);
 }
 
-bool Render::prepare_viewlayer(struct ViewLayer *view_layer, struct Depsgraph *depsgraph)
+bool Render::prepare_viewlayer(ViewLayer *view_layer, Depsgraph *depsgraph)
 {
   if (!prepare_viewlayer_cb) {
     return true;

@@ -33,7 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <string.h>
+#include <cstring>
 
 /* Statics */
 static ListBase studiolights;

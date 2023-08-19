@@ -6,12 +6,12 @@
  * \ingroup bke
  */
 
+#include <cfloat>
 #include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <float.h>
 
 #include "BLI_endian_switch.h"
 #include "BLI_listbase.h"

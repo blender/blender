@@ -26,7 +26,7 @@
 
 #include "wm_xr_intern.h"
 
-#include <string.h>
+#include <cstring>
 
 /* -------------------------------------------------------------------- */
 /** \name XR-Action API

@@ -19,7 +19,7 @@
 
 #include "openjpeg.h"
 
-#include <string.h>
+#include <cstring>
 
 #define JP2_FILEHEADER_SIZE 12
 

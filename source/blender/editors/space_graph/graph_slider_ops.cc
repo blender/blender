@@ -1170,7 +1170,7 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
 
 static void match_slope_graph_keys(bAnimContext *ac, const float factor)
 {
-  ListBase anim_data = {NULL, NULL};
+  ListBase anim_data = {nullptr, nullptr};
 
   bool all_segments_valid = true;
 
@@ -1216,7 +1216,7 @@ static void match_slope_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
   const float factor = slider_factor_get_and_remember(op);
   match_slope_graph_keys(&gso->ac, factor);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int match_slope_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1252,7 +1252,7 @@ static int match_slope_exec(bContext *C, wmOperator *op)
   match_slope_graph_keys(&ac, factor);
 
   /* Set notifier that keyframes have changed. */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }

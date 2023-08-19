@@ -20,7 +20,7 @@ extern "C" {
 
 #include "BLI_strict_flags.h"
 
-#include <string.h>
+#include <cstring>
 
 struct Knot {
   Knot *next, *prev;

@@ -24,7 +24,7 @@
 
 #include "BLO_read_write.h"
 
-#include <string.h>
+#include <cstring>
 
 static void speaker_init_data(ID *id)
 {

@@ -131,7 +131,7 @@ static void rna_def_usd_hook(BlenderRNA *brna)
 
   ///* Properties --------------------- */
 
-  RNA_define_verify_sdna(0); /* not in sdna */
+  RNA_define_verify_sdna(false); /* not in sdna */
 
   prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "idname");

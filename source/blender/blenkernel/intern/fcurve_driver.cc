@@ -48,7 +48,7 @@
 #  include "BPY_extern.h"
 #endif
 
-#include <string.h>
+#include <cstring>
 
 #ifdef WITH_PYTHON
 static ThreadMutex python_driver_lock = BLI_MUTEX_INITIALIZER;

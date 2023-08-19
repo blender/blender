@@ -7,8 +7,8 @@
  */
 
 #include <cfloat>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "BLI_kdtree.h"
 #include "BLI_utildefines.h"

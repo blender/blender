@@ -9,7 +9,7 @@
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 
-#include <math.h>
+#include <cmath>
 
 #ifdef WITH_OCEANSIM
 

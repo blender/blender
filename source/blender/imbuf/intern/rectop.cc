@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <string.h>
+#include <cstring>
 
 void IMB_blend_color_byte(uchar dst[4],
                           const uchar src1[4],

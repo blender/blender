@@ -184,9 +184,7 @@ static void node_shader_update_hair_principled(bNodeTree *ntree, bNode *node)
     else if (STREQ(sock->name, "Aspect Ratio")) {
       bke::nodeSetSocketAvailability(ntree, sock, model == SHD_PRINCIPLED_HAIR_HUANG);
     }
-    else if (STREQ(sock->name, "Reflection") || STREQ(sock->name, "Transmission") ||
-             STREQ(sock->name, "Secondary Reflection"))
-    {
+    else if (STR_ELEM(sock->name, "Reflection", "Transmission", "Secondary Reflection")) {
       bke::nodeSetSocketAvailability(ntree, sock, model == SHD_PRINCIPLED_HAIR_HUANG);
     }
   }

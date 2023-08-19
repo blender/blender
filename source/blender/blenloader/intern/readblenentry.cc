@@ -503,7 +503,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
   MEM_freeN(bfd);
 }
 
-void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports)
+void BLO_read_do_version_after_setup(Main *new_bmain, BlendFileReadReport *reports)
 {
   do_versions_after_setup(new_bmain, reports);
 }

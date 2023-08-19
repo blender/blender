@@ -39,7 +39,7 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include <string.h>
+#include <cstring>
 
 bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {
