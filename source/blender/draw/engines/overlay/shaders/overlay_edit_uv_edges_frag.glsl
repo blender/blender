@@ -2,7 +2,7 @@
 
 /**
  * We want to know how much a pixel is covered by a line.
- * We replace the square pixel with acircle of the same area and try to find the intersection area.
+ * We replace the square pixel with a circle of the same area and try to find the intersection area.
  * The area we search is the circular segment. https://en.wikipedia.org/wiki/Circular_segment
  * The formula for the area uses inverse trig function and is quite complex. Instead,
  * we approximate it by using the smooth-step function and a 1.05 factor to the disc radius.

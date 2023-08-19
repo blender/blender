@@ -2,7 +2,7 @@
 /**
  * Sampling data accessors and random number generators.
  * Also contains some sample mapping functions.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 

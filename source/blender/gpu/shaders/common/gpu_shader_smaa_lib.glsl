@@ -292,8 +292,8 @@
  * That's it!
  */
 
-//-----------------------------------------------------------------------------
-// SMAA Presets
+/* ----------------------------------------------------------------------------
+ * SMAA Presets */
 
 /**
  * Note that if you use one of these presets, the following configuration
@@ -322,8 +322,8 @@
 #  define SMAA_CORNER_ROUNDING 25
 #endif
 
-//-----------------------------------------------------------------------------
-// Configurable Defines
+/* ----------------------------------------------------------------------------
+ * Configurable Defines */
 
 /**
  * SMAA_THRESHOLD specifies the threshold or sensitivity to edges.
@@ -491,8 +491,8 @@
 #  define SMAA_INCLUDE_PS 1
 #endif
 
-//-----------------------------------------------------------------------------
-// Texture Access Defines
+/* ----------------------------------------------------------------------------
+ * Texture Access Defines */
 
 #ifndef SMAA_AREATEX_SELECT
 #  if defined(SMAA_HLSL_3)
@@ -510,8 +510,8 @@
 #  define SMAA_DECODE_VELOCITY(sample) sample.rg
 #endif
 
-//-----------------------------------------------------------------------------
-// Non-Configurable Defines
+/* ----------------------------------------------------------------------------
+ * Non-Configurable Defines */
 
 #define SMAA_AREATEX_MAX_DISTANCE 16
 #define SMAA_AREATEX_MAX_DISTANCE_DIAG 20
@@ -521,8 +521,8 @@
 #define SMAA_SEARCHTEX_PACKED_SIZE float2(64.0, 16.0)
 #define SMAA_CORNER_ROUNDING_NORM (float(SMAA_CORNER_ROUNDING) / 100.0)
 
-//-----------------------------------------------------------------------------
-// Porting Functions
+/* ----------------------------------------------------------------------------
+ * Porting Functions */
 
 #if defined(SMAA_HLSL_3)
 #  define SMAATexture2D(tex) sampler2D tex
@@ -628,8 +628,8 @@ float mad(float a, float b, float c)
 #endif
 /* clang-format on */
 
-//-----------------------------------------------------------------------------
-// Misc functions
+/* ----------------------------------------------------------------------------
+ * Misc functions */
 
 /**
  * Gathers current pixel, and the top-left neighbors.
@@ -675,8 +675,8 @@ void SMAAMovc(bool4 cond, inout float4 variable, float4 value)
 }
 
 #if SMAA_INCLUDE_VS
-//-----------------------------------------------------------------------------
-// Vertex Shaders
+/* ----------------------------------------------------------------------------
+ * Vertex Shaders */
 
 /**
  * Edge Detection Vertex Shader
@@ -731,8 +731,8 @@ void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
 #endif  // SMAA_INCLUDE_VS
 
 #if SMAA_INCLUDE_PS
-//-----------------------------------------------------------------------------
-// Edge Detection Pixel Shaders (First Pass)
+/* ----------------------------------------------------------------------------
+ * Edge Detection Pixel Shaders (First Pass) */
 
 #  ifndef SMAA_LUMA_WEIGHT
 #    define SMAA_LUMA_WEIGHT float4(0.2126, 0.7152, 0.0722, 0.0)
@@ -909,8 +909,8 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D
   return edges;
 }
 
-//-----------------------------------------------------------------------------
-// Diagonal Search Functions
+/* ----------------------------------------------------------------------------
+ * Diagonal Search Functions */
 
 #  if !defined(SMAA_DISABLE_DIAG_DETECTION)
 
@@ -1081,8 +1081,8 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex),
 }
 #  endif
 
-//-----------------------------------------------------------------------------
-// Horizontal/Vertical Search Functions
+/* ----------------------------------------------------------------------------
+ * Horizontal/Vertical Search Functions */
 
 /**
  * This allows to determine how much length should we add in the last step
@@ -1220,8 +1220,8 @@ float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, float o
   return SMAA_AREATEX_SELECT(SMAASampleLevelZero(areaTex, texcoord));
 }
 
-//-----------------------------------------------------------------------------
-// Corner Detection Functions
+/* ----------------------------------------------------------------------------
+ * Corner Detection Functions */
 
 void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex),
                                        inout float2 weights,
@@ -1265,8 +1265,8 @@ void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex),
 #  endif
 }
 
-//-----------------------------------------------------------------------------
-// Blending Weight Calculation Pixel Shader (Second Pass)
+/* ----------------------------------------------------------------------------
+ * Blending Weight Calculation Pixel Shader (Second Pass) */
 
 float4 SMAABlendingWeightCalculationPS(float2 texcoord,
                                        float2 pixcoord,
@@ -1396,8 +1396,8 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
   return weights;
 }
 
-//-----------------------------------------------------------------------------
-// Neighborhood Blending Pixel Shader (Third Pass)
+/* ----------------------------------------------------------------------------
+ * Neighborhood Blending Pixel Shader (Third Pass) */
 
 float4 SMAANeighborhoodBlendingPS(float2 texcoord,
                                   float4 offset,
@@ -1463,8 +1463,8 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
   }
 }
 
-//-----------------------------------------------------------------------------
-// Temporal Resolve Pixel Shader (Optional Pass)
+/* ----------------------------------------------------------------------------
+ * Temporal Resolve Pixel Shader (Optional Pass) */
 
 float4 SMAAResolvePS(float2 texcoord,
                      SMAATexture2D(currentColorTex),
@@ -1500,8 +1500,8 @@ float4 SMAAResolvePS(float2 texcoord,
 #  endif
 }
 
-//-----------------------------------------------------------------------------
-// Separate Multisamples Pixel Shader (Optional Pass)
+/* ----------------------------------------------------------------------------
+ * Separate Multisamples Pixel Shader (Optional Pass) */
 
 #  ifdef SMAALoad
 void SMAASeparatePS(float4 position,
@@ -1516,5 +1516,5 @@ void SMAASeparatePS(float4 position,
 }
 #  endif
 
-//-----------------------------------------------------------------------------
+/* ---------------------------------------------------------------------------- */
 #endif  // SMAA_INCLUDE_PS

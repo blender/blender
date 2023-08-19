@@ -12,7 +12,7 @@
  * - Output of setup pass (halfres).
  * Outputs:
  * - Stabilized Color and CoC (halfres).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)

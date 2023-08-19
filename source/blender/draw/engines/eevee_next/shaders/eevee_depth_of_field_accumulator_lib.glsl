@@ -3,7 +3,7 @@
  * Depth of Field Gather accumulator.
  * We currently have only 2 which are very similar.
  * One is for the halfres gather passes and the other one for slight in focus regions.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
@@ -166,10 +166,9 @@ void dof_gather_accumulate_sample_pair(DofGatherData pair_data[2],
         pair_data[i].coc, pair_data[i].dist, intersection_multiplier);
     float weight = inter_weight * layer_weight * sample_weight;
 
-    /**
-     * If a CoC is larger than bordering radius we accumulate it to the general accumulator.
+    /* If a CoC is larger than bordering radius we accumulate it to the general accumulator.
      * If not, we accumulate to the ring bucket. This is to have more consistent sample occlusion.
-     **/
+     */
     float accum_weight = dof_gather_accum_weight(pair_data[i].coc, bordering_radius, first_ring);
     dof_gather_accumulate_sample(pair_data[i], weight * accum_weight, accum_data);
     dof_gather_accumulate_sample(pair_data[i], weight * (1.0 - accum_weight), ring_data);

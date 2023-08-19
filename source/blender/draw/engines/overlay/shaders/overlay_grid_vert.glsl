@@ -1,8 +1,8 @@
 /**
  * Infinite grid:
- * Draw antialiazed grid and axes of different sizes with smooth blending between Level of details.
+ * Draw anti-aliased grid and axes of different sizes with smooth blending between Level of details.
  * We draw multiple triangles to avoid float precision issues due to perspective interpolation.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)

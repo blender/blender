@@ -4,7 +4,7 @@
  *
  * We only scatter one triangle per sprite and one sprite per 4 pixels to reduce vertex shader
  * invocations and overdraw.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 

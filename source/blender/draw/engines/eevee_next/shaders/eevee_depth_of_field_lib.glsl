@@ -1,7 +1,7 @@
 
 /**
  * Depth of Field utils.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -305,7 +305,7 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
  *                 . . . . .
  *
  * Samples are expected to be mirrored to complete the pattern.
- **/
+ */
 ivec2 dof_square_ring_sample_offset(int ring_distance, int sample_id)
 {
   ivec2 offset;

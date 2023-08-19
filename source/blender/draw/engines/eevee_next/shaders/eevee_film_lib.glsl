@@ -1,7 +1,7 @@
 
 /**
  * Film accumulation utils functions.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)

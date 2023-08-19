@@ -5,7 +5,7 @@
  *
  * Input & Output:
  * - Separated foreground and background CoC. 1/8th of half-res resolution. So 1/16th of full-res.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 

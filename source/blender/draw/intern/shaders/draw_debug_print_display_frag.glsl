@@ -1,7 +1,7 @@
 
 /**
  * Display characters using an ascii table.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 

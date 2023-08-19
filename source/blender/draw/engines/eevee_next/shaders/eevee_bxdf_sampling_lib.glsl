@@ -1,7 +1,7 @@
 
 /**
  * Sampling of Normal Distribution Function for various BxDF.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)

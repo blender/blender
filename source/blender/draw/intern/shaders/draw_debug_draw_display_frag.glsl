@@ -1,7 +1,7 @@
 
 /**
  * Display debug edge list.
- **/
+ */
 
 void main()
 {

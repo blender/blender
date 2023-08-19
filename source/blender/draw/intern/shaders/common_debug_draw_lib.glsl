@@ -4,7 +4,7 @@
  *
  * Quick way to draw debug geometry. All input should be in world space and
  * will be rendered in the default view. No additional setup required.
- **/
+ */
 
 /** Global switch option. */
 bool drw_debug_draw_enable = true;

@@ -10,7 +10,7 @@
  * Outputs:
  * - Halfres padded to avoid mipmap misalignment (so possibly not matching input size).
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 

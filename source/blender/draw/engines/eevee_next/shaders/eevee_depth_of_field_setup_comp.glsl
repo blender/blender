@@ -9,7 +9,7 @@
  *  Full-resolution color & depth buffer
  * Output:
  *  Half-resolution Color, signed CoC (out_coc.x), and max slight focus abs CoC (out_coc.y).
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)

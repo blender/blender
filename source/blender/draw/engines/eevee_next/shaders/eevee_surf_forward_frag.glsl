@@ -3,7 +3,7 @@
  * Forward lighting evaluation: Lighting is evaluated during the geometry rasterization.
  *
  * This is used by alpha blended materials and materials using Shader to RGB nodes.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)

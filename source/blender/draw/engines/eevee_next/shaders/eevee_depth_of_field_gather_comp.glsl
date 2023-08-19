@@ -10,7 +10,7 @@
  *
  * Outputs:
  * - Color * Weight, Weight, Occlusion 'CoC' Depth (mean and variance)
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
 
