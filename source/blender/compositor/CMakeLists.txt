@@ -612,6 +612,7 @@ if(WITH_COMPOSITOR_CPU)
     ${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
     ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
     SRC
+    STRIP_LEADING_C_COMMENTS
   )
 
   add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)

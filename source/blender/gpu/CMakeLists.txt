@@ -610,13 +610,13 @@ if(WITH_METAL_BACKEND)
 
   set(MSL_C)
   foreach(MSL_FILE ${MSL_SRC})
-    data_to_c_simple(${MSL_FILE} MSL_C)
+    data_to_c_simple(${MSL_FILE} MSL_C STRIP_LEADING_C_COMMENTS)
   endforeach()
 endif()
 
 set(GLSL_C)
 foreach(GLSL_FILE ${GLSL_SRC})
-  data_to_c_simple(${GLSL_FILE} GLSL_C)
+  data_to_c_simple(${GLSL_FILE} GLSL_C STRIP_LEADING_C_COMMENTS)
 endforeach()
 
 set(SHADER_C)

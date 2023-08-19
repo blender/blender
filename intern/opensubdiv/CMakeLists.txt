@@ -87,7 +87,11 @@ if(WITH_OPENSUBDIV)
     add_definitions(-D_USE_MATH_DEFINES)
   endif()
 
-  data_to_c_simple(internal/evaluator/shaders/glsl_compute_kernel.glsl SRC)
+  data_to_c_simple(
+    internal/evaluator/shaders/glsl_compute_kernel.glsl
+    SRC
+    STRIP_LEADING_C_COMMENTS
+  )
 else()
   list(APPEND SRC
     stub/opensubdiv_stub.cc
