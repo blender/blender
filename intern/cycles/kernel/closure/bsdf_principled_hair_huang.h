@@ -742,8 +742,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
       const float T3 = 1.0f - R3;
 
       if (cos_theta_t3 != 0.0f &&
-          microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3))
-      {
+          microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3)) {
         TRT = bsdf->extra->TRT * TR * make_spectrum(T3) *
               bsdf_Go(roughness2, cos_mi3, dot(wmtr, -wtrt));
       }

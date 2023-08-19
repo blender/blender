@@ -440,8 +440,7 @@ TreeNode::TreeNode(GreasePencilLayerTreeNodeType type, StringRefNull name) : Tre
   this->GreasePencilLayerTreeNode::name = BLI_strdup(name.c_str());
 }
 
-TreeNode::TreeNode(const TreeNode &other)
-    : TreeNode(GreasePencilLayerTreeNodeType(other.type))
+TreeNode::TreeNode(const TreeNode &other) : TreeNode(GreasePencilLayerTreeNodeType(other.type))
 {
   this->GreasePencilLayerTreeNode::name = BLI_strdup_null(other.GreasePencilLayerTreeNode::name);
   this->flag = other.flag;
