@@ -39,7 +39,7 @@ void main()
 
   /* Geometry Shader equivalent calculation
    * In this no_geom mode using SSBO vertex fetch, rather than emitting 3 vertices, the vertex
-   * shader is innovated 3 times, and output is determined based on vertex ID within a triangle
+   * shader is invocated 3 times, and output is determined based on vertex ID within a triangle
    * 0..2. */
   vec3 plane = normalize(cross(pos[1] - pos[0], pos[2] - pos[0]));
   /* Compute NDC bound box. */

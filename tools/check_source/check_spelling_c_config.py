@@ -164,6 +164,7 @@ dict_custom = {
     "invariant",
     "invariants",
     "invisibilities",
+    "invocated",
     "irradiance",
     "iteratively",
     "jitteryness",
