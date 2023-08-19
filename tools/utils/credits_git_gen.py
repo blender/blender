@@ -4,15 +4,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Example use:
+Example use to generate all credits:
+
+   credits_git_gen.py
+
+Example use a custom range:
 
    credits_git_gen.py --source=/src/blender --range=SHA1..HEAD
 """
+
+# NOTE: this shares the basic structure with `credits_git_gen.py`,
+# however details differ enough for them to be separate scripts.
+# Improvements to this script may apply there too.
 
 import argparse
 import io
 import multiprocessing
 import os
+import sys
 import unicodedata
 
 from typing import (
@@ -30,6 +39,11 @@ from git_log import (
 import git_data_canonical_authors
 import git_data_sha1_override_authors
 
+IS_ATTY = sys.stdout.isatty()
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+SOURCE_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", ".."))
 
 author_table = git_data_canonical_authors.canonical_author_map()
 author_override_table = git_data_sha1_override_authors.sha1_authors_map()
@@ -46,8 +60,23 @@ def process_commits_for_map(commits: Iterable[GitCommit]) -> "Credits":
 
 
 # -----------------------------------------------------------------------------
-# Class for generating credits
+# Progress Display
 
+def value_as_percentage(value_partial: int, value_final: int) -> str:
+    percent = 0.0 if (value_final == 0) else (value_partial / value_final)
+    return "{:-6.2f}%".format(percent * 100)
+
+
+if IS_ATTY:
+    def progress_output(value_partial: int, value_final: int, info: str) -> None:
+        sys.stdout.write("\r\033[K[{:s}]: {:s}".format(value_as_percentage(value_partial, value_final), info))
+else:
+    def progress_output(value_partial: int, value_final: int, info: str) -> None:
+        sys.stdout.write("[{:s}]: {:s}\n".format(value_as_percentage(value_partial, value_final), info))
+
+
+# -----------------------------------------------------------------------------
+# Class for generating credits
 
 class CreditUser:
     __slots__ = (
@@ -65,10 +94,13 @@ class CreditUser:
 class Credits:
     __slots__ = (
         "users",
+        # Use for progress, simply the number of times `process_commit` has been called.
+        "process_commits_count",
     )
 
     def __init__(self) -> None:
         self.users: Dict[str, CreditUser] = {}
+        self.process_commits_count = 0
 
     @classmethod
     def commit_authors_get(cls, c: GitCommit) -> List[str]:
@@ -109,6 +141,8 @@ class Credits:
         other.users.clear()
 
     def process_commit(self, c: GitCommit) -> None:
+        self.process_commits_count += 1
+
         if not self.is_credit_commit_valid(c):
             return
 
@@ -141,13 +175,22 @@ class Credits:
         if chunk:
             chunk_list.append(chunk)
 
-        total_commits = (max(len(chunk_list) - 1, 0) * chunk_size) + len(chunk)
+        commit_count_total = (max(len(chunk_list) - 1, 0) * chunk_size) + len(chunk)
 
-        print("Found {:,d} commits, processing...".format(total_commits))
+        print("Found {:,d} commits, processing...".format(commit_count_total))
+        commit_count_handled = 0
         with multiprocessing.Pool(processes=jobs) as pool:
-            for i, result in enumerate(pool.imap_unordered(process_commits_for_map, chunk_list)):
-                print("{:d} of {:d}".format(i, len(chunk_list)))
+            for result in pool.imap_unordered(process_commits_for_map, chunk_list):
+                commit_count_handled += result.process_commits_count
+                progress_output(
+                    commit_count_handled,
+                    commit_count_total,
+                    "{:,d} / {:,d} commits".format(commit_count_handled, commit_count_total),
+                )
                 self.merge(result)
+
+        if IS_ATTY:
+            print("")  # Was printing on one-line, move to next.
 
     def process(self, commit_iter: Iterable[GitCommit], *, jobs: int) -> None:
         if jobs > 1:
@@ -240,15 +283,17 @@ def argparse_create() -> argparse.ArgumentParser:
         "--source",
         dest="source_dir",
         metavar='PATH',
-        required=True,
+        required=False,
+        default=SOURCE_DIR,
         help="Path to git repository",
     )
     parser.add_argument(
         "--range",
         dest="range_sha1",
         metavar='SHA1_RANGE',
-        required=True,
-        help="Range to use, eg: 169c95b8..HEAD",
+        required=False,
+        default="HEAD",
+        help="Range to use, eg: 169c95b8..HEAD or HEAD for all history.",
     )
 
     parser.add_argument(
