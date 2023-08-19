@@ -1,5 +1,3 @@
-#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
-
 /**
  * We want to know how much a pixel is covered by a line.
  * We replace the square pixel with a circle of the same area and try to find the intersection area.
@@ -11,6 +9,8 @@
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)
+
+#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
 
 void main()
 {

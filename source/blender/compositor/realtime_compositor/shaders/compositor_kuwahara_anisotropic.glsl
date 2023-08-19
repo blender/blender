@@ -1,6 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 /* An implementation of the Anisotropic Kuwahara filter described in the paper:
  *
  *   Kyprianidis, Jan Eric, Henry Kang, and Jurgen Dollner. "Image and video abstraction by
@@ -16,6 +13,10 @@
  *  Kyprianidis, Jan Eric. "Image and video abstraction by multi-scale anisotropic Kuwahara
  *  filtering." 2011.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

@@ -1,5 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 /* The Morphological Distance Feather operation is a linear combination between the result of two
  * operations. The first operation is a Gaussian blur with a radius equivalent to the dilate/erode
  * distance, which is straightforward and implemented as a separable filter similar to the blur
@@ -46,6 +44,9 @@
  * The previous example demonstrates how the distance field naturally arises, and the same goes for
  * the erode case, except the minimum value is computed instead.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

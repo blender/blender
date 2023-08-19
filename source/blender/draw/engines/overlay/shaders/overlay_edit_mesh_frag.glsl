@@ -1,6 +1,3 @@
-
-#define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
-
 /**
  * We want to know how much a pixel is covered by a line.
  * We replace the square pixel with a circle of the same area and try to find the intersection area.
@@ -8,6 +5,9 @@
  * The formula for the area uses inverse trig function and is quite complex. Instead,
  * we approximate it by using the smooth-step function and a 1.05 factor to the disc radius.
  */
+
+#define M_1_SQRTPI 0.5641895835477563 /* 1/sqrt(pi) */
+
 #define DISC_RADIUS (M_1_SQRTPI * 1.05)
 #define GRID_LINE_SMOOTH_START (0.5 - DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 + DISC_RADIUS)

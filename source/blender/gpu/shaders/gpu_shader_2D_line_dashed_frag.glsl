@@ -1,4 +1,3 @@
-
 /*
  * Fragment Shader for dashed lines, with uniform multi-color(s),
  * or any single-color, and any thickness.

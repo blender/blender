@@ -1,11 +1,10 @@
-
-#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
-
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
 /* Step 2 : Evaluate all light scattering for each froxels.
  * Also do the temporal reprojection to fight aliasing artifacts. */
+
+#pragma BLENDER_REQUIRE(volumetric_lib.glsl)
 
 void main()
 {

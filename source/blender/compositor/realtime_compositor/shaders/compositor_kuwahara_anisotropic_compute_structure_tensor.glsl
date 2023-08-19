@@ -1,5 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 /* Computes the structure tensor of the image using a Dirac delta window function as described in
  * section "3.2 Local Structure Estimation" of the paper:
  *
@@ -8,6 +6,9 @@
  *
  * The structure tensor should then be smoothed using a Gaussian function to eliminate high
  * frequency details. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

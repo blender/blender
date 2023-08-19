@@ -1,9 +1,9 @@
-#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
-
 /* The algorithm is by Werner D. Streidt
  * (http://visca.com/ffactory/archives/5-99/msg00021.html)
  * Extracted of OpenCV demhist.c
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_common_color_utils.glsl)
 
 #define FLT_EPSILON 1.192092896e-07F
 

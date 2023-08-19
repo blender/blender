@@ -1,11 +1,11 @@
-#pragma BLENDER_REQUIRE(gpu_shader_cfg_world_clip_lib.glsl)
-
 /*
  * Vertex Shader for dashed lines with 3D coordinates,
  * with uniform multi-colors or uniform single-color, and unary thickness.
  *
  * Dashed is performed in screen space.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_cfg_world_clip_lib.glsl)
 
 void main()
 {

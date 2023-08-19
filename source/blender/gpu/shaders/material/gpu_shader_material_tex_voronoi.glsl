@@ -1,8 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_voronoi.glsl)
-
 /*
  * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
  *
@@ -18,6 +13,11 @@
  * With optimization to change -2..2 scan window to -1..1 for better performance,
  * as explained in https://www.shadertoy.com/view/llG3zy.
  */
+
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_voronoi.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_material_fractal_voronoi.glsl)
 
 #define INITIALIZE_VORONOIPARAMS(FEATURE) \
   params.feature = FEATURE; \

@@ -4,9 +4,6 @@
  * We draw multiple triangles to avoid float precision issues due to perspective interpolation.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-
 /**
  * We want to know how much of a pixel is covered by a line.
  * Here, we imagine the square pixel is a circle with the same area and try to find the
@@ -23,6 +20,9 @@
 #define GRID_LINE_SMOOTH_START (0.5 + DISC_RADIUS)
 #define GRID_LINE_SMOOTH_END (0.5 - DISC_RADIUS)
 #define GRID_LINE_STEP(dist) smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, dist)
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 float get_grid(vec2 co, vec2 fwidthCos, vec2 grid_scale)
 {

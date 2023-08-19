@@ -1,6 +1,3 @@
-#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
 /* Adaptation of Conservative Rasterization
  * from GPU Gems 2
  * Using method 2.
@@ -8,6 +5,9 @@
  * Actual final implementation does not do conservative rasterization and only
  * avoids triangles producing no fragments.
  */
+
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {

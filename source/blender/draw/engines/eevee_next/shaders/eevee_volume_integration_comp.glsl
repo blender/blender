@@ -1,11 +1,10 @@
-
-#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
-
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
 /* Step 3 : Integrate for each froxel the final amount of light
  * scattered back to the viewer and the amount of transmittance. */
+
+#pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 
 void main()
 {
