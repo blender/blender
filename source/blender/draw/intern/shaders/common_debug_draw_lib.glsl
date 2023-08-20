@@ -6,6 +6,8 @@
  * will be rendered in the default view. No additional setup required.
  */
 
+#ifdef DRW_DEBUG_DRAW
+
 /** Global switch option. */
 bool drw_debug_draw_enable = true;
 const vec4 drw_debug_default_color = vec4(1.0, 0.0, 0.0, 1.0);
@@ -211,5 +213,7 @@ void drw_debug_matrix_as_bbox(mat4 mat)
 {
   drw_debug_matrix_as_bbox(mat, drw_debug_default_color);
 }
+
+#endif
 
 /** \} */

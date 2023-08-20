@@ -12,6 +12,7 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_debug_print)
+    .define("DRW_DEBUG_PRINT")
     .typedef_source("draw_shader_shared.h")
     .storage_buf(DRW_DEBUG_PRINT_SLOT, Qualifier::READ_WRITE, "uint", "drw_debug_print_buf[]");
 
@@ -37,6 +38,7 @@ GPU_SHADER_CREATE_INFO(draw_debug_print_display)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(draw_debug_draw)
+    .define("DRW_DEBUG_DRAW")
     .typedef_source("draw_shader_shared.h")
     .storage_buf(DRW_DEBUG_DRAW_SLOT,
                  Qualifier::READ_WRITE,
