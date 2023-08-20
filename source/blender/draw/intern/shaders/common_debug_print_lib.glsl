@@ -248,6 +248,12 @@ void drw_print_value(float val)
   bool display_exponent = exponent >= (significant_digits) ||
                           exponent <= (-significant_digits + 1.0);
 
+  if (exponent < -1.0) {
+    /* FIXME(fclem): Display of values with exponent from -1 to -5 is broken. Force scientific
+     * notation in these cases. */
+    display_exponent = true;
+  }
+
   float int_significant_digits = min(exponent + 1.0, significant_digits);
   float dec_significant_digits = max(0.0, significant_digits - int_significant_digits);
   /* Power to get to the rounding point. */
