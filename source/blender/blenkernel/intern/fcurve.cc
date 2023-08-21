@@ -1217,15 +1217,13 @@ static BezTriple *cycle_offset_triple(
 
 void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
-  int a = fcu->totvert;
-
   /* Error checking:
    * - Need at least two points.
    * - Need bezier keys.
    * - Only bezier-interpolation has handles (for now).
    */
   if (ELEM(nullptr, fcu, fcu->bezt) ||
-      (a < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */) {
+      (fcu->totvert < 2) /*|| ELEM(fcu->ipo, BEZT_IPO_CONST, BEZT_IPO_LIN) */) {
     return;
   }
 
@@ -1241,6 +1239,7 @@ void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   BezTriple *next = (bezt + 1);
 
   /* Loop over all beztriples, adjusting handles. */
+  int a = fcu->totvert;
   while (a--) {
     /* Clamp timing of handles to be on either side of beztriple. */
     if (bezt->vec[0][0] > bezt->vec[1][0]) {
