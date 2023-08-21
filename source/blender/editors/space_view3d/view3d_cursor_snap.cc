@@ -624,7 +624,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   }
 
   const bool use_surface_nor = tool_settings->plane_orient == V3D_PLACE_ORIENT_SURFACE;
-  const bool use_surface_co = snap_data->is_enabled || tool_settings->plane_depth == V3D_PLACE_DEPTH_SURFACE;
+  const bool use_surface_co = snap_data->is_enabled ||
+                              tool_settings->plane_depth == V3D_PLACE_DEPTH_SURFACE;
 
   float co[3], no[3], face_nor[3], obmat[4][4], omat[3][3];
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
