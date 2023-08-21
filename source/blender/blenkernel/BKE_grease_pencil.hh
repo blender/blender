@@ -225,6 +225,11 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
    */
   LayerGroup *parent_group() const;
   TreeNode *parent_node() const;
+
+  /**
+   * \returns the number of non-null parents of the node.
+   */
+  int64_t depth() const;
 };
 
 /**

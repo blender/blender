@@ -487,6 +487,16 @@ TreeNode *TreeNode::parent_node() const
   return this->parent_group() ? &this->parent->wrap().as_node() : nullptr;
 }
 
+int64_t TreeNode::depth() const
+{
+  const LayerGroup *parent = this->parent_group();
+  if (parent == nullptr) {
+    /* The root group has a depth of 0. */
+    return 0;
+  }
+  return 1 + parent->as_node().depth();
+}
+
 LayerMask::LayerMask()
 {
   this->layer_name = nullptr;

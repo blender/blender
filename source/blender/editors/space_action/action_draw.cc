@@ -314,6 +314,10 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           break;
         }
 
+        case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+          color = sel ? col1a : col2a;
+          break;
+
         case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
           color = col2b;
           color[3] = sel ? col1[3] : col2b[3];
@@ -453,6 +457,15 @@ static void draw_keyframes(bAnimContext *ac,
                                         ycenter,
                                         scale_factor,
                                         action_flag);
+        break;
+      case ALE_GREASE_PENCIL_GROUP:
+        draw_grease_pencil_layer_group_channel(
+            draw_list,
+            ads,
+            static_cast<const GreasePencilLayerTreeGroup *>(ale->data),
+            ycenter,
+            scale_factor,
+            action_flag);
         break;
       case ALE_GREASE_PENCIL_DATA:
         draw_grease_pencil_datablock_channel(draw_list,

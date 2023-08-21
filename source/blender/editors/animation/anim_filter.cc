@@ -974,6 +974,15 @@ static bAnimListElem *make_new_animlistelem(void *data,
         ale->datatype = ALE_GREASE_PENCIL_CEL;
         break;
       }
+      case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP: {
+        GreasePencilLayerTreeGroup *layer_group = static_cast<GreasePencilLayerTreeGroup *>(data);
+
+        ale->flag = layer_group->base.flag;
+
+        ale->key_data = nullptr;
+        ale->datatype = ALE_GREASE_PENCIL_GROUP;
+        break;
+      }
       case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
         GreasePencil *grease_pencil = static_cast<GreasePencil *>(data);
 
@@ -1751,51 +1760,111 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
 }
 
 /* Helper for Grease Pencil - layers within a data-block. */
+
+static size_t animdata_filter_grease_pencil_layer(ListBase *anim_data,
+                                                  bDopeSheet * /*ads*/,
+                                                  GreasePencil *grease_pencil,
+                                                  blender::bke::greasepencil::Layer &layer,
+                                                  int filter_mode)
+{
+
+  size_t items = 0;
+
+  /* Only if the layer is selected. */
+  if (!ANIMCHANNEL_SELOK(layer.is_selected())) {
+    return items;
+  }
+
+  /* Only if the layer is editable. */
+  if ((filter_mode & ANIMFILTER_FOREDIT) && !layer.is_locked()) {
+    return items;
+  }
+
+  /* Only if the layer is active. */
+  if ((filter_mode & ANIMFILTER_ACTIVE) && grease_pencil->is_layer_active(&layer)) {
+    return items;
+  }
+
+  /* Skip empty layers. */
+  if (layer.is_empty()) {
+    return items;
+  }
+
+  /* Add layer channel. */
+  ANIMCHANNEL_NEW_CHANNEL(
+      static_cast<void *>(&layer), ANIMTYPE_GREASE_PENCIL_LAYER, grease_pencil, nullptr);
+
+  return items;
+}
+
+static size_t animdata_filter_grease_pencil_layer_node_recursive(
+    ListBase *anim_data,
+    bDopeSheet *ads,
+    GreasePencil *grease_pencil,
+    blender::bke::greasepencil::TreeNode &node,
+    int filter_mode)
+{
+  using namespace blender::bke::greasepencil;
+  size_t items = 0;
+
+  /* Skip node if the name doesn't match the filter string. */
+  const bool name_search = (ads->searchstr[0] != '\0');
+  const bool skip_node = name_search && !name_matches_dopesheet_filter(ads, node.name().c_str());
+
+  if (node.is_layer() && !skip_node) {
+    items += animdata_filter_grease_pencil_layer(
+        anim_data, ads, grease_pencil, node.as_layer(), filter_mode);
+  }
+  else if (node.is_group()) {
+    const LayerGroup &layer_group = node.as_group();
+
+    ListBase tmp_data = {nullptr, nullptr};
+    size_t tmp_items = 0;
+
+    /* Add grease pencil layer channels. */
+    BEGIN_ANIMFILTER_SUBCHANNELS ((layer_group.base.flag & GP_LAYER_TREE_NODE_EXPANDED)) {
+      LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
+        tmp_items += animdata_filter_grease_pencil_layer_node_recursive(
+            &tmp_data, ads, grease_pencil, node_->wrap(), filter_mode);
+      }
+    }
+    END_ANIMFILTER_SUBCHANNELS;
+
+    if ((tmp_items == 0) && !name_search) {
+      /* If no sub-channels, return early.
+       * Except if the search by name is on, because we might want to display the layer group alone
+       * in that case. */
+      return items;
+    }
+
+    if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !skip_node) {
+      /* Add data block container (if for drawing, and it contains sub-channels). */
+      ANIMCHANNEL_NEW_CHANNEL(
+          static_cast<void *>(&node), ANIMTYPE_GREASE_PENCIL_LAYER_GROUP, grease_pencil, nullptr);
+    }
+
+    /* Add the list of collected channels. */
+    BLI_movelisttolist(anim_data, &tmp_data);
+    BLI_assert(BLI_listbase_is_empty(&tmp_data));
+    items += tmp_items;
+  }
+  return items;
+}
+
 static size_t animdata_filter_grease_pencil_layers_data(ListBase *anim_data,
                                                         bDopeSheet *ads,
                                                         GreasePencil *grease_pencil,
                                                         int filter_mode)
 {
-  using namespace blender::bke::greasepencil;
   size_t items = 0;
 
-  blender::Span<Layer *> layers = grease_pencil->layers_for_write();
-
-  /* Loop on layer channels in reverse order to preserve the drawing order. */
-  for (int64_t layer_index = layers.size() - 1; layer_index >= 0; layer_index--) {
-    Layer *layer = layers[layer_index];
-
-    /* Only if the layer is selected. */
-    if (!ANIMCHANNEL_SELOK(layer->is_selected())) {
-      continue;
-    }
-
-    /* Only if the layer is editable. */
-    if ((filter_mode & ANIMFILTER_FOREDIT) && !layer->is_editable()) {
-      continue;
-    }
-
-    /* Only if the layer is active. */
-    if ((filter_mode & ANIMFILTER_ACTIVE) && grease_pencil->is_layer_active(layer)) {
-      continue;
-    }
-
-    /* Skip layer if the name doesn't match the filter string. */
-    if (ads != nullptr && ads->searchstr[0] != '\0' &&
-        name_matches_dopesheet_filter(ads, layer->name().c_str()) == false)
-    {
-      continue;
-    }
-
-    /* Skip empty layers. */
-    if (layer->is_empty()) {
-      continue;
-    }
-
-    /* Add layer channel. */
-    ANIMCHANNEL_NEW_CHANNEL(
-        static_cast<void *>(layer), ANIMTYPE_GREASE_PENCIL_LAYER, grease_pencil, nullptr);
+  LISTBASE_FOREACH_BACKWARD (
+      GreasePencilLayerTreeNode *, node, &grease_pencil->root_group_ptr->children)
+  {
+    items += animdata_filter_grease_pencil_layer_node_recursive(
+        anim_data, ads, grease_pencil, node->wrap(), filter_mode);
   }
+
   return items;
 }
 

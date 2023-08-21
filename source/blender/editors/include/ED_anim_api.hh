@@ -232,6 +232,7 @@ enum eAnim_ChannelType {
   ANIMTYPE_GPLAYER,
 
   ANIMTYPE_GREASE_PENCIL_DATABLOCK,
+  ANIMTYPE_GREASE_PENCIL_LAYER_GROUP,
   ANIMTYPE_GREASE_PENCIL_LAYER,
 
   ANIMTYPE_MASKDATABLOCK,
@@ -260,8 +261,9 @@ enum eAnim_KeyType {
   ALE_ACT,   /* Action summary */
   ALE_GROUP, /* Action Group summary */
 
-  ALE_GREASE_PENCIL_CEL,  /* Grease Pencil Cels. */
-  ALE_GREASE_PENCIL_DATA, /* Grease Pencil Cels summary. */
+  ALE_GREASE_PENCIL_CEL,   /* Grease Pencil Cels. */
+  ALE_GREASE_PENCIL_DATA,  /* Grease Pencil Cels summary. */
+  ALE_GREASE_PENCIL_GROUP, /* Grease Pencil Layer Groups. */
 };
 
 /**

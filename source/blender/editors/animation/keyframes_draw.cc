@@ -385,6 +385,7 @@ enum eAnimKeylistDrawListElemType {
   ANIM_KEYLIST_ACTION,
   ANIM_KEYLIST_AGROUP,
   ANIM_KEYLIST_GREASE_PENCIL_CELS,
+  ANIM_KEYLIST_GREASE_PENCIL_GROUP,
   ANIM_KEYLIST_GREASE_PENCIL_DATA,
   ANIM_KEYLIST_GP_LAYER,
   ANIM_KEYLIST_MASK_LAYER,
@@ -410,6 +411,7 @@ struct AnimKeylistDrawListElem {
   bActionGroup *agrp;
   bGPDlayer *gpl;
   const GreasePencilLayer *grease_pencil_layer;
+  const GreasePencilLayerTreeGroup *grease_pencil_layer_group;
   const GreasePencil *grease_pencil;
   MaskLayer *masklay;
 };
@@ -444,6 +446,11 @@ static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *ele
     case ANIM_KEYLIST_GREASE_PENCIL_CELS: {
       grease_pencil_cels_to_keylist(
           elem->adt, elem->grease_pencil_layer, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_GREASE_PENCIL_GROUP: {
+      grease_pencil_layer_group_to_keylist(
+          elem->adt, elem->grease_pencil_layer_group, elem->keylist, elem->saction_flag);
       break;
     }
     case ANIM_KEYLIST_GREASE_PENCIL_DATA: {
@@ -739,6 +746,20 @@ void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
   draw_elem->ads = ads;
   draw_elem->grease_pencil_layer = layer;
   draw_elem->channel_locked = layer->wrap().is_locked();
+}
+
+void draw_grease_pencil_layer_group_channel(AnimKeylistDrawList *draw_list,
+                                            bDopeSheet *ads,
+                                            const GreasePencilLayerTreeGroup *layer_group,
+                                            const float ypos,
+                                            const float yscale_fac,
+                                            int saction_flag)
+{
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_GREASE_PENCIL_GROUP, ypos, yscale_fac, eSAction_Flag(saction_flag));
+  draw_elem->ads = ads;
+  draw_elem->grease_pencil_layer_group = layer_group;
+  draw_elem->channel_locked = layer_group->wrap().is_locked();
 }
 
 void draw_gpl_channel(AnimKeylistDrawList *draw_list,
