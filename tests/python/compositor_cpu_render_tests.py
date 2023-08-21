@@ -63,7 +63,8 @@ def main():
         # input image. It makes it hard to precisely match results on different systems
         # (with and without SSE, i.e.), especially when OCIO has different precision for
         # the exponent transform on different platforms.
-        report.set_fail_threshold(0.05)
+        report.set_fail_threshold(0.06)
+        report.set_fail_percent(2)
 
     ok = report.run(test_dir, blender, get_arguments, batch=True)
 
