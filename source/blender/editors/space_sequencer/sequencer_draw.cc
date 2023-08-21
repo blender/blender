@@ -1210,6 +1210,7 @@ static void draw_seq_invalid(float x1, float x2, float y2, float text_margin_y)
   GPU_blend(GPU_BLEND_NONE);
 }
 
+/* For text on the strip. */
 static void calculate_seq_text_offsets(
     const Scene *scene, View2D *v2d, Sequence *seq, float *x1, float *x2, float pixelx)
 {
@@ -1219,21 +1220,8 @@ static void calculate_seq_text_offsets(
   *x1 += text_margin;
   *x2 -= text_margin;
 
-  float scroller_vert_xoffs = (V2D_SCROLL_HANDLE_WIDTH + SEQ_SCROLLER_TEXT_OFFSET) * pixelx;
-
-  /* Info text on the strip. */
-  if (*x1 < v2d->cur.xmin + scroller_vert_xoffs) {
-    *x1 = v2d->cur.xmin + scroller_vert_xoffs;
-  }
-  else if (*x1 > v2d->cur.xmax) {
-    *x1 = v2d->cur.xmax;
-  }
-  if (*x2 < v2d->cur.xmin) {
-    *x2 = v2d->cur.xmin;
-  }
-  else if (*x2 > v2d->cur.xmax) {
-    *x2 = v2d->cur.xmax;
-  }
+  CLAMP(*x1, v2d->cur.xmin + text_margin, v2d->cur.xmax);
+  CLAMP(*x2, v2d->cur.xmin + text_margin, v2d->cur.xmax);
 }
 
 static void fcurve_batch_add_verts(GPUVertBuf *vbo,
