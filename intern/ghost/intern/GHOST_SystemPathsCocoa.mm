@@ -93,7 +93,12 @@ const char *GHOST_SystemPathsCocoa::getUserSpecialDir(GHOST_TUserSpecialDirTypes
     }
     const NSString *const basePath = [paths objectAtIndex:0];
 
-    strncpy(tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding], sizeof(tempPath));
+    const char *basePath_cstr = [basePath cStringUsingEncoding:NSASCIIStringEncoding];
+    int basePath_len = strlen(basePath_cstr);
+
+    basePath_len = MIN(basePath_len, sizeof(tempPath) - 1);
+    memcpy(tempPath, basePath_cstr, basePath_len);
+    tempPath[basePath_len] = '\0';
   }
   return tempPath;
 }
@@ -109,7 +114,12 @@ const char *GHOST_SystemPathsCocoa::getBinaryDir() const
       return nullptr;
     }
 
-    strcpy(tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+    const char *basePath_cstr = [basePath cStringUsingEncoding:NSASCIIStringEncoding];
+    int basePath_len = strlen(basePath_cstr);
+
+    basePath_len = MIN(basePath_len, sizeof(tempPath) - 1);
+    memcpy(tempPath, basePath_cstr, basePath_len);
+    tempPath[basePath_len] = '\0';
   }
   return tempPath;
 }
