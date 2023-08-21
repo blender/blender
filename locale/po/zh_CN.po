@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -41873,8 +41873,8 @@ msgid "Tracking Object"
 msgstr "追踪物体"
 
 
-msgid "Smoothing"
-msgstr "平滑"
+msgid "Eccentricity"
+msgstr "偏移"
 
 
 msgid "Anisotropic"
@@ -52777,6 +52777,10 @@ msgstr "FBX 二进制文件的内嵌纹理 (仅供 \"复制\" 路径模式!)"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "缩放所有数据 (某些导入器不支持经缩放的骨架!)"
+
+
+msgid "Smoothing"
+msgstr "平滑"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -106217,10 +106221,6 @@ msgid "Multiply R"
 msgstr "正片叠底 R"
 
 
-msgid "Eccentricity"
-msgstr "偏移"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "先启用颜色渐变"
 
@@ -108663,10 +108663,6 @@ msgstr "使用自定义颜色"
 
 msgid "Sculpt Overlay Color"
 msgstr "雕刻叠加颜色"
-
-
-msgid "Node Auto-Offset Margin"
-msgstr "节点自动偏移间距"
 
 
 msgid "Minimum Grid Spacing"
@@ -117960,28 +117956,8 @@ msgid "). Click here to proceed..."
 msgstr "). 点击此处继续..."
 
 
-msgid "Cannot edit builtin name"
-msgstr "无法编辑内建名称"
-
-
-msgid "Cannot edit sequence name"
-msgstr "无法编辑序列的名称"
-
-
-msgid "Cannot edit name of an override data-block"
-msgstr "无法编辑被覆写的数据块的名称"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "无法主集合的名称"
-
-
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "无法编辑这个间接链接库的路径"
-
-
-msgid "Library path is not editable from here anymore, please use Relocate operation instead"
-msgstr "库路径不再可从此处编辑，请使用重新定位操作"
 
 
 msgid "No active item to rename"

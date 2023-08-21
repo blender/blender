@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -36199,8 +36199,8 @@ msgid "Tracking Object"
 msgstr "Отслеживаемый объект"
 
 
-msgid "Smoothing"
-msgstr "Сглаживание"
+msgid "Eccentricity"
+msgstr "Эксцентриситет"
 
 
 msgid "Anisotropic"
@@ -42992,6 +42992,10 @@ msgstr "Встроить текстуры в двоичный файл FBX (то
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Масштабировать все данные (некоторые импортёры не поддерживают масштабированные арматуры!)"
+
+
+msgid "Smoothing"
+msgstr "Сглаживание"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -81072,10 +81076,6 @@ msgid "Multiply R"
 msgstr "Умножить R"
 
 
-msgid "Eccentricity"
-msgstr "Эксцентриситет"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "Сначала активируйте градиентную карту"
 
@@ -89336,18 +89336,6 @@ msgstr "Путь к библиотеке «%s» теперь правильны�
 
 msgid "). Click here to proceed..."
 msgstr "). нажмите здесь, чтобы продолжить…"
-
-
-msgid "Cannot edit builtin name"
-msgstr "Невозможно изменить встроенное имя"
-
-
-msgid "Cannot edit sequence name"
-msgstr "Невозможно изменить имя последовательности"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "Нельзя изменить имя мастер-коллекции"
 
 
 msgid "Cannot edit the path of an indirectly linked library"

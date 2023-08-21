@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -33071,8 +33071,8 @@ msgid "Tracking Object"
 msgstr "트래킹 오브젝트"
 
 
-msgid "Smoothing"
-msgstr "스무딩"
+msgid "Eccentricity"
+msgstr "이심율"
 
 
 msgid "Anisotropic"
@@ -39663,6 +39663,10 @@ msgstr "FBX 바이너리 파일에 내장된 텍스처 (\"복사\"경로 모드�
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "모든 데이터를 축적 조정 (일부 가져오기 도구는 축적이 변경된 아마튜어를 지원하지 않음!)"
+
+
+msgid "Smoothing"
+msgstr "스무딩"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -77129,10 +77133,6 @@ msgid "Multiply R"
 msgstr "곱하기 R"
 
 
-msgid "Eccentricity"
-msgstr "이심율"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "먼저 컬러 램프를 활성화"
 
@@ -84962,18 +84962,6 @@ msgstr "라이브러리 경로 '%s'가 유효함, 라이브러리를 새로 고�
 
 msgid "). Click here to proceed..."
 msgstr "). 진행하려면 여기를 클릭하십시오..."
-
-
-msgid "Cannot edit builtin name"
-msgstr "내장 이름을 편집 할 수 없습니다"
-
-
-msgid "Cannot edit sequence name"
-msgstr "시퀀스 이름을 편집 할 수 없습니다"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "마스터 컬렉션의 이름을 편집 할 수 없습니다"
 
 
 msgid "Cannot edit the path of an indirectly linked library"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -40893,8 +40893,8 @@ msgid "Tracking Object"
 msgstr "Vật Thể Theo Dõi"
 
 
-msgid "Smoothing"
-msgstr "Mịn Hóa"
+msgid "Eccentricity"
+msgstr "Lệch Tâm"
 
 
 msgid "Anisotropic"
@@ -51335,6 +51335,10 @@ msgstr "Nhét chất liệu trong tập tin FBX nhị phận (chỉ cho mẫu đ
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Phóng to hết dữ liệu (có vài bộ nhập không hỗ trợ cốt phóng to!)"
+
+
+msgid "Smoothing"
+msgstr "Mịn Hóa"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -102593,10 +102597,6 @@ msgid "Multiply R"
 msgstr "Nhân R"
 
 
-msgid "Eccentricity"
-msgstr "Lệch Tâm"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "Trước bật Dốc Màu"
 
@@ -104930,10 +104930,6 @@ msgstr "Dùng Màu Tùy Chọn"
 
 msgid "Sculpt Overlay Color"
 msgstr "Khắc Màu Lớp Che"
-
-
-msgid "Node Auto-Offset Margin"
-msgstr "Lề Dịch Tự Động Của Giao Điểm"
 
 
 msgid "Minimum Grid Spacing"
@@ -113806,28 +113802,8 @@ msgid "). Click here to proceed..."
 msgstr "). Bấm đầy để làm tiếp theo..."
 
 
-msgid "Cannot edit builtin name"
-msgstr "Không thể biên tập tên nội bộ"
-
-
-msgid "Cannot edit sequence name"
-msgstr "Không thể biên tập tên trình tự"
-
-
-msgid "Cannot edit name of an override data-block"
-msgstr "Không thể biên tập tên của một cục dữ liệu vượt quyền"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "Không thể biên tập tên của sưu tập chủ"
-
-
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "Không thể biên tập đường dẫn của thư viện được liên kết gián tiếp"
-
-
-msgid "Library path is not editable from here anymore, please use Relocate operation instead"
-msgstr "Đường dẫn thư viện không thể biên tập từ đây nữa, làm ơn dùng thao tác Di Chuyển Tới thay thế"
 
 
 msgid "No active item to rename"

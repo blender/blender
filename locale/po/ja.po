@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -2057,6 +2057,10 @@ msgstr "コレクション"
 
 msgid "Collection data-blocks"
 msgstr "コレクションデータブロック"
+
+
+msgid "Curves"
+msgstr "カーブ"
 
 
 msgid "Curve data-blocks"
@@ -4557,6 +4561,10 @@ msgid "Keep caps"
 msgstr "端を維持"
 
 
+msgid "Keep the caps as they are and don't flatten them when erasing"
+msgstr "消した時に端を平らにせず、端の形状を維持します"
+
+
 msgid "Pin Material"
 msgstr "マテリアルをピン止め"
 
@@ -5971,6 +5979,14 @@ msgid "Color space in the image file, to convert to and from when saving and loa
 msgstr "保存・読み込み時に変換先・変換元となる、画像ファイルの色空間"
 
 
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
 msgid "Filmic Log"
 msgstr "Filmic Log"
 
@@ -5993,6 +6009,14 @@ msgstr "非カラー"
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "色以外の汎用データ。色変換が適用されません（例：ノーマルマップなど）"
+
+
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6053,6 +6077,10 @@ msgstr "カーブを使用"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "RGB カーブを表示変換前に使用します"
+
+
+msgid "High Dynamic Range"
+msgstr "ハイダイナミックレンジ"
 
 
 msgid "View Transform"
@@ -9581,7 +9609,7 @@ msgstr "概要の折り畳み"
 
 
 msgid "Collapse summary when shown, so all other channels get hidden (Dope Sheet editors only)"
-msgstr "Summary(概要)表示時に折りたたみます。他のすべてのチャンネルは非表示になります（ドープシートエディタのみ）"
+msgstr "概要表示時に折りたたみます。他のすべてのチャンネルは非表示になります（ドープシートエディタのみ）"
 
 
 msgid "Display Grease Pencil"
@@ -9747,11 +9775,11 @@ msgstr "スピーカーに関するアニメーションデータを表示しま
 
 
 msgid "Display Summary"
-msgstr "概要(サマリー)を表示"
+msgstr "概要を表示"
 
 
 msgid "Display an additional 'summary' line (Dope Sheet editors only)"
-msgstr "'Summary'(概要)を追加表示します(ドープシートエディターのみ)"
+msgstr "「概要」行を追加表示します（ドープシートエディターのみ）"
 
 
 msgid "Display Texture"
@@ -10486,6 +10514,11 @@ msgstr "深度変化"
 msgctxt "Simulation"
 msgid "Obstacle"
 msgstr "障害物"
+
+
+msgctxt "Simulation"
+msgid "Force"
+msgstr "力"
 
 
 msgctxt "Simulation"
@@ -24754,7 +24787,7 @@ msgstr "ダイレーションのしきい値"
 
 
 msgid "Moves capture points outside objects"
-msgstr "キャプチャポイントをオブジェクト外側に移動します"
+msgstr "キャプチャポイントをオブジェクトの外側に移動します"
 
 
 msgid "Facing Bias"
@@ -25318,6 +25351,10 @@ msgstr "各ループ三角面の面インデックス"
 
 msgid "Tessellation of mesh polygons into triangles"
 msgstr "メッシュポリゴンから三角形へのテッセレーション"
+
+
+msgid "Loops"
+msgstr "ループ数"
 
 
 msgid "Loops of the mesh (face corners)"
@@ -25986,6 +26023,10 @@ msgid "Sculpt"
 msgstr "スカルプト"
 
 
+msgid "The node group is used in sculpt mode"
+msgstr "このノードグループはスカルプトモードで使用されます"
+
+
 msgid "Tool"
 msgstr "ツール"
 
@@ -25994,12 +26035,24 @@ msgid "The node group is used as a tool"
 msgstr "このノードグループはツールとして使用されます"
 
 
+msgid "The node group is used for curves"
+msgstr "このノードグループはカーブ用に使用されます"
+
+
 msgid "Mesh"
 msgstr "メッシュ"
 
 
+msgid "The node group is used for meshes"
+msgstr "このノードグループはメッシュ用に使用されます"
+
+
 msgid "Point Cloud"
 msgstr "ポイントクラウド"
+
+
+msgid "The node group is used for point clouds"
+msgstr "このノードグループはポイントクラウド用に使用されます"
 
 
 msgid "Shader Node Tree"
@@ -30338,6 +30391,10 @@ msgid "Description of an override operation over an overridden property"
 msgstr "一つのオーバーライド対象プロパティに対するオーバーライド処理の記述"
 
 
+msgid "Status flags"
+msgstr "状態フラグ"
+
+
 msgid "Mandatory"
 msgstr "強制"
 
@@ -30350,8 +30407,12 @@ msgid "Prevents the user from modifying that override operation (NOT USED)"
 msgstr "ユーザーがオーバーライド処理を変更してしまうのを防ぎます（未使用）"
 
 
-msgid "The ID pointer overridden by this operation is expected to match the reference hierarchy"
-msgstr "この操作でオーバーライドした ID ポインタは、参照階層とマッチすることが期待されます"
+msgid "Match Reference"
+msgstr "参照を合わせる"
+
+
+msgid "ID Item Use ID Pointer"
+msgstr "IDアイテムがIDポインターを使用"
 
 
 msgid "Operation"
@@ -30392,6 +30453,10 @@ msgstr "後に挿入"
 
 msgid "Insert Before"
 msgstr "前に挿入"
+
+
+msgid "Subitem Local ID"
+msgstr "サブアイテムローカルID"
 
 
 msgid "Subitem Local Index"
@@ -35432,6 +35497,10 @@ msgid "Operator Presets"
 msgstr "オペレータープリセット"
 
 
+msgid "Region Toggle"
+msgstr "領域の切り替え"
+
+
 msgid "Splash"
 msgstr "スプラッシュ表示"
 
@@ -35610,6 +35679,10 @@ msgstr "この三角面のローカル空間の単位長法線ベクトル"
 
 msgid "Polygon"
 msgstr "ポリゴン"
+
+
+msgid "Index of mesh face that the triangle is a part of"
+msgstr "その三角面が一部となるメッシュ面のインデックス"
 
 
 msgid "Split Normals"
@@ -43230,6 +43303,15 @@ msgid "Distance to grow/shrink (number of iterations)"
 msgstr "拡大/縮小する距離（リピート回数）"
 
 
+msgctxt "Image"
+msgid "Edge"
+msgstr "エッジ"
+
+
+msgid "Edge to inset"
+msgstr "内側をぼかす量"
+
+
 msgid "Growing/shrinking mode"
 msgstr "拡大/縮小モード"
 
@@ -43575,12 +43657,12 @@ msgid "Kuwahara"
 msgstr "Kuwahara"
 
 
+msgid "Eccentricity"
+msgstr "偏心率"
+
+
 msgid "Size of filter. Larger values give stronger stylized effect"
 msgstr "フィルターサイズ。大きい値でエフェクトが強くなります"
-
-
-msgid "Smoothing"
-msgstr "スムージング"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -43953,6 +44035,16 @@ msgstr "小数部"
 
 msgid "The fraction part of A"
 msgstr "A の小数部分"
+
+
+msgctxt "NodeTree"
+msgid "Truncated Modulo"
+msgstr "剰余（切り捨て）"
+
+
+msgctxt "NodeTree"
+msgid "Floored Modulo"
+msgstr "剰余（床）"
 
 
 msgctxt "NodeTree"
@@ -54976,6 +55068,10 @@ msgstr "FBXバイナリファイル内にテクスチャを埋め込みます（
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "すべてのデータをスケーリング（いくつかのインポータはアーマチュアのスケーリングに対応していません！）"
+
+
+msgid "Smoothing"
+msgstr "スムージング"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -71180,6 +71276,10 @@ msgid "Fill the active vertex color layer with the current paint color"
 msgstr "アクティブな頂点カラーレイヤーを現在のペイント色で塗りつぶします"
 
 
+msgid "Set color completely opaque instead of reusing existing alpha"
+msgstr "既存のアルファを再利用せず、色を完全に不透明に設定します"
+
+
 msgctxt "Operator"
 msgid "Smooth Vertex Colors"
 msgstr "頂点カラーのスムージング"
@@ -72469,6 +72569,24 @@ msgstr "以前の設定をコピーします"
 
 msgid "Copy settings from previous version"
 msgstr "以前のバージョンのコピー設定"
+
+
+msgctxt "Operator"
+msgid "Add Extension Repository"
+msgstr "エクステンションリポジトリを追加"
+
+
+msgid "Add a directory to be used as a local extensions repository"
+msgstr "ローカルエクステンションリポジトリとして使用するディレクトリを追加します"
+
+
+msgctxt "Operator"
+msgid "Remove Extension Repository"
+msgstr "エクステンションリポジトリを削除"
+
+
+msgid "Remove an extensions repository"
+msgstr "エクステンションリポジトリを削除します"
 
 
 msgctxt "Operator"
@@ -83100,6 +83218,10 @@ msgstr ""
 "指定されている可能性があります"
 
 
+msgid "Mesh Attributes"
+msgstr "メッシュ属性"
+
+
 msgid "Read mesh color attributes"
 msgstr "メッシュカラー属性を読み込みます"
 
@@ -87394,6 +87516,10 @@ msgid "Minimum distance between nodes for Auto-offsetting nodes"
 msgstr "自動オフセット用のノード間の最短距離"
 
 
+msgid "Node Preview Resolution"
+msgstr "ノードプレビュー解像度"
+
+
 msgid "Align Object To"
 msgstr "オブジェクトを向ける先"
 
@@ -87874,6 +88000,14 @@ msgstr "スカルプトモード傾き対応"
 
 msgid "Support for pen tablet tilt events in Sculpt Mode"
 msgstr "スカルプトモードでペンタブレットの傾きイベントに対応します"
+
+
+msgid "Shader Node Previews"
+msgstr "シェーダーノードプレビュー"
+
+
+msgid "Enables previews in the shader node editor"
+msgstr "シェーダーノードエディター内でプレビューを有効にします"
 
 
 msgid "Undo Legacy"
@@ -90852,7 +90986,7 @@ msgstr "空間分離を使用"
 
 
 msgid "Use BVH spatial splits: longer builder time, faster render"
-msgstr "BVHの空白の分離：構築時間が長くなり、レンダリングが速くなります"
+msgstr "BVH の空白の分離：構築時間が長くなり、レンダリングが速くなります"
 
 
 msgid "Denoiser"
@@ -98507,6 +98641,14 @@ msgid "Use active Viewer Node output as backdrop for compositing nodes"
 msgstr "アクティブビューアーノードの出力を背景画像として使用します"
 
 
+msgid "Supports Previews"
+msgstr "プレビュー対応"
+
+
+msgid "Whether the node editor's type supports displaying node previews"
+msgstr "ノードエディターのタイプがノードプレビューの表示に対応しているかどうか"
+
+
 msgctxt "ID"
 msgid "Texture Type"
 msgstr "テクスチャタイプ"
@@ -99720,6 +99862,18 @@ msgstr "UV マップやメタデータのようなオーバーレイを表示し
 
 msgid "Get the node tree path as a string"
 msgstr "文字列でノードツリーパスを取得します"
+
+
+msgid "Preview Shape"
+msgstr "プレビュー形状"
+
+
+msgid "Preview shape used by the node previews"
+msgstr "ノードプレビューで使用されるプレビュー形状"
+
+
+msgid "Use the material preview scene for the node previews"
+msgstr "マテリアルプレビューシーンをノードプレビューに使用します"
 
 
 msgid "Show Tree Path"
@@ -103436,6 +103590,14 @@ msgid "Reverse the order of shown items"
 msgstr "表示アイテムのソート順を反転します"
 
 
+msgid "USD Hook"
+msgstr "USDフック"
+
+
+msgid "A short description of the USD hook"
+msgstr "USD フックの短い説明"
+
+
 msgid "UV Map Layers"
 msgstr "UVマップレイヤー"
 
@@ -103610,6 +103772,36 @@ msgstr "アセットライブラリとして使用する .blend ファイルの�
 
 msgid "Use relative path when linking assets from this asset library"
 msgstr "このアセットライブラリのアセットのリンク時、相対パスを使用します"
+
+
+msgid "Settings to define an extension repository"
+msgstr "エクステンションリポジトリの定義の設定"
+
+
+msgctxt "File browser"
+msgid "Local Directory"
+msgstr "ローカルディレクトリ"
+
+
+msgid "The local directory containing extensions"
+msgstr "エクステンションを含むローカルディレクトリ"
+
+
+msgid "Unique repository name"
+msgstr "一意のリポジトリ名"
+
+
+msgctxt "File browser"
+msgid "Remote Path"
+msgstr "リモートパス"
+
+
+msgid "Local Cache"
+msgstr "ローカルキャッシュ"
+
+
+msgid "Store packages in local cache, otherwise downloaded package files are immediately deleted after installation"
+msgstr "パッケージをローカルキャッシュに格納します。無効時はダウンロードしたパッケージファイルをインストール後に即削除します"
 
 
 msgid "Solid Light"
@@ -111934,10 +112126,6 @@ msgid "Multiply R"
 msgstr "乗算 R"
 
 
-msgid "Eccentricity"
-msgstr "偏心率"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "先にカラーランプを有効にしてください"
 
@@ -114427,10 +114615,6 @@ msgstr "カスタムカラーを使用"
 
 msgid "Sculpt Overlay Color"
 msgstr "スカルプトオーバーレイカラー"
-
-
-msgid "Node Auto-Offset Margin"
-msgstr "ノードの自動オフセットの余白"
 
 
 msgid "Minimum Grid Spacing"
@@ -121479,6 +121663,18 @@ msgid "Path conflict: %d caches set to path %s"
 msgstr "パスが衝突：%d 個のキャッシュが同じパス「%s」に設定されています"
 
 
+msgid "Failed to remove meta directory %s"
+msgstr "メタディレクトリ「%s」が削除できません"
+
+
+msgid "Failed to remove bdata directory %s"
+msgstr "bdata ディレクトリ「%s」が削除できません"
+
+
+msgid "Bake directory %s not found"
+msgstr "ベイクディレクトリ「%s」が見つかりません"
+
+
 msgid "File has to be saved"
 msgstr "ファイルを保存してください"
 
@@ -124824,28 +125020,8 @@ msgid "). Click here to proceed..."
 msgstr "). クリックで続行..."
 
 
-msgid "Cannot edit builtin name"
-msgstr "ビルトイン名は編集できません"
-
-
-msgid "Cannot edit sequence name"
-msgstr "シーケンス名は編集できません"
-
-
-msgid "Cannot edit name of an override data-block"
-msgstr "オーバーライドデータブロックの名前は編集できません"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "masterコレクションの名前は編集できません"
-
-
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "間接的にリンクされたライブラリのパスは編集できません"
-
-
-msgid "Library path is not editable from here anymore, please use Relocate operation instead"
-msgstr "もうここからライブラリパスは編集できません。代わりにリロケートの操作をしてください"
 
 
 msgid "No active item to rename"
@@ -126727,12 +126903,32 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "USD Import:「%s」を読み込むためのステージが開けません"
 
 
+msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
+msgstr "USD フック「%s」呼び出しで例外が発生しました（コンソールに詳細）"
+
+
+msgid "An exception occurred invoking USD hook '%s'"
+msgstr "USD フック「%s」呼び出しで例外が発生しました"
+
+
+msgid "Unable to get array values for primvar %s"
+msgstr "primvar「%s」の配列値が取得できません"
+
+
+msgid "USD Import: can't cast attribute '%s' to array"
+msgstr "USD Import: 属性「%s」を配列にキャストできません"
+
+
 msgid "USD Import: color attribute value '%s' count inconsistent with interpolation type"
 msgstr "USD Import: カラー属性値「%s」の数が補間タイプと食い違っています"
 
 
 msgid "USD Import: couldn't add color attribute '%s'"
 msgstr "USD Import: カラー属性「%s」が追加できません"
+
+
+msgid "USD Import: couldn't add UV attribute '%s'"
+msgstr "USD Import: UV 属性「%s」が追加できません"
 
 
 msgid "Unhandled Gprim type: %s (%s)"
@@ -126769,6 +126965,10 @@ msgstr "USD Export: テクスチャタイルを「%s」から「%s」にコピ�
 
 msgid "USD export:  couldn't copy texture from %s to %s"
 msgstr "USD Export: テクスチャを「%s」から「%s」にコピーできません"
+
+
+msgid "Mesh %s, Attribute %s cannot be converted to USD."
+msgstr "メッシュ「%s」の属性「%s」が USD に変換できません"
 
 
 msgid "USD Export: failed to resolve .vdb file for object: %s"

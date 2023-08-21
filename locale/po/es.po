@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Español <gabcorreo@gmail.com>\n"
@@ -43027,16 +43027,12 @@ msgid "Kuwahara"
 msgstr "Kuwahara"
 
 
+msgid "Eccentricity"
+msgstr "Excentricidad"
+
+
 msgid "Size of filter. Larger values give stronger stylized effect"
 msgstr "Tamaño del filtro. Valores mayores producirán un efecto con un estilizado más marcado"
-
-
-msgid "Smoothing"
-msgstr "Suavizado"
-
-
-msgid "Smoothing degree before applying filter. Higher values remove details and give smoother edges"
-msgstr "Grado de suavizado antes de aplicar el filtro. Valores mayores eliminarán detalles y producirán bordes más suaves"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -54280,6 +54276,10 @@ msgstr "Incorpora las texturas al archivo binario FBX (sólo para el modo de rut
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Escalar todos los datos (¡algunos importadores no soportan esqueletos escalados!)"
+
+
+msgid "Smoothing"
+msgstr "Suavizado"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -110488,10 +110488,6 @@ msgid "Multiply R"
 msgstr "Multiplicar  R"
 
 
-msgid "Eccentricity"
-msgstr "Excentricidad"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "Habilitar antes la rampa de color"
 
@@ -112977,10 +112973,6 @@ msgstr "Usar colores personalizados"
 
 msgid "Sculpt Overlay Color"
 msgstr "Color de superposición de esculpido"
-
-
-msgid "Node Auto-Offset Margin"
-msgstr "Margen autodesplazamiento de nodos"
 
 
 msgid "Minimum Grid Spacing"
@@ -123070,28 +123062,8 @@ msgid "). Click here to proceed..."
 msgstr "). Hacer clic aquí para proceder..."
 
 
-msgid "Cannot edit builtin name"
-msgstr "No es posible editar un nombre predefinido"
-
-
-msgid "Cannot edit sequence name"
-msgstr "No es posible editar el nombre de la secuencia"
-
-
-msgid "Cannot edit name of an override data-block"
-msgstr "No es posible editar el nombre de un bloque de datos redefinido"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "No es posible editar el nombre de la colección principal"
-
-
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "No es posible editar la ruta de una biblioteca vinculada indirectamente"
-
-
-msgid "Library path is not editable from here anymore, please use Relocate operation instead"
-msgstr "La ruta de la biblioteca ya no es editable desde aquí, por favor usar la operación Reubicar"
 
 
 msgid "No active item to rename"

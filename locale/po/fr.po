@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2023-08-07 17:55+0200\n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"PO-Revision-Date: 2023-08-15 12:46+0200\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -5959,6 +5959,30 @@ msgid "Color space in the image file, to convert to and from when saving and loa
 msgstr "Espace de couleur dans le fichier image, à convertir vers/depuis quand l’image est enregistrée ou chargée"
 
 
+msgid "ACES2065-1"
+msgstr "ACES2065-1"
+
+
+msgid "Linear AP0 with ACES white point"
+msgstr "AP0 linéaire avec point blanc ACES"
+
+
+msgid "ACEScg"
+msgstr "ACEScg"
+
+
+msgid "Linear AP1 with ACES white point"
+msgstr "AP1 linéaire avec point blanc ACES"
+
+
+msgid "Display P3"
+msgstr "Display P3"
+
+
+msgid "Apple's Display P3 with sRGB compound (piece-wise) encoding transfer function, common on Mac devices"
+msgstr "Display P3 d’Apple avec fonction de transfert d’encodage sRGB composée (continue par morceaux), courant sur les appareils Apple"
+
+
 msgid "Filmic Log"
 msgstr "Filmic Log"
 
@@ -5975,12 +5999,80 @@ msgid "sRGB display space with Filmic view transform"
 msgstr "Espace d’affichage sRGB avec une transformation de vue Filmic"
 
 
+msgid "Linear CIE-XYZ D65"
+msgstr "CIE-XYZ D65 linéaire"
+
+
+msgid "1931 CIE XYZ with adapted illuminant D65 white point"
+msgstr "CIE XYZ 1931 avec un point blanc adapté de l’illuminant D65"
+
+
+msgid "Linear CIE-XYZ E"
+msgstr "CIE-XYZ E linéaire"
+
+
+msgid "1931 CIE XYZ standard with assumed illuminant E white point"
+msgstr "Norme CIE XYZ 1931 avec pour point blanc présumé l’illuminant D65"
+
+
+msgid "Linear DCI-P3 D65"
+msgstr "DCI-P3 D65 linéaire"
+
+
+msgid "Linear DCI-P3 with illuminant D65 white point"
+msgstr "DCI-P3 linéaire avec pour point blanc l’illuminant D65"
+
+
+msgid "Linear FilmLight E-Gamut"
+msgstr "FilmLight E-Gamut linéaire"
+
+
+msgid "Linear E-Gamut with illuminant D65 white point"
+msgstr "E-Gamut linéaire avec pour point blanc l’illuminant D65"
+
+
+msgid "Linear Rec.2020"
+msgstr "Rec.2020 linéaire"
+
+
+msgid "Linear BT.2020 with illuminant D65 white point"
+msgstr "BT.2020 linéaire avec pour point blanc l’illuminant D65"
+
+
+msgid "Linear Rec.709"
+msgstr "Rec.709 linéaire"
+
+
+msgid "Linear BT.709 with illuminant D65 white point"
+msgstr "BT.709 linéaire avec pour point blanc l’illuminant D65"
+
+
 msgid "Non-Color"
-msgstr "Non-couleurs"
+msgstr "Non-couleur"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
 msgstr "Données génériques qui ne sont pas de la couleur, aucune transformation de couleur ne sera appliquée (par ex. les cartes de normales)"
+
+
+msgid "Rec.1886"
+msgstr "Rec.1886"
+
+
+msgid "BT.1886 2.4 Exponent EOTF Display, commonly used for TVs"
+msgstr "BT.1886 avec FTEO d’affichage à exposant 2,4, couramment utilisé pour les téléviseurs"
+
+
+msgid "Rec.2020"
+msgstr "Rec.2020"
+
+
+msgid "BT.2020 2.4 Exponent EOTF Display"
+msgstr "BT.2020 avec FTEO d’affichage à exposant 2,4"
+
+
+msgid "sRGB IEC 61966-2-1 compound (piece-wise) encoding"
+msgstr "sRGB IEC 61966-2-1, encodage composé (continue par morceaux)"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -6041,6 +6133,14 @@ msgstr "Utiliser des courbes"
 
 msgid "Use RGB curved for pre-display transformation"
 msgstr "Utiliser des courbes RVB pour la transformation avant affichage"
+
+
+msgid "High Dynamic Range"
+msgstr "Grande gamme dynamique"
+
+
+msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' does not generate HDR colors"
+msgstr "Activer l’affichage à grande gamme dynamique (HDR) dans les vues rendues, en enlevant la limite de luminosité de l’affichage. Nécessite un écran avec prise en charge HDR et une transformation de vue conçue pour l’HDR. « Filmic » ne génère pas de couleurs HDR"
 
 
 msgid "View Transform"
@@ -12814,7 +12914,7 @@ msgstr "ID d’icône"
 
 
 msgid "Unique integer identifying the preview of this file as an icon (zero means invalid)"
-msgstr "Entier unique identifiant la prévisualisation de ce fichier en tant qu’icône (zéro pour invalide)"
+msgstr "Entier unique identifiant l’aperçu de ce fichier en tant qu’icône (zéro pour invalide)"
 
 
 msgid "Relative Path"
@@ -19119,7 +19219,7 @@ msgstr "Données de redéfinition de bibliothèque"
 
 
 msgid "Preview image and icon of this data-block (always None if not supported for this type of data)"
-msgstr "Image et icône de prévisualisation de ce bloc de données (toujours None si non pris en charge par ce type de données)"
+msgstr "Image et icône d’aperçu de ce bloc de données (toujours None si non pris en charge par ce type de données)"
 
 
 msgid "Tag"
@@ -30141,6 +30241,14 @@ msgid "The ID pointer overridden by this operation is expected to match the refe
 msgstr "Le pointeur ID redéfini par cette opération est supposé correspondre à la hiérarchie de référence"
 
 
+msgid "ID Item Use ID Pointer"
+msgstr "Utiliser le pointeur ID pour l’élément ID"
+
+
+msgid "RNA collections of IDs only, the reference to the item also uses the ID pointer itself, not only its name"
+msgstr "Collections RNA d’identifiants uniquement, la référence à l’élément utilise aussi le pointeur ID lui-même, pas seulement son nom"
+
+
 msgid "Operation"
 msgstr "Opération"
 
@@ -30177,16 +30285,40 @@ msgid "Insert After"
 msgstr "Insérer après"
 
 
+msgid "Insert a new item into collection after the one referenced in subitem_reference_name/_id or _index"
+msgstr "Insérer un nouvel élément dans la collection après celui référencé dans subitem_reference_name/_id ou _index"
+
+
 msgid "Insert Before"
 msgstr "Insérer avant"
+
+
+msgid "Insert a new item into collection before the one referenced in subitem_reference_name/_id or _index (NOT USED)"
+msgstr "Insérer un nouvel élément dans la collection avant celui référencé dans subitem_reference_name/_id ou _index (INUTILISÉ)"
+
+
+msgid "Subitem Local ID"
+msgstr "Identifiant local du sous-élément"
+
+
+msgid "Collection of IDs only, used to disambiguate between potential IDs with same name from different libraries"
+msgstr "Collection d’identifiants uniquement, utilisée pour différentier des identifiants potentiels avec le même noms provenant de différentes bibliothèques"
 
 
 msgid "Subitem Local Index"
 msgstr "Indice local du sous-élément"
 
 
+msgid "Used to handle changes into collection"
+msgstr "Utilisé pour gérer les changements dans une collection"
+
+
 msgid "Subitem Local Name"
 msgstr "Nom local du sous-élément"
+
+
+msgid "Subitem Reference ID"
+msgstr "Identifiant de référence du sous-élément"
 
 
 msgid "Subitem Reference Index"
@@ -30590,7 +30722,7 @@ msgstr "Enregistrer des canaux luminance-chrominance-chrominance au lieu de coul
 
 
 msgid "When rendering animations, save JPG preview images in same directory"
-msgstr "Lors du rendu d’animations, enregistrer des images de prévisualisation JPG dans le même dossier"
+msgstr "Lors du rendu d’animations, enregistrer des images d’aperçu JPG dans le même dossier"
 
 
 msgid "Format of multiview media"
@@ -30614,15 +30746,15 @@ msgstr "Indice de la vue"
 
 
 msgid "Image Preview"
-msgstr "Image de prévisualisation"
+msgstr "Image d’aperçu"
 
 
 msgid "Preview image and icon"
-msgstr "Image et icône de prévisualisation"
+msgstr "Image et icône d’aperçu"
 
 
 msgid "Unique integer identifying this preview as an icon (zero means invalid)"
-msgstr "Identifiant unique de cette prévisualisation comme icône (zéro pour invalide)"
+msgstr "Identifiant unique de cet aperçu comme icône (zéro pour invalide)"
 
 
 msgid "Icon Pixels"
@@ -30670,7 +30802,7 @@ msgstr "Taille de l’image"
 
 
 msgid "True if this preview icon has been modified by py script, and is no more auto-generated by Blender"
-msgstr "Vrai si cette icône de prévisualisation a été modifiée par un script py, et n’est plus générée automatiquement par Blender"
+msgstr "Vrai si cette icône d’aperçu a été modifiée par un script py, et n’est plus générée automatiquement par Blender"
 
 
 msgid "Custom Image"
@@ -30678,7 +30810,7 @@ msgstr "Image personnalisée"
 
 
 msgid "True if this preview image has been modified by py script, and is no more auto-generated by Blender"
-msgstr "Vrai si cette image de prévisualisation a été modifiée par un script py, et n’est plus générée automatiquement par Blender"
+msgstr "Vrai si cette image d’aperçu a été modifiée par un script py, et n’est plus générée automatiquement par Blender"
 
 
 msgid "Parameters defining how an Image data-block is used by another data-block"
@@ -34912,7 +35044,7 @@ msgstr "Nouveau fichier"
 
 
 msgid "Data Previews"
-msgstr "Prévisualisations des données"
+msgstr "Aperçus des données"
 
 
 msgid "Recover"
@@ -41916,7 +42048,7 @@ msgstr "Afficher les options"
 
 
 msgid "Show Preview"
-msgstr "Afficher la prévisualisation"
+msgstr "Afficher l’aperçu"
 
 
 msgid "Show Texture"
@@ -42896,7 +43028,7 @@ msgstr "Activer la correction gamma avant et après le traitement principal"
 
 
 msgid "Enable low quality mode, useful for preview"
-msgstr "Activer le mode basse qualité, utile pour les prévisualisations"
+msgstr "Activer le mode basse qualité, utile pour prévisualiser"
 
 
 msgid "Use Z-Buffer"
@@ -43341,16 +43473,12 @@ msgid "Kuwahara"
 msgstr "Kuwahara"
 
 
+msgid "Eccentricity"
+msgstr "Excentricité"
+
+
 msgid "Size of filter. Larger values give stronger stylized effect"
 msgstr "Taille du filtre. Une valeur plus élevée donne un effet plus fort et stylisé"
-
-
-msgid "Smoothing"
-msgstr "Lissage"
-
-
-msgid "Smoothing degree before applying filter. Higher values remove details and give smoother edges"
-msgstr "Degré d’adoucissement avant l’application du filtre. Une valeur plus élevée supprime des détails et donne des bords plus doux"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -43721,6 +43849,24 @@ msgstr "Fraction"
 
 msgid "The fraction part of A"
 msgstr "La part fractionnelle de A"
+
+
+msgctxt "NodeTree"
+msgid "Truncated Modulo"
+msgstr "Modulo tronqué"
+
+
+msgid "The remainder of truncated division using fmod(A,B)"
+msgstr "Le reste de la division tronquée utilisant fmod(A,B)"
+
+
+msgctxt "NodeTree"
+msgid "Floored Modulo"
+msgstr "Modulo partie entière"
+
+
+msgid "The remainder of floored division"
+msgstr "Le reste de la division avec partie entière"
 
 
 msgctxt "NodeTree"
@@ -54172,25 +54318,25 @@ msgstr "(Dés)activer l’utilisateur factice"
 
 msgctxt "Operator"
 msgid "Generate Preview"
-msgstr "Générer la prévisualisation"
+msgstr "Générer l’aperçu"
 
 
 msgid "Create an automatic preview for the selected data-block"
-msgstr "Créer une prévisualisation automatique pour le bloc de données sélectionné"
+msgstr "Créer un aperçu automatique pour le bloc de données sélectionné"
 
 
 msgctxt "Operator"
 msgid "Generate Preview from Object"
-msgstr "Générer une prévisualisation depuis l’objet"
+msgstr "Générer un aperçu depuis l’objet"
 
 
 msgid "Create a preview for this asset by rendering the active object"
-msgstr "Générer une prévisualisation pour cet asset en faisant un rendu de l’objet actif"
+msgstr "Générer un aperçu pour cet asset en faisant un rendu de l’objet actif"
 
 
 msgctxt "Operator"
 msgid "Load Custom Preview"
-msgstr "Charger une prévisualisation personnalisée"
+msgstr "Charger un aperçu personnalisé"
 
 
 msgid "Choose an image to help identify the data-block visually"
@@ -54694,6 +54840,10 @@ msgstr "Empaqueter les textures dans le fichier FBX binaire (uniquement avec le 
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Redimensionner toutes les données (certains importateurs ne prennent pas en charge les armatures redimensionnées !)"
+
+
+msgid "Smoothing"
+msgstr "Lissage"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -55719,7 +55869,7 @@ msgstr "Explorer ce fichier"
 
 
 msgid "Preview this file"
-msgstr "Prévisualiser ce fichier"
+msgstr "Aperçu de ce fichier"
 
 
 msgid "Print"
@@ -59108,8 +59258,21 @@ msgstr "Précalculer les F-courbes sélectionnées en un ensemble de points éch
 
 
 msgctxt "Operator"
+msgid "Blend Offset Keyframes"
+msgstr "Fondre les clés vers décalage"
+
+
+msgid "Shift selected keys to the value of the neighboring keys as a block"
+msgstr "Décaler en bloc les clés sélectionnées vers la valeur des clés voisines"
+
+
+msgid "Control which key to offset towards and how far"
+msgstr "Contrôle vers quelles clés décaler et de combien"
+
+
+msgctxt "Operator"
 msgid "Blend to Default Value"
-msgstr "Mélanger à la valeur par défaut"
+msgstr "Fondre vers la valeur par défaut"
 
 
 msgid "Blend selected keys to their default value from their current position"
@@ -59118,6 +59281,15 @@ msgstr "Mélanger les clés sélectionnées à leur valeur par défaut, depuis l
 
 msgid "How much to blend to the default value"
 msgstr "Combien mélanger vers la valeur par défaut"
+
+
+msgctxt "Operator"
+msgid "Blend to Ease Keyframes"
+msgstr "Fondre les clés vers l’amorti"
+
+
+msgid "Blends keyframes from current state to an ease-in or ease-out curve"
+msgstr "Fondre les clés de leur état actuel vers une courbe d’amorti en entrée ou en sortie"
 
 
 msgid "Curve Bend"
@@ -59130,7 +59302,7 @@ msgstr "Contrôler la courbure de la courbe"
 
 msgctxt "Operator"
 msgid "Blend to Neighbor"
-msgstr "Mélanger à la clé voisine"
+msgstr "Fondre vers la clé voisine"
 
 
 msgid "Blend selected keyframes to their left or right neighbor"
@@ -65743,11 +65915,11 @@ msgstr "Attacher les nœuds sélectionnés"
 
 msgctxt "Operator"
 msgid "Toggle Node Preview"
-msgstr "(Dés)activer la prévisualisation de nœud"
+msgstr "(Dés)activer l’aperçu de nœud"
 
 
 msgid "Toggle preview display for selected nodes"
-msgstr "(Dés)activer l’affichage de la prévisualisation pour les nœuds sélectionnés"
+msgstr "(Dés)activer l’affichage de l’aperçu pour les nœuds sélectionnés"
 
 
 msgctxt "Operator"
@@ -70835,6 +71007,10 @@ msgid "Fill the active vertex color layer with the current paint color"
 msgstr "Remplir le calque de couleurs de sommets actif avec la couleur de peinture actuelle"
 
 
+msgid "Set color completely opaque instead of reusing existing alpha"
+msgstr "Rendre la couleur complètement opaque au lieu de réutiliser l’alpha existant"
+
+
 msgctxt "Operator"
 msgid "Smooth Vertex Colors"
 msgstr "Lisser les couleurs de sommets"
@@ -72124,6 +72300,24 @@ msgstr "Copier les réglages précédents"
 
 msgid "Copy settings from previous version"
 msgstr "Copier les réglages de la version précédente"
+
+
+msgctxt "Operator"
+msgid "Add Extension Repository"
+msgstr "Ajouter un dépôt d’extensions"
+
+
+msgid "Add a directory to be used as a local extensions repository"
+msgstr "Ajouter un dossier à utiliser comme dépôt d’extensions local"
+
+
+msgctxt "Operator"
+msgid "Remove Extension Repository"
+msgstr "Enlever le dépôt d’extensions"
+
+
+msgid "Remove an extensions repository"
+msgstr "Enlever un dépôt d’extensions"
 
 
 msgctxt "Operator"
@@ -81597,11 +81791,11 @@ msgstr "Fusionner les sommets selon la distance"
 
 msgctxt "Operator"
 msgid "Batch-Clear Previews"
-msgstr "Effacer les prévisualisations en masse"
+msgstr "Effacer les aperçus en masse"
 
 
 msgid "Clear selected .blend file's previews"
-msgstr "Effacer les prévisualisations des fichiers .blend sélectionnés"
+msgstr "Effacer les aperçus des fichiers .blend sélectionnés"
 
 
 msgid "Save Backups"
@@ -81609,11 +81803,11 @@ msgstr "Enregistrer des sauvegardes"
 
 
 msgid "Keep a backup (.blend1) version of the files when saving with cleared previews"
-msgstr "Conserver une version de sauvegarde (.blend1) des fichiers avant d’enregistrer avec les prévisualisations effacées"
+msgstr "Conserver une version de sauvegarde (.blend1) des fichiers avant d’enregistrer avec les aperçus effacés"
 
 
 msgid "Clear collections' previews"
-msgstr "Effacer les prévisualisations des collections"
+msgstr "Effacer les aperçus des collections"
 
 
 msgid "Materials & Textures"
@@ -81621,15 +81815,15 @@ msgstr "Matériaux et textures"
 
 
 msgid "Clear 'internal' previews (materials, textures, images, etc.)"
-msgstr "Effacer les prévisualisations « internes » (matériaux, textures, images, etc.)"
+msgstr "Effacer les aperçus « internes » (matériaux, textures, images, etc.)"
 
 
 msgid "Clear objects' previews"
-msgstr "Effacer les prévisualisations des objets"
+msgstr "Effacer les aperçus des objets"
 
 
 msgid "Clear scenes' previews"
-msgstr "Effacer les prévisualisations des scènes"
+msgstr "Effacer les aperçus des scènes"
 
 
 msgid "Trusted Blend Files"
@@ -81642,11 +81836,11 @@ msgstr "Activer l’évaluation Python des fichiers sélectionnés"
 
 msgctxt "Operator"
 msgid "Batch-Generate Previews"
-msgstr "Générer des prévisualisations en masse"
+msgstr "Générer des aperçus en masse"
 
 
 msgid "Generate selected .blend file's previews"
-msgstr "Générer les prévisualisations des fichiers .blend sélectionnés"
+msgstr "Générer les aperçus des fichiers .blend sélectionnés"
 
 
 msgid "Root path of all files listed in `files` collection"
@@ -81666,32 +81860,32 @@ msgstr "Afficher les dossiers dans le navigateur de fichiers"
 
 
 msgid "Keep a backup (.blend1) version of the files when saving with generated previews"
-msgstr "Conserver une version de sauvegarde (.blend1) des fichiers avant d’enregistrer avec les prévisualisations générées"
+msgstr "Conserver une version de sauvegarde (.blend1) des fichiers avant d’enregistrer avec les aperçus générées"
 
 
 msgid "Generate collections' previews"
-msgstr "Générer les prévisualisations des collections"
+msgstr "Générer les aperçus des collections"
 
 
 msgid "Generate 'internal' previews (materials, textures, images, etc.)"
-msgstr "Générer les prévisualisations « internes » (matériaux, textures, images, etc.)"
+msgstr "Générer les aperçus « internes » (matériaux, textures, images, etc.)"
 
 
 msgid "Generate objects' previews"
-msgstr "Générer les prévisualisations des objets"
+msgstr "Générer les aperçus des objets"
 
 
 msgid "Generate scenes' previews"
-msgstr "Générer les prévisualisations des scènes"
+msgstr "Générer les aperçus des scènes"
 
 
 msgctxt "Operator"
 msgid "Clear Data-Block Previews"
-msgstr "Effacer les prévisualisations des blocs de données"
+msgstr "Effacer les aperçus des blocs de données"
 
 
 msgid "Clear data-block previews (only for some types like objects, materials, textures, etc.)"
-msgstr "Effacer les prévisualisations de blocs de données (uniquement pour certains types comme les objets, matériaux, textures, etc.)"
+msgstr "Effacer les aperçus de blocs de données (uniquement pour certains types comme les objets, matériaux, textures, etc.)"
 
 
 msgid "Data-Block Type"
@@ -81699,7 +81893,7 @@ msgstr "Type de blocs de données"
 
 
 msgid "Which data-block previews to clear"
-msgstr "Quelles prévisualisations de blocs de données effacer"
+msgstr "Quel aperçus de blocs de données effacer"
 
 
 msgid "All Types"
@@ -81711,7 +81905,7 @@ msgstr "Tous types de géométrie"
 
 
 msgid "Clear previews for scenes, collections and objects"
-msgstr "Effacer les prévisualisations pour les scènes, collections et objets"
+msgstr "Effacer les aperçus pour les scènes, collections et objets"
 
 
 msgid "All Shading Types"
@@ -81719,16 +81913,16 @@ msgstr "Tous types de shading"
 
 
 msgid "Clear previews for materials, lights, worlds, textures and images"
-msgstr "Effacer les prévisualisations pour les matériaux, éclairages, mondes, textures et images"
+msgstr "Effacer les aperçus pour les matériaux, éclairages, mondes, textures et images"
 
 
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
-msgstr "Rafraîchir les prévisualisations des blocs de données"
+msgstr "Rafraîchir les aperçus des blocs de données"
 
 
 msgid "Ensure data-block previews are available and up-to-date (to be saved in .blend file, only for some types like materials, textures, etc.)"
-msgstr "S’assurer que les prévisualisations des blocs de données sont disponibles et à jour (celles enregistrées dans le fichier .blend, uniquement pour certains types comme les matériaux, textures, etc.)"
+msgstr "S’assurer que les aperçus des blocs de données sont disponibles et à jour (celles enregistrées dans le fichier .blend, uniquement pour certains types comme les matériaux, textures, etc.)"
 
 
 msgctxt "Operator"
@@ -82478,6 +82672,10 @@ msgid "Export viewport settings of materials as USD preview materials, and expor
 msgstr "Exporter les réglages de la vue des matériaux en tant que matériaux de prévisualisation USD, exporter les assignations de matériaux en tant que sous-ensembles de géométrie (subsets)"
 
 
+msgid "Include mesh color attributes in the export"
+msgstr "Inclure les attributs de couleur des maillages dans l’export"
+
+
 msgid "Include normals of exported meshes in the export"
 msgstr "Inclure les normales des maillages exportés dans l’export"
 
@@ -82689,6 +82887,14 @@ msgstr "Masque de chemin"
 
 msgid "Import only the primitive at the given path and its descendants. Multiple paths may be specified in a list delimited by commas or semicolons"
 msgstr "N’importer que la primitive au chemin spécifié et ses descendants. Plusieurs chemins peuvent être spécifiés dans une liste délimitée par des virgules ou des points-virgules"
+
+
+msgid "Mesh Attributes"
+msgstr "Attributs de maillage"
+
+
+msgid "Read USD Primvars as mesh attributes"
+msgstr "Lire les variables de primitives USD (Primvars) comme attributs de maillage"
 
 
 msgid "Read mesh color attributes"
@@ -84733,6 +84939,10 @@ msgstr "Bibliothèques d’assets"
 
 msgid "Development"
 msgstr "Développement"
+
+
+msgid "Extension Repositories"
+msgstr "Dépôts d’extensions"
 
 
 msgid "Script Directories"
@@ -86983,6 +87193,14 @@ msgid "Minimum distance between nodes for Auto-offsetting nodes"
 msgstr "Distance minimum entre les nœuds pour le décalage auto des nœuds"
 
 
+msgid "Node Preview Resolution"
+msgstr "Résolution de l’aperçu de nœud"
+
+
+msgid "Resolution used for Shader node previews (should be changed for performance convenience)"
+msgstr "Résolution utilisée pour les aperçus de nœuds de shading (à ajuster pour trouver le bon équilibre de performances)"
+
+
 msgid "Align Object To"
 msgstr "Aligner l’objet sur"
 
@@ -87383,6 +87601,10 @@ msgid "Enable Asset Browser editor and operators to manage regular data-blocks a
 msgstr "Permettre à l’éditeur et aux opérateurs de l’explorateur d’assets de gérer les blocs de données ordinaires en tant qu’assets, pas seulement en tant que poses"
 
 
+msgid "Enables extension repositories, accessible from the \"Extension Repositories\" panel in the \"File Paths\" section of the preferences. These paths are exposed as add-ons, package management is not yet integrated"
+msgstr "Activer les dépôts d’extensions, accessibles depuis le panneau « Dépôts d’extensions » dans la section « Chemins de fichiers » des préférences. Ces chemins sont exposés comme add-ons, la gestion de paquets n’est pas encore intégrée"
+
+
 msgid "Grease Pencil 3.0"
 msgstr "Crayon gras 3.0"
 
@@ -87416,7 +87638,7 @@ msgstr "Activer la visibilité des nouveaux nœuds de volume dans l’interface"
 
 
 msgid "Node Group Operators"
-msgstr "Opérateurs groupes de nœuds"
+msgstr "Opérateurs par groupes de nœuds"
 
 
 msgid "Enable using geometry nodes as edit operators"
@@ -87455,6 +87677,14 @@ msgid "Support for pen tablet tilt events in Sculpt Mode"
 msgstr "Prise en charge des évènements d’inclinaison des stylets de tablettes en mode sculpture"
 
 
+msgid "Shader Node Previews"
+msgstr "Afficher les aperçus des nœuds de shading"
+
+
+msgid "Enables previews in the shader node editor"
+msgstr "Activer les aperçus dans l’éditeur de nœuds de shading"
+
+
 msgid "Undo Legacy"
 msgstr "Ancien système d’annulation"
 
@@ -87473,6 +87703,14 @@ msgstr "Bibliothèque d’assets active"
 
 msgid "Index of the asset library being edited in the Preferences UI"
 msgstr "Indice de la bibliothèque d’assets en cours d’édition dans l’interface des préférences"
+
+
+msgid "Active Extension Repo"
+msgstr "Dépôt d’extensions actif"
+
+
+msgid "Index of the extensions repo being edited in the Preferences UI"
+msgstr "Indice du dépôt d’extensions en cours d’édition dans l’interface des préférences"
 
 
 msgid "Animation Player"
@@ -87537,6 +87775,10 @@ msgstr "Intervalle de la sauvegarde auto"
 
 msgid "The time (in minutes) to wait between automatic temporary saves"
 msgstr "Temps (en minutes) entre les sauvegardes automatiques temporaires"
+
+
+msgid "Extension Repos"
+msgstr "Dépôts d’extensions"
 
 
 msgid "File Preview Type"
@@ -91601,6 +91843,10 @@ msgstr "Limiter le nombre maximal d’éclairages"
 
 msgid "Tiny Prim Culling"
 msgstr "Suppression des petites primitives"
+
+
+msgid "Hide small geometry primitives to improve performance"
+msgstr "Cacher les petites primitives de géométrie pour améliorer les performances"
 
 
 msgid "Max Texture Memory Per Field"
@@ -98020,6 +98266,14 @@ msgid "Use active Viewer Node output as backdrop for compositing nodes"
 msgstr "Utiliser la sortie du nœud de visualisation actif comme fond pour les nœuds de compositing"
 
 
+msgid "Supports Previews"
+msgstr "Prend en charge les aperçus"
+
+
+msgid "Whether the node editor's type supports displaying node previews"
+msgstr "Le type d’éditeur de nœuds prend-il en charge les aperçus de nœuds"
+
+
 msgctxt "ID"
 msgid "Texture Type"
 msgstr "Type de texture"
@@ -99225,6 +99479,22 @@ msgid "Get the node tree path as a string"
 msgstr "Obtenir le chemin d’arborescence du nœud dans une chaîne de caractères"
 
 
+msgid "Preview Shape"
+msgstr "Forme de l’aperçu"
+
+
+msgid "Preview shape used by the node previews"
+msgstr "Forme de l’aperçu utilisée par les aperçus de nœuds"
+
+
+msgid "Use the default flat previews"
+msgstr "Utiliser les aperçus plats par défaut"
+
+
+msgid "Use the material preview scene for the node previews"
+msgstr "Utiliser la scène d’aperçu de matériaux pour les aperçus de nœuds"
+
+
 msgid "Show Tree Path"
 msgstr "Afficher le chemin de l’arborescence"
 
@@ -99246,11 +99516,11 @@ msgstr "Afficher les surimpressions, comme les liens colorés ou en pointillés"
 
 
 msgid "Show Node Previews"
-msgstr "Afficher les prévisualisations des nœuds"
+msgstr "Afficher les aperçus des nœuds"
 
 
 msgid "Display each node's preview if node is toggled"
-msgstr "Afficher la prévisualisation d’un nœud s’il est activé"
+msgstr "Afficher l’aperçu de chaque nœud s’il est activé"
 
 
 msgid "Show Timing"
@@ -101310,6 +101580,10 @@ msgid "Text Strip"
 msgstr "Bande texte"
 
 
+msgid "Transition Strip"
+msgstr "Bande transition"
+
+
 msgid "Theme Space Settings"
 msgstr "Réglages de thème des espaces"
 
@@ -102939,6 +103213,18 @@ msgid "Reverse the order of shown items"
 msgstr "Inverser l’ordre des éléments affichés"
 
 
+msgid "USD Hook"
+msgstr "Callback USD"
+
+
+msgid "Defines callback functions to extend USD IO"
+msgstr "Définit les fonctions de callback pour étendre les entrées/sorties USD"
+
+
+msgid "A short description of the USD hook"
+msgstr "Courte description du callback USD"
+
+
 msgid "UV Map Layers"
 msgstr "Calques UV"
 
@@ -103113,6 +103399,56 @@ msgstr "Chemin vers un dossier contenant des fichiers .blend, à utiliser comme 
 
 msgid "Use relative path when linking assets from this asset library"
 msgstr "Utiliser un chemin relatif lorsque des assets sont liés depuis cette bibliothèque d’assets"
+
+
+msgid "Extension Repo"
+msgstr "Dépôt d’extensions"
+
+
+msgid "Settings to define an extension repository"
+msgstr "Réglages définissant un dépôt d’extensions"
+
+
+msgctxt "File browser"
+msgid "Local Directory"
+msgstr "Dossier local"
+
+
+msgid "The local directory containing extensions"
+msgstr "Dossier local contenant des extensions"
+
+
+msgid "Unique module identifier"
+msgstr "Identifiant unique du module"
+
+
+msgid "Unique repository name"
+msgstr "Nom unique du dépôt"
+
+
+msgctxt "File browser"
+msgid "Remote Path"
+msgstr "Chemin distant"
+
+
+msgid "Remote URL or path for extensions repository"
+msgstr "URL ou chemin distant pour le dépôt d’extensions"
+
+
+msgid "Local Cache"
+msgstr "Cache local"
+
+
+msgid "Store packages in local cache, otherwise downloaded package files are immediately deleted after installation"
+msgstr "Garder les paquets dans un cache local ; autrement les fichiers de paquets téléchargés sont supprimés tout de suite après l’installation"
+
+
+msgid "User Extension Repos"
+msgstr "Dépôts d’extensions de l’utilisateur"
+
+
+msgid "Collection of user extension repos"
+msgstr "Collection de dépôts d’extensions de l’utilisateur"
 
 
 msgid "Solid Light"
@@ -111442,10 +111778,6 @@ msgid "Multiply R"
 msgstr "Multiplier R"
 
 
-msgid "Eccentricity"
-msgstr "Excentricité"
-
-
 msgid "Enable the Color Ramp first"
 msgstr "Activer le dégradé de couleur pour commencer"
 
@@ -112138,6 +112470,16 @@ msgstr "Amortir"
 
 
 msgctxt "Operator"
+msgid "Blend Offset"
+msgstr "Fondre un décalage"
+
+
+msgctxt "Operator"
+msgid "Blend to Ease"
+msgstr "Fondre vers l’amorti"
+
+
+msgctxt "Operator"
 msgid "Smooth (Gaussian)"
 msgstr "Adoucir (gaussien)"
 
@@ -112603,7 +112945,7 @@ msgstr "Créer et remplacer des liens"
 
 msgctxt "Operator"
 msgid "Node Preview"
-msgstr "Prévisualisation du nœud"
+msgstr "Aperçu du nœud"
 
 
 msgctxt "Operator"
@@ -112636,7 +112978,7 @@ msgstr "Entrées :"
 
 
 msgid "Previews"
-msgstr "Prévisualisations"
+msgstr "Aperçus"
 
 
 msgid "Timings"
@@ -113935,10 +114277,6 @@ msgstr "Utiliser des couleurs personnalisées"
 
 msgid "Sculpt Overlay Color"
 msgstr "Couleur de surimpression de sculpture"
-
-
-msgid "Node Auto-Offset Margin"
-msgstr "Marge de décalage auto des nœuds"
 
 
 msgid "Minimum Grid Spacing"
@@ -116563,6 +116901,10 @@ msgid "Attribute is required and can't be removed"
 msgstr "L’attribut est requis et ne peut pas être supprimé"
 
 
+msgid "Layer '%s' could not be created"
+msgstr "Impossible de créer le calque « %s »"
+
+
 msgid "This attribute can not be accessed in a procedural context"
 msgstr "Impossible d’accéder à cet attribut dans un contexte procédural"
 
@@ -117642,6 +117984,10 @@ msgid "GP_Palette"
 msgstr "GP_Palette"
 
 
+msgid "Non-Empty object '%s' cannot duplicate collection '%s' anymore in Blender 2.80 and later, removed instancing"
+msgstr "L’objet non-vide « %s » ne peut plus dupliquer la collection « %s » dans Blender 2.80 et plus, l’instanciation a été enlevée"
+
+
 msgid "Hidden %d"
 msgstr "%d caché"
 
@@ -118361,7 +118707,7 @@ msgstr "Relâcher la pose"
 
 
 msgid "Blend to Neighbor"
-msgstr "Mélanger à la clé voisine"
+msgstr "Fondre vers la clé voisine"
 
 
 msgid "Sliding-Tool"
@@ -121057,6 +121403,18 @@ msgid "Path conflict: %d caches set to path %s"
 msgstr "Conflit de chemin : %d caches pointent vers le chemin %s"
 
 
+msgid "Failed to remove meta directory %s"
+msgstr "Impossible de supprimer le dossier meta %s"
+
+
+msgid "Failed to remove bdata directory %s"
+msgstr "Impossible de supprimer le dossier bdata %s"
+
+
+msgid "Bake directory %s not found"
+msgstr "Dossier de précalcul %s introuvable"
+
+
 msgid "File has to be saved"
 msgstr "Le fichier doit être enregistré"
 
@@ -122975,7 +123333,7 @@ msgstr "Au moins 4 points de suivi doivent être sélectionnés pour créer un p
 
 
 msgid "Some data failed to reconstruct (see console for details)"
-msgstr "Impossible de reconstruire certaines données (voir la console pour les détails)"
+msgstr "Impossible de reconstruire certaines données (voir la console pour plus de détails)"
 
 
 msgid "Average re-projection error: %.2f px"
@@ -123416,7 +123774,7 @@ msgstr "Aucun point de contrôle sélectionné"
 
 
 msgid "Modifier could not be added (see console for details)"
-msgstr "Impossible d’ajouter le modificateur (voir la console pour les détails)"
+msgstr "Impossible d’ajouter le modificateur (voir la console pour plus de détails)"
 
 
 msgid "No F-Modifiers available to be copied"
@@ -124408,28 +124766,8 @@ msgid "). Click here to proceed..."
 msgstr "). Cliquer ici pour continuer…"
 
 
-msgid "Cannot edit builtin name"
-msgstr "Impossible de modifier un nom intégré"
-
-
-msgid "Cannot edit sequence name"
-msgstr "Impossible de modifier le nom de la séquence"
-
-
-msgid "Cannot edit name of an override data-block"
-msgstr "Impossible de modifier le nom d’un bloc de données redéfini"
-
-
-msgid "Cannot edit name of master collection"
-msgstr "Impossible de modifier le nom de la collection principale"
-
-
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "Impossible de modifier le chemin d’une bibliothèque liée indirectement"
-
-
-msgid "Library path is not editable from here anymore, please use Relocate operation instead"
-msgstr "Le chemin de bibliothèque n’est plus éditable d’ici, veuillez utiliser l’opération Relocaliser"
 
 
 msgid "No active item to rename"
@@ -124970,6 +125308,10 @@ msgstr "Impossible de désenregistrer l’association de fichiers"
 
 msgid "There is no asset library to remove"
 msgstr "Aucune bibliothèque d’assets à supprimer"
+
+
+msgid "There is no extension repository to remove"
+msgstr "Aucun dépôt d’extensions à enlever"
 
 
 msgid "Not available for Microsoft Store installations"
@@ -125798,7 +126140,7 @@ msgstr "Écraser %s"
 
 
 msgid "Failed to set preview: no ID in context (incorrect context?)"
-msgstr "Impossible de définir la prévisualisation : aucun ID dans le contexte (contexte incorrect ?)"
+msgstr "Impossible de définir l’aperçu : aucun ID dans le contexte (contexte incorrect ?)"
 
 
 msgid "Incorrect context for running data-block fake user toggling"
@@ -125810,15 +126152,15 @@ msgstr "Le bloc de données ne prend pas en charge les utilisateurs factices"
 
 
 msgid "Can't edit previews of overridden library data"
-msgstr "Impossible d’éditer les prévisualisations des données de bibliothèques redéfinies"
+msgstr "Impossible d’éditer les aperçus des données de bibliothèques redéfinies"
 
 
 msgid "Data-block does not support previews"
-msgstr "Le bloc de données ne prend pas en charge les prévisualisations"
+msgstr "Le bloc de données ne prend pas en charge les aperçus"
 
 
 msgid "Can't generate automatic preview for node group"
-msgstr "Impossible de générer des prévisualisations automatiques pour le groupe de nœuds"
+msgstr "Impossible de générer des aperçus automatiques pour le groupe de nœuds"
 
 
 msgid "Numeric input evaluation"
@@ -126323,12 +126665,44 @@ msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD : impossible d’ouvrir l’étage pour lire %s"
 
 
-msgid "USD Import: color attribute value '%s' count inconsistent with interpolation type"
-msgstr "Import USD : nombre de valeurs de attribut de couleur %s incompatible avec ce type d’interpolation"
+msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
+msgstr "Une exception a eu lieu à l’invocation du callback USD « %s ». Voir la console pour plus de détails"
+
+
+msgid "An exception occurred invoking USD hook '%s'"
+msgstr "Une exception a eu lieu à l’invocation du callback USD « %s »"
+
+
+msgid "Unsupported domain for mesh data type %s"
+msgstr "Domaine non pris en charge pour le type de données de maillage %s"
+
+
+msgid "Unable to get array values for primvar %s"
+msgstr "Impossible d’obtenir les valeurs du tableau pour la primvar %s"
+
+
+msgid "USD Import: can't cast attribute '%s' to array"
+msgstr "Import USD : impossible de forcer le type de l’attribut « %s » en tableau"
 
 
 msgid "USD Import: couldn't add color attribute '%s'"
-msgstr "Import USD : impossible d’ajouter l’attribut de couleur %s"
+msgstr "Import USD : impossible d’ajouter l’attribut de couleur « %s »"
+
+
+msgid "USD Import: UV attribute value '%s' count inconsistent with interpolation type"
+msgstr "Import USD : nombre de valeurs de l’attribut d’UV « %s » incompatible avec ce type d’interpolation"
+
+
+msgid "USD Import: couldn't add UV attribute '%s'"
+msgstr "Import USD : impossible d’ajouter l’attribut d’UV « %s »"
+
+
+msgid "Generic primvar %s: invalid type %s"
+msgstr "Primvar générique %s : type %s invalide"
+
+
+msgid "Skipping primvar %s, mesh %s -- no value"
+msgstr "Primvar %s ignorée, le maillage %s n’a pas de valeur"
 
 
 msgid "Unhandled Gprim type: %s (%s)"
@@ -126365,6 +126739,14 @@ msgstr "Export USD : la tuile de texture n’a pas pu être copiée de %s vers 
 
 msgid "USD export:  couldn't copy texture from %s to %s"
 msgstr "Export USD : la texture n’a pas pu être copiée de %s vers %s"
+
+
+msgid "Unsupported type for mesh data."
+msgstr "Type non pris en charge pour les données de maillage."
+
+
+msgid "Mesh %s, Attribute %s cannot be converted to USD."
+msgstr "Maillage %s, l’attribut %s n’a pas pu être converti en USD."
 
 
 msgid "USD Export: failed to resolve .vdb file for object: %s"
@@ -127546,6 +127928,10 @@ msgstr "Enregistrement de la classe d’étagère d’assets : « %s » est t
 
 msgid "Script directory not found"
 msgstr "Dossier de scripts introuvable"
+
+
+msgid "Extension repository not found"
+msgstr "Dépôt d’extensions introuvable"
 
 
 msgid "Add-on is no longer valid"
