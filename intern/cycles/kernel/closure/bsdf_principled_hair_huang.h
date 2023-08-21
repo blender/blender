@@ -268,13 +268,13 @@ ccl_device_inline float3 sample_wh(
   return wh;
 }
 
-/* Check micronormal/mesonormal direct visiblity from direction `v`. */
+/* Check micronormal/mesonormal direct visibility from direction `v`. */
 ccl_device_inline bool microfacet_visible(const float3 v, const float3 m, const float3 h)
 {
   return (dot(v, h) > 0.0f && dot(v, m) > 0.0f);
 }
 
-/* Check micronormal/mesonormal direct visiblity from directions `wi` and `wo`. */
+/* Check micronormal/mesonormal direct visibility from directions `wi` and `wo`. */
 ccl_device_inline bool microfacet_visible(const float3 wi,
                                           const float3 wo,
                                           const float3 m,
@@ -502,7 +502,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
         const float rcp_norm_wh2 = 1.0f / len(wh2);
         wh2 *= rcp_norm_wh2;
         const float cos_mh2 = dot(wmt, wh2);
-        if (cos_mh2 >= 0.0f) { /* Microfacet visiblity from macronormal. */
+        if (cos_mh2 >= 0.0f) { /* Microfacet visibility from macronormal. */
           const float cos_hi2 = dot(-wt, wh2);
           const float cos_ho2 = dot(-wo, wh2);
           const float cos_mo2 = dot(-wo, wmt);

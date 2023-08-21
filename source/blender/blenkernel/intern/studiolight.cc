@@ -1074,7 +1074,7 @@ static float blinn_specular(const float L[3],
   return spec_light * (1.0 - w2) + spec_env * w2;
 }
 
-/* Keep in sync with the glsl shader function get_world_lighting() */
+/* Keep in sync with the GLSL shader function `get_world_lighting()`. */
 static void studiolight_lights_eval(StudioLight *sl, float color[3], const float normal[3])
 {
   float R[3], I[3] = {0.0f, 0.0f, 1.0f}, N[3] = {normal[0], normal[2], -normal[1]};

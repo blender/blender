@@ -899,7 +899,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         }
       }
       else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
-        /* If the region is not visible we can ignore this scoller zone. */
+        /* If the region is not visible we can ignore this scroll-bar zone. */
         ARegion *region = az->region;
         View2D *v2d = &region->v2d;
         int scroll_flag = 0;
@@ -969,7 +969,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         ED_area_tag_redraw_no_rebuild(area);
       }
       else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
-        /* If the region is not visible we can ignore this scoller zone. */
+        /* If the region is not visible we can ignore this scroll-bar zone. */
         if (az->direction == AZ_SCROLL_VERT) {
           az->alpha = az->region->v2d.alpha_vert = 0;
           area->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;

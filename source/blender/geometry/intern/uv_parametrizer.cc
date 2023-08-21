@@ -3854,7 +3854,7 @@ void uv_parametrizer_face_add(ParamHandle *phandle,
     }
     if (permute.size() != nverts) {
       const int pm = int(permute.size());
-      /* Add the remaining pm-gon. */
+      /* Add the remaining `pm-gon` data. */
       Array<ParamKey> vkeys_sub(pm);
       Array<const float *> co_sub(pm);
       Array<float *> uv_sub(pm);

@@ -115,7 +115,7 @@ struct ShaderPreview {
   ID *parent;
   MTex *slot;
 
-  /* datablocks with nodes need full copy during preview render, glsl uses it too */
+  /* Data-blocks with nodes need full copy during preview render, GLSL uses it too. */
   Material *matcopy;
   Tex *texcopy;
   Light *lampcopy;

@@ -1710,8 +1710,8 @@ void node_link_bezier_points_evaluated(const bNodeLink &link,
 #define LINK_WIDTH (2.5f * UI_SCALE_FAC)
 #define ARROW_SIZE (7 * UI_SCALE_FAC)
 
-/* Reroute arrow shape and mute bar. These are expanded here and shrunk in the glsl code.
- * See: gpu_shader_2D_nodelink_vert.glsl */
+/* Reroute arrow shape and mute bar. These are expanded here and shrunk in the GLSL code.
+ * See: `gpu_shader_2D_nodelink_vert.glsl`. */
 static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
 static float mute_verts[3][2] = {{0.7071f, 1.0f}, {0.7071f, 0.0f}, {0.7071f, -1.0f}};

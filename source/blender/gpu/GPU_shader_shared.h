@@ -129,7 +129,7 @@ struct TestOutput {
   TestOutputRawData result;
   /** TestStatus. */
   uint status;
-  /** Line error in the glsl file. */
+  /** Line error in the GLSL file. */
   int line;
   /** TestType of expect and result. */
   uint type;

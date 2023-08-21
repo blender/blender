@@ -82,7 +82,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
     }
 
-    /* XXX This was added many years ago (1c19940198) in 'lib_link` code of particles as a bugfix.
+    /* XXX This was added many years ago (1c19940198) in 'lib_link` code of particles as a bug-fix.
      * But this is actually versioning. Should be safe enough here. */
     LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
       if (!part->effector_weights) {

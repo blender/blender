@@ -423,7 +423,7 @@ ccl_device_inline float bsdf_aniso_lambda(float alpha_x, float alpha_y, float3 V
   return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(sqr_alpha_tan_n);
 }
 
-/* Monodirectional shadowing-masking term. */
+/* Mono-directional shadowing-masking term. */
 template<MicrofacetType m_type> ccl_device_inline float bsdf_G(float alpha2, float cos_N)
 {
   return 1.0f / (1.0f + bsdf_lambda<m_type>(alpha2, cos_N));

@@ -253,8 +253,9 @@ class bNodeRuntime : NonCopyable, NonMovable {
   bNode *original = nullptr;
 
   /**
-   * XXX TODO
-   * Node totr size depends on the prvr size, which in turn is determined from preview size.
+   * XXX:
+   * TODO: `prvr` does not exist!
+   * Node totr size depends on the `prvr` size, which in turn is determined from preview size.
    * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
    * multiple instances using different preview images it is possible that required node size
    * varies between instances. preview_xsize, preview_ysize defines a common reserved size for

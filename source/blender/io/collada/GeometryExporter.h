@@ -76,7 +76,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
 
   std::string makeTexcoordSourceId(std::string &geom_id, int layer_index, bool is_single_layer);
 
-  /** Creates <source> for texcoords. */
+  /** Creates <source> for texture-coordinates. */
   void createTexcoordsSource(std::string geom_id, Mesh *me);
 
   /** Creates <source> for normals. */

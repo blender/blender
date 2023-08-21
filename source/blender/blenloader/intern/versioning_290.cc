@@ -778,9 +778,9 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
     }
 
     const float factor = time_delta / total_len;
-    /* Current keyframe's right handle: */
+    /* Current key-frame's right handle: */
     madd_v2_v2v2fl(bezt->vec[2], v1, delta1, -factor); /* vec[2] = v1 - factor * delta1 */
-    /* Next keyframe's left handle: */
+    /* Next key-frame's left handle: */
     madd_v2_v2v2fl(nextbezt->vec[0], v4, delta2, -factor); /* vec[0] = v4 - factor * delta2 */
   }
 }
