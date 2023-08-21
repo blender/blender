@@ -26,6 +26,9 @@ class VKBatch : public Batch {
   VKVertexBuffer *vertex_buffer_get(int index);
   VKVertexBuffer *instance_buffer_get(int index);
   VKIndexBuffer *index_buffer_get();
+
+ private:
+  void draw_setup();
 };
 
 }  // namespace blender::gpu
