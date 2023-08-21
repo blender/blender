@@ -224,7 +224,8 @@ GPU_SHADER_CREATE_INFO(eevee_volume_material_common)
     .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
     .define("VOLUMETRICS")
     .uniform_buf(VOLUMES_INFO_BUF_SLOT, "VolumesInfoData", "volumes_info_buf")
-    .additional_info("draw_resource_id_uniform",
+    .additional_info("draw_modelmat_new_common",
+                     "draw_resource_id_uniform",
                      "draw_view",
                      "eevee_shared",
                      "eevee_sampling_data",
@@ -254,10 +255,7 @@ GPU_SHADER_CREATE_INFO(eevee_volume_object)
            Qualifier::READ_WRITE,
            ImageType::FLOAT_3D,
            "out_phase_img")
-    .additional_info("eevee_volume_material_common",
-                     "draw_object_infos_new",
-                     "draw_volume_infos",
-                     "draw_modelmat_new_common");
+    .additional_info("eevee_volume_material_common", "draw_object_infos_new", "draw_volume_infos");
 
 GPU_SHADER_CREATE_INFO(eevee_volume_world)
     .image(VOLUME_PROP_SCATTERING_IMG_SLOT,
