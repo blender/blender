@@ -168,7 +168,7 @@ ccl_device_noinline int svm_node_vector_displacement(
         tangent = normalize(sd->dPdu);
       }
 
-      float3 bitangent = normalize(cross(normal, tangent));
+      float3 bitangent = safe_normalize(cross(normal, tangent));
       const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
       if (attr_sign.offset != ATTR_STD_NOT_FOUND) {
         float sign = primitive_surface_attribute_float(kg, sd, attr_sign, NULL, NULL);

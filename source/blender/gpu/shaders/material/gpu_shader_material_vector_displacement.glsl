@@ -3,7 +3,7 @@ void node_vector_displacement_tangent(
 {
   vec3 oN = normalize(normal_world_to_object(g_data.N));
   vec3 oT = normalize(normal_world_to_object(T.xyz));
-  vec3 oB = T.w * normalize(cross(oN, oT));
+  vec3 oB = T.w * safe_normalize(cross(oN, oT));
 
   result = (vector.xyz - midlevel) * scale;
   result = result.x * oT + result.y * oN + result.z * oB;
