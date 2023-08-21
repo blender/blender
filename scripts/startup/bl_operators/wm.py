@@ -1416,6 +1416,7 @@ rna_custom_property_subtype_vector_items = (
 rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
                           for item in bpy.types.Action.bl_rna.properties['id_root'].enum_items)
 
+
 class WM_OT_properties_edit(Operator):
     """Change a custom property's type, or adjust how it is displayed in the interface"""
     bl_idname = "wm.properties_edit"
