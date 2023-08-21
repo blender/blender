@@ -35,32 +35,32 @@ static void node_declare(NodeDeclarationBuilder &b)
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .supported_type(GeometryComponent::Type::Volume);
 
-  std::string grid_socket_description = N_(
-      "Expects a Named Attribute with the name of a Grid in the Volume");
+  std::string grid_socket_description =
+      "Expects a Named Attribute with the name of a Grid in the Volume";
 
-  b.add_input<decl::Vector>(N_("Grid"), "Grid_Vector")
+  b.add_input<decl::Vector>(("Grid"), "Grid_Vector")
       .field_on_all()
       .hide_value()
       .description(grid_socket_description);
-  b.add_input<decl::Float>(N_("Grid"), "Grid_Float")
+  b.add_input<decl::Float>(("Grid"), "Grid_Float")
       .field_on_all()
       .hide_value()
       .description(grid_socket_description);
-  b.add_input<decl::Bool>(N_("Grid"), "Grid_Bool")
+  b.add_input<decl::Bool>(("Grid"), "Grid_Bool")
       .field_on_all()
       .hide_value()
       .description(grid_socket_description);
-  b.add_input<decl::Int>(N_("Grid"), "Grid_Int")
+  b.add_input<decl::Int>(("Grid"), "Grid_Int")
       .field_on_all()
       .hide_value()
       .description(grid_socket_description);
 
-  b.add_input<decl::Vector>(N_("Position")).implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>(("Position")).implicit_field(implicit_field_inputs::position);
 
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({5});
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({5});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({5});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({5});
+  b.add_output<decl::Vector>(("Value"), "Value_Vector").dependent_field({5});
+  b.add_output<decl::Float>(("Value"), "Value_Float").dependent_field({5});
+  b.add_output<decl::Bool>(("Value"), "Value_Bool").dependent_field({5});
+  b.add_output<decl::Int>(("Value"), "Value_Int").dependent_field({5});
 }
 
 static void search_node_add_ops(GatherAddNodeSearchParams &params)
