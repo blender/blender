@@ -604,7 +604,6 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "DNA_scene_types.h"
 #  include "WM_api.hh"
 
-extern "C" {
 extern FunctionRNA rna_NodeTree_poll_func;
 extern FunctionRNA rna_NodeTree_update_func;
 extern FunctionRNA rna_NodeTree_get_from_context_func;
@@ -619,7 +618,6 @@ extern FunctionRNA rna_Node_free_func;
 extern FunctionRNA rna_Node_draw_buttons_func;
 extern FunctionRNA rna_Node_draw_buttons_ext_func;
 extern FunctionRNA rna_Node_draw_label_func;
-}
 
 void rna_Node_socket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr);
 
@@ -687,6 +685,20 @@ const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
   *r_free = true;
 
   return item;
+}
+
+int rna_node_socket_idname_to_enum(const char *idname)
+{
+  int i = 0, result = -1;
+  NODE_SOCKET_TYPES_BEGIN (stype) {
+    if (STREQ(stype->idname, idname)) {
+      result = i;
+      break;
+    }
+    i++;
+  }
+  NODE_SOCKET_TYPES_END;
+  return result;
 }
 
 bNodeSocketType *rna_node_socket_type_from_enum(int value)

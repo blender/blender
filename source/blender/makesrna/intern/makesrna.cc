@@ -4736,6 +4736,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_nla.cc", nullptr, RNA_def_nla},
     {"rna_nodetree.cc", nullptr, RNA_def_nodetree},
     {"rna_node_socket.cc", nullptr, RNA_def_node_socket_subtypes},
+    {"rna_node_tree_interface.cc", nullptr, RNA_def_node_tree_interface},
     {"rna_object.cc", "rna_object_api.cc", RNA_def_object},
     {"rna_object_force.cc", nullptr, RNA_def_object_force},
     {"rna_depsgraph.cc", nullptr, RNA_def_depsgraph},
