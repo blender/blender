@@ -1235,6 +1235,9 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_HitCallback hcb,
                               void *hit_data)
 {
+  if (pbvh->nodes.is_empty()) {
+    return;
+  }
   PBVHIter iter;
   PBVHNode *node;
 
@@ -1255,6 +1258,9 @@ static void BKE_pbvh_search_callback_occluded(PBVH *pbvh,
                                               BKE_pbvh_HitOccludedCallback hcb,
                                               void *hit_data)
 {
+  if (pbvh->nodes.is_empty()) {
+    return;
+  }
   PBVHIter iter;
   PBVHNode *node;
   node_tree *tree = nullptr;
@@ -1716,6 +1722,9 @@ void BKE_pbvh_update_visibility(PBVH *pbvh)
 
 void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
 {
+  if (pbvh->nodes.is_empty()) {
+    return;
+  }
   PBVHIter iter;
   PBVHNode *node;
   BB bb;
@@ -1738,6 +1747,9 @@ void BKE_pbvh_redraw_BB(PBVH *pbvh, float bb_min[3], float bb_max[3])
 
 void BKE_pbvh_get_grid_updates(PBVH *pbvh, bool clear, void ***r_gridfaces, int *r_totface)
 {
+  if (pbvh->nodes.is_empty()) {
+    return;
+  }
   GSet *face_set = BLI_gset_ptr_new(__func__);
   PBVHNode *node;
   PBVHIter iter;
@@ -2843,21 +2855,19 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
       pbvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals));
 
-  if (!nodes.is_empty()) {
-    if (pbvh->header.type == PBVH_BMESH) {
-      pbvh_bmesh_normals_update(nodes);
-    }
-    else if (pbvh->header.type == PBVH_FACES) {
-      pbvh_faces_update_normals(pbvh, nodes);
-    }
-    else if (pbvh->header.type == PBVH_GRIDS) {
-      CCGFace **faces;
-      int num_faces;
-      BKE_pbvh_get_grid_updates(pbvh, true, (void ***)&faces, &num_faces);
-      if (num_faces > 0) {
-        BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
-        MEM_freeN(faces);
-      }
+  if (pbvh->header.type == PBVH_BMESH) {
+    pbvh_bmesh_normals_update(nodes);
+  }
+  else if (pbvh->header.type == PBVH_FACES) {
+    pbvh_faces_update_normals(pbvh, nodes);
+  }
+  else if (pbvh->header.type == PBVH_GRIDS) {
+    CCGFace **faces;
+    int num_faces;
+    BKE_pbvh_get_grid_updates(pbvh, true, (void ***)&faces, &num_faces);
+    if (num_faces > 0) {
+      BKE_subdiv_ccg_update_normals(subdiv_ccg, faces, num_faces);
+      MEM_freeN(faces);
     }
   }
 }
@@ -3640,6 +3650,10 @@ Vector<PBVHNode *> search_gather(PBVH *pbvh,
                                  void *search_data,
                                  PBVHNodeFlags leaf_flag)
 {
+  if (pbvh->nodes.is_empty()) {
+    return {};
+  }
+
   PBVHIter iter;
   Vector<PBVHNode *> nodes;
 
