@@ -2267,21 +2267,23 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 /** \name Find Window Utility
  * \{ */
 
-wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2])
+wmWindow *WM_window_find_under_cursor(wmWindow *win,
+                                      const int event_xy[2],
+                                      int r_event_xy_other[2])
 {
-  int tmp[2];
-  copy_v2_v2_int(tmp, mval);
-  wm_cursor_position_to_ghost_screen_coords(win, &tmp[0], &tmp[1]);
+  int temp_xy[2];
+  copy_v2_v2_int(temp_xy, event_xy);
+  wm_cursor_position_to_ghost_screen_coords(win, &temp_xy[0], &temp_xy[1]);
 
-  GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, tmp[0], tmp[1]);
+  GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, temp_xy[0], temp_xy[1]);
 
   if (!ghostwin) {
     return nullptr;
   }
 
   wmWindow *win_other = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
-  wm_cursor_position_from_ghost_screen_coords(win_other, &tmp[0], &tmp[1]);
-  copy_v2_v2_int(r_mval, tmp);
+  wm_cursor_position_from_ghost_screen_coords(win_other, &temp_xy[0], &temp_xy[1]);
+  copy_v2_v2_int(r_event_xy_other, temp_xy);
   return win_other;
 }
 

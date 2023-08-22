@@ -140,22 +140,25 @@ uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *ev
   return but;
 }
 
-void datadropper_win_area_find(
-    const bContext *C, const int mval[2], int r_mval[2], wmWindow **r_win, ScrArea **r_area)
+void datadropper_win_area_find(const bContext *C,
+                               const int event_xy[2],
+                               int r_event_xy[2],
+                               wmWindow **r_win,
+                               ScrArea **r_area)
 {
   bScreen *screen = CTX_wm_screen(C);
 
   *r_win = CTX_wm_window(C);
-  *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mval);
+  *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event_xy);
   if (*r_area == nullptr) {
-    *r_win = WM_window_find_under_cursor(*r_win, mval, r_mval);
+    *r_win = WM_window_find_under_cursor(*r_win, event_xy, r_event_xy);
     if (*r_win) {
       screen = WM_window_get_active_screen(*r_win);
-      *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, r_mval);
+      *r_area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, r_event_xy);
     }
   }
-  else if (mval != r_mval) {
-    copy_v2_v2_int(r_mval, mval);
+  else if (event_xy != r_event_xy) {
+    copy_v2_v2_int(r_event_xy, event_xy);
   }
 }
 

@@ -188,7 +188,9 @@ void WM_reinit_gizmomap_all(Main *bmain);
  */
 void WM_script_tag_reload();
 
-wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
+wmWindow *WM_window_find_under_cursor(wmWindow *win,
+                                      const int event_xy[2],
+                                      int r_event_xy_other[2]);
 
 /**
  * Knowing the area, return its screen.

@@ -24,8 +24,11 @@ void eyedropper_draw_cursor_text_region(const int xy[2], const char *name);
  * \return A button under the mouse which relates to some RNA Property, or NULL
  */
 uiBut *eyedropper_get_property_button_under_mouse(bContext *C, const wmEvent *event);
-void datadropper_win_area_find(
-    const bContext *C, const int mval[2], int r_mval[2], wmWindow **r_win, ScrArea **r_area);
+void datadropper_win_area_find(const bContext *C,
+                               const int event_xy[2],
+                               int r_event_xy[2],
+                               wmWindow **r_win,
+                               ScrArea **r_area);
 
 /* interface_eyedropper_color.c (expose for color-band picker) */
 

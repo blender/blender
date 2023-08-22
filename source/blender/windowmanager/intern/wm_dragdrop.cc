@@ -252,8 +252,8 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
   }
 
   /* Active area should always redraw, even if cancelled. */
-  int r_mval[2];
-  wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, &r_mval[0]);
+  int event_xy_target[2];
+  wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, event_xy_target);
   if (target_win) {
     const bScreen *screen = WM_window_get_active_screen(target_win);
     ED_region_tag_redraw_no_rebuild(screen->active_region);
