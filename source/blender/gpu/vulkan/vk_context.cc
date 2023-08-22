@@ -78,6 +78,7 @@ void VKContext::sync_backbuffer()
     command_buffer_.init(device.device_get(), device.queue_get(), command_buffer);
     command_buffer_.begin_recording();
     device.descriptor_pools_get().reset();
+    device.init_dummy_buffer(*this);
   }
 }
 

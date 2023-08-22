@@ -135,7 +135,6 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 
   VKContext *context = new VKContext(ghost_window, ghost_context);
   device_.context_register(*context);
-  device_.init_dummy_buffer(*context);
   return context;
 }
 

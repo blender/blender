@@ -127,6 +127,12 @@ class VKDevice : public NonCopyable {
 
   bool is_initialized() const;
   void init(void *ghost_context);
+  /**
+   * Initialize a dummy buffer that can be bound for missing attributes.
+   *
+   * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
+   */
+  void init_dummy_buffer(VKContext &context);
   void deinit();
 
   eGPUDeviceType device_type() const;
@@ -159,7 +165,6 @@ class VKDevice : public NonCopyable {
   void init_debug_callbacks();
   void init_memory_allocator();
   void init_descriptor_pools();
-  void init_dummy_buffer(VKContext &context);
 
   /* During initialization the backend requires access to update the workarounds. */
   friend VKBackend;
