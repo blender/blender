@@ -7,6 +7,7 @@ set(INC
   intern
 
   ../blenkernel
+  ../editors/include
 )
 
 set(INC_SYS
@@ -14,8 +15,10 @@ set(INC_SYS
 
 set(SRC
   intern/bone_collections.cc
+  intern/bonecolor.cc
 
   ANIM_bone_collections.h
+  ANIM_bonecolor.hh
 )
 
 set(LIB

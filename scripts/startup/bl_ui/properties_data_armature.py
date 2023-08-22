@@ -101,11 +101,6 @@ class DATA_UL_bone_groups(UIList):
     def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         layout.prop(item, "name", text="", emboss=False, icon='GROUP_BONE')
 
-        if item.is_custom_color_set or item.color_set == 'DEFAULT':
-            layout.prop(item, "color_set", icon_only=True, icon='COLOR')
-        else:
-            layout.prop(item, "color_set", icon_only=True)
-
 
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Groups"
@@ -147,21 +142,6 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
             col.separator()
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-
-            if group.is_custom_color_set:
-                col = layout.column()
-                split = col.split(factor=0.4)
-
-                col = split.column()
-                row = col.row()
-                row.alignment = 'RIGHT'
-                row.label(text="Custom Colors")
-
-                col = split.column(align=True)
-                row = col.row(align=True)
-                row.prop(group.colors, "normal", text="")
-                row.prop(group.colors, "select", text="")
-                row.prop(group.colors, "active", text="")
 
         row = layout.row()
 

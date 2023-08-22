@@ -11,10 +11,15 @@
 #include "DNA_ID.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
+namespace blender::animrig {
+class BoneColor;
+}
+
 extern "C" {
 #endif
 
@@ -27,6 +32,22 @@ struct AnimData;
  * 3) Pose Space;      the animation position, in Object space
  * 4) World Space;     Object matrix applied to Pose or Armature space
  */
+
+typedef struct BoneColor {
+  /**
+   * Index of color palette to use when drawing bones.
+   * 0=default, >0 = predefined in theme, -1=custom color in #custom.
+   *
+   * For the predefined ones, see #rna_enum_color_sets_items in rna_armature.c.
+   */
+  int8_t palette_index;
+  uint8_t _pad0[7];
+  ThemeWireColor custom;
+#ifdef __cplusplus
+  blender::animrig::BoneColor &wrap();
+  const blender::animrig::BoneColor &wrap() const;
+#endif
+} BoneColor;
 
 typedef struct Bone {
   /** Next/previous elements within this list. */
@@ -50,8 +71,11 @@ typedef struct Bone {
 
   int flag;
 
+  char _pad1[4];
+  BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
+
   char inherit_scale_mode;
-  char _pad[7];
+  char _pad[3];
 
   float arm_head[3];
   /** Head/tail in Armature Space (rest pose). */
@@ -319,5 +343,14 @@ typedef enum eBone_BBoneHandleFlag {
 #define MAXBONENAME 64
 
 #ifdef __cplusplus
+
+inline blender::animrig::BoneColor &BoneColor::wrap()
+{
+  return *reinterpret_cast<blender::animrig::BoneColor *>(this);
+}
+inline const blender::animrig::BoneColor &BoneColor::wrap() const
+{
+  return *reinterpret_cast<const blender::animrig::BoneColor *>(this);
+}
 }
 #endif

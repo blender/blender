@@ -25,6 +25,36 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+/* Bone Collection Color Sets */
+const EnumPropertyItem rna_enum_color_palettes_items[] = {
+    {0, "DEFAULT", 0, "Default Colors", ""},
+    {1, "THEME01", ICON_COLORSET_01_VEC, "01 - Theme Color Set", ""},
+    {2, "THEME02", ICON_COLORSET_02_VEC, "02 - Theme Color Set", ""},
+    {3, "THEME03", ICON_COLORSET_03_VEC, "03 - Theme Color Set", ""},
+    {4, "THEME04", ICON_COLORSET_04_VEC, "04 - Theme Color Set", ""},
+    {5, "THEME05", ICON_COLORSET_05_VEC, "05 - Theme Color Set", ""},
+    {6, "THEME06", ICON_COLORSET_06_VEC, "06 - Theme Color Set", ""},
+    {7, "THEME07", ICON_COLORSET_07_VEC, "07 - Theme Color Set", ""},
+    {8, "THEME08", ICON_COLORSET_08_VEC, "08 - Theme Color Set", ""},
+    {9, "THEME09", ICON_COLORSET_09_VEC, "09 - Theme Color Set", ""},
+    {10, "THEME10", ICON_COLORSET_10_VEC, "10 - Theme Color Set", ""},
+    {11, "THEME11", ICON_COLORSET_11_VEC, "11 - Theme Color Set", ""},
+    {12, "THEME12", ICON_COLORSET_12_VEC, "12 - Theme Color Set", ""},
+    {13, "THEME13", ICON_COLORSET_13_VEC, "13 - Theme Color Set", ""},
+    {14, "THEME14", ICON_COLORSET_14_VEC, "14 - Theme Color Set", ""},
+    {15, "THEME15", ICON_COLORSET_15_VEC, "15 - Theme Color Set", ""},
+    {16, "THEME16", ICON_COLORSET_16_VEC, "16 - Theme Color Set", ""},
+    {17, "THEME17", ICON_COLORSET_17_VEC, "17 - Theme Color Set", ""},
+    {18, "THEME18", ICON_COLORSET_18_VEC, "18 - Theme Color Set", ""},
+    {19, "THEME19", ICON_COLORSET_19_VEC, "19 - Theme Color Set", ""},
+    {20, "THEME20", ICON_COLORSET_20_VEC, "20 - Theme Color Set", ""},
+    {-1, "CUSTOM", 0, "Custom Color Set", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+#ifdef RNA_RUNTIME
+constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
+#endif
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
@@ -40,6 +70,10 @@
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
+
+#  ifndef NDEBUG
+#    include "ANIM_armature_iter.hh"
+#  endif
 
 static void rna_Armature_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -153,6 +187,144 @@ static void rna_Armature_update_layers(Main * /*bmain*/, Scene * /*scene*/, Poin
 
   DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
   WM_main_add_notifier(NC_GEOM | ND_DATA, arm);
+}
+
+static char *rna_BoneColor_path_posebone(const PointerRNA *ptr)
+{
+  /* Find the bPoseChan that owns this BoneColor. */
+  const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
+  const uint8_t *bone_ptr = bcolor_ptr - offsetof(bPoseChannel, color);
+  const bPoseChannel *bone = reinterpret_cast<const bPoseChannel *>(bone_ptr);
+
+#  ifndef NDEBUG
+  /* Sanity check that the above pointer magic actually worked. */
+  BLI_assert(GS(ptr->owner_id->name) == ID_OB);
+  const Object *ob = reinterpret_cast<const Object *>(ptr->owner_id);
+  bool found = false;
+  LISTBASE_FOREACH (bPoseChannel *, checkBone, &ob->pose->chanbase) {
+    if (&checkBone->color == ptr->data) {
+      BLI_assert_msg(checkBone == bone,
+                     "pointer magic to find the pose bone failed (found the wrong bone)");
+      found = true;
+      break;
+    }
+  }
+  BLI_assert_msg(found, "pointer magic to find the pose bone failed (did not find the bone)");
+#  endif
+
+  char name_esc[sizeof(bone->name) * 2];
+  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  return BLI_sprintfN("pose.bones[\"%s\"].color", name_esc);
+}
+
+static char *rna_BoneColor_path_bone(const PointerRNA *ptr)
+{
+  /* Find the Bone that owns this BoneColor. */
+  const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
+  const uint8_t *bone_ptr = bcolor_ptr - offsetof(Bone, color);
+  const Bone *bone = reinterpret_cast<const Bone *>(bone_ptr);
+
+#  ifndef NDEBUG
+  /* Sanity check that the above pointer magic actually worked. */
+  BLI_assert(GS(ptr->owner_id->name) == ID_AR);
+  const bArmature *arm = reinterpret_cast<const bArmature *>(ptr->owner_id);
+
+  bool found = false;
+  blender::animrig::ANIM_armature_foreach_bone(&arm->bonebase, [&](const Bone *checkBone) {
+    if (&checkBone->color == ptr->data) {
+      BLI_assert_msg(checkBone == bone,
+                     "pointer magic to find the pose bone failed (found the wrong bone)");
+      found = true;
+    }
+  });
+  BLI_assert_msg(found, "pointer magic to find the pose bone failed (did not find the bone)");
+#  endif
+
+  char name_esc[sizeof(bone->name) * 2];
+  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  return BLI_sprintfN("bones[\"%s\"].color", name_esc);
+}
+
+static char *rna_BoneColor_path_editbone(const PointerRNA *ptr)
+{
+  /* Find the Bone that owns this BoneColor. */
+  const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
+  const uint8_t *bone_ptr = bcolor_ptr - offsetof(EditBone, color);
+  const EditBone *bone = reinterpret_cast<const EditBone *>(bone_ptr);
+
+#  ifndef NDEBUG
+  /* Sanity check that the above pointer magic actually worked. */
+  BLI_assert(GS(ptr->owner_id->name) == ID_AR);
+  const bArmature *arm = reinterpret_cast<const bArmature *>(ptr->owner_id);
+
+  bool found = false;
+  LISTBASE_FOREACH (const EditBone *, checkBone, arm->edbo) {
+    if (&checkBone->color == ptr->data) {
+      BLI_assert_msg(checkBone == bone,
+                     "pointer magic to find the pose bone failed (found the wrong bone)");
+      found = true;
+      break;
+    }
+  }
+  BLI_assert_msg(found, "pointer magic to find the pose bone failed (did not find the bone)");
+#  endif
+
+  char name_esc[sizeof(bone->name) * 2];
+  BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
+  return BLI_sprintfN("bones[\"%s\"].color", name_esc);
+}
+
+static char *rna_BoneColor_path(const PointerRNA *ptr)
+{
+  const ID *owner = ptr->owner_id;
+  BLI_assert_msg(owner, "expecting all bone colors to have an owner");
+
+  switch (GS(owner->name)) {
+    case ID_OB:
+      return rna_BoneColor_path_posebone(ptr);
+    case ID_AR: {
+      const bArmature *arm = reinterpret_cast<const bArmature *>(owner);
+      if (arm->edbo == nullptr) {
+        return rna_BoneColor_path_bone(ptr);
+      }
+      return rna_BoneColor_path_editbone(ptr);
+    }
+    default:
+      BLI_assert_msg(false, "expected object or armature");
+      return nullptr;
+  }
+}
+
+void rna_BoneColor_palette_index_set(PointerRNA *ptr, const int new_palette_index)
+{
+  if (new_palette_index < -1 || new_palette_index > COLOR_SETS_MAX_THEMED_INDEX) {
+    BKE_reportf(nullptr, RPT_ERROR, "Invalid color palette index: %d", new_palette_index);
+    return;
+  }
+
+  BoneColor *bcolor = static_cast<BoneColor *>(ptr->data);
+  bcolor->palette_index = new_palette_index;
+
+  ID *id = ptr->owner_id;
+  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
+
+bool rna_BoneColor_is_custom_get(PointerRNA *ptr)
+{
+  BoneColor *bcolor = static_cast<BoneColor *>(ptr->data);
+  return bcolor->palette_index < 0;
+}
+
+static void rna_BoneColor_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  /* Ugly hack to trigger the setting of the SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC flag on the
+   * animation editors, which in turn calls ANIM_sync_animchannels_to_data(C) with the right
+   * context.
+   *
+   * Without this, changes to the bone colors are not reflected on the bActionGroup colors.
+   */
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, ptr->data);
 }
 
 static void rna_Armature_redraw_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -574,6 +746,12 @@ static void rna_Bone_bbone_next_set(PointerRNA *ptr, PointerRNA value, ReportLis
   }
 }
 
+static PointerRNA rna_EditBone_color_get(PointerRNA *ptr)
+{
+  EditBone *data = (EditBone *)(ptr->data);
+  return rna_pointer_inherit_refine(ptr, &RNA_BoneColor, &data->color);
+}
+
 static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
@@ -675,6 +853,41 @@ static void rna_Armature_relation_line_position_set(PointerRNA *ptr, const int v
 }
 
 #else
+
+static void rna_def_bonecolor(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "BoneColor", nullptr);
+  RNA_def_struct_ui_text(srna, "BoneColor", "Theme color or custom color of a bone");
+  RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
+  RNA_def_struct_path_func(srna, "rna_BoneColor_path");
+
+  prop = RNA_def_property(srna, "palette", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "palette_index");
+  RNA_def_property_enum_items(prop, rna_enum_color_palettes_items);
+  RNA_def_property_enum_funcs(prop, NULL, "rna_BoneColor_palette_index_set", NULL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Color Set", "Color palette to use");
+  RNA_def_property_update(prop, 0, "rna_BoneColor_update");
+
+  prop = RNA_def_property(srna, "is_custom", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_BoneColor_is_custom_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Custom Color",
+      "A color palette is user-defined, instead of using a theme-defined one");
+
+  prop = RNA_def_property(srna, "custom", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ThemeBoneColorSet");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(
+      prop, "Custom", "The custom bone colors, used when palette is 'CUSTOM'");
+  RNA_def_property_update(prop, 0, "rna_BoneColor_update");
+}
 
 void rna_def_bone_curved_common(StructRNA *srna, bool is_posebone, bool is_editbone)
 {
@@ -872,6 +1085,13 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
   RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "color", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "BoneColor");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  if (editbone) {
+    RNA_def_property_pointer_funcs(prop, "rna_EditBone_color_get", nullptr, nullptr, nullptr);
+  }
 
   /* flags */
   prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
@@ -1634,6 +1854,7 @@ static void rna_def_armature(BlenderRNA *brna)
 
 void RNA_def_armature(BlenderRNA *brna)
 {
+  rna_def_bonecolor(brna);
   rna_def_armature(brna);
   rna_def_bone(brna);
   rna_def_edit_bone(brna);

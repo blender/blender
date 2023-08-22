@@ -517,6 +517,8 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
     eBone->bbone_prev_flag = curBone->bbone_prev_flag;
     eBone->bbone_next_flag = curBone->bbone_next_flag;
 
+    eBone->color = curBone->color;
+
     if (curBone->prop) {
       eBone->prop = IDP_CopyProperty(curBone->prop);
     }
@@ -727,6 +729,8 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone->bbone_flag = eBone->bbone_flag;
     newBone->bbone_prev_flag = eBone->bbone_prev_flag;
     newBone->bbone_next_flag = eBone->bbone_next_flag;
+
+    newBone->color = eBone->color;
 
     if (eBone->prop) {
       newBone->prop = IDP_CopyProperty(eBone->prop);

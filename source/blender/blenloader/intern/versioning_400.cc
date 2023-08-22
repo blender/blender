@@ -27,6 +27,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
@@ -60,6 +61,49 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
          (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
     {
       node->id = &scene->id;
+    }
+  }
+}
+
+/* Move bonegroup color to the individual bones. */
+static void version_bonegroup_migrate_color(Main *bmain)
+{
+  using PoseSet = blender::Set<bPose *>;
+  blender::Map<bArmature *, PoseSet> armature_poses;
+
+  /* Gather a mapping from armature to the poses that use it. */
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type != OB_ARMATURE || !ob->pose) {
+      continue;
+    }
+
+    bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+    BLI_assert_msg(GS(arm->id.name) == ID_AR,
+                   "Expected ARMATURE object to have an Armature as data");
+    PoseSet &pose_set = armature_poses.lookup_or_add_default(arm);
+    pose_set.add(ob->pose);
+  }
+
+  /* Move colors from the pose's bonegroup to either the armature bones or the
+   * pose bones, depending on how many poses use the Armature. */
+  for (const PoseSet &pose_set : armature_poses.values()) {
+    /* If the Armature is shared, the bone group colors might be different, and thus they have to
+     * be stored on the pose bones. If the Armature is NOT shared, the bone colors can be stored
+     * directly on the Armature bones. */
+    const bool store_on_armature = pose_set.size() == 1;
+
+    for (bPose *pose : pose_set) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+        const bActionGroup *bgrp = (const bActionGroup *)BLI_findlink(&pose->agroups,
+                                                                      (pchan->agrp_index - 1));
+        if (!bgrp) {
+          continue;
+        }
+
+        BoneColor &bone_color = store_on_armature ? pchan->bone->color : pchan->color;
+        bone_color.palette_index = bgrp->customCol;
+        memcpy(&bone_color.custom, &bgrp->cs, sizeof(bone_color.custom));
+      }
     }
   }
 }
@@ -135,6 +179,10 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
+      version_bonegroup_migrate_color(bmain);
+    }
   }
 }
 

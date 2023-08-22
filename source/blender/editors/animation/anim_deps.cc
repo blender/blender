@@ -140,8 +140,6 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
       bArmature *arm = static_cast<bArmature *>(ob->data);
 
       if (pchan) {
-        bActionGroup *bgrp;
-
         /* if one matches, sync the selection status */
         if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
           agrp->flag |= AGRP_SELECTED;
@@ -167,12 +165,8 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
           agrp->flag &= ~AGRP_ACTIVE;
         }
 
-        /* sync group colors */
-        bgrp = (bActionGroup *)BLI_findlink(&ob->pose->agroups, (pchan->agrp_index - 1));
-        if (bgrp) {
-          agrp->customCol = bgrp->customCol;
-          action_group_colors_sync(agrp, bgrp);
-        }
+        /* sync bone color */
+        action_group_colors_set_from_posebone(agrp, pchan);
       }
     }
   }

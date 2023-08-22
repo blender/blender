@@ -24,6 +24,7 @@ struct bArmature;
 
 /* The following structures are defined in DNA_action_types.h, and DNA_anim_types.h */
 struct AnimationEvalContext;
+struct BoneColor;
 struct FCurve;
 struct ID;
 struct Main;
@@ -124,6 +125,19 @@ void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, sho
  * Sync colors used for action/bone group with theme settings.
  */
 void action_group_colors_sync(struct bActionGroup *grp, const struct bActionGroup *ref_grp);
+
+/**
+ * Set colors used on this action group.
+ */
+void action_group_colors_set(struct bActionGroup *grp, const struct BoneColor *color);
+
+/**
+ * Set colors used on this action group, using the color of the pose bone.
+ *
+ * If `pchan->color` is set to a non-default color, that is used. Otherwise the
+ * armature bone color is used.
+ */
+void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan);
 
 /**
  * Add a new action group with the given name to the action>

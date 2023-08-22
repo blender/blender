@@ -8,6 +8,8 @@
  */
 #include "BLI_listbase.h"
 
+#include "DNA_armature_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -100,6 +102,8 @@ typedef struct EditBone {
 
   /** connected child temporary during drawing */
   struct EditBone *bbone_child;
+
+  BoneColor color; /* MUST be named the same as in bPoseChannel and Bone structs. */
 
   /* Used to store temporary data */
   union {

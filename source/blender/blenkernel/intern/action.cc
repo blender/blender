@@ -62,6 +62,9 @@
 
 #include "BLO_read_write.hh"
 
+#include "ANIM_bone_collections.h"
+#include "ANIM_bonecolor.hh"
+
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"bke.action"};
@@ -364,6 +367,32 @@ void action_group_colors_sync(bActionGroup *grp, const bActionGroup *ref_grp)
         rgba_uchar_args_set(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
       }
     }
+  }
+}
+
+void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan)
+{
+  if (pchan->color.palette_index == 0) {
+    action_group_colors_set(grp, &pchan->bone->color);
+  }
+  else {
+    action_group_colors_set(grp, &pchan->color);
+  }
+}
+
+void action_group_colors_set(bActionGroup *grp, const BoneColor *color)
+{
+  const blender::animrig::BoneColor &bone_color = color->wrap();
+
+  grp->customCol = bone_color.palette_index;
+
+  const ThemeWireColor *effective_color = bone_color.effective_color();
+  if (effective_color) {
+    /* The drawing code assumes that grp->cs always contains the effective
+     * color. This is why the effective color is always written to it, and why
+     * the above action_group_colors_sync() function exists: it needs to update
+     * grp->cs in case the theme changes. */
+    memcpy(&grp->cs, effective_color, sizeof(grp->cs));
   }
 }
 
