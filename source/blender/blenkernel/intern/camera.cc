@@ -31,6 +31,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_camera.h"
+#include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -103,9 +104,96 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+struct CameraCyclesCompatibilityData {
+  IDProperty *idprop_prev = nullptr;
+  IDProperty *idprop_temp = nullptr;
+};
+
+static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_create(ID *id)
+{
+  auto cycles_data_ensure = [](IDProperty *group) {
+    IDProperty *prop = IDP_GetPropertyTypeFromGroup(group, "cycles", IDP_GROUP);
+    if (prop) {
+      return prop;
+    }
+    IDPropertyTemplate val = {0};
+    prop = IDP_New(IDP_GROUP, &val, "cycles");
+    IDP_AddToGroup(group, prop);
+    return prop;
+  };
+
+  auto cycles_property_int_set = [](IDProperty *idprop, const char *name, int value) {
+    IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
+    if (prop) {
+      IDP_Int(prop) = value;
+    }
+    else {
+      IDPropertyTemplate val = {0};
+      val.i = value;
+      IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+    }
+  };
+
+  auto cycles_property_float_set = [](IDProperty *idprop, const char *name, float value) {
+    IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
+    if (prop) {
+      IDP_Float(prop) = value;
+    }
+    else {
+      IDPropertyTemplate val = {0};
+      val.f = value;
+      IDP_AddToGroup(idprop, IDP_New(IDP_FLOAT, &val, name));
+    }
+  };
+
+  /* For forward compatibility, still write panoramic properties as ID properties for
+   * previous blender versions. */
+  IDProperty *idprop_prev = IDP_GetProperties(id, false);
+  /* Make a copy to avoid modifying the original. */
+  IDProperty *idprop_temp = idprop_prev ? IDP_CopyProperty(idprop_prev) :
+                                          IDP_GetProperties(id, true);
+
+  Camera *cam = (Camera *)id;
+  IDProperty *cycles_cam = cycles_data_ensure(idprop_temp);
+  cycles_property_int_set(cycles_cam, "panorama_type", cam->panorama_type);
+  cycles_property_float_set(cycles_cam, "fisheye_fov", cam->fisheye_fov);
+  cycles_property_float_set(cycles_cam, "fisheye_lens", cam->fisheye_lens);
+  cycles_property_float_set(cycles_cam, "latitude_min", cam->latitude_min);
+  cycles_property_float_set(cycles_cam, "latitude_max", cam->latitude_max);
+  cycles_property_float_set(cycles_cam, "longitude_min", cam->longitude_min);
+  cycles_property_float_set(cycles_cam, "longitude_max", cam->longitude_max);
+  cycles_property_float_set(cycles_cam, "fisheye_polynomial_k0", cam->fisheye_polynomial_k0);
+  cycles_property_float_set(cycles_cam, "fisheye_polynomial_k1", cam->fisheye_polynomial_k1);
+  cycles_property_float_set(cycles_cam, "fisheye_polynomial_k2", cam->fisheye_polynomial_k2);
+  cycles_property_float_set(cycles_cam, "fisheye_polynomial_k3", cam->fisheye_polynomial_k3);
+  cycles_property_float_set(cycles_cam, "fisheye_polynomial_k4", cam->fisheye_polynomial_k4);
+
+  id->properties = idprop_temp;
+
+  return {idprop_prev, idprop_temp};
+}
+
+static void camera_write_cycles_compatibility_data_clear(ID *id,
+                                                         CameraCyclesCompatibilityData &data)
+{
+  id->properties = data.idprop_prev;
+  data.idprop_prev = nullptr;
+
+  if (data.idprop_temp) {
+    IDP_FreeProperty(data.idprop_temp);
+    data.idprop_temp = nullptr;
+  }
+}
+
 static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
+  const bool is_undo = BLO_write_is_undo(writer);
   Camera *cam = (Camera *)id;
+
+  CameraCyclesCompatibilityData cycles_data;
+  if (!is_undo) {
+    cycles_data = camera_write_cycles_compatibility_data_create(id);
+  }
 
   /* write LibData */
   BLO_write_id_struct(writer, Camera, id_address, &cam->id);
@@ -113,6 +201,10 @@ static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
     BLO_write_struct(writer, CameraBGImage, bgpic);
+  }
+
+  if (!is_undo) {
+    camera_write_cycles_compatibility_data_clear(id, cycles_data);
   }
 }
 

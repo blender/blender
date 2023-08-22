@@ -13,6 +13,7 @@
 #include "CLG_log.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
@@ -675,19 +676,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #do_versions_after_linking_400 in this file.
-   * - `versioning_userdef.cc`, #blo_do_versions_userdef
-   * - `versioning_userdef.cc`, #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 17)) {
     if (!DNA_struct_find(fd->filesdna, "NodeShaderHairPrincipled")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
@@ -695,6 +684,56 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
       FOREACH_NODETREE_END;
+    }
+
+    /* Panorama properties shared with Eevee. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Camera", "float", "fisheye_fov")) {
+      Camera default_cam = *DNA_struct_default_get(Camera);
+      LISTBASE_FOREACH (Camera *, camera, &bmain->cameras) {
+        IDProperty *ccam = version_cycles_properties_from_ID(&camera->id);
+        if (ccam) {
+          camera->panorama_type = version_cycles_property_int(
+              ccam, "panorama_type", default_cam.panorama_type);
+          camera->fisheye_fov = version_cycles_property_float(
+              ccam, "fisheye_fov", default_cam.fisheye_fov);
+          camera->fisheye_lens = version_cycles_property_float(
+              ccam, "fisheye_lens", default_cam.fisheye_lens);
+          camera->latitude_min = version_cycles_property_float(
+              ccam, "latitude_min", default_cam.latitude_min);
+          camera->latitude_max = version_cycles_property_float(
+              ccam, "latitude_max", default_cam.latitude_max);
+          camera->longitude_min = version_cycles_property_float(
+              ccam, "longitude_min", default_cam.longitude_min);
+          camera->longitude_max = version_cycles_property_float(
+              ccam, "longitude_max", default_cam.longitude_max);
+          /* Fit to match default projective camera with focal_length 50 and sensor_width 36. */
+          camera->fisheye_polynomial_k0 = version_cycles_property_float(
+              ccam, "fisheye_polynomial_k0", default_cam.fisheye_polynomial_k0);
+          camera->fisheye_polynomial_k1 = version_cycles_property_float(
+              ccam, "fisheye_polynomial_k1", default_cam.fisheye_polynomial_k1);
+          camera->fisheye_polynomial_k2 = version_cycles_property_float(
+              ccam, "fisheye_polynomial_k2", default_cam.fisheye_polynomial_k2);
+          camera->fisheye_polynomial_k3 = version_cycles_property_float(
+              ccam, "fisheye_polynomial_k3", default_cam.fisheye_polynomial_k3);
+          camera->fisheye_polynomial_k4 = version_cycles_property_float(
+              ccam, "fisheye_polynomial_k4", default_cam.fisheye_polynomial_k4);
+        }
+        else {
+          camera->panorama_type = default_cam.panorama_type;
+          camera->fisheye_fov = default_cam.fisheye_fov;
+          camera->fisheye_lens = default_cam.fisheye_lens;
+          camera->latitude_min = default_cam.latitude_min;
+          camera->latitude_max = default_cam.latitude_max;
+          camera->longitude_min = default_cam.longitude_min;
+          camera->longitude_max = default_cam.longitude_max;
+          /* Fit to match default projective camera with focal_length 50 and sensor_width 36. */
+          camera->fisheye_polynomial_k0 = default_cam.fisheye_polynomial_k0;
+          camera->fisheye_polynomial_k1 = default_cam.fisheye_polynomial_k1;
+          camera->fisheye_polynomial_k2 = default_cam.fisheye_polynomial_k2;
+          camera->fisheye_polynomial_k3 = default_cam.fisheye_polynomial_k3;
+          camera->fisheye_polynomial_k4 = default_cam.fisheye_polynomial_k4;
+        }
+      }
     }
 
     if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "grid_flag")) {
@@ -710,5 +749,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.gi_irradiance_pool_size = 16;
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_400 in this file.
+   * - `versioning_userdef.cc`, #blo_do_versions_userdef
+   * - `versioning_userdef.cc`, #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

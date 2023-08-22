@@ -65,17 +65,6 @@ enum_filter_types = (
     ('BLACKMAN_HARRIS', "Blackman-Harris", "Blackman-Harris filter"),
 )
 
-enum_panorama_types = (
-    ('EQUIRECTANGULAR', "Equirectangular", "Spherical camera for environment maps, also known as Lat Long panorama", 0),
-    ('EQUIANGULAR_CUBEMAP_FACE', "Equiangular Cubemap Face", "Single face of an equiangular cubemap", 5),
-    ('MIRRORBALL', "Mirror Ball", "Mirror ball mapping for environment maps", 3),
-    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions", 1),
-    ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
-                          "Similar to most fisheye modern lens, takes sensor dimensions into consideration", 2),
-    ('FISHEYE_LENS_POLYNOMIAL', "Fisheye Lens Polynomial",
-     "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked", 4),
-)
-
 enum_curve_shape = (
     ('RIBBONS', "Rounded Ribbons", "Render curves as flat ribbons with rounded normals, for fast rendering"),
     ('THICK', "3D Curves", "Render curves as circular 3D geometry, for accurate results when viewing closely"),
@@ -1014,95 +1003,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         del bpy.types.Scene.cycles
 
 
-class CyclesCameraSettings(bpy.types.PropertyGroup):
-
-    panorama_type: EnumProperty(
-        name="Panorama Type",
-        description="Distortion to use for the calculation",
-        items=enum_panorama_types,
-        default='FISHEYE_EQUISOLID',
-    )
-    fisheye_fov: FloatProperty(
-        name="Field of View",
-        description="Field of view for the fisheye lens",
-        min=0.1745, soft_max=2.0 * pi, max=10.0 * pi,
-        subtype='ANGLE',
-        default=pi,
-    )
-    fisheye_lens: FloatProperty(
-        name="Fisheye Lens",
-        description="Lens focal length (mm)",
-        min=0.01, soft_max=15.0, max=100.0,
-        default=10.5,
-    )
-    latitude_min: FloatProperty(
-        name="Min Latitude",
-        description="Minimum latitude (vertical angle) for the equirectangular lens",
-        min=-0.5 * pi, max=0.5 * pi,
-        subtype='ANGLE',
-        default=-0.5 * pi,
-    )
-    latitude_max: FloatProperty(
-        name="Max Latitude",
-        description="Maximum latitude (vertical angle) for the equirectangular lens",
-        min=-0.5 * pi, max=0.5 * pi,
-        subtype='ANGLE',
-        default=0.5 * pi,
-    )
-    longitude_min: FloatProperty(
-        name="Min Longitude",
-        description="Minimum longitude (horizontal angle) for the equirectangular lens",
-        min=-pi, max=pi,
-        subtype='ANGLE',
-        default=-pi,
-    )
-    longitude_max: FloatProperty(
-        name="Max Longitude",
-        description="Maximum longitude (horizontal angle) for the equirectangular lens",
-        min=-pi, max=pi,
-        subtype='ANGLE',
-        default=pi,
-    )
-
-    fisheye_polynomial_k0: FloatProperty(
-        name="Fisheye Polynomial K0",
-        description="Coefficient K0 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[0], precision=6, step=0.1, subtype='ANGLE',
-    )
-    fisheye_polynomial_k1: FloatProperty(
-        name="Fisheye Polynomial K1",
-        description="Coefficient K1 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[1], precision=6, step=0.1, subtype='ANGLE',
-    )
-    fisheye_polynomial_k2: FloatProperty(
-        name="Fisheye Polynomial K2",
-        description="Coefficient K2 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[2], precision=6, step=0.1, subtype='ANGLE',
-    )
-    fisheye_polynomial_k3: FloatProperty(
-        name="Fisheye Polynomial K3",
-        description="Coefficient K3 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[3], precision=6, step=0.1, subtype='ANGLE',
-    )
-    fisheye_polynomial_k4: FloatProperty(
-        name="Fisheye Polynomial K4",
-        description="Coefficient K4 of the lens polynomial",
-        default=camera.default_fisheye_polynomial[4], precision=6, step=0.1, subtype='ANGLE',
-    )
-
-    @classmethod
-    def register(cls):
-        bpy.types.Camera.cycles = PointerProperty(
-            name="Cycles Camera Settings",
-            description="Cycles camera settings",
-            type=cls,
-        )
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Camera.cycles
-
-
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
 
     emission_sampling: EnumProperty(
@@ -1837,7 +1737,6 @@ class CyclesView3DShadingSettings(bpy.types.PropertyGroup):
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
-    bpy.utils.register_class(CyclesCameraSettings)
     bpy.utils.register_class(CyclesMaterialSettings)
     bpy.utils.register_class(CyclesLightSettings)
     bpy.utils.register_class(CyclesWorldSettings)
@@ -1858,7 +1757,6 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(CyclesRenderSettings)
-    bpy.utils.unregister_class(CyclesCameraSettings)
     bpy.utils.unregister_class(CyclesMaterialSettings)
     bpy.utils.unregister_class(CyclesLightSettings)
     bpy.utils.unregister_class(CyclesWorldSettings)
