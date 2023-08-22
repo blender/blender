@@ -1240,11 +1240,11 @@ bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 /**
  * Test AABB against sphere.
  */
-bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
+bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data);
 /**
  * 2D projection (distance to line).
  */
-bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
+bool SCULPT_search_circle(PBVHNode *node, SculptSearchCircleData *data);
 
 void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
 

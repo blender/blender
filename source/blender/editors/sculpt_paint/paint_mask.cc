@@ -142,7 +142,6 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh;
-  Vector<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
@@ -155,7 +154,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -599,8 +598,9 @@ static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  return sgcontext->nodes = blender::bke::pbvh::search_gather(
-             ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  return sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+           return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+         });
 }
 
 static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
@@ -614,8 +614,9 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  sgcontext->nodes = blender::bke::pbvh::search_gather(
-      ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+    return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+  });
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)

@@ -264,7 +264,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
 {
   PBVH *pbvh = ob->sculpt->pbvh;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -981,7 +981,7 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
 {
   PBVH *pbvh = ob->sculpt->pbvh;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SculptThreadedTaskData data{};
   data.sd = sd;

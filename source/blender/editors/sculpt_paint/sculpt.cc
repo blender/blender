@@ -1082,7 +1082,8 @@ PBVHVertRef SCULPT_nearest_vertex_get(
   data.original = use_original;
   data.center = co;
 
-  nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+  nodes = blender::bke::pbvh::search_gather(
+      ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
   if (nodes.is_empty()) {
     return BKE_pbvh_make_vref(PBVH_REF_NONE);
   }
@@ -1590,7 +1591,7 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   /**
    * Disable multi-threading when dynamic-topology is enabled. Otherwise,
@@ -2705,9 +2706,8 @@ void SCULPT_calc_vertex_displacement(SculptSession *ss,
   flip_v3_v3(r_offset, rgba, ss->cache->mirror_symmetry_pass);
 }
 
-bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
+bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data)
 {
-  SculptSearchSphereData *data = static_cast<SculptSearchSphereData *>(data_v);
   const float *center;
   float nearest[3];
   if (data->center) {
@@ -2751,9 +2751,8 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v)
   return len_squared_v3(t) < data->radius_squared;
 }
 
-bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v)
+bool SCULPT_search_circle(PBVHNode *node, SculptSearchCircleData *data)
 {
-  SculptSearchCircleData *data = static_cast<SculptSearchCircleData *>(data_v);
   float bb_min[3], bb_max[3];
 
   if (data->ignore_fully_ineffective) {
@@ -2822,7 +2821,8 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_cursor_update(Object *ob,
   data.ignore_fully_ineffective = false;
   data.center = nullptr;
 
-  return blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+  return blender::bke::pbvh::search_gather(
+      ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
 }
 
 static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
@@ -2850,7 +2850,8 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
     data.center = nullptr;
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, leaf_flag);
+    nodes = blender::bke::pbvh::search_gather(
+        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); }, leaf_flag);
   }
   else {
     DistRayAABB_Precalc dist_ray_to_aabb_precalc;
@@ -2864,7 +2865,8 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
     data.original = use_original;
     data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
     data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, leaf_flag);
+    nodes = blender::bke::pbvh::search_gather(
+        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_circle(&node, &data); }, leaf_flag);
   }
 
   return nodes;
@@ -3548,7 +3550,7 @@ static void do_brush_action(Sculpt *sd,
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
     nodes = SCULPT_cloth_brush_affected_nodes_gather(ss, brush);
@@ -3975,7 +3977,7 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
       memcpy(vertCos, ss->orig_cos, sizeof(*vertCos) * me->totvert);
     }
 
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
     MutableSpan<float3> positions = me->vert_positions_for_write();
 
@@ -6100,7 +6102,8 @@ static PBVHVertRef SCULPT_fake_neighbor_search(Sculpt *sd,
   data.original = false;
   data.center = SCULPT_vertex_co_get(ss, vertex);
 
-  nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+  nodes = blender::bke::pbvh::search_gather(
+      ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
 
   if (nodes.is_empty()) {
     return BKE_pbvh_make_vref(PBVH_REF_NONE);

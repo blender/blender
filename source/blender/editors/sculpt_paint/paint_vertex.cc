@@ -289,7 +289,8 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush
     data.radius_squared = ss->cache->radius_squared;
     data.original = true;
 
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
+    nodes = blender::bke::pbvh::search_gather(
+        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
 
     if (use_normal) {
       SCULPT_pbvh_calc_area_normal(brush, ob, nodes, true, ss->cache->sculpt_normal_symm);
@@ -309,7 +310,8 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush
     data.original = true;
     data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
 
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_circle_cb, &data);
+    nodes = blender::bke::pbvh::search_gather(
+        ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_circle(&node, &data); });
 
     if (use_normal) {
       copy_v3_v3(ss->cache->sculpt_normal_symm, ss->cache->view_normal);
@@ -2245,8 +2247,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
       CTX_data_ensure_evaluated_depsgraph(C), obact, true, false, true);
 
   SCULPT_undo_push_begin(obact, op);
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(
-      obact->sculpt->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
     SCULPT_undo_push_node(obact, node, SCULPT_UNDO_COLOR);
   }
