@@ -96,13 +96,17 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
 static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  if ((BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) == 0) {
-    return;
-  }
-  bScreen *screen = (bScreen *)id;
+  bScreen *screen = reinterpret_cast<bScreen *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_screen_foreach_id_screen_area(data, area));
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, screen->scene, IDWALK_CB_NOP);
+  }
+
+  if (flag & IDWALK_INCLUDE_UI) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_screen_foreach_id_screen_area(data, area));
+    }
   }
 }
 

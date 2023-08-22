@@ -28,6 +28,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_lib_query.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -48,7 +49,7 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
   /* Pull indirect dependencies via constraints. */
   BuilderWalkUserData data;
   data.builder = this;
-  BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
+  BKE_constraints_id_loop(&pchan->constraints, constraint_walk, IDWALK_NOP, &data);
 
   /* Create node for constraint stack. */
   Scene *scene_cow = get_cow_datablock(scene_);

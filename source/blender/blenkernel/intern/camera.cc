@@ -95,12 +95,18 @@ static void camera_free_data(ID *id)
 
 static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Camera *camera = (Camera *)id;
+  Camera *camera = reinterpret_cast<Camera *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof.focus_object, IDWALK_CB_NOP);
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &camera->bg_images) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->ima, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, bgpic->clip, IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, camera->ipo, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, camera->dof_ob, IDWALK_CB_NOP);
   }
 }
 

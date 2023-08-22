@@ -167,7 +167,9 @@ static void particle_settings_free_data(ID *id)
 
 static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  ParticleSettings *psett = (ParticleSettings *)id;
+  ParticleSettings *psett = reinterpret_cast<ParticleSettings *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->instance_collection, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->instance_object, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->bb_ob, IDWALK_CB_NOP);
@@ -210,6 +212,10 @@ static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (ParticleDupliWeight *, dw, &psett->instance_weights) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, dw->ob, IDWALK_CB_NOP);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, psett->force_group, IDWALK_CB_NOP);
   }
 }
 

@@ -69,12 +69,13 @@ static void window_manager_free_data(ID *id)
 
 static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  wmWindowManager *wm = (wmWindowManager *)id;
+  wmWindowManager *wm = reinterpret_cast<wmWindowManager *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->scene, IDWALK_CB_USER_ONE);
 
-    /* This pointer can be nullptr during old files reading, better be safe than sorry. */
+    /* This pointer can be nullptr during old files reading. */
     if (win->workspace_hook != nullptr) {
       ID *workspace = (ID *)BKE_workspace_active_get(win->workspace_hook);
       BKE_lib_query_foreachid_process(data, &workspace, IDWALK_CB_USER);
@@ -87,11 +88,15 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
 
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
 
-    if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
+    if (flag & IDWALK_INCLUDE_UI) {
       LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
         BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                                 BKE_screen_foreach_id_screen_area(data, area));
       }
+    }
+
+    if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->screen, IDWALK_CB_NOP);
     }
   }
 

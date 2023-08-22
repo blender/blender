@@ -68,6 +68,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
+#include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -767,7 +768,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
 
   /* Object constraints. */

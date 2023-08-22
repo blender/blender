@@ -211,10 +211,16 @@ static void mesh_free_data(ID *id)
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->key, IDWALK_CB_USER);
   for (int i = 0; i < mesh->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->mat[i], IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, mesh->ipo, IDWALK_CB_USER);
   }
 }
 

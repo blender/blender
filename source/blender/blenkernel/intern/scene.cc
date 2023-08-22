@@ -808,15 +808,23 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data,
 
 static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
 {
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
+/* Only for deprecated data. */
+#define FOREACHID_PROCESS_ID_NOCHECK(_data, _id_super, _cb_flag) \
+  { \
+    BKE_lib_query_foreachid_process((_data), reinterpret_cast<ID **>(&(_id_super)), (_cb_flag)); \
+    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
+      return false; \
+    } \
+  } \
+  ((void)0)
 
 #define FOREACHID_PROCESS_IDSUPER(_data, _id_super, _cb_flag) \
   { \
     CHECK_TYPE(&((_id_super)->id), ID *); \
-    BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
-      return false; \
-    } \
+    FOREACHID_PROCESS_ID_NOCHECK(_data, _id_super, _cb_flag); \
   } \
   ((void)0)
 
@@ -836,14 +844,20 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
     FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
   }
 
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    FOREACHID_PROCESS_ID_NOCHECK(data, seq->ipo, IDWALK_CB_USER);
+  }
+
 #undef FOREACHID_PROCESS_IDSUPER
+#undef FOREACHID_PROCESS_ID_NOCHECK
 
   return true;
 }
 
 static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = reinterpret_cast<Scene *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->camera, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->world, IDWALK_CB_USER);
@@ -921,6 +935,23 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
         data,
         BKE_rigidbody_world_id_loop(
             scene->rigidbody_world, scene_foreach_rigidbodyworldSceneLooper, data));
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    LISTBASE_FOREACH_MUTABLE (Base *, base_legacy, &scene->base) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, base_legacy->object, IDWALK_CB_NOP);
+    }
+
+    LISTBASE_FOREACH (SceneRenderLayer *, srl, &scene->r.layers) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, srl->mat_override, IDWALK_CB_USER);
+      LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &srl->freestyleConfig.modules) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fmc->script, IDWALK_CB_NOP);
+      }
+      LISTBASE_FOREACH (FreestyleLineSet *, fls, &srl->freestyleConfig.linesets) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->linestyle, IDWALK_CB_USER);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->group, IDWALK_CB_USER);
+      }
+    }
   }
 }
 

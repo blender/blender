@@ -87,8 +87,14 @@ static void shapekey_free_data(ID *id)
 
 static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Key *key = (Key *)id;
+  Key *key = reinterpret_cast<Key *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   BKE_LIB_FOREACHID_PROCESS_ID(data, key->from, IDWALK_CB_LOOPBACK);
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, key->ipo, IDWALK_CB_USER);
+  }
 }
 
 static ID **shapekey_owner_pointer_get(ID *id)

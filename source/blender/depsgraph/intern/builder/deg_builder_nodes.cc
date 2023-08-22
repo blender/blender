@@ -807,7 +807,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
   /* Object data. */
   build_object_data(object);

@@ -52,6 +52,7 @@
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 
@@ -95,6 +96,20 @@ static void ipo_free_data(ID *id)
 
   if (G.debug & G_DEBUG) {
     printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s'\n", n, ipo->id.name + 2);
+  }
+}
+
+static void ipo_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Ipo *ipo = reinterpret_cast<Ipo *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
+      if (icu->driver) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, icu->driver->ob, IDWALK_CB_NOP);
+      }
+    }
   }
 }
 
@@ -176,7 +191,7 @@ IDTypeInfo IDType_ID_IP = {
     /*copy_data*/ nullptr,
     /*free_data*/ ipo_free_data,
     /*make_local*/ nullptr,
-    /*foreach_id*/ nullptr,
+    /*foreach_id*/ ipo_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
     /*owner_pointer_get*/ nullptr,

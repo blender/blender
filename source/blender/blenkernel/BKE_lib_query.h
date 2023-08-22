@@ -152,6 +152,7 @@ enum {
   IDWALK_INCLUDE_UI = (1 << 2),
   /** Do not process ID pointers inside embedded IDs. Needed by depsgraph processing e.g. */
   IDWALK_IGNORE_EMBEDDED_ID = (1 << 3),
+
   /**
    * Do not access original processed pointer's data, only process its address value.
    *
@@ -185,6 +186,9 @@ enum {
    * ignored.
    */
   IDWALK_DO_LIBRARY_POINTER = (1 << 10),
+  /** Also process the DNA-deprecated pointers. Should only be used in readfile related code (for
+   * proper lib_linking and expanding of older files). */
+  IDWALK_DO_DEPRECATED_POINTERS = (1 << 11),
 };
 
 typedef struct LibraryForeachIDData LibraryForeachIDData;
@@ -202,13 +206,20 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
                                                            int cb_flag,
                                                            bool do_replace);
 
-#define BKE_LIB_FOREACHID_PROCESS_ID(data_, id_, cb_flag_) \
+/** Should typically only be used when processing deprecated ID types (like IPO ones). */
+#define BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data_, id_, cb_flag_) \
   { \
-    CHECK_TYPE_ANY((id_), ID *, void *); \
     BKE_lib_query_foreachid_process((data_), (ID **)&(id_), (cb_flag_)); \
     if (BKE_lib_query_foreachid_iter_stop((data_))) { \
       return; \
     } \
+  } \
+  ((void)0)
+
+#define BKE_LIB_FOREACHID_PROCESS_ID(data_, id_, cb_flag_) \
+  { \
+    CHECK_TYPE_ANY((id_), ID *, void *); \
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data_, id_, cb_flag_); \
   } \
   ((void)0)
 
