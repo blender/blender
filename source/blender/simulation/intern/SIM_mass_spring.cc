@@ -20,7 +20,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 

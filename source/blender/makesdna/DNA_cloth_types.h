@@ -218,7 +218,7 @@ typedef struct ClothCollSettings {
   float selfepsilon;
   float repel_force DNA_DEPRECATED;
   float distance_repel DNA_DEPRECATED;
-  /** Collision flags defined in BKE_cloth.h. */
+  /** Collision flags defined in BKE_cloth.hh. */
   int flags;
   /** How many iterations for the selfcollision loop. */
   short self_loop_count DNA_DEPRECATED;

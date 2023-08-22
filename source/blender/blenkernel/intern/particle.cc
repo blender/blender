@@ -48,7 +48,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_anim_path.h"
 #include "BKE_boids.h"
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"

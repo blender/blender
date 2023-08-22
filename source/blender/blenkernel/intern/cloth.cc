@@ -27,7 +27,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "BKE_bvhutils.h"
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"

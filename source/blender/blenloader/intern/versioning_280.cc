@@ -57,7 +57,7 @@
 #include "BKE_animsys.h"
 #include "BKE_blender.h"
 #include "BKE_brush.hh"
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"

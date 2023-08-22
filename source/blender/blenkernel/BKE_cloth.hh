@@ -10,10 +10,6 @@
 #include "BLI_math_inline.h"
 #include <float.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ClothModifierData;
 struct CollisionModifierData;
 struct Depsgraph;
@@ -125,8 +121,8 @@ typedef struct ClothSpring {
   int lb;              /* Length of `*pb`. */
   float restlen;       /* The original length of the spring. */
   float restang;       /* The original angle of the bending springs. */
-  int type;            /* Types defined in BKE_cloth.h ("springType"). */
-  int flags;           /* Defined in BKE_cloth.h, e.g. deactivated due to tearing. */
+  int type;            /* Types defined in BKE_cloth.hh ("springType"). */
+  int flags;           /* Defined in BKE_cloth.hh, e.g. deactivated due to tearing. */
   float lin_stiffness; /* Linear stiffness factor from the vertex groups. */
   float ang_stiffness; /* Angular stiffness factor from the vertex groups. */
   float editrestlen;
@@ -242,7 +238,3 @@ void cloth_clear_cache(struct Object *ob, struct ClothModifierData *clmd, float 
 void cloth_parallel_transport_hair_frame(float mat[3][3],
                                          const float dir_old[3],
                                          const float dir_new[3]);
-
-#ifdef __cplusplus
-}
-#endif

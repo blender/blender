@@ -25,7 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_context.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
