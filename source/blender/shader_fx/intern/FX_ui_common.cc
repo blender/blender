@@ -122,6 +122,8 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
 
   uiLayoutSetUnitsX(layout, 4.0f);
 
+  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
+
   /* Duplicate. */
   uiItemO(layout,
           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
