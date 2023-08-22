@@ -281,6 +281,8 @@ class TestRNAData(TestHelper, unittest.TestCase):
             '[""]',
             '["""]',
             '[""""]',
+            # Empty properties are also valid.
+            "",
         )
         for key_id in keys_to_test:
             self.id[key_id] = 1
