@@ -7,14 +7,21 @@
  * \ingroup bke
  */
 
-#include "BLI_math_inline.h"
+#include "BLI_math_vector_types.hh"
+
 #include <float.h>
 
+struct BVHTree;
+struct ClothVertex;
 struct ClothModifierData;
 struct CollisionModifierData;
+struct Implicit_Data;
 struct Depsgraph;
+struct EdgeSet;
 struct GHash;
+struct LinkNode;
 struct Mesh;
+struct MVertTri;
 struct Object;
 struct Scene;
 
@@ -28,27 +35,27 @@ struct Scene;
 #define ALMOST_ZERO FLT_EPSILON
 
 /* Bits to or into the #ClothVertex.flags. */
-typedef enum eClothVertexFlag {
+enum eClothVertexFlag {
   CLOTH_VERT_FLAG_PINNED = (1 << 0),
   CLOTH_VERT_FLAG_NOSELFCOLL = (1 << 1), /* vertex NOT used for self collisions */
   CLOTH_VERT_FLAG_NOOBJCOLL = (1 << 2),  /* vertex NOT used for object collisions */
-} eClothVertexFlag;
+};
 
-typedef struct ClothHairData {
+struct ClothHairData {
   float loc[3];
   float rot[3][3];
   float rest_target[3]; /* rest target direction for each segment */
   float radius;
   float bending_stiffness;
-} ClothHairData;
+};
 
-typedef struct ClothSolverResult {
+struct ClothSolverResult {
   int status;
 
   int max_iterations, min_iterations;
   float avg_iterations;
   float max_error, min_error, avg_error;
-} ClothSolverResult;
+};
 
 /**
  * This structure describes a cloth object against which the
@@ -59,31 +66,31 @@ typedef struct ClothSolverResult {
  * At some point they need to disappear and we need to determine out
  * own connectivity of the mesh based on the actual edges in the mesh.
  */
-typedef struct Cloth {
-  struct ClothVertex *verts;     /* The vertices that represent this cloth. */
-  struct LinkNode *springs;      /* The springs connecting the mesh. */
+struct Cloth {
+  ClothVertex *verts;            /* The vertices that represent this cloth. */
+  LinkNode *springs;             /* The springs connecting the mesh. */
   unsigned int numsprings;       /* The count of springs. */
   unsigned int mvert_num;        /* The number of verts == m * n. */
   unsigned int primitive_num;    /* Number of triangles for cloth and edges for hair. */
   unsigned char old_solver_type; /* unused, only 1 solver here */
   unsigned char pad2;
   short pad3;
-  struct BVHTree *bvhtree;     /* collision tree for this cloth object */
-  struct BVHTree *bvhselftree; /* collision tree for this cloth object (may be same as bvhtree) */
-  struct MVertTri *tri;
-  struct Implicit_Data *implicit; /* our implicit solver connects to this pointer */
-  struct EdgeSet *edgeset;        /* used for selfcollisions */
+  BVHTree *bvhtree;     /* collision tree for this cloth object */
+  BVHTree *bvhselftree; /* collision tree for this cloth object (may be same as bvhtree) */
+  MVertTri *tri;
+  Implicit_Data *implicit; /* our implicit solver connects to this pointer */
+  EdgeSet *edgeset;        /* used for selfcollisions */
   int last_frame;
-  float initial_mesh_volume;      /* Initial volume of the mesh. Used for pressure */
-  float average_acceleration[3];  /* Moving average of overall acceleration. */
-  const struct vec2i *edges;      /* Used for hair collisions. */
-  struct EdgeSet *sew_edge_graph; /* Sewing edges represented using a GHash */
-} Cloth;
+  float initial_mesh_volume;     /* Initial volume of the mesh. Used for pressure */
+  float average_acceleration[3]; /* Moving average of overall acceleration. */
+  const blender::int2 *edges;    /* Used for hair collisions. */
+  EdgeSet *sew_edge_graph;       /* Sewing edges represented using a GHash */
+};
 
 /**
  * The definition of a cloth vertex.
  */
-typedef struct ClothVertex {
+struct ClothVertex {
   int flags;                  /* General flags per vertex. */
   float v[3];                 /* The velocity of the point. */
   float xconst[3];            /* constrained position         */
@@ -106,12 +113,12 @@ typedef struct ClothVertex {
   float shrink_factor;   /* how much to shrink this cloth */
   float internal_stiff;  /* internal spring stiffness scaling */
   float pressure_factor; /* how much pressure should affect this vertex */
-} ClothVertex;
+};
 
 /**
  * The definition of a spring.
  */
-typedef struct ClothSpring {
+struct ClothSpring {
   int ij;              /* `Pij` from the paper, one end of the spring. */
   int kl;              /* `Pkl` from the paper, one end of the spring. */
   int mn;              /* For hair springs: third vertex index; For bending springs: edge index; */
@@ -129,7 +136,7 @@ typedef struct ClothSpring {
 
   /* angular bending spring target and derivatives */
   float target[3];
-} ClothSpring;
+};
 
 /* Some macro enhancements for vector treatment. */
 #define VECSUBADDSS(v1, v2, aS, v3, bS) \
@@ -176,7 +183,7 @@ typedef struct ClothSpring {
   ((void)0)
 
 /* Spring types as defined in the paper. */
-typedef enum {
+enum CLOTH_SPRING_TYPES {
   CLOTH_SPRING_TYPE_STRUCTURAL = (1 << 1),
   CLOTH_SPRING_TYPE_SHEAR = (1 << 2),
   CLOTH_SPRING_TYPE_BENDING = (1 << 3),
@@ -184,56 +191,53 @@ typedef enum {
   CLOTH_SPRING_TYPE_SEWING = (1 << 5),
   CLOTH_SPRING_TYPE_BENDING_HAIR = (1 << 6),
   CLOTH_SPRING_TYPE_INTERNAL = (1 << 7),
-} CLOTH_SPRING_TYPES;
+};
 
 /* SPRING FLAGS */
-typedef enum {
+enum CLOTH_SPRINGS_FLAGS {
   CLOTH_SPRING_FLAG_DEACTIVATE = (1 << 1),
   CLOTH_SPRING_FLAG_NEEDED = (1 << 2), /* Springs has values to be applied. */
-} CLOTH_SPRINGS_FLAGS;
+};
 
 /* -------------------------------------------------------------------- */
 /* collision.cc */
 
 struct CollPair;
 
-typedef struct ColliderContacts {
-  struct Object *ob;
-  struct CollisionModifierData *collmd;
+struct ColliderContacts {
+  Object *ob;
+  CollisionModifierData *collmd;
 
-  struct CollPair *collisions;
+  CollPair *collisions;
   int totcollisions;
-} ColliderContacts;
+};
 
 /* needed for implicit.c */
-int cloth_bvh_collision(struct Depsgraph *depsgraph,
-                        struct Object *ob,
-                        struct ClothModifierData *clmd,
-                        float step,
-                        float dt);
+int cloth_bvh_collision(
+    Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, float step, float dt);
 
 /* -------------------------------------------------------------------- */
 /* cloth.cc */
 
 /* Needed for modifier.cc */
 /** Frees all. */
-void cloth_free_modifier_extern(struct ClothModifierData *clmd);
+void cloth_free_modifier_extern(ClothModifierData *clmd);
 /** Frees all. */
-void cloth_free_modifier(struct ClothModifierData *clmd);
-void clothModifier_do(struct ClothModifierData *clmd,
-                      struct Depsgraph *depsgraph,
-                      struct Scene *scene,
-                      struct Object *ob,
-                      struct Mesh *me,
+void cloth_free_modifier(ClothModifierData *clmd);
+void clothModifier_do(ClothModifierData *clmd,
+                      Depsgraph *depsgraph,
+                      Scene *scene,
+                      Object *ob,
+                      Mesh *me,
                       float (*vertexCos)[3]);
 
-int cloth_uses_vgroup(struct ClothModifierData *clmd);
+int cloth_uses_vgroup(ClothModifierData *clmd);
 
 /* Needed for collision.cc */
-void bvhtree_update_from_cloth(struct ClothModifierData *clmd, bool moving, bool self);
+void bvhtree_update_from_cloth(ClothModifierData *clmd, bool moving, bool self);
 
 /* Needed for button_object.c */
-void cloth_clear_cache(struct Object *ob, struct ClothModifierData *clmd, float framenr);
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
 
 void cloth_parallel_transport_hair_frame(float mat[3][3],
                                          const float dir_old[3],
