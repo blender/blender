@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -115,10 +115,11 @@ class TestIdRuntimeTag(TestHelper):
         assert linked_material.is_library_indirect is False
 
         link_dir = os.path.join(output_lib_path, "Mesh")
-        bpy.ops.wm.link(directory=link_dir, filename="LibMesh")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_object_data=False)
 
         linked_mesh = bpy.data.meshes['LibMesh']
         assert linked_mesh.is_library_indirect is False
+        assert linked_mesh.use_fake_user is False
 
         obj.data = linked_mesh
         obj.material_slots[0].link = 'OBJECT'
@@ -131,17 +132,15 @@ class TestIdRuntimeTag(TestHelper):
         # so writing .blend file will have properly reset its tag to indirectly linked data.
         assert linked_material.is_library_indirect
 
-        # Only usage of this linked mesh is a runtime ID (object), but it is flagged as 'fake user' in its library,
-        # so writing .blend file will have kept its tag to directly linked data.
-        assert not linked_mesh.is_library_indirect
+        # Only usage of this linked mesh is a runtime ID (object),
+        # so writing .blend file will have properly reset its tag to indirectly linked data.
+        assert linked_mesh.is_library_indirect
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
         assert 'Cube' not in bpy.data.objects
-        assert 'LibMaterial' in bpy.data.materials  # Pulled-in by the linked mesh.
-        linked_mesh = bpy.data.meshes['LibMesh']
-        assert linked_mesh.use_fake_user is True
-        assert linked_mesh.is_library_indirect is False
+        assert 'LibMaterial' not in bpy.data.materials
+        assert 'libMesh' not in bpy.data.meshes
 
 
 TESTS = (

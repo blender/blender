@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -755,6 +755,7 @@ bool nodeGroupPoll(const struct bNodeTree *nodetree,
 void node_type_base_custom(struct bNodeType *ntype,
                            const char *idname,
                            const char *name,
+                           const char *enum_name,
                            short nclass);
 
 /**

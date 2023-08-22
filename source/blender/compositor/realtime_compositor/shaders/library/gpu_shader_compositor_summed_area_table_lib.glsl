@@ -1,5 +1,3 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 /* Computes the sum of the rectangular region defined by the given lower and upper bounds from the
  * given summed area table. It is assumed that the given upper bound is larger than the given lower
  * bound, otherwise, undefined behavior is invoked. Looking at the diagram below, in order to
@@ -33,6 +31,9 @@
  * The aforementioned equation eliminates the edges between regions X, C, and A since they get
  * subtracted with C and A. To avoid this, we subtract 1 from the lower bound and fallback to zero
  * for out of bound sampling. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 vec4 summed_area_table_sum(sampler2D table, ivec2 lower_bound, ivec2 upper_bound)
 {
   ivec2 corrected_lower_bound = lower_bound - ivec2(1);

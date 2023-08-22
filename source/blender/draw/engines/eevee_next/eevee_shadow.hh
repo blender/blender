@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -71,8 +71,6 @@ struct ShadowTileMap : public ShadowTileMapData {
   eCubeFace cubeface = Z_NEG;
   /** Cached, used for detecting updates. */
   float4x4 object_mat;
-  /** Near and far clip distances. For clip-map, computed on the GPU using casters BBoxes. */
-  float near, far;
 
  public:
   ShadowTileMap(int tiles_index_)
@@ -209,9 +207,13 @@ class ShadowModule {
   StorageVectorBuffer<uint, 128> curr_casters_ = {"CurrCasters"};
 
   /** Indirect arguments for page clearing. */
-  StorageBuffer<DispatchCommand> clear_dispatch_buf_;
-  /** Pages to clear. */
-  StorageArrayBuffer<uint, SHADOW_MAX_PAGE> clear_page_buf_ = {"clear_page_buf"};
+  DispatchIndirectBuf clear_dispatch_buf_;
+  /** Array containing a compact stream of tiles to clear. */
+  StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> clear_list_buf_ = {"clear_list_buf"};
+  /** Tile to pages mapping. */
+  StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> render_map_buf_ = {"render_map_buf"};
+  /** View to viewport index mapping. */
+  StorageArrayBuffer<uint, SHADOW_VIEW_MAX, true> viewport_index_buf_ = {"viewport_index_buf"};
 
   int3 dispatch_depth_scan_size_;
   /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
@@ -254,17 +256,10 @@ class ShadowModule {
 
   /** Multi-View containing a maximum of 64 view to be rendered with the shadow pipeline. */
   View shadow_multi_view_ = {"ShadowMultiView", SHADOW_VIEW_MAX, true};
-  /** Tile to physical page mapping. This is an array texture with one layer per view. */
-  Texture render_map_tx_ = {"ShadowRenderMap",
-                            GPU_R32UI,
-                            GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
-                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                            int2(SHADOW_TILEMAP_RES),
-                            64,
-                            nullptr,
-                            SHADOW_TILEMAP_LOD + 1};
-  /** An empty frame-buffer (no attachment) the size of a whole tile-map. */
+  /** Framebuffer with the atlas_tx attached. */
   Framebuffer render_fb_;
+  /** Arrays of viewports to rendering each tile to. */
+  std::array<int4, 16> multi_viewports_;
 
   /** \} */
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,6 @@ static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   LightProbe *probe = (LightProbe *)id;
 
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, probe->image, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, probe->visibility_grp, IDWALK_CB_NOP);
 }
 

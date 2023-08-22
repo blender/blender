@@ -28,7 +28,7 @@
 
 #include "ED_anim_api.hh"
 
-#include <string.h>
+#include <cstring>
 
 /* ----------------------- Getter functions ----------------------- */
 

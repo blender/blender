@@ -30,6 +30,8 @@
  * in sync to write the same data.
  */
 
+#ifdef DRW_DEBUG_PRINT
+
 /** Global switch option when you want to silence all prints from all shaders at once. */
 bool drw_debug_print_enable = true;
 
@@ -202,7 +204,7 @@ void drw_print_value(int value)
   drw_print_value_uint(uint(abs(value)), false, (value < 0), false);
 }
 
-#ifndef GPU_METAL
+#  ifndef GPU_METAL
 
 void drw_print_value(bool value)
 {
@@ -214,7 +216,7 @@ void drw_print_value(bool value)
   }
 }
 
-#endif
+#  endif
 
 /* NOTE(@fclem): This is homebrew and might not be 100% accurate (accuracy has
  * not been tested and might dependent on compiler implementation). If unsure,
@@ -245,6 +247,12 @@ void drw_print_value(float val)
   float exponent = floor(log(abs(val)) / log(10.0));
   bool display_exponent = exponent >= (significant_digits) ||
                           exponent <= (-significant_digits + 1.0);
+
+  if (exponent < -1.0) {
+    /* FIXME(fclem): Display of values with exponent from -1 to -5 is broken. Force scientific
+     * notation in these cases. */
+    display_exponent = true;
+  }
 
   float int_significant_digits = min(exponent + 1.0, significant_digits);
   float dec_significant_digits = max(0.0, significant_digits - int_significant_digits);
@@ -290,8 +298,7 @@ void drw_print_value(float val)
   }
   /* Decimal part. */
   value = uint(abs(dec_part));
-#if 0 /* We don't do that because it makes unstable values really hard to \
-         read. */
+#  if 0 /* We don't do that because it makes unstable values really hard to read. */
   /* Trim trailing zeros. */
   while ((value % base) == 0u) {
     value /= base;
@@ -299,7 +306,7 @@ void drw_print_value(float val)
       break;
     }
   }
-#endif
+#  endif
   if (value != 0u) {
     for (int i = 0; value != 0u || i == 0; i++, value /= base) {
       drw_print_append_digit(value % base, digits[digit / 4u]);
@@ -409,3 +416,5 @@ void drw_print_value(mat3 value)
   drw_print("  ", value[2]);
   drw_print(")");
 }
+
+#endif

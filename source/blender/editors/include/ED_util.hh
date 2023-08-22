@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -97,6 +97,7 @@ bool ED_slider_allow_increments_get(tSlider *slider);
 void ED_slider_allow_increments_set(tSlider *slider, bool value);
 
 void ED_slider_mode_set(tSlider *slider, SliderMode unit);
+SliderMode ED_slider_mode_get(tSlider *slider);
 void ED_slider_unit_set(tSlider *slider, const char *unit);
 
 /* ************** XXX OLD CRUFT WARNING ************* */

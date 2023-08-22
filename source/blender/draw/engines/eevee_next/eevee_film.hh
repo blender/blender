@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -21,6 +21,8 @@
 #include "DRW_render.h"
 
 #include "eevee_shader_shared.hh"
+
+#include <sstream>
 
 namespace blender::eevee {
 

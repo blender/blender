@@ -45,7 +45,7 @@ void do_vertex(int index, vec4 pos, vec2 ofs, float flip)
   interp.clip = clip_g[index];
 #endif
 
-  interp.smoothline = flip * (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_noperspective.smoothline = flip * (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += flip * ofs * pos.w;
 }
@@ -132,7 +132,7 @@ void main()
   clip_g[1] = dot(ModelMatrix * vec4(in_pos1, 1.0), ClipPlane);
 #endif
 
-  /*** Geometry Shader Alternative. ***/
+  /** Geometry Shader Alternative. */
   vec4 p0 = clip_line_point_homogeneous_space(out_pos0, out_pos1);
   vec4 p1 = clip_line_point_homogeneous_space(out_pos1, out_pos0);
   vec2 e = normalize(((p1.xy / p1.w) - (p0.xy / p0.w)) * viewportSize.xy);

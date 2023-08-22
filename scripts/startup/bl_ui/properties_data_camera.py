@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -103,27 +103,26 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         elif cam.type == 'PANO':
             engine = context.engine
             if engine == 'CYCLES':
-                ccam = cam.cycles
-                col.prop(ccam, "panorama_type")
-                if ccam.panorama_type == 'FISHEYE_EQUIDISTANT':
-                    col.prop(ccam, "fisheye_fov")
-                elif ccam.panorama_type == 'FISHEYE_EQUISOLID':
-                    col.prop(ccam, "fisheye_lens", text="Lens")
-                    col.prop(ccam, "fisheye_fov")
-                elif ccam.panorama_type == 'EQUIRECTANGULAR':
+                col.prop(cam, "panorama_type")
+                if cam.panorama_type == 'FISHEYE_EQUIDISTANT':
+                    col.prop(cam, "fisheye_fov")
+                elif cam.panorama_type == 'FISHEYE_EQUISOLID':
+                    col.prop(cam, "fisheye_lens", text="Lens")
+                    col.prop(cam, "fisheye_fov")
+                elif cam.panorama_type == 'EQUIRECTANGULAR':
                     sub = col.column(align=True)
-                    sub.prop(ccam, "latitude_min", text="Latitude Min")
-                    sub.prop(ccam, "latitude_max", text="Max")
+                    sub.prop(cam, "latitude_min", text="Latitude Min")
+                    sub.prop(cam, "latitude_max", text="Max")
                     sub = col.column(align=True)
-                    sub.prop(ccam, "longitude_min", text="Longitude Min")
-                    sub.prop(ccam, "longitude_max", text="Max")
-                elif ccam.panorama_type == 'FISHEYE_LENS_POLYNOMIAL':
-                    col.prop(ccam, "fisheye_fov")
-                    col.prop(ccam, "fisheye_polynomial_k0", text="K0")
-                    col.prop(ccam, "fisheye_polynomial_k1", text="K1")
-                    col.prop(ccam, "fisheye_polynomial_k2", text="K2")
-                    col.prop(ccam, "fisheye_polynomial_k3", text="K3")
-                    col.prop(ccam, "fisheye_polynomial_k4", text="K4")
+                    sub.prop(cam, "longitude_min", text="Longitude Min")
+                    sub.prop(cam, "longitude_max", text="Max")
+                elif cam.panorama_type == 'FISHEYE_LENS_POLYNOMIAL':
+                    col.prop(cam, "fisheye_fov")
+                    col.prop(cam, "fisheye_polynomial_k0", text="K0")
+                    col.prop(cam, "fisheye_polynomial_k1", text="K1")
+                    col.prop(cam, "fisheye_polynomial_k2", text="K2")
+                    col.prop(cam, "fisheye_polynomial_k3", text="K3")
+                    col.prop(cam, "fisheye_polynomial_k4", text="K4")
 
             elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH', 'BLENDER_WORKBENCH_NEXT'}:
                 if cam.lens_unit == 'MILLIMETERS':

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,6 +32,64 @@ using InterfaceDictionnary = Map<StringRef, StageInterfaceInfo *>;
 
 static CreateInfoDictionnary *g_create_infos = nullptr;
 static InterfaceDictionnary *g_interfaces = nullptr;
+
+/* -------------------------------------------------------------------- */
+/** \name Check Backend Support
+ *
+ * \{ */
+
+static bool is_vulkan_compatible_interface(const StageInterfaceInfo &iface)
+{
+  if (iface.instance_name.is_empty()) {
+    return true;
+  }
+
+  bool use_flat = false;
+  bool use_smooth = false;
+  bool use_noperspective = false;
+  for (const StageInterfaceInfo::InOut &attr : iface.inouts) {
+    switch (attr.interp) {
+      case Interpolation::FLAT:
+        use_flat = true;
+        break;
+      case Interpolation::SMOOTH:
+        use_smooth = true;
+        break;
+      case Interpolation::NO_PERSPECTIVE:
+        use_noperspective = true;
+        break;
+    }
+  }
+  int num_used_interpolation_types = (use_flat ? 1 : 0) + (use_smooth ? 1 : 0) +
+                                     (use_noperspective ? 1 : 0);
+
+#if 0
+  if (num_used_interpolation_types > 1) {
+    std::cout << "'" << iface.name << "' uses multiple interpolation types\n";
+  }
+#endif
+
+  return num_used_interpolation_types <= 1;
+}
+
+bool ShaderCreateInfo::is_vulkan_compatible() const
+{
+  /* Vulkan doesn't support setting an interpolation mode per attribute in a struct. */
+  for (const StageInterfaceInfo *iface : vertex_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+  for (const StageInterfaceInfo *iface : geometry_out_interfaces_) {
+    if (!is_vulkan_compatible_interface(*iface)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/** \} */
 
 void ShaderCreateInfo::finalize()
 {
@@ -173,6 +231,14 @@ std::string ShaderCreateInfo::check_error() const
       error += "Compute shader has fragment_source_ shader attached in " + this->name_ + ".\n";
     }
   }
+
+#ifdef DEBUG
+  if (!this->is_vulkan_compatible()) {
+    error += this->name_ +
+             " contains a stage interface using an instance name and mixed interpolation modes. "
+             "This is not compatible with Vulkan and need to be adjusted.\n";
+  }
+#endif
 
   return error;
 }

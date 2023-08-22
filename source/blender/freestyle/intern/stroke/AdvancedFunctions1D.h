@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -148,7 +148,7 @@ class GetCompleteViewMapDensityF1D : public UnaryFunction1D<double> {
 };
 
 // GetDirectionalViewMapDensity
-/** Returns the density evaluated for an Interface1D in of the steerable viewmaps image.
+/** Returns the density evaluated for an Interface1D in of the steerable view-maps image.
  *  The direction telling which Directional map to choose is explicitly specified by the user.
  *  The density is evaluated for a set of points along the Interface1D
  *  (using the ReadSteerableViewMapPixelF0D functor)

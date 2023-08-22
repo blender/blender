@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -6,6 +6,18 @@
 
 import os
 import subprocess
+import datetime
+import re
+
+from typing import (
+    List,
+    Union,
+    Optional,
+    Tuple,
+)
+
+
+_GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*([^\n]+)$", re.MULTILINE)
 
 
 class GitCommit:
@@ -16,7 +28,6 @@ class GitCommit:
 
         # cached values
         "_author",
-        "_email",
         "_date",
         "_body",
         "_files",
@@ -24,52 +35,59 @@ class GitCommit:
         "_diff",
     )
 
-    def __init__(self, sha1, git_dir):
+    def __init__(self, sha1: bytes, git_dir: str):
         self.sha1 = sha1
         self._git_dir = git_dir
 
-        self._author = \
-            self._email = \
-            self._date = \
-            self._body = \
-            self._files = \
-            self._files_status = \
-            self._diff = \
-            None
+        self._author: Optional[str] = None
+        self._date: Optional[datetime.datetime] = None
+        self._body: Optional[str] = None
+        self._files: Optional[List[bytes]] = None
+        self._files_status: Optional[List[List[bytes]]] = None
+        self._diff: Optional[str] = None
 
-    def cache(self):
+    def cache(self) -> None:
         """
         Cache all properties
         (except for diff as it's significantly larger than other members).
         """
         self.author
-        self.email
         self.date
         self.body
         self.files
         self.files_status
 
-    def _log_format(self, format, args=()):
+    def _log_format(
+            self,
+            format: str,
+            *,
+            args_prefix: Tuple[Union[str, bytes], ...] = (),
+            args_suffix: Tuple[Union[str, bytes], ...] = (),
+    ) -> bytes:
         # sha1 = self.sha1.decode('ascii')
-        cmd = (
+        cmd: Tuple[Union[str, bytes], ...] = (
             "git",
+            *args_prefix,
             "--git-dir",
             self._git_dir,
             "log",
             "-1",  # only this rev
             self.sha1,
             "--format=" + format,
-        ) + args
+            *args_suffix,
+        )
+
         # print(" ".join(cmd))
 
         with subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
         ) as p:
+            assert p is not None and p.stdout is not None
             return p.stdout.read()
 
     @property
-    def sha1_short(self):
+    def sha1_short(self) -> str:
         cmd = (
             "git",
             "--git-dir",
@@ -82,28 +100,30 @@ class GitCommit:
             cmd,
             stdout=subprocess.PIPE,
         ) as p:
+            assert p is not None and p.stdout is not None
             return p.stdout.read().strip().decode('ascii')
 
     @property
-    def author(self):
+    def author(self) -> str:
         ret = self._author
         if ret is None:
-            content = self._log_format("%an")[:-1]
+            content = self._log_format("%an <%ae>")[:-1]
             ret = content.decode("utf8", errors="ignore")
             self._author = ret
         return ret
 
     @property
-    def email(self):
-        ret = self._email
-        if ret is None:
-            content = self._log_format("%ae")[:-1]
-            ret = content.decode("utf8", errors="ignore")
-            self._email = ret
-        return ret
+    def co_authors(self) -> List[str]:
+        authors = []
+        for author in _GIT_COMMIT_COAUTHORS_RE.findall(self.body):
+            if not ("<" in author and ">" in author):
+                # Always follow `Name <>` spec, even when no email is given.
+                author = author + " <>"
+            authors.append(author)
+        return authors
 
     @property
-    def date(self):
+    def date(self) -> datetime.datetime:
         ret = self._date
         if ret is None:
             import datetime
@@ -112,7 +132,7 @@ class GitCommit:
         return ret
 
     @property
-    def body(self):
+    def body(self) -> str:
         ret = self._body
         if ret is None:
             content = self._log_format("%B")[:-1]
@@ -121,30 +141,47 @@ class GitCommit:
         return ret
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return self.body.lstrip().partition("\n")[0]
 
     @property
-    def files(self):
+    def files(self) -> List[bytes]:
         ret = self._files
         if ret is None:
-            ret = [f for f in self._log_format("format:", args=("--name-only",)).split(b"\n") if f]
+            ret = [
+                f for f in self._log_format(
+                    "format:",
+                    args_prefix=("-c", "diff.renameLimit=10000"),
+                    args_suffix=("--name-only",),
+                ).split(b"\n") if f
+            ]
             self._files = ret
         return ret
 
     @property
-    def files_status(self):
+    def files_status(self) -> List[List[bytes]]:
         ret = self._files_status
         if ret is None:
-            ret = [f.split(None, 1) for f in self._log_format("format:", args=("--name-status",)).split(b"\n") if f]
+            ret = [
+                f.split(None, 1) for f in self._log_format(
+                    "format:",
+                    args_prefix=("-c", "diff.renameLimit=10000"),
+                    args_suffix=("--name-status",),
+                ).split(b"\n")
+                if f
+            ]
             self._files_status = ret
         return ret
 
     @property
-    def diff(self):
+    def diff(self) -> str:
         ret = self._diff
         if ret is None:
-            content = self._log_format("", args=("-p",))
+            content = self._log_format(
+                "",
+                args_prefix=("-c", "diff.renameLimit=10000"),
+                args_suffix=("-p",),
+            )
             ret = content.decode("utf8", errors="ignore")
             self._diff = ret
         return ret
@@ -158,13 +195,13 @@ class GitCommitIter:
         "_process",
     )
 
-    def __init__(self, path, sha1_range):
+    def __init__(self, path: str, sha1_range: str):
         self._path = path
         self._git_dir = os.path.join(path, ".git")
         self._sha1_range = sha1_range
-        self._process = None
+        self._process: Optional[subprocess.Popen[bytes]] = None
 
-    def __iter__(self):
+    def __iter__(self) -> "GitCommitIter":
         cmd = (
             "git",
             "--git-dir",
@@ -181,7 +218,8 @@ class GitCommitIter:
         )
         return self
 
-    def __next__(self):
+    def __next__(self) -> GitCommit:
+        assert self._process is not None and self._process.stdout is not None
         sha1 = self._process.stdout.readline()[:-1]
         if sha1:
             return GitCommit(sha1, self._git_dir)
@@ -195,12 +233,12 @@ class GitRepo:
         "_git_dir",
     )
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self._path = path
         self._git_dir = os.path.join(path, ".git")
 
     @property
-    def branch(self):
+    def branch(self) -> bytes:
         cmd = (
             "git",
             "--git-dir",
@@ -215,4 +253,5 @@ class GitRepo:
             cmd,
             stdout=subprocess.PIPE,
         )
+        assert p is not None and p.stdout is not None
         return p.stdout.read()

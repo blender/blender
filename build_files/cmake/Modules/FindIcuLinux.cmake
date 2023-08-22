@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012 Blender Foundation
+# SPDX-FileCopyrightText: 2012 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -14,25 +14,25 @@
 #  ICU_LIBRARY_xxx, where to find the icu libraries.
 
 # If `ICU_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED ICU_ROOT_DIR)
+if(DEFINED ICU_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{ICU_ROOT_DIR})
-  SET(ICU_ROOT_DIR $ENV{ICU_ROOT_DIR})
-ELSE()
-  SET(ICU_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{ICU_ROOT_DIR})
+  set(ICU_ROOT_DIR $ENV{ICU_ROOT_DIR})
+else()
+  set(ICU_ROOT_DIR "")
+endif()
 
 if(Boost_USE_STATIC_LIBS)
   set(_icu_ORIG_CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 endif()
 
-SET(_icu_SEARCH_DIRS
+set(_icu_SEARCH_DIRS
   ${ICU_ROOT_DIR}
 )
 
 # We don't need includes, only libs to link against...
-# FIND_PATH(ICU_INCLUDE_DIR
+# find_path(ICU_INCLUDE_DIR
 #   NAMES
 #     utf.h
 #   HINTS
@@ -41,7 +41,7 @@ SET(_icu_SEARCH_DIRS
 #     include/unicode
 # )
 
-FIND_LIBRARY(ICU_LIBRARY_DATA
+find_library(ICU_LIBRARY_DATA
   NAMES
     icudata
   HINTS
@@ -50,7 +50,7 @@ FIND_LIBRARY(ICU_LIBRARY_DATA
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_I18N
+find_library(ICU_LIBRARY_I18N
   NAMES
     icui18n
   HINTS
@@ -59,7 +59,7 @@ FIND_LIBRARY(ICU_LIBRARY_I18N
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_IO
+find_library(ICU_LIBRARY_IO
   NAMES
     icuio
   HINTS
@@ -68,7 +68,7 @@ FIND_LIBRARY(ICU_LIBRARY_IO
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_LE
+find_library(ICU_LIBRARY_LE
   NAMES
     icule
   HINTS
@@ -77,7 +77,7 @@ FIND_LIBRARY(ICU_LIBRARY_LE
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_LX
+find_library(ICU_LIBRARY_LX
   NAMES
     iculx
   HINTS
@@ -86,7 +86,7 @@ FIND_LIBRARY(ICU_LIBRARY_LX
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_TU
+find_library(ICU_LIBRARY_TU
   NAMES
     icutu
   HINTS
@@ -95,7 +95,7 @@ FIND_LIBRARY(ICU_LIBRARY_TU
     lib64 lib
   )
 
-FIND_LIBRARY(ICU_LIBRARY_UC
+find_library(ICU_LIBRARY_UC
   NAMES
     icuuc
   HINTS
@@ -111,8 +111,8 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set ICU_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Icu DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Icu DEFAULT_MSG
     ICU_LIBRARY_DATA
     ICU_LIBRARY_I18N
     ICU_LIBRARY_IO
@@ -122,12 +122,12 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Icu DEFAULT_MSG
     ICU_LIBRARY_UC
 )
 
-IF(ICU_FOUND)
-  SET(ICU_LIBRARIES ${ICU_LIBRARY_DATA} ${ICU_LIBRARY_I18N} ${ICU_LIBRARY_IO} ${ICU_LIBRARY_LE} ${ICU_LIBRARY_LX} ${ICU_LIBRARY_TU} ${ICU_LIBRARY_UC})
-  SET(ICU_INCLUDE_DIRS ${ICU_INCLUDE_DIR})
-ENDIF()
+if(ICU_FOUND)
+  set(ICU_LIBRARIES ${ICU_LIBRARY_DATA} ${ICU_LIBRARY_I18N} ${ICU_LIBRARY_IO} ${ICU_LIBRARY_LE} ${ICU_LIBRARY_LX} ${ICU_LIBRARY_TU} ${ICU_LIBRARY_UC})
+  set(ICU_INCLUDE_DIRS ${ICU_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   ICU_INCLUDE_DIR
   ICU_LIBRARY_DATA
   ICU_LIBRARY_I18N

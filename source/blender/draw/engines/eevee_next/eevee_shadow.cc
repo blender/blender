@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -54,13 +54,13 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
    * inverse in this particular case. */
   viewmat = math::transpose(object_mat);
 
-  float half_size = ShadowDirectional::coverage_get(level) / 2.0f;
-  float2 win_offset = float2(grid_offset) * tile_size;
+  half_size = ShadowDirectional::coverage_get(level) / 2.0f;
+  center_offset = float2(grid_offset) * tile_size;
   orthographic_m4(winmat.ptr(),
-                  -half_size + win_offset.x,
-                  half_size + win_offset.x,
-                  -half_size + win_offset.y,
-                  half_size + win_offset.y,
+                  -half_size + center_offset.x,
+                  half_size + center_offset.x,
+                  -half_size + center_offset.y,
+                  half_size + center_offset.y,
                   /* Near/far is computed on GPU using casters bounds. */
                   -1.0,
                   1.0);
@@ -69,15 +69,15 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
 void ShadowTileMap::sync_cubeface(
     const float4x4 &object_mat_, float near_, float far_, eCubeFace face, float lod_bias_)
 {
-  if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face) || (near != near_) ||
-      (far != far_))
+  if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face) ||
+      (clip_near != near_) || (clip_far != far_))
   {
     set_dirty();
   }
   projection_type = SHADOW_PROJECTION_CUBEFACE;
   cubeface = face;
-  near = near_;
-  far = far_;
+  clip_near = near_;
+  clip_far = far_;
   lod_bias = lod_bias_;
   grid_offset = int2(0);
 
@@ -86,11 +86,13 @@ void ShadowTileMap::sync_cubeface(
     set_dirty();
   }
 
-  perspective_m4(winmat.ptr(), -near, near, -near, near, near, far);
+  winmat = math::projection::perspective(
+      -clip_near, clip_near, -clip_near, clip_near, clip_near, clip_far);
   viewmat = float4x4(shadow_face_mat[cubeface]) * math::invert(object_mat);
 
   /* Update corners. */
   float4x4 viewinv = object_mat;
+  float far = clip_far;
   corners[0] = float4(viewinv.location(), 0.0f);
   corners[1] = float4(math::transform_point(viewinv, float3(-far, -far, -far)), 0.0f);
   corners[2] = float4(math::transform_point(viewinv, float3(far, -far, -far)), 0.0f);
@@ -605,8 +607,8 @@ void ShadowDirectional::end_sync(Light &light, const Camera &camera, float lod_b
   }
 
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
-  light.clip_near = int(0xFF7FFFFFu ^ 0x7FFFFFFFu); /* floatBitsToOrderedInt(-FLT_MAX) */
-  light.clip_far = 0x7F7FFFFF;                      /* floatBitsToOrderedInt(FLT_MAX) */
+  light.clip_near = 0x7F7FFFFF;                    /* floatBitsToOrderedInt(FLT_MAX) */
+  light.clip_far = int(0xFF7FFFFFu ^ 0x7FFFFFFFu); /* floatBitsToOrderedInt(-FLT_MAX) */
 
   if (directional_distribution_type_get(camera) == SHADOW_PROJECTION_CASCADE) {
     cascade_tilemaps_distribution(light, camera);
@@ -644,8 +646,11 @@ void ShadowModule::init()
     }
   }
 
-  int pool_size = enabled_ ? scene.eevee.shadow_pool_size : 0;
-  shadow_page_len_ = clamp_i(pool_size * 4, SHADOW_PAGE_PER_ROW, SHADOW_MAX_PAGE);
+  /* Pool size is in MBytes. */
+  const size_t pool_byte_size = enabled_ ? scene.eevee.shadow_pool_size * square_i(1024) : 1;
+  const size_t page_byte_size = square_i(shadow_page_size_) * sizeof(int);
+  shadow_page_len_ = int(divide_ceil_ul(pool_byte_size, page_byte_size));
+  shadow_page_len_ = min_ii(shadow_page_len_, SHADOW_MAX_PAGE);
 
   float simplify_shadows = 1.0f;
   if (scene.r.mode & R_SIMPLIFY) {
@@ -654,18 +659,18 @@ void ShadowModule::init()
   }
   lod_bias_ = math::interpolate(float(SHADOW_TILEMAP_LOD), 0.0f, simplify_shadows);
 
-  int2 atlas_extent = shadow_page_size_ *
-                      int2(SHADOW_PAGE_PER_ROW, shadow_page_len_ / SHADOW_PAGE_PER_ROW);
+  const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
+  const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);
 
   eGPUTextureUsage tex_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;
-  if (atlas_tx_.ensure_2d(atlas_type, atlas_extent, tex_usage)) {
+  if (atlas_tx_.ensure_2d_array(atlas_type, atlas_extent, atlas_layers, tex_usage)) {
     /* Global update. */
     do_full_update = true;
   }
 
   /* Make allocation safe. Avoids crash later on. */
   if (!atlas_tx_.is_valid()) {
-    atlas_tx_.ensure_2d(atlas_type, int2(1));
+    atlas_tx_.ensure_2d_array(atlas_type, int2(1), 1);
     inst_.info = "Error: Could not allocate shadow atlas. Most likely out of GPU memory.";
   }
 
@@ -689,11 +694,24 @@ void ShadowModule::init()
          << stats.page_used_count << " / " << shadow_page_len_ << ")\n";
       inst_.info = ss.str();
     }
+    if (stats.view_needed_count > SHADOW_VIEW_MAX && enabled_) {
+      std::stringstream ss;
+      ss << "Error: Too many shadow updates, some shadow might be incorrect.\n";
+      inst_.info = ss.str();
+    }
   }
 
   atlas_tx_.filter_mode(false);
 
-  render_map_tx_.ensure_mip_views();
+  /* Create different viewport to support different update region size. The most fitting viewport
+   * is then selected during the tilemap finalize stage in `viewport_select`. */
+  for (int i = 0; i < multi_viewports_.size(); i++) {
+    int size_in_tile = min_ii(1 << i, SHADOW_TILEMAP_RES);
+    multi_viewports_[i][0] = 0;
+    multi_viewports_[i][1] = 0;
+    multi_viewports_[i][2] = size_in_tile * shadow_page_size_;
+    multi_viewports_[i][3] = size_in_tile * shadow_page_size_;
+  }
 }
 
 void ShadowModule::begin_sync()
@@ -856,13 +874,19 @@ void ShadowModule::end_sync()
     do_full_update = false;
     /* Put all pages in the free heap. */
     for (uint i : IndexRange(shadow_page_len_)) {
-      uint2 page = {i % SHADOW_PAGE_PER_ROW, i / SHADOW_PAGE_PER_ROW};
-      pages_free_data_[i] = page.x | (page.y << 16u);
+      uint3 page = {i % SHADOW_PAGE_PER_ROW,
+                    (i / SHADOW_PAGE_PER_ROW) % SHADOW_PAGE_PER_COL,
+                    i / SHADOW_PAGE_PER_LAYER};
+      pages_free_data_[i] = shadow_page_pack(page);
+    }
+    for (uint i : IndexRange(shadow_page_len_, SHADOW_MAX_PAGE - shadow_page_len_)) {
+      pages_free_data_[i] = 0xFFFFFFFFu;
     }
     pages_free_data_.push_update();
 
     /* Clear tiles to not reference any page. */
     tilemap_pool.tiles_data.clear_to_zero();
+    tilemap_pool.tilemaps_clip.clear_to_zero();
 
     /* Clear cached page buffer. */
     GPU_storagebuf_clear(pages_cached_data_, -1);
@@ -873,7 +897,6 @@ void ShadowModule::end_sync()
     pages_infos_data_.page_cached_next = 0u;
     pages_infos_data_.page_cached_start = 0u;
     pages_infos_data_.page_cached_end = 0u;
-    pages_infos_data_.page_size = shadow_page_size_;
     pages_infos_data_.push_update();
   }
 
@@ -1012,15 +1035,11 @@ void ShadowModule::end_sync()
         sub.bind_ssbo("view_infos_buf", &shadow_multi_view_.matrices_ubo_get());
         sub.bind_ssbo("statistics_buf", statistics_buf_.current());
         sub.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf_);
-        sub.bind_ssbo("clear_page_buf", clear_page_buf_);
+        sub.bind_ssbo("clear_list_buf", clear_list_buf_);
+        sub.bind_ssbo("render_map_buf", render_map_buf_);
+        sub.bind_ssbo("viewport_index_buf", viewport_index_buf_);
         sub.bind_ssbo("pages_infos_buf", pages_infos_data_);
         sub.bind_image("tilemaps_img", tilemap_pool.tilemap_tx);
-        sub.bind_image("render_map_lod0_img", render_map_tx_.mip_view(0));
-        sub.bind_image("render_map_lod1_img", render_map_tx_.mip_view(1));
-        sub.bind_image("render_map_lod2_img", render_map_tx_.mip_view(2));
-        sub.bind_image("render_map_lod3_img", render_map_tx_.mip_view(3));
-        sub.bind_image("render_map_lod4_img", render_map_tx_.mip_view(4));
-        sub.bind_image("render_map_lod5_img", render_map_tx_.mip_view(5));
         sub.dispatch(int3(1, 1, tilemap_pool.tilemaps_data.size()));
         sub.barrier(GPU_BARRIER_SHADER_STORAGE | GPU_BARRIER_UNIFORM | GPU_BARRIER_TEXTURE_FETCH |
                     GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -1028,10 +1047,12 @@ void ShadowModule::end_sync()
       {
         /** Clear pages that need to be rendered. */
         PassSimple::Sub &sub = pass.sub("RenderClear");
+        sub.framebuffer_set(&render_fb_);
+        sub.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_PAGE_CLEAR));
         sub.bind_ssbo("pages_infos_buf", pages_infos_data_);
-        sub.bind_ssbo("clear_dispatch_buf", clear_dispatch_buf_);
-        sub.bind_image("atlas_img", atlas_tx_);
+        sub.bind_ssbo("clear_list_buf", clear_list_buf_);
+        sub.bind_image("shadow_atlas_img", atlas_tx_);
         sub.dispatch(clear_dispatch_buf_);
         sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
       }
@@ -1133,6 +1154,9 @@ void ShadowModule::set_view(View &view)
   usage_tag_fb.ensure(usage_tag_fb_resolution_);
 
   render_fb_.ensure(int2(SHADOW_TILEMAP_RES * shadow_page_size_));
+  GPU_framebuffer_bind(render_fb_);
+  GPU_framebuffer_multi_viewports_set(render_fb_,
+                                      reinterpret_cast<int(*)[4]>(multi_viewports_.data()));
 
   inst_.hiz_buffer.update();
 
@@ -1151,6 +1175,8 @@ void ShadowModule::set_view(View &view)
       shadow_multi_view_.compute_procedural_bounds();
 
       inst_.pipelines.shadow.render(shadow_multi_view_);
+
+      GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
     }
     DRW_stats_group_end();
 

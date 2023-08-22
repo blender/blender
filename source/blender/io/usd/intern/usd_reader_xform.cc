@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
- * SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
@@ -67,37 +67,20 @@ void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float scale,
                                  bool *r_is_constant)
 {
-  if (r_is_constant) {
-    *r_is_constant = true;
-  }
+  BLI_assert(r_mat);
+  BLI_assert(r_is_constant);
 
+  *r_is_constant = true;
   unit_m4(r_mat);
 
-  pxr::UsdGeomXformable xformable;
+  std::optional<XformResult> xf_result = get_local_usd_xform(time);
 
-  if (use_parent_xform_) {
-    xformable = pxr::UsdGeomXformable(prim_.GetParent());
-  }
-  else {
-    xformable = pxr::UsdGeomXformable(prim_);
-  }
-
-  if (!xformable) {
-    /* This might happen if the prim is a Scope. */
+  if (!xf_result) {
     return;
   }
 
-  if (r_is_constant) {
-    *r_is_constant = !xformable.TransformMightBeTimeVarying();
-  }
-
-  pxr::GfMatrix4d usd_local_xf;
-  bool reset_xform_stack;
-  xformable.GetLocalTransformation(&usd_local_xf, &reset_xform_stack, time);
-
-  /* Convert the result to a float matrix. */
-  pxr::GfMatrix4f mat4f = pxr::GfMatrix4f(usd_local_xf);
-  mat4f.Get(r_mat);
+  std::get<0>(*xf_result).Get(r_mat);
+  *r_is_constant = std::get<1>(*xf_result);
 
   /* Apply global scaling and rotation only to root objects, parenting
    * will propagate it. */
@@ -166,6 +149,30 @@ bool USDXformReader::is_root_xform_prim() const
   }
 
   return false;
+}
+
+std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
+{
+  pxr::UsdGeomXformable xformable = use_parent_xform_ ? pxr::UsdGeomXformable(prim_.GetParent()) :
+                                                        pxr::UsdGeomXformable(prim_);
+
+  if (!xformable) {
+    /* This might happen if the prim is a Scope. */
+    return std::nullopt;
+  }
+
+  bool is_constant = !xformable.TransformMightBeTimeVarying();
+
+  bool reset_xform_stack;
+  pxr::GfMatrix4d xform;
+  if (!xformable.GetLocalTransformation(&xform, &reset_xform_stack, time)) {
+    return std::nullopt;
+  }
+
+  /* The USD bind transform is a matrix of doubles,
+   * but we cast it to GfMatrix4f because Blender expects
+   * a matrix of floats. */
+  return XformResult(pxr::GfMatrix4f(xform), is_constant);
 }
 
 }  // namespace blender::io::usd

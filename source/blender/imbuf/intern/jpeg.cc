@@ -27,9 +27,9 @@
 #include "IMB_metadata.h"
 #include "imbuf.h"
 
+#include <cstring>
 #include <jerror.h>
 #include <jpeglib.h>
-#include <string.h>
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"

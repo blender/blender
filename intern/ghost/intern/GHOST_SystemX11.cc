@@ -1693,6 +1693,8 @@ GHOST_TCapabilityFlag GHOST_SystemX11::getCapabilities() const
 {
   return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
                                ~(
+                                   /* No support yet for desktop sampling. */
+                                   GHOST_kCapabilityDesktopSample |
                                    /* No support yet for image copy/paste. */
                                    GHOST_kCapabilityClipboardImages));
 }
@@ -2429,6 +2431,8 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
   XSelectInput(m_display, window, ExposureMask | ButtonPressMask | ButtonReleaseMask);
   XMapWindow(m_display, window);
 
+  const bool has_link = link && strlen(link);
+
   while (true) {
     XNextEvent(m_display, &e);
     if (e.type == Expose) {
@@ -2442,7 +2446,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
                     int(strlen(text_splitted[i])));
       }
       dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 1, continue_label);
-      if (strlen(link)) {
+      if (has_link) {
         dialog_data.drawButton(m_display, window, buttonBorderGC, buttonGC, 2, help_label);
       }
     }
@@ -2451,7 +2455,7 @@ GHOST_TSuccess GHOST_SystemX11::showMessageBox(const char *title,
         break;
       }
       if (dialog_data.isInsideButton(e, 2)) {
-        if (strlen(link)) {
+        if (has_link) {
           string cmd = "xdg-open \"" + string(link) + "\"";
           if (system(cmd.c_str()) != 0) {
             GHOST_PRINTF("GHOST_SystemX11::showMessageBox: Unable to run system command [%s]",

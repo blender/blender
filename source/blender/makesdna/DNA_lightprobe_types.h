@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -81,10 +81,6 @@ typedef struct LightProbe {
    */
   int resolution;
 
-  /** Object to use as a parallax origin. */
-  struct Object *parallax_ob;
-  /** Image to use on as lighting data. */
-  struct Image *image;
   /** Object visibility group, inclusive or exclusive. */
   struct Collection *visibility_grp;
 } LightProbe;

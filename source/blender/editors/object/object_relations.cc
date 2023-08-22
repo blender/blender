@@ -1405,6 +1405,8 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
+  DEG_id_tag_update(&collection_to->id, ID_RECALC_HIERARCHY);
+
   DEG_relations_tag_update(bmain);
 
   /* redraw the 3D view because the object center points are colored differently */
@@ -1526,11 +1528,12 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
           case MAKE_LINKS_ANIMDATA:
             BKE_animdata_copy_id(bmain, (ID *)ob_dst, (ID *)ob_src, 0);
             if (ob_dst->data && ob_src->data) {
-              if (!BKE_id_is_editable(bmain, obdata_id)) {
-                is_lib = true;
-                break;
+              if (BKE_id_is_editable(bmain, obdata_id)) {
+                BKE_animdata_copy_id(bmain, (ID *)ob_dst->data, (ID *)ob_src->data, 0);
               }
-              BKE_animdata_copy_id(bmain, (ID *)ob_dst->data, (ID *)ob_src->data, 0);
+              else {
+                is_lib = true;
+              }
             }
             DEG_id_tag_update(&ob_dst->id,
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -205,6 +205,8 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
   uiLayoutSetUnitsX(layout, 4.0f);
+
+  UI_block_flag_enable(uiLayoutGetBlock(layout), UI_BLOCK_IS_FLIP);
 
   /* Apply. */
   uiItemO(layout,

@@ -396,7 +396,8 @@ static void library_foreach_particlesystemsObjectLooper(ParticleSystem * /*psys*
 
 static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Object *object = (Object *)id;
+  Object *object = reinterpret_cast<Object *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   /* object data special case */
   if (object->type == OB_EMPTY) {
@@ -413,20 +414,16 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->parent, IDWALK_CB_NEVER_SELF);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->track, IDWALK_CB_NEVER_SELF);
 
-  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->poselib, IDWALK_CB_USER);
-
   for (int i = 0; i < object->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->mat[i], IDWALK_CB_USER);
   }
 
-  /* Note that `ob->gpd` is deprecated, so no need to handle it here. */
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->instance_collection, IDWALK_CB_USER);
 
   if (object->pd) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->pd->tex, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->pd->f_source, IDWALK_CB_NOP);
   }
-  /* Note that ob->effect is deprecated, so no need to handle it here. */
 
   if (object->pose) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
@@ -441,7 +438,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
           data,
           BKE_constraints_id_loop(
-              &pchan->constraints, library_foreach_constraintObjectLooper, data));
+              &pchan->constraints, library_foreach_constraintObjectLooper, flag, data));
     }
   }
 
@@ -460,7 +457,8 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
           object, library_foreach_gpencil_modifiersForeachIDLink, data));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data,
-      BKE_constraints_id_loop(&object->constraints, library_foreach_constraintObjectLooper, data));
+      BKE_constraints_id_loop(
+          &object->constraints, library_foreach_constraintObjectLooper, flag, data));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, BKE_shaderfx_foreach_ID_link(object, library_foreach_shaderfxForeachIDLink, data));
 
@@ -483,6 +481,44 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
         data, object->light_linking->receiver_collection, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, object->light_linking->blocker_collection, IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, object->ipo, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->action, IDWALK_CB_USER);
+
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->poselib, IDWALK_CB_USER);
+
+    LISTBASE_FOREACH (bConstraintChannel *, chan, &object->constraintChannels) {
+      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
+    }
+
+    LISTBASE_FOREACH (bActionStrip *, strip, &object->nlastrips) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->object, IDWALK_CB_NOP);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, strip->act, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo, IDWALK_CB_USER);
+      LISTBASE_FOREACH (bActionModifier *, amod, &strip->modifiers) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, amod->ob, IDWALK_CB_NOP);
+      }
+    }
+
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->gpd, IDWALK_CB_USER);
+
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy, IDWALK_CB_NOP);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy_group, IDWALK_CB_NOP);
+    /* Note that `proxy_from` is purposedly skipped here, as this should be considered as pure
+     * runtime data. */
+
+    PartEff *paf = BKE_object_do_version_give_parteff_245(object);
+    if (paf && paf->group) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, paf->group, IDWALK_CB_USER);
+    }
+
+    FluidsimModifierData *fluidmd = reinterpret_cast<FluidsimModifierData *>(
+        BKE_modifiers_findby_type(object, eModifierType_Fluidsim));
+    if (fluidmd && fluidmd->fss) {
+      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, fluidmd->fss->ipo, IDWALK_CB_USER);
+    }
   }
 }
 
@@ -963,22 +999,6 @@ static void object_blend_read_lib(BlendLibReader *reader, ID *id)
     if (fluidmd && fluidmd->fss) {
       /* XXX: deprecated - old animation system. */
       BLO_read_id_address(reader, id, &fluidmd->fss->ipo);
-    }
-  }
-
-  {
-    FluidModifierData *fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob,
-                                                                            eModifierType_Fluid);
-
-    if (fmd && (fmd->type == MOD_FLUID_TYPE_DOMAIN) && fmd->domain) {
-      /* Flag for refreshing the simulation after loading */
-      fmd->domain->flags |= FLUID_DOMAIN_FILE_LOAD;
-    }
-    else if (fmd && (fmd->type == MOD_FLUID_TYPE_FLOW) && fmd->flow) {
-      fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
-    }
-    else if (fmd && (fmd->type == MOD_FLUID_TYPE_EFFEC) && fmd->effector) {
-      fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
     }
   }
 

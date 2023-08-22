@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -40,7 +40,8 @@ NODE_STORAGE_FUNCS(NodePlaneTrackDeformData)
 
 static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_skip_realization();
+  b.add_input<decl::Color>("Image").compositor_realization_options(
+      CompositorInputRealizationOptions::None);
   b.add_output<decl::Color>("Image");
   b.add_output<decl::Float>("Plane");
 }

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -259,13 +259,36 @@ void VKCommandBuffer::draw(int v_first, int v_count, int i_first, int i_count)
   state.draw_counts++;
 }
 
-void VKCommandBuffer::draw(
+void VKCommandBuffer::draw_indexed(
     int index_count, int instance_count, int first_index, int vertex_offset, int first_instance)
 {
   validate_framebuffer_exists();
   ensure_active_framebuffer();
   vkCmdDrawIndexed(
       vk_command_buffer_, index_count, instance_count, first_index, vertex_offset, first_instance);
+  state.draw_counts++;
+}
+
+void VKCommandBuffer::draw_indirect(const VKStorageBuffer &buffer,
+                                    VkDeviceSize offset,
+                                    uint32_t draw_count,
+                                    uint32_t stride)
+{
+  validate_framebuffer_exists();
+  ensure_active_framebuffer();
+  vkCmdDrawIndirect(vk_command_buffer_, buffer.vk_handle(), offset, draw_count, stride);
+  state.draw_counts++;
+}
+
+void VKCommandBuffer::draw_indexed_indirect(const VKStorageBuffer &buffer,
+
+                                            VkDeviceSize offset,
+                                            uint32_t draw_count,
+                                            uint32_t stride)
+{
+  validate_framebuffer_exists();
+  ensure_active_framebuffer();
+  vkCmdDrawIndexedIndirect(vk_command_buffer_, buffer.vk_handle(), offset, draw_count, stride);
   state.draw_counts++;
 }
 

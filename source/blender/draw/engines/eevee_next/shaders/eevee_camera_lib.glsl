@@ -1,7 +1,7 @@
 
 /**
  * Camera projection / uv functions and utils.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 

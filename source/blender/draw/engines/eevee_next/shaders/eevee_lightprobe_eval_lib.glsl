@@ -86,7 +86,7 @@ vec3 lightprobe_irradiance_grid_bias_sample_coord(IrradianceGridData grid_data,
 
     /* Biases. See McGuire's presentation. */
     positional_weight += 0.001;
-    geometry_weight = square_f(geometry_weight) + 0.2 + grid_data.facing_bias;
+    geometry_weight = square(geometry_weight) + 0.2 + grid_data.facing_bias;
 
     trilinear_weights[i] = saturate(positional_weight * geometry_weight * validity_weight);
     total_weight += trilinear_weights[i];

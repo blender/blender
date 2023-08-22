@@ -1120,11 +1120,14 @@ NODE_DEFINE(NoiseTextureNode)
   dimensions_enum.insert("4D", 4);
   SOCKET_ENUM(dimensions, "Dimensions", dimensions_enum, 3);
 
+  SOCKET_BOOLEAN(use_normalize, "Normalize", true);
+
   SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_TEXTURE_GENERATED);
   SOCKET_IN_FLOAT(w, "W", 0.0f);
   SOCKET_IN_FLOAT(scale, "Scale", 1.0f);
   SOCKET_IN_FLOAT(detail, "Detail", 2.0f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
+  SOCKET_IN_FLOAT(lacunarity, "Lacunarity", 2.0f);
   SOCKET_IN_FLOAT(distortion, "Distortion", 0.0f);
 
   SOCKET_OUT_FLOAT(fac, "Fac");
@@ -1142,6 +1145,7 @@ void NoiseTextureNode::compile(SVMCompiler &compiler)
   ShaderInput *scale_in = input("Scale");
   ShaderInput *detail_in = input("Detail");
   ShaderInput *roughness_in = input("Roughness");
+  ShaderInput *lacunarity_in = input("Lacunarity");
   ShaderInput *distortion_in = input("Distortion");
   ShaderOutput *fac_out = output("Fac");
   ShaderOutput *color_out = output("Color");
@@ -1151,22 +1155,28 @@ void NoiseTextureNode::compile(SVMCompiler &compiler)
   int scale_stack_offset = compiler.stack_assign_if_linked(scale_in);
   int detail_stack_offset = compiler.stack_assign_if_linked(detail_in);
   int roughness_stack_offset = compiler.stack_assign_if_linked(roughness_in);
+  int lacunarity_stack_offset = compiler.stack_assign_if_linked(lacunarity_in);
   int distortion_stack_offset = compiler.stack_assign_if_linked(distortion_in);
   int fac_stack_offset = compiler.stack_assign_if_linked(fac_out);
   int color_stack_offset = compiler.stack_assign_if_linked(color_out);
 
   compiler.add_node(
       NODE_TEX_NOISE,
-      dimensions,
       compiler.encode_uchar4(
           vector_stack_offset, w_stack_offset, scale_stack_offset, detail_stack_offset),
-      compiler.encode_uchar4(
-          roughness_stack_offset, distortion_stack_offset, fac_stack_offset, color_stack_offset));
+      compiler.encode_uchar4(roughness_stack_offset,
+                             lacunarity_stack_offset,
+                             distortion_stack_offset,
+                             fac_stack_offset),
+      compiler.encode_uchar4(color_stack_offset, dimensions, use_normalize));
+
   compiler.add_node(
       __float_as_int(w), __float_as_int(scale), __float_as_int(detail), __float_as_int(roughness));
 
-  compiler.add_node(
-      __float_as_int(distortion), SVM_STACK_INVALID, SVM_STACK_INVALID, SVM_STACK_INVALID);
+  compiler.add_node(__float_as_int(lacunarity),
+                    __float_as_int(distortion),
+                    SVM_STACK_INVALID,
+                    SVM_STACK_INVALID);
 
   tex_mapping.compile_end(compiler, vector_in, vector_stack_offset);
 }
@@ -1175,6 +1185,7 @@ void NoiseTextureNode::compile(OSLCompiler &compiler)
 {
   tex_mapping.compile(compiler);
   compiler.parameter(this, "dimensions");
+  compiler.parameter(this, "use_normalize");
   compiler.add(this, "node_noise_texture");
 }
 
@@ -3391,6 +3402,12 @@ NODE_DEFINE(PrincipledHairBsdfNode)
 {
   NodeType *type = NodeType::add("principled_hair_bsdf", create, NodeType::SHADER);
 
+  /* Scattering models. */
+  static NodeEnum model_enum;
+  model_enum.insert("Chiang", NODE_PRINCIPLED_HAIR_CHIANG);
+  model_enum.insert("Huang", NODE_PRINCIPLED_HAIR_HUANG);
+  SOCKET_ENUM(model, "Model", model_enum, NODE_PRINCIPLED_HAIR_HUANG);
+
   /* Color parametrization specified as enum. */
   static NodeEnum parametrization_enum;
   parametrization_enum.insert("Direct coloring", NODE_PRINCIPLED_HAIR_REFLECTANCE);
@@ -3407,6 +3424,8 @@ NODE_DEFINE(PrincipledHairBsdfNode)
   SOCKET_IN_VECTOR(
       absorption_coefficient, "Absorption Coefficient", make_float3(0.245531f, 0.52f, 1.365f));
 
+  SOCKET_IN_FLOAT(aspect_ratio, "Aspect Ratio", 0.85f);
+
   SOCKET_IN_FLOAT(offset, "Offset", 2.f * M_PI_F / 180.f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.3f);
   SOCKET_IN_FLOAT(radial_roughness, "Radial Roughness", 0.3f);
@@ -3417,7 +3436,10 @@ NODE_DEFINE(PrincipledHairBsdfNode)
   SOCKET_IN_FLOAT(random_color, "Random Color", 0.0f);
   SOCKET_IN_FLOAT(random, "Random", 0.0f);
 
-  SOCKET_IN_NORMAL(normal, "Normal", zero_float3(), SocketType::LINK_NORMAL);
+  SOCKET_IN_FLOAT(R, "R lobe", 1.0f);
+  SOCKET_IN_FLOAT(TT, "TT lobe", 1.0f);
+  SOCKET_IN_FLOAT(TRT, "TRT lobe", 1.0f);
+
   SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
 
   SOCKET_OUT_CLOSURE(BSDF, "BSDF");
@@ -3427,13 +3449,20 @@ NODE_DEFINE(PrincipledHairBsdfNode)
 
 PrincipledHairBsdfNode::PrincipledHairBsdfNode() : BsdfBaseNode(get_node_type())
 {
-  closure = CLOSURE_BSDF_HAIR_PRINCIPLED_ID;
+  closure = CLOSURE_BSDF_HAIR_HUANG_ID;
 }
 
-/* Enable retrieving Hair Info -> Random if Random isn't linked. */
 void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
+  if (model == NODE_PRINCIPLED_HAIR_HUANG) {
+    /* Make sure we have the normal for elliptical cross section tracking. */
+    if (aspect_ratio != 1.0f || input("Aspect Ratio")->link) {
+      attributes->add(ATTR_STD_VERTEX_NORMAL);
+    }
+  }
+
   if (!input("Random")->link) {
+    /* Enable retrieving Hair Info -> Random if Random isn't linked. */
     attributes->add(ATTR_STD_CURVE_RANDOM);
   }
   ShaderNode::attributes(shader, attributes);
@@ -3442,6 +3471,9 @@ void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *att
 /* Prepares the input data for the SVM shader. */
 void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
 {
+  closure = (model == NODE_PRINCIPLED_HAIR_HUANG) ? CLOSURE_BSDF_HAIR_HUANG_ID :
+                                                    CLOSURE_BSDF_HAIR_CHIANG_ID;
+
   compiler.add_node(NODE_CLOSURE_SET_WEIGHT, one_float3());
 
   ShaderInput *roughness_in = input("Roughness");
@@ -3450,9 +3482,16 @@ void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
   ShaderInput *offset_in = input("Offset");
   ShaderInput *coat_in = input("Coat");
   ShaderInput *ior_in = input("IOR");
+
   ShaderInput *melanin_in = input("Melanin");
   ShaderInput *melanin_redness_in = input("Melanin Redness");
   ShaderInput *random_color_in = input("Random Color");
+
+  ShaderInput *R_in = input("R lobe");
+  ShaderInput *TT_in = input("TT lobe");
+  ShaderInput *TRT_in = input("TRT lobe");
+
+  ShaderInput *aspect_ratio_in = input("Aspect Ratio");
 
   int color_ofs = compiler.stack_assign(input("Color"));
   int tint_ofs = compiler.stack_assign(input("Tint"));
@@ -3461,7 +3500,6 @@ void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
   int roughness_ofs = compiler.stack_assign_if_linked(roughness_in);
   int radial_roughness_ofs = compiler.stack_assign_if_linked(radial_roughness_in);
 
-  int normal_ofs = compiler.stack_assign_if_linked(input("Normal"));
   int offset_ofs = compiler.stack_assign_if_linked(offset_in);
   int ior_ofs = compiler.stack_assign_if_linked(ior_in);
 
@@ -3482,41 +3520,56 @@ void PrincipledHairBsdfNode::compile(SVMCompiler &compiler)
       NODE_CLOSURE_BSDF,
       /* Socket IDs can be packed 4 at a time into a single data packet */
       compiler.encode_uchar4(
-          closure, roughness_ofs, radial_roughness_ofs, compiler.closure_mix_weight_offset()),
+          closure, roughness_ofs, random_roughness_ofs, compiler.closure_mix_weight_offset()),
       /* The rest are stored as unsigned integers */
       __float_as_uint(roughness),
-      __float_as_uint(radial_roughness));
+      __float_as_uint(random_roughness));
+
   /* data node */
-  compiler.add_node(normal_ofs,
+  compiler.add_node(SVM_STACK_INVALID,
                     compiler.encode_uchar4(offset_ofs, ior_ofs, color_ofs, parametrization),
                     __float_as_uint(offset),
                     __float_as_uint(ior));
+
   /* data node 2 */
   compiler.add_node(compiler.encode_uchar4(
-                        coat_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs),
-                    __float_as_uint(coat),
+                        tint_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs),
+                    attr_random,
                     __float_as_uint(melanin),
                     __float_as_uint(melanin_redness));
 
   /* data node 3 */
-  compiler.add_node(
-      compiler.encode_uchar4(tint_ofs, random_in_ofs, random_color_ofs, random_roughness_ofs),
-      __float_as_uint(random),
-      __float_as_uint(random_color),
-      __float_as_uint(random_roughness));
+  if (model == NODE_PRINCIPLED_HAIR_HUANG) {
+    compiler.add_node(compiler.encode_uchar4(compiler.stack_assign_if_linked(aspect_ratio_in),
+                                             random_in_ofs,
+                                             random_color_ofs,
+                                             compiler.attribute(ATTR_STD_VERTEX_NORMAL)),
+                      __float_as_uint(random),
+                      __float_as_uint(random_color),
+                      __float_as_uint(aspect_ratio));
+  }
+  else {
+    compiler.add_node(
+        compiler.encode_uchar4(coat_ofs, random_in_ofs, random_color_ofs, radial_roughness_ofs),
+        __float_as_uint(random),
+        __float_as_uint(random_color),
+        __float_as_uint(coat));
+  }
 
   /* data node 4 */
-  compiler.add_node(
-      compiler.encode_uchar4(
-          SVM_STACK_INVALID, SVM_STACK_INVALID, SVM_STACK_INVALID, SVM_STACK_INVALID),
-      attr_random,
-      SVM_STACK_INVALID,
-      SVM_STACK_INVALID);
+  compiler.add_node(compiler.encode_uchar4(compiler.stack_assign_if_linked(R_in),
+                                           compiler.stack_assign_if_linked(TT_in),
+                                           compiler.stack_assign_if_linked(TRT_in),
+                                           SVM_STACK_INVALID),
+                    __float_as_uint(model == NODE_PRINCIPLED_HAIR_HUANG ? R : radial_roughness),
+                    __float_as_uint(TT),
+                    __float_as_uint(TRT));
 }
 
 /* Prepares the input data for the OSL shader. */
 void PrincipledHairBsdfNode::compile(OSLCompiler &compiler)
 {
+  compiler.parameter(this, "model");
   compiler.parameter(this, "parametrization");
   compiler.add(this, "node_principled_hair_bsdf");
 }

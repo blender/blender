@@ -78,7 +78,7 @@ shader node_principled_bsdf(string distribution = "multi_ggx",
   }
 
   closure color TransmissionBSDF = 0;
-  if (Metallic < 1.0 && Transmission > 1.0) {
+  if (Metallic < 1.0 && Transmission > 0.0) {
     color reflectTint = mix(color(1.0), BaseColor, SpecularTint);
     float eta = max(IOR, 1e-5);
     eta = backfacing() ? 1.0 / eta : eta;

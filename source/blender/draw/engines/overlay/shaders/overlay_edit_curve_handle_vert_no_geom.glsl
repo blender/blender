@@ -114,8 +114,8 @@ void main()
     offset.x = 0.0;
   }
 
-  /** Each output vertex falls into 10 possible positions to generate 8 output triangles between 5
-   * lines. **/
+  /* Each output vertex falls into 10 possible positions to generate 8 output triangles between 5
+   * lines. */
   /* Discard transparent border quads up-front. */
   if (!(is_active_nurb != 0u)) {
     if (output_quad_id == 0 || output_quad_id == 3) {

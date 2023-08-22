@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2011-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -632,7 +632,7 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
             -blacklist ${_cycles_blacklist}
           )
 
-          if(NOT("${_cycles_device_lower}" STREQUAL "cpu"))
+          if(NOT ("${_cycles_device_lower}" STREQUAL "cpu"))
             set_tests_properties(${_cycles_test_name} PROPERTIES RUN_SERIAL TRUE)
           endif()
           unset(_cycles_test_name)
@@ -717,14 +717,48 @@ if(WITH_COMPOSITOR_CPU)
 
     foreach(comp_test ${compositor_tests})
       add_python_test(
-        compositor_${comp_test}_test
-        ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
+        compositor_${comp_test}_cpu_test
+        ${CMAKE_CURRENT_LIST_DIR}/compositor_cpu_render_tests.py
         -blender "${TEST_BLENDER_EXE}"
         -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
         -idiff "${OPENIMAGEIO_IDIFF}"
-        -outdir "${TEST_OUT_DIR}/compositor"
+        -outdir "${TEST_OUT_DIR}/compositor_cpu"
       )
     endforeach()
+
+  endif()
+endif()
+
+# NOTE: WITH_COMPOSITOR_CPU is needed for rendering. 
+if(WITH_COMPOSITOR_REALTIME_TEST AND WITH_COMPOSITOR_CPU)
+  if(NOT OPENIMAGEIO_IDIFF)
+      message(WARNING "Disabling realtime compositor tests because OIIO idiff does not exist")
+    else()
+      set(compositor_tests
+          color
+          converter
+          filter
+          input
+          output
+          vector
+
+          multiple_node_setups
+        )
+      
+      if(WITH_LIBMV)
+        list(APPEND compositor_tests distort matte)
+      endif()
+
+      foreach(comp_test ${compositor_tests})
+        add_python_test(
+          compositor_${comp_test}_realtime_test
+          ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
+          -blender "${TEST_BLENDER_EXE}"
+          -testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
+          -idiff "${OPENIMAGEIO_IDIFF}"
+          -outdir "${TEST_OUT_DIR}/compositor_realtime"
+        )
+      endforeach()
   endif()
 endif()
 
@@ -870,7 +904,7 @@ endif()
 if(NOT OPENIMAGEIO_IDIFF)
   message(STATUS "Disabling ImBuf image format tests because OIIO idiff does not exist")
 else()
-  SET(OPTIONAL_FORMATS "")
+  set(OPTIONAL_FORMATS "")
   if(WITH_IMAGE_CINEON)
     set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} CINEON")
   endif()

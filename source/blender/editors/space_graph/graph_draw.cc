@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: Blender Foundation
+/* SPDX-FileCopyrightText: Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -845,16 +845,19 @@ static void draw_fcurve_curve_samples(bAnimContext *ac,
 
 static int calculate_bezt_draw_resolution(BezTriple *bezt,
                                           BezTriple *prevbezt,
-                                          const blender::float2 resolution_scale)
+                                          const blender::float2 pixels_per_unit)
 {
-  const int resolution_x = int((bezt->vec[1][0] - prevbezt->vec[1][0]) * resolution_scale[0]);
+  const float points_per_pixel = 0.25f;
+  const int resolution_x = int(((bezt->vec[1][0] - prevbezt->vec[1][0]) * pixels_per_unit[0]) *
+                               points_per_pixel);
   /* Include the handles in the resolution calculation to cover the case where keys have the same
    * y-value, but their handles are offset to create an arc. */
   const float min_y = min_ffff(
       bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
   const float max_y = max_ffff(
       bezt->vec[1][1], bezt->vec[2][1], prevbezt->vec[1][1], prevbezt->vec[0][1]);
-  const int resolution_y = int((max_y - min_y) * resolution_scale[1]);
+  const int resolution_y = int(((max_y - min_y) * pixels_per_unit[1]) * points_per_pixel);
+
   /* Using a simple sum instead of calculating the diagonal. This gives a slightly higher
    * resolution but it does compensate for the fact that bezier curves can create long arcs between
    * keys. */
@@ -1007,19 +1010,16 @@ static void add_extrapolation_point_right(FCurve *fcu,
   curve_vertices.append(vertex_position);
 }
 
-static blender::float2 calculate_resolution_scale(View2D *v2d)
+static blender::float2 calculate_pixels_per_unit(View2D *v2d)
 {
-  /* The resolution for bezier forward diff in frame/value space. This ensures a constant
-   * resolution in screen-space. */
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const int window_height = BLI_rcti_size_y(&v2d->mask);
-  const float points_per_pixel = 0.25f;
 
   const float v2d_frame_range = BLI_rctf_size_x(&v2d->cur);
   const float v2d_value_range = BLI_rctf_size_y(&v2d->cur);
-  const blender::float2 resolution_scale = {(window_width * points_per_pixel) / v2d_frame_range,
-                                            (window_height * points_per_pixel) / v2d_value_range};
-  return resolution_scale;
+  const blender::float2 pixels_per_unit = {window_width / v2d_frame_range,
+                                           window_height / v2d_value_range};
+  return pixels_per_unit;
 }
 
 /* Helper function - draw one repeat of an F-Curve (using Bezier curve approximations). */
@@ -1055,7 +1055,7 @@ static void draw_fcurve_curve_keys(
     curve_vertices.append({bezt->vec[1][0], bezt->vec[1][1]});
   }
 
-  const blender::float2 resolution_scale = calculate_resolution_scale(v2d);
+  const blender::float2 pixels_per_unit = calculate_pixels_per_unit(v2d);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const float v2d_frame_range = BLI_rctf_size_x(&v2d->cur);
   const float pixel_width = v2d_frame_range / window_width;
@@ -1082,7 +1082,7 @@ static void draw_fcurve_curve_keys(
         break;
 
       case BEZT_IPO_BEZ: {
-        const int resolution = calculate_bezt_draw_resolution(bezt, prevbezt, resolution_scale);
+        const int resolution = calculate_bezt_draw_resolution(bezt, prevbezt, pixels_per_unit);
         add_bezt_vertices(bezt, prevbezt, resolution, curve_vertices);
         break;
       }

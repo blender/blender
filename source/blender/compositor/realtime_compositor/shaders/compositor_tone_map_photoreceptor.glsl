@@ -1,8 +1,9 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-
 /* Tone mapping based on equation (1) and the trilinear interpolation between equations (6) and (7)
  * from Reinhard, Erik, and Kate Devlin. "Dynamic range reduction inspired by photoreceptor
  * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

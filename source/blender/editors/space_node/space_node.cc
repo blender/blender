@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,7 @@
 #include "BKE_context.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -1029,6 +1030,96 @@ static void node_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper
   BKE_id_remapper_iter(mappings, node_id_remap_cb, slink);
 }
 
+static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceNode *snode = reinterpret_cast<SpaceNode *>(space_link);
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+  const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
+  const bool is_embedded_nodetree = snode->id != nullptr && allow_pointer_access &&
+                                    ntreeFromID(snode->id) == snode->nodetree;
+
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
+
+  bNodeTreePath *path = static_cast<bNodeTreePath *>(snode->treepath.first);
+  BLI_assert(path == nullptr || path->nodetree == snode->nodetree);
+
+  if (is_embedded_nodetree) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+    if (path != nullptr) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+    }
+
+    /* Embedded ID pointers are not remapped (besides exceptions), ensure it still matches
+     * actual data. Note that `snode->id` was already processed (and therefore potentially
+     * remapped) above. */
+    if (!is_readonly) {
+      snode->nodetree = (snode->id == nullptr) ? nullptr : ntreeFromID(snode->id);
+      if (path != nullptr) {
+        path->nodetree = snode->nodetree;
+      }
+    }
+  }
+  else {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_USER_ONE);
+    if (path != nullptr) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+    }
+  }
+
+  /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
+   * accessed. */
+  BLI_assert(snode->id == nullptr || snode->nodetree == nullptr ||
+             (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||
+             snode->nodetree == ntreeFromID(snode->id));
+
+  if (path != nullptr) {
+    for (path = path->next; path != nullptr; path = path->next) {
+      BLI_assert(path->nodetree != nullptr);
+      if ((data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) {
+        BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+      }
+
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+
+      if (path->nodetree == nullptr) {
+        BLI_assert(!is_readonly);
+        /* Remaining path entries are invalid, remove them. */
+        for (bNodeTreePath *path_next; path; path = path_next) {
+          path_next = path->next;
+          BLI_remlink(&snode->treepath, path);
+          MEM_freeN(path);
+        }
+        break;
+      }
+    }
+  }
+  BLI_assert(path == nullptr);
+
+  if (!is_readonly) {
+    /* `edittree` is just the last in the path, set this directly since the path may have
+     * been shortened above. */
+    if (snode->treepath.last != nullptr) {
+      path = static_cast<bNodeTreePath *>(snode->treepath.last);
+      snode->edittree = path->nodetree;
+    }
+    else {
+      snode->edittree = nullptr;
+    }
+  }
+  else {
+    /* Only process this pointer in readonly case, otherwise could lead to a bad
+     * double-remapping e.g. */
+    if (is_embedded_nodetree && snode->edittree == snode->nodetree) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+    }
+    else {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+    }
+  }
+}
+
 static int node_space_subtype_get(ScrArea *area)
 {
   SpaceNode *snode = (SpaceNode *)area->spacedata.first;
@@ -1151,6 +1242,7 @@ void ED_spacetype_node()
   st->dropboxes = node_dropboxes;
   st->gizmos = node_widgets;
   st->id_remap = node_id_remap;
+  st->foreach_id = node_foreach_id;
   st->space_subtype_item_extend = node_space_subtype_item_extend;
   st->space_subtype_get = node_space_subtype_get;
   st->space_subtype_set = node_space_subtype_set;

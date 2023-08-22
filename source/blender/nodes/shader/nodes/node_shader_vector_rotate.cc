@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,7 +6,14 @@
  * \ingroup shdnodes
  */
 
+#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector_types.hh"
+
+#include "FN_multi_function.hh"
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 
 #include "node_shader_util.hh"
 

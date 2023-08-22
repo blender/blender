@@ -790,31 +790,41 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
 #undef BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_IDSUPER
 #undef BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL
 
-static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
+static void scene_foreach_layer_collection(LibraryForeachIDData *data,
+                                           ListBase *lb,
+                                           const bool is_master)
 {
   const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-    const int cb_flag = (lc->collection != nullptr &&
-                         (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
-                         (lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                            IDWALK_CB_EMBEDDED_NOT_OWNING :
-                            IDWALK_CB_NOP;
+    if ((data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 && lc->collection != nullptr) {
+      BLI_assert(is_master == ((lc->collection->id.flag & LIB_EMBEDDED_DATA) != 0));
+    }
+    const int cb_flag = is_master ? IDWALK_CB_EMBEDDED_NOT_OWNING : IDWALK_CB_NOP;
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, lc->collection, cb_flag | IDWALK_CB_DIRECT_WEAK_LINK);
-    scene_foreach_layer_collection(data, &lc->layer_collections);
+    scene_foreach_layer_collection(data, &lc->layer_collections, false);
   }
 }
 
 static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
 {
-  LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
+  LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
+/* Only for deprecated data. */
+#define FOREACHID_PROCESS_ID_NOCHECK(_data, _id_super, _cb_flag) \
+  { \
+    BKE_lib_query_foreachid_process((_data), reinterpret_cast<ID **>(&(_id_super)), (_cb_flag)); \
+    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
+      return false; \
+    } \
+  } \
+  ((void)0)
 
 #define FOREACHID_PROCESS_IDSUPER(_data, _id_super, _cb_flag) \
   { \
     CHECK_TYPE(&((_id_super)->id), ID *); \
-    BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop(_data)) { \
-      return false; \
-    } \
+    FOREACHID_PROCESS_ID_NOCHECK(_data, _id_super, _cb_flag); \
   } \
   ((void)0)
 
@@ -834,14 +844,20 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
     FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
   }
 
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    FOREACHID_PROCESS_ID_NOCHECK(data, seq->ipo, IDWALK_CB_USER);
+  }
+
 #undef FOREACHID_PROCESS_IDSUPER
+#undef FOREACHID_PROCESS_ID_NOCHECK
 
   return true;
 }
 
 static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Scene *scene = (Scene *)id;
+  Scene *scene = reinterpret_cast<Scene *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->camera, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, scene->world, IDWALK_CB_USER);
@@ -886,22 +902,15 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     }
 
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data, scene_foreach_layer_collection(data, &view_layer->layer_collections));
+        data, scene_foreach_layer_collection(data, &view_layer->layer_collections, true));
 
     LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-      if (fmc->script) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fmc->script, IDWALK_CB_NOP);
-      }
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fmc->script, IDWALK_CB_NOP);
     }
 
     LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-      if (fls->group) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->group, IDWALK_CB_USER);
-      }
-
-      if (fls->linestyle) {
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->linestyle, IDWALK_CB_USER);
-      }
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->group, IDWALK_CB_USER);
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->linestyle, IDWALK_CB_USER);
     }
   }
 
@@ -926,6 +935,23 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
         data,
         BKE_rigidbody_world_id_loop(
             scene->rigidbody_world, scene_foreach_rigidbodyworldSceneLooper, data));
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    LISTBASE_FOREACH_MUTABLE (Base *, base_legacy, &scene->base) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, base_legacy->object, IDWALK_CB_NOP);
+    }
+
+    LISTBASE_FOREACH (SceneRenderLayer *, srl, &scene->r.layers) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, srl->mat_override, IDWALK_CB_USER);
+      LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &srl->freestyleConfig.modules) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fmc->script, IDWALK_CB_NOP);
+      }
+      LISTBASE_FOREACH (FreestyleLineSet *, fls, &srl->freestyleConfig.linesets) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->linestyle, IDWALK_CB_USER);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fls->group, IDWALK_CB_USER);
+      }
+    }
   }
 }
 
@@ -1506,18 +1532,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 /* patch for missing scene IDs, can't be in do-versions */
-static void composite_patch(bNodeTree *ntree, Scene *scene)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->id == nullptr &&
-        ((node->type == CMP_NODE_R_LAYERS) ||
-         (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 == CMP_CRYPTOMATTE_SRC_RENDER)))
-    {
-      node->id = &scene->id;
-    }
-  }
-}
-
 static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Scene *sce = (Scene *)id;
@@ -1618,10 +1632,6 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
     if (rbw->effector_weights) {
       BLO_read_id_address(reader, id, &rbw->effector_weights->group);
     }
-  }
-
-  if (sce->nodetree) {
-    composite_patch(sce->nodetree, sce);
   }
 
   LISTBASE_FOREACH (SceneRenderLayer *, srl, &sce->r.layers) {

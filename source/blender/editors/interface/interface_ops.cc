@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1326,7 +1326,7 @@ bool UI_context_copy_to_selected_check(PointerRNA *ptr,
   }
 
   if (lptr.data == ptr->data) {
-    /* temp_ptr might not be the same as ptr_link! */
+    /* The source & destination are the same, so there is nothing to copy. */
     return false;
   }
 

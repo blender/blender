@@ -1,6 +1,3 @@
-
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
 /* Based on:
  * "Stochastic Screen Space Reflections"
  * by Tomasz Stachowiak.
@@ -10,6 +7,8 @@
  * by Tomasz Stachowiak.
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
+
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 struct HitData {
   /** Hit direction scaled by intersection time. */

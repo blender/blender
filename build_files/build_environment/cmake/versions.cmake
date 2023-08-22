@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2017-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -49,7 +49,7 @@ set(BOOST_HASH 077f074743ea7b0cb49c6ed43953ae95)
 set(BOOST_HASH_TYPE MD5)
 set(BOOST_FILE boost_${BOOST_VERSION_NODOTS}.tar.gz)
 set(BOOST_CPE "cpe:2.3:a:boost:boost:${BOOST_VERSION}:*:*:*:*:*:*:*")
-SET(BOOST_HOMEPAGE https://www.boost.org/)
+set(BOOST_HOMEPAGE https://www.boost.org/)
 
 set(BLOSC_VERSION 1.21.1)
 set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.tar.gz)
@@ -100,7 +100,7 @@ set(FREETYPE_URI http://prdownloads.sourceforge.net/freetype/freetype-${FREETYPE
 set(FREETYPE_HASH 98bc3cf234fe88ef3cf24569251fe0a4)
 set(FREETYPE_HASH_TYPE MD5)
 set(FREETYPE_FILE freetype-${FREETYPE_VERSION}.tar.gz)
-SET(FREETYPE_CPE "cpe:2.3:a:freetype:freetype:${FREETYPE_VERSION}:*:*:*:*:*:*:*")
+set(FREETYPE_CPE "cpe:2.3:a:freetype:freetype:${FREETYPE_VERSION}:*:*:*:*:*:*:*")
 set(FREETYPE_HOMEPAGE https://freetype.org/)
 
 set(EPOXY_VERSION 1.5.10)
@@ -128,9 +128,9 @@ set(OPENSUBDIV_HASH 230f5cd2911d6240e58a3773b9c6e5e4)
 set(OPENSUBDIV_HASH_TYPE MD5)
 set(OPENSUBDIV_FILE opensubdiv-${OPENSUBDIV_VERSION}.tar.gz)
 
-set(SDL_VERSION 2.0.20)
+set(SDL_VERSION 2.28.2)
 set(SDL_URI https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz)
-set(SDL_HASH a53acc02e1cca98c4123229069b67c9e)
+set(SDL_HASH 06ff379c406cd8318d18f0de81ee2709)
 set(SDL_HASH_TYPE MD5)
 set(SDL_FILE SDL2-${SDL_VERSION}.tar.gz)
 set(SDL_CPE "cpe:2.3:a:libsdl:sdl:${SDL_VERSION}:*:*:*:*:*:*:*")
@@ -460,7 +460,7 @@ set(BZIP2_HASH ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269)
 set(BZIP2_HASH_TYPE SHA256)
 set(BZIP2_FILE bzip2_${BZIP2_VERSION}.orig.tar.gz)
 set(BZIP2_CPE "cpe:2.3:a:bzip:bzip2:${BZIP2_VERSION}:*:*:*:*:*:*:*")
-SET(BZIP2_HOMEPAGE https://sourceware.org/bzip2/)
+set(BZIP2_HOMEPAGE https://sourceware.org/bzip2/)
 
 # NOTE: This will *HAVE* to match the version python ships on windows which
 # is hardcoded in pythons PCbuild/get_externals.bat. For compliance reasons there
@@ -471,7 +471,7 @@ set(FFI_HASH 72fba7922703ddfa7a028d513ac15a85c8d54c8d67f55fa5a4802885dc652056)
 set(FFI_HASH_TYPE SHA256)
 set(FFI_FILE libffi-${FFI_VERSION}.tar.gz)
 set(FFI_CPE "cpe:2.3:a:libffi_project:libffi:${FFI_VERSION}:*:*:*:*:*:*:*")
-SET(FFI_HOMEPAGE https://sourceware.org/libffi/)
+set(FFI_HOMEPAGE https://sourceware.org/libffi/)
 
 set(LZMA_VERSION 5.2.5)
 set(LZMA_URI https://tukaani.org/xz/xz-${LZMA_VERSION}.tar.bz2)
@@ -778,7 +778,7 @@ set(AOM_URI https://storage.googleapis.com/aom-releases/libaom-${AOM_VERSION}.ta
 set(AOM_HASH bd754b58c3fa69f3ffd29da77de591bd9c26970e3b18537951336d6c0252e354)
 set(AOM_HASH_TYPE SHA256)
 set(AOM_FILE libaom-${AOM_VERSION}.tar.gz)
-SET(AOM_HOMEPAGE https://aomedia.googlesource.com/aom/)
+set(AOM_HOMEPAGE https://aomedia.googlesource.com/aom/)
 
 set(FRIBIDI_VERSION v1.0.12)
 set(FRIBIDI_URI https://github.com/fribidi/fribidi/archive/refs/tags/${FRIBIDI_VERSION}.tar.gz)

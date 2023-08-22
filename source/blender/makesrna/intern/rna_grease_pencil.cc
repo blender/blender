@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -54,35 +54,50 @@ static int rna_iterator_grease_pencil_layers_length(PointerRNA *ptr)
   return grease_pencil->layers().size();
 }
 
+static void tree_node_name_get(blender::bke::greasepencil::TreeNode &node, char *dst)
+{
+  if (!node.name().is_empty()) {
+    strcpy(dst, node.name().c_str());
+  }
+  else {
+    dst[0] = '\0';
+  }
+}
+
+static int tree_node_name_length(blender::bke::greasepencil::TreeNode &node)
+{
+  if (!node.name().is_empty()) {
+    return node.name().size();
+  }
+  return 0;
+}
+
+static char *tree_node_name_path(blender::bke::greasepencil::TreeNode &node, const char *prefix)
+{
+  using namespace blender::bke::greasepencil;
+  BLI_assert(!node.name().is_empty());
+  const size_t name_length = node.name().size();
+  std::string name_esc(name_length * 2, '\0');
+  BLI_str_escape(name_esc.data(), node.name().c_str(), name_length * 2);
+  return BLI_sprintfN("%s[\"%s\"]", prefix, name_esc.c_str());
+}
+
 static char *rna_GreasePencilLayer_path(const PointerRNA *ptr)
 {
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
-
-  BLI_assert(layer->base.name);
-  const size_t name_length = strlen(layer->base.name);
-
-  std::string name_esc(name_length * 2, '\0');
-  BLI_str_escape(name_esc.data(), layer->base.name, name_length * 2);
-
-  return BLI_sprintfN("layers[\"%s\"]", name_esc.c_str());
+  return tree_node_name_path(layer->wrap().as_node(), "layers");
 }
 
 static void rna_GreasePencilLayer_name_get(PointerRNA *ptr, char *value)
 {
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
-
-  if (layer->base.name) {
-    strcpy(value, layer->base.name);
-  }
-  else {
-    value[0] = '\0';
-  }
+  tree_node_name_get(layer->wrap().as_node(), value);
 }
 
 static int rna_GreasePencilLayer_name_length(PointerRNA *ptr)
 {
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
-  return layer->base.name ? strlen(layer->base.name) : 0;
+  return tree_node_name_length(layer->wrap().as_node());
 }
 
 static void rna_GreasePencilLayer_name_set(PointerRNA *ptr, const char *value)
@@ -90,7 +105,7 @@ static void rna_GreasePencilLayer_name_set(PointerRNA *ptr, const char *value)
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
 
-  grease_pencil->rename_layer(layer->wrap(), value);
+  grease_pencil->rename_node(layer->wrap().as_node(), value);
 }
 
 static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
@@ -117,32 +132,19 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
 static char *rna_GreasePencilLayerGroup_path(const PointerRNA *ptr)
 {
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
-
-  BLI_assert(group->base.name);
-  const size_t name_length = strlen(group->base.name);
-
-  std::string name_esc(name_length * 2, '\0');
-  BLI_str_escape(name_esc.data(), group->base.name, name_length * 2);
-
-  return BLI_sprintfN("layer_groups[\"%s\"]", name_esc.c_str());
+  return tree_node_name_path(group->wrap().as_node(), "layer_groups");
 }
 
 static void rna_GreasePencilLayerGroup_name_get(PointerRNA *ptr, char *value)
 {
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
-
-  if (group->base.name) {
-    strcpy(value, group->base.name);
-  }
-  else {
-    value[0] = '\0';
-  }
+  tree_node_name_get(group->wrap().as_node(), value);
 }
 
 static int rna_GreasePencilLayerGroup_name_length(PointerRNA *ptr)
 {
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
-  return group->base.name ? strlen(group->base.name) : 0;
+  return tree_node_name_length(group->wrap().as_node());
 }
 
 static void rna_GreasePencilLayerGroup_name_set(PointerRNA *ptr, const char *value)
@@ -150,7 +152,7 @@ static void rna_GreasePencilLayerGroup_name_set(PointerRNA *ptr, const char *val
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
 
-  grease_pencil->rename_group(group->wrap(), value);
+  grease_pencil->rename_node(group->wrap().as_node(), value);
 }
 
 static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIterator *iter,

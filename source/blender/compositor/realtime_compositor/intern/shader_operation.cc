@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,6 +30,8 @@
 #include "COM_shader_node.hh"
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
+
+#include <sstream>
 
 namespace blender::realtime_compositor {
 

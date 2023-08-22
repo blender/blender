@@ -1,11 +1,15 @@
 # OpenColorIO configuration file for Blender
 #
-# Based on aces, nuke-default and spi configurations from OpenColorIO-Config
+# ACEScg and ACES2065-1 spaces using OpenColorIO's BuiltinTransform
 #
 # Filmic Dynamic Range LUT configuration crafted by Troy James Sobotka with
 # special thanks and feedback from Guillermo, Claudio Rocha, Bassam Kurdali,
 # Eugenio Pignataro, Henri Hebeisen, Jason Clarke, Haarm-Peter Duiker, Thomas
 # Mansencal, and Timothy Lottes.
+#
+# Based on original AgX by Troy Sobotka: https://github.com/sobotka/AgX https://github.com/sobotka/SB2383-Configuration-Generation
+# Further Developed by Zijun Eary Zhou法纤净, Mark Faderbauer, and Sakari Kapanen
+# Repository for this version: https://github.com/EaryChow/AgX
 #
 # See ocio-license.txt for details.
 
@@ -44,8 +48,8 @@ roles:
   cie_xyz_d65_interchange: Linear CIE-XYZ D65
 
   # Specified by OCIO, not used in Blender
-  color_timing: Filmic Log
-  compositing_log: Filmic Log
+  color_timing: AgX Log
+  compositing_log: AgX Log
   default: Linear Rec.709
   matte_paint: Linear Rec.709
   texture_paint: Linear Rec.709
@@ -53,14 +57,29 @@ roles:
 displays:
   sRGB:
     - !<View> {name: Standard, colorspace: sRGB}
+    - !<View> {name: AgX, colorspace: AgX Base sRGB}
     - !<View> {name: Filmic, colorspace: Filmic sRGB}
     - !<View> {name: Filmic Log, colorspace: Filmic Log}
-    - !<View> {name: False Color, colorspace: False Color}
+    - !<View> {name: False Color, colorspace: AgX False Color Rec.709}
     - !<View> {name: Raw, colorspace: Non-Color}
-
-active_displays: [sRGB]
-active_views: [Standard, Filmic, Filmic Log, False Color, Raw]
-inactive_colorspaces: [False Color]
+  Display P3:
+    - !<View> {name: Standard, colorspace: Display P3}
+    - !<View> {name: AgX, colorspace: AgX Base Display P3}
+    - !<View> {name: False Color, colorspace: AgX False Color P3}
+    - !<View> {name: Raw, colorspace: Non-Color}
+  Rec.1886:
+    - !<View> {name: Standard, colorspace: Rec.1886}
+    - !<View> {name: AgX, colorspace: AgX Base Rec.1886}
+    - !<View> {name: False Color, colorspace: AgX False Color Rec.709}
+    - !<View> {name: Raw, colorspace: Non-Color}
+  Rec.2020:
+    - !<View> {name: Standard, colorspace: Rec.2020}
+    - !<View> {name: AgX, colorspace: AgX Base Rec.2020}
+    - !<View> {name: False Color, colorspace: AgX False Color Rec.2020}
+    - !<View> {name: Raw, colorspace: Non-Color}
+active_displays: [sRGB, Display P3, Rec.1886, Rec.2020]
+active_views: [Standard, AgX, Filmic, Filmic Log, False Color, Raw]
+inactive_colorspaces: [Luminance Compensation Rec.2020, Luminance Compensation sRGB, Luminance Compensation P3, AgX False Color Rec.709, AgX False Color P3, AgX False Color Rec.1886, AgX False Color Rec.2020]
 
 colorspaces:
   - !<ColorSpace>
@@ -246,7 +265,7 @@ colorspaces:
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
-        - !<FileTransform> {src: filmic_desat65cube.spi3d, interpolation: best}
+        - !<FileTransform> {src: filmic_desat_33.cube, interpolation: tetrahedral}
         - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
     to_scene_reference: !<GroupTransform>
       children:
@@ -267,18 +286,205 @@ colorspaces:
         - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
 
   - !<ColorSpace>
-    name: False Color
-    family: Filmic
+    name: Luminance Compensation Rec.2020
+    aliases: [Luminance Compensation BT.2020]
+    family: Utilities
     equalitygroup:
     bitdepth: 32f
     description: |
-      Filmic false color view transform
+      Offset the negative values in BT.2020 and compensate for luminance, ensuring there is no negative values in Rec.2020
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: luminance_compensation_bt2020.cube, interpolation: tetrahedral}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear FilmLight E-Gamut, dst: Linear Rec.2020}
+
+  - !<ColorSpace>
+    name: Luminance Compensation sRGB
+    family: Utilities
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Offset the negative values in BT.709 and compensate for luminance, ensuring there is no negative values in Rec.709
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<MatrixTransform> {matrix: [0.960599732262383, 0.0196075412762159, 0.019792726461401, 0, 0.0105997322623829, 0.969607541276216, 0.0197927264614012, 0, 0.0105997322623829, 0.0196075412762162, 0.969792726461401, 0, 0, 0, 0, 1]}
+        - !<FileTransform> {src: Guard_Rail_Shaper_EOTF.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: luminance_compensation_srgb.cube, interpolation: tetrahedral}
+        - !<FileTransform> {src: Guard_Rail_Shaper_EOTF.spi1d, interpolation: linear}
+        - !<MatrixTransform> {matrix: [0.960599732262383, 0.0196075412762159, 0.019792726461401, 0, 0.0105997322623829, 0.969607541276216, 0.0197927264614012, 0, 0.0105997322623829, 0.0196075412762162, 0.969792726461401, 0, 0, 0, 0, 1], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear FilmLight E-Gamut, dst: Linear Rec.709}
+        - !<RangeTransform> {min_in_value: 0, min_out_value: 0}
+
+  - !<ColorSpace>
+    name: Luminance Compensation P3
+    family: Utilities
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Offset the negative values in P3 and compensate for luminance, ensuring there is no negative values in P3
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<MatrixTransform> {matrix: [0.960599732262383, 0.0196075412762159, 0.019792726461401, 0, 0.0105997322623829, 0.969607541276216, 0.0197927264614012, 0, 0.0105997322623829, 0.0196075412762162, 0.969792726461401, 0, 0, 0, 0, 1]}
+        - !<FileTransform> {src: Guard_Rail_Shaper_EOTF.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: luminance_compensation_p3.cube, interpolation: tetrahedral}
+        - !<FileTransform> {src: Guard_Rail_Shaper_EOTF.spi1d, interpolation: linear}
+        - !<MatrixTransform> {matrix: [0.960599732262383, 0.0196075412762159, 0.019792726461401, 0, 0.0105997322623829, 0.969607541276216, 0.0197927264614012, 0, 0.0105997322623829, 0.0196075412762162, 0.969792726461401, 0, 0, 0, 0, 1], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear FilmLight E-Gamut, dst: Linear DCI-P3 D65}
+        - !<RangeTransform> {min_in_value: 0, min_out_value: 0}
+
+  - !<ColorSpace>
+    name: AgX Log
+    family: Log Encodings
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range
     isdata: false
     from_reference: !<GroupTransform>
       children:
-        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Filmic Log}
-        - !<MatrixTransform> {matrix: [0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0.2126729, 0.7151521, 0.0721750, 0, 0, 0, 0, 1]}
-        - !<FileTransform> {src: filmic_false_color.spi3d, interpolation: best}
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Luminance Compensation Rec.2020}
+        # rotate = [3.0, -1, -2.0], inset = [0.4, 0.22, 0.13]
+        - !<MatrixTransform> {matrix: [0.856627153315983, 0.0951212405381588, 0.0482516061458583, 0, 0.137318972929847, 0.761241990602591, 0.101439036467562, 0, 0.11189821299995, 0.0767994186031903, 0.811302368396859, 0, 0, 0, 0, 1]}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
+        - !<MatrixTransform> {matrix: [0.856627153315983, 0.0951212405381588, 0.0482516061458583, 0, 0.137318972929847, 0.761241990602591, 0.101439036467562, 0, 0.11189821299995, 0.0767994186031903, 0.811302368396859, 0, 0, 0, 0, 1], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.2020, direction: inverse}
+
+  - !<ColorSpace>
+    name: AgX Base Rec.2020
+    aliases: [AgX Base BT.2020]
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base Image Encoding for BT.2020 Display
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: AgX_Base_Rec2020.cube, interpolation: tetrahedral}
+    to_scene_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: Inverse_AgX_Base_Rec2020.cube, interpolation: tetrahedral}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 4.026069], direction: inverse}
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.2020, direction: inverse}
+
+  - !<ColorSpace>
+    name: AgX Base sRGB
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base Image Encoding for sRGB Display
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: AgX_Base_sRGB.cube, interpolation: tetrahedral}
+        - !<ExponentTransform> {value: 2.4}
+        - !<ColorSpaceTransform> {src: Linear Rec.709, dst: sRGB}
+    to_scene_reference: !<GroupTransform>
+      children:
+       - !<ColorSpaceTransform> {src: sRGB, dst: Rec.2020}
+       - !<ColorSpaceTransform> {src: AgX Base Rec.2020, dst: Linear CIE-XYZ E}
+
+  - !<ColorSpace>
+    name: AgX Base Display P3
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base Image Encoding for Display P3 Display
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: AgX_Base_P3.cube, interpolation: tetrahedral}
+        - !<ExponentTransform> {value: 2.4}
+        - !<ColorSpaceTransform> {src: Linear DCI-P3 D65, dst: Display P3}
+    to_scene_reference: !<GroupTransform>
+      children:
+       - !<ColorSpaceTransform> {src: Display P3, dst: Rec.2020}
+       - !<ColorSpaceTransform> {src: AgX Base Rec.2020, dst: Linear CIE-XYZ E}
+
+  - !<ColorSpace>
+    name: AgX Base Rec.1886
+    aliases: [AgX Base BT.1886]
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      AgX Base Image Encoding for Rec.1886 Display
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear FilmLight E-Gamut}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+        - !<FileTransform> {src: AgX_Base_sRGB.cube, interpolation: tetrahedral}
+    to_scene_reference: !<GroupTransform>
+      children:
+       - !<ColorSpaceTransform> {src: Rec.1886, dst: Rec.2020}
+       - !<ColorSpaceTransform> {src: AgX Base Rec.2020, dst: Linear CIE-XYZ E}
+
+  - !<ColorSpace>
+    name: AgX False Color Rec.709
+    aliases: [AgX False Color BT.709, False Colour, False Color]
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      A heat-map-like image formed from AgX Base for sRGB and Rec.1886 displays
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX Base Rec.2020}
+        - !<ColorSpaceTransform> {src: Rec.2020, dst: Linear Rec.2020}
+        - !<MatrixTransform> {matrix: [0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0, 0, 0, 1]}
+        - !<ExponentTransform> {value: 2.5, direction: inverse}
+        - !<FileTransform> {src: AgX_False_Color.spi1d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: AgX False Color P3
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      A heat-map-like image formed from AgX Base for Display P3 displays
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX False Color Rec.709}
+        - !<ColorSpaceTransform> {src: sRGB, dst: Display P3}
+
+  - !<ColorSpace>
+    name: AgX False Color Rec.2020
+    aliases: [AgX False Color BT.2020]
+    family: AgX
+    equalitygroup:
+    bitdepth: 32f
+    description: |
+      A heat-map-like image formed from AgX Base for Rec.2020 displays
+    isdata: false
+    from_scene_reference: !<GroupTransform>
+      children:
+        - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: AgX False Color Rec.709}
+        - !<ColorSpaceTransform> {src: Rec.1886, dst: Rec.2020}
+
 looks:
   - !<Look>
     name: Very High Contrast
@@ -301,7 +507,7 @@ looks:
     process_space: Filmic Log
     transform: !<GroupTransform>
       children:
-        - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: best}
+        - !<FileTransform> {src: filmic_to_0-85_1-011.spi1d, interpolation: linear}
         - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
 
   - !<Look>
@@ -333,3 +539,106 @@ looks:
       children:
         - !<FileTransform> {src: filmic_to_0-35_1-30.spi1d, interpolation: linear}
         - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear, direction: inverse}
+
+  - !<Look>
+    name: AgX - Punchy
+    process_space: AgX Log
+    description: A darkening punchy look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingToneTransform>
+         shadows: {rgb: [0.2, 0.2, 0.2], master: 0.35, start: 0.4, pivot: 0.1}
+        - !<CDLTransform> {power: [1.0912, 1.0912, 1.0912]}
+
+  - !<Look>
+    name: AgX - Greyscale
+    process_space: AgX Log
+    description: A Black and White Look
+    transform: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117], direction: inverse}
+        - !<MatrixTransform> {matrix: [0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0.2658180370250449, 0.59846986045365, 0.1357121025213052, 0, 0, 0, 0, 1]}
+        - !<AllocationTransform> {allocation: lg2, vars: [-12.47393, 12.5260688117]}
+
+  - !<Look>
+    name: AgX - Very High Contrast
+    process_space: AgX Log
+    description: A Very High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.57, 1.57, 1.57], master: 1}
+          saturation: 0.9
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - High Contrast
+    process_space: AgX Log
+    description: A High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.4, 1.4, 1.4], master: 1}
+          saturation: 0.95
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - Medium High Contrast
+    process_space: AgX Log
+    description: A Medium High Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1.2, 1.2, 1.2], master: 1}
+          saturation: 1
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - Base Contrast
+    process_space: AgX Log
+    description: A Base Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [1, 1, 1], master: 1}
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - Medium Low Contrast
+    process_space: AgX Log
+    description: A Medium Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.9, 0.9, 0.9], master: 1}
+          saturation: 1.05
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - Low Contrast
+    process_space: AgX Log
+    description: A Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.8, 0.8, 0.8], master: 1}
+          saturation: 1.1
+          pivot: {contrast: -0.2}
+
+  - !<Look>
+    name: AgX - Very Low Contrast
+    process_space: AgX Log
+    description: A Very Low Contrast Look
+    transform: !<GroupTransform>
+      children:
+        - !<GradingPrimaryTransform>
+          style: log
+          contrast: {rgb: [0.7, 0.7, 0.7], master: 1}
+          saturation: 1.15
+          pivot: {contrast: -0.2}

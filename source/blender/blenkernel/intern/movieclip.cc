@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation
+/* SPDX-FileCopyrightText: 2011 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -123,6 +123,9 @@ static void movie_clip_foreach_id(ID *id, LibraryForeachIDData *data)
   LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
     LISTBASE_FOREACH (MovieTrackingTrack *, track, &object->tracks) {
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, track->gpd, IDWALK_CB_USER);
+    }
+    LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &object->plane_tracks) {
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, plane_track->image, IDWALK_CB_USER);
     }
   }
 }
@@ -2066,7 +2069,7 @@ void BKE_movieclip_free_gputexture(MovieClip *clip)
     MovieClip_RuntimeGPUTexture *tex = (MovieClip_RuntimeGPUTexture *)BLI_pophead(
         &clip->runtime.gputextures);
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      /* free glsl image binding */
+      /* Free GLSL image binding. */
       if (tex->gputexture[i]) {
         GPU_texture_free(tex->gputexture[i]);
         tex->gputexture[i] = nullptr;

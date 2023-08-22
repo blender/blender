@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -28,6 +28,8 @@
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter.hh"
 #include "spreadsheet_row_filter_ui.hh"
+
+#include <sstream>
 
 using namespace blender;
 using namespace blender::ed::spreadsheet;

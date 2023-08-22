@@ -1,9 +1,10 @@
-#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
-
 /* Tone mapping based on equation (3) from Reinhard, Erik, et al. "Photographic tone reproduction
  * for digital images." Proceedings of the 29th annual conference on Computer graphics and
  * interactive techniques. 2002. */
+
+#pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
+
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);

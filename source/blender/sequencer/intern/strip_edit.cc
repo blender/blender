@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Foundation
+ * SPDX-FileCopyrightText: 2003-2009 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -39,7 +39,7 @@
 #include "SEQ_transform.h"
 #include "SEQ_utils.h"
 
-#include <string.h>
+#include <cstring>
 
 bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const char **error_str)
 {

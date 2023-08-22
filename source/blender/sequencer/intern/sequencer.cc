@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Foundation
+ * SPDX-FileCopyrightText: 2003-2009 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -18,10 +18,12 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_main.h"
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.h"
@@ -68,7 +70,7 @@ static Strip *seq_strip_alloc(int type)
 {
   Strip *strip = static_cast<Strip *>(MEM_callocN(sizeof(Strip), "strip"));
 
-  if (ELEM(type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
+  if (type != SEQ_TYPE_SOUND_RAM) {
     strip->transform = static_cast<StripTransform *>(
         MEM_callocN(sizeof(StripTransform), "StripTransform"));
     strip->transform->scale_x = 1;
@@ -745,7 +747,7 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
                              MEM_allocN_len(strip->stripdata) / sizeof(StripElem),
                              strip->stripdata);
     }
-    else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM)) {
       BLO_write_struct(writer, StripElem, strip->stripdata);
     }
 
@@ -782,6 +784,11 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
 {
   BlendDataReader *reader = (BlendDataReader *)user_data;
 
+  /* Runtime data cleanup. */
+  seq->scene_sound = nullptr;
+  BLI_listbase_clear(&seq->anims);
+  seq->flag &= ~SEQ_FLAG_SKIP_THUMBNAILS;
+
   /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
   SEQ_relations_session_uuid_generate(seq);
 
@@ -813,6 +820,7 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   if (seq->strip && seq->strip->done == 0) {
     seq->strip->done = true;
 
+    /* `SEQ_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
     if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       BLO_read_data_address(reader, &seq->strip->stripdata);
     }
@@ -865,10 +873,8 @@ static bool seq_read_lib_cb(Sequence *seq, void *user_data)
     /* XXX: deprecated - old animation system. */
     BLO_read_id_address(reader, &sce->id, &seq->ipo);
   }
-  seq->scene_sound = nullptr;
   if (seq->scene) {
     BLO_read_id_address(reader, &sce->id, &seq->scene);
-    seq->scene_sound = nullptr;
   }
   if (seq->clip) {
     BLO_read_id_address(reader, &sce->id, &seq->clip);
@@ -880,27 +886,15 @@ static bool seq_read_lib_cb(Sequence *seq, void *user_data)
     BLO_read_id_address(reader, &sce->id, &seq->scene_camera);
   }
   if (seq->sound) {
-    seq->scene_sound = nullptr;
-    if (seq->type == SEQ_TYPE_SOUND_HD) {
-      seq->type = SEQ_TYPE_SOUND_RAM;
-    }
-    else {
-      BLO_read_id_address(reader, &sce->id, &seq->sound);
-    }
-    if (seq->sound) {
-      id_us_plus_no_lib((ID *)seq->sound);
-      seq->scene_sound = nullptr;
-    }
+    BLO_read_id_address(reader, &sce->id, &seq->sound);
   }
   if (seq->type == SEQ_TYPE_TEXT) {
     TextVars *t = static_cast<TextVars *>(seq->effectdata);
     BLO_read_id_address(reader, &sce->id, &t->text_font);
   }
-  BLI_listbase_clear(&seq->anims);
 
   SEQ_modifier_blend_read_lib(reader, sce, &seq->modifiers);
 
-  seq->flag &= ~SEQ_FLAG_SKIP_THUMBNAILS;
   return true;
 }
 
@@ -942,6 +936,25 @@ static bool seq_blend_read_expand(Sequence *seq, void *user_data)
 void SEQ_blend_read_expand(BlendExpander *expander, ListBase *seqbase)
 {
   SEQ_for_each_callback(seqbase, seq_blend_read_expand, expander);
+}
+
+static bool seq_doversion_250_sound_proxy_update_cb(Sequence *seq, void *user_data)
+{
+  Main *bmain = static_cast<Main *>(user_data);
+  if (seq->type == SEQ_TYPE_SOUND_HD) {
+    char filepath_abs[FILE_MAX];
+    BLI_path_join(
+        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
+    seq->type = SEQ_TYPE_SOUND_RAM;
+  }
+  return true;
+}
+
+void SEQ_doversion_250_sound_proxy_update(Main *bmain, Editing *ed)
+{
+  SEQ_for_each_callback(&ed->seqbase, seq_doversion_250_sound_proxy_update_cb, bmain);
 }
 
 /* Depsgraph update functions. */

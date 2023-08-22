@@ -65,8 +65,8 @@ void main()
     ls_conservative_max = max(ls_conservative_max, lP);
   }
 
-  interp.ls_aabb_min = ls_conservative_min;
-  interp.ls_aabb_max = ls_conservative_max;
+  interp_flat.ls_aabb_min = ls_conservative_min;
+  interp_flat.ls_aabb_max = ls_conservative_max;
 
   vec3 lP = mix(ls_conservative_min, ls_conservative_max, max(vec3(0), pos));
 

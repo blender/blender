@@ -64,7 +64,10 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
       try {
         m_system = new GHOST_SystemWayland(background);
       }
-      catch (const std::runtime_error &) {
+      catch (const std::runtime_error &e) {
+        if (verbose) {
+          fprintf(stderr, "GHOST: %s\n", e.what());
+        }
         delete m_system;
         m_system = nullptr;
 #  ifdef WITH_GHOST_WAYLAND_DYNLOAD
@@ -102,7 +105,10 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
       try {
         m_system = new GHOST_SystemWayland(background);
       }
-      catch (const std::runtime_error &) {
+      catch (const std::runtime_error &const e) {
+        if (verbose) {
+          fprintf(stderr, "GHOST: %s\n", e.what());
+        }
         delete m_system;
         m_system = nullptr;
 #  ifdef WITH_GHOST_WAYLAND_DYNLOAD

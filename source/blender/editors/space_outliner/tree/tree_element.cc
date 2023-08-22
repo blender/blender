@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <iostream>
 #include <string>
 #include <string_view>
 
@@ -29,6 +30,8 @@
 #include "tree_element_grease_pencil_node.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
+#include "tree_element_linked_object.hh"
+#include "tree_element_modifier.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
 #include "tree_element_particle_system.hh"
@@ -167,6 +170,14 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       return std::make_unique<TreeElementPoseGroup>(
           legacy_te, *posegrp_data->object, *posegrp_data->agrp);
     }
+    case TSE_MODIFIER_BASE:
+      return std::make_unique<TreeElementModifierBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_MODIFIER: {
+      ModifierCreateElementData *md_data = static_cast<ModifierCreateElementData *>(idv);
+      return std::make_unique<TreeElementModifier>(legacy_te, *md_data->object, *md_data->md);
+    }
+    case TSE_LINKED_OB:
+      return std::make_unique<TreeElementLinkedObject>(legacy_te, *static_cast<ID *>(idv));
     default:
       break;
   }

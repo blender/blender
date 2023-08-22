@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.h"
@@ -11,6 +11,7 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
 #include "BLI_assert.h"
+#include "BLI_math_color.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"

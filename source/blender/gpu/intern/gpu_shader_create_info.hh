@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation
+/* SPDX-FileCopyrightText: 2021 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -882,6 +882,7 @@ struct ShaderCreateInfo {
   void finalize();
 
   std::string check_error() const;
+  bool is_vulkan_compatible() const;
 
   /** Error detection that some backend compilers do not complain about. */
   void validate_merge(const ShaderCreateInfo &other_info);

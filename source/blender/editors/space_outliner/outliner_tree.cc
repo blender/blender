@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation
+/* SPDX-FileCopyrightText: 2004 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -271,6 +271,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_R_LAYER) {
     id = &static_cast<ViewLayerElementCreateData *>(idv)->scene->id;
   }
+  else if (type == TSE_MODIFIER) {
+    id = &static_cast<ModifierCreateElementData *>(idv)->object->id;
+  }
 
   /* exceptions */
   if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
@@ -350,6 +353,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_R_LAYER, TSE_R_LAYER_BASE)) {
     /* pass */
   }
+  else if (ELEM(type, TSE_MODIFIER, TSE_MODIFIER_BASE)) {
+    /* pass */
+  }
+  else if (type == TSE_LINKED_OB) {
+    /* pass */
+  }
   else if (type == TSE_SOME_ID) {
     if (!te->abstract_element) {
       BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
@@ -412,7 +421,10 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_POSEGRP_BASE,
                 TSE_R_LAYER,
                 TSE_R_LAYER_BASE,
-                TSE_GREASE_PENCIL_NODE))
+                TSE_MODIFIER,
+                TSE_MODIFIER_BASE,
+                TSE_GREASE_PENCIL_NODE,
+                TSE_LINKED_OB))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }

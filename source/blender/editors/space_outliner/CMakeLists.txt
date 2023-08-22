@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -71,7 +71,9 @@ set(SRC
   tree/tree_element_id_scene.cc
   tree/tree_element_id_texture.cc
   tree/tree_element_label.cc
+  tree/tree_element_linked_object.cc
   tree/tree_element_nla.cc
+  tree/tree_element_modifier.cc
   tree/tree_element_overrides.cc
   tree/tree_element_particle_system.cc
   tree/tree_element_pose.cc
@@ -110,7 +112,9 @@ set(SRC
   tree/tree_element_id_scene.hh
   tree/tree_element_id_texture.hh
   tree/tree_element_label.hh
+  tree/tree_element_linked_object.hh
   tree/tree_element_nla.hh
+  tree/tree_element_modifier.hh
   tree/tree_element_overrides.hh
   tree/tree_element_particle_system.hh
   tree/tree_element_pose.hh

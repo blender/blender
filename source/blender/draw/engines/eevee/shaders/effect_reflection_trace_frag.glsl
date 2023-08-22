@@ -1,12 +1,3 @@
-
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
-#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
-#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
-#pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
-#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
-#pragma BLENDER_REQUIRE(effect_reflection_lib.glsl)
-
 /* Based on:
  * "Stochastic Screen Space Reflections"
  * by Tomasz Stachowiak.
@@ -16,6 +7,14 @@
  * by Tomasz Stachowiak.
  * https://media.contentapi.ea.com/content/dam/ea/seed/presentations/dd18-seed-raytracing-in-hybrid-real-time-rendering.pdf
  */
+
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
+#pragma BLENDER_REQUIRE(raytrace_lib.glsl)
+#pragma BLENDER_REQUIRE(lightprobe_lib.glsl)
+#pragma BLENDER_REQUIRE(bsdf_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(effect_reflection_lib.glsl)
 
 void main()
 {

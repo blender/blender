@@ -11,12 +11,12 @@ void main()
 {
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
-  shadow_interp.view_id = drw_view_id;
+  shadow_viewport_layer_set(int(drw_view_id), int(viewport_index_buf[drw_view_id]));
 #endif
 
   init_interface();
 
-  point_cloud_interp.id = pointcloud_get_point_id();
+  point_cloud_interp_flat.id = pointcloud_get_point_id();
   pointcloud_get_pos_and_radius(point_cloud_interp.position, point_cloud_interp.radius);
   pointcloud_get_pos_and_nor(interp.P, interp.N);
 #ifdef MAT_SHADOW
@@ -30,7 +30,7 @@ void main()
 #ifdef MAT_VELOCITY
   vec3 lP = point_world_to_object(point_cloud_interp.position);
   vec3 prv, nxt;
-  velocity_local_pos_get(lP, point_cloud_interp.id, prv, nxt);
+  velocity_local_pos_get(lP, point_cloud_interp_flat.id, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
    * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at

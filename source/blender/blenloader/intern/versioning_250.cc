@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -629,16 +629,8 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
   }
 }
 
-static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
+static bool seq_sound_proxy_update_cb(Sequence *seq, void * /*user_data*/)
 {
-  Main *bmain = (Main *)user_data;
-  if (seq->type == SEQ_TYPE_SOUND_HD) {
-    char filepath_abs[FILE_MAX];
-    BLI_path_join(
-        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
-    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
-    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
-  }
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
@@ -688,7 +680,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->ed && scene->ed->seqbasep) {
+      if (scene->ed) {
         SEQ_for_each_callback(&scene->ed->seqbase, seq_sound_proxy_update_cb, bmain);
       }
     }

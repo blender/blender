@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32475,6 +32475,10 @@ msgid "Keying"
 msgstr "ჩასოლვა"
 
 
+msgid "Eccentricity"
+msgstr "ექსცენტრიულობა"
+
+
 msgid "Anisotropic"
 msgstr "ანიზოტროპული"
 
@@ -43977,10 +43981,6 @@ msgstr "მესამე"
 
 msgid "Fourth"
 msgstr "მეოთხე"
-
-
-msgid "Eccentricity"
-msgstr "ექსცენტრიულობა"
 
 
 msgid "Odd"

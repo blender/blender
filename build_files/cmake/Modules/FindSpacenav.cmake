@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,19 +16,19 @@
 #  SPACENAV_LIBRARY, where to find the Spacenav library.
 
 # If `SPACENAV_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED SPACENAV_ROOT_DIR)
+if(DEFINED SPACENAV_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{SPACENAV_ROOT_DIR})
-  SET(SPACENAV_ROOT_DIR $ENV{SPACENAV_ROOT_DIR})
-ELSE()
-  SET(SPACENAV_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{SPACENAV_ROOT_DIR})
+  set(SPACENAV_ROOT_DIR $ENV{SPACENAV_ROOT_DIR})
+else()
+  set(SPACENAV_ROOT_DIR "")
+endif()
 
-SET(_spacenav_SEARCH_DIRS
+set(_spacenav_SEARCH_DIRS
   ${SPACENAV_ROOT_DIR}
 )
 
-FIND_PATH(SPACENAV_INCLUDE_DIR
+find_path(SPACENAV_INCLUDE_DIR
   NAMES
     spnav.h
   HINTS
@@ -37,7 +37,7 @@ FIND_PATH(SPACENAV_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(SPACENAV_LIBRARY
+find_library(SPACENAV_LIBRARY
   NAMES
     spnav
   HINTS
@@ -48,16 +48,16 @@ FIND_LIBRARY(SPACENAV_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set SPACENAV_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Spacenav DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Spacenav DEFAULT_MSG
     SPACENAV_LIBRARY SPACENAV_INCLUDE_DIR)
 
-IF(SPACENAV_FOUND)
-  SET(SPACENAV_LIBRARIES ${SPACENAV_LIBRARY})
-  SET(SPACENAV_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIR})
-ENDIF()
+if(SPACENAV_FOUND)
+  set(SPACENAV_LIBRARIES ${SPACENAV_LIBRARY})
+  set(SPACENAV_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   SPACENAV_INCLUDE_DIR
   SPACENAV_LIBRARY
 )

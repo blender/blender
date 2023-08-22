@@ -244,6 +244,8 @@ void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_400(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
+void do_versions_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
+
 /**
  * Direct data-blocks with global linking.
  *

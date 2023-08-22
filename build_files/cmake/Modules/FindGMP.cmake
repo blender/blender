@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,20 +16,20 @@
 #  GMP_LIBRARY, where to find the GMP library.
 
 # If `GMP_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED GMP_ROOT_DIR)
+if(DEFINED GMP_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{GMP_ROOT_DIR})
-  SET(GMP_ROOT_DIR $ENV{GMP_ROOT_DIR})
-ELSE()
-  SET(GMP_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{GMP_ROOT_DIR})
+  set(GMP_ROOT_DIR $ENV{GMP_ROOT_DIR})
+else()
+  set(GMP_ROOT_DIR "")
+endif()
 
-SET(_gmp_SEARCH_DIRS
+set(_gmp_SEARCH_DIRS
   ${GMP_ROOT_DIR}
   /opt/lib/gmp
 )
 
-FIND_PATH(GMP_INCLUDE_DIR
+find_path(GMP_INCLUDE_DIR
   NAMES
     gmp.h
   HINTS
@@ -38,7 +38,7 @@ FIND_PATH(GMP_INCLUDE_DIR
     include/gmp
 )
 
-FIND_PATH(GMPXX_INCLUDE_DIR
+find_path(GMPXX_INCLUDE_DIR
   NAMES
     gmpxx.h
   HINTS
@@ -47,7 +47,7 @@ FIND_PATH(GMPXX_INCLUDE_DIR
     include/gmp
 )
 
-FIND_LIBRARY(GMP_LIBRARY
+find_library(GMP_LIBRARY
   NAMES
     gmp
   HINTS
@@ -56,7 +56,7 @@ FIND_LIBRARY(GMP_LIBRARY
     lib64 lib
   )
 
-FIND_LIBRARY(GMPXX_LIBRARY
+find_library(GMPXX_LIBRARY
   NAMES
     gmpxx
   HINTS
@@ -66,7 +66,7 @@ FIND_LIBRARY(GMPXX_LIBRARY
   )
 
 if(GMP_INCLUDE_DIR)
-  SET(_version_regex "^#define[ \t]+__GNU_MP_VERSION[ \t]+\"([^\"]+)\".*")
+  set(_version_regex "^#define[ \t]+__GNU_MP_VERSION[ \t]+\"([^\"]+)\".*")
   file(STRINGS "${GMP_INCLUDE_DIR}/gmp.h"
     GMP_VERSION REGEX "${_version_regex}")
   string(REGEX REPLACE "${_version_regex}" "\\1"
@@ -76,16 +76,16 @@ endif()
 
 # handle the QUIETLY and REQUIRED arguments and set GMP_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(GMP DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GMP DEFAULT_MSG
     GMP_LIBRARY GMPXX_LIBRARY GMP_INCLUDE_DIR GMPXX_INCLUDE_DIR)
 
-IF(GMP_FOUND)
-  SET(GMP_LIBRARIES ${GMPXX_LIBRARY} ${GMP_LIBRARY})
-  SET(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIR} ${GMPXX_INCLUDE_DIR})
-ENDIF()
+if(GMP_FOUND)
+  set(GMP_LIBRARIES ${GMPXX_LIBRARY} ${GMP_LIBRARY})
+  set(GMP_INCLUDE_DIRS ${GMP_INCLUDE_DIR} ${GMPXX_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   GMP_INCLUDE_DIR
   GMP_LIBRARY
   GMPXX_INCLUDE_DIR

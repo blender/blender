@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -30,7 +30,7 @@ static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(0);
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_skip_realization();
+      .compositor_realization_options(CompositorInputRealizationOptions::RealizeRotation);
   b.add_input<decl::Float>("Size")
       .default_value(1.0f)
       .min(0.0f)

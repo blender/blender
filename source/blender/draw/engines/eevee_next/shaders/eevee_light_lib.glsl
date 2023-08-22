@@ -110,11 +110,10 @@ float light_point_light(LightData ld, const bool is_directional, vec3 L, float d
   if (is_directional) {
     return 1.0;
   }
-  /**
-   * Using "Point Light Attenuation Without Singularity" from Cem Yuksel
+  /* Using "Point Light Attenuation Without Singularity" from Cem Yuksel
    * http://www.cemyuksel.com/research/pointlightattenuation/pointlightattenuation.pdf
    * http://www.cemyuksel.com/research/pointlightattenuation/
-   **/
+   */
   float d_sqr = sqr(dist);
   float r_sqr = ld.radius_squared;
   /* Using reformulation that has better numerical precision. */

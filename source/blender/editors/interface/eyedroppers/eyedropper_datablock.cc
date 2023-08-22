@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation
+/* SPDX-FileCopyrightText: 2009 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -137,7 +137,7 @@ static void datadropper_exit(bContext *C, wmOperator *op)
  * \brief get the ID from the 3D view or outliner.
  */
 static void datadropper_id_sample_pt(
-    bContext *C, wmWindow *win, ScrArea *area, DataDropper *ddr, const int m_xy[2], ID **r_id)
+    bContext *C, wmWindow *win, ScrArea *area, DataDropper *ddr, const int event_xy[2], ID **r_id)
 {
   wmWindow *win_prev = CTX_wm_window(C);
   ScrArea *area_prev = CTX_wm_area(C);
@@ -147,9 +147,9 @@ static void datadropper_id_sample_pt(
 
   if (area) {
     if (ELEM(area->spacetype, SPACE_VIEW3D, SPACE_OUTLINER)) {
-      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
+      ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, event_xy);
       if (region) {
-        const int mval[2] = {m_xy[0] - region->winrct.xmin, m_xy[1] - region->winrct.ymin};
+        const int mval[2] = {event_xy[0] - region->winrct.xmin, event_xy[1] - region->winrct.ymin};
         Base *base;
 
         CTX_wm_window_set(C, win);
@@ -217,16 +217,16 @@ static bool datadropper_id_set(bContext *C, DataDropper *ddr, ID *id)
 }
 
 /* single point sample & set */
-static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int m_xy[2])
+static bool datadropper_id_sample(bContext *C, DataDropper *ddr, const int event_xy[2])
 {
   ID *id = nullptr;
 
-  int mval[2];
+  int event_xy_win[2];
   wmWindow *win;
   ScrArea *area;
-  datadropper_win_area_find(C, m_xy, mval, &win, &area);
+  datadropper_win_area_find(C, event_xy, event_xy_win, &win, &area);
 
-  datadropper_id_sample_pt(C, win, area, ddr, mval, &id);
+  datadropper_id_sample_pt(C, win, area, ddr, event_xy_win, &id);
   return datadropper_id_set(C, ddr, id);
 }
 
@@ -288,15 +288,15 @@ static int datadropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (event->type == MOUSEMOVE) {
     ID *id = nullptr;
 
-    int mval[2];
+    int event_xy_win[2];
     wmWindow *win;
     ScrArea *area;
-    datadropper_win_area_find(C, event->xy, mval, &win, &area);
+    datadropper_win_area_find(C, event->xy, event_xy_win, &win, &area);
 
     /* Set the region for eyedropper cursor text drawing */
     datadropper_set_draw_callback_region(area, ddr);
 
-    datadropper_id_sample_pt(C, win, area, ddr, mval, &id);
+    datadropper_id_sample_pt(C, win, area, ddr, event_xy_win, &id);
   }
 
   return OPERATOR_RUNNING_MODAL;

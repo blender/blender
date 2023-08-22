@@ -11,9 +11,9 @@ void do_vertex(
     vec4 pos, float selection_fac, vec2 stipple_start, vec2 stipple_pos, float coord, vec2 offset)
 {
   geom_out.selectionFac = selection_fac;
-  geom_out.edgeCoord = coord;
-  geom_out.stippleStart = stipple_start;
-  geom_out.stipplePos = stipple_pos;
+  geom_noperspective_out.edgeCoord = coord;
+  geom_flat_out.stippleStart = stipple_start;
+  geom_noperspective_out.stipplePos = stipple_pos;
 
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */

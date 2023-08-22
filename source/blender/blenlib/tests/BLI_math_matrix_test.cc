@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
@@ -409,6 +409,23 @@ TEST(math_matrix, MatrixMethods)
   EXPECT_V3_NEAR(loc, expect_location, 0.00001f);
   EXPECT_V4_NEAR(float4(qt), float4(expect_qt), 0.0002f);
   EXPECT_V3_NEAR(float3(eul), float3(expect_eul), 0.0002f);
+}
+
+TEST(math_matrix, Transformation2DMatrixDecomposition)
+{
+  const float2 translation = float2(1.0f, 2.0f);
+  const AngleRadian rotation = AngleRadian(0.5f);
+  const float2 scale = float2(5.0f, 3.0f);
+
+  const float3x3 transformation = from_loc_rot_scale<float3x3>(translation, rotation, scale);
+
+  AngleRadian decomposed_rotation;
+  float2 decomposed_translation, decomposed_scale;
+  to_loc_rot_scale(transformation, decomposed_translation, decomposed_rotation, decomposed_scale);
+
+  EXPECT_V2_NEAR(decomposed_translation, translation, 0.00001f);
+  EXPECT_V2_NEAR(decomposed_scale, scale, 0.00001f);
+  EXPECT_NEAR(decomposed_rotation.radian(), rotation.radian(), 0.00001f);
 }
 
 TEST(math_matrix, MatrixToQuaternionLegacy)

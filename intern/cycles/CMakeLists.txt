@@ -202,7 +202,6 @@ endif()
 
 add_definitions(
   ${BOOST_DEFINITIONS}
-  ${OPENIMAGEIO_DEFINITIONS}
 )
 
 add_definitions(

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -583,6 +583,13 @@ struct EraseOperationExecutor {
     const IndexMask strokes_to_keep = IndexMask::from_predicate(
         src.curves_range(), GrainSize(256), memory, [&](const int64_t src_curve) {
           const IndexRange src_curve_points = src_points_by_curve[src_curve];
+
+          /* One-point stroke : remove the stroke if the point lies inside of the eraser. */
+          if (src_curve_points.size() == 1) {
+            const float2 &point_pos = screen_space_positions[src_curve_points.first()];
+            const float dist_to_eraser = math::distance(point_pos, this->mouse_position);
+            return !(dist_to_eraser < eraser_radius);
+          }
 
           /* If any segment of the stroke is closer to the eraser than its radius, then remove
            * the stroke. */

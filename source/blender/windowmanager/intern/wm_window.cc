@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Foundation.
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Authors.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1517,7 +1517,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             int icon = ED_file_extension_icon((char *)stra->strings[a]);
             wmDragPath *path_data = WM_drag_create_path_data((char *)stra->strings[a]);
             WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
-            /* void poin should point to string, it makes a copy */
+            /* Void pointer should point to string, it makes a copy. */
             break; /* only one drop element supported now */
           }
         }
@@ -1886,6 +1886,9 @@ eWM_CapabilitiesFlag WM_capabilities_flag()
   }
   if (ghost_flag & GHOST_kCapabilityClipboardImages) {
     flag |= WM_CAPABILITY_CLIPBOARD_IMAGES;
+  }
+  if (ghost_flag & GHOST_kCapabilityDesktopSample) {
+    flag |= WM_CAPABILITY_DESKTOP_SAMPLE;
   }
 
   return flag;
@@ -2264,21 +2267,23 @@ bool wm_window_get_swap_interval(wmWindow *win, int *intervalOut)
 /** \name Find Window Utility
  * \{ */
 
-wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2])
+wmWindow *WM_window_find_under_cursor(wmWindow *win,
+                                      const int event_xy[2],
+                                      int r_event_xy_other[2])
 {
-  int tmp[2];
-  copy_v2_v2_int(tmp, mval);
-  wm_cursor_position_to_ghost_screen_coords(win, &tmp[0], &tmp[1]);
+  int temp_xy[2];
+  copy_v2_v2_int(temp_xy, event_xy);
+  wm_cursor_position_to_ghost_screen_coords(win, &temp_xy[0], &temp_xy[1]);
 
-  GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, tmp[0], tmp[1]);
+  GHOST_WindowHandle ghostwin = GHOST_GetWindowUnderCursor(g_system, temp_xy[0], temp_xy[1]);
 
   if (!ghostwin) {
     return nullptr;
   }
 
   wmWindow *win_other = static_cast<wmWindow *>(GHOST_GetWindowUserData(ghostwin));
-  wm_cursor_position_from_ghost_screen_coords(win_other, &tmp[0], &tmp[1]);
-  copy_v2_v2_int(r_mval, tmp);
+  wm_cursor_position_from_ghost_screen_coords(win_other, &temp_xy[0], &temp_xy[1]);
+  copy_v2_v2_int(r_event_xy_other, temp_xy);
   return win_other;
 }
 

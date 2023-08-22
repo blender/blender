@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2015-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2015-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,7 +57,7 @@ extern "C" {
 #  include "BLI_linklist.h"
 #  include "BLI_utildefines.h"
 
-#  include "BKE_cloth.h"
+#  include "BKE_cloth.hh"
 #  include "BKE_collision.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"

@@ -1,10 +1,12 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_node_types.h"
 
 #include "BKE_compute_contexts.hh"
+
+#include <ostream>
 
 namespace blender::bke {
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2015 Blender Foundation
+# SPDX-FileCopyrightText: 2015 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,20 +16,20 @@
 #  OPENVDB_LIBRARY, where to find the OPENVDB library.
 
 # If `OPENVDB_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED OPENVDB_ROOT_DIR)
+if(DEFINED OPENVDB_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{OPENVDB_ROOT_DIR})
-  SET(OPENVDB_ROOT_DIR $ENV{OPENVDB_ROOT_DIR})
-ELSE()
-  SET(OPENVDB_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{OPENVDB_ROOT_DIR})
+  set(OPENVDB_ROOT_DIR $ENV{OPENVDB_ROOT_DIR})
+else()
+  set(OPENVDB_ROOT_DIR "")
+endif()
 
-SET(_openvdb_SEARCH_DIRS
+set(_openvdb_SEARCH_DIRS
   ${OPENVDB_ROOT_DIR}
   /opt/lib/openvdb
 )
 
-FIND_PATH(OPENVDB_INCLUDE_DIR
+find_path(OPENVDB_INCLUDE_DIR
   NAMES
     openvdb/openvdb.h
   HINTS
@@ -38,7 +38,7 @@ FIND_PATH(OPENVDB_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(OPENVDB_LIBRARY
+find_library(OPENVDB_LIBRARY
   NAMES
     openvdb
   HINTS
@@ -49,18 +49,18 @@ FIND_LIBRARY(OPENVDB_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set OPENVDB_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenVDB DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenVDB DEFAULT_MSG
     OPENVDB_LIBRARY OPENVDB_INCLUDE_DIR)
 
-IF(OPENVDB_FOUND)
-  SET(OPENVDB_LIBRARIES ${OPENVDB_LIBRARY})
-  SET(OPENVDB_INCLUDE_DIRS ${OPENVDB_INCLUDE_DIR})
-ENDIF()
+if(OPENVDB_FOUND)
+  set(OPENVDB_LIBRARIES ${OPENVDB_LIBRARY})
+  set(OPENVDB_INCLUDE_DIRS ${OPENVDB_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   OPENVDB_INCLUDE_DIR
   OPENVDB_LIBRARY
 )
 
-UNSET(_openvdb_SEARCH_DIRS)
+unset(_openvdb_SEARCH_DIRS)

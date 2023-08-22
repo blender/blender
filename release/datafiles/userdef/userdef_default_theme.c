@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -287,7 +287,6 @@ const bTheme U_theme_default = {
   .space_view3d = {
     .back = RGBA(0x3d3d3dff),
     .back_grad = RGBA(0x30303000),
-    .background_type = 2,
     .title = RGBA(0xeeeeeeff),
     .text = RGBA(0xe6e6e6ff),
     .text_hi = RGBA(0xffffffff),
@@ -569,11 +568,11 @@ const bTheme U_theme_default = {
     .vertex_size = 3,
     .outline_width = 1,
     .facedot_size = 4,
+    .simulated_frames = RGBA(0x721e65ff),
     .keyframe_scale_fac = 1.0f,
     .handle_vertex_size = 4,
     .anim_active = RGBA(0x4d272766),
     .anim_preview_range = RGBA(0xa14d0066),
-    .simulated_frames = RGBA(0x721e65ff),
   },
   .space_nla = {
     .back = RGBA(0x30303000),

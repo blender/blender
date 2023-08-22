@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -390,7 +390,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.x - area->v1->vec.x < tolerance &&
           (area->v1->vec.x == xmin || area->v3->vec.x == xmax))
       {
-        /* There is a narrow vertical area sharing an edge of the combined bounds. */
+        WM_report(RPT_ERROR, "A narrow vertical area interferes with this operation.");
         return false;
       }
     }
@@ -405,7 +405,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.y - area->v1->vec.y < tolerance &&
           (area->v1->vec.y == ymin || area->v3->vec.y == ymax))
       {
-        /* There is a narrow horizontal area sharing an edge of the combined bounds. */
+        WM_report(RPT_ERROR, "A narrow horizontal area interferes with this operation.");
         return false;
       }
     }

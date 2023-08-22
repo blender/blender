@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2013 Blender Foundation
+/* SPDX-FileCopyrightText: 2013 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -68,6 +68,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
+#include "BKE_lib_query.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
@@ -767,7 +768,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
-    BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
+    BKE_constraints_id_loop(&object->constraints, constraint_walk, IDWALK_NOP, &data);
   }
 
   /* Object constraints. */
@@ -2691,8 +2692,12 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_GP:
+    case ID_GP: {
+      TimeSourceKey time_key;
+      ComponentKey geometry_key(obdata, NodeType::GEOMETRY);
+      add_relation(time_key, geometry_key, "Grease Pencil Frame Change");
       break;
+    }
     default:
       BLI_assert_msg(0, "Should not happen");
       break;

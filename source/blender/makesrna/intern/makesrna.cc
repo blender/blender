@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -67,10 +67,10 @@ static bool file_older(const char *file1, const char *file2)
   }
 
   if (stat(file1, &st1)) {
-    return 0;
+    return false;
   }
   if (stat(file2, &st2)) {
-    return 0;
+    return false;
   }
 
   return (st1.st_mtime < st2.st_mtime);
@@ -4736,6 +4736,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_nla.cc", nullptr, RNA_def_nla},
     {"rna_nodetree.cc", nullptr, RNA_def_nodetree},
     {"rna_node_socket.cc", nullptr, RNA_def_node_socket_subtypes},
+    {"rna_node_tree_interface.cc", nullptr, RNA_def_node_tree_interface},
     {"rna_object.cc", "rna_object_api.cc", RNA_def_object},
     {"rna_object_force.cc", nullptr, RNA_def_object_force},
     {"rna_depsgraph.cc", nullptr, RNA_def_depsgraph},

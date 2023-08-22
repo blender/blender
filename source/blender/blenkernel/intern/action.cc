@@ -167,7 +167,8 @@ static void action_free_data(ID *id)
 
 static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  bAction *act = (bAction *)id;
+  bAction *act = reinterpret_cast<bAction *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
 
   LISTBASE_FOREACH (FCurve *, fcu, &act->curves) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
@@ -175,6 +176,15 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
+      BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan->ipo, IDWALK_CB_USER);
+      LISTBASE_FOREACH (bConstraintChannel *, chan_constraint, &chan->constraintChannels) {
+        BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, chan_constraint->ipo, IDWALK_CB_USER);
+      }
+    }
   }
 }
 

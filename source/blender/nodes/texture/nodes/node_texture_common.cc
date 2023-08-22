@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Foundation
+/* SPDX-FileCopyrightText: 2006 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,9 +8,11 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "NOD_common.h"
 #include "node_common.h"
@@ -143,7 +145,7 @@ void register_node_type_tex_group()
   /* NOTE: Cannot use #sh_node_type_base for node group, because it would map the node type
    * to the shared #NODE_GROUP integer type id. */
 
-  node_type_base_custom(&ntype, "TextureNodeGroup", "Group", NODE_CLASS_GROUP);
+  node_type_base_custom(&ntype, "TextureNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.type = NODE_GROUP;
   ntype.poll = tex_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;

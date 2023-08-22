@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -543,7 +543,7 @@ void ED_slider_factor_set(tSlider *slider, const float factor)
   slider->raw_factor = factor;
   slider->factor = factor;
   if (!slider->overshoot) {
-    slider->factor = clamp_f(slider->factor, 0, 1);
+    slider->factor = clamp_f(slider->factor, slider->factor_bounds[0], slider->factor_bounds[1]);
   }
 }
 
@@ -574,6 +574,11 @@ void ED_slider_factor_bounds_set(tSlider *slider,
 void ED_slider_mode_set(tSlider *slider, SliderMode mode)
 {
   slider->slider_mode = mode;
+}
+
+SliderMode ED_slider_mode_get(tSlider *slider)
+{
+  return slider->slider_mode;
 }
 
 void ED_slider_unit_set(tSlider *slider, const char *unit)

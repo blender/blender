@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -81,6 +81,7 @@ static void mask_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     LISTBASE_FOREACH (MaskSpline *, mask_spline, &mask_layer->splines) {
+      BKE_LIB_FOREACHID_PROCESS_ID(data, mask_spline->parent.id, IDWALK_CB_USER);
       for (int i = 0; i < mask_spline->tot_point; i++) {
         MaskSplinePoint *point = &mask_spline->points[i];
         BKE_LIB_FOREACHID_PROCESS_ID(data, point->parent.id, IDWALK_CB_USER);

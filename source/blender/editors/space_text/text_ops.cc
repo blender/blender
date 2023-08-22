@@ -607,6 +607,11 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
   BLI_stat_t st;
   char filepath[FILE_MAX];
 
+  if (text->filepath == nullptr) {
+    BKE_reportf(reports, RPT_ERROR, "No file path for \"%s\"", text->id.name + 2);
+    return;
+  }
+
   STRNCPY(filepath, text->filepath);
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 

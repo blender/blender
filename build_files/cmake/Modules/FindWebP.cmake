@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Blender Foundation
+# SPDX-FileCopyrightText: 2022 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -15,20 +15,20 @@
 #  WEBP_LIBRARY, where to find the WEBP library.
 
 # If `WEBP_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED WEBP_ROOT_DIR)
+if(DEFINED WEBP_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{WEBP_ROOT_DIR})
-  SET(WEBP_ROOT_DIR $ENV{WEBP_ROOT_DIR})
-ELSE()
-  SET(WEBP_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{WEBP_ROOT_DIR})
+  set(WEBP_ROOT_DIR $ENV{WEBP_ROOT_DIR})
+else()
+  set(WEBP_ROOT_DIR "")
+endif()
 
-SET(_webp_SEARCH_DIRS
+set(_webp_SEARCH_DIRS
   ${WEBP_ROOT_DIR}
   /opt/lib/webp
 )
 
-FIND_PATH(WEBP_INCLUDE_DIR
+find_path(WEBP_INCLUDE_DIR
   NAMES
     webp/types.h
   HINTS
@@ -37,17 +37,17 @@ FIND_PATH(WEBP_INCLUDE_DIR
     include
 )
 
-SET(_webp_FIND_COMPONENTS
+set(_webp_FIND_COMPONENTS
   webp
   webpmux
   webpdemux
 )
 
-SET(_webp_LIBRARIES)
-FOREACH(COMPONENT ${_webp_FIND_COMPONENTS})
-  STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
+set(_webp_LIBRARIES)
+foreach(COMPONENT ${_webp_FIND_COMPONENTS})
+  string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(WEBP_${UPPERCOMPONENT}_LIBRARY
+  find_library(WEBP_${UPPERCOMPONENT}_LIBRARY
     NAMES
       ${COMPONENT}
     NAMES_PER_DIR
@@ -56,27 +56,27 @@ FOREACH(COMPONENT ${_webp_FIND_COMPONENTS})
     PATH_SUFFIXES
       lib64 lib lib/static
     )
-  LIST(APPEND _webp_LIBRARIES "${WEBP_${UPPERCOMPONENT}_LIBRARY}")
-ENDFOREACH()
+  list(APPEND _webp_LIBRARIES "${WEBP_${UPPERCOMPONENT}_LIBRARY}")
+endforeach()
 
-IF(${WEBP_WEBP_LIBRARY_NOTFOUND})
+if(NOT WEBP_WEBP_LIBRARY)
   set(WEBP_FOUND FALSE)
-ELSE()
+else()
   # handle the QUIETLY and REQUIRED arguments and set WEBP_FOUND to TRUE if
   # all listed variables are TRUE
-  INCLUDE(FindPackageHandleStandardArgs)
-  FIND_PACKAGE_HANDLE_STANDARD_ARGS(WebP DEFAULT_MSG _webp_LIBRARIES WEBP_INCLUDE_DIR)
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(WebP DEFAULT_MSG _webp_LIBRARIES WEBP_INCLUDE_DIR)
 
-  IF(WEBP_FOUND)
+  if(WEBP_FOUND)
     get_filename_component(WEBP_LIBRARY_DIR ${WEBP_WEBP_LIBRARY} DIRECTORY)
-    SET(WEBP_INCLUDE_DIRS ${WEBP_INCLUDE_DIR})
-    SET(WEBP_LIBRARIES ${_webp_LIBRARIES})
-  ELSE()
-    SET(WEBPL_PUGIXML_FOUND FALSE)
-  ENDIF()
-ENDIF()
+    set(WEBP_INCLUDE_DIRS ${WEBP_INCLUDE_DIR})
+    set(WEBP_LIBRARIES ${_webp_LIBRARIES})
+  else()
+    set(WEBPL_PUGIXML_FOUND FALSE)
+  endif()
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   WEBP_INCLUDE_DIR
   WEBP_LIBRARY_DIR
 

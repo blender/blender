@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,6 +42,7 @@
  */
 
 #include <mutex>
+#include <sstream>
 
 #include "BLI_compute_context.hh"
 #include "BLI_enumerable_thread_specific.hh"

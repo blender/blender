@@ -52,6 +52,7 @@
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
 
@@ -95,6 +96,20 @@ static void ipo_free_data(ID *id)
 
   if (G.debug & G_DEBUG) {
     printf("Freed %d (Unconverted) Ipo-Curves from IPO '%s'\n", n, ipo->id.name + 2);
+  }
+}
+
+static void ipo_foreach_id(ID *id, LibraryForeachIDData *data)
+{
+  Ipo *ipo = reinterpret_cast<Ipo *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
+      if (icu->driver) {
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, icu->driver->ob, IDWALK_CB_NOP);
+      }
+    }
   }
 }
 
@@ -176,7 +191,7 @@ IDTypeInfo IDType_ID_IP = {
     /*copy_data*/ nullptr,
     /*free_data*/ ipo_free_data,
     /*make_local*/ nullptr,
-    /*foreach_id*/ nullptr,
+    /*foreach_id*/ ipo_foreach_id,
     /*foreach_cache*/ nullptr,
     /*foreach_path*/ nullptr,
     /*owner_pointer_get*/ nullptr,
@@ -2161,15 +2176,15 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* check PoseChannels for constraints with local data */
     if (ob->pose) {
-      /* Verify if there's AnimData block */
-      BKE_animdata_ensure_id(id);
-
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
           /* if constraint has own IPO, convert add these to Object
            * (NOTE: they're most likely to be drivers too)
            */
           if (con->ipo) {
+            /* Verify if there's AnimData block */
+            BKE_animdata_ensure_id(id);
+
             /* although this was the constraint's local IPO, we still need to provide pchan + con
              * so that drivers can be added properly...
              */
@@ -2204,9 +2219,6 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* check constraint channels - we need to remove them anyway... */
     if (ob->constraintChannels.first) {
-      /* Verify if there's AnimData block */
-      BKE_animdata_ensure_id(id);
-
       for (conchan = static_cast<bConstraintChannel *>(ob->constraintChannels.first); conchan;
            conchan = conchann)
       {
@@ -2215,6 +2227,9 @@ void do_versions_ipos_to_animato(Main *bmain)
 
         /* convert Constraint Channel's IPO data */
         if (conchan->ipo) {
+          /* Verify if there's AnimData block */
+          BKE_animdata_ensure_id(id);
+
           ipo_to_animdata(bmain, id, conchan->ipo, nullptr, conchan->name, nullptr);
           id_us_min(&conchan->ipo->id);
           conchan->ipo = nullptr;

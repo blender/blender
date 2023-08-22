@@ -1,6 +1,3 @@
-
-#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
-
 /*
  * Based on:
  * A Fast and Stable Feature-Aware Motion Blur Filter
@@ -10,6 +7,8 @@
  * Next Generation Post Processing in Call of Duty Advanced Warfare
  * by Jorge Jimenez
  */
+
+#pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 
 #define KERNEL 8
 

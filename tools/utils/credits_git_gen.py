@@ -1,112 +1,82 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2023 Blender Foundation
+# SPDX-FileCopyrightText: 2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-Example use:
+Example use to generate all credits:
+
+   credits_git_gen.py
+
+Example use a custom range:
 
    credits_git_gen.py --source=/src/blender --range=SHA1..HEAD
 """
 
-from git_log import GitCommitIter
-import unicodedata as ud
-import re
+# NOTE: this shares the basic structure with `credits_git_gen.py`,
+# however details differ enough for them to be separate scripts.
+# Improvements to this script may apply there too.
+
+import argparse
+import io
+import multiprocessing
+import os
+import sys
+import unicodedata
+
+from typing import (
+    Dict,
+    Tuple,
+    Iterable,
+    List,
+)
+
+from git_log import (
+    GitCommitIter,
+    GitCommit,
+)
+
+import git_data_canonical_authors
+import git_data_sha1_override_authors
+
+IS_ATTY = sys.stdout.isatty()
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+SOURCE_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", ".."))
+
+author_table = git_data_canonical_authors.canonical_author_map()
+author_override_table = git_data_sha1_override_authors.sha1_authors_map()
+
 
 # -----------------------------------------------------------------------------
-# Lookup Table to clean up the credits
-#
-# This is a combination of unifying git logs as well as
-# name change requested by the authors.
+# Multi-Processing
 
-author_table = {
-    "Aaron": "Aaron Carlisle",
-    "Your Name": "Aaron Carlisle",
-    "Alan": "Alan Troth",
-    "andreas atteneder": "Andreas Atteneder",
-    "Ankit": "Ankit Meel",
-    "Antonioya": "Antonio Vazquez",
-    "Antonio  Vazquez": "Antonio Vazquez",
-    "Antony Ryakiotakis": "Antony Riakiotakis",
-    "Amélie Fondevilla": "Amelie Fondevilla",
-    "bastien": "Bastien Montagne",
-    "mont29": "Bastien Montagne",
-    "bjornmose": "Bjorn Mose",
-    "meta-androcto": "Brendon Murphy",
-    "Brecht van Lommel": "Brecht Van Lommel",
-    "Brecht Van Lömmel": "Brecht Van Lommel",
-    "recht Van Lommel": "Brecht Van Lommel",
-    "ClÃ©ment Foucault": "Clément Foucault",
-    "Clément": "Clément Foucault",
-    "fclem": "Clément Foucault",
-    "Clment Foucault": "Clément Foucault",
-    "christian brinkmann": "Christian Brinkmann",
-    "ZanQdo": "Daniel Salazar",
-    "unclezeiv": "Davide Vercelli",
-    "dilithjay": "Dilith Jayakody",
-    "gaiaclary": "Gaia Clary",
-    "DESKTOP-ON14TH5\\Sonny Campbell": "Sonny Campbell",
-    "demeterdzadik@gmail.com": "Demeter Dzadik",
-    "Diego Hernan Borghetti": "Diego Borghetti",
-    "Dotsnov Valentin": "Dontsov Valentin",
-    "Eitan": "Eitan Traurig",
-    "EitanSomething": "Eitan Traurig",
-    "Erik": "Erik Abrahamsson",
-    "Erick Abrahammson": "Erik Abrahamsson",
-    "Eric Abrahamsson": "Erik Abrahamsson",
-    "Ethan-Hall": "Ethan Hall",
-    "filedescriptor": "Falk David",
-    "Germano": "Germano Cavalcante",
-    "Germano Cavalcantemano-wii": "Germano Cavalcante",
-    "mano-wii": "Germano Cavalcante",
-    "gsr": "Guillermo S. Romero",
-    "Henrik Dick (weasel)": "Henrik Dick",
-    "howardt": "Howard Trickey",
-    "Iliay Katueshenock": "Iliya Katueshenock",
-    "MOD": "Iliya Katueshenock",
-    "Inês Almeida": "Ines Almeida",
-    "brita": "Ines Almeida",
-    "Ivan": "Ivan Perevala",
-    "jensverwiebe": "Jens Verwiebe",
-    "Jesse Y": "Jesse Yurkovich",
-    "Joe Eagar": "Joseph Eagar",
-    "Johnny Matthews (guitargeek)": "Johnny Matthews",
-    "guitargeek": "Johnny Matthews",
-    "jon denning": "Jon Denning",
-    "julianeisel": "Julian Eisel",
-    "Severin": "Julian Eisel",
-    "Alex Strand": "Kenzie Strand",
-    "Kevin Dietrich": "Kévin Dietrich",
-    "Leon Leno": "Leon Schittek",
-    "Lukas Toenne": "Lukas Tönne",
-    "Mikhail": "Mikhail Matrosov",
-    "OmarSquircleArt": "Omar Emara",
-    "lazydodo": "Ray Molenkamp",
-    "Ray molenkamp": "Ray Molenkamp",
-    "Author Name": "Robert Guetzkow",
-    "Sybren A. StÃÂ¼vel": "Sybren A. Stüvel",
-    "Simon": "Simon G",
-    "Stephan": "Stephan Seitz",
-    "Sebastian Herhoz": "Sebastian Herholz",
-    "blender": "Sergey Sharybin",
-    "Vuk GardaÅ¡eviÄ": "Vuk Gardašević",
-    "ianwill": "Willian Padovani Germano",
-    "Yiming Wu": "YimingWu",
-}
+def process_commits_for_map(commits: Iterable[GitCommit]) -> "Credits":
+    result = Credits()
+    for c in commits:
+        result.process_commit(c)
+    return result
 
-# Mapping from a comit hash to additional authors.
-# Fully overwrite authors gathered from git commit info.
-# Intended usage: Correction of info stored in git commit itself.
-# Note that the names of the authors here are assumed fully valid and usable as-is.
-commit_authors_overwrite = {
-    # Format: {full_git_hash: (tuple, of, authors),}.
-    # Example:
-    # b"a60c1e5bb814078411ce105b7cf347afac6f2afd": ("Blender Foundation",  "Suzanne", "Ton"),
-}
+
+# -----------------------------------------------------------------------------
+# Progress Display
+
+def value_as_percentage(value_partial: int, value_final: int) -> str:
+    percent = 0.0 if (value_final == 0) else (value_partial / value_final)
+    return "{:-6.2f}%".format(percent * 100)
+
+
+if IS_ATTY:
+    def progress_output(value_partial: int, value_final: int, info: str) -> None:
+        sys.stdout.write("\r\033[K[{:s}]: {:s}".format(value_as_percentage(value_partial, value_final), info))
+else:
+    def progress_output(value_partial: int, value_final: int, info: str) -> None:
+        sys.stdout.write("[{:s}]: {:s}\n".format(value_as_percentage(value_partial, value_final), info))
+
 
 # -----------------------------------------------------------------------------
 # Class for generating credits
-
 
 class CreditUser:
     __slots__ = (
@@ -115,37 +85,67 @@ class CreditUser:
         "year_max",
     )
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.commit_total = 0
+        self.year_min = 0
+        self.year_max = 0
 
 
 class Credits:
     __slots__ = (
         "users",
+        # Use for progress, simply the number of times `process_commit` has been called.
+        "process_commits_count",
     )
 
-    # Expected to cover the following formats (the e-mail address is not captured if present):
-    #    `Co-authored-by: Blender Foundation`
-    #    `Co-authored-by: Blender Foundation <foundation@blender.org>`
-    #    `Co-authored-by: Blender Foundation <Suzanne>`
-    GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*(?P<author>[ \w\t]*\w)(?:$|[ \t]*<)", re.MULTILINE)
-
-    def __init__(self):
-        self.users = {}
+    def __init__(self) -> None:
+        self.users: Dict[str, CreditUser] = {}
+        self.process_commits_count = 0
 
     @classmethod
-    def commit_authors_get(cls, c):
-        authors = commit_authors_overwrite.get(c.sha1, None)
-        if authors is not None:
-            # Ignore git commit info for these having an entry in commit_authors_overwrite.
-            return [author_table.get(author, author) for author in authors]
+    def commit_authors_get(cls, c: GitCommit) -> List[str]:
+        if (authors_overwrite := author_override_table.get(c.sha1, None)) is not None:
+            # Ignore git commit info for these having an entry in `author_override_table`.
+            return [author_table.get(author, author) for author in authors_overwrite]
 
-        authors = [c.author] + cls.GIT_COMMIT_COAUTHORS_RE.findall(c.body)
+        authors = [c.author] + c.co_authors
         # Normalize author string into canonical form, prevents duplicate credit users
-        authors = [ud.normalize('NFC', author) for author in authors]
+        authors = [unicodedata.normalize('NFC', author) for author in authors]
         return [author_table.get(author, author) for author in authors]
 
-    def process_commit(self, c):
+    @classmethod
+    def is_credit_commit_valid(cls, c: GitCommit) -> bool:
+        ignore_dir = (
+            b"blender/extern/",
+            b"blender/intern/opennl/",
+        )
+
+        if not any(f for f in c.files if not f.startswith(ignore_dir)):
+            return False
+
+        return True
+
+    def merge(self, other: "Credits") -> None:
+        """
+        Merge other Credits into this, clearing the other.
+        """
+        for user_key, user_other in other.users.items():
+            user = self.users.get(user_key)
+            if user is None:
+                # Consume the user.
+                self.users[user_key] = user_other
+            else:
+                user.commit_total += user_other.commit_total
+                user.year_min = min(user.year_min, user_other.year_min)
+                user.year_max = max(user.year_max, user_other.year_max)
+        other.users.clear()
+
+    def process_commit(self, c: GitCommit) -> None:
+        self.process_commits_count += 1
+
+        if not self.is_credit_commit_valid(c):
+            return
+
         authors = self.commit_authors_get(c)
         year = c.date.year
         for author in authors:
@@ -159,18 +159,59 @@ class Credits:
             cu.year_min = min(cu.year_min, year)
             cu.year_max = max(cu.year_max, year)
 
-    def process(self, commit_iter):
+    def _process_multiprocessing(self, commit_iter: Iterable[GitCommit], *, jobs: int) -> None:
+        print("Collecting commits...")
+        # NOTE(@ideasman42): that the chunk size doesn't have as much impact on
+        # performance as you might expect, values between 16 and 1024 seem reasonable.
+        # Although higher values tend to bottleneck as the process finishes.
+        chunk_size = 256
+        chunk_list = []
+        chunk = []
+        for i, c in enumerate(commit_iter):
+            chunk.append(c)
+            if len(chunk) >= chunk_size:
+                chunk_list.append(chunk)
+                chunk = []
+        if chunk:
+            chunk_list.append(chunk)
+
+        commit_count_total = (max(len(chunk_list) - 1, 0) * chunk_size) + len(chunk)
+
+        print("Found {:,d} commits, processing...".format(commit_count_total))
+        commit_count_handled = 0
+        with multiprocessing.Pool(processes=jobs) as pool:
+            for result in pool.imap_unordered(process_commits_for_map, chunk_list):
+                commit_count_handled += result.process_commits_count
+                progress_output(
+                    commit_count_handled,
+                    commit_count_total,
+                    "{:,d} / {:,d} commits".format(commit_count_handled, commit_count_total),
+                )
+                self.merge(result)
+
+        if IS_ATTY:
+            print("")  # Was printing on one-line, move to next.
+
+    def process(self, commit_iter: Iterable[GitCommit], *, jobs: int) -> None:
+        if jobs > 1:
+            self._process_multiprocessing(commit_iter, jobs=jobs)
+            return
+
+        # Simple single process operation.
         for i, c in enumerate(commit_iter):
             self.process_commit(c)
             if not (i % 100):
                 print(i)
 
-    def write(self, filepath,
-              is_main_credits=True,
-              contrib_companies=(),
-              sort="name"):
-
-        # patch_word = "patch", "patches"
+    def write_object(
+            self,
+            fh: io.TextIOWrapper,
+            *,
+            is_main_credits: bool = True,
+            contrib_companies: Tuple[str, ...] = (),
+            sort: str = "name",
+            use_email: bool = False,
+    ) -> None:
         commit_word = "commit", "commits"
 
         sorted_authors = {}
@@ -179,40 +220,59 @@ class Credits:
         else:
             sorted_authors = dict(sorted(self.users.items()))
 
-        with open(filepath, 'w', encoding="ascii", errors='xmlcharrefreplace') as file:
-            file.write("<h3>Individual Contributors</h3>\n\n")
-            for author, cu in sorted_authors.items():
-                file.write("{:s}, {:,d} {:s} {:s}<br />\n".format(
-                    author,
-                    cu.commit_total,
-                    commit_word[cu.commit_total > 1],
-                    ("" if not is_main_credits else
-                     ("- {:d}".format(cu.year_min) if cu.year_min == cu.year_max else
-                      ("({:d} - {:d})".format(cu.year_min, cu.year_max))))))
-                file.write("\n\n")
+        fh.write("<h3>Individual Contributors</h3>\n\n")
+        for author, cu in sorted_authors.items():
+            fh.write("{:s}, {:,d} {:s} {:s}<br />\n".format(
+                author if use_email else author.split("<", 1)[0].rstrip(),
+                cu.commit_total,
+                commit_word[cu.commit_total > 1],
+                (
+                    "" if not is_main_credits else (
+                        "- {:d}".format(cu.year_min) if cu.year_min == cu.year_max else
+                        "({:d} - {:d})".format(cu.year_min, cu.year_max)
+                    )
+                ),
+            ))
 
-            # -------------------------------------------------------------------------
-            # Companies, hard coded
-            if is_main_credits:
-                file.write("<h3>Contributions from Companies & Organizations</h3>\n")
-                file.write("<p>\n")
-                for line in contrib_companies:
-                    file.write("{:s}<br />\n".format(line))
-                file.write("</p>\n")
+        # -------------------------------------------------------------------------
+        # Companies, hard coded
+        if is_main_credits:
+            fh.write("<h3>Contributions from Companies & Organizations</h3>\n")
+            fh.write("<p>\n")
+            for line in contrib_companies:
+                fh.write("{:s}<br />\n".format(line))
+            fh.write("</p>\n")
 
-                import datetime
-                now = datetime.datetime.now()
-                fn = __file__.split("\\")[-1].split("/")[-1]
-                file.write(
-                    "<p><center><i>Generated by '{:s}' {:d}/{:d}/{:d}</i></center></p>\n".format(
-                        fn, now.year, now.month, now.day
-                    ))
+            import datetime
+            now = datetime.datetime.now()
+            fn = os.path.basename(__file__)
+            fh.write(
+                "<p><center><i>Generated by '{:s}' {:d}/{:d}/{:d}</i></center></p>\n".format(
+                    fn, now.year, now.month, now.day,
+                ))
+
+    def write(
+            self,
+            filepath: str,
+            *,
+            is_main_credits: bool = True,
+            contrib_companies: Tuple[str, ...] = (),
+            sort: str = "name",
+            use_email: bool = False,
+    ) -> None:
+        with open(filepath, 'w', encoding="ascii", errors='xmlcharrefreplace') as fh:
+            self.write_object(
+                fh,
+                is_main_credits=is_main_credits,
+                contrib_companies=contrib_companies,
+                sort=sort,
+                use_email=use_email,
+            )
 
 
-def argparse_create():
-    import argparse
+def argparse_create() -> argparse.ArgumentParser:
 
-    # When --help or no args are given, print this help
+    # When `--help` or no arguments are given, print this help.
     usage_text = "Review revisions."
 
     epilog = "This script is used to generate credits"
@@ -220,53 +280,65 @@ def argparse_create():
     parser = argparse.ArgumentParser(description=usage_text, epilog=epilog)
 
     parser.add_argument(
-        "--source", dest="source_dir",
+        "--source",
+        dest="source_dir",
         metavar='PATH',
-        required=True,
+        required=False,
+        default=SOURCE_DIR,
         help="Path to git repository",
     )
     parser.add_argument(
         "--range",
         dest="range_sha1",
         metavar='SHA1_RANGE',
-        required=True,
-        help="Range to use, eg: 169c95b8..HEAD",
+        required=False,
+        default="HEAD",
+        help="Range to use, eg: 169c95b8..HEAD or HEAD for all history.",
     )
 
     parser.add_argument(
-        "--sort", dest="sort",
+        "--sort",
+        dest="sort",
         metavar='METHOD',
         required=False,
         help="Sort credits by 'name' (default) or 'commit'",
+    )
+    # Don't include email addresses, they're useful for identifying developers but better not include in credits.
+    # Even though it's publicly available, developers may not want this so easily accessible on the credits page.
+    parser.add_argument(
+        "--use-email",
+        dest="use_email",
+        required=False,
+        action='store_true',
+        help="Include the email address in the credits (useful for debugging/investigating issues)",
+    )
+    parser.add_argument(
+        "--jobs",
+        dest="jobs",
+        type=int,
+        default=0,
+        help=(
+            "The number of processes to use. "
+            "Defaults to zero which detects the available cores, 1 is single threaded (useful for debugging)."
+        ),
+        required=False,
     )
 
     return parser
 
 
-def main():
+def main() -> None:
 
     # ----------
     # Parse Args
 
     args = argparse_create().parse_args()
 
-    def is_credit_commit_valid(c):
-        ignore_dir = (
-            b"blender/extern/",
-            b"blender/intern/opennl/",
-        )
-
-        if not any(f for f in c.files if not f.startswith(ignore_dir)):
-            return False
-
-        return True
-
     # TODO, there are for sure more companies then are currently listed.
     # 1 liners for in html syntax
     contrib_companies = (
         "<b>Unity Technologies</b> - FBX Exporter",
-        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, "
-        "OBJ Nurbs Import/Export",
+        "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
         "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
         "<b>Adidas</b> - Principled BSDF shader in Cycles",
         "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations",
@@ -282,12 +354,21 @@ def main():
     # commit_range = "blender-v2.82-release"
     commit_range = args.range_sha1
     sort = args.sort
-    citer = GitCommitIter(args.source_dir, commit_range)
-    credits.process((c for c in citer if is_credit_commit_valid(c)))
-    credits.write("credits.html",
-                  is_main_credits=True,
-                  contrib_companies=contrib_companies,
-                  sort=sort)
+    jobs = args.jobs
+    if jobs <= 0:
+        # Clamp the value, higher values give errors with too many open files.
+        # Allow users to manually pass very high values in as they might want to tweak system limits themselves.
+        jobs = min(multiprocessing.cpu_count() * 2, 400)
+
+    credits.process(GitCommitIter(args.source_dir, commit_range), jobs=jobs)
+
+    credits.write(
+        "credits.html",
+        is_main_credits=True,
+        contrib_companies=contrib_companies,
+        sort=sort,
+        use_email=args.use_email,
+    )
     print("Written: credits.html")
 
 

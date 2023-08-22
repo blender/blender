@@ -10,7 +10,7 @@
 #  include <glog/logging.h>
 #endif
 
-#include <iostream>
+#include <iosfwd>
 
 CCL_NAMESPACE_BEGIN
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -125,9 +125,12 @@ static char *rna_path_token_in_brackets(const char **path,
     return nullptr;
   }
 
-  /* Empty, return. */
-  if (UNLIKELY(len == 0)) {
-    return nullptr;
+  /* Support empty strings in quotes, as this is a valid key for an ID-property. */
+  if (!quoted) {
+    /* Empty, return. */
+    if (UNLIKELY(len == 0)) {
+      return nullptr;
+    }
   }
 
   /* Try to use fixed buffer if possible. */

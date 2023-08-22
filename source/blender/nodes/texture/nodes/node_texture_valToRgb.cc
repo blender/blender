@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,11 @@
  * \ingroup texnodes
  */
 
+#include "BKE_colorband.h"
 #include "IMB_colormanagement.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
+#include "node_util.hh"
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate valtorgb_in[] = {

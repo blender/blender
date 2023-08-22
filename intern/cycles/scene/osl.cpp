@@ -704,7 +704,7 @@ OSLCompiler::OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scen
 string OSLCompiler::id(ShaderNode *node)
 {
   /* assign layer unique name based on pointer address + bump mode */
-  stringstream stream;
+  std::stringstream stream;
 
   /* Ensure that no grouping characters (e.g. commas with en_US locale)
    * are added to the pointer string. */
@@ -1205,7 +1205,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
   current_type = type;
 
   /* Use name hash to identify shader group to avoid issues with non-alphanumeric characters */
-  stringstream name;
+  std::stringstream name;
   name.imbue(std::locale("C"));
   name << "shader_" << shader->name.hash();
 

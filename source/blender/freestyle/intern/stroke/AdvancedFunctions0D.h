@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -110,7 +110,7 @@ class ReadMapPixelF0D : public UnaryFunction0D<float> {
 };
 
 // ReadSteerableViewMapPixel
-/** Reads a pixel in one of the level of one of the steerable viewmaps. */
+/** Reads a pixel in one of the level of one of the steerable view-maps. */
 class ReadSteerableViewMapPixelF0D : public UnaryFunction0D<float> {
  private:
   uint _orientation;

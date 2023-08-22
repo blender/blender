@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,11 +6,9 @@
 
 #include <optional>
 
-#include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 

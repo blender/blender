@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -214,9 +214,9 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         material = bpy.data.materials[0]
 
         assert material.library is not None
-        assert material.use_fake_user is True
-        assert material.users == 2  # Fake user is not cleared when linking.
-        assert material.is_library_indirect
+        assert material.use_fake_user is False  # Fake user is cleared when linking.
+        assert material.users == 1
+        assert material.is_library_indirect is True
 
         assert mesh.library is not None
         assert mesh.use_fake_user is False
@@ -229,29 +229,28 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         coll.objects.link(ob)
         bpy.context.scene.collection.children.link(coll)
 
-        assert material.users == 2
-        assert material.is_library_indirect
+        assert material.users == 1
+        assert material.is_library_indirect is True
         assert mesh.users == 1
         assert mesh.is_library_indirect is False
 
         ob.material_slots[0].link = 'OBJECT'
         ob.material_slots[0].material = material
 
-        assert material.users == 3
+        assert material.users == 2
         assert material.is_library_indirect is False
 
         ob.material_slots[0].material = None
 
-        assert material.users == 2
+        assert material.users == 1
         # This is not properly updated whene removing a local user of linked data.
         assert material.is_library_indirect is False
 
         output_work_path = os.path.join(output_dir, self.unique_blendfile_name("blendfile"))
         bpy.ops.wm.save_as_mainfile(filepath=output_work_path, check_existing=False, compress=False)
 
-        assert material.users == 2
-        # Currently linked data with 'fake user' set are considered as directly linked data.
-        assert not material.is_library_indirect
+        assert material.users == 1
+        assert material.is_library_indirect is True
 
         bpy.ops.wm.open_mainfile(filepath=output_work_path, load_ui=False)
 
@@ -264,10 +263,9 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         material = bpy.data.materials[0]
 
         assert material.library is not None
-        assert material.use_fake_user is True
-        assert material.users == 2  # Fake user is not cleared when linking.
-        # Currently linked data with 'fake user' set are considered as directly linked data.
-        assert not material.is_library_indirect
+        assert material.use_fake_user is False  # Fake user is cleared when linking.
+        assert material.users == 1
+        assert material.is_library_indirect is True
 
         assert mesh.library is not None
         assert mesh.use_fake_user is False
@@ -293,7 +291,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
         assert len(bpy.data.materials) == 1
         assert bpy.data.materials[0].library is not None
-        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when linking.
         assert len(bpy.data.meshes) == 1
         assert bpy.data.meshes[0].library is None
         assert bpy.data.meshes[0].use_fake_user is False
@@ -310,7 +308,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
         assert len(bpy.data.materials) == 1
         assert bpy.data.materials[0].library is not None
-        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when linking.
         assert len(bpy.data.meshes) == 1
         assert bpy.data.meshes[0].library is None
         assert bpy.data.meshes[0].use_fake_user is False
@@ -328,7 +326,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
         assert len(bpy.data.materials) == 1
         assert bpy.data.materials[0].library is not None
-        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when linking.
         assert len(bpy.data.meshes) == 1
         assert bpy.data.meshes[0].library is None
         assert bpy.data.meshes[0].use_fake_user is True
@@ -345,7 +343,7 @@ class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
         assert len(bpy.data.materials) == 1
         assert bpy.data.materials[0].library is not None
-        assert bpy.data.materials[0].users == 2  # Fake user is not cleared when linking.
+        assert bpy.data.materials[0].users == 1  # Fake user is cleared when linking.
         assert len(bpy.data.meshes) == 1
         assert bpy.data.meshes[0].library is None
         assert bpy.data.meshes[0].users == 1

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -46,6 +46,7 @@ const EnumPropertyItem *rna_node_tree_type_itemf(void *data,
                                                  bool (*poll)(void *data, struct bNodeTreeType *),
                                                  bool *r_free);
 
+int rna_node_socket_idname_to_enum(const char *idname);
 struct bNodeSocketType *rna_node_socket_type_from_enum(int value);
 const EnumPropertyItem *rna_node_socket_type_itemf(
     void *data, bool (*poll)(void *data, struct bNodeSocketType *), bool *r_free);

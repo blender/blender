@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -56,9 +56,22 @@ static eViewOpsFlag viewops_flag_from_prefs()
   const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
   const bool use_depth = (U.uiflag & USER_DEPTH_NAVIGATE) != 0;
   const bool use_zoom_to_mouse = (U.uiflag & USER_ZOOM_TO_MOUSEPOS) != 0;
-  const bool use_auto_persp = (U.uiflag & USER_AUTOPERSP) != 0;
 
-  enum eViewOpsFlag flag = VIEWOPS_FLAG_INIT_ZFAC;
+  /**
+   * If the mode requires it, always set the #VIEWOPS_FLAG_PERSP_ENSURE.
+   * The function `ED_view3d_persp_ensure` already handles the checking of the preferences.
+   * And even with the option disabled, in some modes, it is still necessary to exit the camera
+   * view.
+   *
+   * \code{.c}
+   * const bool use_auto_persp = (U.uiflag & USER_AUTOPERSP) != 0;
+   * if (use_auto_persp) {
+   *  flag |= VIEWOPS_FLAG_PERSP_ENSURE;
+   * }
+   * \endcode
+   */
+  enum eViewOpsFlag flag = VIEWOPS_FLAG_INIT_ZFAC | VIEWOPS_FLAG_PERSP_ENSURE;
+
   if (use_select) {
     flag |= VIEWOPS_FLAG_ORBIT_SELECT;
   }
@@ -67,9 +80,6 @@ static eViewOpsFlag viewops_flag_from_prefs()
   }
   if (use_zoom_to_mouse) {
     flag |= VIEWOPS_FLAG_ZOOM_TO_MOUSE;
-  }
-  if (use_auto_persp) {
-    flag |= VIEWOPS_FLAG_PERSP_ENSURE;
   }
 
   return flag;

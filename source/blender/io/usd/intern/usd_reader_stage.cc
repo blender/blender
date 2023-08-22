@@ -11,6 +11,7 @@
 #include "usd_reader_nurbs.h"
 #include "usd_reader_prim.h"
 #include "usd_reader_shape.h"
+#include "usd_reader_skeleton.h"
 #include "usd_reader_volume.h"
 #include "usd_reader_xform.h"
 
@@ -42,8 +43,11 @@
 #include "BLI_string.h"
 
 #include "BKE_lib_id.h"
+#include "BKE_modifier.h"
 
 #include "DNA_material_types.h"
+
+#include "WM_api.hh"
 
 namespace blender::io::usd {
 
@@ -100,6 +104,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.import_volumes && prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
   }
+  if (params_.import_skeletons && prim.IsA<pxr::UsdSkelSkeleton>()) {
+    return new USDSkeletonReader(prim, params_, settings_);
+  }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
   }
@@ -134,6 +141,9 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
   if (prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
   }
+  if (prim.IsA<pxr::UsdSkelSkeleton>()) {
+    return new USDSkeletonReader(prim, params_, settings_);
+  }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
   }
@@ -167,6 +177,11 @@ bool USDStageReader::include_by_visibility(const pxr::UsdGeomImageable &imageabl
 
 bool USDStageReader::include_by_purpose(const pxr::UsdGeomImageable &imageable) const
 {
+  if (params_.import_skeletons && imageable.GetPrim().IsA<pxr::UsdSkelSkeleton>()) {
+    /* Always include skeletons, if requested by the user, regardless of purpose. */
+    return true;
+  }
+
   if (params_.import_guide && params_.import_proxy && params_.import_render) {
     /* The options allow any purpose, so we trivially include the prim. */
     return true;
@@ -316,6 +331,48 @@ void USDStageReader::collect_readers(Main *bmain)
 
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
   collect_readers(bmain, root);
+}
+
+void USDStageReader::process_armature_modifiers() const
+{
+  /* Iterate over the skeleton readers to create the
+   * armature object map, which maps a USD skeleton prim
+   * path to the corresponding armature object. */
+  std::map<std::string, Object *> usd_path_to_armature;
+  for (const USDPrimReader *reader : readers_) {
+    if (dynamic_cast<const USDSkeletonReader *>(reader) && reader->object()) {
+      usd_path_to_armature.insert(std::make_pair(reader->prim_path(), reader->object()));
+    }
+  }
+
+  /* Iterate over the mesh readers and set armature objects on armature modifiers. */
+  for (const USDPrimReader *reader : readers_) {
+    if (!reader->object()) {
+      continue;
+    }
+    const USDMeshReader *mesh_reader = dynamic_cast<const USDMeshReader *>(reader);
+    if (!mesh_reader) {
+      continue;
+    }
+    /* Check if the mesh object has an armature modifier. */
+    ModifierData *md = BKE_modifiers_findby_type(reader->object(), eModifierType_Armature);
+    if (!md) {
+      continue;
+    }
+
+    ArmatureModifierData *amd = reinterpret_cast<ArmatureModifierData *>(md);
+
+    /* Assign the armature based on the bound USD skeleton path of the skinned mesh. */
+    std::string skel_path = mesh_reader->get_skeleton_path();
+    std::map<std::string, Object *>::const_iterator it = usd_path_to_armature.find(skel_path);
+    if (it == usd_path_to_armature.end()) {
+      WM_reportf(RPT_WARNING,
+                 "%s: Couldn't find armature object corresponding to USD skeleton %s",
+                 __func__,
+                 skel_path.c_str());
+    }
+    amd->object = it->second;
+  }
 }
 
 void USDStageReader::import_all_materials(Main *bmain)

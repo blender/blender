@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -147,6 +147,8 @@ class VKPushConstants : VKResourceTracker<VKUniformBuffer> {
      * Location = ShaderInput.location.
      */
     const PushConstant *find(int32_t location) const;
+
+    void debug_print() const;
   };
 
  private:

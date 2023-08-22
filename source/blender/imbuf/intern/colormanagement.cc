@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2012 Blender Foundation
+/* SPDX-FileCopyrightText: 2012 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -737,14 +737,47 @@ void colormanagement_exit()
 /** \name Internal functions
  * \{ */
 
-static bool colormanage_compatible_look(ColorManagedLook *look, const char *view_name)
+static bool has_explicit_look_for_view(const char *view_name)
+{
+  if (!view_name) {
+    return false;
+  }
+
+  LISTBASE_FOREACH (ColorManagedLook *, look, &global_looks) {
+    if (STREQ(look->view, view_name)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool colormanage_compatible_look(const ColorManagedLook *look,
+                                        const char *view_name,
+                                        const bool has_explicit_look)
 {
   if (look->is_noop) {
     return true;
   }
 
-  /* Skip looks only relevant to specific view transforms. */
-  return (look->view[0] == 0 || (view_name && STREQ(look->view, view_name)));
+  /* Skip looks only relevant to specific view transforms.
+   * If the view transform has view-specific look ignore non-specific looks. */
+
+  if (view_name && STREQ(look->view, view_name)) {
+    return true;
+  }
+
+  if (has_explicit_look) {
+    return false;
+  }
+
+  return look->view[0] == '\0';
+}
+
+static bool colormanage_compatible_look(const ColorManagedLook *look, const char *view_name)
+{
+  const bool has_explicit_look = has_explicit_look_for_view(view_name);
+  return colormanage_compatible_look(look, view_name, has_explicit_look);
 }
 
 static bool colormanage_use_look(const char *look, const char *view_name)
@@ -1101,7 +1134,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
 {
   ColorManagedDisplay *display;
   ColorManagedView *default_view = nullptr;
-  ColorManagedLook *default_look = (ColorManagedLook *)global_looks.first;
+  const char *default_look_name = IMB_colormanagement_look_get_default_name();
 
   if (view_settings->view_transform[0] == '\0') {
     display = colormanage_display_get_named(display_settings->display_device);
@@ -1136,7 +1169,7 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
   }
 
   if (view_settings->look[0] == '\0') {
-    STRNCPY(view_settings->look, default_look->name);
+    STRNCPY(view_settings->look, default_look_name);
   }
   else {
     ColorManagedLook *look = colormanage_look_get_named(view_settings->look);
@@ -1144,9 +1177,20 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
       printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
              what,
              view_settings->look,
-             default_look->name);
+             default_look_name);
 
-      STRNCPY(view_settings->look, default_look->name);
+      STRNCPY(view_settings->look, default_look_name);
+    }
+    else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
+      printf(
+          "Color management: %s look \"%s\" is not compatible with view \"%s\", setting default "
+          "\"%s\".\n",
+          what,
+          view_settings->look,
+          view_settings->view_transform,
+          default_look_name);
+
+      STRNCPY(view_settings->look, default_look_name);
     }
   }
 
@@ -1355,7 +1399,7 @@ bool IMB_colormanagement_space_is_data(ColorSpace *colorspace)
 
 static void colormanage_ensure_srgb_scene_linear_info(ColorSpace *colorspace)
 {
-  if (!colorspace->info.cached) {
+  if (colorspace && !colorspace->info.cached) {
     OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
     OCIO_ConstColorSpaceRcPtr *ocio_colorspace = OCIO_configGetColorSpace(config,
                                                                           colorspace->name);
@@ -3314,6 +3358,31 @@ const char *IMB_colormanagement_look_get_indexed_name(int index)
   return nullptr;
 }
 
+const char *IMB_colormanagement_look_get_default_name()
+{
+  const ColorManagedLook *default_look = static_cast<const ColorManagedLook *>(global_looks.first);
+  if (!default_look) {
+    return "";
+  }
+
+  return default_look->name;
+}
+
+const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
+                                                       const char *look_name)
+{
+  ColorManagedLook *look_descr = colormanage_look_get_named(look_name);
+  if (!look_descr) {
+    return look_name;
+  }
+
+  if (colormanage_compatible_look(look_descr, view_name)) {
+    return look_name;
+  }
+
+  return IMB_colormanagement_look_get_default_name();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3369,8 +3438,10 @@ void IMB_colormanagement_look_items_add(EnumPropertyItem **items,
                                         int *totitem,
                                         const char *view_name)
 {
+  const bool has_explicit_look = has_explicit_look_for_view(view_name);
+
   LISTBASE_FOREACH (ColorManagedLook *, look, &global_looks) {
-    if (!colormanage_compatible_look(look, view_name)) {
+    if (!colormanage_compatible_look(look, view_name, has_explicit_look)) {
       continue;
     }
 

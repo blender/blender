@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -111,7 +111,8 @@ class RENDER_PT_color_management_display_settings(RenderButtonsPanel, Panel):
         # Only display HDR toggle for non-Filmic display transforms.
         col = layout.column(align=True)
         sub = col.row()
-        sub.active = (view.view_transform != "Filmic" and view.view_transform != "Filmic Log")
+        sub.active = (not view.view_transform.startswith("Filmic") and
+                      not view.view_transform.startswith("AgX"))
         sub.prop(view, "use_hdr_view")
 
 

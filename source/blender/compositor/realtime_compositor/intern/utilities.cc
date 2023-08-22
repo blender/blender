@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -124,8 +124,18 @@ InputDescriptor input_descriptor_from_input_socket(const bNodeSocket *socket)
   }
   const SocketDeclarationPtr &socket_declaration = node_declaration->inputs[socket->index()];
   input_descriptor.domain_priority = socket_declaration->compositor_domain_priority();
-  input_descriptor.skip_realization = socket_declaration->compositor_skip_realization();
   input_descriptor.expects_single_value = socket_declaration->compositor_expects_single_value();
+
+  input_descriptor.realization_options.realize_on_operation_domain = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeOnOperationDomain);
+  input_descriptor.realization_options.realize_rotation = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeRotation);
+  input_descriptor.realization_options.realize_scale = bool(
+      socket_declaration->compositor_realization_options() &
+      CompositorInputRealizationOptions::RealizeScale);
+
   return input_descriptor;
 }
 

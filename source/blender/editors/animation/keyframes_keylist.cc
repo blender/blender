@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+/* SPDX-FileCopyrightText: 2009 Blender Authors, Joshua Leung. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1191,6 +1191,26 @@ void grease_pencil_cels_to_keylist(AnimData * /*adt*/,
     float cfra = float(item.key);
     ED_keylist_add_or_update_column(
         keylist, cfra, nalloc_ak_cel, nupdate_ak_cel, static_cast<void *>(&cel));
+  }
+}
+
+void grease_pencil_layer_group_to_keylist(AnimData *adt,
+                                          const GreasePencilLayerTreeGroup *layer_group,
+                                          AnimKeylist *keylist,
+                                          const int saction_flag)
+{
+  if ((layer_group == nullptr) || (keylist == nullptr)) {
+    return;
+  }
+
+  LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group->children) {
+    const blender::bke::greasepencil::TreeNode &node = node_->wrap();
+    if (node.is_group()) {
+      grease_pencil_layer_group_to_keylist(adt, &node.as_group(), keylist, saction_flag);
+    }
+    else if (node.is_layer()) {
+      grease_pencil_cels_to_keylist(adt, &node.as_layer(), keylist, saction_flag);
+    }
   }
 }
 

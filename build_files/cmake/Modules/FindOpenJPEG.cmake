@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2011 Blender Foundation
+# SPDX-FileCopyrightText: 2011 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,19 +16,19 @@
 #  OPENJPEG_LIBRARY, where to find the OpenJPEG library.
 
 # If `OPENJPEG_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED OPENJPEG_ROOT_DIR)
+if(DEFINED OPENJPEG_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{OPENJPEG_ROOT_DIR})
-  SET(OPENJPEG_ROOT_DIR $ENV{OPENJPEG_ROOT_DIR})
-ELSE()
-  SET(OPENJPEG_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{OPENJPEG_ROOT_DIR})
+  set(OPENJPEG_ROOT_DIR $ENV{OPENJPEG_ROOT_DIR})
+else()
+  set(OPENJPEG_ROOT_DIR "")
+endif()
 
-SET(_openjpeg_SEARCH_DIRS
+set(_openjpeg_SEARCH_DIRS
   ${OPENJPEG_ROOT_DIR}
 )
 
-FIND_PATH(OPENJPEG_INCLUDE_DIR
+find_path(OPENJPEG_INCLUDE_DIR
   NAMES
     openjpeg.h
   HINTS
@@ -48,7 +48,7 @@ FIND_PATH(OPENJPEG_INCLUDE_DIR
     openjpeg-2.0
 )
 
-FIND_LIBRARY(OPENJPEG_LIBRARY
+find_library(OPENJPEG_LIBRARY
   NAMES
     openjp2
   HINTS
@@ -59,18 +59,18 @@ FIND_LIBRARY(OPENJPEG_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set OPENJPEG_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenJPEG DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(OpenJPEG DEFAULT_MSG
     OPENJPEG_LIBRARY OPENJPEG_INCLUDE_DIR)
 
-IF(OPENJPEG_FOUND)
-  SET(OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARY})
-  SET(OPENJPEG_INCLUDE_DIRS ${OPENJPEG_INCLUDE_DIR})
-ENDIF()
+if(OPENJPEG_FOUND)
+  set(OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARY})
+  set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   OPENJPEG_INCLUDE_DIR
   OPENJPEG_LIBRARY
 )
 
-UNSET(_openjpeg_SEARCH_DIRS)
+unset(_openjpeg_SEARCH_DIRS)

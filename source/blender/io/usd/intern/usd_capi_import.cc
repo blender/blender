@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2019 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -301,6 +301,10 @@ static void import_startjob(void *customdata, bool *stop, bool *do_update, float
       data->was_canceled = true;
       return;
     }
+  }
+
+  if (data->params.import_skeletons) {
+    archive->process_armature_modifiers();
   }
 
   data->import_ok = !data->was_canceled;

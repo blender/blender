@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -42,6 +42,7 @@
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -2092,6 +2093,18 @@ static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper *m
   BKE_viewer_path_id_remap(&view3d->viewer_path, mappings);
 }
 
+static void view3d_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  View3D *v3d = reinterpret_cast<View3D *>(space_link);
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->camera, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->ob_center, IDWALK_CB_NOP);
+  if (v3d->localvd) {
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, v3d->localvd->camera, IDWALK_CB_NOP);
+  }
+  BKE_viewer_path_foreach_id(data, &v3d->viewer_path);
+}
+
 static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   View3D *v3d = (View3D *)sl;
@@ -2166,6 +2179,7 @@ void ED_spacetype_view3d()
   st->gizmos = view3d_widgets;
   st->context = view3d_context;
   st->id_remap = view3d_id_remap;
+  st->foreach_id = view3d_foreach_id;
   st->blend_read_data = view3d_space_blend_read_data;
   st->blend_read_lib = view3d_space_blend_read_lib;
   st->blend_write = view3d_space_blend_write;

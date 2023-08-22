@@ -1,9 +1,10 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
 #include <iomanip>
+#include <sstream>
 
 namespace blender::nodes::node_fn_value_to_string_cc {
 

@@ -104,11 +104,17 @@ static void light_free_data(ID *id)
 
 static void light_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Light *lamp = (Light *)id;
+  Light *lamp = reinterpret_cast<Light *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   if (lamp->nodetree) {
     /* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data, BKE_library_foreach_ID_embedded(data, (ID **)&lamp->nodetree));
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, lamp->ipo, IDWALK_CB_USER);
   }
 }
 

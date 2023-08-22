@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -15,6 +15,8 @@
 #include "gpu_shader_create_info.hh"
 
 #include "eevee_private.h"
+
+#include <sstream>
 
 using blender::gpu::shader::StageInterfaceInfo;
 

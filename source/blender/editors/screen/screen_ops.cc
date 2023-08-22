@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -823,18 +823,19 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
 static void area_actionzone_get_rect(AZone *az, rcti *rect)
 {
   if (az->type == AZONE_REGION_SCROLL) {
+    const bool is_horizontal = az->direction == AZ_SCROLL_HOR;
+    const bool is_vertical = az->direction == AZ_SCROLL_VERT;
+    const bool is_right = is_vertical && bool(az->region->v2d.scroll & V2D_SCROLL_RIGHT);
+    const bool is_left = is_vertical && bool(az->region->v2d.scroll & V2D_SCROLL_LEFT);
+    const bool is_top = is_horizontal && bool(az->region->v2d.scroll & V2D_SCROLL_TOP);
+    const bool is_botton = is_horizontal && bool(az->region->v2d.scroll & V2D_SCROLL_BOTTOM);
     /* For scroll azones use the area around the region's scroll-bar location. */
-    rcti scroller_vert = (az->direction == AZ_SCROLL_HOR) ? az->region->v2d.hor :
-                                                            az->region->v2d.vert;
+    rcti scroller_vert = is_horizontal ? az->region->v2d.hor : az->region->v2d.vert;
     BLI_rcti_translate(&scroller_vert, az->region->winrct.xmin, az->region->winrct.ymin);
-    rect->xmin = scroller_vert.xmin -
-                 ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
-    rect->ymin = scroller_vert.ymin -
-                 ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
-    rect->xmax = scroller_vert.xmax +
-                 ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
-    rect->ymax = scroller_vert.ymax +
-                 ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
+    rect->xmin = scroller_vert.xmin - (is_right ? V2D_SCROLL_HIDE_HEIGHT : 0);
+    rect->ymin = scroller_vert.ymin - (is_top ? V2D_SCROLL_HIDE_WIDTH : 0);
+    rect->xmax = scroller_vert.xmax + (is_left ? V2D_SCROLL_HIDE_HEIGHT : 0);
+    rect->ymax = scroller_vert.ymax + (is_botton ? V2D_SCROLL_HIDE_WIDTH : 0);
   }
   else {
     azone_clipped_rect_calc(az, rect);
@@ -898,7 +899,8 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
           break;
         }
       }
-      else if (az->type == AZONE_REGION_SCROLL) {
+      else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
+        /* If the region is not visible we can ignore this scroll-bar zone. */
         ARegion *region = az->region;
         View2D *v2d = &region->v2d;
         int scroll_flag = 0;
@@ -967,7 +969,8 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
         area->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;
         ED_area_tag_redraw_no_rebuild(area);
       }
-      else if (az->type == AZONE_REGION_SCROLL) {
+      else if (az->type == AZONE_REGION_SCROLL && az->region->visible) {
+        /* If the region is not visible we can ignore this scroll-bar zone. */
         if (az->direction == AZ_SCROLL_VERT) {
           az->alpha = az->region->v2d.alpha_vert = 0;
           area->flag &= ~AREA_FLAG_ACTIONZONES_UPDATE;

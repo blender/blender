@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 Blender Foundation
+# SPDX-FileCopyrightText: 2021 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,6 +21,8 @@ set(INC
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
+set(INC_SYS
+)
 
 set(SRC
   nodes/node_shader_add_shader.cc

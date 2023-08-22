@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2014 Blender Foundation
+# SPDX-FileCopyrightText: 2014 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -85,7 +85,7 @@ macro(BLENDER_SRC_GTEST_EX)
       target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARIES})
     endif()
 
-    GET_BLENDER_TEST_INSTALL_DIR(TEST_INSTALL_DIR)
+    get_blender_test_install_dir(TEST_INSTALL_DIR)
     set_target_properties(${TARGET_NAME} PROPERTIES
                           RUNTIME_OUTPUT_DIRECTORY         "${TESTS_OUTPUT_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY_RELEASE "${TESTS_OUTPUT_DIR}"

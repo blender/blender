@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -536,6 +536,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       STRNCPY(scene->view_settings.look, "None");
     }
     else {
+      /* Default to AgX view transform. */
+      STRNCPY(scene->view_settings.view_transform, "AgX");
+
       /* AV Sync break physics sim caching, disable until that is fixed. */
       scene->audio.flag &= ~AUDIO_SYNC;
       scene->flag &= ~SCE_FRAME_DROP;
@@ -608,6 +611,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           bNodeSocketValueFloat *roughness_data = static_cast<bNodeSocketValueFloat *>(
               roughness_socket->default_value);
           roughness_data->value = 0.5f;
+          node->custom1 = SHD_GLOSSY_MULTI_GGX;
           node->custom2 = SHD_SUBSURFACE_RANDOM_WALK;
           BKE_ntree_update_tag_node_property(ma->nodetree, node);
         }

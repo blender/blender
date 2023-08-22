@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2012 Blender Foundation
+# SPDX-FileCopyrightText: 2012 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -66,7 +66,7 @@ if(WITH_OPENCOLORIO)
 
   set(GLSL_C)
   foreach(GLSL_FILE ${GLSL_SRC})
-    data_to_c_simple(${GLSL_FILE} GLSL_C)
+    data_to_c_simple(${GLSL_FILE} GLSL_C STRIP_LEADING_C_COMMENTS)
   endforeach()
 
   blender_add_lib(bf_ocio_shaders "${GLSL_C}" "" "" "")

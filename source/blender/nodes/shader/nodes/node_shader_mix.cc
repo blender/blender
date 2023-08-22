@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,16 +8,27 @@
 
 #include <algorithm>
 
+#include "BKE_material.h"
+
 #include "BLI_math_quaternion.hh"
+#include "BLI_math_vector.h"
+#include "BLI_string_utf8.h"
+
+#include "DNA_material_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
+
+#include "FN_multi_function_builder.hh"
 
 #include "NOD_add_node_search.hh"
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
 namespace blender::nodes::node_sh_mix_cc {

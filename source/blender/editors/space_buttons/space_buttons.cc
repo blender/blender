@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,7 @@
 
 #include "BKE_context.h"
 #include "BKE_gpencil_modifier_legacy.h" /* Types for registering panels. */
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -906,6 +907,33 @@ static void buttons_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemap
   }
 }
 
+static void buttons_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(space_link);
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+
+  BKE_LIB_FOREACHID_PROCESS_ID(data, sbuts->pinid, IDWALK_CB_NOP);
+  if (!is_readonly) {
+    if (sbuts->pinid == nullptr) {
+      sbuts->flag &= ~SB_PIN_CONTEXT;
+    }
+    /* NOTE: Restoring path pointers is complicated, if not impossible, because this contains
+     * data pointers too, not just ID ones. See #40046. */
+    MEM_SAFE_FREE(sbuts->path);
+  }
+
+  if (sbuts->texuser) {
+    ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ct->texture, IDWALK_CB_NOP);
+
+    if (!is_readonly) {
+      BLI_freelistN(&ct->users);
+      ct->user = nullptr;
+    }
+  }
+}
+
 static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;
@@ -954,6 +982,7 @@ void ED_spacetype_buttons()
   st->listener = buttons_area_listener;
   st->context = buttons_context;
   st->id_remap = buttons_id_remap;
+  st->foreach_id = buttons_foreach_id;
   st->blend_read_data = buttons_space_blend_read_data;
   st->blend_read_lib = buttons_space_blend_read_lib;
   st->blend_write = buttons_space_blend_write;

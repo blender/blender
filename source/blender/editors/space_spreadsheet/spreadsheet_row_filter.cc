@@ -1,10 +1,11 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
 #include "BLI_listbase.h"
+#include "BLI_math_color.hh"
 #include "BLI_math_matrix.hh"
 
 #include "DNA_screen_types.h"

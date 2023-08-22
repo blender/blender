@@ -139,7 +139,8 @@ set(SRC_KERNEL_CLOSURE_HEADERS
   closure/bssrdf.h
   closure/emissive.h
   closure/volume.h
-  closure/bsdf_hair_principled.h
+  closure/bsdf_principled_hair_chiang.h
+  closure/bsdf_principled_hair_huang.h
 )
 
 set(SRC_KERNEL_SVM_HEADERS
@@ -742,7 +743,7 @@ endif()
 # OptiX PTX modules
 
 if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
-  macro(CYCLES_OPTIX_KERNEL_ADD name input flags)
+  macro(cycles_optix_kernel_add name input flags)
     set(output "${CMAKE_CURRENT_BINARY_DIR}/${name}.ptx")
 
     set(cuda_flags ${flags}
@@ -800,11 +801,11 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     "device/optix/kernel_shader_raytrace.cu"
     "--keep-device-functions")
   if(WITH_CYCLES_OSL AND OSL_LIBRARY_VERSION_CODE GREATER_EQUAL 11300)
-    CYCLES_OPTIX_KERNEL_ADD(
+    cycles_optix_kernel_add(
       kernel_optix_osl
       "device/optix/kernel_osl.cu"
       "--relocatable-device-code=true")
-    CYCLES_OPTIX_KERNEL_ADD(
+    cycles_optix_kernel_add(
       kernel_optix_osl_services
       "osl/services_optix.cu"
       "--relocatable-device-code=true")

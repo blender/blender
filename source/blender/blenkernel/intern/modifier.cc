@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1441,6 +1441,9 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
           BLI_listbase_clear(&fmd->domain->ptcaches[1]);
           fmd->domain->point_cache[1] = nullptr;
         }
+
+        /* Flag for refreshing the simulation after loading */
+        fmd->domain->flags |= FLUID_DOMAIN_FILE_LOAD;
       }
       else if (fmd->type == MOD_FLUID_TYPE_FLOW) {
         fmd->domain = nullptr;
@@ -1451,6 +1454,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
         fmd->flow->verts_old = nullptr;
         fmd->flow->numverts = 0;
         BLO_read_data_address(reader, &fmd->flow->psys);
+
+        fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
       }
       else if (fmd->type == MOD_FLUID_TYPE_EFFEC) {
         fmd->flow = nullptr;
@@ -1461,6 +1466,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
           fmd->effector->verts_old = nullptr;
           fmd->effector->numverts = 0;
           fmd->effector->mesh = nullptr;
+
+          fmd->effector->flags &= ~FLUID_EFFECTOR_NEEDS_UPDATE;
         }
         else {
           fmd->type = 0;

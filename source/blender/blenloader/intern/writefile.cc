@@ -1225,16 +1225,6 @@ static bool write_file_handle(Main *mainvar,
            * asap afterward. */
           id_lib_extern(id_iter);
         }
-        else if (ID_FAKE_USERS(id_iter) > 0 && id_iter->asset_data == nullptr) {
-          /* Even though fake user is not directly editable by the user on linked data, it is a
-           * common 'work-around' to set it in library files on data-blocks that need to be linked
-           * but typically do not have an actual real user (e.g. texts, etc.).
-           * See e.g. #105687 and #103867.
-           *
-           * Would be good to find a better solution, but for now consider these as directly linked
-           * as well. */
-          id_lib_extern(id_iter);
-        }
         else {
           id_iter->tag |= LIB_TAG_INDIRECT;
           id_iter->tag &= ~LIB_TAG_EXTERN;

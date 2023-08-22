@@ -12,7 +12,7 @@ vec2 compute_dir(vec2 v0, vec2 v1)
 void main(void)
 {
   vec2 t;
-  vec2 edge_dir = compute_dir(interp_in[0].ss_pos, interp_in[1].ss_pos) * sizeViewportInv;
+  vec2 edge_dir = compute_dir(interp_flat[0].ss_pos, interp_flat[1].ss_pos) * sizeViewportInv;
 
   bool is_persp = (drw_view.winmat[3][3] == 0.0);
   float line_size = float(lineThickness) * sizePixel;

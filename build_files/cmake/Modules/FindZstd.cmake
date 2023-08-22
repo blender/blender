@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2019 Blender Foundation
+# SPDX-FileCopyrightText: 2019 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,19 +16,19 @@
 #  ZSTD_LIBRARY, where to find the Zstd library.
 
 # If `ZSTD_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED ZSTD_ROOT_DIR)
+if(DEFINED ZSTD_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{ZSTD_ROOT_DIR})
-  SET(ZSTD_ROOT_DIR $ENV{ZSTD_ROOT_DIR})
-ELSE()
-  SET(ZSTD_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{ZSTD_ROOT_DIR})
+  set(ZSTD_ROOT_DIR $ENV{ZSTD_ROOT_DIR})
+else()
+  set(ZSTD_ROOT_DIR "")
+endif()
 
-SET(_zstd_SEARCH_DIRS
+set(_zstd_SEARCH_DIRS
   ${ZSTD_ROOT_DIR}
 )
 
-FIND_PATH(ZSTD_INCLUDE_DIR
+find_path(ZSTD_INCLUDE_DIR
   NAMES
     zstd.h
   HINTS
@@ -37,7 +37,7 @@ FIND_PATH(ZSTD_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(ZSTD_LIBRARY
+find_library(ZSTD_LIBRARY
   NAMES
     zstd
   HINTS
@@ -48,16 +48,16 @@ FIND_LIBRARY(ZSTD_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set ZSTD_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(Zstd DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Zstd DEFAULT_MSG
     ZSTD_LIBRARY ZSTD_INCLUDE_DIR)
 
-IF(ZSTD_FOUND)
-  SET(ZSTD_LIBRARIES ${ZSTD_LIBRARY})
-  SET(ZSTD_INCLUDE_DIRS ${ZSTD_INCLUDE_DIR})
-ENDIF()
+if(ZSTD_FOUND)
+  set(ZSTD_LIBRARIES ${ZSTD_LIBRARY})
+  set(ZSTD_INCLUDE_DIRS ${ZSTD_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   ZSTD_INCLUDE_DIR
   ZSTD_LIBRARY
 )

@@ -76,7 +76,7 @@ IN_OUT ShaderPointCloudInterface
 #  endif
 
 #else
-/** Checks to ensure create-info is setup correctly. **/
+/* Checks to ensure create-info is setup correctly. */
 #  ifdef HAIR_SHADER
 #    ifndef USE_SURFACE_LIB_HAIR
 #      error Ensure CreateInfo eevee_legacy_surface_lib_hair is included if using surface library with a hair shader.

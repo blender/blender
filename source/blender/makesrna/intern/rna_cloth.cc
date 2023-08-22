@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +17,7 @@
 
 #include "rna_internal.h"
 
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_modifier.h"
 
 #include "SIM_mass_spring.h"

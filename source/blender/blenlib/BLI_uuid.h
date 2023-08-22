@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -57,7 +57,8 @@ bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer) ATTR_NONNULL();
 }
 
 #  include <initializer_list>
-#  include <ostream>
+#  include <iosfwd>
+#  include <string>
 
 /** Output the UUID as formatted ASCII string, see #BLI_uuid_format(). */
 std::ostream &operator<<(std::ostream &stream, bUUID uuid);

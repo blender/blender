@@ -212,10 +212,16 @@ static void mesh_free_data(ID *id)
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
+  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->key, IDWALK_CB_USER);
   for (int i = 0; i < mesh->totcol; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->mat[i], IDWALK_CB_USER);
+  }
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    BKE_LIB_FOREACHID_PROCESS_ID_NOCHECK(data, mesh->ipo, IDWALK_CB_USER);
   }
 }
 
@@ -299,6 +305,10 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   BLO_read_pointer_array(reader, (void **)&mesh->mat);
+  /* This check added for python created meshes. */
+  if (!mesh->mat) {
+    mesh->totcol = 0;
+  }
 
   /* Deprecated pointers to custom data layers are read here for backward compatibility
    * with files where these were owning pointers rather than a view into custom data. */
@@ -353,14 +363,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Mesh *me = reinterpret_cast<Mesh *>(id);
-  /* This check added for python created meshes. */
-  if (me->mat) {
-    for (int i = 0; i < me->totcol; i++) {
-      BLO_read_id_address(reader, id, &me->mat[i]);
-    }
-  }
-  else {
-    me->totcol = 0;
+  for (int i = 0; i < me->totcol; i++) {
+    BLO_read_id_address(reader, id, &me->mat[i]);
   }
 
   BLO_read_id_address(reader, id, &me->ipo);  // XXX: deprecated: old anim sys

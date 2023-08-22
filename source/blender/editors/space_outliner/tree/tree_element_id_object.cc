@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -103,54 +103,8 @@ void TreeElementIDObject::expand_modifiers(SpaceOutliner &space_outliner) const
   if (BLI_listbase_is_empty(&object_.modifiers)) {
     return;
   }
-  TreeElement *ten_mod = outliner_add_element(
+  outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_MODIFIER_BASE, 0);
-  ten_mod->name = IFACE_("Modifiers");
-
-  int index;
-  LISTBASE_FOREACH_INDEX (ModifierData *, md, &object_.modifiers, index) {
-    TreeElement *ten = outliner_add_element(
-        &space_outliner, &ten_mod->subtree, &object_, ten_mod, TSE_MODIFIER, index);
-    ten->name = md->name;
-    ten->directdata = md;
-
-    if (md->type == eModifierType_Lattice) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((LatticeModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-    else if (md->type == eModifierType_Curve) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((CurveModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-    else if (md->type == eModifierType_Armature) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((ArmatureModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-    else if (md->type == eModifierType_Hook) {
-      outliner_add_element(
-          &space_outliner, &ten->subtree, ((HookModifierData *)md)->object, ten, TSE_LINKED_OB, 0);
-    }
-    else if (md->type == eModifierType_ParticleSystem) {
-      ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-
-      ParticleSystemElementCreateData psys_data = {&object_, psys};
-
-      outliner_add_element(
-          &space_outliner, &ten->subtree, &psys_data, &legacy_te_, TSE_LINKED_PSYS, 0);
-    }
-  }
 }
 
 void TreeElementIDObject::expand_gpencil_modifiers(SpaceOutliner &space_outliner) const
@@ -158,42 +112,8 @@ void TreeElementIDObject::expand_gpencil_modifiers(SpaceOutliner &space_outliner
   if (BLI_listbase_is_empty(&object_.greasepencil_modifiers)) {
     return;
   }
-  TreeElement *ten_mod = outliner_add_element(
+  outliner_add_element(
       &space_outliner, &legacy_te_.subtree, &object_, &legacy_te_, TSE_MODIFIER_BASE, 0);
-  ten_mod->name = IFACE_("Modifiers");
-
-  int index;
-  LISTBASE_FOREACH_INDEX (GpencilModifierData *, md, &object_.greasepencil_modifiers, index) {
-    TreeElement *ten = outliner_add_element(
-        &space_outliner, &ten_mod->subtree, &object_, ten_mod, TSE_MODIFIER, index);
-    ten->name = md->name;
-    ten->directdata = md;
-
-    if (md->type == eGpencilModifierType_Armature) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((ArmatureGpencilModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-    else if (md->type == eGpencilModifierType_Hook) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((HookGpencilModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-    else if (md->type == eGpencilModifierType_Lattice) {
-      outliner_add_element(&space_outliner,
-                           &ten->subtree,
-                           ((LatticeGpencilModifierData *)md)->object,
-                           ten,
-                           TSE_LINKED_OB,
-                           0);
-    }
-  }
 }
 
 void TreeElementIDObject::expand_gpencil_effects(SpaceOutliner &space_outliner) const

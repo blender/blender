@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -11,6 +11,7 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "vk_buffer.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
@@ -64,6 +65,9 @@ class VKDevice : public NonCopyable {
 
   /* Workarounds */
   VKWorkarounds workarounds_;
+
+  /** Buffer to bind to unbound resource locations. */
+  VKBuffer dummy_buffer_;
 
  public:
   VkPhysicalDevice physical_device_get() const
@@ -123,6 +127,12 @@ class VKDevice : public NonCopyable {
 
   bool is_initialized() const;
   void init(void *ghost_context);
+  /**
+   * Initialize a dummy buffer that can be bound for missing attributes.
+   *
+   * Dummy buffer can only be initialized after the command buffer of the context is retrieved.
+   */
+  void init_dummy_buffer(VKContext &context);
   void deinit();
 
   eGPUDeviceType device_type() const;
@@ -142,6 +152,11 @@ class VKDevice : public NonCopyable {
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
   const Vector<std::reference_wrapper<VKContext>> &contexts_get() const;
+
+  const VKBuffer &dummy_buffer_get() const
+  {
+    return dummy_buffer_;
+  }
 
   /** \} */
 

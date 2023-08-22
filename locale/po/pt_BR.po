@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'769fe076683a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-08-14 09:28:55\n"
+"POT-Creation-Date: 2023-08-21 09:30:35\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -28215,8 +28215,8 @@ msgid "Tracking Object"
 msgstr "Objeto de rastreamento"
 
 
-msgid "Smoothing"
-msgstr "Suavização"
+msgid "Eccentricity"
+msgstr "Excentricidade"
 
 
 msgid "Anisotropic"
@@ -34503,6 +34503,10 @@ msgstr "Embute as texturas em um arquivo binário FBX (somente para o modo de \"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Escalona todos os dados (alguns importadores não suportam armações de ossos escalonadas  !)."
+
+
+msgid "Smoothing"
+msgstr "Suavização"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -65735,10 +65739,6 @@ msgid "Third"
 msgstr "Terços"
 
 
-msgid "Eccentricity"
-msgstr "Excentricidade"
-
-
 msgid "Odd"
 msgstr "Ímpar"
 
@@ -72386,14 +72386,6 @@ msgstr "O caminho da biblioteca '%s' agora é válido, por favor, recarregue a b
 
 msgid "). Click here to proceed..."
 msgstr "). Clique aqui para continuar..."
-
-
-msgid "Cannot edit builtin name"
-msgstr "Não é possível editar nome embutido."
-
-
-msgid "Cannot edit sequence name"
-msgstr "Não é possível editar nome de sequência."
 
 
 msgid "Cannot edit the path of an indirectly linked library"

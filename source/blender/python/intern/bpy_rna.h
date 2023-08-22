@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -122,8 +122,9 @@ typedef struct BPy_StructRNA {
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
 #ifdef PYRNA_FREE_SUPPORT
-  bool freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
-#endif          /* PYRNA_FREE_SUPPORT */
+  /** Needed in some cases if ptr.data is created on the fly, free when deallocating. */
+  bool freeptr;
+#endif /* PYRNA_FREE_SUPPORT */
 } BPy_StructRNA;
 
 typedef struct {

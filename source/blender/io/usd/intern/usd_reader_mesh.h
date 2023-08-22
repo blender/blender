@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  * Adapted from the Blender Alembic importer implementation.
@@ -56,6 +56,16 @@ class USDMeshReader : public USDGeomReader {
 
   bool topology_changed(const Mesh *existing_mesh, double motionSampleTime) override;
 
+  /**
+   * If the USD mesh prim has a valid `UsdSkel` schema defined, return the USD path
+   * string to the bound skeleton, if any. Returns the empty string if no skeleton
+   * binding is defined.
+   *
+   * The returned path is currently used to match armature modifiers with armature
+   * objects during import.
+   */
+  std::string get_skeleton_path() const;
+
  private:
   void process_normals_vertex_varying(Mesh *mesh);
   void process_normals_face_varying(Mesh *mesh);
@@ -82,6 +92,7 @@ class USDMeshReader : public USDGeomReader {
   void read_color_data_primvar(Mesh *mesh,
                                const pxr::UsdGeomPrimvar &color_primvar,
                                const double motionSampleTime);
+
   void read_uv_data_primvar(Mesh *mesh,
                             const pxr::UsdGeomPrimvar &primvar,
                             const double motionSampleTime);
@@ -94,6 +105,12 @@ class USDMeshReader : public USDGeomReader {
                                             const pxr::UsdGeomPrimvar &primvar,
                                             const double motionSampleTime,
                                             MutableSpan<BlenderT> attribute);
+
+  /**
+   * Override transform computation to account for the binding
+   * transformation for skinned meshes.
+   */
+  std::optional<XformResult> get_local_usd_xform(float time) const override;
 };
 
 }  // namespace blender::io::usd

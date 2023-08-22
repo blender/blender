@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -1387,6 +1387,7 @@ rna_custom_property_type_items = (
     ('BOOL', "Boolean", "A true or false value"),
     ('BOOL_ARRAY', "Boolean Array", "An array of true or false values"),
     ('STRING', "String", "A string value"),
+    ('DATA_BLOCK', "Data-Block", "A data-block value"),
     ('PYTHON', "Python", "Edit a Python value directly, for unsupported property types"),
 )
 
@@ -1411,6 +1412,9 @@ rna_custom_property_subtype_vector_items = (
     ('EULER', "Euler Angles", "Euler rotation angles in radians"),
     ('QUATERNION', "Quaternion Rotation", "Quaternion rotation (affects NLA blending)"),
 )
+
+rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
+                          for item in bpy.types.Action.bl_rna.properties['id_root'].enum_items)
 
 
 class WM_OT_properties_edit(Operator):
@@ -1554,6 +1558,14 @@ class WM_OT_properties_edit(Operator):
         maxlen=1024,
     )
 
+    # Data-block properties.
+
+    id_type: EnumProperty(
+        name="ID Type",
+        items=rna_id_type_items,
+        default='OBJECT',
+    )
+
     # Store the value converted to a string as a fallback for otherwise unsupported types.
     eval_string: StringProperty(
         name="Value",
@@ -1623,8 +1635,20 @@ class WM_OT_properties_edit(Operator):
             if is_array:
                 return 'PYTHON'
             return 'STRING'
+        elif prop_type == type(None) or issubclass(prop_type, bpy.types.ID):
+            if is_array:
+                return 'PYTHON'
+            return 'DATA_BLOCK'
 
         return 'PYTHON'
+
+    # For `DATA_BLOCK` types, return the `id_type` or an empty string for non data-block types.
+    @staticmethod
+    def get_property_id_type(item, property_name):
+        ui_data = item.id_properties_ui(property_name)
+        rna_data = ui_data.as_dict()
+        # For non `DATA_BLOCK` types, the `id_type` wont exist.
+        return rna_data.get("id_type", "")
 
     def _init_subtype(self, subtype):
         self.subtype = subtype or 'NONE'
@@ -1664,6 +1688,8 @@ class WM_OT_properties_edit(Operator):
             self.default_string = rna_data["default"]
         elif self.property_type in {'BOOL', 'BOOL_ARRAY'}:
             self.default_bool = self._convert_new_value_array(rna_data["default"], bool, 32)
+        elif self.property_type == 'DATA_BLOCK':
+            self.id_type = rna_data["id_type"]
 
         if self.property_type in {'FLOAT_ARRAY', 'INT_ARRAY', 'BOOL_ARRAY'}:
             self.array_length = len(item[name])
@@ -1677,7 +1703,7 @@ class WM_OT_properties_edit(Operator):
 
     # When the operator chooses a different type than the original property,
     # attempt to convert the old value to the new type for continuity and speed.
-    def _get_converted_value(self, item, name_old, prop_type_new):
+    def _get_converted_value(self, item, name_old, prop_type_new, id_type_old, id_type_new):
         if prop_type_new == 'INT':
             return self._convert_new_value_single(item[name_old], int)
         elif prop_type_new == 'FLOAT':
@@ -1700,6 +1726,14 @@ class WM_OT_properties_edit(Operator):
                 return [False] * self.array_length
         elif prop_type_new == 'STRING':
             return self.convert_custom_property_to_string(item, name_old)
+        elif prop_type_new == 'DATA_BLOCK':
+            if id_type_old != id_type_new:
+                return None
+            old_value = item[name_old]
+            if not isinstance(old_value, bpy.types.ID):
+                return None
+            return old_value
+
         # If all else fails, create an empty string property. That should avoid errors later on anyway.
         return ""
 
@@ -1760,6 +1794,12 @@ class WM_OT_properties_edit(Operator):
             ui_data.update(
                 default=self.default_string,
                 description=self.description,
+            )
+        elif prop_type_new == 'DATA_BLOCK':
+            ui_data = item.id_properties_ui(name)
+            ui_data.update(
+                description=self.description,
+                id_type=self.id_type,
             )
 
         escaped_name = bpy.utils.escape_identifier(name)
@@ -1824,6 +1864,9 @@ class WM_OT_properties_edit(Operator):
         prop_type_new = self.property_type
         self._old_prop_name[:] = [name]
 
+        id_type_old = self.get_property_id_type(item, name_old)
+        id_type_new = self.id_type
+
         if prop_type_new == 'PYTHON':
             try:
                 new_value = eval(self.eval_string)
@@ -1838,7 +1881,7 @@ class WM_OT_properties_edit(Operator):
             if name_old != name:
                 del item[name_old]
         else:
-            new_value = self._get_converted_value(item, name_old, prop_type_new)
+            new_value = self._get_converted_value(item, name_old, prop_type_new, id_type_old, id_type_new)
             del item[name_old]
             item[name] = new_value
 
@@ -1991,6 +2034,8 @@ class WM_OT_properties_edit(Operator):
                 layout.prop(self, "default_bool", index=0)
         elif self.property_type == 'STRING':
             layout.prop(self, "default_string")
+        elif self.property_type == 'DATA_BLOCK':
+            layout.prop(self, "id_type")
 
         if self.property_type == 'PYTHON':
             layout.prop(self, "eval_string")

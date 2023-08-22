@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
@@ -66,6 +67,21 @@ bool select_frame_at(bke::greasepencil::Layer &layer,
   return true;
 }
 
+void select_frames_at(bke::greasepencil::LayerGroup &layer_group,
+                      const int frame_number,
+                      const short select_mode)
+{
+  LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
+    bke::greasepencil::TreeNode &node = node_->wrap();
+    if (node.is_group()) {
+      select_frames_at(node.as_group(), frame_number, select_mode);
+    }
+    else if (node.is_layer()) {
+      select_frame_at(node.as_layer(), frame_number, select_mode);
+    }
+  }
+}
+
 void select_all_frames(bke::greasepencil::Layer &layer, const short select_mode)
 {
   for (auto item : layer.frames_for_write().items()) {
@@ -84,25 +100,53 @@ bool has_any_frame_selected(const bke::greasepencil::Layer &layer)
 }
 
 void select_frames_region(KeyframeEditData *ked,
-                          bke::greasepencil::Layer &layer,
+                          bke::greasepencil::TreeNode &node,
                           const short tool,
                           const short select_mode)
 {
-  for (auto [frame_number, frame] : layer.frames_for_write().items()) {
-    /* Construct a dummy point coordinate to do this testing with. */
-    const float2 pt(float(frame_number), ked->channel_y);
+  if (node.is_layer()) {
+    for (auto [frame_number, frame] : node.as_layer().frames_for_write().items()) {
+      /* Construct a dummy point coordinate to do this testing with. */
+      const float2 pt(float(frame_number), ked->channel_y);
 
-    /* Check the necessary regions. */
-    if (tool == BEZT_OK_CHANNEL_LASSO) {
-      if (keyframe_region_lasso_test(static_cast<const KeyframeEdit_LassoData *>(ked->data), pt)) {
+      /* Check the necessary regions. */
+      if (tool == BEZT_OK_CHANNEL_LASSO) {
+        if (keyframe_region_lasso_test(static_cast<const KeyframeEdit_LassoData *>(ked->data), pt))
+        {
+          select_frame(frame, select_mode);
+        }
+      }
+      else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
+        if (keyframe_region_circle_test(static_cast<const KeyframeEdit_CircleData *>(ked->data),
+                                        pt)) {
+          select_frame(frame, select_mode);
+        }
+      }
+    }
+  }
+  else if (node.is_group()) {
+    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
+      select_frames_region(ked, node_->wrap(), tool, select_mode);
+    }
+  }
+}
+
+void select_frames_range(bke::greasepencil::TreeNode &node,
+                         const float min,
+                         const float max,
+                         const short select_mode)
+{
+  /* Only select those frames which are in bounds. */
+  if (node.is_layer()) {
+    for (auto [frame_number, frame] : node.as_layer().frames_for_write().items()) {
+      if (IN_RANGE(float(frame_number), min, max)) {
         select_frame(frame, select_mode);
       }
     }
-    else if (tool == BEZT_OK_CHANNEL_CIRCLE) {
-      if (keyframe_region_circle_test(static_cast<const KeyframeEdit_CircleData *>(ked->data), pt))
-      {
-        select_frame(frame, select_mode);
-      }
+  }
+  else if (node.is_group()) {
+    LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
+      select_frames_range(node_->wrap(), min, max, select_mode);
     }
   }
 }

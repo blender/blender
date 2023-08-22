@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -737,34 +737,20 @@ endmacro()
 macro(remove_cc_flag
   _flag)
 
-  set(_flag_vars
-    CMAKE_C_FLAGS
-    CMAKE_C_FLAGS_DEBUG
-    CMAKE_C_FLAGS_RELEASE
-    CMAKE_C_FLAGS_MINSIZEREL
-    CMAKE_C_FLAGS_RELWITHDEBINFO
+  foreach(f ${ARGV})
+    string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+    string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+    string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
+    string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_MINSIZEREL ${CMAKE_C_FLAGS_MINSIZEREL})
+    string(REGEX REPLACE ${f} "" CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
 
-    CMAKE_CXX_FLAGS
-    CMAKE_CXX_FLAGS_DEBUG
-    CMAKE_CXX_FLAGS_RELEASE
-    CMAKE_CXX_FLAGS_MINSIZEREL
-    CMAKE_CXX_FLAGS_RELWITHDEBINFO
-  )
-
-  foreach(_flag ${ARGV})
-    foreach(_var ${_flag_vars})
-      # Expands to an expression like:
-      # `string(REGEX REPLACE "${_flag}" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")`
-      cmake_language(
-        EVAL CODE
-        "string(REGEX REPLACE \"\$\{_flag\}\" \"\" ${_var} \"\$\{${_var}\}\")"
-      )
-    endforeach()
+    string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+    string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+    string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_MINSIZEREL ${CMAKE_CXX_FLAGS_MINSIZEREL})
+    string(REGEX REPLACE ${f} "" CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
   endforeach()
-
-  unset(_flag)
-  unset(_flag_vars)
-  unset(_var)
+  unset(f)
 
 endmacro()
 
@@ -786,6 +772,7 @@ macro(remove_strict_flags)
   if(CMAKE_COMPILER_IS_GNUCC)
     remove_cc_flag(
       "-Wstrict-prototypes"
+      "-Wsuggest-attribute=format"
       "-Wmissing-prototypes"
       "-Wmissing-declarations"
       "-Wmissing-format-attribute"
@@ -906,7 +893,7 @@ macro(remove_cc_flag_unsigned_char)
   endif()
 endmacro()
 
-function(ADD_CHECK_C_COMPILER_FLAG_IMPL
+function(add_check_c_compiler_flag_impl
   _CFLAGS
   _CACHE_VAR
   _FLAG
@@ -923,7 +910,7 @@ function(ADD_CHECK_C_COMPILER_FLAG_IMPL
   endif()
 endfunction()
 
-function(ADD_CHECK_CXX_COMPILER_FLAG_IMPL
+function(add_check_cxx_compiler_flag_impl
   _CXXFLAGS
   _CACHE_VAR
   _FLAG
@@ -945,7 +932,7 @@ function(ADD_CHECK_C_COMPILER_FLAGS _CFLAGS)
   set(cache_var "")
   foreach(arg ${ARGN})
     if(cache_var)
-      ADD_CHECK_C_COMPILER_FLAG_IMPL("${_CFLAGS}" "${cache_var}" "${arg}")
+      add_check_c_compiler_flag_impl("${_CFLAGS}" "${cache_var}" "${arg}")
       set(cache_var "")
     else()
       set(cache_var "${arg}")
@@ -959,7 +946,7 @@ function(ADD_CHECK_CXX_COMPILER_FLAGS _CXXFLAGS)
   set(cache_var "")
   foreach(arg ${ARGN})
     if(cache_var)
-      ADD_CHECK_CXX_COMPILER_FLAG_IMPL("${_CXXFLAGS}" "${cache_var}" "${arg}")
+      add_check_cxx_compiler_flag_impl("${_CXXFLAGS}" "${cache_var}" "${arg}")
       set(cache_var "")
     else()
       set(cache_var "${arg}")
@@ -1109,7 +1096,8 @@ function(delayed_do_install
   endif()
 endfunction()
 
-
+# Same as above but generates the var name and output automatic.
+# Takes optional: `STRIP_LEADING_C_COMMENTS` argument.
 function(data_to_c
   file_from file_to
   list_to_add
@@ -1120,17 +1108,27 @@ function(data_to_c
 
   get_filename_component(_file_to_path ${file_to} PATH)
 
+  set(optional_args "")
+  foreach(f ${ARGN})
+    if (f STREQUAL "STRIP_LEADING_C_COMMENTS")
+      set(optional_args "--options=strip_leading_c_comments")
+    else()
+      message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c\"")
+    endif()
+  endforeach()
+
   add_custom_command(
     OUTPUT ${file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to}
+    COMMAND "$<TARGET_FILE:datatoc>" ${file_from} ${file_to} ${optional_args}
     DEPENDS ${file_from} datatoc)
 
   set_source_files_properties(${file_to} PROPERTIES GENERATED TRUE)
 endfunction()
 
 
-# same as above but generates the var name and output automatic.
+# Same as above but generates the var name and output automatic.
+# Takes optional: `STRIP_LEADING_C_COMMENTS` argument.
 function(data_to_c_simple
   file_from
   list_to_add
@@ -1147,10 +1145,19 @@ function(data_to_c_simple
 
   get_filename_component(_file_to_path ${_file_to} PATH)
 
+  set(optional_args "")
+  foreach(f ${ARGN})
+    if (f STREQUAL "STRIP_LEADING_C_COMMENTS")
+      set(optional_args "--options=strip_leading_c_comments")
+    else()
+      message(FATAL_ERROR "Unknown optional argument ${f} to \"data_to_c_simple\"")
+    endif()
+  endforeach()
+
   add_custom_command(
     OUTPUT  ${_file_to}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${_file_to_path}
-    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to}
+    COMMAND "$<TARGET_FILE:datatoc>" ${_file_from} ${_file_to} ${optional_args}
     DEPENDS ${_file_from} datatoc)
 
   set_source_files_properties(${_file_to} PROPERTIES GENERATED TRUE)

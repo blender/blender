@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -7,8 +7,8 @@
  */
 
 #include <cfloat>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "BLI_kdtree.h"
 #include "BLI_utildefines.h"

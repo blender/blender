@@ -2061,6 +2061,10 @@ static void direct_link_id_common(
   }
 
   id->lib = current_library;
+  if (id->lib) {
+    /* Always fully clear fake user flag for linked data. */
+    id->flag &= ~LIB_FAKEUSER;
+  }
   id->us = ID_FAKE_USERS(id);
   id->icon_id = 0;
   id->newid = nullptr; /* Needed because .blend may have been saved with crap value here... */

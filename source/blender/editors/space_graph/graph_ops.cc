@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -471,6 +471,7 @@ void graphedit_operatortypes()
   WM_operatortype_append(GRAPH_OT_ease);
   WM_operatortype_append(GRAPH_OT_blend_offset);
   WM_operatortype_append(GRAPH_OT_blend_to_ease);
+  WM_operatortype_append(GRAPH_OT_match_slope);
   WM_operatortype_append(GRAPH_OT_blend_to_default);
   WM_operatortype_append(GRAPH_OT_gaussian_smooth);
   WM_operatortype_append(GRAPH_OT_butterworth_smooth);

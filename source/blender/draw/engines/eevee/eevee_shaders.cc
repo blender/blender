@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -650,7 +650,7 @@ GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Raytraced Reflections
+/** \name Ray-Traced Reflections
  * \{ */
 
 GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get()

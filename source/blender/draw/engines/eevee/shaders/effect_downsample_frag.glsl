@@ -1,10 +1,9 @@
-
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-
 /**
  * Simple down-sample shader.
  * Do a gaussian filter using 4 bilinear texture samples.
  */
+
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 void main()
 {

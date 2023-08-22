@@ -91,6 +91,21 @@ typedef struct Camera {
   float shiftx, shifty;
   float dof_distance DNA_DEPRECATED;
 
+  char sensor_fit;
+  char panorama_type;
+  char _pad[2];
+
+  /** Fisheye properties. */
+  float fisheye_fov;
+  float fisheye_lens;
+  float latitude_min, latitude_max;
+  float longitude_min, longitude_max;
+  float fisheye_polynomial_k0;
+  float fisheye_polynomial_k1;
+  float fisheye_polynomial_k2;
+  float fisheye_polynomial_k3;
+  float fisheye_polynomial_k4;
+
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
 
@@ -100,9 +115,6 @@ typedef struct Camera {
 
   /* CameraBGImage reference images */
   struct ListBase bg_images;
-
-  char sensor_fit;
-  char _pad[7];
 
   /* Stereo settings */
   struct CameraStereoSettings stereo;
@@ -118,6 +130,16 @@ enum {
   CAM_PERSP = 0,
   CAM_ORTHO = 1,
   CAM_PANO = 2,
+};
+
+/* panorama_type */
+enum {
+  CAM_PANORAMA_EQUIRECTANGULAR = 0,
+  CAM_PANORAMA_FISHEYE_EQUIDISTANT = 1,
+  CAM_PANORAMA_FISHEYE_EQUISOLID = 2,
+  CAM_PANORAMA_MIRRORBALL = 3,
+  CAM_PANORAMA_FISHEYE_LENS_POLYNOMIAL = 4,
+  CAM_PANORAMA_EQUIANGULAR_CUBEMAP_FACE = 5,
 };
 
 /* dtx */

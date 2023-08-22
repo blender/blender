@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,10 +9,18 @@
 #include <algorithm>
 
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "BLI_math_base_safe.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
+#include "FN_multi_function_builder.hh"
+
+#include "NOD_multi_function.hh"
 #include "NOD_socket_search_link.hh"
+
+#include "RNA_access.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,7 +24,7 @@
 
 #include "BLO_read_write.h"
 
-#include <string.h>
+#include <cstring>
 
 static void speaker_init_data(ID *id)
 {

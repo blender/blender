@@ -228,10 +228,12 @@ class NoiseTextureNode : public TextureNode {
   SHADER_NODE_CLASS(NoiseTextureNode)
 
   NODE_SOCKET_API(int, dimensions)
+  NODE_SOCKET_API(bool, use_normalize)
   NODE_SOCKET_API(float, w)
   NODE_SOCKET_API(float, scale)
   NODE_SOCKET_API(float, detail)
   NODE_SOCKET_API(float, roughness)
+  NODE_SOCKET_API(float, lacunarity)
   NODE_SOCKET_API(float, distortion)
   NODE_SOCKET_API(float3, vector)
 };
@@ -855,12 +857,22 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   /* Absorption coefficient (unfiltered). */
   NODE_SOCKET_API(float3, absorption_coefficient)
 
-  NODE_SOCKET_API(float3, normal)
+  /* Aspect Ratio. */
+  NODE_SOCKET_API(float, aspect_ratio)
+
+  /* Optional modulation factors for the lobes. */
+  NODE_SOCKET_API(float, R)
+  NODE_SOCKET_API(float, TT)
+  NODE_SOCKET_API(float, TRT)
+
+  /* Weight for mix shader. */
   NODE_SOCKET_API(float, surface_mix_weight)
   /* If linked, here will be the given random number. */
   NODE_SOCKET_API(float, random)
   /* Selected coloring parametrization. */
   NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
+  /* Selected scattering model (near-/far-field). */
+  NODE_SOCKET_API(NodePrincipledHairModel, model)
 };
 
 class HairBsdfNode : public BsdfNode {

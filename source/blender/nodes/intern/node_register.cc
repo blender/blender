@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -34,7 +34,8 @@ static void register_undefined_types()
   STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_name, N_("Undefined"));
   STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
 
-  node_type_base_custom(&blender::bke::NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
+  node_type_base_custom(
+      &blender::bke::NodeTypeUndefined, "NodeUndefined", "Undefined", "UNDEFINED", 0);
   blender::bke::NodeTypeUndefined.poll = node_undefined_poll;
 
   STRNCPY(blender::bke::NodeSocketTypeUndefined.idname, "NodeSocketUndefined");

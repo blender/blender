@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -44,6 +44,8 @@
 #include "spreadsheet_layout.hh"
 #include "spreadsheet_row_filter.hh"
 #include "spreadsheet_row_filter_ui.hh"
+
+#include <sstream>
 
 using namespace blender;
 using namespace blender::ed::spreadsheet;
@@ -159,6 +161,12 @@ static void spreadsheet_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDR
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
   BKE_viewer_path_id_remap(&sspreadsheet->viewer_path, mappings);
+}
+
+static void spreadsheet_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceSpreadsheet *sspreadsheet = reinterpret_cast<SpaceSpreadsheet *>(space_link);
+  BKE_viewer_path_foreach_id(data, &sspreadsheet->viewer_path);
 }
 
 static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -719,6 +727,7 @@ void ED_spacetype_spreadsheet()
   st->operatortypes = spreadsheet_operatortypes;
   st->keymap = spreadsheet_keymap;
   st->id_remap = spreadsheet_id_remap;
+  st->foreach_id = spreadsheet_foreach_id;
   st->blend_read_data = spreadsheet_blend_read_data;
   st->blend_read_lib = spreadsheet_blend_read_lib;
   st->blend_write = spreadsheet_blend_write;

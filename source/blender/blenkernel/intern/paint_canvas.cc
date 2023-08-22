@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "BLI_compiler_compat.h"
@@ -13,6 +13,8 @@
 #include "BKE_paint.hh"
 
 #include "IMB_imbuf_types.h"
+
+#include <sstream>
 
 namespace blender::bke::paint::canvas {
 static TexPaintSlot *get_active_slot(Object *ob)

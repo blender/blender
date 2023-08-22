@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,7 @@
 #include "UI_interface.hh"
 
 #include "NOD_common.h"
+#include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 
 #include "FN_field_cpp_type.hh"

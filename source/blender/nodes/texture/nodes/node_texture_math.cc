@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,7 @@
 #include "BLI_math_rotation.h"
 #include "NOD_texture.h"
 #include "node_texture_util.hh"
+#include "node_util.hh"
 
 /* **************** SCALAR MATH ******************** */
 static bNodeSocketTemplate inputs[] = {

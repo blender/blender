@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Blender Foundation
+# SPDX-FileCopyrightText: 2016 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,20 +16,20 @@
 #  TBB_LIBRARY, where to find the TBB library.
 
 # If `TBB_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED TBB_ROOT_DIR)
+if(DEFINED TBB_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{TBB_ROOT_DIR})
-  SET(TBB_ROOT_DIR $ENV{TBB_ROOT_DIR})
-ELSE()
-  SET(TBB_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{TBB_ROOT_DIR})
+  set(TBB_ROOT_DIR $ENV{TBB_ROOT_DIR})
+else()
+  set(TBB_ROOT_DIR "")
+endif()
 
-SET(_tbb_SEARCH_DIRS
+set(_tbb_SEARCH_DIRS
   ${TBB_ROOT_DIR}
   /opt/lib/tbb
 )
 
-FIND_PATH(TBB_INCLUDE_DIR
+find_path(TBB_INCLUDE_DIR
   NAMES
     tbb/tbb.h
   HINTS
@@ -38,7 +38,7 @@ FIND_PATH(TBB_INCLUDE_DIR
     include
 )
 
-FIND_LIBRARY(TBB_LIBRARY
+find_library(TBB_LIBRARY
   NAMES
     tbb
   HINTS
@@ -49,18 +49,18 @@ FIND_LIBRARY(TBB_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set TBB_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(TBB DEFAULT_MSG
     TBB_LIBRARY TBB_INCLUDE_DIR)
 
-IF(TBB_FOUND)
-  SET(TBB_LIBRARIES ${TBB_LIBRARY})
-  SET(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
-ELSE()
-  SET(TBB_TBB_FOUND FALSE)
-ENDIF()
+if(TBB_FOUND)
+  set(TBB_LIBRARIES ${TBB_LIBRARY})
+  set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
+else()
+  set(TBB_TBB_FOUND FALSE)
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   TBB_INCLUDE_DIR
   TBB_LIBRARY
 )

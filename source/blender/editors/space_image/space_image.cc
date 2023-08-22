@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -23,6 +23,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_screen.h"
 
@@ -1003,6 +1004,21 @@ static void image_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemappe
   BKE_id_remapper_apply(mappings, (ID **)&simg->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
+static void image_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
+{
+  SpaceImage *simg = reinterpret_cast<SpaceImage *>(space_link);
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, simg->image, IDWALK_CB_USER_ONE);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, simg->iuser.scene, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, simg->mask_info.mask, IDWALK_CB_USER_ONE);
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, simg->gpd, IDWALK_CB_USER);
+  if (!is_readonly) {
+    simg->scopes.ok = 0;
+  }
+}
+
 /**
  * \note Used for splitting out a subset of modes is more involved,
  * The previous non-uv-edit mode is stored so switching back to the
@@ -1097,6 +1113,7 @@ void ED_spacetype_image()
   st->context = image_context;
   st->gizmos = image_widgets;
   st->id_remap = image_id_remap;
+  st->foreach_id = image_foreach_id;
   st->space_subtype_item_extend = image_space_subtype_item_extend;
   st->space_subtype_get = image_space_subtype_get;
   st->space_subtype_set = image_space_subtype_set;

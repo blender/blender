@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -129,6 +129,7 @@ uint32_t Std140::element_components_len(const shader::Type type)
     case shader::Type::VEC3:
     case shader::Type::UVEC3:
     case shader::Type::IVEC3:
+      return 3;
     case shader::Type::VEC4:
     case shader::Type::UVEC4:
     case shader::Type::IVEC4:

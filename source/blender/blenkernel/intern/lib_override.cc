@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2016 Blender Foundation
+/* SPDX-FileCopyrightText: 2016 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <map>
 #include <queue>
 
@@ -1773,16 +1774,20 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     int best_level = 0;
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
 
-    if (!ELEM(id_root->override_library->hierarchy_root, id_root, nullptr)) {
-      /* FIXME This is probably never actually reached with current code? Check above for non-null
-       * hierarchy root pointer either skip the rest of the loop, or reset it to nullptr. */
+    if (!ELEM(id->override_library->hierarchy_root, id_root, nullptr)) {
+      /* In case the detected hierarchy root does not match with the currently defined one, this is
+       * likely an issue and is worth a warning. */
       CLOG_WARN(&LOG,
                 "Potential inconsistency in library override hierarchy of ID '%s' (current root "
                 "%s), detected as part of the hierarchy of '%s' (current root '%s')",
                 id->name,
-                id->override_library->hierarchy_root->name,
+                id->override_library->hierarchy_root != nullptr ?
+                    id->override_library->hierarchy_root->name :
+                    "<NONE>",
                 id_root->name,
-                id_root->override_library->hierarchy_root->name);
+                id_root->override_library->hierarchy_root != nullptr ?
+                    id_root->override_library->hierarchy_root->name :
+                    "<NONE>");
       processed_ids.add(id);
       continue;
     }

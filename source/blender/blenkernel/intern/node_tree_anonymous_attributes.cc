@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,6 +12,8 @@
 #include "BLI_bit_span_ops.hh"
 
 #include "BLI_resource_scope.hh"
+
+#include <sstream>
 
 namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -96,6 +96,7 @@
 #include "node_intern.hh" /* own include */
 
 #include <fmt/format.h>
+#include <sstream>
 
 namespace geo_log = blender::nodes::geo_eval_log;
 using blender::bke::bNodeTreeZone;

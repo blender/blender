@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -18,6 +18,7 @@ namespace blender::ed::outliner {
 
 class TreeElementGreasePencilNode final : public AbstractTreeElement {
   blender::bke::greasepencil::TreeNode &node_;
+
  public:
   TreeElementGreasePencilNode(TreeElement &legacy_te, blender::bke::greasepencil::TreeNode &node);
 

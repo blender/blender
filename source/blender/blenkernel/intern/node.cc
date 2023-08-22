@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -556,6 +556,14 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
   BKE_id_blend_write(writer, &ntree->id);
 
   for (bNode *node : ntree->all_nodes()) {
+    if (ntree->type == NTREE_SHADER && node->type == SH_NODE_BSDF_HAIR_PRINCIPLED) {
+      /* For Principeld Hair BSDF, also write to `node->custom1` for forward compatibility, because
+       * prior to 4.0 `node->custom1` was used for color parametrization instead of
+       * `node->storage->parametrization`. */
+      NodeShaderHairPrincipled *data = static_cast<NodeShaderHairPrincipled *>(node->storage);
+      node->custom1 = data->parametrization;
+    }
+
     BLO_write_struct(writer, bNode, node);
 
     if (node->prop) {
@@ -3359,7 +3367,7 @@ void nodeRemoveNode(Main *bmain, bNodeTree *ntree, bNode *node, const bool do_id
 {
   BLI_assert(ntree != nullptr);
   /* This function is not for localized node trees, we do not want
-   * do to ID user reference-counting and removal of animdation data then. */
+   * do to ID user reference-counting and removal of animation data then. */
   BLI_assert((ntree->id.tag & LIB_TAG_LOCALIZED) == 0);
 
   bool node_has_id = false;
@@ -4301,12 +4309,14 @@ void node_type_base(bNodeType *ntype, const int type, const char *name, const sh
 void node_type_base_custom(bNodeType *ntype,
                            const char *idname,
                            const char *name,
+                           const char *enum_name,
                            const short nclass)
 {
   STRNCPY(ntype->idname, idname);
   ntype->type = NODE_CUSTOM;
   STRNCPY(ntype->ui_name, name);
   ntype->nclass = nclass;
+  ntype->enum_name_legacy = enum_name;
 
   blender::bke::node_type_base_defaults(ntype);
 }

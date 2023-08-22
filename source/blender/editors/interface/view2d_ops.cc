@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -393,7 +393,12 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
 {
   View2DEdgePanData *vpd = static_cast<View2DEdgePanData *>(op->customdata);
 
-  if (event->val == KM_RELEASE || event->type == EVT_ESCKEY) {
+  wmWindow *source_win = CTX_wm_window(C);
+  int r_mval[2];
+  wmWindow *target_win = WM_window_find_under_cursor(source_win, event->xy, &r_mval[0]);
+
+  /* Exit if we release the mouse button, hit escape, or enter a different window. */
+  if (event->val == KM_RELEASE || event->type == EVT_ESCKEY || source_win != target_win) {
     vpd->v2d->flag &= ~V2D_IS_NAVIGATING;
     MEM_SAFE_FREE(op->customdata);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);

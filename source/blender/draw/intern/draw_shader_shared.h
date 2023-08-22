@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -173,7 +173,7 @@ enum eObjectInfoFlag {
 
 struct ObjectInfos {
 #if defined(GPU_SHADER) && !defined(DRAW_FINALIZE_SHADER)
-  /* TODO Rename to struct member for glsl too. */
+  /* TODO Rename to struct member for GLSL too. */
   float4 orco_mul_bias[2];
   float4 ob_color;
   float4 infos;

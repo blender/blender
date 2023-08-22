@@ -59,6 +59,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_movieclip.h"
@@ -5540,6 +5541,7 @@ static void con_unlink_refs_cb(bConstraint * /*con*/,
 static void con_invoke_id_looper(const bConstraintTypeInfo *cti,
                                  bConstraint *con,
                                  ConstraintIDFunc func,
+                                 const int flag,
                                  void *userdata)
 {
   if (cti->id_looper) {
@@ -5547,6 +5549,10 @@ static void con_invoke_id_looper(const bConstraintTypeInfo *cti,
   }
 
   func(con, (ID **)&con->space_object, false, userdata);
+
+  if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
+    func(con, reinterpret_cast<ID **>(&con->ipo), false, userdata);
+  }
 }
 
 void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
@@ -5562,7 +5568,7 @@ void BKE_constraint_free_data_ex(bConstraint *con, bool do_id_user)
 
       /* unlink the referenced resources it uses */
       if (do_id_user) {
-        con_invoke_id_looper(cti, con, con_unlink_refs_cb, nullptr);
+        con_invoke_id_looper(cti, con, con_unlink_refs_cb, IDWALK_NOP, nullptr);
       }
     }
 
@@ -5877,13 +5883,16 @@ bConstraint *BKE_constraint_add_for_object(Object *ob, const char *name, short t
 
 /* ......... */
 
-void BKE_constraints_id_loop(ListBase *conlist, ConstraintIDFunc func, void *userdata)
+void BKE_constraints_id_loop(ListBase *conlist,
+                             ConstraintIDFunc func,
+                             const int flag,
+                             void *userdata)
 {
   LISTBASE_FOREACH (bConstraint *, con, conlist) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
     if (cti) {
-      con_invoke_id_looper(cti, con, func, userdata);
+      con_invoke_id_looper(cti, con, func, flag, userdata);
     }
   }
 }
@@ -5936,13 +5945,13 @@ static void constraint_copy_data_ex(bConstraint *dst,
 
     /* Fix user-counts for all referenced data that need it. */
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-      con_invoke_id_looper(cti, dst, con_fix_copied_refs_cb, nullptr);
+      con_invoke_id_looper(cti, dst, con_fix_copied_refs_cb, IDWALK_NOP, nullptr);
     }
 
     /* For proxies we don't want to make external. */
     if (do_extern) {
       /* go over used ID-links for this constraint to ensure that they are valid for proxies */
-      con_invoke_id_looper(cti, dst, con_extern_cb, nullptr);
+      con_invoke_id_looper(cti, dst, con_extern_cb, IDWALK_NOP, nullptr);
     }
   }
 }
@@ -6494,7 +6503,7 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
     /* Patch for error introduced by changing constraints (don't know how). */
     /* NOTE(@ton): If `con->data` type changes, DNA cannot resolve the pointer!. */
     /* FIXME This is likely dead code actually, since it used to be in
-     * #BKE_constraint_blend_read_lib, so it would have crashed on null pointer access in any of
+     * constraint 'read_lib', so it would have crashed on null pointer access in any of
      * the code below? But does not hurt to keep it around as a safety measure. */
     if (con->data == nullptr) {
       con->type = CONSTRAINT_TYPE_NULL;
@@ -6583,7 +6592,7 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
   cld.reader = reader;
   cld.id = id;
 
-  BKE_constraints_id_loop(conlist, lib_link_constraint_cb, &cld);
+  BKE_constraints_id_loop(conlist, lib_link_constraint_cb, IDWALK_NOP, &cld);
 }
 
 /* callback function used to expand constraint ID-links */
@@ -6598,7 +6607,7 @@ static void expand_constraint_cb(bConstraint * /*con*/,
 
 void BKE_constraint_blend_read_expand(BlendExpander *expander, ListBase *lb)
 {
-  BKE_constraints_id_loop(lb, expand_constraint_cb, expander);
+  BKE_constraints_id_loop(lb, expand_constraint_cb, IDWALK_NOP, expander);
 
   /* deprecated manual expansion stuff */
   LISTBASE_FOREACH (bConstraint *, curcon, lb) {

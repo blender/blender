@@ -35,8 +35,11 @@
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff
  * because 'near' is disabled through BLI_windstuff. */
 #  include "BLI_winstuff.h"
+#  include <comdef.h>
+#  include <comutil.h>
 #  include <shlobj.h>
 #  include <shlwapi.h>
+#  include <wrl.h>
 #endif
 
 #include "UI_resources.hh"
@@ -158,6 +161,67 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
 /** \} */
 
 #ifdef WIN32
+/* Add Windows Quick Access items to the System list. */
+static void fsmenu_add_windows_quick_access(struct FSMenu *fsmenu,
+                                            FSMenuCategory category,
+                                            FSMenuInsert flag)
+{
+  Microsoft::WRL::ComPtr<IShellDispatch> shell;
+  if (FAILED(
+          CoCreateInstance(CLSID_Shell, nullptr, CLSCTX_ALL, IID_PPV_ARGS(shell.GetAddressOf()))))
+  {
+    return;
+  }
+
+  /* Open Quick Access folder. */
+  Microsoft::WRL::ComPtr<Folder> dir;
+  if (FAILED(shell->NameSpace(_variant_t(L"shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}"),
+                              dir.GetAddressOf())))
+  {
+    return;
+  }
+
+  /* Get FolderItems. */
+  Microsoft::WRL::ComPtr<FolderItems> items;
+  if (FAILED(dir->Items(items.GetAddressOf()))) {
+    return;
+  }
+
+  long count = 0;
+  if (FAILED(items->get_Count(&count))) {
+    return;
+  }
+
+  /* Iterate through the folder. */
+  for (long i = 0; i < count; i++) {
+    Microsoft::WRL::ComPtr<FolderItem> item;
+
+    if (FAILED(items->Item(_variant_t(i), item.GetAddressOf()))) {
+      continue;
+    }
+
+    VARIANT_BOOL isFolder;
+    /* Skip if it's not a folder. */
+    if (FAILED(item->get_IsFolder(&isFolder)) || isFolder == VARIANT_FALSE) {
+      continue;
+    }
+
+    _bstr_t path;
+    if (FAILED(item->get_Path(path.GetAddress()))) {
+      continue;
+    }
+
+    char utf_path[FILE_MAXDIR];
+    BLI_strncpy_wchar_as_utf8(utf_path, path, FILE_MAXDIR);
+
+    /* Skip library folders since they are not currently supported. */
+    if (!BLI_strcasestr(utf_path, ".library-ms")) {
+      /* Add folder to the fsmenu. */
+      fsmenu_insert_entry(fsmenu, category, utf_path, NULL, ICON_FILE_FOLDER, flag);
+    }
+  }
+}
+
 /* Add a Windows known folder path to the System list. */
 static void fsmenu_add_windows_folder(FSMenu *fsmenu,
                                       FSMenuCategory category,
@@ -170,9 +234,9 @@ static void fsmenu_add_windows_folder(FSMenu *fsmenu,
   char line[FILE_MAXDIR];
   if (SHGetKnownFolderPath(rfid, 0, nullptr, &pPath) == S_OK) {
     BLI_strncpy_wchar_as_utf8(line, pPath, FILE_MAXDIR);
-    CoTaskMemFree(pPath);
     fsmenu_insert_entry(fsmenu, category, line, name, icon, flag);
   }
+  CoTaskMemFree(pPath);
 }
 #endif
 
@@ -310,13 +374,15 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
                                 FS_INSERT_LAST);
 
       /* These items are just put in path cache for thumbnail views and if bookmarked. */
-
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_OTHER,
                                 FOLDERID_UserProfiles,
                                 nullptr,
                                 ICON_COMMUNITY,
                                 FS_INSERT_LAST);
+
+      /* Last add Quick Access items to avoid duplicates and use icons if available. */
+      fsmenu_add_windows_quick_access(fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, FS_INSERT_LAST);
     }
   }
 #elif defined(__APPLE__)

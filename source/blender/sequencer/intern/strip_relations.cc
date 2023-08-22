@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Foundation
+ * SPDX-FileCopyrightText: 2003-2009 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -175,7 +175,7 @@ void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
 
 void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 {
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
   }
 
@@ -186,7 +186,7 @@ void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
 
 void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
 {
-  if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
   }
 

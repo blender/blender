@@ -6,8 +6,8 @@
 #pragma BLENDER_REQUIRE(overlay_edit_mesh_common_lib.glsl)
 
 #define DISCARD_VERTEX \
-  gl_Position = geometry_out.finalColorOuter = geometry_out.finalColor = vec4(0.0); \
-  geometry_out.edgeCoord = 0.0; \
+  gl_Position = geometry_flat_out.finalColorOuter = geometry_out.finalColor = vec4(0.0); \
+  geometry_noperspective_out.edgeCoord = 0.0; \
   return;
 
 bool test_occlusion(vec4 pos)
@@ -41,7 +41,7 @@ vec3 vec3_1010102_Inorm_to_vec3(int data)
 void do_vertex(vec4 color, vec4 pos, float coord, vec2 offset)
 {
   geometry_out.finalColor = color;
-  geometry_out.edgeCoord = coord;
+  geometry_noperspective_out.edgeCoord = coord;
   gl_Position = pos;
   /* Multiply offset by 2 because gl_Position range is [-1..1]. */
   gl_Position.xy += offset * 2.0 * pos.w;
@@ -176,10 +176,10 @@ void main()
   vec2 line = ss_pos[0] - ss_pos[1];
   line = abs(line) * sizeViewport.xy;
 
-  geometry_out.finalColorOuter = out_finalColorOuter[0];
+  geometry_flat_out.finalColorOuter = out_finalColorOuter[0];
   float half_size = sizeEdge;
   /* Enlarge edge for flag display. */
-  half_size += (geometry_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
+  half_size += (geometry_flat_out.finalColorOuter.a > 0.0) ? max(sizeEdge, 1.0) : 0.0;
 
   if (do_smooth_wire) {
     /* Add 1 px for AA */

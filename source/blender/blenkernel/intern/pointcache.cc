@@ -39,7 +39,7 @@
 #include "PIL_time.h"
 
 #include "BKE_appdir.h"
-#include "BKE_cloth.h"
+#include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_fluid.h"

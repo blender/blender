@@ -246,3 +246,18 @@ Pyramid shadow_tilemap_cubeface_bounds(ShadowTileMapData tilemap,
 }
 
 /** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Render map layout.
+ *
+ * Since a view can cover at most the number of tile contained in LOD0,
+ * index every LOD like they were LOD0.
+ * \{ */
+
+int shadow_render_page_index_get(int view_index, ivec2 tile_coordinate_in_lod)
+{
+  return view_index * SHADOW_TILEMAP_LOD0_LEN + tile_coordinate_in_lod.y * SHADOW_TILEMAP_RES +
+         tile_coordinate_in_lod.x;
+}
+
+/** \} */

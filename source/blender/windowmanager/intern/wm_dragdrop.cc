@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2010 Blender Foundation
+/* SPDX-FileCopyrightText: 2010 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -246,21 +246,21 @@ void WM_event_start_drag(
 
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
 {
-  bool any_active = false;
-  LISTBASE_FOREACH (const wmDrag *, drag, &wm->drags) {
-    if (drag->drop_state.active_dropbox) {
-      any_active = true;
-      break;
-    }
+  /* Turn off modal cursor for all windows. */
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    WM_cursor_modal_restore(win);
   }
 
-  /* If there is no active drop-box #wm_drags_check_ops() set a stop-cursor, which needs to be
-   * restored. */
-  if (!any_active) {
-    WM_cursor_modal_restore(win);
+  /* Active area should always redraw, even if cancelled. */
+  int event_xy_target[2];
+  wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, event_xy_target);
+  if (target_win) {
+    const bScreen *screen = WM_window_get_active_screen(target_win);
+    ED_region_tag_redraw_no_rebuild(screen->active_region);
+
     /* Ensure the correct area cursor is restored. */
-    win->tag_cursor_refresh = true;
-    WM_event_add_mousemove(win);
+    target_win->tag_cursor_refresh = true;
+    WM_event_add_mousemove(target_win);
   }
 }
 
@@ -414,14 +414,22 @@ static wmDropBox *dropbox_active(bContext *C,
 static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
-  wmDropBox *drop = dropbox_active(C, &win->handlers, drag, event);
-  if (!drop) {
-    ScrArea *area = CTX_wm_area(C);
-    drop = dropbox_active(C, &area->handlers, drag, event);
+  bScreen *screen = WM_window_get_active_screen(win);
+  ScrArea *area = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, event->xy);
+  wmDropBox *drop = nullptr;
+
+  if (area) {
+    ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_ANY, event->xy);
+    if (region) {
+      drop = dropbox_active(C, &region->handlers, drag, event);
+    }
+
+    if (!drop) {
+      drop = dropbox_active(C, &area->handlers, drag, event);
+    }
   }
   if (!drop) {
-    ARegion *region = CTX_wm_region(C);
-    drop = dropbox_active(C, &region->handlers, drag, event);
+    drop = dropbox_active(C, &win->handlers, drag, event);
   }
   return drop;
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2022-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -94,6 +94,8 @@ def filename_is_c_compat(filename: str) -> bool:
             ".cu",
             # Metal.
             ".metal",
+            # Metal Shading Language.
+            ".msl",
             # Open Shading Language.
             ".osl",
             # Cycles uses this extension.

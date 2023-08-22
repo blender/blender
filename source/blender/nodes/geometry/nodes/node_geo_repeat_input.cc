@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -24,7 +24,7 @@ static void node_declare_dynamic(const bNodeTree &tree,
                                  NodeDeclaration &r_declaration)
 {
   NodeDeclarationBuilder b{r_declaration};
-  b.add_input<decl::Int>(N_("Iterations")).min(0).default_value(1);
+  b.add_input<decl::Int>("Iterations").min(0).default_value(1);
 
   const NodeGeometryRepeatInput &storage = node_storage(node);
   const bNode *output_node = tree.node_by_id(storage.output_node_id);

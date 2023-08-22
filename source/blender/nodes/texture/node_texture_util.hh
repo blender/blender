@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -8,46 +8,12 @@
 
 #pragma once
 
-#include <math.h>
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_ID.h"
-#include "DNA_color_types.h"
-#include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
-
-#include "BLI_math_vector.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
-
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
-#include "BKE_texture.h"
-
-#include "NOD_texture.h"
 
 #include "node_texture_register.hh"
-#include "node_util.hh"
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
-#include "RE_pipeline.h"
 #include "RE_texture.h"
 
 #ifdef __cplusplus

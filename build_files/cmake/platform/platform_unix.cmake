@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Blender Foundation
+# SPDX-FileCopyrightText: 2016 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -77,7 +77,7 @@ if(DEFINED LIBDIR)
     set(WITH_OPENMP_STATIC ON)
   endif()
   set(Boost_NO_BOOST_CMAKE ON)
-  set(BOOST_ROOT ${LIBDIR}/boost)
+  set(Boost_ROOT ${LIBDIR}/boost)
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(OPENEXR_ROOT_DIR ${LIBDIR}/openexr)
@@ -144,6 +144,9 @@ if(NOT WITH_SYSTEM_FREETYPE)
     # list(APPEND FREETYPE_LIBRARIES
     #   ${BROTLI_LIBRARIES}
     # )
+  else()
+    # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+    set(BROTLI_LIBRARIES "")
   endif()
   check_freetype_for_brotli()
 endif()
@@ -604,6 +607,8 @@ if(WITH_SYSTEM_FREETYPE)
     message(FATAL_ERROR "Failed finding system FreeType version!")
   endif()
   check_freetype_for_brotli()
+  # Quiet warning as this variable will be used after `FREETYPE_LIBRARIES`.
+  set(BROTLI_LIBRARIES "")
 endif()
 
 if(WITH_LZO AND WITH_SYSTEM_LZO)
@@ -1049,7 +1054,11 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:${LD_LIBRARY_PATH}\"")
+  if(DEFINED LD_LIBRARY_PATH)
+    set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:${LD_LIBRARY_PATH}\"")
+  else()
+    set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}\"")
+  endif()
   set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
   unset(_library_paths)
 endif()

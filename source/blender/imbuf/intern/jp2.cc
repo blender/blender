@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -19,7 +19,7 @@
 
 #include "openjpeg.h"
 
-#include <string.h>
+#include <cstring>
 
 #define JP2_FILEHEADER_SIZE 12
 

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -37,6 +37,8 @@
 
 #include "gpencil_io.h"
 #include "gpencil_io_export_pdf.hh"
+
+#include <iostream>
 
 namespace blender ::io ::gpencil {
 

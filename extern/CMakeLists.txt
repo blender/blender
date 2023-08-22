@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -83,7 +83,9 @@ endif()
 
 if(WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE)
   set(AUDASPACE_CMAKE_CFG ${CMAKE_CURRENT_SOURCE_DIR}/audaspace/blender_config.cmake)
+  set(LIB_SUFFIX "")  # Quiet uninitialized warning.
   add_subdirectory(audaspace)
+  unset(LIB_SUFFIX)
 endif()
 
 if(WITH_QUADRIFLOW)

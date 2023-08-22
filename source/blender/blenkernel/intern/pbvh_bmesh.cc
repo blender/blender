@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -657,7 +657,7 @@ void pbvh_bmesh_vert_remove(PBVH *pbvh, BMVert *v)
 }
 
 ATTR_NO_OPT void pbvh_bmesh_face_remove(
-    PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool ensure_ownership_transfer)
+    PBVH *pbvh, BMFace *f, bool log_face, bool check_verts, bool /*ensure_ownership_transfer*/)
 {
   PBVHNode *f_node = pbvh_bmesh_node_from_face(pbvh, f);
 
@@ -809,10 +809,6 @@ static void pbvh_print_mem_size(PBVH *pbvh)
 {
   BMesh *bm = pbvh->header.bm;
   CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
-
-  int tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
-  int sizes[4] = {
-      (int)sizeof(BMVert), (int)sizeof(BMEdge), (int)sizeof(BMLoop), (int)sizeof(BMFace)};
 
   float memsize1[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float memsize2[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -1566,7 +1562,6 @@ static void pbvh_update_normals_task_cb(void *__restrict userdata,
   PBVHNode *node = data->node;
   const int node_nr = data->node_nr;
 
-  const int cd_face_node_offset = data->cd_face_node_offset;
   const int cd_vert_node_offset = data->cd_vert_node_offset;
 
   node->flag |= PBVH_UpdateCurvatureDir;
@@ -2874,7 +2869,6 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       for (int j = 0; j < 3; j++) {
         BMLoop *l1 = loops[loops_idx[i][j]];
-        BMLoop *l2 = loops[loops_idx[i][(j + 1) % 3]];
 
         add_tri_verts(node->tribuf, tri, l1, mat_nr, j);
         add_tri_verts(mat_tribuf, mat_tri, l1, mat_nr, j);
@@ -3271,7 +3265,7 @@ static void pbvh_bmesh_compact_tree(PBVH *bvh)
         printf("bad child node reference %d->%d, totnode: %d\n",
                i,
                bvh->nodes[i].children_offset,
-               bvh->nodes.size());
+               int(bvh->nodes.size()));
         continue;
       }
 
@@ -3654,7 +3648,7 @@ static void pbvh_bmesh_join_nodes(PBVH *pbvh)
                __func__,
                i,
                pbvh->nodes[i].children_offset,
-               pbvh->nodes.size());
+               int(pbvh->nodes.size()));
         continue;
       }
 

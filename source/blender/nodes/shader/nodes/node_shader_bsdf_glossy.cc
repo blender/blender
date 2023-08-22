@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -36,7 +36,7 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext * /*C*/, PointerR
 
 static void node_shader_init_glossy(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = SHD_GLOSSY_GGX;
+  node->custom1 = SHD_GLOSSY_MULTI_GGX;
 }
 
 static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat,

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -734,14 +734,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       /* Set this flag so snapping always updated. */
       int mval[2];
       WM_event_drag_start_mval(event, ipd->region, mval);
-      int flag_orig = snap_state_new->flag;
-      snap_state_new->flag |= V3D_SNAPCURSOR_TOGGLE_ALWAYS_TRUE;
 
       /* Be sure to also compute the #V3DSnapCursorData.plane_omat. */
       snap_state->draw_plane = true;
 
       ED_view3d_cursor_snap_data_update(snap_state_new, C, mval[0], mval[1]);
-      snap_state_new->flag = eV3DSnapCursor(flag_orig);
     }
   }
 

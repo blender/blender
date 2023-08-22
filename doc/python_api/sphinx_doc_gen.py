@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2009-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -1896,7 +1896,7 @@ def write_sphinx_conf_py(basepath):
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
     fw("root_doc = 'index'\n")
-    fw("copyright = 'Blender Foundation'\n")
+    fw("copyright = 'Blender Authors'\n")
     fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 
@@ -2255,13 +2255,18 @@ def write_rst_enum_items_and_index(basepath):
         fw(".. toctree::\n")
         fw("\n")
         for key, enum_items in rna_enum_dict.items():
-            if not key.startswith("rna_enum_"):
-                raise Exception("Found RNA enum identifier that doesn't use the 'rna_enum_' prefix, found %r!" % key)
+            valid_prefix = key.startswith("rna_enum_") or key.startswith("rna_node_")
+            if not valid_prefix:
+                raise Exception(
+                    "Found RNA enum identifier that doesn't use the 'rna_enum_' or 'rna_node_' prefix, found %r!" %
+                    key)
             key_no_prefix = key.removeprefix("rna_enum_")
+            key_no_prefix = key.removeprefix("rna_node_")
             fw("   %s\n" % key_no_prefix)
 
         for key, enum_items in rna_enum_dict.items():
             key_no_prefix = key.removeprefix("rna_enum_")
+            key_no_prefix = key.removeprefix("rna_node_")
             write_rst_enum_items(basepath_bpy_types_rna_enum, key, key_no_prefix, enum_items)
         fw("\n")
 

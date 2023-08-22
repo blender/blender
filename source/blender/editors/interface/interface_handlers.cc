@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -3237,10 +3237,18 @@ static void ui_textedit_move(uiBut *but,
 
     if (select) {
       if (has_sel == false) {
-        data->sel_pos_init = pos_prev;
+        /* Holding shift but with no previous selection. */
+        but->selsta = but->pos;
+        but->selend = pos_prev;
       }
-      but->selsta = but->pos;
-      but->selend = data->sel_pos_init;
+      else if (but->selsta == pos_prev) {
+        /* Previous selection, extending start position. */
+        but->selsta = but->pos;
+      }
+      else {
+        /* Previous selection, extending end position. */
+        but->selend = but->pos;
+      }
     }
     if (but->selend < but->selsta) {
       std::swap(but->selsta, but->selend);

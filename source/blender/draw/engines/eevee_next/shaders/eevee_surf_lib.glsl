@@ -64,7 +64,7 @@ void init_globals_curves()
   g_data.is_strand = true;
   g_data.hair_time = interp.curves_time;
   g_data.hair_thickness = interp.curves_thickness;
-  g_data.hair_strand_id = interp.curves_strand_id;
+  g_data.hair_strand_id = interp_flat.curves_strand_id;
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_CURVES)
   g_data.barycentric_coords = hair_resolve_barycentric(interp.barycentric_coords);
 #endif
@@ -120,7 +120,25 @@ void init_interface()
   interp.curves_time = 0.0;
   interp.curves_time_width = 0.0;
   interp.curves_thickness = 0.0;
-  interp.curves_strand_id = 0;
+  interp_flat.curves_strand_id = 0;
   drw_ResourceID_iface.resource_index = resource_id;
 #endif
 }
+
+#ifdef GPU_VERTEX_SHADER
+void shadow_viewport_layer_set(int view_id, int lod)
+{
+  /* We still render to a layered framebuffer in the case of Metal + Tile Based Renderer.
+   * Since it needs correct depth buffering, each view needs to not overlap each others.
+   * It doesn't matter much for other platform, so we use that as a way to pass the view id. */
+  gpu_Layer = view_id;
+  gpu_ViewportIndex = lod;
+}
+#endif
+
+#ifdef GPU_FRAGMENT_SHADER
+int shadow_view_id_get()
+{
+  return gpu_Layer;
+}
+#endif

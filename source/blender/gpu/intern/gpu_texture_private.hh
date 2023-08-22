@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -470,7 +470,9 @@ inline size_t to_bytesize(eGPUTextureFormat format)
     case GPU_DEPTH_COMPONENT32F:
       return 32 / 8;
     case GPU_DEPTH_COMPONENT24:
-      return 24 / 8;
+      /* Depth component 24 uses 3 bytes to store the depth value, and reserved 1 byte for
+       * alignment. */
+      return (24 + 8) / 8;
     case GPU_DEPTH_COMPONENT16:
       return 16 / 8;
   }

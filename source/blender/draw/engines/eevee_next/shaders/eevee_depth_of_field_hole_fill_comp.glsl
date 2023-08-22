@@ -7,7 +7,7 @@
  *
  * We sample using an octaweb sampling pattern. We randomize the kernel center and each ring
  * rotation to ensure maximum coverage.
- **/
+ */
 
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_accumulator_lib.glsl)
 

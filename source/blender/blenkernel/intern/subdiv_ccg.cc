@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2018 Blender Foundation
+/* SPDX-FileCopyrightText: 2018 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,6 +27,9 @@
 #include "BKE_subdiv_eval.hh"
 
 #include "opensubdiv_topology_refiner_capi.h"
+
+using blender::Array;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Various forward declarations
@@ -344,42 +347,6 @@ static void subdiv_ccg_init_faces(SubdivCCG *subdiv_ccg)
   }
 }
 
-/* TODO(sergey): Consider making it generic enough to be fit into BLI. */
-struct StaticOrHeapIntStorage {
-  int static_storage[64];
-  int static_storage_len;
-  int *heap_storage;
-  int heap_storage_len;
-};
-
-static void static_or_heap_storage_init(StaticOrHeapIntStorage *storage)
-{
-  storage->static_storage_len = ARRAY_SIZE(storage->static_storage);
-  storage->heap_storage = nullptr;
-  storage->heap_storage_len = 0;
-}
-
-static int *static_or_heap_storage_get(StaticOrHeapIntStorage *storage, int heap_len)
-{
-  /* Requested size small enough to be fit into stack allocated memory. */
-  if (heap_len <= storage->static_storage_len) {
-    return storage->static_storage;
-  }
-  /* Make sure heap is big enough. */
-  if (heap_len > storage->heap_storage_len) {
-    MEM_SAFE_FREE(storage->heap_storage);
-    storage->heap_storage = static_cast<int *>(
-        MEM_malloc_arrayN(heap_len, sizeof(int), "int storage"));
-    storage->heap_storage_len = heap_len;
-  }
-  return storage->heap_storage;
-}
-
-static void static_or_heap_storage_free(StaticOrHeapIntStorage *storage)
-{
-  MEM_SAFE_FREE(storage->heap_storage);
-}
-
 static void subdiv_ccg_allocate_adjacent_edges(SubdivCCG *subdiv_ccg, const int num_edges)
 {
   subdiv_ccg->num_adjacent_edges = num_edges;
@@ -431,25 +398,22 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
     return;
   }
   subdiv_ccg_allocate_adjacent_edges(subdiv_ccg, num_edges);
-  /* Initialize storage. */
-  StaticOrHeapIntStorage face_vertices_storage;
-  StaticOrHeapIntStorage face_edges_storage;
-  static_or_heap_storage_init(&face_vertices_storage);
-  static_or_heap_storage_init(&face_edges_storage);
+
+  Vector<int, 64> face_vertices;
+  Vector<int, 64> face_edges;
   /* Store adjacency for all faces. */
   const int num_faces = subdiv_ccg->num_faces;
   for (int face_index = 0; face_index < num_faces; face_index++) {
     SubdivCCGFace *face = &faces[face_index];
     const int num_face_grids = face->num_grids;
-    const int num_face_edges = num_face_grids;
-    int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_edges);
-    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
+    face_vertices.reinitialize(num_face_grids);
+    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices.data());
     /* Note that order of edges is same as order of MLoops, which also
      * means it's the same as order of grids. */
-    int *face_edges = static_or_heap_storage_get(&face_edges_storage, num_face_edges);
-    topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges);
+    face_edges.reinitialize(num_face_grids);
+    topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges.data());
     /* Store grids adjacency for this edge. */
-    for (int corner = 0; corner < num_face_edges; corner++) {
+    for (int corner = 0; corner < num_face_grids; corner++) {
       const int vertex_index = face_vertices[corner];
       const int edge_index = face_edges[corner];
       int edge_vertices[2];
@@ -487,9 +451,6 @@ static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
       }
     }
   }
-  /* Free possibly heap-allocated storage. */
-  static_or_heap_storage_free(&face_vertices_storage);
-  static_or_heap_storage_free(&face_edges_storage);
 }
 
 static void subdiv_ccg_allocate_adjacent_vertices(SubdivCCG *subdiv_ccg, const int num_vertices)
@@ -527,9 +488,7 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
     return;
   }
   subdiv_ccg_allocate_adjacent_vertices(subdiv_ccg, num_vertices);
-  /* Initialize storage. */
-  StaticOrHeapIntStorage face_vertices_storage;
-  static_or_heap_storage_init(&face_vertices_storage);
+  Vector<int, 64> face_vertices;
   /* Key to access elements. */
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
@@ -538,10 +497,9 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
   for (int face_index = 0; face_index < num_faces; face_index++) {
     SubdivCCGFace *face = &faces[face_index];
     const int num_face_grids = face->num_grids;
-    const int num_face_edges = num_face_grids;
-    int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_edges);
-    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
-    for (int corner = 0; corner < num_face_edges; corner++) {
+    face_vertices.reinitialize(num_face_grids);
+    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices.data());
+    for (int corner = 0; corner < num_face_grids; corner++) {
       const int vertex_index = face_vertices[corner];
       /* Grid which is adjacent to the current corner. */
       const int grid_index = face->start_grid_index + corner;
@@ -551,8 +509,6 @@ static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
       *corner_coord = subdiv_ccg_coord(grid_index, grid_size - 1, grid_size - 1);
     }
   }
-  /* Free possibly heap-allocated storage. */
-  static_or_heap_storage_free(&face_vertices_storage);
 }
 
 static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
@@ -1235,25 +1191,21 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG *subdiv_ccg,
   Subdiv *subdiv = subdiv_ccg->subdiv;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 
-  StaticOrHeapIntStorage face_vertices_storage;
-  StaticOrHeapIntStorage face_edges_storage;
-
-  static_or_heap_storage_init(&face_vertices_storage);
-  static_or_heap_storage_init(&face_edges_storage);
+  Vector<int, 64> face_vertices;
+  Vector<int, 64> face_edges;
 
   for (int i = 0; i < num_effected_faces; i++) {
     SubdivCCGFace *face = (SubdivCCGFace *)effected_faces[i];
     int face_index = face - subdiv_ccg->faces;
     const int num_face_grids = face->num_grids;
-    const int num_face_edges = num_face_grids;
-    int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_edges);
-    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
+    face_vertices.reinitialize(num_face_grids);
+    topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices.data());
 
     /* Note that order of edges is same as order of MLoops, which also
      * means it's the same as order of grids. */
-    int *face_edges = static_or_heap_storage_get(&face_edges_storage, num_face_edges);
-    topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges);
-    for (int corner = 0; corner < num_face_edges; corner++) {
+    face_edges.reinitialize(num_face_grids);
+    topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges.data());
+    for (int corner = 0; corner < num_face_grids; corner++) {
       const int vertex_index = face_vertices[corner];
       const int edge_index = face_edges[corner];
 
@@ -1267,9 +1219,6 @@ static void subdiv_ccg_affected_face_adjacency(SubdivCCG *subdiv_ccg,
       BLI_gset_add(r_adjacent_vertices, adjacent_vertex);
     }
   }
-
-  static_or_heap_storage_free(&face_vertices_storage);
-  static_or_heap_storage_free(&face_edges_storage);
 }
 
 void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
@@ -1284,40 +1233,30 @@ void subdiv_ccg_average_faces_boundaries_and_corners(SubdivCCG *subdiv_ccg,
   subdiv_ccg_affected_face_adjacency(
       subdiv_ccg, effected_faces, num_effected_faces, adjacent_vertices, adjacent_edges);
 
-  int *adjacent_vertex_index_map;
-  int *adjacent_edge_index_map;
-
-  StaticOrHeapIntStorage index_heap;
-  static_or_heap_storage_init(&index_heap);
-
   int i = 0;
 
   /* Average boundaries. */
-
-  adjacent_edge_index_map = static_or_heap_storage_get(&index_heap, BLI_gset_len(adjacent_edges));
+  Array<int, 64> adjacent_edge_index_map(BLI_gset_len(adjacent_edges));
   GSET_ITER_INDEX (gi, adjacent_edges, i) {
     SubdivCCGAdjacentEdge *adjacent_edge = static_cast<SubdivCCGAdjacentEdge *>(
         BLI_gsetIterator_getKey(&gi));
     adjacent_edge_index_map[i] = adjacent_edge - subdiv_ccg->adjacent_edges;
   }
   subdiv_ccg_average_boundaries(
-      subdiv_ccg, key, adjacent_edge_index_map, BLI_gset_len(adjacent_edges));
+      subdiv_ccg, key, adjacent_edge_index_map.data(), BLI_gset_len(adjacent_edges));
 
   /* Average corners. */
-
-  adjacent_vertex_index_map = static_or_heap_storage_get(&index_heap,
-                                                         BLI_gset_len(adjacent_vertices));
+  Array<int, 64> adjacent_vertex_index_map(BLI_gset_len(adjacent_vertices));
   GSET_ITER_INDEX (gi, adjacent_vertices, i) {
     SubdivCCGAdjacentVertex *adjacent_vertex = static_cast<SubdivCCGAdjacentVertex *>(
         BLI_gsetIterator_getKey(&gi));
     adjacent_vertex_index_map[i] = adjacent_vertex - subdiv_ccg->adjacent_vertices;
   }
   subdiv_ccg_average_corners(
-      subdiv_ccg, key, adjacent_vertex_index_map, BLI_gset_len(adjacent_vertices));
+      subdiv_ccg, key, adjacent_vertex_index_map.data(), BLI_gset_len(adjacent_vertices));
 
   BLI_gset_free(adjacent_vertices, nullptr);
   BLI_gset_free(adjacent_edges, nullptr);
-  static_or_heap_storage_free(&index_heap);
 }
 
 struct StitchFacesInnerGridsData {
@@ -1571,16 +1510,11 @@ static int adjacent_vertex_index_from_coord(const SubdivCCG *subdiv_ccg,
   const int face_index = face - subdiv_ccg->faces;
   const int face_grid_index = coord->grid_index - face->start_grid_index;
   const int num_face_grids = face->num_grids;
-  const int num_face_vertices = num_face_grids;
 
-  StaticOrHeapIntStorage face_vertices_storage;
-  static_or_heap_storage_init(&face_vertices_storage);
-
-  int *face_vertices = static_or_heap_storage_get(&face_vertices_storage, num_face_vertices);
-  topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices);
+  Array<int, 64> face_vertices(num_face_grids);
+  topology_refiner->getFaceVertices(topology_refiner, face_index, face_vertices.data());
 
   const int adjacent_vertex_index = face_vertices[face_grid_index];
-  static_or_heap_storage_free(&face_vertices_storage);
   return adjacent_vertex_index;
 }
 
@@ -1605,11 +1539,8 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
   subdiv_ccg_neighbors_init(
       r_neighbors, num_vertex_edges, (include_duplicates) ? num_adjacent_faces - 1 : 0);
 
-  StaticOrHeapIntStorage vertex_edges_storage;
-  static_or_heap_storage_init(&vertex_edges_storage);
-
-  int *vertex_edges = static_or_heap_storage_get(&vertex_edges_storage, num_vertex_edges);
-  topology_refiner->getVertexEdges(topology_refiner, adjacent_vertex_index, vertex_edges);
+  Array<int, 64> vertex_edges(num_vertex_edges);
+  topology_refiner->getVertexEdges(topology_refiner, adjacent_vertex_index, vertex_edges.data());
 
   for (int i = 0; i < num_vertex_edges; ++i) {
     const int edge_index = vertex_edges[i];
@@ -1646,8 +1577,6 @@ static void neighbor_coords_corner_vertex_get(const SubdivCCG *subdiv_ccg,
       }
     }
   }
-
-  static_or_heap_storage_free(&vertex_edges_storage);
 }
 
 static int adjacent_edge_index_from_coord(const SubdivCCG *subdiv_ccg, const SubdivCCGCoord *coord)
@@ -1660,23 +1589,19 @@ static int adjacent_edge_index_from_coord(const SubdivCCG *subdiv_ccg, const Sub
   const int face_index = face - subdiv_ccg->faces;
   const int num_face_edges = topology_refiner->getNumFaceEdges(topology_refiner, face_index);
 
-  StaticOrHeapIntStorage face_edges_storage;
-  static_or_heap_storage_init(&face_edges_storage);
-  int *face_edges_indices = static_or_heap_storage_get(&face_edges_storage, num_face_edges);
-  topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges_indices);
+  Array<int, 64> face_edges(num_face_edges);
+  topology_refiner->getFaceEdges(topology_refiner, face_index, face_edges.data());
 
   const int grid_size_1 = subdiv_ccg->grid_size - 1;
   int adjacent_edge_index = -1;
   if (coord->x == grid_size_1) {
-    adjacent_edge_index = face_edges_indices[face_grid_index];
+    adjacent_edge_index = face_edges[face_grid_index];
   }
   else {
     BLI_assert(coord->y == grid_size_1);
     adjacent_edge_index =
-        face_edges_indices[face_grid_index == 0 ? face->num_grids - 1 : face_grid_index - 1];
+        face_edges[face_grid_index == 0 ? face->num_grids - 1 : face_grid_index - 1];
   }
-
-  static_or_heap_storage_free(&face_edges_storage);
 
   return adjacent_edge_index;
 }

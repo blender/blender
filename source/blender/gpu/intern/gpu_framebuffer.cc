@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Foundation
+/* SPDX-FileCopyrightText: 2005 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,6 +9,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_batch.h"

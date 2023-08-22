@@ -4,7 +4,9 @@
  *
  * Quick way to draw debug geometry. All input should be in world space and
  * will be rendered in the default view. No additional setup required.
- **/
+ */
+
+#ifdef DRW_DEBUG_DRAW
 
 /** Global switch option. */
 bool drw_debug_draw_enable = true;
@@ -211,5 +213,7 @@ void drw_debug_matrix_as_bbox(mat4 mat)
 {
   drw_debug_matrix_as_bbox(mat, drw_debug_default_color);
 }
+
+#endif
 
 /** \} */

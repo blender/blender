@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -51,7 +51,7 @@ void TreeElementPoseBase::expand(SpaceOutliner &space_outliner) const
 
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
           ConstraintElementCreateData con_data = {&object_, con};
-          
+
           outliner_add_element(
               &space_outliner, &tenla1->subtree, &con_data, tenla1, TSE_CONSTRAINT, const_index);
           /* possible add all other types links? */

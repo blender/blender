@@ -1,3 +1,23 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup bmesh
+ *
+ * The BMLog is an interface for storing undo/redo steps as a BMesh is
+ * modified. It only stores changes to the BMesh, not full copies.
+ *
+ * Currently it supports the following types of changes:
+ *
+ * - Adding and removing vertices
+ * - Adding and removing edges
+ * - Adding and removing faces
+ * - Attributes.
+ * - Moving vertices
+ * - Element header flags.
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_customdata.h"

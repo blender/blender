@@ -768,6 +768,12 @@ void GHOST_SetTabletAPI(GHOST_SystemHandle systemhandle, GHOST_TTabletAPI api)
   system->setTabletAPI(api);
 }
 
+GHOST_TSuccess GHOST_GetPixelAtCursor(float r_color[3])
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->getPixelAtCursor(r_color);
+}
+
 int32_t GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle)
 {
   return ((GHOST_Rect *)rectanglehandle)->getWidth();

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2015 Blender Foundation
+# SPDX-FileCopyrightText: 2015 Blender Authors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,26 +16,26 @@
 #  LZO_LIBRARY, where to find the LZO library.
 
 # If `LZO_ROOT_DIR` was defined in the environment, use it.
-IF(DEFINED LZO_ROOT_DIR)
+if(DEFINED LZO_ROOT_DIR)
   # Pass.
-ELSEIF(DEFINED ENV{LZO_ROOT_DIR})
-  SET(LZO_ROOT_DIR $ENV{LZO_ROOT_DIR})
-ELSE()
-  SET(LZO_ROOT_DIR "")
-ENDIF()
+elseif(DEFINED ENV{LZO_ROOT_DIR})
+  set(LZO_ROOT_DIR $ENV{LZO_ROOT_DIR})
+else()
+  set(LZO_ROOT_DIR "")
+endif()
 
-SET(_lzo_SEARCH_DIRS
+set(_lzo_SEARCH_DIRS
   ${LZO_ROOT_DIR}
 )
 
-FIND_PATH(LZO_INCLUDE_DIR lzo/lzo1x.h
+find_path(LZO_INCLUDE_DIR lzo/lzo1x.h
   HINTS
     ${_lzo_SEARCH_DIRS}
   PATH_SUFFIXES
     include
 )
 
-FIND_LIBRARY(LZO_LIBRARY
+find_library(LZO_LIBRARY
   NAMES
     lzo2
   HINTS
@@ -46,16 +46,16 @@ FIND_LIBRARY(LZO_LIBRARY
 
 # handle the QUIETLY and REQUIRED arguments and set LZO_FOUND to TRUE if
 # all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(LZO DEFAULT_MSG
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LZO DEFAULT_MSG
   LZO_LIBRARY LZO_INCLUDE_DIR)
 
-IF(LZO_FOUND)
-  SET(LZO_LIBRARIES ${LZO_LIBRARY})
-  SET(LZO_INCLUDE_DIRS ${LZO_INCLUDE_DIR})
-ENDIF()
+if(LZO_FOUND)
+  set(LZO_LIBRARIES ${LZO_LIBRARY})
+  set(LZO_INCLUDE_DIRS ${LZO_INCLUDE_DIR})
+endif()
 
-MARK_AS_ADVANCED(
+mark_as_advanced(
   LZO_INCLUDE_DIR
   LZO_LIBRARY
 )

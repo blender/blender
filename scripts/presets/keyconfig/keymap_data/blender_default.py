@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+# SPDX-FileCopyrightText: 2018-2023 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -416,6 +416,25 @@ def _template_items_select_actions(params, operator):
             (operator, {"type": 'A', "value": 'PRESS'}, {"properties": [("action", 'TOGGLE')]}),
             (operator, {"type": 'A', "value": 'PRESS', "alt": True}, {"properties": [("action", 'DESELECT')]}),
             (operator, {"type": 'I', "value": 'PRESS', "ctrl": True}, {"properties": [("action", 'INVERT')]}),
+        ]
+
+
+def _template_items_select_lasso(params, operator):
+    # Needed because of shortcut conflicts on CTRL-LMB on right click select with brush modes,
+    # all modifier keys are used together to unmask/deselect.
+    if params.select_mouse == 'RIGHTMOUSE':
+        return [
+            (operator, {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
+             {"properties": [("mode", 'SUB')]}),
+            (operator, {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
+             {"properties": [("mode", 'ADD')]}),
+        ]
+    else:
+        return [
+            (operator, {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
+             {"properties": [("mode", 'SUB')]}),
+            (operator, {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
+             {"properties": [("mode", 'ADD')]}),
         ]
 
 
@@ -1116,6 +1135,7 @@ def km_markers(params):
         ("marker.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("marker.delete", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("confirm", False)]}),
         op_panel("TOPBAR_PT_name_marker", {"type": 'F2', "value": 'PRESS'}, [("keep_open", False)]),
+        op_panel("TOPBAR_PT_name_marker", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, [("keep_open", False)]),
         ("marker.move", {"type": 'G', "value": 'PRESS'}, None),
         ("marker.camera_bind", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
     ])
@@ -3637,7 +3657,7 @@ def km_grease_pencil(params):
     return keymap
 
 
-def _grease_pencil_selection(params, *, use_select_mouse=True):
+def _grease_pencil_selection(params, *, alt_select=False):
     return [
         # Select all
         *_template_items_select_actions(params, "gpencil.select_all"),
@@ -3649,31 +3669,19 @@ def _grease_pencil_selection(params, *, use_select_mouse=True):
         op_tool_optional(
             ("gpencil.select_box", {"type": 'B', "value": 'PRESS'}, None),
             (op_tool, "builtin.select_box"), params),
-        # Lasso select
-        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
-         {"properties": [("mode", 'ADD')]}),
-        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
-         {"properties": [("mode", 'SUB')]}),
-        # In the Node Editor, lasso select needs ALT modifier too
-        # (as somehow CTRL+LMB drag gets taken for "cut" quite early).
-        # There probably isn't too much harm adding this for other editors too
-        # as part of standard GP editing keymap. This hotkey combo doesn't seem
-        # to see much use under standard scenarios?
-        ("gpencil.select_lasso",
-         {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True, "alt": True},
-         {"properties": [("mode", 'ADD')]}),
-        ("gpencil.select_lasso",
-         {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True, "alt": True},
-         {"properties": [("mode", 'SUB')]}),
         *_template_view3d_gpencil_select(
             type=params.select_mouse,
             value=params.select_mouse_value_fallback,
             legacy=params.legacy,
-            use_select_mouse=use_select_mouse,
+            alt_select=alt_select
         ),
         # Select linked
-        ("gpencil.select_linked", {"type": 'L', "value": 'PRESS'}, None),
         ("gpencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
+        # Whole stroke select: Same behavior and use case as select linked pick.
+        ("gpencil.select", {"type": 'L', "value": 'PRESS'},
+         {"properties": [("extend", True), ("entire_strokes", True)]}),
+        ("gpencil.select", {"type": 'L', "value": 'PRESS', "shift": True},
+         {"properties": [("deselect", True), ("extend", True), ("entire_strokes", True)]}),
         # Select grouped
         ("gpencil.select_grouped", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         # Select more/less
@@ -3707,6 +3715,10 @@ def km_grease_pencil_stroke_edit_mode(params):
         ("gpencil.interpolate_sequence", {"type": 'E', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Selection
         *_grease_pencil_selection(params),
+        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
+         {"properties": [("mode", 'ADD')]}),
+        ("gpencil.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
+         {"properties": [("mode", 'SUB')]}),
         # Duplicate and move selected points
         ("gpencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         # Extrude and move selected points
@@ -3989,7 +4001,8 @@ def km_grease_pencil_stroke_sculpt_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=not params.use_fallback_tool_select_mouse),
+        *_grease_pencil_selection(params, alt_select=True),
+        *_template_items_select_lasso(params, "gpencil.select_lasso"),
         # Selection mode
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
          {"properties": [("data_path", 'scene.tool_settings.use_gpencil_select_mask_point')]}),
@@ -4346,7 +4359,8 @@ def km_grease_pencil_stroke_vertex_mode(params):
 
     items.extend([
         # Selection
-        *_grease_pencil_selection(params, use_select_mouse=not params.use_fallback_tool_select_mouse),
+        *_grease_pencil_selection(params, alt_select=True),
+        *_template_items_select_lasso(params, "gpencil.select_lasso"),
         # Selection mode
         ("wm.context_toggle", {"type": 'ONE', "value": 'PRESS'},
          {"properties": [("data_path", 'scene.tool_settings.use_gpencil_vertex_select_mask_point')]}),
@@ -4916,19 +4930,23 @@ def _template_view3d_paint_mask_select_loop(params):
     ]
 
 
-def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=True):
-    return [
-        *([] if not use_select_mouse else [
-            ("gpencil.select", {"type": type, "value": value},
-             {"properties": [("deselect_all", not legacy)]})]),
+def _template_view3d_gpencil_select(*, type, value, legacy, alt_select=False):
+    items = [
+        ("gpencil.select", {"type": type, "value": value},
+         {"properties": [("deselect_all", not legacy)]}),
         ("gpencil.select", {"type": type, "value": value, "shift": True},
          {"properties": [("extend", True), ("toggle", True)]}),
-        # Whole stroke select
-        ("gpencil.select", {"type": type, "value": value, "alt": True},
-         {"properties": [("entire_strokes", True)]}),
-        ("gpencil.select", {"type": type, "value": value, "shift": True, "alt": True},
-         {"properties": [("extend", True), ("entire_strokes", True)]}),
     ]
+    if type == 'LEFTMOUSE' and alt_select:
+        items.extend([
+            # Selection shortcuts for when brushes are active on LMB-select.
+            ("gpencil.select", {"type": type, "value": value, "alt": True},
+             {"properties": [("deselect_all", True)]}),
+            ("gpencil.select", {"type": type, "value": value, "alt": True, "shift": True},
+             {"properties": [("extend", True), ("toggle", True)]}),
+        ])
+
+    return items
 
 
 def _template_node_select(*, type, value, select_passthrough):
@@ -5211,6 +5229,7 @@ def km_paint_face_mask(params):
 
     items.extend([
         *_template_items_select_actions(params, "paint.face_select_all"),
+        *_template_items_select_lasso(params, "view3d.select_lasso"),
         *_template_items_hide_reveal_actions("paint.face_select_hide", "paint.face_vert_reveal"),
         ("paint.face_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("paint.face_select_linked_pick", {"type": 'L', "value": 'PRESS'},
@@ -5239,12 +5258,9 @@ def km_paint_vertex_mask(params):
 
     items.extend([
         *_template_items_select_actions(params, "paint.vert_select_all"),
+        *_template_items_select_lasso(params, "view3d.select_lasso"),
         *_template_items_hide_reveal_actions("paint.vert_select_hide", "paint.face_vert_reveal"),
         ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
-        ("view3d.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
-         {"properties": [("mode", 'ADD')]}),
-        ("view3d.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "shift": True, "ctrl": True},
-         {"properties": [("mode", 'SUB')]}),
         ("view3d.select_circle", {"type": 'C', "value": 'PRESS'}, None),
         ("paint.vert_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("paint.vert_select_linked_pick", {"type": 'L', "value": 'PRESS'},
@@ -5337,7 +5353,6 @@ def km_sculpt(params):
          {"properties": [("mode", 'INVERT')]}),
         ("paint.mask_box_gesture", {"type": 'B', "value": 'PRESS'},
          {"properties": [("mode", 'VALUE'), ("value", 0.0)]}),
-        ("paint.mask_lasso_gesture", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Dynamic topology
         ("sculpt.dyntopo_detail_size_edit", {"type": 'R', "value": 'PRESS'}, None),
         ("sculpt.detail_flood_fill", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
@@ -5379,6 +5394,26 @@ def km_sculpt(params):
         op_menu_pie("VIEW3D_MT_sculpt_face_sets_edit_pie", {"type": 'W', "value": 'PRESS', "alt": True}),
         *_template_items_context_panel("VIEW3D_PT_sculpt_context_menu", params.context_menu_event),
     ])
+
+    # Lasso Masking.
+    # Needed because of shortcut conflicts on CTRL-LMB on right click select,
+    # all modifier keys are used together to unmask (equivalent of selecting).
+    if params.select_mouse == 'RIGHTMOUSE':
+        items.extend([
+            ("paint.mask_lasso_gesture",
+             {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_lasso_gesture",
+             {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True},
+             {"properties": [("value", 0.0)]}),
+        ])
+    else:
+        items.extend([
+            ("paint.mask_lasso_gesture", {"type": 'RIGHTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_lasso_gesture", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True},
+             {"properties": [("value", 0.0)]}),
+        ])
 
     if params.legacy:
         items.extend(_template_items_legacy_tools_from_numbers())

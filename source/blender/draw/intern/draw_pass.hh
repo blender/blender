@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -54,6 +54,8 @@
 #include "draw_state.h"
 
 #include "intern/gpu_codegen.h"
+
+#include <sstream>
 
 namespace blender::draw {
 using namespace blender::draw;

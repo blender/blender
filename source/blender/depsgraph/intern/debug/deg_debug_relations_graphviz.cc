@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2014 Blender Foundation
+/* SPDX-FileCopyrightText: 2014 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -25,6 +25,8 @@
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
 #include "intern/node/deg_node_time.h"
+
+#include <sstream>
 
 namespace deg = blender::deg;
 namespace dot = blender::dot;

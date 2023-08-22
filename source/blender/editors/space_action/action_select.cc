@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -135,6 +135,11 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
     /* TODO: why don't we just give grease pencil layers key_data too? */
     grease_pencil_cels_to_keylist(
         adt, static_cast<const GreasePencilLayer *>(ale->data), keylist, 0);
+  }
+  else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER_GROUP) {
+    /* TODO: why don't we just give grease pencil layers key_data too? */
+    grease_pencil_layer_group_to_keylist(
+        adt, static_cast<const GreasePencilLayerTreeGroup *>(ale->data), keylist, 0);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_DATABLOCK) {
     /* TODO: why don't we just give grease pencil layers key_data too? */
@@ -433,6 +438,24 @@ static void box_select_elem(
       break;
     }
 #endif
+    case ANIMTYPE_GREASE_PENCIL_DATABLOCK: {
+      GreasePencil *grease_pencil = static_cast<GreasePencil *>(ale->data);
+      for (blender::bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
+        blender::ed::greasepencil::select_frames_range(
+            layer->wrap().as_node(), xmin, xmax, sel_data->selectmode);
+      }
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
+    }
+    case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
+    case ANIMTYPE_GREASE_PENCIL_LAYER:
+      blender::ed::greasepencil::select_frames_range(
+          static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
+          xmin,
+          xmax,
+          sel_data->selectmode);
+      ale->update |= ANIM_UPDATE_DEPS;
+      break;
     case ANIMTYPE_GPLAYER: {
       ED_gpencil_layer_frames_select_box(
           static_cast<bGPDlayer *>(ale->data), xmin, xmax, sel_data->selectmode);
@@ -697,10 +720,11 @@ static void region_select_elem(RegionSelectData *sel_data, bAnimListElem *ale, b
       ale->update |= ANIM_UPDATE_DEPS;
       break;
     }
+    case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
     case ANIMTYPE_GREASE_PENCIL_LAYER: {
       blender::ed::greasepencil::select_frames_region(
           &sel_data->ked,
-          static_cast<GreasePencilLayer *>(ale->data)->wrap(),
+          static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
           sel_data->mode,
           sel_data->selectmode);
       ale->update |= ANIM_UPDATE_DEPS;
@@ -1051,7 +1075,9 @@ static void markers_selectkeys_between(bAnimContext *ac)
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        /* GPv3: To be implemented. */
+        blender::ed::greasepencil::select_frames_range(
+            static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(), min, max, SELECT_ADD);
+        ale->update |= ANIM_UPDATE_DEPS;
         break;
       case ANIMTYPE_GPLAYER:
         ED_gpencil_layer_frames_select_box(
@@ -1501,7 +1527,12 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     switch (ale->type) {
       case ANIMTYPE_GREASE_PENCIL_LAYER:
-        /* GPv3: To be implemented. */
+        blender::ed::greasepencil::select_frames_range(
+            static_cast<GreasePencilLayerTreeNode *>(ale->data)->wrap(),
+            ked.f1,
+            ked.f2,
+            select_mode);
+        ale->update |= ANIM_UPDATE_DEPS;
         break;
       case ANIMTYPE_GPLAYER:
         ED_gpencil_layer_frames_select_box(
@@ -1689,6 +1720,10 @@ static void actkeys_mselect_single(bAnimContext *ac,
     blender::ed::greasepencil::select_frame_at(
         static_cast<GreasePencilLayer *>(ale->data)->wrap(), selx, select_mode);
     ale->update |= ANIM_UPDATE_DEPS;
+  }
+  else if (ale->type == ANIMTYPE_GREASE_PENCIL_LAYER_GROUP) {
+    blender::ed::greasepencil::select_frames_at(
+        static_cast<GreasePencilLayerTreeGroup *>(ale->data)->wrap(), selx, select_mode);
   }
   else if (ale->type == ANIMTYPE_GREASE_PENCIL_DATABLOCK) {
     ListBase anim_data = {nullptr, nullptr};

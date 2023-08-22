@@ -1,14 +1,13 @@
+/**
+ * This shader only compute maximum horizon angles for each directions.
+ * The final integration is done at the resolve stage with the shading normal.
+ */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
-
-/**
- * This shader only compute maximum horizon angles for each directions.
- * The final integration is done at the resolve stage with the shading normal.
- */
 
 /* Similar to https://atyuwen.github.io/posts/normal-reconstruction/.
  * This samples the depth buffer 4 time for each direction to get the most correct

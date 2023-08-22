@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2020 Blender Foundation
+/* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -330,17 +330,15 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
     default: {
       if ((event->val == KM_PRESS) && handleNumInput(C, &gso->num, event)) {
         float value;
-        float percentage = RNA_property_float_get(op->ptr, gso->factor_prop);
-
-        /* Grab percentage from numeric input, and store this new value for redo
-         * NOTE: users see ints, while internally we use a 0-1 float.
-         */
-        value = percentage * 100.0f;
         applyNumInput(&gso->num, &value);
 
-        percentage = value / 100.0f;
-        ED_slider_factor_set(gso->slider, percentage);
-        RNA_property_float_set(op->ptr, gso->factor_prop, percentage);
+        /* Grab percentage from numeric input, and store this new value for redo
+         * NOTE: users see ints, while internally we use a 0-1 float. */
+        if (ED_slider_mode_get(gso->slider) == SLIDER_MODE_PERCENT) {
+          value = value / 100.0f;
+        }
+        ED_slider_factor_set(gso->slider, value);
+        RNA_property_float_set(op->ptr, gso->factor_prop, value);
 
         gso->modal_update(C, op);
         break;
@@ -1162,6 +1160,126 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
                        FLT_MAX,
                        "Curve Bend",
                        "Control the bend of the curve",
+                       -1.0f,
+                       1.0f);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Match Slope
+ * \{ */
+
+static void match_slope_graph_keys(bAnimContext *ac, const float factor)
+{
+  ListBase anim_data = {nullptr, nullptr};
+
+  bool all_segments_valid = true;
+
+  ANIM_animdata_filter(
+      ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      all_segments_valid = match_slope_fcurve_segment(fcu, segment, factor);
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+    BLI_freelistN(&segments);
+  }
+
+  if (!all_segments_valid) {
+    if (factor >= 0) {
+      WM_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection.");
+    }
+    else {
+      WM_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection.");
+    }
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void match_slope_draw_status_header(bContext *C, tGraphSliderOp *gso)
+{
+  common_draw_status_header(C, gso, "Match Slope");
+}
+
+static void match_slope_modal_update(bContext *C, wmOperator *op)
+{
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+
+  match_slope_draw_status_header(C, gso);
+
+  /* Reset keyframes to the state at invoke. */
+  reset_bezts(gso);
+  const float factor = slider_factor_get_and_remember(op);
+  match_slope_graph_keys(&gso->ac, factor);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int match_slope_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const int invoke_result = graph_slider_invoke(C, op, event);
+
+  if (invoke_result == OPERATOR_CANCELLED) {
+    return invoke_result;
+  }
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  gso->modal_update = match_slope_modal_update;
+  gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+  match_slope_draw_status_header(C, gso);
+  ED_slider_allow_overshoot_set(gso->slider, false, false);
+  ED_slider_factor_bounds_set(gso->slider, -1, 1);
+  ED_slider_factor_set(gso->slider, 0.0f);
+
+  return invoke_result;
+}
+
+static int match_slope_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float factor = RNA_float_get(op->ptr, "factor");
+
+  match_slope_graph_keys(&ac, factor);
+
+  /* Set notifier that keyframes have changed. */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_match_slope(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Match Slope";
+  ot->idname = "GRAPH_OT_match_slope";
+  ot->description = "Blend selected keys to the slope of neighboring ones";
+
+  /* API callbacks. */
+  ot->invoke = match_slope_invoke;
+  ot->modal = graph_slider_modal;
+  ot->exec = match_slope_exec;
+  ot->poll = graphop_editable_keyframes_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_float_factor(ot->srna,
+                       "factor",
+                       0.0f,
+                       -FLT_MAX,
+                       FLT_MAX,
+                       "Factor",
+                       "Defines which keys to use as slope and how much to blend towards them",
                        -1.0f,
                        1.0f);
 }

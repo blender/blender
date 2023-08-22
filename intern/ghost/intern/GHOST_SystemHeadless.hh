@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -50,6 +50,7 @@ class GHOST_SystemHeadless : public GHOST_System {
                                  /* No windowing functionality supported. */
                                  ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
                                    GHOST_kCapabilityPrimaryClipboard |
+                                   GHOST_kCapabilityDesktopSample |
                                    GHOST_kCapabilityClipboardImages));
   }
   char *getClipboard(bool /*selection*/) const override

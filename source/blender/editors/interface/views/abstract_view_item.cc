@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,6 +17,8 @@
 #include "interface_intern.hh"
 
 #include "UI_abstract_view.hh"
+
+#include <stdexcept>
 
 namespace blender::ui {
 

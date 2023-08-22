@@ -9,6 +9,7 @@
 #define __BVH_PARAMS_H__
 
 #include "util/boundbox.h"
+#include "util/vector.h"
 
 #include "kernel/types.h"
 

@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2011 Morten S. Mikkelsen
- * SPDX-FileCopyrightText: 2022 Blender Foundation
+ * SPDX-FileCopyrightText: 2022 Blender Authors
  *
  * SPDX-License-Identifier: Apache-2.0 */
 

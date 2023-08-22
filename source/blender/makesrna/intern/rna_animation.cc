@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -748,7 +748,9 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
              "Unsupported RNA override operation on animdata pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
-  /* AnimData is a special case, since you cannot edit/replace it, it's either existent or not. */
+  /* AnimData is a special case, since you cannot edit/replace it, it's either existent or not.
+   * Further more, when an animdata is added to the linked reference later on, the one created for
+   * the liboverride needs to be 'merged', such that its overridable data is kept. */
   AnimData *adt_dst = static_cast<AnimData *>(RNA_property_pointer_get(ptr_dst, prop_dst).data);
   AnimData *adt_src = static_cast<AnimData *>(RNA_property_pointer_get(ptr_src, prop_src).data);
 
@@ -763,6 +765,35 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
     BKE_animdata_free(ptr_dst->owner_id, true);
     RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
     return true;
+  }
+  else if (adt_dst != nullptr && adt_src != nullptr) {
+    /* Override had to create an anim data, but now its reference also has one, need to merge them
+     * by keeping the few overridable data from the liboverride, while using the animdata of the
+     * reference.
+     *
+     * Note that this case will not be encountered when the linked reference data already had
+     * anim data, since there will be no operation for the animdata pointer itself then, only
+     * potentially for its internal overridable data (NLA, action...). */
+    id_us_min(reinterpret_cast<ID *>(adt_dst->action));
+    adt_dst->action = adt_src->action;
+    id_us_plus(reinterpret_cast<ID *>(adt_dst->action));
+    id_us_min(reinterpret_cast<ID *>(adt_dst->tmpact));
+    adt_dst->tmpact = adt_src->tmpact;
+    id_us_plus(reinterpret_cast<ID *>(adt_dst->tmpact));
+    adt_dst->act_blendmode = adt_src->act_blendmode;
+    adt_dst->act_extendmode = adt_src->act_extendmode;
+    adt_dst->act_influence = adt_src->act_influence;
+    adt_dst->flag = adt_src->flag;
+
+    /* NLA tracks: since overrides are always after tracks from linked reference, we can 'just'
+     * move the whole list from `src` to the end of the list of `dst` (which currently contains
+     * tracks from linked reference). then active track and strip pointers can be kept as-is. */
+    BLI_movelisttolist(&adt_dst->nla_tracks, &adt_src->nla_tracks);
+    adt_dst->act_track = adt_src->act_track;
+    adt_dst->actstrip = adt_src->actstrip;
+
+    DEG_relations_tag_update(bmain);
+    ANIM_id_update(bmain, ptr_dst->owner_id);
   }
 
   return false;

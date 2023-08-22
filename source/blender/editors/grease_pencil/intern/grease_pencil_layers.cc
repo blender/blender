@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -27,7 +27,7 @@ void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer 
   using namespace blender::bke::greasepencil;
 
   if (layer != nullptr) {
-    layer->base.flag |= GP_LAYER_TREE_NODE_SELECT;
+    layer->set_selected(true);
   }
 
   if (grease_pencil.active_layer != layer) {

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -466,10 +466,16 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
 {
   ColorManagedViewSettings *view = (ColorManagedViewSettings *)ptr->data;
 
-  const char *name = IMB_colormanagement_view_get_indexed_name(value);
+  const char *view_name = IMB_colormanagement_view_get_indexed_name(value);
+  if (!view_name) {
+    return;
+  }
 
-  if (name) {
-    STRNCPY(view->view_transform, name);
+  STRNCPY(view->view_transform, view_name);
+
+  const char *look_name = IMB_colormanagement_look_validate_for_view(view_name, view->look);
+  if (look_name) {
+    STRNCPY(view->look, look_name);
   }
 }
 

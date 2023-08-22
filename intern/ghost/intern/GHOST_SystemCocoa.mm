@@ -921,6 +921,8 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
       ~(
           /* Cocoa has no support for a primary selection clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
+          /* Cocoa has no support for sampling colors from the desktop. */
+          GHOST_kCapabilityDesktopSample |
           /* This Cocoa back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }
@@ -2012,4 +2014,47 @@ void GHOST_SystemCocoa::putClipboard(const char *buffer, bool selection) const
     NSString *textToCopy = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
     [pasteBoard setString:textToCopy forType:NSPasteboardTypeString];
   }
+}
+
+GHOST_TSuccess GHOST_SystemCocoa::showMessageBox(const char *title,
+                                                 const char *message,
+                                                 const char *help_label,
+                                                 const char *continue_label,
+                                                 const char *link,
+                                                 GHOST_DialogOptions dialog_options) const
+{
+  @autoreleasepool {
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert setAccessoryView:[[[NSView alloc] initWithFrame:NSMakeRect(0, 0, 500, 0)] autorelease]];
+
+    NSString *titleString = [NSString stringWithCString:title];
+    NSString *messageString = [NSString stringWithCString:message];
+    NSString *continueString = [NSString stringWithCString:continue_label];
+    NSString *helpString = [NSString stringWithCString:help_label];
+
+    if (dialog_options & GHOST_DialogError) {
+      [alert setAlertStyle:NSAlertStyleCritical];
+    }
+    else if (dialog_options & GHOST_DialogWarning) {
+      [alert setAlertStyle:NSAlertStyleWarning];
+    }
+    else {
+      [alert setAlertStyle:NSAlertStyleInformational];
+    }
+
+    [alert setMessageText:titleString];
+    [alert setInformativeText:messageString];
+
+    [alert addButtonWithTitle:continueString];
+    if (link && strlen(link)) {
+      [alert addButtonWithTitle:helpString];
+    }
+
+    NSModalResponse response = [alert runModal];
+    if (response == NSAlertSecondButtonReturn) {
+      NSString *linkString = [NSString stringWithCString:link];
+      [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:linkString]];
+    }
+  }
+  return GHOST_kSuccess;
 }

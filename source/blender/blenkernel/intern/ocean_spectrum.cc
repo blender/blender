@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -9,7 +9,7 @@
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 
-#include <math.h>
+#include <cmath>
 
 #ifdef WITH_OCEANSIM
 

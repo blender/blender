@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2008 Blender Foundation
+/* SPDX-FileCopyrightText: 2008 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -468,6 +468,7 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void blend_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void blend_to_ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max);
+bool match_slope_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 
 /**
  * Blends the selected keyframes to the default value of the property the F-curve drives.

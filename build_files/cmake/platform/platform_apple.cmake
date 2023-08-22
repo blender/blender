@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2016 Blender Foundation
+# SPDX-FileCopyrightText: 2016 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -145,9 +145,10 @@ endif()
 
 # FreeType compiled with Brotli compression for woff2.
 find_package(Freetype REQUIRED)
-list(APPEND FREETYPE_LIBRARIES
+set(BROTLI_LIBRARIES
   ${LIBDIR}/brotli/lib/libbrotlicommon-static.a
-  ${LIBDIR}/brotli/lib/libbrotlidec-static.a)
+  ${LIBDIR}/brotli/lib/libbrotlidec-static.a
+)
 
 if(WITH_IMAGE_OPENEXR)
   find_package(OpenEXR)
@@ -243,7 +244,7 @@ endif()
 
 if(WITH_BOOST)
   set(Boost_NO_BOOST_CMAKE ON)
-  set(BOOST_ROOT ${LIBDIR}/boost)
+  set(Boost_ROOT ${LIBDIR}/boost)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(_boost_FIND_COMPONENTS date_time filesystem regex system thread wave)
   if(WITH_INTERNATIONAL)
@@ -516,7 +517,11 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  if(DEFINED DYLD_LIBRARY_PATH)
+    set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths};${DYLD_LIBRARY_PATH}\"")
+  else()
+    set(PLATFORM_ENV_BUILD "DYLD_LIBRARY_PATH=\"${_library_paths}\"")
+  endif()
   set(PLATFORM_ENV_INSTALL "DYLD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/Blender.app/Contents/Resources/lib/;$DYLD_LIBRARY_PATH")
   unset(_library_paths)
 endif()

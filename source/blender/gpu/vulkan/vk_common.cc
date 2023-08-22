@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -58,9 +58,12 @@ VkImageAspectFlagBits to_vk_image_aspect_flag_bits(const eGPUTextureFormat forma
     case GPU_DEPTH_COMPONENT32F:
     case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT16:
+      return VK_IMAGE_ASPECT_DEPTH_BIT;
+
     case GPU_DEPTH32F_STENCIL8:
     case GPU_DEPTH24_STENCIL8:
-      return VK_IMAGE_ASPECT_DEPTH_BIT;
+      return static_cast<VkImageAspectFlagBits>(VK_IMAGE_ASPECT_DEPTH_BIT |
+                                                VK_IMAGE_ASPECT_STENCIL_BIT);
 
     /* Texture only formats. */
     case GPU_RGB32UI:
@@ -581,6 +584,54 @@ VkFormat to_vk_format(const GPUVertCompType type, const uint32_t size, GPUVertFe
 
   BLI_assert_unreachable();
   return VK_FORMAT_R32_SFLOAT;
+}
+
+VkFormat to_vk_format(const shader::Type type)
+{
+  switch (type) {
+    case shader::Type::FLOAT:
+      return VK_FORMAT_R32_SFLOAT;
+    case shader::Type::VEC2:
+      return VK_FORMAT_R32G32_SFLOAT;
+    case shader::Type::VEC3:
+      return VK_FORMAT_R32G32B32_SFLOAT;
+    case shader::Type::VEC4:
+      return VK_FORMAT_R32G32B32A32_SFLOAT;
+    case shader::Type::UINT:
+      return VK_FORMAT_R32_UINT;
+    case shader::Type::UVEC2:
+      return VK_FORMAT_R32G32_UINT;
+    case shader::Type::UVEC3:
+      return VK_FORMAT_R32G32B32_UINT;
+    case shader::Type::UVEC4:
+      return VK_FORMAT_R32G32B32A32_UINT;
+    case shader::Type::INT:
+      return VK_FORMAT_R32_SINT;
+    case shader::Type::IVEC2:
+      return VK_FORMAT_R32G32_SINT;
+    case shader::Type::IVEC3:
+      return VK_FORMAT_R32G32B32_SINT;
+    case shader::Type::IVEC4:
+      return VK_FORMAT_R32G32B32A32_SINT;
+    case shader::Type::MAT4:
+      return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+    case shader::Type::MAT3:
+    case shader::Type::BOOL:
+    case shader::Type::VEC3_101010I2:
+    case shader::Type::UCHAR:
+    case shader::Type::UCHAR2:
+    case shader::Type::UCHAR3:
+    case shader::Type::UCHAR4:
+    case shader::Type::CHAR:
+    case shader::Type::CHAR2:
+    case shader::Type::CHAR3:
+    case shader::Type::CHAR4:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return VK_FORMAT_R32G32B32A32_SFLOAT;
 }
 
 VkImageType to_vk_image_type(const eGPUTextureType type)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -709,14 +709,15 @@ static void node_rna(StructRNA *srna)
       "data_type",
       "Input Type",
       "",
-      node_socket_data_type_items,
+      rna_node_socket_data_type_items,
       NOD_storage_enum_accessors(data_type),
       std::nullopt,
       [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
         *r_free = true;
-        return enum_items_filter(node_socket_data_type_items, [](const EnumPropertyItem &item) {
-          return ELEM(item.value, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_STRING, SOCK_RGBA);
-        });
+        return enum_items_filter(
+            rna_node_socket_data_type_items, [](const EnumPropertyItem &item) {
+              return ELEM(item.value, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_STRING, SOCK_RGBA);
+            });
       });
   RNA_def_property_update_runtime(prop, data_type_update);
 

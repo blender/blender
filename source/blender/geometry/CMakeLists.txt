@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2006 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,6 +9,9 @@ set(INC
   ../functions
   ../makesrna
   ../../../intern/eigen
+)
+
+set(INC_SYS
 )
 
 set(SRC

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2011-2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -772,6 +772,8 @@ GHOST_TCapabilityFlag GHOST_SystemSDL::getCapabilities() const
       ~(
           /* This SDL back-end has not yet implemented primary clipboard. */
           GHOST_kCapabilityPrimaryClipboard |
+          /* This SDL back-end has not yet implemented color sampling the desktop. */
+          GHOST_kCapabilityDesktopSample |
           /* This SDL back-end has not yet implemented image copy/paste. */
           GHOST_kCapabilityClipboardImages));
 }

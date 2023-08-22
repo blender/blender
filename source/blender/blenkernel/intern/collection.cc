@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Foundation
+/* SPDX-FileCopyrightText: 2023 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -2200,7 +2200,7 @@ static void scene_objects_iterator_begin(BLI_Iterator *iter, Scene *scene, GSet 
     data->visited = BLI_gset_ptr_new(__func__);
   }
 
-  /* We wrap the scenecollection iterator here to go over the scene collections. */
+  /* We wrap the scene-collection iterator here to go over the scene collections. */
   BKE_scene_collections_iterator_begin(&data->scene_collection_iter, scene);
 
   Collection *collection = static_cast<Collection *>(data->scene_collection_iter.current);

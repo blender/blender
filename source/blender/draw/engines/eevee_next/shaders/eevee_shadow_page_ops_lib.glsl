@@ -37,9 +37,9 @@ void shadow_page_free(inout ShadowTileData tile)
   int index = atomicAdd(pages_infos_buf.page_free_count, 1);
   assert(index < SHADOW_MAX_PAGE);
   /* Insert in heap. */
-  pages_free_buf[index] = packUvec2x16(tile.page);
+  pages_free_buf[index] = shadow_page_pack(tile.page);
   /* Remove from tile. */
-  tile.page = uvec2(-1);
+  tile.page = uvec3(-1);
   tile.is_cached = false;
   tile.is_allocated = false;
 }
@@ -55,7 +55,7 @@ void shadow_page_alloc(inout ShadowTileData tile)
     return;
   }
   /* Insert in tile. */
-  tile.page = unpackUvec2x16(pages_free_buf[index]);
+  tile.page = shadow_page_unpack(pages_free_buf[index]);
   tile.is_allocated = true;
   tile.do_update = true;
   /* Remove from heap. */
@@ -70,9 +70,9 @@ void shadow_page_cache_append(inout ShadowTileData tile, uint tile_index)
   /* The page_cached_next is also wrapped in the defrag phase to avoid unsigned overflow. */
   uint index = atomicAdd(pages_infos_buf.page_cached_next, 1u) % uint(SHADOW_MAX_PAGE);
   /* Insert in heap. */
-  pages_cached_buf[index] = uvec2(packUvec2x16(tile.page), tile_index);
+  pages_cached_buf[index] = uvec2(shadow_page_pack(tile.page), tile_index);
   /* Remove from tile. */
-  tile.page = uvec2(-1);
+  tile.page = uvec3(-1);
   tile.cache_index = index;
   tile.is_cached = true;
   tile.is_allocated = false;
@@ -86,7 +86,7 @@ void shadow_page_cache_remove(inout ShadowTileData tile)
 
   uint index = tile.cache_index;
   /* Insert in tile. */
-  tile.page = unpackUvec2x16(pages_cached_buf[index].x);
+  tile.page = shadow_page_unpack(pages_cached_buf[index].x);
   tile.cache_index = uint(-1);
   tile.is_cached = false;
   tile.is_allocated = true;

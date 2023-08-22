@@ -486,6 +486,13 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, BezTriple *b
 
 void clipUVData(TransInfo *t)
 {
+  /* NOTE(@ideasman42): Often used to clip UV's after proportional editing:
+   * In this case the radius of the proportional region can end outside the clipping area,
+   * while not ideal an elegant solution here would likely be computationally expensive
+   * as it would need to calculate the transform value that would meet the UV bounds.
+   * While it would be technically correct to handle this properly,
+   * there isn't a strong use case for it. */
+
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (int a = 0; a < tc->data_len; a++, td++) {
