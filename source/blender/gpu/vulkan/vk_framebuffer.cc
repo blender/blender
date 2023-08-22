@@ -405,7 +405,11 @@ void VKFrameBuffer::render_pass_create()
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
       texture.ensure_allocated();
-      image_views_.append(VKImageView(texture, attachment.layer, attachment.mip, name_));
+      image_views_.append(VKImageView(texture,
+                                      eImageViewUsage::Attachment,
+                                      IndexRange(max_ii(attachment.layer, 0), 1),
+                                      IndexRange(attachment.mip, 1),
+                                      name_));
       image_views[attachment_location] = image_views_.last().vk_handle();
 
       VkAttachmentDescription &attachment_description =
