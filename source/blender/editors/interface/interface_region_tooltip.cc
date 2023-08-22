@@ -1055,16 +1055,13 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
         std::string info = WM_operatortype_description_or_name(C, gzop->type, &gzop->ptr);
 
         if (!info.empty()) {
-          const char *text = info.c_str();
-
+          uiTooltipField *field = text_field_add(
+              data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Value, true);
           if (gzop_actions[i].prefix != nullptr) {
-            text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info.c_str());
+            field->text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info.c_str());
           }
-
-          if (text != nullptr) {
-            uiTooltipField *field = text_field_add(
-                data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Value, true);
-            field->text = BLI_strdup(text);
+          else {
+            field->text = BLI_strdup(info.c_str());
           }
         }
 
