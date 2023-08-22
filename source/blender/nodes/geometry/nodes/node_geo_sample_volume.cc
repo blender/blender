@@ -35,8 +35,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .supported_type(GeometryComponent::Type::Volume);
 
-  std::string grid_socket_description =
-      "Expects a Named Attribute with the name of a Grid in the Volume";
+  std::string grid_socket_description = N_(
+      "Expects a Named Attribute with the name of a Grid in the Volume");
 
   b.add_input<decl::Vector>(("Grid"), "Grid_Vector")
       .field_on_all()
