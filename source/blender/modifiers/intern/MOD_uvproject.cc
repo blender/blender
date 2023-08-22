@@ -98,8 +98,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
                                   Mesh *mesh)
 {
   using namespace blender;
-  float(*coords)[3], (*co)[3];
-  int i, verts_num;
   Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
   int projectors_num = 0;
   char uvname[MAX_CUSTOMDATA_LAYER_NAME];
@@ -109,7 +107,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   float scay = umd->scaley ? umd->scaley : 1.0f;
   int free_uci = 0;
 
-  for (i = 0; i < umd->projectors_num; i++) {
+  for (int i = 0; i < umd->projectors_num; i++) {
     if (umd->projectors[i] != nullptr) {
       projectors[projectors_num++].ob = umd->projectors[i];
     }
@@ -128,7 +126,7 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   CustomData_validate_layer_name(&mesh->loop_data, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);
 
   /* calculate a projection matrix and normal for each projector */
-  for (i = 0; i < projectors_num; i++) {
+  for (int i = 0; i < projectors_num; i++) {
     float tmpmat[4][4];
     float offsetmat[4][4];
     Camera *cam = nullptr;
@@ -182,30 +180,30 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
     mul_mat3_m4_v3(projectors[i].ob->object_to_world, projectors[i].normal);
   }
 
-  const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::OffsetIndices faces = mesh->faces();
+  const Span<float3> positions = mesh->vert_positions();
+  const OffsetIndices faces = mesh->faces();
   const Span<int> corner_verts = mesh->corner_verts();
 
   float(*mloop_uv)[2] = static_cast<float(*)[2]>(CustomData_get_layer_named_for_write(
       &mesh->loop_data, CD_PROP_FLOAT2, uvname, corner_verts.size()));
 
-  coords = BKE_mesh_vert_coords_alloc(mesh, &verts_num);
+  Array<float3> coords(positions.size());
 
   /* Convert coords to world-space. */
-  for (i = 0, co = coords; i < verts_num; i++, co++) {
-    mul_m4_v3(ob->object_to_world, *co);
+  for (int64_t i = 0; i < positions.size(); i++) {
+    mul_v3_m4v3(coords[i], ob->object_to_world, positions[i]);
   }
 
   /* if only one projector, project coords to UVs */
   if (projectors_num == 1 && projectors[0].uci == nullptr) {
-    for (i = 0, co = coords; i < verts_num; i++, co++) {
-      mul_project_m4_v3(projectors[0].projmat, *co);
+    for (int64_t i = 0; i < coords.size(); i++) {
+      mul_project_m4_v3(projectors[0].projmat, coords[i]);
     }
   }
 
   /* apply coords as UVs */
   for (const int i : faces.index_range()) {
-    const blender::IndexRange face = faces[i];
+    const IndexRange face = faces[i];
     if (projectors_num == 1) {
       if (projectors[0].uci) {
         for (const int corner : face) {
@@ -229,8 +227,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       float best_dot;
 
       /* get the untransformed face normal */
-      const blender::float3 face_no = blender::bke::mesh::face_normal_calc(
-          positions, corner_verts.slice(face));
+      const float3 face_no = blender::bke::mesh::face_normal_calc(positions,
+                                                                  corner_verts.slice(face));
 
       /* find the projector which the face points at most directly
        * (projector normal with largest dot product is best)
@@ -261,8 +259,6 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
       }
     }
   }
-
-  MEM_freeN(coords);
 
   if (free_uci) {
     int j;

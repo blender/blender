@@ -27,6 +27,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
@@ -71,6 +72,7 @@
 
 using blender::float3;
 using blender::IndexRange;
+using blender::MutableSpan;
 using blender::Span;
 using blender::VArray;
 using blender::bke::GeometryOwnershipType;
@@ -400,45 +402,49 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
   return mesh;
 }
 
+static MutableSpan<float3> orco_coord_layer_ensure(Mesh *mesh, const eCustomDataType layer)
+{
+  void *data = CustomData_get_layer_for_write(&mesh->vert_data, layer, mesh->totvert);
+  if (!data) {
+    data = CustomData_add_layer(&mesh->vert_data, layer, CD_CONSTRUCT, mesh->totvert);
+  }
+  return MutableSpan(reinterpret_cast<float3 *>(data), mesh->totvert);
+}
+
 static void add_orco_mesh(
     Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orco, const eCustomDataType layer)
 {
-  float(*orco)[3], (*layerorco)[3];
-  int totvert, free;
+  const int totvert = mesh->totvert;
 
-  totvert = mesh->totvert;
-
+  MutableSpan<float3> layer_orco;
   if (mesh_orco) {
-    free = 1;
+    layer_orco = orco_coord_layer_ensure(mesh, layer);
 
     if (mesh_orco->totvert == totvert) {
-      orco = BKE_mesh_vert_coords_alloc(mesh_orco, nullptr);
+      layer_orco.copy_from(mesh_orco->vert_positions());
     }
     else {
-      orco = BKE_mesh_vert_coords_alloc(mesh, nullptr);
+      layer_orco.copy_from(mesh->vert_positions());
     }
   }
   else {
     /* TODO(sybren): totvert should potentially change here, as ob->data
      * or em may have a different number of vertices than dm. */
-    orco = get_orco_coords(ob, em, layer, &free);
-  }
-
-  if (orco) {
-    if (layer == CD_ORCO) {
-      BKE_mesh_orco_verts_transform((Mesh *)ob->data, orco, totvert, 0);
+    int free = 0;
+    float(*orco)[3] = get_orco_coords(ob, em, layer, &free);
+    if (orco) {
+      layer_orco = orco_coord_layer_ensure(mesh, layer);
+      layer_orco.copy_from(Span<float3>(reinterpret_cast<float3 *>(orco), totvert));
     }
-
-    layerorco = (float(*)[3])CustomData_get_layer_for_write(
-        &mesh->vert_data, layer, mesh->totvert);
-    if (!layerorco) {
-      layerorco = (float(*)[3])CustomData_add_layer(
-          &mesh->vert_data, eCustomDataType(layer), CD_SET_DEFAULT, mesh->totvert);
-    }
-
-    memcpy(layerorco, orco, sizeof(float[3]) * totvert);
     if (free) {
       MEM_freeN(orco);
+    }
+  }
+
+  if (!layer_orco.is_empty()) {
+    if (layer == CD_ORCO) {
+      BKE_mesh_orco_verts_transform(
+          (Mesh *)ob->data, reinterpret_cast<float(*)[3]>(layer_orco.data()), totvert, 0);
     }
   }
 }
@@ -1129,7 +1135,7 @@ static void editbmesh_calc_modifier_final_normals_or_defer(
   editbmesh_calc_modifier_final_normals(mesh_final, final_datamask);
 }
 
-static blender::MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
+static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
