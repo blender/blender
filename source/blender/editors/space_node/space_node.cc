@@ -1036,8 +1036,8 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
   const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
   const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
-  const bool is_embedded_nodetree = snode->id != nullptr && allow_pointer_access &&
-                                    ntreeFromID(snode->id) == snode->nodetree;
+  bool is_embedded_nodetree = snode->id != nullptr && allow_pointer_access &&
+                              ntreeFromID(snode->id) == snode->nodetree;
 
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
@@ -1074,10 +1074,21 @@ static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
              (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||
              snode->nodetree == ntreeFromID(snode->id));
 
+  /* This is mainly here for readfile case ('lib_link' process), as in such case there is no access
+   * to original data allowed, so no way to know whether the SpaceNode nodetree pointer is an
+   * embedded one or not. */
+  if (!is_readonly && snode->id && !snode->nodetree) {
+    is_embedded_nodetree = true;
+    snode->nodetree = ntreeFromID(snode->id);
+    if (path != nullptr) {
+      path->nodetree = snode->nodetree;
+    }
+  }
+
   if (path != nullptr) {
     for (path = path->next; path != nullptr; path = path->next) {
       BLI_assert(path->nodetree != nullptr);
-      if ((data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) {
+      if (allow_pointer_access) {
         BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
       }
 
