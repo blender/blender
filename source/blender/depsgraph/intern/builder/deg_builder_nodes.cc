@@ -1792,14 +1792,14 @@ void DepsgraphNodeBuilder::build_armature(bArmature *armature)
   build_idproperties(armature->id.properties);
   build_animdata(&armature->id);
   build_parameters(&armature->id);
-  /* Make sure pose is up-to-date with armature updates. */
-  bArmature *armature_cow = (bArmature *)get_cow_id(&armature->id);
-  add_operation_node(&armature->id,
-                     NodeType::ARMATURE,
-                     OperationCode::ARMATURE_EVAL,
-                     [armature_cow](::Depsgraph *depsgraph) {
-                       BKE_armature_refresh_layer_used(depsgraph, armature_cow);
-                     });
+  /* This operation is no longer necessary, as it was updating things with the bone layers (which
+   * got replaced by bone collections). However, it's still used by other depsgraph components as a
+   * dependency, so for now the node itself is kept as a no-op.
+   * TODO: remove this node & the references to it, if eventually it turns out we really don't need
+   * this.
+   */
+  add_operation_node(
+      &armature->id, NodeType::ARMATURE, OperationCode::ARMATURE_EVAL, [](::Depsgraph *) {});
   build_armature_bones(&armature->bonebase);
 }
 

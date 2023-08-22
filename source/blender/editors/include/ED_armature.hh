@@ -39,11 +39,8 @@ struct wmOperator;
 #define BONESEL_BONE (1u << 31)
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
-/* useful macros */
-#define EBONE_VISIBLE(arm, ebone) \
-  (CHECK_TYPE_INLINE(arm, bArmature *), \
-   CHECK_TYPE_INLINE(ebone, EditBone *), \
-   (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A)))
+/* useful macros, be sure to #include "ANIM_bone_collections.h". */
+#define EBONE_VISIBLE(arm, ebone) ANIM_bone_is_visible_editbone(arm, ebone)
 
 #define EBONE_SELECTABLE(arm, ebone) \
   (EBONE_VISIBLE(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
@@ -66,6 +63,8 @@ struct wmOperator;
  */
 EditBone *ED_armature_ebone_add(bArmature *arm, const char *name);
 EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool view_aligned);
+
+void ED_armature_ebone_copy(EditBone *dest, const EditBone *source);
 
 /* `armature_edit.cc` */
 
@@ -205,12 +204,6 @@ void ED_armature_undosys_type(UndoType *ut);
 /** Sync selection to parent for connected children. */
 void ED_armature_edit_sync_selection(ListBase *edbo);
 void ED_armature_edit_validate_active(bArmature *arm);
-/**
- * Update the layers_used variable after bones are moved between layer
- * \note Used to be done in drawing code in 2.7, but that won't work with
- * Copy-on-Write, as drawing uses evaluated copies.
- */
-void ED_armature_edit_refresh_layer_used(bArmature *arm);
 /**
  * \param clear_connected: When false caller is responsible for keeping the flag in a valid state.
  */

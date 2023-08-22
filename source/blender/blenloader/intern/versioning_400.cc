@@ -32,6 +32,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "BKE_armature.h"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
@@ -41,6 +42,11 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
+
+#include "ANIM_armature_iter.hh"
+#include "ANIM_bone_collections.h"
+
+#include "ED_armature.hh"
 
 #include "BLT_translation.h"
 
@@ -105,6 +111,110 @@ static void version_bonegroup_migrate_color(Main *bmain)
         memcpy(&bone_color.custom, &bgrp->cs, sizeof(bone_color.custom));
       }
     }
+  }
+}
+
+static void version_bonelayers_to_bonecollections(Main *bmain)
+{
+  char bcoll_name[MAX_NAME];
+  char custom_prop_name[MAX_NAME];
+
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type != OB_ARMATURE || !ob->pose) {
+      continue;
+    }
+
+    bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+    IDProperty *arm_idprops = IDP_GetProperties(&arm->id, false);
+
+    BLI_assert_msg(arm->edbo == nullptr, "did not expect an Armature to be saved in edit mode");
+    const uint layer_used = arm->layer_used;
+
+    /* Construct a bone collection for each layer that contains at least one bone. */
+    blender::Vector<std::pair<uint, BoneCollection *>> layermask_collection;
+    for (uint layer = 0; layer < 32; ++layer) {
+      const uint layer_mask = 1u << layer;
+      if ((layer_used & layer_mask) == 0) {
+        /* Layer is empty, so no need to convert to collection. */
+        continue;
+      }
+
+      /* Construct a suitable name for this bone layer. */
+      bcoll_name[0] = '\0';
+      if (arm_idprops) {
+        /* See if we can use the layer name from the Bone Manager add-on. This is a popular add-on
+         * for managing bone layers and giving them names. */
+        BLI_snprintf(custom_prop_name, sizeof(custom_prop_name), "layer_name_%u", layer);
+        IDProperty *prop = IDP_GetPropertyFromGroup(arm_idprops, custom_prop_name);
+        if (prop != nullptr && prop->type == IDP_STRING && IDP_String(prop)[0] != '\0') {
+          BLI_snprintf(
+              bcoll_name, sizeof(bcoll_name), "Layer %u - %s", layer + 1, IDP_String(prop));
+        }
+      }
+      if (bcoll_name[0] == '\0') {
+        /* Either there was no name defined in the custom property, or
+         * it was the empty string. */
+        BLI_snprintf(bcoll_name, sizeof(bcoll_name), "Layer %u", layer + 1);
+      }
+
+      /* Create a new bone collection for this layer. */
+      BoneCollection *bcoll = ANIM_armature_bonecoll_new(arm, bcoll_name);
+      layermask_collection.append(std::make_pair(layer_mask, bcoll));
+
+      if ((arm->layer & layer_mask) == 0) {
+        ANIM_bonecoll_hide(bcoll);
+      }
+    }
+
+    /* Iterate over the bones to assign them to their layers. */
+    blender::animrig::ANIM_armature_foreach_bone(&arm->bonebase, [&](Bone *bone) {
+      for (auto layer_bcoll : layermask_collection) {
+        const uint layer_mask = layer_bcoll.first;
+        if ((bone->layer & layer_mask) == 0) {
+          continue;
+        }
+
+        BoneCollection *bcoll = layer_bcoll.second;
+        ANIM_armature_bonecoll_assign(bcoll, bone);
+      }
+    });
+  }
+}
+
+static void version_bonegroups_to_bonecollections(Main *bmain)
+{
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type != OB_ARMATURE || !ob->pose) {
+      continue;
+    }
+
+    /* Convert the bone groups on a bone-by-bone basis. */
+    bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+    bPose *pose = ob->pose;
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
+      /* Find the bone group of this pose channel. */
+      const bActionGroup *bgrp = (const bActionGroup *)BLI_findlink(&pose->agroups,
+                                                                    (pchan->agrp_index - 1));
+      if (!bgrp) {
+        continue;
+      }
+
+      /* Get or create the bone collection. */
+      BoneCollection *bcoll = ANIM_armature_bonecoll_get_by_name(arm, bgrp->name);
+      if (!bcoll) {
+        bcoll = ANIM_armature_bonecoll_new(arm, bgrp->name);
+
+        ANIM_bonecoll_hide(bcoll);
+      }
+
+      /* Assign the bone. */
+      ANIM_armature_bonecoll_assign(bcoll, pchan->bone);
+    }
+
+    /* The list of bone groups (pose->agroups) is intentionally left alone here. This will allow
+     * for older versions of Blender to open the file with bone groups intact. Of course the bone
+     * groups will not be updated any more, but this way the data at least survives an accidental
+     * save with Blender 4.0. */
   }
 }
 
@@ -182,6 +292,11 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "bPoseChannel", "BoneColor", "color")) {
       version_bonegroup_migrate_color(bmain);
+    }
+
+    if (!DNA_struct_elem_find(fd->filesdna, "bArmature", "ListBase", "collections")) {
+      version_bonelayers_to_bonecollections(bmain);
+      version_bonegroups_to_bonecollections(bmain);
     }
   }
 }

@@ -491,7 +491,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 
     ED_armature_to_edit(armature);
     /* Layers are enabled according to imported bone set in create_bone(). */
-    ANIM_armature_disable_all_layers(armature);
+    ANIM_armature_bonecoll_hide_all(armature);
 
     create_bone(
         nullptr, node, nullptr, node->getChildNodes().getCount(), nullptr, armature, layer_labels);

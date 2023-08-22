@@ -52,6 +52,8 @@
 #include "UI_interface.hh"
 #include "WM_api.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "screen_intern.h"
 
 const char *screen_context_dir[] = {

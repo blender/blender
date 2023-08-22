@@ -43,6 +43,8 @@
 #include "ED_screen.hh"
 #include "ED_util.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 enum ePoseBlendState {

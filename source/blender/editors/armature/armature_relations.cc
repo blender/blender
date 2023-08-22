@@ -50,6 +50,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 /* -------------------------------------------------------------------- */
@@ -676,7 +678,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 
     /* 5) restore original conditions */
     ED_armature_to_edit(static_cast<bArmature *>(ob_old->data));
-    ED_armature_edit_refresh_layer_used(static_cast<bArmature *>(ob_old->data));
 
     /* parents tips remain selected when connected children are removed. */
     ED_armature_edit_deselect_all(ob_old);

@@ -46,6 +46,8 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
+#include "ANIM_bone_collections.h"
+
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */

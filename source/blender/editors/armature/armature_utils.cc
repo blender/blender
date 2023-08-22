@@ -33,6 +33,8 @@
 
 #include "armature_intern.h"
 
+#include <string.h>
+
 /* -------------------------------------------------------------------- */
 /** \name Validation
  * \{ */
@@ -69,14 +71,6 @@ void ED_armature_edit_validate_active(bArmature *arm)
     if (ebone->flag & BONE_HIDDEN_A) {
       arm->act_edbone = nullptr;
     }
-  }
-}
-
-void ED_armature_edit_refresh_layer_used(bArmature *arm)
-{
-  arm->layer_used = 0;
-  LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
-    arm->layer_used |= ebo->layer;
   }
 }
 
@@ -440,6 +434,16 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
 /** \name Armature EditMode Conversions
  * \{ */
 
+/** Copy the bone collection membership info from the bones to the ebones.
+ *
+ * Operations on eBones (like subdividing, extruding, etc.) will have to deal
+ * with collection assignments of those eBones as well. */
+static void copy_bonecollection_membership(EditBone *eBone, const Bone *bone)
+{
+  BLI_assert(BLI_listbase_is_empty(&eBone->bone_collections));
+  BLI_duplicatelist(&eBone->bone_collections, &bone->runtime.collections);
+}
+
 /* converts Bones to EditBone list, used for tools as well */
 static EditBone *make_boneList_recursive(ListBase *edbo,
                                          ListBase *bones,
@@ -518,6 +522,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
     eBone->bbone_next_flag = curBone->bbone_next_flag;
 
     eBone->color = curBone->color;
+    copy_bonecollection_membership(eBone, curBone);
 
     if (curBone->prop) {
       eBone->prop = IDP_CopyProperty(curBone->prop);
@@ -732,6 +737,12 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
     newBone->color = eBone->color;
 
+    LISTBASE_FOREACH (BoneCollectionReference *, ref, &eBone->bone_collections) {
+      BoneCollectionReference *newBoneRef = MEM_cnew<BoneCollectionReference>(
+          "ED_armature_from_edit", *ref);
+      BLI_addtail(&newBone->runtime.collections, newBoneRef);
+    }
+
     if (eBone->prop) {
       newBone->prop = IDP_CopyProperty(eBone->prop);
     }
@@ -763,6 +774,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* Finalize definition of rest-pose data (roll, bone_mat, arm_mat, head/tail...). */
   armature_finalize_restpose(&arm->bonebase, arm->edbo);
+  ANIM_armature_bonecoll_reconstruct(arm);
 
   BKE_armature_bone_hash_make(arm);
 
@@ -787,6 +799,7 @@ void ED_armature_edit_free(bArmature *arm)
         if (eBone->prop) {
           IDP_FreeProperty(eBone->prop);
         }
+        BLI_freelistN(&eBone->bone_collections);
       }
 
       BLI_freelistN(arm->edbo);
@@ -852,6 +865,18 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const b
     if (ebone_dst->bbone_prev) {
       ebone_dst->bbone_prev = ebone_dst->bbone_prev->temp.ebone;
     }
+
+    /* TODO: WORKAROUND: this is a temporary hack to avoid segfaults when
+     * undoing, because bone collections are not handled properly by the
+     * armature undo code yet.  This just discards all collection membership
+     * data to avoid dangling references.  This MUST be addressed properly
+     * before release.
+     * See: https://projects.blender.org/blender/blender/pulls/109976#issuecomment-1008429
+     */
+    BoneCollectionReference *bcoll_ref = (BoneCollectionReference *)(&ebone_dst->bone_collections);
+    bcoll_ref->next = nullptr;
+    bcoll_ref->prev = nullptr;
+    bcoll_ref->bcoll = nullptr;
   }
 }
 

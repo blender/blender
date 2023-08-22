@@ -11,6 +11,8 @@
 
 #include "DNA_armature_types.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "testing/testing.h"
 
 namespace blender::bke::tests {
@@ -369,9 +371,6 @@ class BKE_armature_find_selected_bones_test : public testing::Test {
     BLI_addtail(&arm.bonebase, &bone1);    /* bone1 is root bone. */
     BLI_addtail(&arm.bonebase, &bone2);    /* bone2 is root bone. */
     BLI_addtail(&bone2.childbase, &bone3); /* bone3 has bone2 as parent. */
-
-    /* Make sure the armature & its bones are visible, to make them selectable. */
-    arm.layer = bone1.layer = bone2.layer = bone3.layer = 1;
   }
 };
 

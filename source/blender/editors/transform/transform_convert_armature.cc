@@ -37,6 +37,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
+#include "ANIM_bone_collections.h"
+
 #include "transform.hh"
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
