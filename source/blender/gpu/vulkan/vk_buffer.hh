@@ -71,7 +71,7 @@ class VKBuffer {
  * VKIndexBuffer uses this when it is a subrange of another buffer.
  */
 struct VKBufferWithOffset {
-  VKBuffer &buffer;
+  const VKBuffer &buffer;
   VkDeviceSize offset;
 };
 

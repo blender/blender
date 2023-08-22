@@ -48,6 +48,11 @@ class VKShaderInterface : public ShaderInterface {
     return push_constants_layout_;
   }
 
+  shader::Type get_attribute_type(int location) const
+  {
+    return static_cast<shader::Type>(attr_types_[location]);
+  }
+
  private:
   /**
    * Retrieve the shader input for the given resource.

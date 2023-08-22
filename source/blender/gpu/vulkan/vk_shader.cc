@@ -573,7 +573,10 @@ void VKShader::build_shader_module(Span<uint32_t> spirv_module, VkShaderModule *
   const VKDevice &device = VKBackend::get().device_get();
   VkResult result = vkCreateShaderModule(
       device.device_get(), &create_info, vk_allocation_callbacks, r_shader_module);
-  if (result != VK_SUCCESS) {
+  if (result == VK_SUCCESS) {
+    debug::object_label(*r_shader_module, name);
+  }
+  else {
     compilation_failed_ = true;
     *r_shader_module = VK_NULL_HANDLE;
   }

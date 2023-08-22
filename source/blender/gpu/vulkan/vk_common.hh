@@ -19,6 +19,7 @@
 #include "vk_mem_alloc.h"
 
 #include "gpu_index_buffer_private.hh"
+#include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 
 namespace blender::gpu {
@@ -42,6 +43,8 @@ VkFormat to_vk_format(const eGPUTextureFormat format);
 VkFormat to_vk_format(const GPUVertCompType type,
                       const uint32_t size,
                       const GPUVertFetchMode fetch_mode);
+VkFormat to_vk_format(const shader::Type type);
+
 VkComponentMapping to_vk_component_mapping(const eGPUTextureFormat format);
 VkImageViewType to_vk_image_view_type(const eGPUTextureType type, eImageViewUsage view_type);
 VkImageType to_vk_image_type(const eGPUTextureType type);

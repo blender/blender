@@ -15,12 +15,15 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
+#include "BLI_math_matrix_types.hh"
+
 #include "GHOST_C-api.h"
 
 namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  dummy_buffer_.free();
   sampler_.free();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
@@ -88,6 +91,16 @@ void VKDevice::init_memory_allocator()
 void VKDevice::init_descriptor_pools()
 {
   descriptor_pools_.init(vk_device_);
+}
+
+void VKDevice::init_dummy_buffer(VKContext &context)
+{
+  if (dummy_buffer_.is_allocated()) {
+    return;
+  }
+
+  dummy_buffer_.create(sizeof(float4x4), GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+  dummy_buffer_.clear(context, 0);
 }
 
 /* -------------------------------------------------------------------- */
