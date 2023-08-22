@@ -265,7 +265,7 @@ colorspaces:
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
-        - !<FileTransform> {src: filmic_desat65cube.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: filmic_desat_33.cube, interpolation: tetrahedral}
         - !<AllocationTransform> {allocation: uniform, vars: [0, 0.66]}
     to_scene_reference: !<GroupTransform>
       children:
