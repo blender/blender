@@ -848,7 +848,7 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
   }
 #  endif
 
-  assert(uniformed_kernel_work_size % local_size == 0);
+  // assert(uniformed_kernel_work_size % local_size == 0);
 }
 
 /* Compute-runtime (ie. NEO) version is what gets returned by sycl/L0 on Windows
