@@ -202,14 +202,14 @@ pxr::SdfPath InstancerData::object_prim_id(Object *object) const
 {
   /* Making id of object in form like <prefix>_<pointer in 16 hex digits format> */
   char name[32];
-  snprintf(name, sizeof(name), "O_%p", object);
+  SNPRINTF(name, "O_%p", object);
   return prim_id.AppendElementString(name);
 }
 
 pxr::SdfPath InstancerData::nonmesh_prim_id(pxr::SdfPath const &prim_id, int index) const
 {
   char name[16];
-  snprintf(name, sizeof(name), "NM_%08d", index);
+  SNPRINTF(name, "NM_%08d", index);
   return prim_id.AppendElementString(name);
 }
 

@@ -28,12 +28,6 @@
 
 #include "rna_internal.h"
 
-#ifdef _WIN32
-#  ifndef snprintf
-#    define snprintf _snprintf
-#  endif
-#endif
-
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"makesrna"};
@@ -426,17 +420,17 @@ static void rna_print_id_get(FILE *f, PropertyDefRNA * /*dp*/)
 static void rna_construct_function_name(
     char *buffer, int size, const char *structname, const char *propname, const char *type)
 {
-  snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
+  BLI_snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
 }
 
 static void rna_construct_wrapper_function_name(
     char *buffer, int size, const char *structname, const char *propname, const char *type)
 {
   if (type == nullptr || type[0] == '\0') {
-    snprintf(buffer, size, "%s_%s", structname, propname);
+    BLI_snprintf(buffer, size, "%s_%s", structname, propname);
   }
   else {
-    snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
+    BLI_snprintf(buffer, size, "%s_%s_%s", structname, propname, type);
   }
 }
 

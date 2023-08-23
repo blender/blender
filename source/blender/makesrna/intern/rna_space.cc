@@ -6695,10 +6695,10 @@ static void rna_def_fileselect_asset_idfilter(BlenderRNA *brna)
     const char *identifier = rna_enum_id_type_filter_items[i].identifier;
     if (is_experimental) {
       /* Create name for experimental property and store in static buffer. */
-      snprintf(experimental_prop_names[i],
-               ARRAY_SIZE(experimental_prop_names[i]),
-               "experimental_%s",
-               identifier);
+      BLI_snprintf(experimental_prop_names[i],
+                   ARRAY_SIZE(experimental_prop_names[i]),
+                   "experimental_%s",
+                   identifier);
       identifier = experimental_prop_names[i];
     }
 
