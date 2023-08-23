@@ -1173,12 +1173,7 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
   switch (drawtype) {
     case OB_WIRE:
     case OB_SOLID:
-      if (U.experimental.enable_workbench_next &&
-          STREQ(engine_type->idname, "BLENDER_WORKBENCH_NEXT")) {
-        use_drw_engine(DRW_engine_viewport_workbench_next_type.draw_engine);
-        break;
-      }
-      use_drw_engine(DRW_engine_viewport_workbench_type.draw_engine);
+      use_drw_engine(DRW_engine_viewport_workbench_next_type.draw_engine);
       break;
     case OB_MATERIAL:
     case OB_RENDER:
@@ -3050,15 +3045,12 @@ void DRW_engines_register_experimental()
   if (U.experimental.enable_eevee_next) {
     RE_engines_register(&DRW_engine_viewport_eevee_next_type);
   }
-  if (U.experimental.enable_workbench_next) {
-    RE_engines_register(&DRW_engine_viewport_workbench_next_type);
-  }
 }
 
 void DRW_engines_register()
 {
   RE_engines_register(&DRW_engine_viewport_eevee_type);
-  RE_engines_register(&DRW_engine_viewport_workbench_type);
+  RE_engines_register(&DRW_engine_viewport_workbench_next_type);
 
   DRW_engine_register(&draw_engine_gpencil_type);
   DRW_engine_register(&draw_engine_gpencil_next_type);

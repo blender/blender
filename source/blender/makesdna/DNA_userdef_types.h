@@ -713,7 +713,6 @@ typedef struct UserDef_Experimental {
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
   char enable_overlay_next;
-  char enable_workbench_next;
   char use_new_volume_nodes;
   char use_rotation_socket;
   char use_node_group_operators;
