@@ -96,12 +96,11 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
           /* Translation. */
           "tx=" << ndof_motion->tx << " ty=" << ndof_motion->tx << " tz=" << ndof_motion->tz <<
           /* Rotation. */
-          "rx=" << ndof_motion->tx << " ry=" << ndof_motion->rx << " rz=" << ndof_motion->rz;
+          "rx=" << ndof_motion->rx << " ry=" << ndof_motion->ry << " rz=" << ndof_motion->rz;
       std::cout << std::fixed << std::setprecision(4) << " dt=" << ndof_motion->dt;
       handled = true;
       break;
     }
-
     case GHOST_kEventNDOFButton: {
       const GHOST_TEventNDOFButtonData *ndof_button =
           (GHOST_TEventNDOFButtonData *)((GHOST_IEvent *)event)->getData();
@@ -110,7 +109,7 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
       handled = true;
       break;
     }
-#endif
+#endif /* WITH_INPUT_NDOF */
 
     case GHOST_kEventKeyDown: {
       GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *)((GHOST_IEvent *)event)->getData();
