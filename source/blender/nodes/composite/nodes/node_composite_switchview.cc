@@ -20,113 +20,33 @@
 
 namespace blender::nodes::node_composite_switchview_cc {
 
-static bNodeSocketTemplate cmp_node_switch_view_out[] = {
-    {SOCK_RGBA, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-    {-1, ""},
-};
-
-static bNodeSocket *ntreeCompositSwitchViewAddSocket(bNodeTree *ntree,
-                                                     bNode *node,
-                                                     const char *name)
+static void node_declare_dynamic(const bNodeTree & /*ntree*/,
+                                 const bNode &node,
+                                 NodeDeclaration &r_declaration)
 {
-  bNodeSocket *sock = nodeAddStaticSocket(
-      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, name);
-  return sock;
-}
+  Scene *scene = reinterpret_cast<Scene *>(node.id);
+  NodeDeclarationBuilder builder(r_declaration);
+  builder.add_output<decl::Color>(N_("Image"));
 
-static void cmp_node_switch_view_sanitycheck(bNodeTree *ntree, bNode *node)
-{
-  if (!BLI_listbase_is_empty(&node->inputs)) {
-    return;
-  }
-
-  bNodeSocket *sock = ntreeCompositSwitchViewAddSocket(ntree, node, "No View");
-  sock->flag |= SOCK_HIDDEN;
-}
-
-static void cmp_node_switch_view_update(bNodeTree *ntree, bNode *node)
-{
-  Scene *scene = (Scene *)node->id;
-
-  /* only update when called from the operator button */
-  if (node->runtime->update != NODE_UPDATE_OPERATOR) {
-    return;
-  }
-
-  if (scene == nullptr) {
-    blender::bke::nodeRemoveAllSockets(ntree, node);
-    /* make sure there is always one socket */
-    cmp_node_switch_view_sanitycheck(ntree, node);
-    return;
-  }
-
-  /* remove the views that were removed */
-  bNodeSocket *sock = (bNodeSocket *)node->inputs.last;
-  while (sock) {
-    SceneRenderView *srv = (SceneRenderView *)BLI_findstring(
-        &scene->r.views, sock->name, offsetof(SceneRenderView, name));
-
-    if (srv == nullptr) {
-      bNodeSocket *sock_del = sock;
-      sock = sock->prev;
-      nodeRemoveSocket(ntree, node, sock_del);
-    }
-    else {
+  if (scene != nullptr) {
+    /* add the new views */
+    LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (srv->viewflag & SCE_VIEW_DISABLE) {
-        sock->flag |= SOCK_HIDDEN;
+        continue;
       }
-      else {
-        sock->flag &= ~SOCK_HIDDEN;
-      }
-
-      sock = sock->prev;
+      builder.add_input<decl::Color>(N_(srv->name)).default_value({0.0f, 0.0f, 0.0f, 1.0f});
     }
   }
-
-  /* add the new views */
-  LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
-    sock = (bNodeSocket *)BLI_findstring(&node->inputs, srv->name, offsetof(bNodeSocket, name));
-
-    if (sock == nullptr) {
-      sock = ntreeCompositSwitchViewAddSocket(ntree, node, srv->name);
-    }
-
-    if (srv->viewflag & SCE_VIEW_DISABLE) {
-      sock->flag |= SOCK_HIDDEN;
-    }
-    else {
-      sock->flag &= ~SOCK_HIDDEN;
-    }
-  }
-
-  /* make sure there is always one socket */
-  cmp_node_switch_view_sanitycheck(ntree, node);
 }
 
 static void init_switch_view(const bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
 
-  /* store scene for updates */
+  /* store scene for dynamic declaration */
   node->id = (ID *)scene;
   id_us_plus(node->id);
-
-  if (scene) {
-    RenderData *rd = &scene->r;
-
-    LISTBASE_FOREACH (SceneRenderView *, srv, &rd->views) {
-      bNodeSocket *sock = ntreeCompositSwitchViewAddSocket(ntree, node, srv->name);
-
-      if (srv->viewflag & SCE_VIEW_DISABLE) {
-        sock->flag |= SOCK_HIDDEN;
-      }
-    }
-  }
-
-  /* make sure there is always one socket */
-  cmp_node_switch_view_sanitycheck(ntree, node);
 }
 
 static void node_composit_buts_switch_view_ex(uiLayout *layout,
@@ -179,10 +99,9 @@ void register_node_type_cmp_switch_view()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
-  blender::bke::node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
+  ntype.declare_dynamic = file_ns::node_declare_dynamic;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
-  ntype.updatefunc = file_ns::cmp_node_switch_view_update;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);
