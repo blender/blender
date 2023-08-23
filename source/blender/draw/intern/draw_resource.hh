@@ -94,8 +94,6 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
   else {
     random = ref.dupli_object->random_id * (1.0f / (float)0xFFFFFFFF);
   }
-  /* Default values. Set if needed. */
-  random = 0.0f;
 
   if (ref.object->data == nullptr) {
     orco_add = float3(0.0f);
