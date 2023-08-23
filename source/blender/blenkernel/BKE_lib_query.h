@@ -175,9 +175,8 @@ enum {
    * \note Access to owning embedded ID pointers (e.g. `Scene.master_collection`) is not affected
    * here, these are presumed always valid.
    *
-   * \note This flag is mutually exclusive with `IDWALK_READONLY` and `IDWALK_RECURSE`, since by
-   * definition the only thing doable in readonly case is accessing current ID pointer, and this is
-   * also required for recursion.
+   * \note This flag is mutually exclusive with `IDWALK_RECURSE`, since by definition accessing the
+   * current ID pointer is required for recursion.
    *
    * \note After remapping, code may access the newly set ID pointer, which is always presumed
    * valid.
