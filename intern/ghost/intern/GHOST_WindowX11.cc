@@ -53,7 +53,7 @@
 /* For obscure full screen mode stuff
  * lifted verbatim from blut. */
 
-using MotifWmHints = struct {
+struct MotifWmHints {
   long flags;
   long functions;
   long decorations;

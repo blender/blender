@@ -4357,7 +4357,7 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 /** \name Consecutive Event Access
  * \{ */
 
-using wmEvent_ConsecutiveData = struct wmEvent_ConsecutiveData {
+struct wmEvent_ConsecutiveData {
   /** Owned custom-data. */
   void *custom_data;
   /** Unique identifier per struct type. */
