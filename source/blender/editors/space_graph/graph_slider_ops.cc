@@ -981,6 +981,8 @@ void GRAPH_OT_ease(wmOperatorType *ot)
                        1.0f);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Blend Offset Operator
  * \{ */
@@ -1071,6 +1073,8 @@ void GRAPH_OT_blend_offset(wmOperatorType *ot)
                        -1.0f,
                        1.0f);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Blend to Ease Operator
@@ -1163,6 +1167,8 @@ void GRAPH_OT_blend_to_ease(wmOperatorType *ot)
                        -1.0f,
                        1.0f);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Match Slope

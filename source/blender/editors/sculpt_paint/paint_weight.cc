@@ -1641,6 +1641,8 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
 /** \name Weight Paint Operator
  * \{ */
 
@@ -1970,4 +1972,5 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 
   paint_stroke_operator_properties(ot);
 }
+
 /** \} */

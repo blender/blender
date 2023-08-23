@@ -274,11 +274,13 @@ class LightBake {
 
 }  // namespace blender::eevee
 
-using namespace blender::eevee;
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Light Bake Job
  * \{ */
+
+using namespace blender::eevee;
 
 wmJob *EEVEE_NEXT_lightbake_job_create(wmWindowManager *wm,
                                        wmWindow *win,

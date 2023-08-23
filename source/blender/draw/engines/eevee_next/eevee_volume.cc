@@ -321,5 +321,3 @@ void VolumeModule::draw_resolve(View &view)
 }
 
 }  // namespace blender::eevee
-
-/** \} */

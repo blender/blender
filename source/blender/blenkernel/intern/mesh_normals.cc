@@ -120,11 +120,11 @@ bool BKE_mesh_face_normals_are_dirty(const Mesh *mesh)
 
 /** \} */
 
+namespace blender::bke::mesh {
+
 /* -------------------------------------------------------------------- */
 /** \name Mesh Normal Calculation (Polygons)
  * \{ */
-
-namespace blender::bke::mesh {
 
 /*
  * COMPUTE POLY NORMAL

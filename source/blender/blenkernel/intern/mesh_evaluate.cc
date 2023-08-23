@@ -465,6 +465,10 @@ void BKE_mesh_calc_volume(const float (*vert_positions)[3],
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Mesh Displacement Data Flip
+ * \{ */
+
 void BKE_mesh_mdisp_flip(MDisps *md, const bool use_loop_mdisp_flip)
 {
   if (UNLIKELY(!md->totdisp || !md->disps)) {
