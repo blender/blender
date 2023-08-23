@@ -384,7 +384,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int index = 0;
 
-  if (UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
