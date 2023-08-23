@@ -334,6 +334,7 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
 
 const bNodeTreeZones *get_tree_zones(const bNodeTree &tree)
 {
+  tree.ensure_topology_cache();
   tree.runtime->tree_zones_cache_mutex.ensure(
       [&]() { tree.runtime->tree_zones = discover_tree_zones(tree); });
   return tree.runtime->tree_zones.get();
