@@ -689,6 +689,8 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         # This menu is used from the graph editor too.
         is_graph_editor = context.area.type == 'GRAPH_EDITOR'
 
+        layout.operator_context = 'INVOKE_REGION_CHANNELS'
+
         layout.operator("anim.channels_setting_enable", text="Mute Channels").type = 'MUTE'
         layout.operator("anim.channels_setting_disable", text="Unmute Channels").type = 'MUTE'
         layout.separator()
