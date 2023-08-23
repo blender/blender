@@ -596,7 +596,7 @@ ccl_device int light_tree_cluster_select_emitter(KernelGlobals kg,
     has_importance |= ((importance[0] > 0) << i);
   }
 
-  if (total_importance[0] == 0.0f || selected_index == -1) {
+  if (total_importance[0] == 0.0f) {
     return -1;
   }
 
