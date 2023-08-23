@@ -2061,15 +2061,18 @@ static void tag_localizable_objects(bContext *C, const int mode)
 
   /* Also forbid making objects local if other library objects are using
    * them for modifiers or constraints.
+   *
+   * FIXME This is ignoring all other linked ID types potentially using the selected tagged
+   * objects! Probably works fine in most 'usual' cases though.
    */
   for (Object *object = bmain->objects.first; object; object = object->id.next) {
-    if ((object->id.tag & LIB_TAG_DOIT) == 0) {
+    if ((object->id.tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(object)) {
       BKE_library_foreach_ID_link(
           NULL, &object->id, tag_localizable_looper, NULL, IDWALK_READONLY);
     }
     if (object->data) {
       ID *data_id = (ID *)object->data;
-      if ((data_id->tag & LIB_TAG_DOIT) == 0) {
+      if ((data_id->tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(data_id)) {
         BKE_library_foreach_ID_link(NULL, data_id, tag_localizable_looper, NULL, IDWALK_READONLY);
       }
     }
