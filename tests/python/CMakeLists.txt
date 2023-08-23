@@ -730,7 +730,7 @@ if(WITH_COMPOSITOR_CPU)
 endif()
 
 # NOTE: WITH_COMPOSITOR_CPU is needed for rendering. 
-if(WITH_COMPOSITOR_REALTIME_TEST AND WITH_COMPOSITOR_CPU)
+if(WITH_COMPOSITOR_REALTIME_TESTS AND WITH_COMPOSITOR_CPU)
   if(NOT OPENIMAGEIO_IDIFF)
       message(WARNING "Disabling realtime compositor tests because OIIO idiff does not exist")
     else()
