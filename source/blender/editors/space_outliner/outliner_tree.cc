@@ -271,6 +271,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_R_LAYER) {
     id = &static_cast<ViewLayerElementCreateData *>(idv)->scene->id;
   }
+  else if (type == TSE_LAYER_COLLECTION) {
+    id = &static_cast<LayerCollection *>(idv)->collection->id;
+  }
   else if (type == TSE_MODIFIER) {
     id = &static_cast<ModifierCreateElementData *>(idv)->object->id;
   }
@@ -424,7 +427,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_MODIFIER,
                 TSE_MODIFIER_BASE,
                 TSE_GREASE_PENCIL_NODE,
-                TSE_LINKED_OB))
+                TSE_LINKED_OB,
+                TSE_LAYER_COLLECTION))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }

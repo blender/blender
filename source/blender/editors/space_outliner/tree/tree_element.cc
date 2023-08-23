@@ -30,6 +30,7 @@
 #include "tree_element_grease_pencil_node.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
+#include "tree_element_layer_collection.hh"
 #include "tree_element_linked_object.hh"
 #include "tree_element_modifier.hh"
 #include "tree_element_nla.hh"
@@ -178,6 +179,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     }
     case TSE_LINKED_OB:
       return std::make_unique<TreeElementLinkedObject>(legacy_te, *static_cast<ID *>(idv));
+    case TSE_LAYER_COLLECTION:
+      return std::make_unique<TreeElementLayerCollection>(legacy_te,
+                                                          *static_cast<LayerCollection *>(idv));
     default:
       break;
   }
