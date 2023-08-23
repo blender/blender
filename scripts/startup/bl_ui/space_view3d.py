@@ -1280,8 +1280,7 @@ class VIEW3D_MT_view(Menu):
         layout.prop(view, "show_region_toolbar")
         layout.prop(view, "show_region_ui")
         layout.prop(view, "show_region_tool_header")
-        if prefs.experimental.use_asset_shelf:
-            layout.prop(view, "show_region_asset_shelf")
+        layout.prop(view, "show_region_asset_shelf")
         layout.prop(view, "show_region_hud")
 
         layout.separator()

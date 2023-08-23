@@ -1158,14 +1158,6 @@ class PreferenceThemeSpacePanel:
         },
     }
 
-    @classmethod
-    def poll(cls, context):
-        # Special exception: Hide asset shelf theme settings depending on experimental "Asset Shelf" option.
-        if cls.datapath.endswith(".asset_shelf"):
-            prefs = context.preferences
-            return prefs.experimental.use_asset_shelf
-        return True
-
     # TODO theme_area should be deprecated
     @staticmethod
     def _theme_generic(layout, themedata, theme_area):
@@ -2470,7 +2462,6 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_tools_tilt"}, ("blender/blender/issues/82877", "#82877")),
                 ({"property": "use_extended_asset_browser"},
                  ("blender/blender/projects/10", "Pipeline, Assets & IO Project Page")),
-                ({"property": "use_asset_shelf"}, ("blender/blender/issues/102879", "#102879")),
                 ({"property": "use_override_templates"}, ("blender/blender/issues/73318", "Milestone 4")),
                 ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
                 ({"property": "use_rotation_socket"}, ("/blender/blender/issues/92967", "#92967")),
