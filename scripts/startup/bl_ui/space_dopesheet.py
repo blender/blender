@@ -717,6 +717,8 @@ class DOPESHEET_MT_channel_context_menu(Menu):
         # This menu is used from the graph editor too.
         is_graph_editor = context.area.type == 'GRAPH_EDITOR'
 
+        layout.operator_context = 'INVOKE_REGION_CHANNELS'
+
         layout.separator()
         layout.operator("anim.channels_view_selected")
 
