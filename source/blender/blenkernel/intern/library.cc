@@ -105,7 +105,6 @@ IDTypeInfo IDType_ID_LI = {
     /*blend_write*/ nullptr,
     /*blend_read_data*/ library_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

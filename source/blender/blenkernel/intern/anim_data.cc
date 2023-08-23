@@ -1519,15 +1519,3 @@ void BKE_animdata_blend_read_lib(BlendLibReader *reader, ID *id, AnimData *adt)
   BKE_nla_blend_read_lib(reader, id, &adt->nla_tracks);
 }
 
-void BKE_animdata_blend_read_expand(BlendExpander *expander, AnimData *adt)
-{
-  /* own action */
-  BLO_expand(expander, adt->action);
-  BLO_expand(expander, adt->tmpact);
-
-  /* drivers - assume that these F-Curves have driver data to be in this list... */
-  BKE_fcurve_blend_read_expand(expander, &adt->drivers);
-
-  /* NLA data - referenced actions. */
-  BKE_nla_blend_read_expand(expander, &adt->nla_tracks);
-}

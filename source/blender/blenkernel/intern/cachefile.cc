@@ -145,7 +145,6 @@ IDTypeInfo IDType_ID_CF = {
     /*blend_write*/ cache_file_blend_write,
     /*blend_read_data*/ cache_file_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

@@ -16,7 +16,6 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct ID;
@@ -135,7 +134,6 @@ void BKE_animdata_blend_read_data(struct BlendDataReader *reader, struct ID *id)
 void BKE_animdata_blend_read_lib(struct BlendLibReader *reader,
                                  struct ID *id,
                                  struct AnimData *adt);
-void BKE_animdata_blend_read_expand(struct BlendExpander *expander, struct AnimData *adt);
 
 #ifdef __cplusplus
 }

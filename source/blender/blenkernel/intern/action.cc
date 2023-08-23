@@ -263,34 +263,6 @@ static void action_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void blend_read_expand_constraint_channels(BlendExpander *expander, ListBase *chanbase)
-{
-  LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
-    BLO_expand(expander, chan->ipo);
-  }
-}
-
-static void action_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  bAction *act = (bAction *)id;
-
-  /* XXX deprecated - old animation system -------------- */
-  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_expand(expander, chan->ipo);
-    blend_read_expand_constraint_channels(expander, &chan->constraintChannels);
-  }
-  /* --------------------------------------------------- */
-
-  /* F-Curves in Action */
-  BKE_fcurve_blend_read_expand(expander, &act->curves);
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    if (marker->camera) {
-      BLO_expand(expander, marker->camera);
-    }
-  }
-}
-
 static IDProperty *action_asset_type_property(const bAction *action)
 {
   const bool is_single_frame = BKE_action_has_single_frame(action);
@@ -338,7 +310,6 @@ IDTypeInfo IDType_ID_AC = {
     /*blend_write*/ action_blend_write,
     /*blend_read_data*/ action_blend_read_data,
     /*blend_read_lib*/ action_blend_read_lib,
-    /*blend_read_expand*/ action_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -1968,19 +1939,6 @@ void BKE_pose_blend_read_lib(BlendLibReader *reader, Object *ob, bPose *pose)
     DEG_id_tag_update_ex(
         bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
     BKE_pose_tag_recalc(bmain, pose);
-  }
-}
-
-void BKE_pose_blend_read_expand(BlendExpander *expander, bPose *pose)
-{
-  if (!pose) {
-    return;
-  }
-
-  LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
-    BKE_constraint_blend_read_expand(expander, &chan->constraints);
-    IDP_BlendReadExpand(expander, chan->prop);
-    BLO_expand(expander, chan->custom);
   }
 }
 

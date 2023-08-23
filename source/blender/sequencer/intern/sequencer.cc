@@ -904,40 +904,6 @@ void SEQ_blend_read_lib(BlendLibReader *reader, Scene *scene, ListBase *seqbase)
   SEQ_for_each_callback(seqbase, seq_read_lib_cb, &data);
 }
 
-static bool seq_blend_read_expand(Sequence *seq, void *user_data)
-{
-  BlendExpander *expander = (BlendExpander *)user_data;
-
-  IDP_BlendReadExpand(expander, seq->prop);
-
-  if (seq->scene) {
-    BLO_expand(expander, seq->scene);
-  }
-  if (seq->scene_camera) {
-    BLO_expand(expander, seq->scene_camera);
-  }
-  if (seq->clip) {
-    BLO_expand(expander, seq->clip);
-  }
-  if (seq->mask) {
-    BLO_expand(expander, seq->mask);
-  }
-  if (seq->sound) {
-    BLO_expand(expander, seq->sound);
-  }
-
-  if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-    TextVars *data = static_cast<TextVars *>(seq->effectdata);
-    BLO_expand(expander, data->text_font);
-  }
-  return true;
-}
-
-void SEQ_blend_read_expand(BlendExpander *expander, ListBase *seqbase)
-{
-  SEQ_for_each_callback(seqbase, seq_blend_read_expand, expander);
-}
-
 static bool seq_doversion_250_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = static_cast<Main *>(user_data);

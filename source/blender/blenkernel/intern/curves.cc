@@ -139,15 +139,6 @@ static void curves_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &curves->surface);
 }
 
-static void curves_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Curves *curves = (Curves *)id;
-  for (int a = 0; a < curves->totcol; a++) {
-    BLO_expand(expander, curves->mat[a]);
-  }
-  BLO_expand(expander, curves->surface);
-}
-
 IDTypeInfo IDType_ID_CV = {
     /*id_code*/ ID_CV,
     /*id_filter*/ FILTER_ID_CV,
@@ -171,7 +162,6 @@ IDTypeInfo IDType_ID_CV = {
     /*blend_write*/ curves_blend_write,
     /*blend_read_data*/ curves_blend_read_data,
     /*blend_read_lib*/ curves_blend_read_lib,
-    /*blend_read_expand*/ curves_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

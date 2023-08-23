@@ -9,7 +9,6 @@
  */
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -375,7 +374,6 @@ void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
 void BKE_constraint_blend_read_lib(struct BlendLibReader *reader,
                                    struct ID *id,
                                    struct ListBase *conlist);
-void BKE_constraint_blend_read_expand(struct BlendExpander *expander, struct ListBase *lb);
 
 #ifdef __cplusplus
 }

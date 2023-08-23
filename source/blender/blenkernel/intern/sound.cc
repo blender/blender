@@ -196,12 +196,6 @@ static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &sound->ipo);
 }
 
-static void sound_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  bSound *snd = (bSound *)id;
-  BLO_expand(expander, snd->ipo); /* XXX deprecated - old animation system */
-}
-
 IDTypeInfo IDType_ID_SO = {
     /*id_code*/ ID_SO,
     /*id_filter*/ FILTER_ID_SO,
@@ -226,7 +220,6 @@ IDTypeInfo IDType_ID_SO = {
     /*blend_write*/ sound_blend_write,
     /*blend_read_data*/ sound_blend_read_data,
     /*blend_read_lib*/ sound_blend_read_lib,
-    /*blend_read_expand*/ sound_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

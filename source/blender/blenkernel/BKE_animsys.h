@@ -17,7 +17,6 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -106,7 +105,6 @@ void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, struct ListB
 void BKE_keyingsets_blend_read_lib(struct BlendLibReader *reader,
                                    struct ID *id,
                                    struct ListBase *list);
-void BKE_keyingsets_blend_read_expand(struct BlendExpander *expander, struct ListBase *list);
 
 /* ************************************* */
 /* Path Fixing API */

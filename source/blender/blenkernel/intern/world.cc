@@ -181,12 +181,6 @@ static void world_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &wrld->ipo); /* XXX deprecated, old animation system */
 }
 
-static void world_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  World *wrld = (World *)id;
-  BLO_expand(expander, wrld->ipo); /* XXX deprecated, old animation system */
-}
-
 IDTypeInfo IDType_ID_WO = {
     /*id_code*/ ID_WO,
     /*id_filter*/ FILTER_ID_WO,
@@ -210,7 +204,6 @@ IDTypeInfo IDType_ID_WO = {
     /*blend_write*/ world_blend_write,
     /*blend_read_data*/ world_blend_read_data,
     /*blend_read_lib*/ world_blend_read_lib,
-    /*blend_read_expand*/ world_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

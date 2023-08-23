@@ -244,17 +244,6 @@ static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void camera_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Camera *ca = (Camera *)id;
-  BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
-
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    BLO_expand(expander, bgpic->ima);
-    BLO_expand(expander, bgpic->clip);
-  }
-}
-
 IDTypeInfo IDType_ID_CA = {
     /*id_code*/ ID_CA,
     /*id_filter*/ FILTER_ID_CA,
@@ -278,7 +267,6 @@ IDTypeInfo IDType_ID_CA = {
     /*blend_write*/ camera_blend_write,
     /*blend_read_data*/ camera_blend_read_data,
     /*blend_read_lib*/ camera_blend_read_lib,
-    /*blend_read_expand*/ camera_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

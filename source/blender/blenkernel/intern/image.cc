@@ -456,7 +456,6 @@ constexpr IDTypeInfo get_type_info()
   info.blend_write = image_blend_write;
   info.blend_read_data = image_blend_read_data;
   info.blend_read_lib = image_blend_read_lib;
-  info.blend_read_expand = nullptr;
 
   info.blend_read_undo_preserve = nullptr;
 

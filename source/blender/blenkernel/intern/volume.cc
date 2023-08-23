@@ -636,14 +636,6 @@ static void volume_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void volume_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Volume *volume = (Volume *)id;
-  for (int a = 0; a < volume->totcol; a++) {
-    BLO_expand(expander, volume->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_VO = {
     /*id_code*/ ID_VO,
     /*id_filter*/ FILTER_ID_VO,
@@ -667,7 +659,6 @@ IDTypeInfo IDType_ID_VO = {
     /*blend_write*/ volume_blend_write,
     /*blend_read_data*/ volume_blend_read_data,
     /*blend_read_lib*/ volume_blend_read_lib,
-    /*blend_read_expand*/ volume_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

@@ -188,12 +188,6 @@ static void shapekey_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &key->from);
 }
 
-static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Key *key = (Key *)id;
-  BLO_expand(expander, key->ipo); /* XXX deprecated - old animation system */
-}
-
 IDTypeInfo IDType_ID_KE = {
     /*id_code*/ ID_KE,
     /*id_filter*/ FILTER_ID_KE,
@@ -219,7 +213,6 @@ IDTypeInfo IDType_ID_KE = {
     /*blend_write*/ shapekey_blend_write,
     /*blend_read_data*/ shapekey_blend_read_data,
     /*blend_read_lib*/ shapekey_blend_read_lib,
-    /*blend_read_expand*/ shapekey_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

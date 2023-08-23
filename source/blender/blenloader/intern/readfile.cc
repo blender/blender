@@ -597,11 +597,6 @@ struct BlendLibReader {
   Main *main;
 };
 
-struct BlendExpander {
-  FileData *fd;
-  Main *main;
-};
-
 static void switch_endian_bh4(BHead4 *bhead)
 {
   /* the ID_.. codes */
@@ -3933,6 +3928,11 @@ static ID *library_id_is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 /** \name Library Linking (expand pointers)
  * \{ */
 
+struct BlendExpander {
+  FileData *fd;
+  Main *main;
+};
+
 static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 {
   FileData *fd = static_cast<FileData *>(fdhandle);
@@ -4058,53 +4058,39 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 
 static BLOExpandDoitCallback expand_doit;
 
-static void expand_id(BlendExpander *expander, ID *id);
-
-static void expand_id_embedded_id(BlendExpander *expander, ID *id)
-{
-  /* Handle 'private IDs'. */
-  bNodeTree *nodetree = ntreeFromID(id);
-  if (nodetree != nullptr) {
-    expand_id(expander, &nodetree->id);
-    blender::bke::ntreeBlendReadExpand(expander, nodetree);
-  }
-
-  if (GS(id->name) == ID_SCE) {
-    Scene *scene = (Scene *)id;
-    if (scene->master_collection != nullptr) {
-      expand_id(expander, &scene->master_collection->id);
-      BKE_collection_blend_read_expand(expander, scene->master_collection);
-    }
-  }
-}
-
-static void expand_id(BlendExpander *expander, ID *id)
-{
-  IDP_BlendReadExpand(expander, id->properties);
-
-  if (id->override_library) {
-    BLO_expand(expander, id->override_library->reference);
-    BLO_expand(expander, id->override_library->storage);
-
-    LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-      LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
-        BLO_expand(expander, opop->subitem_reference_id);
-        BLO_expand(expander, opop->subitem_local_id);
-      }
-    }
-  }
-
-  AnimData *adt = BKE_animdata_from_id(id);
-  if (adt != nullptr) {
-    BKE_animdata_blend_read_expand(expander, adt);
-  }
-
-  expand_id_embedded_id(expander, id);
-}
-
 void BLO_main_expander(BLOExpandDoitCallback expand_doit_func)
 {
   expand_doit = expand_doit_func;
+}
+
+static int expand_cb(LibraryIDLinkCallbackData *cb_data)
+{
+  /* Embedded IDs are not known by lib_link code, so they would be remapped to `nullptr`. But there
+   * is no need to process them anyway, asthey are already handled during the 'read_data' phase.
+   */
+  if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
+    return IDWALK_RET_NOP;
+  }
+
+  /* Explicitely requested to be ignored during readfile processing. Means the read_data code
+   * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
+  if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
+    return IDWALK_RET_NOP;
+  }
+
+  /* Expand process can be re-entrant or have other complex imteractions that will not work well
+   * with loop-back pointers. Further more, processing such data should not be needed here anyway.
+   */
+  if (cb_data->cb_flag & (IDWALK_CB_LOOPBACK)) {
+    return IDWALK_RET_NOP;
+  }
+
+  BlendExpander *expander = static_cast<BlendExpander *>(cb_data->user_data);
+  ID *id = *(cb_data->id_pointer);
+
+  expand_doit(expander->fd, expander->main, id);
+
+  return IDWALK_RET_NOP;
 }
 
 void BLO_expand_main(void *fdhandle, Main *mainvar)
@@ -4121,12 +4107,14 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
         continue;
       }
 
-      expand_id(&expander, id_iter);
-
-      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id_iter);
-      if (id_type->blend_read_expand != nullptr) {
-        id_type->blend_read_expand(&expander, id_iter);
-      }
+      /* Original (current) ID pointer can be considered as valid, but _not_ its own pointers to
+       * other IDs - the already loaded ones will be valid, but the yet-to-be-read ones will not.
+       * Expanding should _not_ require processing of UI ID pointers.
+       * Expanding should never modify ID pointers themselves.
+       * Handling of DNA deprecated data should never be needed in undo case. */
+      const int flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
+                       ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
+      BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;
       id_iter->tag &= ~LIB_TAG_NEED_EXPAND;
@@ -4977,11 +4965,6 @@ Main *BLO_read_lib_get_main(BlendLibReader *reader)
 BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader)
 {
   return reader->fd->reports;
-}
-
-void BLO_expand_id(BlendExpander *expander, ID *id)
-{
-  expand_doit(expander->fd, expander->main, id);
 }
 
 /** \} */

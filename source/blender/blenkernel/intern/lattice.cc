@@ -166,13 +166,6 @@ static void lattice_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &lt->key);
 }
 
-static void lattice_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Lattice *lt = (Lattice *)id;
-  BLO_expand(expander, lt->ipo);  // XXX deprecated - old animation system
-  BLO_expand(expander, lt->key);
-}
-
 IDTypeInfo IDType_ID_LT = {
     /*id_code*/ ID_LT,
     /*id_filter*/ FILTER_ID_LT,
@@ -196,7 +189,6 @@ IDTypeInfo IDType_ID_LT = {
     /*blend_write*/ lattice_blend_write,
     /*blend_read_data*/ lattice_blend_read_data,
     /*blend_read_lib*/ lattice_blend_read_lib,
-    /*blend_read_expand*/ lattice_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

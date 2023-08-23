@@ -377,42 +377,6 @@ static void socket_data_read_lib(BlendLibReader *reader, ID *id, bNodeTreeInterf
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Expand Socket Data
- * \{ */
-
-template<typename T> void socket_data_expand_impl(BlendExpander * /*expander*/, T & /*data*/) {}
-template<> void socket_data_expand_impl(BlendExpander *expander, bNodeSocketValueObject &data)
-{
-  BLO_expand(expander, &data.value);
-}
-template<> void socket_data_expand_impl(BlendExpander *expander, bNodeSocketValueImage &data)
-{
-  BLO_expand(expander, &data.value);
-}
-template<> void socket_data_expand_impl(BlendExpander *expander, bNodeSocketValueCollection &data)
-{
-  BLO_expand(expander, &data.value);
-}
-template<> void socket_data_expand_impl(BlendExpander *expander, bNodeSocketValueTexture &data)
-{
-  BLO_expand(expander, &data.value);
-}
-template<> void socket_data_expand_impl(BlendExpander *expander, bNodeSocketValueMaterial &data)
-{
-  BLO_expand(expander, &data.value);
-}
-
-static void socket_data_expand(BlendExpander *expander, bNodeTreeInterfaceSocket &socket)
-{
-  socket_data_to_static_type_tag(socket.socket_type, [&](auto type_tag) {
-    using SocketDataType = typename decltype(type_tag)::type;
-    socket_data_expand_impl(expander, get_socket_data_as<SocketDataType>(socket));
-  });
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Callback per ID Pointer
  * \{ */
 
@@ -618,25 +582,6 @@ static void item_read_lib(BlendLibReader *reader, ID *id, bNodeTreeInterfaceItem
       bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
       for (bNodeTreeInterfaceItem *item : panel.items()) {
         item_read_lib(reader, id, *item);
-      }
-      break;
-    }
-  }
-}
-
-static void item_read_expand(BlendExpander *expander, bNodeTreeInterfaceItem &item)
-{
-  switch (item.item_type) {
-    case NODE_INTERFACE_SOCKET: {
-      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
-      IDP_BlendReadExpand(expander, socket.properties);
-      socket_types::socket_data_expand(expander, socket);
-      break;
-    }
-    case NODE_INTERFACE_PANEL: {
-      bNodeTreeInterfacePanel &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
-      for (bNodeTreeInterfaceItem *item : panel.items()) {
-        item_read_expand(expander, *item);
       }
       break;
     }
@@ -1094,11 +1039,6 @@ void bNodeTreeInterface::read_data(BlendDataReader *reader)
 void bNodeTreeInterface::read_lib(BlendLibReader *reader, ID *id)
 {
   item_types::item_read_lib(reader, id, this->root_panel.item);
-}
-
-void bNodeTreeInterface::read_expand(BlendExpander *expander)
-{
-  item_types::item_read_expand(expander, this->root_panel.item);
 }
 
 bNodeTreeInterfaceItem *bNodeTreeInterface::active_item()

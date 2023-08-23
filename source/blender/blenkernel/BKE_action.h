@@ -18,7 +18,6 @@ extern "C" {
 #endif
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct bArmature;
@@ -394,8 +393,6 @@ void BKE_pose_blend_read_data(struct BlendDataReader *reader,
                               struct bPose *pose) ATTR_NONNULL(1, 2);
 void BKE_pose_blend_read_lib(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose)
     ATTR_NONNULL(1, 2);
-void BKE_pose_blend_read_expand(struct BlendExpander *expander, struct bPose *pose)
-    ATTR_NONNULL(1);
 
 /* `action_mirror.cc` */
 

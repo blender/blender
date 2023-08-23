@@ -243,18 +243,6 @@ static void material_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void material_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Material *ma = (Material *)id;
-  BLO_expand(expander, ma->ipo); /* XXX deprecated - old animation system */
-
-  if (ma->gp_style) {
-    MaterialGPencilStyle *gp_style = ma->gp_style;
-    BLO_expand(expander, gp_style->sima);
-    BLO_expand(expander, gp_style->ima);
-  }
-}
-
 IDTypeInfo IDType_ID_MA = {
     /*id_code*/ ID_MA,
     /*id_filter*/ FILTER_ID_MA,
@@ -278,7 +266,6 @@ IDTypeInfo IDType_ID_MA = {
     /*blend_write*/ material_blend_write,
     /*blend_read_data*/ material_blend_read_data,
     /*blend_read_lib*/ material_blend_read_lib,
-    /*blend_read_expand*/ material_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

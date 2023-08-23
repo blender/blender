@@ -177,15 +177,6 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
   BKE_viewer_path_blend_read_lib(reader, id, &workspace->viewer_path);
 }
 
-static void workspace_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  WorkSpace *workspace = (WorkSpace *)id;
-
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_expand(expander, BKE_workspace_layout_screen_get(layout));
-  }
-}
-
 IDTypeInfo IDType_ID_WS = {
     /*id_code*/ ID_WS,
     /*id_filter*/ FILTER_ID_WS,
@@ -210,7 +201,6 @@ IDTypeInfo IDType_ID_WS = {
     /*blend_write*/ workspace_blend_write,
     /*blend_read_data*/ workspace_blend_read_data,
     /*blend_read_lib*/ workspace_blend_read_lib,
-    /*blend_read_expand*/ workspace_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

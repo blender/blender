@@ -208,22 +208,6 @@ static void grease_pencil_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void grease_pencil_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
-  for (int i = 0; i < grease_pencil->material_array_num; i++) {
-    BLO_expand(expander, grease_pencil->material_array[i]);
-  }
-  for (int i = 0; i < grease_pencil->drawing_array_num; i++) {
-    GreasePencilDrawingBase *drawing_base = grease_pencil->drawing_array[i];
-    if (drawing_base->type == GP_DRAWING_REFERENCE) {
-      GreasePencilDrawingReference *drawing_reference =
-          reinterpret_cast<GreasePencilDrawingReference *>(drawing_base);
-      BLO_expand(expander, drawing_reference->id_reference);
-    }
-  }
-}
-
 IDTypeInfo IDType_ID_GP = {
     /*id_code*/ ID_GP,
     /*id_filter*/ FILTER_ID_GP,
@@ -247,7 +231,6 @@ IDTypeInfo IDType_ID_GP = {
     /*blend_write*/ grease_pencil_blend_write,
     /*blend_read_data*/ grease_pencil_blend_read_data,
     /*blend_read_lib*/ grease_pencil_blend_read_lib,
-    /*blend_read_expand*/ grease_pencil_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

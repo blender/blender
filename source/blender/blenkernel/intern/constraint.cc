@@ -6595,24 +6595,3 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
   BKE_constraints_id_loop(conlist, lib_link_constraint_cb, IDWALK_NOP, &cld);
 }
 
-/* callback function used to expand constraint ID-links */
-static void expand_constraint_cb(bConstraint * /*con*/,
-                                 ID **idpoin,
-                                 bool /*is_reference*/,
-                                 void *userdata)
-{
-  BlendExpander *expander = static_cast<BlendExpander *>(userdata);
-  BLO_expand(expander, *idpoin);
-}
-
-void BKE_constraint_blend_read_expand(BlendExpander *expander, ListBase *lb)
-{
-  BKE_constraints_id_loop(lb, expand_constraint_cb, IDWALK_NOP, expander);
-
-  /* deprecated manual expansion stuff */
-  LISTBASE_FOREACH (bConstraint *, curcon, lb) {
-    if (curcon->ipo) {
-      BLO_expand(expander, curcon->ipo); /* XXX deprecated - old animation system */
-    }
-  }
-}

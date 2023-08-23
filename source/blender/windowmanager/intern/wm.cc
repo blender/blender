@@ -292,7 +292,6 @@ IDTypeInfo IDType_ID_WM = {
     /*blend_write*/ window_manager_blend_write,
     /*blend_read_data*/ window_manager_blend_read_data,
     /*blend_read_lib*/ window_manager_blend_read_lib,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

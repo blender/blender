@@ -81,7 +81,6 @@ IDTypeInfo IDType_ID_LP = {
     /*blend_write*/ lightprobe_blend_write,
     /*blend_read_data*/ nullptr,
     /*blend_read_lib*/ lightprobe_blend_read_lib,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

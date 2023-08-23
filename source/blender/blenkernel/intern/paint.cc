@@ -161,7 +161,6 @@ IDTypeInfo IDType_ID_PAL = {
     /*blend_write*/ palette_blend_write,
     /*blend_read_data*/ palette_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ palette_undo_preserve,
 
@@ -229,7 +228,6 @@ IDTypeInfo IDType_ID_PC = {
     /*blend_write*/ paint_curve_blend_write,
     /*blend_read_data*/ paint_curve_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

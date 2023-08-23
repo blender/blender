@@ -177,7 +177,6 @@ IDTypeInfo IDType_ID_VF = {
     /*blend_write*/ vfont_blend_write,
     /*blend_read_data*/ vfont_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

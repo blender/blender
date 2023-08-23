@@ -57,12 +57,6 @@ static void speaker_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &spk->sound);
 }
 
-static void speaker_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Speaker *spk = (Speaker *)id;
-  BLO_expand(expander, spk->sound);
-}
-
 IDTypeInfo IDType_ID_SPK = {
     /*id_code*/ ID_SPK,
     /*id_filter*/ FILTER_ID_SPK,
@@ -86,7 +80,6 @@ IDTypeInfo IDType_ID_SPK = {
     /*blend_write*/ speaker_blend_write,
     /*blend_read_data*/ nullptr,
     /*blend_read_lib*/ speaker_blend_read_lib,
-    /*blend_read_expand*/ speaker_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

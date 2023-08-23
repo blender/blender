@@ -151,14 +151,6 @@ static void metaball_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &mb->ipo);  // XXX deprecated - old animation system
 }
 
-static void metaball_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  MetaBall *mb = (MetaBall *)id;
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_expand(expander, mb->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_MB = {
     /*id_code*/ ID_MB,
     /*id_filter*/ FILTER_ID_MB,
@@ -182,7 +174,6 @@ IDTypeInfo IDType_ID_MB = {
     /*blend_write*/ metaball_blend_write,
     /*blend_read_data*/ metaball_blend_read_data,
     /*blend_read_lib*/ metaball_blend_read_lib,
-    /*blend_read_expand*/ metaball_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

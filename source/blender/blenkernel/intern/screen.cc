@@ -185,7 +185,6 @@ IDTypeInfo IDType_ID_SCR = {
     /* Cannot be used yet, because #direct_link_screen has a return value. */
     /*blend_read_data*/ nullptr,
     /*blend_read_lib*/ screen_blend_read_lib,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

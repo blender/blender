@@ -160,12 +160,6 @@ static void light_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &la->ipo);  // XXX deprecated - old animation system
 }
 
-static void light_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Light *la = (Light *)id;
-  BLO_expand(expander, la->ipo);  // XXX deprecated - old animation system
-}
-
 IDTypeInfo IDType_ID_LA = {
     /*id_code*/ ID_LA,
     /*id_filter*/ FILTER_ID_LA,
@@ -189,7 +183,6 @@ IDTypeInfo IDType_ID_LA = {
     /*blend_write*/ light_blend_write,
     /*blend_read_data*/ light_blend_read_data,
     /*blend_read_lib*/ light_blend_read_lib,
-    /*blend_read_expand*/ light_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

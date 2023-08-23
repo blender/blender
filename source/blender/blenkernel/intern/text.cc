@@ -248,7 +248,6 @@ IDTypeInfo IDType_ID_TXT = {
     /*blend_write*/ text_blend_write,
     /*blend_read_data*/ text_blend_read_data,
     /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

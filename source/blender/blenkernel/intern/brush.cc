@@ -386,19 +386,6 @@ static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void brush_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Brush *brush = (Brush *)id;
-  BLO_expand(expander, brush->mtex.tex);
-  BLO_expand(expander, brush->mask_mtex.tex);
-  BLO_expand(expander, brush->clone.image);
-  BLO_expand(expander, brush->paint_curve);
-  if (brush->gpencil_settings != nullptr) {
-    BLO_expand(expander, brush->gpencil_settings->material);
-    BLO_expand(expander, brush->gpencil_settings->material_alt);
-  }
-}
-
 static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
 {
   BlendLibReader *reader = (BlendLibReader *)cb_data->user_data;
@@ -455,7 +442,6 @@ IDTypeInfo IDType_ID_BR = {
     /*blend_write*/ brush_blend_write,
     /*blend_read_data*/ brush_blend_read_data,
     /*blend_read_lib*/ brush_blend_read_lib,
-    /*blend_read_expand*/ brush_blend_read_expand,
 
     /*blend_read_undo_preserve*/ brush_undo_preserve,
 

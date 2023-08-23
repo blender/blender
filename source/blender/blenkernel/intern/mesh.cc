@@ -371,17 +371,6 @@ static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, id, &me->texcomesh);
 }
 
-static void mesh_read_expand(BlendExpander *expander, ID *id)
-{
-  Mesh *me = reinterpret_cast<Mesh *>(id);
-  for (int a = 0; a < me->totcol; a++) {
-    BLO_expand(expander, me->mat[a]);
-  }
-
-  BLO_expand(expander, me->key);
-  BLO_expand(expander, me->texcomesh);
-}
-
 IDTypeInfo IDType_ID_ME = {
     /*id_code*/ ID_ME,
     /*id_filter*/ FILTER_ID_ME,
@@ -405,7 +394,6 @@ IDTypeInfo IDType_ID_ME = {
     /*blend_write*/ mesh_blend_write,
     /*blend_read_data*/ mesh_blend_read_data,
     /*blend_read_lib*/ mesh_blend_read_lib,
-    /*blend_read_expand*/ mesh_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

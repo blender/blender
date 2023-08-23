@@ -279,18 +279,6 @@ static void greasepencil_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 }
 
-static void greasepencil_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  bGPdata *gpd = (bGPdata *)id;
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    BLO_expand(expander, gpl->parent);
-  }
-
-  for (int a = 0; a < gpd->totcol; a++) {
-    BLO_expand(expander, gpd->mat[a]);
-  }
-}
-
 IDTypeInfo IDType_ID_GD_LEGACY = {
     /*id_code*/ ID_GD_LEGACY,
     /*id_filter*/ FILTER_ID_GD_LEGACY,
@@ -314,7 +302,6 @@ IDTypeInfo IDType_ID_GD_LEGACY = {
     /*blend_write*/ greasepencil_blend_write,
     /*blend_read_data*/ greasepencil_blend_read_data,
     /*blend_read_lib*/ greasepencil_blend_read_lib,
-    /*blend_read_expand*/ greasepencil_blend_read_expand,
 
     /*blend_read_undo_preserve*/ nullptr,
 

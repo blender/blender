@@ -1515,31 +1515,6 @@ void IDP_BlendReadLib(BlendLibReader *reader, ID *self_id, IDProperty *prop)
   }
 }
 
-void IDP_BlendReadExpand(BlendExpander *expander, IDProperty *prop)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_ID:
-      BLO_expand(expander, IDP_Id(prop));
-      break;
-    case IDP_IDPARRAY: {
-      IDProperty *idp_array = IDP_IDPArray(prop);
-      for (int i = 0; i < prop->len; i++) {
-        IDP_BlendReadExpand(expander, &idp_array[i]);
-      }
-      break;
-    }
-    case IDP_GROUP:
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_BlendReadExpand(expander, loop);
-      }
-      break;
-  }
-}
-
 eIDPropertyUIDataType IDP_ui_data_type(const IDProperty *prop)
 {
   if (prop->type == IDP_STRING) {
