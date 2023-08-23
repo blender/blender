@@ -506,7 +506,7 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
 
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy, IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, object->proxy_group, IDWALK_CB_NOP);
-    /* Note that `proxy_from` is purposedly skipped here, as this should be considered as pure
+    /* Note that `proxy_from` is purposefully skipped here, as this should be considered as pure
      * runtime data. */
 
     PartEff *paf = BKE_object_do_version_give_parteff_245(object);

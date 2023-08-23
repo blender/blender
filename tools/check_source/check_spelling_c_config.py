@@ -257,6 +257,7 @@ dict_custom = {
     "procedurally",
     "profiler",
     "programmatically",
+    "projective",
     "purgeability",
     "quadratically",
     "queryable",

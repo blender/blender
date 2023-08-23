@@ -84,7 +84,7 @@ enum {
   IDWALK_CB_INTERNAL = (1 << 9),
 
   /**
-   * This ID usage should not be processed during readfile (neither during liblinking nor
+   * This ID usage should not be processed during readfile (neither during lib-linking nor
    * expanding).
    *
    * Note that all embedded IDs pointers (#IDWALK_CB_EMBEDDED and #IDWALK_CB_EMBEDDED_NOT_OWNING)
