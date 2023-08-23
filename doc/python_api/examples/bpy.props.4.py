@@ -10,6 +10,12 @@ All properties define update functions except for CollectionProperty.
 .. warning::
    Remember that these callbacks may be executed in threaded context.
 
+.. warning::
+   If the property belongs to an Operator, the update callback's first 
+   parameter will be an OperatorProperties instance, rather than an instance 
+   of the operator itself. This means you can't access other internal functions
+   of the operator, only its other properties.
+
 """
 
 import bpy
