@@ -1065,8 +1065,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
         Mesh *me = (Mesh *)ob->data;
         BKE_pbvh_sync_visibility_from_verts(ss->pbvh, me);
-
-        BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
       }
 
       BKE_pbvh_update_visibility(ss->pbvh);

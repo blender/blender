@@ -382,9 +382,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */
-  if (pbvh_type == PBVH_FACES) {
-    BKE_mesh_flush_hidden_from_verts(me);
-    BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+  if (ELEM(pbvh_type, PBVH_FACES, PBVH_GRIDS)) {
+    BKE_pbvh_sync_visibility_from_verts(pbvh, me);
   }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
