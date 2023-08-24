@@ -729,7 +729,7 @@ if(WITH_COMPOSITOR_CPU)
   endif()
 endif()
 
-# NOTE: WITH_COMPOSITOR_CPU is needed for rendering. 
+# NOTE: WITH_COMPOSITOR_CPU is needed for rendering.
 if(WITH_COMPOSITOR_REALTIME_TESTS AND WITH_COMPOSITOR_CPU)
   if(NOT OPENIMAGEIO_IDIFF)
       message(WARNING "Disabling realtime compositor tests because OIIO idiff does not exist")
@@ -744,7 +744,7 @@ if(WITH_COMPOSITOR_REALTIME_TESTS AND WITH_COMPOSITOR_CPU)
 
           multiple_node_setups
         )
-      
+
       if(WITH_LIBMV)
         list(APPEND compositor_tests distort matte)
       endif()

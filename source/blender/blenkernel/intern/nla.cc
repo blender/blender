@@ -2406,4 +2406,3 @@ void BKE_nla_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *tracks)
     blend_lib_read_nla_strips(reader, id, &nlt->strips);
   }
 }
-

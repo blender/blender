@@ -1518,4 +1518,3 @@ void BKE_animdata_blend_read_lib(BlendLibReader *reader, ID *id, AnimData *adt)
   /* link NLA-data */
   BKE_nla_blend_read_lib(reader, id, &adt->nla_tracks);
 }
-

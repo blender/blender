@@ -6594,4 +6594,3 @@ void BKE_constraint_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *con
 
   BKE_constraints_id_loop(conlist, lib_link_constraint_cb, IDWALK_NOP, &cld);
 }
-
