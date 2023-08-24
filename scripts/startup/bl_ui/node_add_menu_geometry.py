@@ -564,7 +564,15 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "FunctionNodeAlignEulerToVector")
+        node_add_menu.add_node_type(layout, "FunctionNodeAxisAngleToRotation")
+        node_add_menu.add_node_type(layout, "FunctionNodeEulerToRotation")
+        node_add_menu.add_node_type(layout, "FunctionNodeInvertRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotateVector")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotationToAxisAngle")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotationToEuler")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotationToQuaternion")
+        node_add_menu.add_node_type(layout, "FunctionNodeQuaternionToRotation")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
