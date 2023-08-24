@@ -176,7 +176,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GEOMETRY_READ"
     bl_label = "Read"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeInputID")
         node_add_menu.add_node_type(layout, "GeometryNodeInputIndex")
@@ -184,6 +184,8 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputNormal")
         node_add_menu.add_node_type(layout, "GeometryNodeInputPosition")
         node_add_menu.add_node_type(layout, "GeometryNodeInputRadius")
+        if context.space_data.geometry_nodes_type == 'TOOL':
+            node_add_menu.add_node_type(layout, "GeometryNodeToolSelection")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -191,10 +193,12 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_GEOMETRY_WRITE"
     bl_label = "Write"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSetID")
         node_add_menu.add_node_type(layout, "GeometryNodeSetPosition")
+        if context.space_data.geometry_nodes_type == 'TOOL':
+            node_add_menu.add_node_type(layout, "GeometryNodeToolSetSelection")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -274,8 +278,10 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_INPUT_SCENE"
     bl_label = "Scene"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        if context.space_data.geometry_nodes_type == 'TOOL':
+            node_add_menu.add_node_type(layout, "GeometryNodeTool3DCursor")
         node_add_menu.add_node_type(layout, "GeometryNodeCollectionInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
@@ -341,7 +347,7 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_MESH_READ"
     bl_label = "Read"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeAngle")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeNeighbors")
@@ -350,6 +356,8 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceArea")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshFaceSetBoundaries")
+        if context.space_data.geometry_nodes_type == 'TOOL':
+            node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceIsPlanar")
         node_add_menu.add_node_type(layout, "GeometryNodeInputShadeSmooth")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshIsland")
@@ -373,9 +381,11 @@ class NODE_MT_geometry_node_GEO_MESH_WRITE(Menu):
     bl_idname = "NODE_MT_geometry_node_GEO_MESH_WRITE"
     bl_label = "Write"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSetShadeSmooth")
+        if context.space_data.geometry_nodes_type == 'TOOL':
+            node_add_menu.add_node_type(layout, "GeometryNodeToolSetFaceSet")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -575,20 +585,6 @@ class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
-class NODE_MT_category_tool(Menu):
-    bl_idname = "NODE_MT_category_tool"
-    bl_label = "Tool"
-
-    def draw(self, _context):
-        layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeTool3DCursor")
-        node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
-        node_add_menu.add_node_type(layout, "GeometryNodeToolSelection")
-        node_add_menu.add_node_type(layout, "GeometryNodeToolSetFaceSet")
-        node_add_menu.add_node_type(layout, "GeometryNodeToolSetSelection")
-        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
-
-
 class NODE_MT_category_GEO_UV(Menu):
     bl_idname = "NODE_MT_category_GEO_UV"
     bl_label = "UV"
@@ -684,9 +680,6 @@ class NODE_MT_geometry_node_add_all(Menu):
         layout.menu("NODE_MT_category_GEO_TEXTURE")
         layout.menu("NODE_MT_category_GEO_UTILITIES")
         layout.separator()
-        if snode.geometry_nodes_type == 'TOOL':
-            layout.menu("NODE_MT_category_tool")
-            layout.separator()
         layout.menu("NODE_MT_category_GEO_GROUP")
         layout.menu("NODE_MT_category_GEO_LAYOUT")
         node_add_menu.draw_root_assets(layout)
@@ -722,7 +715,6 @@ classes = (
     NODE_MT_category_PRIMITIVES_MESH,
     NODE_MT_geometry_node_mesh_topology,
     NODE_MT_category_GEO_POINT,
-    NODE_MT_category_tool,
     NODE_MT_category_simulation,
     NODE_MT_category_GEO_VOLUME,
     NODE_MT_geometry_node_GEO_MATERIAL,
