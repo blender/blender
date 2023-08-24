@@ -603,6 +603,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_effect_smaa_frag.glsl
   engines/workbench/shaders/workbench_effect_smaa_vert.glsl
   engines/workbench/shaders/workbench_effect_taa_frag.glsl
+  engines/workbench/shaders/workbench_extract_stencil.glsl
   engines/workbench/shaders/workbench_image_lib.glsl
   engines/workbench/shaders/workbench_matcap_lib.glsl
   engines/workbench/shaders/workbench_material_lib.glsl

@@ -11,6 +11,8 @@
 #include "workbench_enums.hh"
 #include "workbench_shader_shared.h"
 
+#include "GPU_capabilities.h"
+
 extern "C" DrawEngineType draw_engine_workbench_next;
 
 namespace blender::workbench {
@@ -137,6 +139,56 @@ class CavityEffect {
   void load_samples_buf(int ssao_samples);
 };
 
+/* Used as a temporary workaround for the lack of texture views support on Windows ARM. */
+class StencilViewWorkaround {
+ private:
+  Texture stencil_copy_tx_ = "stencil_copy_tx";
+  GPUShader *stencil_copy_sh_ = nullptr;
+
+ public:
+  StencilViewWorkaround()
+  {
+    stencil_copy_sh_ = GPU_shader_create_from_info_name("workbench_extract_stencil");
+  }
+  ~StencilViewWorkaround()
+  {
+    DRW_SHADER_FREE_SAFE(stencil_copy_sh_);
+  }
+
+  /** WARNING: Should only be called at render time.
+   * When the workaround path is active,
+   * the returned texture won't stay in sync with the stencil_src,
+   * and will only be valid until the next time this function is called.
+   * Note that the output is a binary mask,
+   * any stencil value that is not 0x00 will be rendered as 0xFF. */
+  GPUTexture *extract(Manager &manager, Texture &stencil_src)
+  {
+    if (GPU_texture_view_support()) {
+      return stencil_src.stencil_view();
+    }
+
+    int2 extent = int2(stencil_src.width(), stencil_src.height());
+    stencil_copy_tx_.ensure_2d(
+        GPU_R8UI, extent, GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ);
+
+    PassSimple ps("Stencil View Workaround");
+    ps.init();
+    ps.clear_color(float4(0));
+    ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
+    ps.state_stencil(0x00, 0x00, 0xFF);
+    ps.shader_set(stencil_copy_sh_);
+    ps.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+
+    Framebuffer fb;
+    fb.ensure(GPU_ATTACHMENT_TEXTURE(stencil_src), GPU_ATTACHMENT_TEXTURE(stencil_copy_tx_));
+    fb.bind();
+
+    manager.submit(ps);
+
+    return stencil_copy_tx_;
+  }
+};
+
 struct SceneResources {
   static const int jitter_tx_size = 64;
 
@@ -157,6 +209,8 @@ struct SceneResources {
   Texture jitter_tx = "wb_jitter_tx";
 
   CavityEffect cavity = {};
+
+  StencilViewWorkaround stencil_view;
 
   void init(const SceneState &scene_state);
   void load_jitter_tx(int total_samples);

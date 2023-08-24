@@ -21,8 +21,6 @@ void VolumePass::sync(SceneResources &resources)
   dummy_shadow_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(1));
   dummy_volume_tx_.ensure_3d(GPU_RGBA8, int3(1), GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
   dummy_coba_tx_.ensure_1d(GPU_RGBA8, 1, GPU_TEXTURE_USAGE_SHADER_READ, float4(0));
-
-  stencil_tx_ = resources.depth_tx.stencil_view();
 }
 
 void VolumePass::object_sync_volume(Manager &manager,
@@ -182,6 +180,9 @@ void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
   if (!active_) {
     return;
   }
+
+  stencil_tx_ = resources.stencil_view.extract(manager, resources.depth_tx);
+
   fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
   fb_.bind();
   manager.submit(ps_, view);
