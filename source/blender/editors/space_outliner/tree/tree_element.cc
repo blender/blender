@@ -41,6 +41,7 @@
 #include "tree_element_rna.hh"
 #include "tree_element_scene_objects.hh"
 #include "tree_element_seq.hh"
+#include "tree_element_view_collection.hh"
 #include "tree_element_view_layer.hh"
 
 #include "../outliner_intern.hh"
@@ -179,6 +180,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     }
     case TSE_LINKED_OB:
       return std::make_unique<TreeElementLinkedObject>(legacy_te, *static_cast<ID *>(idv));
+    case TSE_VIEW_COLLECTION_BASE:
+      return std::make_unique<TreeElementViewCollectionBase>(legacy_te,
+                                                             *static_cast<Scene *>(idv));
     case TSE_LAYER_COLLECTION:
       return std::make_unique<TreeElementLayerCollection>(legacy_te,
                                                           *static_cast<LayerCollection *>(idv));

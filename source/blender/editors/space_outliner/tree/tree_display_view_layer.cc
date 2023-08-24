@@ -120,7 +120,6 @@ void TreeDisplayViewLayer::add_view_layer(Scene &scene, ListBase &tree, TreeElem
     /* Show collections in the view layer. */
     TreeElement &ten = *outliner_add_element(
         &space_outliner_, &tree, &scene, parent, TSE_VIEW_COLLECTION_BASE, 0);
-    ten.name = IFACE_("Scene Collection");
     TREESTORE(&ten)->flag &= ~TSE_CLOSED;
 
     /* First layer collection is for master collection, don't show it. */
