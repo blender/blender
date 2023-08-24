@@ -87,6 +87,7 @@ set(SRC
   light_tasks_delegate.h
   preview_engine.h
   render_task_delegate.h
+  settings.h
   viewport_engine.h
 )
 
