@@ -13,7 +13,8 @@
 namespace blender::ed::outliner {
 
 class TreeElementViewCollectionBase final : public AbstractTreeElement {
-  Scene &scene_;
+  /* Not needed right now, avoid unused member variable warning. */
+  // Scene &scene_;
 
  public:
   TreeElementViewCollectionBase(TreeElement &legacy_te, Scene &scene);

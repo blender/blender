@@ -17,8 +17,9 @@
 
 namespace blender::ed::outliner {
 
-TreeElementViewCollectionBase::TreeElementViewCollectionBase(TreeElement &legacy_te, Scene &scene)
-    : AbstractTreeElement(legacy_te), scene_(scene)
+TreeElementViewCollectionBase::TreeElementViewCollectionBase(TreeElement &legacy_te,
+                                                             Scene & /*scene*/)
+    : AbstractTreeElement(legacy_te) /* , scene_(scene) */
 {
   BLI_assert(legacy_te.store_elem->type == TSE_VIEW_COLLECTION_BASE);
   legacy_te.name = IFACE_("Scene Collection");
