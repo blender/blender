@@ -316,12 +316,6 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
 /* *** mesh_normals.cc *** */
 
 /**
- * See #Mesh::vert_normals().
- * \warning May return null if the mesh is empty.
- */
-const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
-
-/**
  * Return true if the mesh vertex normals either are not stored or are dirty.
  * This can be used to help decide whether to transfer them when copying a mesh.
  */

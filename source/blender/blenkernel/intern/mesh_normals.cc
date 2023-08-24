@@ -360,11 +360,6 @@ blender::Span<blender::float3> Mesh::face_normals() const
   return this->runtime->face_normals;
 }
 
-const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
-{
-  return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
-}
-
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
