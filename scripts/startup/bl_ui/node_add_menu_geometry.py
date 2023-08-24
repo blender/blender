@@ -351,8 +351,8 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeAngle")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeNeighbors")
-        node_add_menu.add_node_type(layout, "GeometryNodeEdgesToFaceGroups")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeVertices")
+        node_add_menu.add_node_type(layout, "GeometryNodeEdgesToFaceGroups")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceArea")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshFaceSetBoundaries")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
