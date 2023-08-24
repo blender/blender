@@ -394,7 +394,7 @@ struct EraseOperationExecutor {
    * For each point in the source, the corresponding vector in \a src_to_dst_points contains a set
    * of destination points (PointTransferData), which can correspond to points of the source, or
    * linear combination of them. Note that this vector can be empty, if we want to remove points
-   * for example. Curves can also be splitted if a destination point is marked as a cut.
+   * for example. Curves can also be split if a destination point is marked as a cut.
    *
    * \returns an array containing the same elements as \a src_to_dst_points, but in the destination
    * points domain.

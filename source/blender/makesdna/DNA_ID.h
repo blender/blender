@@ -106,7 +106,7 @@ typedef struct IDPropertyUIDataString {
 typedef struct IDPropertyUIDataID {
   IDPropertyUIData base;
   /**
-   * #ID_Type. With python-defined propoerties, this type is not enforced. A value of `0` means any
+   * #ID_Type. With python-defined properties, this type is not enforced. A value of `0` means any
    * ID type.
    *
    * However, when defined/edited from the UI (Custom Properties panel), it must/will be defined,

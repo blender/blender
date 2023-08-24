@@ -4066,19 +4066,19 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func)
 static int expand_cb(LibraryIDLinkCallbackData *cb_data)
 {
   /* Embedded IDs are not known by lib_link code, so they would be remapped to `nullptr`. But there
-   * is no need to process them anyway, asthey are already handled during the 'read_data' phase.
+   * is no need to process them anyway, as they are already handled during the 'read_data' phase.
    */
   if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
     return IDWALK_RET_NOP;
   }
 
-  /* Explicitely requested to be ignored during readfile processing. Means the read_data code
+  /* Explicitly requested to be ignored during readfile processing. Means the read_data code
    * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
   if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
     return IDWALK_RET_NOP;
   }
 
-  /* Expand process can be re-entrant or have other complex imteractions that will not work well
+  /* Expand process can be re-entrant or have other complex interactions that will not work well
    * with loop-back pointers. Further more, processing such data should not be needed here anyway.
    */
   if (cb_data->cb_flag & (IDWALK_CB_LOOPBACK)) {
