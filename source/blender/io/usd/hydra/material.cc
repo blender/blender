@@ -49,6 +49,7 @@ void MaterialData::init()
   /* Create temporary in memory stage. */
   pxr::UsdStageRefPtr stage = pxr::UsdStage::CreateInMemory();
   pxr::UsdTimeCode time = pxr::UsdTimeCode::Default();
+  auto get_time_code = [time]() { return time; };
   pxr::SdfPath material_library_path("/_materials");
   pxr::SdfPath material_path = material_library_path.AppendChild(
       pxr::TfToken(prim_id.GetElementString()));
@@ -63,7 +64,7 @@ void MaterialData::init()
                                          scene_delegate_->depsgraph,
                                          stage,
                                          material_library_path,
-                                         time,
+                                         get_time_code,
                                          export_params,
                                          image_cache_file_path()};
 
