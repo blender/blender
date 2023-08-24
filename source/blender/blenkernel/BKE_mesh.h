@@ -188,7 +188,7 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
 bool BKE_mesh_attribute_required(const char *name);
 
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
-void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
+void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, bool invert);
 
 /**
  * Add a #CD_ORCO layer to the Mesh if there is none already.

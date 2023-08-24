@@ -93,7 +93,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
         copy_v3_v3(orco_allocated[v], mr.vert_positions[v]);
       }
     }
-    BKE_mesh_orco_verts_transform(mr.me, orco_allocated, mr.vert_len, 0);
+    BKE_mesh_orco_verts_transform(mr.me, orco_allocated, mr.vert_len, false);
     orco = orco_allocated;
   }
 

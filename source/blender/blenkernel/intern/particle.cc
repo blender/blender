@@ -3888,7 +3888,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
     /* ugly hack to use non-transformed orcos, since only those
      * give symmetric results for mirroring in particle mode */
     if (CustomData_get_layer(&mesh->vert_data, CD_ORIGINDEX)) {
-      BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), v, 3, 1);
+      BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), v, 3, true);
     }
   }
   else {

@@ -444,7 +444,7 @@ static void add_orco_mesh(
   if (!layer_orco.is_empty()) {
     if (layer == CD_ORCO) {
       BKE_mesh_orco_verts_transform(
-          (Mesh *)ob->data, reinterpret_cast<float(*)[3]>(layer_orco.data()), totvert, 0);
+          (Mesh *)ob->data, reinterpret_cast<float(*)[3]>(layer_orco.data()), totvert, false);
     }
   }
 }

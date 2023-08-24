@@ -1281,7 +1281,7 @@ float (*BKE_mesh_orco_verts_get(Object *ob))[3]
   return vcos;
 }
 
-void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)
+void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, const bool invert)
 {
   float texspace_location[3], texspace_size[3];
 
