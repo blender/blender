@@ -2400,10 +2400,6 @@ static bool socket_change_poll_type(void *userdata, bNodeSocketType *socket_type
     return false;
   }
 
-  if (!U.experimental.use_rotation_socket && socket_type->type == SOCK_ROTATION) {
-    return false;
-  }
-
   return true;
 }
 

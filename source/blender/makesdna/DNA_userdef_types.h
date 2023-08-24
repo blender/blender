@@ -714,10 +714,11 @@ typedef struct UserDef_Experimental {
   char use_grease_pencil_version3;
   char enable_overlay_next;
   char use_new_volume_nodes;
-  char use_rotation_socket;
   char use_node_group_operators;
   char use_shader_node_previews;
   char use_extension_repos;
+
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

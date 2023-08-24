@@ -339,10 +339,6 @@ static bool is_socket_type_supported(bNodeTreeType *ntreetype, bNodeSocketType *
     return false;
   }
 
-  if (!U.experimental.use_rotation_socket && socket_type->type == SOCK_ROTATION) {
-    return false;
-  }
-
   return true;
 }
 
