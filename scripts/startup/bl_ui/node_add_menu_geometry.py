@@ -149,8 +149,8 @@ class NODE_MT_geometry_node_curve_topology(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveOfPoint")
+        node_add_menu.add_node_type(layout, "GeometryNodeOffsetPointInCurve")
         node_add_menu.add_node_type(layout, "GeometryNodePointsOfCurve")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -167,8 +167,8 @@ class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
         layout.separator()
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS")
         layout.separator()
-        node_add_menu.add_node_type(layout, "GeometryNodeJoinGeometry")
         node_add_menu.add_node_type(layout, "GeometryNodeGeometryToInstance")
+        node_add_menu.add_node_type(layout, "GeometryNodeJoinGeometry")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -286,8 +286,8 @@ class NODE_MT_geometry_node_GEO_INPUT_SCENE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeImageInfo")
         node_add_menu.add_node_type(layout, "GeometryNodeIsViewport")
         node_add_menu.add_node_type(layout, "GeometryNodeObjectInfo")
-        node_add_menu.add_node_type(layout, "GeometryNodeSelfObject")
         node_add_menu.add_node_type(layout, "GeometryNodeInputSceneTime")
+        node_add_menu.add_node_type(layout, "GeometryNodeSelfObject")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -351,11 +351,11 @@ class NODE_MT_geometry_node_GEO_MESH_READ(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeAngle")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeNeighbors")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeVertices")
         node_add_menu.add_node_type(layout, "GeometryNodeEdgesToFaceGroups")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshEdgeVertices")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceArea")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshFaceSetBoundaries")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceNeighbors")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolFaceSet")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMeshFaceIsPlanar")
