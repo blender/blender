@@ -13,6 +13,7 @@ if "bpy" in locals():
 _modules = [
     "asset_shelf",
     "node_add_menu",
+    "node_add_menu_compositor",
     "node_add_menu_geometry",
     "properties_animviz",
     "properties_constraint",
