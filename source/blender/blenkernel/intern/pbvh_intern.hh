@@ -266,8 +266,6 @@ bool ray_face_nearest_tri(const float ray_start[3],
                           float *r_depth,
                           float *r_dist_sq);
 
-void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
-
 /* pbvh_bmesh.cc */
 
 bool pbvh_bmesh_node_raycast(PBVHNode *node,
