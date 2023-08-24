@@ -1296,7 +1296,7 @@ static bool update_search(PBVHNode *node, const int flag)
   return true;
 }
 
-static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
+static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -1319,17 +1319,16 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
     return;
   }
 
-  MutableSpan<float3> vert_normals = pbvh->vert_normals;
-  MutableSpan<float3> face_normals = pbvh->face_normals;
-
   VectorSet<int> verts_to_update;
   threading::parallel_invoke(
       [&]() {
+        MutableSpan<float3> face_normals = mesh.runtime->face_normals;
         threading::parallel_for(faces_to_update.index_range(), 512, [&](const IndexRange range) {
           for (const int i : faces_to_update.as_span().slice(range)) {
             face_normals[i] = mesh::face_normal_calc(positions, corner_verts.slice(faces[i]));
           }
         });
+        mesh.runtime->face_normals_dirty = false;
       },
       [&]() {
         /* Update all normals connected to affected faces, even if not explicitly tagged. */
@@ -1346,6 +1345,8 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
         }
       });
 
+  const Span<float3> face_normals = mesh.runtime->face_normals;
+  MutableSpan<float3> vert_normals = mesh.runtime->vert_normals;
   threading::parallel_for(verts_to_update.index_range(), 1024, [&](const IndexRange range) {
     for (const int vert : verts_to_update.as_span().slice(range)) {
       float3 normal(0.0f);
@@ -1355,6 +1356,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
       vert_normals[vert] = math::normalize(normal);
     }
   });
+  mesh.runtime->vert_normals_dirty = false;
 }
 
 static void node_update_mask_redraw(PBVH &pbvh, PBVHNode &node)
@@ -2849,7 +2851,7 @@ void BKE_pbvh_update_normals(PBVH *pbvh, SubdivCCG *subdiv_ccg)
     pbvh_bmesh_normals_update(nodes);
   }
   else if (pbvh->header.type == PBVH_FACES) {
-    pbvh_faces_update_normals(pbvh, nodes);
+    pbvh_faces_update_normals(pbvh, nodes, *pbvh->mesh);
   }
   else if (pbvh->header.type == PBVH_GRIDS) {
     CCGFace **faces;

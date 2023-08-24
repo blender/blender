@@ -499,7 +499,7 @@ struct PBVHVertexIter {
 
   /* mesh */
   blender::MutableSpan<blender::float3> vert_positions;
-  blender::MutableSpan<blender::float3> vert_normals;
+  blender::Span<blender::float3> vert_normals;
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
@@ -516,8 +516,8 @@ struct PBVHVertexIter {
    * that compiler optimization's will skip the ones we don't use */
   BMVert *bm_vert;
   float *co;
-  float *no;
-  float *fno;
+  const float *no;
+  const float *fno;
   float *mask;
   bool visible;
 };

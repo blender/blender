@@ -1564,12 +1564,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
         SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
         copy_v3_v3(vd.co, orig_vert_data.co);
-        if (vd.no) {
-          copy_v3_v3(vd.no, orig_vert_data.no);
-        }
-        else {
-          copy_v3_v3(vd.fno, orig_vert_data.no);
-        }
         if (vd.is_mesh) {
           BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
         }
