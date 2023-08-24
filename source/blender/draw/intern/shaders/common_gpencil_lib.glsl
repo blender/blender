@@ -272,8 +272,8 @@ vec4 gpencil_vertex(vec4 viewport_size,
       float uv_rot = gpencil_decode_uvrot(uvrot1);
       float rot_sin = sqrt(max(0.0, 1.0 - uv_rot * uv_rot)) * sign(uv_rot);
       float rot_cos = abs(uv_rot);
-      /* TODO(@fclem): Optimize these 2 matrix mul into one by only having one rotation angle and
-       * using a cosine approximation. */
+      /* TODO(@fclem): Optimize these 2 matrix multiply into one by only having one rotation angle
+       * and using a cosine approximation. */
       x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
       x_axis = mat2(alignment_rot.x, -alignment_rot.y, alignment_rot.y, alignment_rot.x) * x_axis;
       /* Rotate 90 degrees counter-clockwise. */

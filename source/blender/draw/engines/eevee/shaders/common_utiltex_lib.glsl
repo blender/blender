@@ -89,7 +89,7 @@ vec2 btdf_lut(float cos_theta, float roughness, float ior)
     /* Avoid harsh transition coming from ior == 1. */
     float f90 = fast_sqrt(saturate(f0 / (f0_from_ior(eta_brdf) * 0.25)));
     float fresnel = F_brdf_single_scatter(vec3(f0), vec3(f90), split_sum).r;
-    /* Setting the BTDF to one is not really important since it is only used for multiscatter
+    /* Setting the BTDF to one is not really important since it is only used for multi-scatter
      * and it's already quite close to ground truth. */
     float btdf = 1.0;
     return vec2(btdf, fresnel);

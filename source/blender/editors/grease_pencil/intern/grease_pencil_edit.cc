@@ -616,7 +616,7 @@ static Array<bool> get_points_to_dissolve(bke::CurvesGeometry &curves, const Dis
         continue;
       }
 
-      /* `between` is just `unselect` but with the first and last segments not geting
+      /* `between` is just `unselect` but with the first and last segments not getting
        * dissolved. */
       if (mode != DissolveMode::BETWEEN) {
         continue;
@@ -629,7 +629,7 @@ static Array<bool> get_points_to_dissolve(bke::CurvesGeometry &curves, const Dis
         const IndexRange first_range = deselection_ranges.first().shift(points.first());
         const IndexRange last_range = deselection_ranges.last().shift(points.first());
 
-        /* Ranges should only be fill if the first/last point matchs the start/end point
+        /* Ranges should only be fill if the first/last point matches the start/end point
          * of the segment. */
         if (first_range.first() == points.first()) {
           points_to_keep.slice(first_range).fill(true);

@@ -243,7 +243,7 @@ void main()
   float ref_depth = textureLod(outlineDepth, depth_uv, 0.0).r;
   float scene_depth = textureLod(sceneDepth, depth_uv, 0.0).r;
 
-  /* Avoid bad cases of zfighting for occlusion only. */
+  /* Avoid bad cases of Z-fighting for occlusion only. */
   const float epsilon = 3.0 / 8388608.0;
   bool occluded = (ref_depth > scene_depth + epsilon);
 

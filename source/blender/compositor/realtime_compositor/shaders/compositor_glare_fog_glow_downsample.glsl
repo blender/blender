@@ -7,7 +7,7 @@
 
 #if defined(KARIS_AVERAGE)
 /* Computes the weighted average of the given four colors, which are assumed to the colors of
- * spatially neighbouring pixels. The weights are computed so as to reduce the contributions of
+ * spatially neighboring pixels. The weights are computed so as to reduce the contributions of
  * fireflies on the result by applying a form of local tone mapping as described by Brian Karis in
  * the article "Graphic Rants: Tone Mapping".
  *
@@ -66,7 +66,7 @@ void main()
    * groups of pixels. The center is sampled 4 times, the far non corner pixels are sampled 2
    * times, the near corner pixels are sampled only once; but their weight is quadruple the weights
    * of other groups; so they count as sampled 4 times, finally the far corner pixels are sampled
-   * only once, essentially totalling 32 samples. So the weights are as used in the following code
+   * only once, essentially totaling 32 samples. So the weights are as used in the following code
    * section. */
   vec4 result = (4.0 / 32.0) * center +
                 (4.0 / 32.0) *

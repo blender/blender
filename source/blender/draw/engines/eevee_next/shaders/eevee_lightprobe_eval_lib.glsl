@@ -184,7 +184,7 @@ void lightprobe_eval(ClosureDiffuse diffuse,
                      inout vec3 out_specular)
 {
   /* NOTE: Use the diffuse normal for biasing the probe sampling location since it is smoother than
-   * geometric normal. Could also try to use interp.N. */
+   * geometric normal. Could also try to use `interp.N`. */
   SphericalHarmonicL1 irradiance = lightprobe_irradiance_sample(
       irradiance_atlas_tx, P, V, diffuse.N, true);
 

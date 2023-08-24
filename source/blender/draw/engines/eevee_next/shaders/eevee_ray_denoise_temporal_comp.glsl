@@ -7,8 +7,8 @@
  *
  * Dispatched at fullres using a tile list.
  *
- * Input: Spatialy denoised radiance, Variance, Hit depth
- * Ouput: Stabilized Radiance, Stabilized Variance
+ * Input: Spatially denoised radiance, Variance, Hit depth
+ * Output: Stabilized Radiance, Stabilized Variance
  *
  * Following "Stochastic All The Things: Raytracing in Hybrid Real-Time Rendering"
  * by Tomasz Stachowiak
@@ -197,7 +197,7 @@ void main()
   history_radiance.rgb = colorspace_scene_linear_from_YCoCg(history_radiance.rgb);
   /* Blend history with new radiance. */
   float mix_fac = (history_radiance.w > 1e-3) ? 0.97 : 0.0;
-  /* Reduce blend factor to improve low rougness reflections. Use variance instead for speed. */
+  /* Reduce blend factor to improve low roughness reflections. Use variance instead for speed. */
   mix_fac *= mix(0.75, 1.0, saturate(in_variance * 20.0));
   vec3 out_radiance = mix(safe_color(in_radiance), safe_color(history_radiance.rgb), mix_fac);
   /* This is feedback next frame as radiance_history_tx. */

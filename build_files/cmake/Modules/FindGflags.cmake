@@ -24,7 +24,7 @@
 #                   gflags to be something else (i.e. google for legacy
 #                   compatibility).
 #
-# The following variables control the behaviour of this module when an exported
+# The following variables control the behavior of this module when an exported
 # gflags CMake configuration is not found.
 #
 # GFLAGS_PREFER_EXPORTED_GFLAGS_CMAKE_CONFIGURATION: TRUE/FALSE, iff TRUE then
@@ -47,7 +47,7 @@
 # The following variables are also defined by this module, but in line with
 # CMake recommended FindPackage() module style should NOT be referenced directly
 # by callers (use the plural variables detailed above instead).  These variables
-# do however affect the behaviour of the module via FIND_[PATH/LIBRARY]() which
+# do however affect the behavior of the module via FIND_[PATH/LIBRARY]() which
 # are NOT re-called (i.e. search for library is not repeated) if these variables
 # are set with valid values _in the CMake cache_. This means that if these
 # variables are set directly in the cache, either by the user in the CMake GUI,

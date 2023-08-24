@@ -17,7 +17,7 @@ void main()
    * while the big ghost is flipped and scaled up with the origin as the center of the image by a
    * factor of 0.97. Note that 1) The negative scale implements the flipping. 2) Factors larger
    * than 1 actually scales down the image since the factor multiplies the coordinates and not the
-   * images itself. 3) The values are arbitrarily chosen using visual judgement. */
+   * images itself. 3) The values are arbitrarily chosen using visual judgment. */
   float small_ghost_scale = 2.13;
   float big_ghost_scale = -0.97;
 

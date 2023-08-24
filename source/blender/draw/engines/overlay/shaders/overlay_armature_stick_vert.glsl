@@ -41,7 +41,7 @@ void main()
    * to avoid glitches if one end is behind the camera origin (in persp). */
   float clip_dist = (drw_view.winmat[3][3] == 0.0) ?
                         -1e-7 :
-                        1e20; /* hardcoded, -1e-8 is giving gliches. */
+                        1e20; /* hard-coded, -1e-8 is giving glitches. */
   vec3 bvec = v1.xyz - v0.xyz;
   vec3 clip_pt = v0.xyz + bvec * ((v0.z - clip_dist) / -bvec.z);
   if (v0.z > clip_dist) {

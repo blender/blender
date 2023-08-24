@@ -208,7 +208,7 @@ typedef struct IDTypeInfo {
    * Used to do some validation and/or complex processing on the ID after it has been fully read
    * and its ID pointers have been updated to valid values (lib linking process).
    *
-   * Note that this is still called _before_ the `do_versions_after_linking` versionning code.
+   * Note that this is still called _before_ the `do_versions_after_linking` versioning code.
    */
   IDTypeBlendReadAfterLiblinkFunction blend_read_after_liblink;
 

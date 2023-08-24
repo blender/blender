@@ -17,7 +17,7 @@ void main()
   gl_Position = point_world_to_ndc(world_pos);
 
 #ifdef CONSERVATIVE_RASTER
-  /* Avoid expense of geometry shader by ensuring rastered pointcloud primitive
+  /* Avoid expense of geometry shader by ensuring rastered point-cloud primitive
    * covers at least a whole pixel. */
   int i = gl_VertexID % 3;
   vec2 ofs = (i == 0) ? vec2(-1.0) : ((i == 1) ? vec2(2.0, -1.0) : vec2(-1.0, 2.0));

@@ -7,7 +7,7 @@
  * convolution and in-focus fields.
  *
  * The halfres gather methods are fast but lack precision for small CoC areas. To fix this we
- * do a bruteforce gather to have a smooth transition between in-focus and defocus regions.
+ * do a brute-force gather to have a smooth transition between in-focus and defocus regions.
  */
 
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
@@ -51,7 +51,7 @@ void dof_slight_focus_gather(float radius, out vec4 out_color, out float out_wei
         pair_data[i].coc = dof_coc_from_zdepth(depth);
         pair_data[i].dist = ring_dist;
 #ifdef DOF_BOKEH_TEXTURE
-        /* Contains subpixel distance to bokeh shape. */
+        /* Contains sub-pixel distance to bokeh shape. */
         pair_data[i].dist = texelFetch(bokehLut, sample_offset + DOF_MAX_SLIGHT_FOCUS_RADIUS, 0).r;
 #endif
         pair_data[i].coc = clamp(pair_data[i].coc, -bokehMaxSize, bokehMaxSize);

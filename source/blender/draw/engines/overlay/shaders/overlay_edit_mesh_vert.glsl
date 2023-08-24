@@ -85,7 +85,7 @@ void main()
 #elif defined(FACEDOT)
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
-  /* Bias Facedot Z position in clipspace. */
+  /* Bias Face-dot Z position in clip-space. */
   gl_Position.z -= (drw_view.winmat[3][3] == 0.0) ? 0.00035 : 1e-6;
   gl_PointSize = sizeFaceDot;
 

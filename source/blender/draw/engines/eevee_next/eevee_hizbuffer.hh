@@ -35,7 +35,7 @@ class HiZBuffer {
    * The last one will process the last few mip level.
    */
   draw::StorageBuffer<uint4, true> atomic_tile_counter_ = {"atomic_tile_counter"};
-  /** Single pass recursive downsample. */
+  /** Single pass recursive down-sample. */
   PassSimple hiz_update_ps_ = {"HizUpdate"};
   /** Debug pass. */
   PassSimple debug_draw_ps_ = {"HizUpdate.Debug"};

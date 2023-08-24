@@ -135,7 +135,7 @@ void main()
 
   make_orthonormal_basis(N, T, B); /* Generate tangent space */
 
-  /* Integrating Envmap */
+  /* Integrating environment-map. */
   float weight = 0.0;
   vec3 out_radiance = vec3(0.0);
   for (float i = 0; i < sampleCount; i++) {

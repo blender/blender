@@ -6,7 +6,7 @@
  * Spatial ray reuse. Denoise raytrace result using ratio estimator.
  *
  * Input: Ray direction * hit time, Ray radiance, Ray hit depth
- * Ouput: Ray radiance reconstructed, Mean Ray hit depth, Radiance Variance
+ * Output: Ray radiance reconstructed, Mean Ray hit depth, Radiance Variance
  *
  * Shader is specialized depending on the type of ray to denoise.
  *
@@ -164,7 +164,7 @@ void main()
   float filter_size_factor = saturate(closure.roughness * 8.0);
   sample_count = 1u + uint(15.0 * filter_size_factor + 0.5);
   /* NOTE: filter_size should never be greater than twice RAYTRACE_GROUP_SIZE. Otherwise, the
-   * reconstruction can becomes ill defined since we don't know if further tiles are valids. */
+   * reconstruction can becomes ill defined since we don't know if further tiles are valid. */
   filter_size = 12.0 * sqrt(filter_size_factor);
   if (raytrace_buf.resolution_scale > 1) {
     /* Filter at least 1 trace pixel to fight the undersampling. */

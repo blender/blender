@@ -7,7 +7,7 @@
  * slight defocus convolution and in-focus fields.
  *
  * The halfres gather methods are fast but lack precision for small CoC areas.
- * To fix this we do a bruteforce gather to have a smooth transition between
+ * To fix this we do a brute-force gather to have a smooth transition between
  * in-focus and defocus regions.
  */
 

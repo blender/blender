@@ -33,10 +33,10 @@ float bxdf_ggx_D_opti(float NH, float a2)
 float bxdf_ggx_smith_G1_opti(float NX, float a2)
 {
   /* Using Brian Karis approach and refactoring by NX/NX
-   * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
-   * Rcp is done on the whole G later.
-   * Note that this is not convenient for the transmission formula. */
-  /* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function. */
+   * this way the `(2*NL)*(2*NV)` in `G = G1(V) * G1(L)` gets canceled by the BRDF denominator
+   * `4*NL*NV` Rcp is done on the whole G later. Note that this is not convenient for the
+   * transmission formula. */
+  // return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function. */
   return NX + sqrt(NX * (NX - NX * a2) + a2);
 }
 
@@ -54,7 +54,7 @@ float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
   float D = bxdf_ggx_D_opti(NH, a2);
 
   /* Denominator is canceled by G1_Smith */
-  /* bsdf = D * G / (4.0 * NL * NV); /* Reference function. */
+  // bsdf = D * G / (4.0 * NL * NV); /* Reference function. */
   /* NL term to fit Cycles. NOTE(fclem): Not sure what it  */
   return NL * a2 / (D * G);
 }
@@ -75,7 +75,7 @@ float btdf_ggx(vec3 N, vec3 L, vec3 V, float roughness, float eta)
   float G = bxdf_ggx_smith_G1_opti(NV, a2) * bxdf_ggx_smith_G1_opti(NL, a2);
   float D = bxdf_ggx_D_opti(NH, a2);
 
-  /* btdf = abs(VH*LH) * ior^2 * D * G(V) * G(L) / (Ht2 * NV) */
+  /* `btdf = abs(VH*LH) * ior^2 * D * G(V) * G(L) / (Ht2 * NV)`. */
   return abs(VH * LH) * sqr(eta) * 4.0 * a2 / (D * G * (Ht2 * NV));
 }
 

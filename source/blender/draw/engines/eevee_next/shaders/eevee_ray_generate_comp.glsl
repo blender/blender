@@ -68,7 +68,7 @@ void main()
 
 #if defined(RAYTRACE_REFRACT)
   if (gbuffer_is_refraction(gbuffer_packed) && closure_active != CLOSURE_REFRACTION) {
-    /* Discard incorect rays. */
+    /* Discard incorrect rays. */
     pdf = 0.0;
   }
 #endif

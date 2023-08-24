@@ -25,7 +25,7 @@ struct USDExporterContext {
   /**
    * Wrap a function which returns the current time code
    * for export.  This is necessary since the context
-   * may be used for exporting an animation over a sequece
+   * may be used for exporting an animation over a sequence
    * of frames.
    */
   std::function<pxr::UsdTimeCode()> get_time_code;

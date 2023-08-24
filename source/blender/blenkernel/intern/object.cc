@@ -892,7 +892,7 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
   BlendFileReadReport *reports = BLO_read_lib_reports(reader);
 
   if (ob->data == nullptr && ob->type != OB_EMPTY) {
-    /* NOTE: This case is not expected to happen anymore, since in when a linked ID disapears, an
+    /* NOTE: This case is not expected to happen anymore, since in when a linked ID disappears, an
      * empty placeholder is created for it by readfile code. Only some serious corruption of data
      * should be able to trigger this code nowadays. */
 
@@ -900,7 +900,7 @@ static void object_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 
     if (ob->pose) {
       /* This code is now executed after _all_ ID pointers have been lib-linked,so it's safe to do
-       * a proper cleanup. Further more, since user count of IDs is not done in readcode anymore,
+       * a proper cleanup. Further more, since user count of IDs is not done in read-code anymore,
        * `BKE_pose_free_ex(ob->pose, false)` can be called (instead of
        * `BKE_pose_free_ex(ob->pose)`), avoiding any access to other IDs altogether. */
       BKE_pose_free_ex(ob->pose, false);

@@ -40,7 +40,7 @@ float decode_signed_coc(vec2 cocs)
 
 /**
  * ----------------- STEP 0 ------------------
- * Custom Coc aware downsampling. Half res pass.
+ * Custom COC aware down-sampling. Half res pass.
  */
 #ifdef PREPARE
 
@@ -83,7 +83,7 @@ void main()
 
 /**
  * ----------------- STEP 0.5 ------------------
- * Custom Coc aware downsampling. Quarter res pass.
+ * Custom COC aware down-sampling. Quarter res pass.
  */
 #ifdef DOWNSAMPLE
 

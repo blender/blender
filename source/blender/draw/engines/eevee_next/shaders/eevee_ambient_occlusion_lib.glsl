@@ -293,8 +293,8 @@ void ambient_occlusion_eval(OcclusionData data,
   }
 }
 
-/* Multibounce approximation base on surface albedo.
- * Page 78 in the .pdf version. */
+/* Multi-bounce approximation base on surface albedo.
+ * Page 78 in the PDF version. */
 float ambient_occlusion_multibounce(float visibility, vec3 albedo)
 {
   if (!AO_MULTI_BOUNCE) {

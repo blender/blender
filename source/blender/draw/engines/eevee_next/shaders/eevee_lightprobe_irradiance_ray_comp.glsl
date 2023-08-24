@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * For every irradiance probe sample, compute the incomming radiance from both side.
+ * For every irradiance probe sample, compute the incoming radiance from both side.
  * This is the same as the surfel ray but we do not actually transport the light, we only capture
  * the irradiance as spherical harmonic coefficients.
  *

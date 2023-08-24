@@ -58,9 +58,9 @@ vec2 sample_weights(float center_depth,
 vec4 decode_velocity(vec4 velocity)
 {
   velocity = velocity * 2.0 - 1.0;
-  /* Needed to match cycles. Can't find why... (fclem) */
+  /* NOTE(@fclem): Needed to match cycles. Can't find why. */
   velocity *= 0.5;
-  /* Transpose to pixelspace. */
+  /* Transpose to pixel-space. */
   velocity *= viewportSize.xyxy;
   return velocity;
 }

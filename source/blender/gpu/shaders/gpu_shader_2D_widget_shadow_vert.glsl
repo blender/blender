@@ -19,7 +19,7 @@
 
 #define INNER_FLAG uint(1 << 10) /* is inner vert */
 
-/* radi and rad per corner */
+/* Radii and rad per corner. */
 #define recti parameters[0]
 #define rect parameters[1]
 #define radsi parameters[2].x

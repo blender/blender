@@ -4,7 +4,7 @@
 
 /* Float Math */
 
-/* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */
+/* WORKAROUND: To be removed once we port all code to use `gpu_shader_math_base_lib.glsl`. */
 #ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 
 float safe_divide(float a, float b)
@@ -30,7 +30,7 @@ float compatible_pow(float x, float y)
     return 1.0;
   }
 
-  /* glsl pow doesn't accept negative x */
+  /* GLSL pow doesn't accept negative x. */
   if (x < 0.0) {
     if (mod(-y, 2.0) == 0.0) {
       return pow(-x, y);

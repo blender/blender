@@ -175,7 +175,7 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
     col.rgb = pow(col.rgb, vec3(parameters.exponent * 2.2));
 
     if (!parameters.use_hdr) {
-      /* If we're not using an extended colour space, clamp the color 0..1. */
+      /* If we're not using an extended color space, clamp the color 0..1. */
       col = clamp(col, 0.0, 1.0);
     }
     else {

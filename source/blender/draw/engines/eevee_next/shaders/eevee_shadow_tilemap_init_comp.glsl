@@ -52,7 +52,7 @@ void main()
       bool near_changed = clip_near_new != clip_data.clip_near_stored;
       bool far_changed = clip_far_new != clip_data.clip_far_stored;
       directional_range_changed = near_changed || far_changed;
-      /* NOTE(fclem): This assumes clip near/far are computed each time the init phase runs. */
+      /* NOTE(fclem): This assumes clip near/far are computed each time the initial phase runs. */
       tilemaps_clip_buf[clip_index].clip_near_stored = clip_near_new;
       tilemaps_clip_buf[clip_index].clip_far_stored = clip_far_new;
       /* Reset for next update. */
@@ -98,7 +98,7 @@ void main()
     if (thread_active) {
       int tile_store = shadow_tile_offset(tile_co, tilemap.tiles_index, lod);
       if ((tile_load != tile_store) && flag_test(tile, SHADOW_IS_CACHED)) {
-        /* Inlining of shadow_page_cache_update_tile_ref to avoid buffer depedencies. */
+        /* Inlining of shadow_page_cache_update_tile_ref to avoid buffer dependencies. */
         pages_cached_buf[shadow_tile_unpack(tile).cache_index].y = tile_store;
       }
       tiles_buf[tile_store] = tile;

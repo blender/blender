@@ -150,7 +150,7 @@ void main()
           rect_fg.offset = offset;
           /* Negate extent to flip the sprite. Mimics optical phenomenon. */
           rect_fg.half_extent = -half_extent;
-          /* NOTE: Since we fliped the quad along (1,-1) line, we need to also swap the (1,1) and
+          /* NOTE: Since we flipped the quad along (1,-1) line, we need to also swap the (1,1) and
            * (0,0) values so that quad_offsets is in the right order in the vertex shader. */
 
           /* Circle of Confusion absolute radius in halfres pixels. */

@@ -10,7 +10,7 @@
 
 struct ClosureInputDiffuse {
   vec3 N;      /** Shading normal. */
-  vec3 albedo; /** Used for multibounce GTAO approximation. Not applied to final radiance. */
+  vec3 albedo; /** Used for multi-bounce GTAO approximation. Not applied to final radiance. */
 };
 
 #ifdef GPU_METAL

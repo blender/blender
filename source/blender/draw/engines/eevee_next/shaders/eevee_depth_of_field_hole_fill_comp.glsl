@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Holefill pass: Gather background parts where foreground is present.
+ * Hole-fill pass: Gather background parts where foreground is present.
  *
  * Using the min&max CoC tile buffer, we select the best appropriate method to blur the scene
  *color. A fast gather path is taken if there is not many CoC variation inside the tile.

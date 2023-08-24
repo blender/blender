@@ -169,7 +169,7 @@ void main()
           intersect_tile = intersect_tile && intersect(tile, pyramid);
           break;
         }
-        /* Fallthrough to the hemispheric case. */
+        /* Fall-through to the hemispheric case. */
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
         vec3 v000 = vP - v_right * radius - v_up * radius;

@@ -451,7 +451,7 @@ void film_store_combined(
   vec4 color_src, color_dst;
   float weight_src, weight_dst;
 
-  /* Undo the weighting to get final spatialy-filtered color. */
+  /* Undo the weighting to get final spatially-filtered color. */
   color_src = color / color_weight;
 
   if (film_buf.use_reprojection) {

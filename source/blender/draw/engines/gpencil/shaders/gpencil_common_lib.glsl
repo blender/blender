@@ -51,7 +51,7 @@ void blend_mode_output(
       break;
     }
     case MODE_HARDLIGHT_SECOND_PASS:
-      /* Reminder: Blending func is additive blend (dst.rgba + src.rgba). */
+      /* Reminder: Blending func is additive blend `(dst.rgba + src.rgba)`. */
       color = mix(vec4(0.5), color, color.a * opacity);
       frag_revealage = frag_color = (-1.0 + 2.0 * color) * step(-0.5, -color);
       frag_revealage = max(vec4(0.0), frag_revealage);

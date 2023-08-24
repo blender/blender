@@ -3270,9 +3270,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
 static int lib_link_cb(struct LibraryIDLinkCallbackData *cb_data)
 {
   /* Embedded IDs are not known by lib_link code, so they would be remapped to `nullptr`. But there
-   * is no need to process them anyway, asthey are already handled during the 'read_data' phase.
+   * is no need to process them anyway, as they are already handled during the 'read_data' phase.
    *
-   * NOTE: Some external non-owning pointers to embedded IDs (like the nodetree pointers of the
+   * NOTE: Some external non-owning pointers to embedded IDs (like the node-tree pointers of the
    * Node editor) will not be detected as embedded ones though at 'lib_link' stage (because their
    * source data cannot be accessed). This is handled on a case-by-case basis in 'after_lib_link'
    * validation code. */
@@ -3280,7 +3280,7 @@ static int lib_link_cb(struct LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  /* Explicitely requested to be ignored during readfile processing. Means the read_data code
+  /* Explicitly requested to be ignored during readfile processing. Means the read_data code
    * already handled this pointer. Typically, the 'owner_id' pointer of an embedded ID. */
   if (cb_data->cb_flag & IDWALK_CB_READFILE_IGNORE) {
     return IDWALK_RET_NOP;

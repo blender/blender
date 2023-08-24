@@ -28,7 +28,7 @@ void node_attribute_flame(vec4 attr, out float out_attr)
 
 void node_attribute_uniform(vec4 attr, const float attr_hash, out vec4 out_attr)
 {
-  /* Temporary solution to support both old UBO attribs and new SSBO loading.
+  /* Temporary solution to support both old UBO attributes and new SSBO loading.
    * Old UBO load is already done through `attr` and will just be passed through. */
   out_attr = attr_load_uniform(attr, floatBitsToUint(attr_hash));
 }

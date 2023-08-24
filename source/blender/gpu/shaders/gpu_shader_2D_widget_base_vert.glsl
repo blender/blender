@@ -92,7 +92,7 @@ vec2 do_tria()
   vec2 point_pos[4] = vec2[4](vec2(-1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0));
   vec2 point_uvs[4] = vec2[4](vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 0.0), vec2(1.0, 1.0));
 
-  /* We reuse the SDF roundbox rendering of widget to render the tria shapes.
+  /* We reuse the SDF round-box rendering of widget to render the tria shapes.
    * This means we do clever tricks to position the rectangle the way we want using
    * the 2 triangles uvs. */
   if (triaType == 0.0) {
