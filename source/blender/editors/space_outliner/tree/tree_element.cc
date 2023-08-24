@@ -165,6 +165,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     }
     case TSE_POSE_BASE:
       return std::make_unique<TreeElementPoseBase>(legacy_te, *static_cast<Object *>(idv));
+    case TSE_POSE_CHANNEL: {
+      PoseChannelElementCreateData *pchan_data = static_cast<PoseChannelElementCreateData *>(idv);
+      return std::make_unique<TreeElementPoseChannel>(
+          legacy_te, *pchan_data->object, *pchan_data->pchan);
+    }
     case TSE_POSEGRP_BASE:
       return std::make_unique<TreeElementPoseGroupBase>(legacy_te, *static_cast<Object *>(idv));
     case TSE_POSEGRP: {
