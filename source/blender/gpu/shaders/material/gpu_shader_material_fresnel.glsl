@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 float fresnel_dielectric_cos(float cosi, float eta)
 {
   /* compute fresnel reflectance without explicitly computing

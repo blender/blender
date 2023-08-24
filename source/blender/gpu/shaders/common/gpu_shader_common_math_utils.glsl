@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Float Math */
 
 /* WORKAROUND: To be removed once we port all code to use gpu_shader_math_base_lib.glsl. */

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 float contours(float value, float steps, float width_px, float max_rel_width, float gradient)
 {
   /* Minimum visible and minimum full strength line width in screen space for fade out. */

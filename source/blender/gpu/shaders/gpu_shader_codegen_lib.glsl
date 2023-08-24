@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 vec3 calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2)
 {

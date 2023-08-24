@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** Storing/merging and sorting cryptomatte samples. */
 
 bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)

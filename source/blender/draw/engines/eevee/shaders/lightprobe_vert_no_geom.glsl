@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Non-geometry shader equivalent for eevee_legacy_lightprobe_vert + eevee_legacy_lightprobe_geom.
  * generates geometry instance per cubeface for multi-layered rendering. */

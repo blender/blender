@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /*
  * Original code is under the MIT License, Copyright (c) 2013 Inigo Quilez.
  *

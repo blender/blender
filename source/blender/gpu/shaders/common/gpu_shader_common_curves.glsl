@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 vec4 white_balance(vec4 color, vec4 black_level, vec4 white_level)
 {
   vec4 range = max(white_level - black_level, vec4(1e-5f));

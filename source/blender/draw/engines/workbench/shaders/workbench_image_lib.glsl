@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* TODO(fclem): deduplicate code. */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)

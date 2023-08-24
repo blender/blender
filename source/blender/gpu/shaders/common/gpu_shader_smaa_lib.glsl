@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Copyright (C) 2013 Jorge Jimenez <jorge@iryoku.com>
  * Copyright (C) 2013 Jose I. Echevarria <joseignacioechevarria@gmail.com>

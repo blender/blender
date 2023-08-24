@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_material_noise.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_material_fractal_noise.glsl)

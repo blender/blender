@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #define recti parameters[widgetID * MAX_PARAM + 0]
 #define rect parameters[widgetID * MAX_PARAM + 1]
 #define radsi parameters[widgetID * MAX_PARAM + 2].x

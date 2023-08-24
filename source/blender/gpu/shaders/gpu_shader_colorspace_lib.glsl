@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Undefine the macro that avoids compilation errors. */
 #undef blender_srgb_to_framebuffer_space

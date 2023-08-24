@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2021-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Recombine Pass: Load separate convolution layer and composite with self slight defocus

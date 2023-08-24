@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * This pass load Gbuffer data and output a mask of tiles to process.
  * This mask is then processed by the compaction phase.

@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Preprocess the input of the blur filter by squaring it in its alpha straight form, assuming the
  * given color is alpha premultiplied. */
 vec4 gamma_correct_blur_input(vec4 color)

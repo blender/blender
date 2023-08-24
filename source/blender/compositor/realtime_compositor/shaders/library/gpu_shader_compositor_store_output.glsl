@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* The following functions are called to store the given value in the output identified by the
  * given ID. The ID is an unsigned integer that is encoded in a float, so floatBitsToUint is called
  * to get the actual identifier. The functions have an output value as their last argument that is

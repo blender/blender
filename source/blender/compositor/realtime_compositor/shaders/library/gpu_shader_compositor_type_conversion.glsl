@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 float float_from_vec4(vec4 vector)
 {
   return dot(vector.rgb, vec3(1.0)) / 3.0;

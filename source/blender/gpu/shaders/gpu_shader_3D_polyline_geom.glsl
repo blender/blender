@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Clips point to near clip plane before perspective divide. */
 vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)

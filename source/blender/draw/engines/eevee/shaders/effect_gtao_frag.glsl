@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * This shader only compute maximum horizon angles for each directions.
  * The final integration is done at the resolve stage with the shading normal.

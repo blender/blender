@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Computes the structure tensor of the image using a Dirac delta window function as described in
  * section "3.2 Local Structure Estimation" of the paper:
  *
