@@ -814,17 +814,11 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
     pbvh->vert_positions = mesh->vert_positions_for_write();
   }
 
-  pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num));
-  pbvh->hide_vert = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->totvert));
+  BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
 
   /* Make sure cached normals start out calculated. */
-  mesh->vert_normals();
-  mesh->face_normals();
-
-  pbvh->vert_normals = mesh->runtime->vert_normals;
-  pbvh->face_normals = mesh->runtime->face_normals;
+  pbvh->vert_normals = mesh->vert_normals();
+  pbvh->face_normals = mesh->face_normals();
 
   pbvh->vert_data = &mesh->vert_data;
   pbvh->loop_data = &mesh->loop_data;
