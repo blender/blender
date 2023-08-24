@@ -1776,7 +1776,7 @@ static size_t animdata_filter_grease_pencil_layer(ListBase *anim_data,
   }
 
   /* Only if the layer is editable. */
-  if ((filter_mode & ANIMFILTER_FOREDIT) && !layer.is_locked()) {
+  if ((filter_mode & ANIMFILTER_FOREDIT) && layer.is_locked()) {
     return items;
   }
 
