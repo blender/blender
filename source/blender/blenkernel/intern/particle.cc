@@ -5429,9 +5429,9 @@ void BKE_particle_system_blend_read_data(BlendDataReader *reader, ListBase *part
 }
 
 void BKE_particle_system_blend_read_after_liblink(BlendLibReader * /*reader*/,
-                                        Object *ob,
-                                        ID * /*id*/,
-                                        ListBase *particles)
+                                                  Object *ob,
+                                                  ID * /*id*/,
+                                                  ListBase *particles)
 {
   LISTBASE_FOREACH_MUTABLE (ParticleSystem *, psys, particles) {
     if (psys->part) {

@@ -391,8 +391,9 @@ void BKE_pose_blend_write(struct BlendWriter *writer, struct bPose *pose, struct
 void BKE_pose_blend_read_data(struct BlendDataReader *reader,
                               struct ID *id_owner,
                               struct bPose *pose) ATTR_NONNULL(1, 2);
-void BKE_pose_blend_read_after_liblink(struct BlendLibReader *reader, struct Object *ob, struct bPose *pose)
-    ATTR_NONNULL(1, 2);
+void BKE_pose_blend_read_after_liblink(struct BlendLibReader *reader,
+                                       struct Object *ob,
+                                       struct bPose *pose) ATTR_NONNULL(1, 2);
 
 /* `action_mirror.cc` */
 

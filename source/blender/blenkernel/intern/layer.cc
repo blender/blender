@@ -2435,8 +2435,8 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
 }
 
 void BKE_view_layer_blend_read_after_liblink(BlendLibReader * /*reader*/,
-                                   ID * /*self_id*/,
-                                   ViewLayer *view_layer)
+                                             ID * /*self_id*/,
+                                             ViewLayer *view_layer)
 {
   LISTBASE_FOREACH_MUTABLE (Base *, base, &view_layer->object_bases) {
     if (base->object == nullptr) {

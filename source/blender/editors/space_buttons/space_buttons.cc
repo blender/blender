@@ -946,8 +946,8 @@ static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLin
 }
 
 static void buttons_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
-                                         ID * /*parent_id*/,
-                                         SpaceLink *sl)
+                                                   ID * /*parent_id*/,
+                                                   SpaceLink *sl)
 {
   SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
 
