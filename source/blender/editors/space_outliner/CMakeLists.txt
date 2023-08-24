@@ -73,8 +73,8 @@ set(SRC
   tree/tree_element_label.cc
   tree/tree_element_layer_collection.cc
   tree/tree_element_linked_object.cc
-  tree/tree_element_nla.cc
   tree/tree_element_modifier.cc
+  tree/tree_element_nla.cc
   tree/tree_element_overrides.cc
   tree/tree_element_particle_system.cc
   tree/tree_element_pose.cc
@@ -96,13 +96,13 @@ set(SRC
   tree/tree_element_defgroup.hh
   tree/tree_element_driver.hh
   tree/tree_element_edit_bone.hh
+  tree/tree_element_gpencil_effect.hh
   tree/tree_element_gpencil_layer.hh
   tree/tree_element_grease_pencil_node.hh
   tree/tree_element_id.hh
   tree/tree_element_id_armature.hh
   tree/tree_element_id_collection.hh
   tree/tree_element_id_curve.hh
-  tree/tree_element_gpencil_effect.hh
   tree/tree_element_id_gpencil_legacy.hh
   tree/tree_element_id_grease_pencil.hh
   tree/tree_element_id_library.hh
@@ -115,8 +115,8 @@ set(SRC
   tree/tree_element_label.hh
   tree/tree_element_layer_collection.hh
   tree/tree_element_linked_object.hh
-  tree/tree_element_nla.hh
   tree/tree_element_modifier.hh
+  tree/tree_element_nla.hh
   tree/tree_element_overrides.hh
   tree/tree_element_particle_system.hh
   tree/tree_element_pose.hh

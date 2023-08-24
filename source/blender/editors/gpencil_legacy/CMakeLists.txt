@@ -7,12 +7,12 @@ set(INC
   ../../blenfont
   ../../blenkernel
   ../../blentranslation
+  ../../bmesh
   ../../depsgraph
   ../../gpu
   ../../imbuf
   ../../makesrna
   ../../windowmanager
-  ../../bmesh
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )

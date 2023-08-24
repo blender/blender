@@ -38,13 +38,13 @@ endif()
 set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
+  ../../blenkernel
+  ../../blenlib
+  ../../depsgraph
+  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
-  ../../blenlib
-  ../../depsgraph
-  ../../blenkernel
-  ../../imbuf
   ../../io/usd
   ../../gpu
   ../../gpu/intern
