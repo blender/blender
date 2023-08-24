@@ -312,6 +312,11 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Could not add node group");
     return OPERATOR_CANCELLED;
   }
+  if (!RNA_boolean_get(op->ptr, "show_datablock_in_node")) {
+    /* By default, don't show the data-block selector since it's not usually necessary for assets.
+     */
+    group_node->flag &= ~NODE_OPTIONS;
+  }
 
   group_node->id = &node_group->id;
   id_us_plus(group_node->id);
@@ -371,6 +376,13 @@ void NODE_OT_add_group(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   WM_operator_properties_id_lookup(ot, true);
+
+  PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                      "show_datablock_in_node",
+                                      true,
+                                      "Show the datablock selector in the node",
+                                      "");
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */
