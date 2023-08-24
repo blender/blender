@@ -346,6 +346,9 @@ static int lib_id_override_editable_toggle_exec(bContext *C, wmOperator * /*op*/
   else {
     /* Reset override, which makes it non-editable (i.e. a system define override). */
     BKE_lib_override_library_id_reset(bmain, id, true);
+
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+    WM_event_add_notifier(C, NC_WINDOW, nullptr);
   }
 
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
