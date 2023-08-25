@@ -604,7 +604,7 @@ GreasePencilFrame *Layer::add_frame(const FramesMapKey key,
     return frame;
   }
   next_key_it = this->remove_leading_null_frames_in_range(next_key_it, sorted_keys.end());
-  /* If the duration is set to 0, the frame is marked as an implicit hold.*/
+  /* If the duration is set to 0, the frame is marked as an implicit hold. */
   if (duration == 0) {
     frame->flag |= GP_FRAME_IMPLICIT_HOLD;
     return frame;

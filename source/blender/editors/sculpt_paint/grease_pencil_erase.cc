@@ -114,7 +114,7 @@ struct EraseOperationExecutor {
   }
 
   struct SegmentCircleIntersection {
-    /* Position of the intersection in the segment.*/
+    /* Position of the intersection in the segment. */
     float factor = -1.0f;
 
     /* True if the intersection corresponds to an inside/outside transition with respect to the
