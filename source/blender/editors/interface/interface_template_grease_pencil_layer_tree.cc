@@ -200,7 +200,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(StringRefNull new_name) override
+  bool rename(const bContext & /*C*/, StringRefNull new_name) override
   {
     grease_pencil_.rename_node(layer_.as_node(), new_name);
     return true;
@@ -309,7 +309,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     return true;
   }
 
-  bool rename(StringRefNull new_name) override
+  bool rename(const bContext & /*C*/, StringRefNull new_name) override
   {
     grease_pencil_.rename_node(group_.as_node(), new_name);
     return true;

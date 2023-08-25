@@ -207,7 +207,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   /** See AbstractViewItem::get_rename_string(). */
   /* virtual */ StringRef get_rename_string() const override;
   /** See AbstractViewItem::rename(). */
-  /* virtual */ bool rename(StringRefNull new_name) override;
+  /* virtual */ bool rename(const bContext &C, StringRefNull new_name) override;
 
   /**
    * Return whether the item can be collapsed. Used to disable collapsing for items with children.

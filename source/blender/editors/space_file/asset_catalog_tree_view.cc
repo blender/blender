@@ -87,7 +87,7 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
   void build_context_menu(bContext &C, uiLayout &column) const override;
 
   bool supports_renaming() const override;
-  bool rename(StringRefNull new_name) override;
+  bool rename(const bContext &C, StringRefNull new_name) override;
 
   /** Add drag support for catalog items. */
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
@@ -330,10 +330,10 @@ bool AssetCatalogTreeViewItem::supports_renaming() const
   return !ED_asset_catalogs_read_only(*tree_view.asset_library_);
 }
 
-bool AssetCatalogTreeViewItem::rename(StringRefNull new_name)
+bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
 {
   /* Important to keep state. */
-  BasicTreeViewItem::rename(new_name);
+  BasicTreeViewItem::rename(C, new_name);
 
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
       get_tree_view());
