@@ -1456,7 +1456,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
   return success;
 }
 
-static bool transinfo_show_overlay(const bContext *C, TransInfo *t, ARegion *region)
+static bool transinfo_show_overlay(TransInfo *t, ARegion *region)
 {
   /* Don't show overlays when not the active view and when overlay is disabled: #57139 */
   bool ok = false;
@@ -1464,9 +1464,8 @@ static bool transinfo_show_overlay(const bContext *C, TransInfo *t, ARegion *reg
     ok = true;
   }
   else {
-    ScrArea *area = CTX_wm_area(C);
-    if (area->spacetype == SPACE_VIEW3D) {
-      View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+    if (t->spacetype == SPACE_VIEW3D) {
+      View3D *v3d = static_cast<View3D *>(t->view);
       if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
         ok = true;
       }
@@ -1475,18 +1474,18 @@ static bool transinfo_show_overlay(const bContext *C, TransInfo *t, ARegion *reg
   return ok;
 }
 
-static void drawTransformView(const bContext *C, ARegion *region, void *arg)
+static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg)
 {
   TransInfo *t = static_cast<TransInfo *>(arg);
 
-  if (!transinfo_show_overlay(C, t, region)) {
+  if (!transinfo_show_overlay(t, region)) {
     return;
   }
 
   GPU_line_width(1.0f);
 
   drawConstraint(t);
-  drawPropCircle(C, t);
+  drawPropCircle(t);
   drawSnapping(t);
 
   if (region == t->region && t->mode_info && t->mode_info->draw_fn) {
@@ -1496,7 +1495,7 @@ static void drawTransformView(const bContext *C, ARegion *region, void *arg)
 
 /* just draw a little warning message in the top-right corner of the viewport
  * to warn that autokeying is enabled */
-static void drawAutoKeyWarning(TransInfo * /*t*/, const bContext *C, ARegion *region)
+static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
 {
   const char *printable = IFACE_("Auto Keying On");
   float printable_size[2];
@@ -1504,14 +1503,19 @@ static void drawAutoKeyWarning(TransInfo * /*t*/, const bContext *C, ARegion *re
   int offset = 0;
 
   const rcti *rect = ED_region_visible_rect(region);
-  View3D *v3d = CTX_wm_view3d(C);
+
+  View3D *v3d = nullptr;
+  if (t->spacetype == SPACE_VIEW3D) {
+    v3d = static_cast<View3D *>(t->view);
+  }
 
   const int font_id = BLF_set_default();
   BLF_width_and_height(
       font_id, printable, BLF_DRAW_STR_DUMMY_MAX, &printable_size[0], &printable_size[1]);
 
   /* Check to see if the Navigation Gizmo is enabled. */
-  if (((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) ||
+  if ((t->spacetype != SPACE_VIEW3D) || (v3d == nullptr) ||
+      ((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) ||
       (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
   {
     offset = 10;
@@ -1555,11 +1559,11 @@ static void drawAutoKeyWarning(TransInfo * /*t*/, const bContext *C, ARegion *re
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void drawTransformPixel(const bContext *C, ARegion *region, void *arg)
+static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *arg)
 {
   TransInfo *t = static_cast<TransInfo *>(arg);
 
-  if (!transinfo_show_overlay(C, t, region)) {
+  if (!transinfo_show_overlay(t, region)) {
     return;
   }
 
@@ -1578,7 +1582,7 @@ static void drawTransformPixel(const bContext *C, ARegion *region, void *arg)
       if (region == t->region) {
         if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
           if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-            drawAutoKeyWarning(t, C, region);
+            drawAutoKeyWarning(t, region);
           }
         }
       }
