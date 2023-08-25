@@ -294,15 +294,15 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       if (deltax != 0) {
-        RNA_int_set(op->ptr, "deltax", deltax);
         vpd->lastx = event->xy[0];
       }
       if (deltay != 0) {
-        RNA_int_set(op->ptr, "deltay", deltay);
         vpd->lasty = event->xy[1];
       }
 
       if (deltax || deltay) {
+        RNA_int_set(op->ptr, "deltax", deltax);
+        RNA_int_set(op->ptr, "deltay", deltay);
         view_pan_apply(C, op);
       }
       break;
