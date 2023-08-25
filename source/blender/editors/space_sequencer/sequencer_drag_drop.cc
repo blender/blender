@@ -366,7 +366,7 @@ static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, cons
   UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   if (coords->use_snapping) {
-    ED_draw_sequencer_snap_point(C, coords->snap_point_x);
+    ED_draw_sequencer_snap_point(region, coords->snap_point_x);
   }
 
   /* Init GPU drawing. */

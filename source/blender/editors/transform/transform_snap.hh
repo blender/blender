@@ -55,7 +55,7 @@ void transform_snap_project_individual_apply(TransInfo *t);
 void transform_snap_mixed_apply(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event);
-void drawSnapping(const bContext *C, TransInfo *t);
+void drawSnapping(TransInfo *t);
 bool usingSnappingNormal(const TransInfo *t);
 bool validSnappingNormal(const TransInfo *t);
 

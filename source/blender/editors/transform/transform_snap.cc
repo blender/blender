@@ -172,7 +172,7 @@ static bool doForceIncrementSnap(const TransInfo *t)
   return !transformModeUseSnap(t);
 }
 
-void drawSnapping(const bContext *C, TransInfo *t)
+void drawSnapping(TransInfo *t)
 {
   uchar col[4], selectedCol[4], activeCol[4];
   if (!(transform_snap_is_active(t) || t->modifiers & MOD_EDIT_SNAP_SOURCE)) {
@@ -277,7 +277,7 @@ void drawSnapping(const bContext *C, TransInfo *t)
     GPU_matrix_pop_projection();
   }
   else if (t->spacetype == SPACE_NODE) {
-    ARegion *region = CTX_wm_region(C);
+    ARegion *region = t->region;
     float size;
 
     size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
@@ -311,7 +311,7 @@ void drawSnapping(const bContext *C, TransInfo *t)
     GPU_blend(GPU_BLEND_NONE);
   }
   else if (t->spacetype == SPACE_SEQ) {
-    const ARegion *region = CTX_wm_region(C);
+    const ARegion *region = t->region;
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

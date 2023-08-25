@@ -1487,7 +1487,7 @@ static void drawTransformView(const bContext *C, ARegion *region, void *arg)
 
   drawConstraint(t);
   drawPropCircle(C, t);
-  drawSnapping(C, t);
+  drawSnapping(t);
 
   if (region == t->region && t->mode_info && t->mode_info->draw_fn) {
     t->mode_info->draw_fn(t);
