@@ -35,23 +35,20 @@ struct MultiplaneScrapeSampleData {
   int area_count[2];
 };
 
-static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
-                                                   const int n,
-                                                   const TaskParallelTLS *__restrict tls)
+static void calc_multiplane_scrape_surface_task(Object *ob,
+                                                const Brush *brush,
+                                                const float (*mat)[4],
+                                                PBVHNode *node,
+                                                MultiplaneScrapeSampleData *mssd)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  MultiplaneScrapeSampleData *mssd = static_cast<MultiplaneScrapeSampleData *>(
-      tls->userdata_chunk);
-  float(*mat)[4] = data->mat;
+  SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, brush->falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   /* Apply the brush normal radius to the test before sampling. */
   float test_radius = sqrtf(test.radius_squared);
@@ -59,10 +56,9 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   test.radius_squared = test_radius * test_radius;
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -101,51 +97,30 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
   }
 }
 
-static void calc_multiplane_scrape_surface_reduce(const void *__restrict /*userdata*/,
-                                                  void *__restrict chunk_join,
-                                                  void *__restrict chunk)
+static void do_multiplane_scrape_brush_task(Object *ob,
+                                            const Brush *brush,
+                                            const float (*mat)[4],
+                                            const float (*scrape_planes)[4],
+                                            const float angle,
+                                            PBVHNode *node)
 {
-  MultiplaneScrapeSampleData *join = static_cast<MultiplaneScrapeSampleData *>(chunk_join);
-  MultiplaneScrapeSampleData *mssd = static_cast<MultiplaneScrapeSampleData *>(chunk);
-
-  add_v3_v3(join->area_cos[0], mssd->area_cos[0]);
-  add_v3_v3(join->area_cos[1], mssd->area_cos[1]);
-
-  add_v3_v3(join->area_nos[0], mssd->area_nos[0]);
-  add_v3_v3(join->area_nos[1], mssd->area_nos[1]);
-
-  join->area_count[0] += mssd->area_count[0];
-  join->area_count[1] += mssd->area_count[1];
-}
-
-static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
-                                                  const int n,
-                                                  const TaskParallelTLS *__restrict tls)
-{
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
-  float(*mat)[4] = data->mat;
-  float(*scrape_planes)[4] = data->multiplane_scrape_planes;
-
-  float angle = data->multiplane_scrape_angle;
+  SculptSession *ss = ob->sculpt;
 
   PBVHVertexIter vd;
   float(*proxy)[3];
   const float bstrength = fabsf(ss->cache->bstrength);
 
-  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
+  proxy = BKE_pbvh_node_add_proxy(ss->pbvh, node)->co;
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+      ss, &test, brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -215,6 +190,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
 
 void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -278,23 +254,29 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> 
   if (brush->flag2 & BRUSH_MULTIPLANE_SCRAPE_DYNAMIC) {
     /* Sample the individual normal and area center of the two areas at both sides of the cursor.
      */
-    SculptThreadedTaskData sample_data{};
-    sample_data.sd = nullptr;
-    sample_data.ob = ob;
-    sample_data.brush = brush;
-    sample_data.nodes = nodes;
-    sample_data.mat = mat;
+    const MultiplaneScrapeSampleData mssd = threading::parallel_reduce(
+        nodes.index_range(),
+        1,
+        MultiplaneScrapeSampleData{},
+        [&](const IndexRange range, MultiplaneScrapeSampleData mssd) {
+          for (const int i : range) {
+            calc_multiplane_scrape_surface_task(ob, brush, mat, nodes[i], &mssd);
+          }
+          return mssd;
+        },
+        [](const MultiplaneScrapeSampleData &a, const MultiplaneScrapeSampleData &b) {
+          MultiplaneScrapeSampleData joined = a;
 
-    MultiplaneScrapeSampleData mssd = {{{0}}};
+          add_v3_v3v3(joined.area_cos[0], a.area_cos[0], b.area_cos[0]);
+          add_v3_v3v3(joined.area_cos[1], a.area_cos[1], b.area_cos[1]);
 
-    TaskParallelSettings sample_settings;
-    BKE_pbvh_parallel_range_settings(&sample_settings, true, nodes.size());
-    sample_settings.func_reduce = calc_multiplane_scrape_surface_reduce;
-    sample_settings.userdata_chunk = &mssd;
-    sample_settings.userdata_chunk_size = sizeof(MultiplaneScrapeSampleData);
+          add_v3_v3v3(joined.area_nos[0], a.area_nos[0], b.area_nos[0]);
+          add_v3_v3v3(joined.area_nos[1], a.area_nos[1], b.area_nos[1]);
 
-    BLI_task_parallel_range(
-        0, nodes.size(), &sample_data, calc_multiplane_scrape_surface_task_cb, &sample_settings);
+          joined.area_count[0] = a.area_count[0] + b.area_count[0];
+          joined.area_count[1] = a.area_count[1] + b.area_count[1];
+          return joined;
+        });
 
     float sampled_plane_normals[2][3];
     float sampled_plane_co[2][3];
@@ -348,14 +330,6 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> 
     }
   }
 
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.brush = brush;
-  data.nodes = nodes;
-  data.mat = mat;
-  data.multiplane_scrape_angle = ss->cache->multiplane_scrape_angle;
-
   /* Calculate the final left and right scrape planes. */
   float plane_no[3];
   float plane_no_rot[3];
@@ -363,24 +337,28 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> 
   float mat_inv[4][4];
   invert_m4_m4(mat_inv, mat);
 
+  float multiplane_scrape_planes[2][4];
+
   mul_v3_mat3_m4v3(plane_no, mat, area_no);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(-ss->cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
   normalize_v3(plane_no);
-  plane_from_point_normal_v3(data.multiplane_scrape_planes[1], area_co, plane_no);
+  plane_from_point_normal_v3(multiplane_scrape_planes[1], area_co, plane_no);
 
   mul_v3_mat3_m4v3(plane_no, mat, area_no);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(ss->cache->multiplane_scrape_angle * 0.5f));
   mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
   normalize_v3(plane_no);
-  plane_from_point_normal_v3(data.multiplane_scrape_planes[0], area_co, plane_no);
+  plane_from_point_normal_v3(multiplane_scrape_planes[0], area_co, plane_no);
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(
-      0, nodes.size(), &data, do_multiplane_scrape_brush_task_cb_ex, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      do_multiplane_scrape_brush_task(
+          ob, brush, mat, multiplane_scrape_planes, ss->cache->multiplane_scrape_angle, nodes[i]);
+    }
+  });
 }
 
 void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,

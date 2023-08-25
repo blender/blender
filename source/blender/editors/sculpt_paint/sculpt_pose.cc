@@ -137,27 +137,22 @@ static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scal
   }
 }
 
-static void do_pose_brush_task_cb_ex(void *__restrict userdata,
-                                     const int n,
-                                     const TaskParallelTLS *__restrict /*tls*/)
+static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
+  SculptSession *ss = ob->sculpt;
   SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
   SculptPoseIKChainSegment *segments = ik_chain->segments;
-  const Brush *brush = data->brush;
 
   PBVHVertexIter vd;
   float disp[3], new_co[3];
   float final_pos[3];
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COORDS);
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
@@ -203,35 +198,36 @@ static void do_pose_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-struct PoseGrowFactorTLSData {
+struct PoseGrowFactorData {
   float pos_avg[3];
   int pos_count;
 };
 
-static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
-                                              const int n,
-                                              const TaskParallelTLS *__restrict tls)
+static void pose_brush_grow_factor_task(Object *ob,
+                                        const float pose_initial_co[3],
+                                        const float *prev_mask,
+                                        float *pose_factor,
+                                        PBVHNode *node,
+                                        PoseGrowFactorData *gftd)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  PoseGrowFactorTLSData *gftd = static_cast<PoseGrowFactorTLSData *>(tls->userdata_chunk);
-  SculptSession *ss = data->ob->sculpt;
-  const char symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
+  SculptSession *ss = ob->sculpt;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SculptVertexNeighborIter ni;
     float max = 0.0f;
 
     /* Grow the factor. */
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      float vmask_f = data->prev_mask[ni.index];
+      float vmask_f = prev_mask[ni.index];
       max = MAX2(vmask_f, max);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
     /* Keep the count of the vertices that where added to the factors in this grow iteration. */
-    if (max > data->prev_mask[vd.index]) {
-      data->pose_factor[vd.index] = max;
-      if (SCULPT_check_vertex_pivot_symmetry(vd.co, data->pose_initial_co, symm)) {
+    if (max > prev_mask[vd.index]) {
+      pose_factor[vd.index] = max;
+      if (SCULPT_check_vertex_pivot_symmetry(vd.co, pose_initial_co, symm)) {
         add_v3_v3(gftd->pos_avg, vd.co);
         gftd->pos_count++;
       }
@@ -245,16 +241,15 @@ static void pose_brush_grow_factor_reduce(const void *__restrict /*userdata*/,
                                           void *__restrict chunk_join,
                                           void *__restrict chunk)
 {
-  PoseGrowFactorTLSData *join = static_cast<PoseGrowFactorTLSData *>(chunk_join);
-  PoseGrowFactorTLSData *gftd = static_cast<PoseGrowFactorTLSData *>(chunk);
+  PoseGrowFactorData *join = static_cast<PoseGrowFactorData *>(chunk_join);
+  PoseGrowFactorData *gftd = static_cast<PoseGrowFactorData *>(chunk);
   add_v3_v3(join->pos_avg, gftd->pos_avg);
   join->pos_count += gftd->pos_count;
 }
 
 /* Grow the factor until its boundary is near to the offset pose origin or outside the target
  * distance. */
-static void sculpt_pose_grow_pose_factor(Sculpt *sd,
-                                         Object *ob,
+static void sculpt_pose_grow_pose_factor(Object *ob,
                                          SculptSession *ss,
                                          float pose_origin[3],
                                          float pose_target[3],
@@ -262,35 +257,40 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
                                          float *r_pose_origin,
                                          float *pose_factor)
 {
+  using namespace blender;
   PBVH *pbvh = ob->sculpt->pbvh;
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = nodes;
-  data.pose_factor = pose_factor;
-
-  data.pose_initial_co = pose_target;
-  TaskParallelSettings settings;
-  PoseGrowFactorTLSData gftd;
+  PoseGrowFactorData gftd;
   gftd.pos_count = 0;
   zero_v3(gftd.pos_avg);
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  settings.func_reduce = pose_brush_grow_factor_reduce;
-  settings.userdata_chunk = &gftd;
-  settings.userdata_chunk_size = sizeof(PoseGrowFactorTLSData);
 
   bool grow_next_iteration = true;
   float prev_len = FLT_MAX;
-  data.prev_mask = static_cast<float *>(
+  float *prev_mask = static_cast<float *>(
       MEM_malloc_arrayN(SCULPT_vertex_count_get(ss), sizeof(float), __func__));
   while (grow_next_iteration) {
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
-    memcpy(data.prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
-    BLI_task_parallel_range(0, nodes.size(), &data, pose_brush_grow_factor_task_cb_ex, &settings);
+    memcpy(prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
+
+    gftd = threading::parallel_reduce(
+        nodes.index_range(),
+        1,
+        gftd,
+        [&](const IndexRange range, PoseGrowFactorData gftd) {
+          for (const int i : range) {
+            pose_brush_grow_factor_task(ob, pose_target, prev_mask, pose_factor, nodes[i], &gftd);
+          }
+          return gftd;
+        },
+        [](const PoseGrowFactorData &a, const PoseGrowFactorData &b) {
+          PoseGrowFactorData joined;
+          add_v3_v3v3(joined.pos_avg, a.pos_avg, b.pos_avg);
+          joined.pos_count = a.pos_count + b.pos_count;
+          return joined;
+        });
 
     if (gftd.pos_count != 0) {
       mul_v3_fl(gftd.pos_avg, 1.0f / float(gftd.pos_count));
@@ -305,7 +305,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
         }
         else {
           grow_next_iteration = false;
-          memcpy(pose_factor, data.prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor, prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
       else {
@@ -321,7 +321,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
           if (r_pose_origin) {
             copy_v3_v3(r_pose_origin, gftd.pos_avg);
           }
-          memcpy(pose_factor, data.prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor, prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
     }
@@ -332,7 +332,7 @@ static void sculpt_pose_grow_pose_factor(Sculpt *sd,
       grow_next_iteration = false;
     }
   }
-  MEM_freeN(data.prev_mask);
+  MEM_freeN(prev_mask);
 }
 
 static bool sculpt_pose_brush_is_vertex_inside_brush_radius(const float vertex[3],
@@ -574,29 +574,25 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
    */
   if (pose_offset != 0.0f && r_pose_factor) {
     sculpt_pose_grow_pose_factor(
-        sd, ob, ss, fdata.pose_origin, fdata.pose_origin, 0, nullptr, r_pose_factor);
+        ob, ss, fdata.pose_origin, fdata.pose_origin, 0, nullptr, r_pose_factor);
   }
 }
 
-static void pose_brush_init_task_cb_ex(void *__restrict userdata,
-                                       const int n,
-                                       const TaskParallelTLS *__restrict /*tls*/)
+static void pose_brush_init_task(SculptSession *ss, float *pose_factor, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SculptVertexNeighborIter ni;
     float avg = 0.0f;
     int total = 0;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
-      avg += data->pose_factor[ni.index];
+      avg += pose_factor[ni.index];
       total++;
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
     if (total > 0) {
-      data->pose_factor[vd.index] = avg / total;
+      pose_factor[vd.index] = avg / total;
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -705,8 +701,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   for (int i = 1; i < ik_chain->tot_segments; i++) {
 
     /* Grow the factors to get the new segment origin. */
-    sculpt_pose_grow_pose_factor(sd,
-                                 ob,
+    sculpt_pose_grow_pose_factor(ob,
                                  ss,
                                  nullptr,
                                  next_chain_segment_target,
@@ -979,15 +974,10 @@ SculptPoseIKChain *SCULPT_pose_ik_chain_init(Sculpt *sd,
 
 void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br)
 {
+  using namespace blender;
   PBVH *pbvh = ob->sculpt->pbvh;
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
-
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.brush = br;
-  data.nodes = nodes;
 
   /* Init the IK chain that is going to be used to deform the vertices. */
   ss->cache->pose_ik_chain = SCULPT_pose_ik_chain_init(
@@ -995,11 +985,13 @@ void SCULPT_pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br
 
   /* Smooth the weights of each segment for cleaner deformation. */
   for (int ik = 0; ik < ss->cache->pose_ik_chain->tot_segments; ik++) {
-    data.pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
+    float *pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
     for (int i = 0; i < br->pose_smooth_iterations; i++) {
-      TaskParallelSettings settings;
-      BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-      BLI_task_parallel_range(0, nodes.size(), &data, pose_brush_init_task_cb_ex, &settings);
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          pose_brush_init_task(ss, pose_factor, nodes[i]);
+        }
+      });
     }
   }
 }
@@ -1129,6 +1121,7 @@ static void sculpt_pose_align_pivot_local_space(float r_mat[4][4],
 
 void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1212,15 +1205,11 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
     }
   }
 
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.brush = brush;
-  data.nodes = nodes;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, do_pose_brush_task_cb_ex, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      do_pose_brush_task(ob, brush, nodes[i]);
+    }
+  });
 }
 
 void SCULPT_pose_ik_chain_free(SculptPoseIKChain *ik_chain)

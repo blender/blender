@@ -103,23 +103,19 @@ struct MaskTaskData {
   float view_normal[3];
 };
 
-static void mask_flood_fill_task_cb(void *__restrict userdata,
-                                    const int i,
-                                    const TaskParallelTLS *__restrict /*tls*/)
+static void mask_flood_fill_task(MaskTaskData &data, const int i)
 {
-  MaskTaskData *data = static_cast<MaskTaskData *>(userdata);
+  PBVHNode *node = data.nodes[i];
 
-  PBVHNode *node = data->nodes[i];
-
-  const PaintMaskFloodMode mode = data->mode;
-  const float value = data->value;
+  const PaintMaskFloodMode mode = data.mode;
+  const float value = data.value;
   bool redraw = false;
 
   PBVHVertexIter vi;
 
-  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
 
-  BKE_pbvh_vertex_iter_begin (data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
     float prevmask = *vi.mask;
     mask_flood_fill_set_elem(vi.mask, mode, value);
     if (prevmask != *vi.mask) {
@@ -130,7 +126,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   if (redraw) {
     BKE_pbvh_node_mark_update_mask(node);
-    if (data->multires) {
+    if (data.multires) {
       BKE_pbvh_node_mark_normals_update(node);
     }
   }
@@ -138,6 +134,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -166,9 +163,11 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   data.mode = mode;
   data.value = value;
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, mask_flood_fill_task_cb, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_flood_fill_task(data, i);
+    }
+  });
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);

@@ -1262,13 +1262,8 @@ static void sculpt_expand_cancel(bContext *C, wmOperator * /*op*/)
 /**
  * Callback to update mask data per PBVH node.
  */
-static void sculpt_expand_mask_update_task_cb(void *__restrict userdata,
-                                              const int i,
-                                              const TaskParallelTLS *__restrict /*tls*/)
+static void sculpt_expand_mask_update_task(SculptSession *ss, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
 
   bool any_changed = false;
@@ -1342,13 +1337,8 @@ static void sculpt_expand_face_sets_update(SculptSession *ss, ExpandCache *expan
 /**
  * Callback to update vertex colors per PBVH node.
  */
-static void sculpt_expand_colors_update_task_cb(void *__restrict userdata,
-                                                const int i,
-                                                const TaskParallelTLS *__restrict /*tls*/)
+static void sculpt_expand_colors_update_task(SculptSession *ss, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  PBVHNode *node = data->nodes[i];
   ExpandCache *expand_cache = ss->expand_cache;
 
   bool any_changed = false;
@@ -1476,8 +1466,8 @@ static void sculpt_expand_face_sets_restore(SculptSession *ss, ExpandCache *expa
 
 static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHVertRef vertex)
 {
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   ExpandCache *expand_cache = ss->expand_cache;
 
   int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
@@ -1501,26 +1491,23 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const PBVHV
     sculpt_expand_face_sets_restore(ss, expand_cache);
   }
 
-  /* Update the mesh sculpt data. */
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = expand_cache->nodes;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, expand_cache->nodes.size());
-
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
-      BLI_task_parallel_range(
-          0, expand_cache->nodes.size(), &data, sculpt_expand_mask_update_task_cb, &settings);
+      threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          sculpt_expand_mask_update_task(ss, expand_cache->nodes[i]);
+        }
+      });
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       sculpt_expand_face_sets_update(ss, expand_cache);
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
-      BLI_task_parallel_range(
-          0, expand_cache->nodes.size(), &data, sculpt_expand_colors_update_task_cb, &settings);
+      threading::parallel_for(expand_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+        for (const int i : range) {
+          sculpt_expand_colors_update_task(ss, expand_cache->nodes[i]);
+        }
+      });
       break;
   }
 
