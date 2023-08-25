@@ -14,7 +14,7 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-shared bool directional_range_changed;
+shared int directional_range_changed;
 
 ShadowTileDataPacked init_tile_data(ShadowTileDataPacked tile, bool do_update)
 {
@@ -39,7 +39,7 @@ void main()
     /* Reset shift to not tag for update more than once per sync cycle. */
     tilemaps_buf[tilemap_index].grid_shift = ivec2(0);
 
-    directional_range_changed = false;
+    directional_range_changed = 0;
 
     int clip_index = tilemap.clip_data_index;
     if (clip_index == -1) {
@@ -51,7 +51,7 @@ void main()
       float clip_far_new = orderedIntBitsToFloat(clip_data.clip_far);
       bool near_changed = clip_near_new != clip_data.clip_near_stored;
       bool far_changed = clip_far_new != clip_data.clip_far_stored;
-      directional_range_changed = near_changed || far_changed;
+      directional_range_changed = int(near_changed || far_changed);
       /* NOTE(fclem): This assumes clip near/far are computed each time the initial phase runs. */
       tilemaps_clip_buf[clip_index].clip_near_stored = clip_near_new;
       tilemaps_clip_buf[clip_index].clip_far_stored = clip_far_new;
@@ -78,7 +78,7 @@ void main()
   bool do_update = !in_range_inclusive(tile_shifted, ivec2(0), ivec2(SHADOW_TILEMAP_RES - 1));
 
   /* TODO(fclem): Might be better to resize the depth stored instead of a full render update. */
-  if (directional_range_changed) {
+  if (directional_range_changed != 0) {
     do_update = true;
   }
 

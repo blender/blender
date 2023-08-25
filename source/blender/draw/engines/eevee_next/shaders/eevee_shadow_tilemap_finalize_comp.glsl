@@ -15,8 +15,10 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 
-shared ivec2 rect_min;
-shared ivec2 rect_max;
+shared int rect_min_x;
+shared int rect_min_y;
+shared int rect_max_x;
+shared int rect_max_y;
 shared int view_index;
 
 /**
@@ -68,8 +70,10 @@ void main()
 
     /* Compute update area. */
     if (all(equal(gl_LocalInvocationID, uvec3(0)))) {
-      rect_min = ivec2(SHADOW_TILEMAP_RES);
-      rect_max = ivec2(0);
+      rect_min_x = SHADOW_TILEMAP_RES;
+      rect_min_y = SHADOW_TILEMAP_RES;
+      rect_max_x = 0;
+      rect_max_y = 0;
       view_index = -1;
     }
 
@@ -78,13 +82,16 @@ void main()
     bool lod_valid_thread = all(equal(tile_co, tile_co_lod << lod));
     bool do_page_render = tile.is_used && tile.do_update && lod_valid_thread;
     if (do_page_render) {
-      atomicMin(rect_min.x, tile_co_lod.x);
-      atomicMin(rect_min.y, tile_co_lod.y);
-      atomicMax(rect_max.x, tile_co_lod.x + 1);
-      atomicMax(rect_max.y, tile_co_lod.y + 1);
+      atomicMin(rect_min_x, tile_co_lod.x);
+      atomicMin(rect_min_y, tile_co_lod.y);
+      atomicMax(rect_max_x, tile_co_lod.x + 1);
+      atomicMax(rect_max_y, tile_co_lod.y + 1);
     }
 
     barrier();
+
+    ivec2 rect_min = ivec2(rect_min_x, rect_min_y);
+    ivec2 rect_max = ivec2(rect_max_x, rect_max_y);
 
     int viewport_index = viewport_select(rect_max - rect_min);
     ivec2 viewport_size = viewport_size_get(viewport_index);
