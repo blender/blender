@@ -1749,7 +1749,6 @@ bool ED_scene_fps_average_calc(const Scene *scene)
       tot++;
     }
   }
-  printf("TOTAL WAS: %d\n", tot);
   if (tot) {
     fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
     fps = fps / tot;
