@@ -4872,7 +4872,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
    * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
    * have been calculated instead of just before updates have been done?
    */
-  ED_refresh_viewport_fps(C);
+  ED_scene_fps_average_accumulate(scene, wt->ltime);
 
   /* Recalculate the time-step for the timer now that we've finished calculating this,
    * since the frames-per-second value may have been changed.

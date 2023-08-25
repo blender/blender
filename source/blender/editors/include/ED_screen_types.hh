@@ -53,6 +53,10 @@ struct ScreenFrameRateInfo {
   double lredrawtime;
   float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
   short redrawtime_index;
+  /** The target FPS, use to reset on change. */
+  float fps_target;
+  /** Final result, ignore when -1.0. */
+  float fps_average;
 };
 
 /* ----------------------------------------------------- */
