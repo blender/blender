@@ -8335,7 +8335,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
         if not prefs.experimental.use_extended_asset_browser:
             return False
 
-        return bool(context.object and context.object.mode == 'SCULPT')
+        return context.mode == 'SCULPT'
 
     @classmethod
     def asset_poll(cls, asset):

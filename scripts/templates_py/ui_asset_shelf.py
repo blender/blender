@@ -7,7 +7,7 @@ class MyAssetShelf(bpy.types.AssetShelf):
 
     @classmethod
     def poll(cls, context):
-        return bool(context.object and context.object.mode == 'OBJECT')
+        return context.mode == 'OBJECT'
 
     @classmethod
     def asset_poll(cls, asset):
