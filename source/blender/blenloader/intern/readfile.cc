@@ -4148,7 +4148,9 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
        * Expanding should never modify ID pointers themselves.
        * Handling of DNA deprecated data should never be needed in undo case. */
       const int flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
-                       ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
+                       ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
+                            0 :
+                            IDWALK_DO_DEPRECATED_POINTERS);
       BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;

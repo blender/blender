@@ -497,7 +497,7 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
  * Loop over all ID data in Main to mark relations.
  * Set (id->tag & LIB_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
  *
- * \param fdhandle: usually file-data, or own handle.
+ * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.
  */
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
