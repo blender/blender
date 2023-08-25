@@ -473,6 +473,23 @@ GHOST_TSuccess GHOST_SystemWin32::getPixelAtCursor(float r_color[3]) const
   return GHOST_kSuccess;
 }
 
+GHOST_IWindow *GHOST_SystemWin32::getWindowUnderCursor(int32_t /*x*/, int32_t /*y*/)
+{
+  /* Get cursor position from the OS. Do not use the supplied positions as those
+   * could be incorrect, especially if using multiple windows of differing OS scale. */
+  POINT point;
+  if (!GetCursorPos(&point)) {
+    return nullptr;
+  }
+
+  HWND win = WindowFromPoint(point);
+  if (win == NULL) {
+    return nullptr;
+  }
+
+  return m_windowManager->getWindowAssociatedWithOSWindow((void *)win);
+}
+
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
   /* `GetAsyncKeyState` returns the current interrupt-level state of the hardware, which is needed
