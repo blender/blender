@@ -454,6 +454,11 @@ void ED_scene_fps_average_accumulate(struct Scene *scene, const double ltime);
  */
 bool ED_scene_fps_average_calc(const struct Scene *scene);
 /**
+ * Clear run-time data for accumulating animation playback average times.
+ */
+void ED_scene_fps_average_clear(Scene *scene);
+
+/**
  * Toggle operator.
  */
 int ED_screen_animation_play(bContext *C, int sync, int mode);

@@ -4942,6 +4942,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
   if (ED_screen_animation_playing(CTX_wm_manager(C))) {
     /* stop playback now */
     ED_screen_animation_timer(C, 0, 0, 0);
+    ED_scene_fps_average_clear(scene);
     BKE_sound_stop_scene(scene_eval);
 
     BKE_callback_exec_id_depsgraph(
@@ -4963,6 +4964,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
     }
 
     ED_screen_animation_timer(C, screen->redraws_flag, sync, mode);
+    ED_scene_fps_average_clear(scene);
 
     if (screen->animtimer) {
       wmTimer *wt = screen->animtimer;

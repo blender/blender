@@ -1679,11 +1679,16 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
   return area;
 }
 
+void ED_scene_fps_average_clear(Scene *scene)
+{
+  MEM_SAFE_FREE(scene->fps_info);
+}
+
 void ED_scene_fps_average_accumulate(Scene *scene, const double ltime)
 {
   if ((U.uiflag & USER_SHOW_FPS) == 0) {
     /* Playback stopped or shouldn't be running. */
-    MEM_SAFE_FREE(scene->fps_info);
+    ED_scene_fps_average_clear(scene);
     return;
   }
 
@@ -1744,6 +1749,7 @@ bool ED_scene_fps_average_calc(const Scene *scene)
       tot++;
     }
   }
+  printf("TOTAL WAS: %d\n", tot);
   if (tot) {
     fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
     fps = fps / tot;
