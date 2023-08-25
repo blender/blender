@@ -2745,7 +2745,7 @@ static ThemeColorID region_background_color_id(const bContext *C, const ARegion 
   switch (region->regiontype) {
     case RGN_TYPE_HEADER:
     case RGN_TYPE_TOOL_HEADER:
-      if (ED_screen_area_active(C) || ED_area_is_global(area)) {
+      if (ED_screen_area_active(C) && !ED_area_is_global(area)) {
         return TH_HEADER_ACTIVE;
       }
       else {
