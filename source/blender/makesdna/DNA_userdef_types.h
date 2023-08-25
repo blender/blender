@@ -923,7 +923,10 @@ typedef struct UserDef {
   /** #eGPUBackendType */
   short gpu_backend;
 
-  char _pad7[4];
+  /** Number of samples for FPS display calculations. */
+  uchar playback_fps_samples;
+
+  char _pad7[3];
 
   /** Private, defaults to 20 for 72 DPI setting. */
   short widget_unit;

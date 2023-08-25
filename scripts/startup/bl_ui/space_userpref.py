@@ -720,6 +720,9 @@ class USERPREF_PT_viewport_display(ViewportPanel, CenterAlignMixIn, Panel):
         col.prop(view, "show_object_info", text="Object Info")
         col.prop(view, "show_view_name", text="View Name")
         col.prop(view, "show_playback_fps", text="Playback Frame Rate (FPS)")
+        row = col.row()
+        row.active = view.show_playback_fps
+        row.prop(view, "playback_fps_samples", text="Frame Rate Samples")
 
         layout.separator()
 

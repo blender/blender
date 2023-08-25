@@ -4833,6 +4833,16 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "overlay while animation is played back");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "playback_fps_samples", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "playback_fps_samples");
+  RNA_def_property_range(prop, 0, 200);
+  RNA_def_property_ui_text(
+      prop,
+      "FPS Average Samples",
+      "The number of frames to use for calculating FPS average. "
+      "Zero to calculate this automatically, where the number of samples matches the target FPS");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
   prop = RNA_def_property(srna, "show_addons_enabled_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
