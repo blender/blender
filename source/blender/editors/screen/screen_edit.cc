@@ -1723,7 +1723,7 @@ bool ED_scene_fps_average_calc(const Scene *scene)
   }
 
   /* Doing an average for a more robust calculation. */
-  if (fpsi->lredrawtime == 0.0 && fpsi->redrawtime == 0.0) {
+  if (fpsi->lredrawtime == 0.0 || fpsi->redrawtime == 0.0) {
     /* The user should never see this. */
     fpsi->fps_average = -1.0f;
     return false;
