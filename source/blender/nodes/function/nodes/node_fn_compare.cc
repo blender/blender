@@ -709,13 +709,13 @@ static void node_rna(StructRNA *srna)
       "data_type",
       "Input Type",
       "",
-      rna_node_socket_data_type_items,
+      rna_enum_node_socket_data_type_items,
       NOD_storage_enum_accessors(data_type),
       std::nullopt,
       [](bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free) {
         *r_free = true;
         return enum_items_filter(
-            rna_node_socket_data_type_items, [](const EnumPropertyItem &item) {
+            rna_enum_node_socket_data_type_items, [](const EnumPropertyItem &item) {
               return ELEM(item.value, SOCK_FLOAT, SOCK_INT, SOCK_VECTOR, SOCK_STRING, SOCK_RGBA);
             });
       });

@@ -789,7 +789,7 @@ static void vgroup_operator_subset_select_props(wmOperatorType *ot, bool use_act
 
   prop = RNA_def_enum(ot->srna,
                       "group_select_mode",
-                      DummyRNA_NULL_items,
+                      rna_enum_dummy_NULL_items,
                       use_active ? WT_VGROUP_ACTIVE : WT_VGROUP_ALL,
                       "Subset",
                       "Define which subset of groups shall be used");
@@ -3500,7 +3500,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
                                             bool *r_free)
 {
   if (C == nullptr) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   Object *ob = ED_object_context(C);
@@ -3510,7 +3510,7 @@ static const EnumPropertyItem *vgroup_itemf(bContext *C,
   int a, totitem = 0;
 
   if (!ob) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   const ListBase *defbase = BKE_object_defgroup_list(ob);
@@ -3547,7 +3547,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 
   /* properties */
   prop = RNA_def_enum(
-      ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
+      ot->srna, "group", rna_enum_dummy_NULL_items, 0, "Group", "Vertex group to set as active");
   RNA_def_enum_funcs(prop, vgroup_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;

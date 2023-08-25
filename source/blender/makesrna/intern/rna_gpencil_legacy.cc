@@ -577,7 +577,7 @@ static const EnumPropertyItem *rna_GPencil_active_layer_itemf(bContext *C,
   int i = 0;
 
   if (ELEM(nullptr, C, gpd)) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   /* Existing layers */
@@ -2385,7 +2385,7 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
                               "rna_GPencil_active_layer_index_set",
                               "rna_GPencil_active_layer_itemf");
   RNA_def_property_enum_items(
-      prop, DummyRNA_DEFAULT_items); /* purely dynamic, as it maps to user-data */
+      prop, rna_enum_dummy_DEFAULT_items); /* purely dynamic, as it maps to user-data */
   RNA_def_property_ui_text(prop, "Active Note", "Note/Layer to add annotation strokes to");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }

@@ -556,7 +556,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   ot->prop = prop = RNA_def_enum(
       ot->srna,
       "material",
-      DummyRNA_DEFAULT_items,
+      rna_enum_dummy_DEFAULT_items,
       0,
       "Material Preset",
       "Type of material that objects are made of (determines material density)");

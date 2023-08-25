@@ -752,7 +752,7 @@ void NLA_OT_actionclip_add(wmOperatorType *ot)
 
   /* props */
   /* TODO: this would be nicer as an ID-pointer. */
-  prop = RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
+  prop = RNA_def_enum(ot->srna, "action", rna_enum_dummy_NULL_items, 0, "Action", "");
   RNA_def_enum_funcs(prop, RNA_action_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;

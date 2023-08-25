@@ -701,7 +701,7 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
                                                  bool *r_free)
 {
   if (C == nullptr) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   EnumPropertyItem item_tmp = {0}, *item = nullptr;
@@ -745,13 +745,14 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
    */
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
-  prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
+  prop = RNA_def_enum(
+      ot->srna, "old_id", rna_enum_dummy_NULL_items, 0, "Old ID", "Old ID to replace");
   RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf);
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN));
 
   ot->prop = RNA_def_enum(ot->srna,
                           "new_id",
-                          DummyRNA_NULL_items,
+                          rna_enum_dummy_NULL_items,
                           0,
                           "New ID",
                           "New ID to remap all selected IDs' users to");

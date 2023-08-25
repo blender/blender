@@ -17,7 +17,7 @@
 
 #include "WM_types.hh"
 
-const EnumPropertyItem rna_enum_curves_types[] = {
+const EnumPropertyItem rna_enum_curves_type_items[] = {
     {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
     {CURVE_TYPE_POLY, "POLY", 0, "Poly", ""},
     {CURVE_TYPE_BEZIER, "BEZIER", 0, "Bezier", ""},
@@ -25,7 +25,7 @@ const EnumPropertyItem rna_enum_curves_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_curve_normal_modes[] = {
+const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
     {NORMAL_MODE_MINIMUM_TWIST,
      "MINIMUM_TWIST",
      ICON_NONE,

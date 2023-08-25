@@ -611,7 +611,7 @@ PropertyRNA *rna_def_asset_library_reference_common(StructRNA *srna,
                                                     const char *set)
 {
   PropertyRNA *prop = RNA_def_property(srna, "asset_library_ref", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_NULL_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
   RNA_def_property_enum_funcs(prop, get, set, "rna_asset_library_reference_itemf");
 
   return prop;

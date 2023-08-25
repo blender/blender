@@ -1621,7 +1621,7 @@ const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_keyframe_paste_offset_value[] = {
+const EnumPropertyItem rna_enum_keyframe_paste_offset_value_items[] = {
     {KEYFRAME_PASTE_VALUE_OFFSET_LEFT_KEY,
      "LEFT_KEY",
      0,

@@ -631,7 +631,7 @@ static const EnumPropertyItem *gpencil_armatures_enum_itemf(bContext *C,
   int i = 0;
 
   if (C == nullptr) {
-    return DummyRNA_DEFAULT_items;
+    return rna_enum_dummy_DEFAULT_items;
   }
 
   /* add default */
@@ -682,7 +682,7 @@ void GPENCIL_OT_generate_weights(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "mode", mode_type, 0, "Mode", "");
 
   prop = RNA_def_enum(
-      ot->srna, "armature", DummyRNA_DEFAULT_items, 0, "Armature", "Armature to use");
+      ot->srna, "armature", rna_enum_dummy_DEFAULT_items, 0, "Armature", "Armature to use");
   RNA_def_enum_funcs(prop, gpencil_armatures_enum_itemf);
 
   RNA_def_float(ot->srna,

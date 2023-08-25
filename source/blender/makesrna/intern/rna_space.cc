@@ -1916,7 +1916,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext * /*C*/
   SpaceImage *sima = (SpaceImage *)ptr->data;
 
   if (sima->mode == SI_MODE_PAINT) {
-    return rna_enum_transform_pivot_items_full;
+    return rna_enum_transform_pivot_full_items;
   }
   else {
     return pivot_items;
@@ -5646,7 +5646,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "around");
-  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_items_full);
+  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_full_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_SpaceImageEditor_pivot_itemf");
   RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);

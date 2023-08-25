@@ -61,7 +61,7 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
 };
 
 /* Contains additional flags suitable for use in Python API functions. */
-const EnumPropertyItem rna_enum_keying_flag_items_api[] = {
+const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
     {INSERTKEY_NEEDED,
      "INSERTKEY_NEEDED",
      0,

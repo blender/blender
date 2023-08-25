@@ -85,7 +85,7 @@ USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
 if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
     from _bpy import rna_enum_items_static
     rna_enum_dict = rna_enum_items_static()
-    for key in ("DummyRNA_DEFAULT_items", "DummyRNA_NULL_items"):
+    for key in ("rna_enum_dummy_NULL_items", "rna_enum_dummy_DEFAULT_items"):
         del rna_enum_dict[key]
     del key, rna_enum_items_static
 
@@ -2255,18 +2255,13 @@ def write_rst_enum_items_and_index(basepath):
         fw(".. toctree::\n")
         fw("\n")
         for key, enum_items in rna_enum_dict.items():
-            valid_prefix = key.startswith("rna_enum_") or key.startswith("rna_node_")
-            if not valid_prefix:
-                raise Exception(
-                    "Found RNA enum identifier that doesn't use the 'rna_enum_' or 'rna_node_' prefix, found %r!" %
-                    key)
+            if not key.startswith("rna_enum_"):
+                raise Exception("Found RNA enum identifier that doesn't use the 'rna_enum_' prefix, found %r!" % key)
             key_no_prefix = key.removeprefix("rna_enum_")
-            key_no_prefix = key.removeprefix("rna_node_")
             fw("   %s\n" % key_no_prefix)
 
         for key, enum_items in rna_enum_dict.items():
             key_no_prefix = key.removeprefix("rna_enum_")
-            key_no_prefix = key.removeprefix("rna_node_")
             write_rst_enum_items(basepath_bpy_types_rna_enum, key, key_no_prefix, enum_items)
         fw("\n")
 

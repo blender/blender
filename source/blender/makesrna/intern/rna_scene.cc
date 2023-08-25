@@ -578,7 +578,7 @@ static const EnumPropertyItem rna_enum_view_layer_aov_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_transform_pivot_items_full[] = {
+const EnumPropertyItem rna_enum_transform_pivot_full_items[] = {
     {V3D_AROUND_CENTER_BOUNDS,
      "BOUNDING_BOX_CENTER",
      ICON_PIVOT_BOUNDBOX,
@@ -3307,7 +3307,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   /* Pivot Point */
   prop = RNA_def_property(srna, "transform_pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "transform_pivot_point");
-  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_items_full);
+  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_full_items);
   RNA_def_property_ui_text(prop, "Transform Pivot Point", "Pivot center for rotation/scaling");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
@@ -4334,25 +4334,25 @@ static void rna_def_unit_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_WINDOW, nullptr);
 
   prop = RNA_def_property(srna, "length_unit", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UnitSettings_length_unit_itemf");
   RNA_def_property_ui_text(prop, "Length Unit", "Unit that will be used to display length values");
   RNA_def_property_update(prop, NC_WINDOW, nullptr);
 
   prop = RNA_def_property(srna, "mass_unit", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UnitSettings_mass_unit_itemf");
   RNA_def_property_ui_text(prop, "Mass Unit", "Unit that will be used to display mass values");
   RNA_def_property_update(prop, NC_WINDOW, nullptr);
 
   prop = RNA_def_property(srna, "time_unit", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UnitSettings_time_unit_itemf");
   RNA_def_property_ui_text(prop, "Time Unit", "Unit that will be used to display time values");
   RNA_def_property_update(prop, NC_WINDOW, nullptr);
 
   prop = RNA_def_property(srna, "temperature_unit", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_UnitSettings_temperature_unit_itemf");
   RNA_def_property_ui_text(
       prop, "Temperature Unit", "Unit that will be used to display temperature values");

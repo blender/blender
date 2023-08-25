@@ -2034,7 +2034,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       "Identifier of the integer property in active_data, index of the active item");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "filter_id_types", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(parm, DummyRNA_NULL_items);
+  RNA_def_property_enum_items(parm, rna_enum_dummy_NULL_items);
   RNA_def_property_enum_funcs(
       parm, nullptr, nullptr, "rna_uiTemplateAssetView_filter_id_types_itemf");
   RNA_def_property_flag(parm, PROP_ENUM_FLAG);

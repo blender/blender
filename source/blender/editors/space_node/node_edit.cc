@@ -2409,12 +2409,12 @@ static const EnumPropertyItem *socket_change_type_itemf(bContext *C,
                                                         bool *r_free)
 {
   if (!C) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   SpaceNode *snode = CTX_wm_space_node(C);
   if (!snode || !snode->edittree) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   return rna_node_socket_type_itemf(snode->edittree->typeinfo, socket_change_poll_type, r_free);
@@ -2438,7 +2438,7 @@ void NODE_OT_tree_socket_change_type(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   RNA_def_enum(ot->srna, "in_out", rna_enum_node_socket_in_out_items, SOCK_IN, "Socket Type", "");
-  prop = RNA_def_enum(ot->srna, "socket_type", DummyRNA_DEFAULT_items, 0, "Socket Type", "");
+  prop = RNA_def_enum(ot->srna, "socket_type", rna_enum_dummy_DEFAULT_items, 0, "Socket Type", "");
   RNA_def_enum_funcs(prop, socket_change_type_itemf);
   ot->prop = prop;
 }
@@ -2524,23 +2524,23 @@ static const EnumPropertyItem *socket_change_subtype_itemf(bContext *C,
                                                            bool *r_free)
 {
   if (!C) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
   SpaceNode *snode = CTX_wm_space_node(C);
   if (!snode || !snode->edittree) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   PointerRNA active_socket_ptr = CTX_data_pointer_get_type(
       C, "interface_socket", &RNA_NodeSocketInterface);
   const bNodeSocket *active_socket = static_cast<const bNodeSocket *>(active_socket_ptr.data);
   if (!active_socket) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   const Set<int> subtypes = socket_type_get_subtypes(eNodeSocketDatatype(active_socket->type));
   if (subtypes.is_empty()) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   EnumPropertyItem *items = nullptr;
@@ -2553,7 +2553,7 @@ static const EnumPropertyItem *socket_change_subtype_itemf(bContext *C,
   }
 
   if (items_count == 0) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   RNA_enum_item_end(&items, &items_count);
@@ -2588,7 +2588,7 @@ void NODE_OT_tree_socket_change_subtype(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->prop = RNA_def_enum(
-      ot->srna, "socket_subtype", DummyRNA_DEFAULT_items, 0, "Socket Subtype", "");
+      ot->srna, "socket_subtype", rna_enum_dummy_DEFAULT_items, 0, "Socket Subtype", "");
   RNA_def_enum_funcs(ot->prop, socket_change_subtype_itemf);
 }
 

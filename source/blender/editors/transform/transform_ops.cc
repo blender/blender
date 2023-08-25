@@ -118,7 +118,7 @@ static TransformModeItem transform_modes[] = {
     {nullptr, 0},
 };
 
-const EnumPropertyItem rna_enum_transform_mode_types[] = {
+const EnumPropertyItem rna_enum_transform_mode_type_items[] = {
     {TFM_INIT, "INIT", 0, "Init", ""},
     {TFM_DUMMY, "DUMMY", 0, "Dummy", ""},
     {TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
@@ -1375,7 +1375,7 @@ static void TRANSFORM_OT_transform(wmOperatorType *ot)
   ot->poll_property = transform_poll_property;
 
   prop = RNA_def_enum(
-      ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
+      ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_float_vector(

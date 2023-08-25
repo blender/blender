@@ -956,10 +956,10 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
               return prop_direction_items;
 
             case BRUSH_MASK_SMOOTH:
-              return DummyRNA_DEFAULT_items;
+              return rna_enum_dummy_DEFAULT_items;
 
             default:
-              return DummyRNA_DEFAULT_items;
+              return rna_enum_dummy_DEFAULT_items;
           }
 
         case SCULPT_TOOL_FLATTEN:
@@ -978,7 +978,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
           return prop_inflate_deflate_items;
 
         default:
-          return DummyRNA_DEFAULT_items;
+          return rna_enum_dummy_DEFAULT_items;
       }
 
     case PAINT_MODE_TEXTURE_2D:
@@ -988,7 +988,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
           return prop_soften_sharpen_items;
 
         default:
-          return DummyRNA_DEFAULT_items;
+          return rna_enum_dummy_DEFAULT_items;
       }
     case PAINT_MODE_SCULPT_CURVES:
       switch (me->curves_sculpt_tool) {
@@ -997,10 +997,10 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case CURVES_SCULPT_TOOL_PINCH:
           return prop_direction_items;
         default:
-          return DummyRNA_DEFAULT_items;
+          return rna_enum_dummy_DEFAULT_items;
       }
     default:
-      return DummyRNA_DEFAULT_items;
+      return rna_enum_dummy_DEFAULT_items;
   }
 }
 

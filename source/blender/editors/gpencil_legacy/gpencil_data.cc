@@ -1532,7 +1532,8 @@ void GPENCIL_OT_layer_change(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* gp layer to use (dynamic enum) */
-  ot->prop = RNA_def_enum(ot->srna, "layer", DummyRNA_DEFAULT_items, 0, "Grease Pencil Layer", "");
+  ot->prop = RNA_def_enum(
+      ot->srna, "layer", rna_enum_dummy_DEFAULT_items, 0, "Grease Pencil Layer", "");
   RNA_def_enum_funcs(ot->prop, ED_gpencil_layers_with_new_enum_itemf);
 }
 
@@ -3618,7 +3619,7 @@ void GPENCIL_OT_material_set(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* Material to use (dynamic enum) */
-  ot->prop = RNA_def_enum(ot->srna, "slot", DummyRNA_DEFAULT_items, 0, "Material Slot", "");
+  ot->prop = RNA_def_enum(ot->srna, "slot", rna_enum_dummy_DEFAULT_items, 0, "Material Slot", "");
   RNA_def_enum_funcs(ot->prop, ED_gpencil_material_enum_itemf);
 }
 

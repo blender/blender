@@ -435,10 +435,11 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   else if (first_frame_curve_type != curve_type) {
     const char *first_frame_curve_type_name = nullptr;
     RNA_enum_name_from_value(
-        rna_enum_curves_types, int(first_frame_curve_type), &first_frame_curve_type_name);
+        rna_enum_curves_type_items, int(first_frame_curve_type), &first_frame_curve_type_name);
 
     const char *current_curve_type_name = nullptr;
-    RNA_enum_name_from_value(rna_enum_curves_types, int(curve_type), &current_curve_type_name);
+    RNA_enum_name_from_value(
+        rna_enum_curves_type_items, int(curve_type), &current_curve_type_name);
 
     WM_reportf(RPT_WARNING,
                "USD does not support animating curve types. The curve type changes from %s to "

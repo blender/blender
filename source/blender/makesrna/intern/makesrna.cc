@@ -3387,6 +3387,27 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
   dfunc->gencall = funcname;
 }
 
+static void rna_sanity_checks()
+{
+  /* Ensure RNA enum definitions follow naming convention. */
+  {
+#define DEF_ENUM(id) #id,
+    const char *rna_enum_id_array[] = {
+#include "RNA_enum_items.hh"
+    };
+    for (int i = 0; i < ARRAY_SIZE(rna_enum_id_array); i++) {
+      if (!(BLI_str_startswith(rna_enum_id_array[i], "rna_enum_") &&
+            BLI_str_endswith(rna_enum_id_array[i], "_items")))
+      {
+        fprintf(stderr,
+                "Error: enum defined in \"RNA_enum_items.hh\" "
+                "doesn't confirm to \"rna_enum_*_items\" convention!\n");
+        DefRNA.error = true;
+      }
+    }
+  }
+}
+
 static void rna_auto_types()
 {
   StructDefRNA *ds;
@@ -4084,7 +4105,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
           }
         }
         else {
-          if (!defaultfound && !(eprop->item_fn && eprop->item == DummyRNA_NULL_items)) {
+          if (!defaultfound && !(eprop->item_fn && eprop->item == rna_enum_dummy_NULL_items)) {
             CLOG_ERROR(&LOG,
                        "%s%s.%s, enum default is not in items.",
                        srna->identifier,
@@ -5535,6 +5556,11 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
         }
       }
     }
+  }
+
+  rna_sanity_checks();
+  if (DefRNA.error) {
+    status = EXIT_FAILURE;
   }
 
   rna_auto_types();
