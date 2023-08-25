@@ -378,7 +378,7 @@ bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
                                                        int *r_snap_distance,
                                                        float *r_snap_frame)
 {
-  TransInfo t;
+  TransInfo t = {nullptr};
   t.scene = scene;
   t.region = region;
   t.values[0] = 0;
@@ -393,10 +393,11 @@ bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
 void ED_draw_sequencer_snap_point(bContext *C, float snap_point)
 {
   /* Reuse the snapping drawing code from the transform system. */
-  TransInfo t;
+  TransInfo t = {nullptr};
   t.mode = TFM_SEQ_SLIDE;
   t.modifiers = MOD_SNAP;
   t.spacetype = SPACE_SEQ;
+  t.tsnap.flag = SCE_SNAP;
   t.tsnap.status = (SNAP_TARGET_FOUND | SNAP_SOURCE_FOUND);
   t.tsnap.snap_target[0] = snap_point;
 
