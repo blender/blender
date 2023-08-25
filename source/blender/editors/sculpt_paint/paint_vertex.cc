@@ -293,7 +293,7 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush
         ss->pbvh, [&](PBVHNode &node) { return SCULPT_search_sphere(&node, &data); });
 
     if (use_normal) {
-      SCULPT_pbvh_calc_area_normal(brush, ob, nodes,  ss->cache->sculpt_normal_symm);
+      SCULPT_pbvh_calc_area_normal(brush, ob, nodes, ss->cache->sculpt_normal_symm);
     }
     else {
       zero_v3(ss->cache->sculpt_normal_symm);
