@@ -219,6 +219,21 @@ static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
   // TODO: notifiers.
 }
 
+static char *rna_BoneCollection_path(const PointerRNA *ptr)
+{
+  const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
+  char name_esc[sizeof(bcoll->name) * 2];
+
+  BLI_str_escape(name_esc, bcoll->name, sizeof(name_esc));
+  return BLI_sprintfN("collections[\"%s\"]", name_esc);
+}
+
+static IDProperty **rna_BoneCollection_idprops(PointerRNA *ptr)
+{
+  BoneCollection *bcoll = static_cast<BoneCollection *>(ptr->data);
+  return &bcoll->prop;
+}
+
 /* Bone.collections iterator functions. */
 
 static void rna_Bone_collections_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1912,8 +1927,8 @@ static void rna_def_bonecollection(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "BoneCollection", NULL);
   RNA_def_struct_ui_text(srna, "BoneCollection", "Bone collection in an Armature data-block");
-  // RNA_def_struct_path_func(srna, "rna_BoneCollection_path");
-  // RNA_def_struct_idprops_func(srna, "rna_BoneCollection_idprops");
+  RNA_def_struct_path_func(srna, "rna_BoneCollection_path");
+  RNA_def_struct_idprops_func(srna, "rna_BoneCollection_idprops");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "name");

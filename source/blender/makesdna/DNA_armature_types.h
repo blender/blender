@@ -226,7 +226,8 @@ typedef struct BoneCollection {
   uint8_t flags;
   uint8_t _pad0[7];
 
-  // TODO: add IDProperties.
+  /** Custom properties. */
+  struct IDProperty *prop;
 } BoneCollection;
 
 /** Membership relation of a bone with a bone collection. */

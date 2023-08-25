@@ -50,6 +50,8 @@ BoneCollection *ANIM_bonecoll_new(const char *name)
   BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
   bcoll->flags = default_flags;
 
+  bcoll->prop = nullptr;
+
   return bcoll;
 }
 
