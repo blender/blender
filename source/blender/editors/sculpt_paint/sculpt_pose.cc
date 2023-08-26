@@ -237,16 +237,6 @@ static void pose_brush_grow_factor_task(Object *ob,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void pose_brush_grow_factor_reduce(const void *__restrict /*userdata*/,
-                                          void *__restrict chunk_join,
-                                          void *__restrict chunk)
-{
-  PoseGrowFactorData *join = static_cast<PoseGrowFactorData *>(chunk_join);
-  PoseGrowFactorData *gftd = static_cast<PoseGrowFactorData *>(chunk);
-  add_v3_v3(join->pos_avg, gftd->pos_avg);
-  join->pos_count += gftd->pos_count;
-}
-
 /* Grow the factor until its boundary is near to the offset pose origin or outside the target
  * distance. */
 static void sculpt_pose_grow_pose_factor(Object *ob,

@@ -6158,7 +6158,6 @@ class VIEW3D_PT_object_type_visibility(Panel):
 
             row.prop(view, attr_v, text="", icon=icon_v, emboss=False)
 
-
     def draw(self, context):
         view = context.space_data
         self.draw_ex(context, view, True)
