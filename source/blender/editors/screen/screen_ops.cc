@@ -62,6 +62,7 @@
 #include "ED_keyframes_keylist.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 #include "ED_sequencer.hh"
@@ -4868,11 +4869,12 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
     }
   }
 
-  /* update frame rate info too
-   * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
-   * have been calculated instead of just before updates have been done?
-   */
-  ED_scene_fps_average_accumulate(scene, wt->ltime);
+  if (U.uiflag & USER_SHOW_FPS) {
+    /* Update frame rate info too.
+     * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
+     * have been calculated instead of just before updates have been done? */
+    ED_scene_fps_average_accumulate(scene, U.playback_fps_samples, wt->ltime);
+  }
 
   /* Recalculate the time-step for the timer now that we've finished calculating this,
    * since the frames-per-second value may have been changed.

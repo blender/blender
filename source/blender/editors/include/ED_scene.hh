@@ -12,6 +12,10 @@
 
 #include "BKE_scene.h"
 
+struct ReportList;
+struct bContext;
+struct wmWindow;
+
 Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod method)
     ATTR_NONNULL();
 /**
@@ -36,3 +40,26 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
     ATTR_NONNULL(1, 2, 3);
 
 void ED_operatortypes_scene();
+
+/* -------------------------------------------------------------------- */
+/** \name Scene FPS Management
+ * \{ */
+
+/**
+ * Update frame rate info for viewport drawing.
+ * \param ltime: Time since the last update,
+ * compatible with the result of #PIL_check_seconds_timer.
+ */
+void ED_scene_fps_average_accumulate(struct Scene *scene, uchar fps_samples, double ltime)
+    ATTR_NONNULL(1);
+/**
+ * Calculate an average (if it's not already calculated).
+ * \return the average FPS or -1.0 on failure.
+ */
+float ED_scene_fps_average_calc(const struct Scene *scene, float *r_fps_target) ATTR_NONNULL(1, 2);
+/**
+ * Clear run-time data for accumulating animation playback average times.
+ */
+void ED_scene_fps_average_clear(Scene *scene) ATTR_NONNULL(1);
+
+/** \} */

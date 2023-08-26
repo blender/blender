@@ -53,6 +53,7 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_info.hh"
 #include "ED_keyframing.hh"
+#include "ED_scene.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
 #include "ED_transform.hh"
@@ -2576,10 +2577,11 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
-  if (!ED_scene_fps_average_calc(scene)) {
+  float fps_target = 0.0f;
+  const float fps_average = ED_scene_fps_average_calc(scene, &fps_target);
+  if (fps_average == -1.0f) {
     return;
   }
-  const ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
 
   /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
   char printable[32];
@@ -2588,13 +2590,13 @@ void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
   const int font_id = BLF_default();
 
   /* Is this more than half a frame behind? */
-  if (fpsi->fps_average + 0.5f < fpsi->fps_target) {
+  if (fps_average + 0.5f < fps_target) {
     UI_FontThemeColor(font_id, TH_REDALERT);
-    SNPRINTF(printable, IFACE_("fps: %.2f"), fpsi->fps_average);
+    SNPRINTF(printable, IFACE_("fps: %.2f"), fps_average);
   }
   else {
     UI_FontThemeColor(font_id, TH_TEXT_HI);
-    SNPRINTF(printable, IFACE_("fps: %i"), int(fpsi->fps_average + 0.5f));
+    SNPRINTF(printable, IFACE_("fps: %i"), int(fps_average + 0.5f));
   }
 
   BLF_enable(font_id, BLF_SHADOW);
