@@ -18,6 +18,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_animsys.h"
+
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.h"
 
@@ -165,8 +167,14 @@ bool ANIM_armature_bonecoll_move(bArmature *armature, BoneCollection *bcoll, con
 
 void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll, const char *name)
 {
+  char old_name[sizeof(bcoll->name)];
+
+  BLI_strncpy(old_name, bcoll->name, sizeof(bcoll->name));
+
   BLI_strncpy(bcoll->name, name, sizeof(bcoll->name));
   bonecoll_ensure_name_unique(armature, bcoll);
+
+  BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
 }
 
 void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
