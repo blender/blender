@@ -210,6 +210,18 @@ static void rna_BoneCollections_active_index_range(
   *max = max_ii(0, BLI_listbase_count(&arm->collections) - 1);
 }
 
+static void rna_BoneCollections_move(bArmature *arm, ReportList *reports, int from, int to)
+{
+  const int count = BLI_listbase_count(&arm->collections);
+  if (from < 0 || from >= count || to < 0 || to >= count ||
+      (from != to && !BLI_listbase_move_index(&arm->collections, from, to)))
+  {
+    BKE_reportf(reports, RPT_ERROR, "Cannot move collection from index '%d' to '%d'", from, to);
+  }
+
+  // TODO: notifiers.
+}
+
 static void rna_BoneCollection_name_set(PointerRNA *ptr, const char *name)
 {
   bArmature *arm = (bArmature *)ptr->owner_id;
@@ -1749,6 +1761,17 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
                          "BoneCollection",
                          "Bone Collection",
                          "The bone collection to remove");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+
+  /* Armature.collections.move(...) */
+  func = RNA_def_function(srna, "move", "rna_BoneCollections_move");
+  RNA_def_function_ui_description(
+      func, "Move a bone collection to a different position in the collection list");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int(
+      func, "from_index", -1, INT_MIN, INT_MAX, "From Index", "Index to move", 0, 10000);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_int(func, "to_index", -1, INT_MIN, INT_MAX, "To Index", "Target index", 0, 10000);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
