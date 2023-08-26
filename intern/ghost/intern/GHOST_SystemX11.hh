@@ -155,6 +155,13 @@ class GHOST_SystemX11 : public GHOST_System {
   GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
   /**
+   * Get the color of the pixel at the current mouse cursor location
+   * \param r_color: returned sRGB float colors
+   * \return Success value (true == successful and supported by platform)
+   */
+  GHOST_TSuccess getPixelAtCursor(float r_color[3]) const override;
+
+  /**
    * Returns the state of all modifier keys.
    * \param keys: The state of all modifier keys (true == pressed).
    * \return Indication of success.

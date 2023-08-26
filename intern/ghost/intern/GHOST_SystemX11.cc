@@ -1526,6 +1526,45 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
   }
 }
 
+GHOST_TSuccess GHOST_SystemX11::getPixelAtCursor(float r_color[3]) const
+{
+  /* NOTE: There are known issues/limitations at the moment:
+   *
+   * - Blender has no control of the cursor outside of its window, so it is
+   *   not going to be the eyedropper icon.
+   * - GHOST does not report click events from outside of the window, so the
+   *   user needs to press Enter instead.
+   *
+   * Ref #111303. */
+
+  XColor c;
+  int32_t x, y;
+
+  if (getCursorPosition(x, y) == GHOST_kFailure) {
+    return GHOST_kFailure;
+  }
+  XImage *image = XGetImage(m_display,
+                            XRootWindow(m_display, XDefaultScreen(m_display)),
+                            x,
+                            y,
+                            1,
+                            1,
+                            AllPlanes,
+                            XYPixmap);
+  if (image == nullptr) {
+    return GHOST_kFailure;
+  }
+  c.pixel = XGetPixel(image, 0, 0);
+  XFree(image);
+  XQueryColor(m_display, XDefaultColormap(m_display, XDefaultScreen(m_display)), &c);
+
+  /* X11 returns colors in the [0, 65535] range, so we need to scale back to [0, 1]. */
+  r_color[0] = c.red / 65535.0f;
+  r_color[1] = c.green / 65535.0f;
+  r_color[2] = c.blue / 65535.0f;
+  return GHOST_kSuccess;
+}
+
 GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
 
