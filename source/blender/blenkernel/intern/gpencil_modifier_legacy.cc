@@ -1034,8 +1034,3 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb,
     }
   }
 }
-
-void BKE_gpencil_modifier_blend_read_lib(BlendLibReader *reader, Object *ob)
-{
-  BKE_gpencil_modifiers_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
-}

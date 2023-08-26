@@ -220,7 +220,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  prop = RNA_def_enum(ot->srna, "sort_method", DummyRNA_NULL_items, sort, "File sorting mode", "");
+  prop = RNA_def_enum(
+      ot->srna, "sort_method", rna_enum_dummy_NULL_items, sort, "File sorting mode", "");
   RNA_def_enum_funcs(prop, wm_operator_properties_filesel_sort_items_itemf);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Cubemap support and fallback implementation declarations. */
 #ifdef GPU_ARB_texture_cube_map_array

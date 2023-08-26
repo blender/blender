@@ -1903,7 +1903,7 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   /* properties */
   RNA_def_string(
       ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Collection name to add");
-  prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "");
+  prop = RNA_def_enum(ot->srna, "collection", rna_enum_dummy_NULL_items, 0, "Collection", "");
   RNA_def_enum_funcs(prop, RNA_collection_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -2020,7 +2020,7 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
 
   object_add_drop_xy_props(ot);
 
-  prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "");
+  prop = RNA_def_enum(ot->srna, "collection", rna_enum_dummy_NULL_items, 0, "Collection", "");
   RNA_def_enum_funcs(prop, RNA_collection_itemf);
   RNA_def_property_flag(prop,
                         (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
@@ -4030,7 +4030,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_enum(
-      ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
+      ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 

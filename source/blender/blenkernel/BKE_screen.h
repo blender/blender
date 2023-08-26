@@ -124,9 +124,9 @@ typedef struct SpaceType {
   /**
    * Update pointers to other id data blocks.
    */
-  void (*blend_read_lib)(struct BlendLibReader *reader,
-                         struct ID *parent_id,
-                         struct SpaceLink *space_link);
+  void (*blend_read_after_liblink)(struct BlendLibReader *reader,
+                                   struct ID *parent_id,
+                                   struct SpaceLink *space_link);
 
   /**
    * Write all structs that should be saved in a .blend file.
@@ -629,9 +629,15 @@ bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
  * For the saved 2.50 files without `regiondata`.
  */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
-void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,
-                                    struct ID *parent_id,
-                                    struct ScrArea *area);
+
+/**
+ * Called after lib linking process is done, to perform some validation on the read data, or some
+ * complex specific reading process that requires the data to be fully read and ID pointers to be
+ * valid.
+ */
+void BKE_screen_area_blend_read_after_liblink(struct BlendLibReader *reader,
+                                              struct ID *parent_id,
+                                              struct ScrArea *area);
 /**
  * Cannot use #IDTypeInfo callback yet, because of the return value.
  */

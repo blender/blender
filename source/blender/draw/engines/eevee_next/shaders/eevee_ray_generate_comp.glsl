@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Generate Ray direction along with other data that are then used
  * by the next pass to trace the rays.
@@ -64,7 +68,7 @@ void main()
 
 #if defined(RAYTRACE_REFRACT)
   if (gbuffer_is_refraction(gbuffer_packed) && closure_active != CLOSURE_REFRACTION) {
-    /* Discard incorect rays. */
+    /* Discard incorrect rays. */
     pdf = 0.0;
   }
 #endif

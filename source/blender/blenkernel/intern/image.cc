@@ -419,9 +419,10 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   image_runtime_reset(ima);
 }
 
-static void image_blend_read_lib(BlendLibReader * /*reader*/, ID *id)
+static void image_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 {
-  Image *ima = (Image *)id;
+  Image *ima = reinterpret_cast<Image *>(id);
+
   /* Images have some kind of 'main' cache, when null we should also clear all others. */
   /* Needs to be done *after* cache pointers are restored (call to
    * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
@@ -455,8 +456,7 @@ constexpr IDTypeInfo get_type_info()
 
   info.blend_write = image_blend_write;
   info.blend_read_data = image_blend_read_data;
-  info.blend_read_lib = image_blend_read_lib;
-  info.blend_read_expand = nullptr;
+  info.blend_read_after_liblink = image_blend_read_after_liblink;
 
   info.blend_read_undo_preserve = nullptr;
 

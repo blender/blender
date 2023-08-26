@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 float defaultpixsize = gpencil_stroke_data.pixsize * (1000.0 / gpencil_stroke_data.pixfactor);
 

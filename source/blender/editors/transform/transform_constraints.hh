@@ -40,7 +40,7 @@ void drawConstraint(TransInfo *t);
 /**
  * Called from drawview.c, as an extra per-window draw option.
  */
-void drawPropCircle(const bContext *C, TransInfo *t);
+void drawPropCircle(TransInfo *t);
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);
 void initSelectConstraint(TransInfo *t);

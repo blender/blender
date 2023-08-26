@@ -188,7 +188,7 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
 bool BKE_mesh_attribute_required(const char *name);
 
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
-void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
+void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, bool invert);
 
 /**
  * Add a #CD_ORCO layer to the Mesh if there is none already.
@@ -314,12 +314,6 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
                              struct MLoopTri *mlooptri);
 
 /* *** mesh_normals.cc *** */
-
-/**
- * See #Mesh::vert_normals().
- * \warning May return null if the mesh is empty.
- */
-const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
  * Return true if the mesh vertex normals either are not stored or are dirty.

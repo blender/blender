@@ -945,10 +945,12 @@ static void buttons_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLin
   sbuts->runtime = nullptr;
 }
 
-static void buttons_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void buttons_space_blend_read_after_liblink(BlendLibReader * /*reader*/,
+                                                   ID * /*parent_id*/,
+                                                   SpaceLink *sl)
 {
-  SpaceProperties *sbuts = (SpaceProperties *)sl;
-  BLO_read_id_address(reader, parent_id, &sbuts->pinid);
+  SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
+
   if (sbuts->pinid == nullptr) {
     sbuts->flag &= ~SB_PIN_CONTEXT;
   }
@@ -984,7 +986,7 @@ void ED_spacetype_buttons()
   st->id_remap = buttons_id_remap;
   st->foreach_id = buttons_foreach_id;
   st->blend_read_data = buttons_space_blend_read_data;
-  st->blend_read_lib = buttons_space_blend_read_lib;
+  st->blend_read_after_liblink = buttons_space_blend_read_after_liblink;
   st->blend_write = buttons_space_blend_write;
 
   /* regions: main window */

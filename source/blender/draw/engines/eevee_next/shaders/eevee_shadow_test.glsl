@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Directive for resetting the line numbering so the failing tests lines can be printed.
  * This conflict with the shader compiler error logging scheme.
  * Comment out for correct compilation error line. */
@@ -309,7 +313,7 @@ void main()
     light._clipmap_origin_x = 0.0;
     light._clipmap_origin_y = 0.0;
 
-    /* Position has no effect for directionnal. */
+    /* Position has no effect for directional. */
     vec3 lP = vec3(0.0);
     vec2 atlas_size = vec2(SHADOW_TILEMAP_RES);
     {
@@ -366,7 +370,7 @@ void main()
 
     vec2 atlas_size = vec2(SHADOW_TILEMAP_RES);
     {
-      /* Simulate a "2D" plane crossing the frustum diagonaly. */
+      /* Simulate a "2D" plane crossing the frustum diagonally. */
       vec3 lP0 = vec3(-1.0, 0.0, -1.0);
       vec3 lP1 = vec3(0.5, 0.0, -0.5);
       vec3 lTg = normalize(lP1 - lP0);
@@ -380,7 +384,7 @@ void main()
           shadow_slope_bias_get(atlas_size, light, lNg, lP0, vec2(0.0), 2), expect * 4.0, 1e-4);
     }
     {
-      /* Simulate a "2D" plane crossing the near plane at the center diagonaly. */
+      /* Simulate a "2D" plane crossing the near plane at the center diagonally. */
       vec3 lP0 = vec3(-1.0, 0.0, -1.0);
       vec3 lP1 = vec3(0.0, 0.0, -0.5);
       vec3 lTg = normalize(lP1 - lP0);

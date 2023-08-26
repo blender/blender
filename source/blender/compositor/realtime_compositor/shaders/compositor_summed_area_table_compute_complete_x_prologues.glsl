@@ -1,7 +1,11 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 /* A shared memory to sum the prologues using parallel reduction. See the parallel reduction shader
- * "compositor_parallel_reduction.glsl" for more information. */
+ * `compositor_parallel_reduction.glsl` for more information. */
 shared vec4 complete_prologue[gl_WorkGroupSize.x];
 
 /* See the compute_complete_x_prologues function for a description of this shader. */
@@ -20,13 +24,13 @@ void main()
       /* Note that the first row of sums is the result of summing the prologues of a virtual block
        * that is before the first row of blocks and we assume that those prologues are all zeros,
        * so we set the sum to zero in that case. This is implemented by setting the sums of the
-       * first vertical workgroup to zero, white latter workgroups are summed as as usual and
+       * first vertical work-group to zero, white latter work-groups are summed as as usual and
        * stored starting from the second row. */
       imageStore(complete_x_prologues_sum_img, ivec2(y, 0), vec4(0.0));
     }
 
     /* A parallel reduction loop to sum the prologues. This is exactly the same as the parallel
-     * reduction loop in the shader "compositor_parallel_reduction.glsl", see that shader for
+     * reduction loop in the shader `compositor_parallel_reduction.glsl`, see that shader for
      * more information. */
     complete_prologue[gl_LocalInvocationIndex] = accumulated_color;
     for (uint stride = gl_WorkGroupSize.x / 2; stride > 0; stride /= 2) {

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* WORKAROUND: to guard against double include in EEVEE. */
 #ifndef COMMON_VIEW_LIB_GLSL
@@ -192,7 +195,7 @@ layout(std140) uniform modelBlock
 /* Intel GPU seems to suffer performance impact when the model matrix is in UBO storage.
  * So for now we just force using the legacy path. */
 /* Note that this is also a workaround of a problem on OSX (AMD or NVIDIA)
- * and older amd driver on windows. */
+ * and older AMD driver on windows. */
 uniform mat4 ModelMatrix;
 uniform mat4 ModelMatrixInverse;
 #  endif /* USE_GPU_SHADER_CREATE_INFO */

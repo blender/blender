@@ -305,7 +305,7 @@ class LayerRuntime {
    */
   Vector<LayerMask> masks_;
 
-  /* Runtime data used for frame transformations.*/
+  /* Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
 };
 

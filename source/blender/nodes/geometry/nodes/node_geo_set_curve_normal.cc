@@ -68,7 +68,7 @@ static void node_rna(StructRNA *srna)
                     "mode",
                     "Mode",
                     "Mode for curve normal evaluation",
-                    rna_enum_curve_normal_modes,
+                    rna_enum_curve_normal_mode_items,
                     NOD_inline_enum_accessors(custom1));
 }
 

@@ -436,7 +436,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
   const uiStyle *style = UI_style_get_dpi();
 
   /* Convert into non-ui structure. */
-  MenuSearch_Data *data = (MenuSearch_Data *)MEM_callocN(sizeof(*data), __func__);
+  MenuSearch_Data *data = MEM_new<MenuSearch_Data>(__func__);
 
   DynStr *dyn_str = BLI_dynstr_new_memarena();
 

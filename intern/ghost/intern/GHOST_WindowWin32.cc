@@ -361,6 +361,11 @@ HWND GHOST_WindowWin32::getHWND() const
   return m_hWnd;
 }
 
+void *GHOST_WindowWin32::getOSWindow() const
+{
+  return (void *)m_hWnd;
+}
+
 void GHOST_WindowWin32::setTitle(const char *title)
 {
   wchar_t *title_16 = alloc_utf16_from_8((char *)title, 0);

@@ -75,12 +75,12 @@ static const EnumPropertyItem *geometry_attribute_domain_itemf(bContext *C,
                                                                bool *r_free)
 {
   if (C == nullptr) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
-    return DummyRNA_NULL_items;
+    return rna_enum_dummy_NULL_items;
   }
 
   return rna_enum_attribute_domain_itemf(static_cast<ID *>(ob->data), false, r_free);

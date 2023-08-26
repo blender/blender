@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 vec3 tint_from_color(vec3 color)
 {

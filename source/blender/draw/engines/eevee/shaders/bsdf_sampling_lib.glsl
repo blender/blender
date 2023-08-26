@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2021 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Sampling distribution routines for Monte-carlo integration.

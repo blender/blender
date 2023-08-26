@@ -2546,7 +2546,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+  prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Type", "");
   RNA_def_enum_funcs(prop, object_constraint_add_itemf);
   ot->prop = prop;
 }
@@ -2577,7 +2577,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+  prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Type", "");
   RNA_def_enum_funcs(prop, object_constraint_add_itemf);
   ot->prop = prop;
 }

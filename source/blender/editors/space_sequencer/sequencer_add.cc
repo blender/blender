@@ -484,7 +484,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
   RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -667,7 +667,7 @@ void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
+  prop = RNA_def_enum(ot->srna, "clip", rna_enum_dummy_NULL_items, 0, "Clip", "");
   RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
@@ -731,7 +731,7 @@ void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-  prop = RNA_def_enum(ot->srna, "mask", DummyRNA_NULL_items, 0, "Mask", "");
+  prop = RNA_def_enum(ot->srna, "mask", rna_enum_dummy_NULL_items, 0, "Mask", "");
   RNA_def_enum_funcs(prop, RNA_mask_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;

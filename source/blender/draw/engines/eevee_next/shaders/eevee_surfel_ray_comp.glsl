@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * For every surfel, compute the incomming radiance from both side.
+ * For every surfel, compute the incoming radiance from both side.
  * For that, walk the ray surfel linked-list and gather the light from the neighbor surfels.
  * This shader is dispatched for a random ray in a uniform hemisphere as we evaluate the
  * radiance in both directions.

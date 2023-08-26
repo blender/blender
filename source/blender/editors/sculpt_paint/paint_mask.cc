@@ -109,23 +109,19 @@ struct MaskTaskData {
   float view_normal[3];
 };
 
-static void mask_flood_fill_task_cb(void *__restrict userdata,
-                                    const int i,
-                                    const TaskParallelTLS *__restrict /*tls*/)
+static void mask_flood_fill_task(MaskTaskData &data, const int i)
 {
-  MaskTaskData *data = static_cast<MaskTaskData *>(userdata);
+  PBVHNode *node = data.nodes[i];
 
-  PBVHNode *node = data->nodes[i];
-
-  const PaintMaskFloodMode mode = data->mode;
-  const float value = data->value;
+  const PaintMaskFloodMode mode = data.mode;
+  const float value = data.value;
   bool redraw = false;
 
   PBVHVertexIter vi;
 
-  SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+  SCULPT_undo_push_node(data.ob, node, SCULPT_UNDO_MASK);
 
-  BKE_pbvh_vertex_iter_begin (data->pbvh, node, vi, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (data.pbvh, node, vi, PBVH_ITER_UNIQUE) {
     float prevmask = *vi.mask;
     mask_flood_fill_set_elem(vi.mask, mode, value);
     if (prevmask != *vi.mask) {
@@ -136,7 +132,7 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
   if (redraw) {
     BKE_pbvh_node_mark_update_mask(node);
-    if (data->multires) {
+    if (data.multires) {
       BKE_pbvh_node_mark_normals_update(node);
     }
   }
@@ -144,11 +140,11 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PBVH *pbvh;
-  Vector<PBVHNode *> nodes;
   bool multires;
 
   PaintMaskFloodMode mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
@@ -161,7 +157,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   pbvh = ob->sculpt->pbvh;
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
-  nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, {});
 
   SCULPT_undo_push_begin(ob, op);
 
@@ -173,9 +169,11 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
   data.mode = mode;
   data.value = value;
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, mask_flood_fill_task_cb, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      mask_flood_fill_task(data, i);
+    }
+  });
 
   if (multires) {
     multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
@@ -605,8 +603,9 @@ static Vector<PBVHNode *> sculpt_gesture_update_effected_nodes_by_line_plane(
   frustum.planes = clip_planes;
   frustum.num_planes = sgcontext->line.use_side_planes ? 3 : 1;
 
-  return sgcontext->nodes = blender::bke::pbvh::search_gather(
-             ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  return sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+           return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+         });
 }
 
 static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
@@ -620,8 +619,9 @@ static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureCon
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  sgcontext->nodes = blender::bke::pbvh::search_gather(
-      ss->pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum);
+  sgcontext->nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+    return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+  });
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)

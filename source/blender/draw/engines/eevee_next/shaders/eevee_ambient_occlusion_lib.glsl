@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -290,8 +293,8 @@ void ambient_occlusion_eval(OcclusionData data,
   }
 }
 
-/* Multibounce approximation base on surface albedo.
- * Page 78 in the .pdf version. */
+/* Multi-bounce approximation base on surface albedo.
+ * Page 78 in the PDF version. */
 float ambient_occlusion_multibounce(float visibility, vec3 albedo)
 {
   if (!AO_MULTI_BOUNCE) {

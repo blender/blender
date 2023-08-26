@@ -203,7 +203,7 @@ void MeshData::write_materials()
 pxr::SdfPath MeshData::submesh_prim_id(int index) const
 {
   char name[16];
-  snprintf(name, sizeof(name), "SM_%04d", index);
+  SNPRINTF(name, "SM_%04d", index);
   return prim_id.AppendElementString(name);
 }
 

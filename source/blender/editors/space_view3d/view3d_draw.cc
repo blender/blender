@@ -2576,43 +2576,25 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
-  ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
-  /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
-  char printable[32];
-
-  if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime) {
+  if (!ED_scene_fps_average_calc(scene)) {
     return;
   }
+  const ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
 
+  /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
+  char printable[32];
   printable[0] = '\0';
-
-  /* Doing an average for a more robust calculation. */
-  fpsi->redrawtimes_fps[fpsi->redrawtime_index] = float(1.0 /
-                                                        (fpsi->lredrawtime - fpsi->redrawtime));
-
-  float fps = 0.0f;
-  int tot = 0;
-  for (int i = 0; i < REDRAW_FRAME_AVERAGE; i++) {
-    if (fpsi->redrawtimes_fps[i]) {
-      fps += fpsi->redrawtimes_fps[i];
-      tot++;
-    }
-  }
-  if (tot) {
-    fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
-    fps = fps / tot;
-  }
 
   const int font_id = BLF_default();
 
   /* Is this more than half a frame behind? */
-  if (fps + 0.5f < float(FPS)) {
+  if (fpsi->fps_average + 0.5f < fpsi->fps_target) {
     UI_FontThemeColor(font_id, TH_REDALERT);
-    SNPRINTF(printable, IFACE_("fps: %.2f"), fps);
+    SNPRINTF(printable, IFACE_("fps: %.2f"), fpsi->fps_average);
   }
   else {
     UI_FontThemeColor(font_id, TH_TEXT_HI);
-    SNPRINTF(printable, IFACE_("fps: %i"), int(fps + 0.5f));
+    SNPRINTF(printable, IFACE_("fps: %i"), int(fpsi->fps_average + 0.5f));
   }
 
   BLF_enable(font_id, BLF_SHADOW);

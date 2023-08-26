@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * We want to know how much a pixel is covered by a line.
  * We replace the square pixel with a circle of the same area and try to find the intersection

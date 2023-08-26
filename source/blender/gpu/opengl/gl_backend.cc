@@ -563,6 +563,8 @@ void GLBackend::capabilities_init()
   GCaps.shader_storage_buffer_objects_support = epoxy_has_gl_extension(
       "GL_ARB_shader_storage_buffer_object");
   GCaps.transform_feedback_support = true;
+  GCaps.texture_view_support = epoxy_gl_version() >= 43 ||
+                               epoxy_has_gl_extension("GL_ARB_texture_view");
 
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GCaps.max_texture_3d_size);

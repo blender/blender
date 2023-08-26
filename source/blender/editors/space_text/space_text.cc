@@ -409,12 +409,6 @@ static void text_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink *
   memset(&st->runtime, 0x0, sizeof(st->runtime));
 }
 
-static void text_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceText *st = (SpaceText *)sl;
-  BLO_read_id_address(reader, parent_id, &st->text);
-}
-
 static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceText, sl);
@@ -442,7 +436,7 @@ void ED_spacetype_text()
   st->id_remap = text_id_remap;
   st->foreach_id = text_foreach_id;
   st->blend_read_data = text_space_blend_read_data;
-  st->blend_read_lib = text_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = text_space_blend_write;
 
   /* regions: main window */

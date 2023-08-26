@@ -25,10 +25,10 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../editors/include
+  ../../ikplugin
   ../../imbuf
   ../../makesrna
   ../../windowmanager
-  ../../ikplugin
   ../../../../intern/iksolver/extern
   ../../bmesh
 )

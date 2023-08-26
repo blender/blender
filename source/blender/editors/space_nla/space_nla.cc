@@ -590,17 +590,6 @@ static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BLO_read_data_address(reader, &snla->ads);
 }
 
-static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
-  bDopeSheet *ads = snla->ads;
-
-  if (ads) {
-    BLO_read_id_address(reader, parent_id, &ads->source);
-    BLO_read_id_address(reader, parent_id, &ads->filter_grp);
-  }
-}
-
 static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
@@ -629,7 +618,7 @@ void ED_spacetype_nla()
   st->id_remap = nla_id_remap;
   st->foreach_id = nla_foreach_id;
   st->blend_read_data = nla_space_blend_read_data;
-  st->blend_read_lib = nla_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */

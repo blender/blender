@@ -274,7 +274,6 @@ Brush *BKE_paint_toolslots_brush_get(Paint *paint, int slot_index);
 
 void BKE_paint_blend_write(BlendWriter *writer, Paint *paint);
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *paint);
-void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *scene, Paint *paint);
 
 #define SCULPT_FACE_SET_NONE 0
 

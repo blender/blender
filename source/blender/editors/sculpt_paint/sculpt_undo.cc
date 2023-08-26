@@ -1013,7 +1013,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   if (!data.do_full_recalc) {
     BKE_pbvh_bmesh_check_nodes(ss->pbvh);
 
-    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+    Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
     if (data.regen_all_unique_verts) {
       for (PBVHNode *node : nodes) {
@@ -1573,7 +1573,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     data.modified_mask_verts = modified_mask_verts;
     data.modified_color_verts = modified_color_verts;
     data.modified_face_set_faces = modified_face_set_faces;
-    BKE_pbvh_search_callback(ss->pbvh, nullptr, nullptr, update_cb_partial, &data);
+    BKE_pbvh_search_callback(ss->pbvh, {}, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
 
     if (update_mask) {
@@ -1588,8 +1588,6 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
         Mesh *me = (Mesh *)ob->data;
         BKE_pbvh_sync_visibility_from_verts(ss->pbvh, me);
-
-        BKE_pbvh_update_hide_attributes_from_mesh(ss->pbvh);
       }
 
       BKE_pbvh_update_visibility(ss->pbvh);
@@ -3018,7 +3016,7 @@ static void sculpt_undo_push_all_grids(Object *object)
     return;
   }
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   for (PBVHNode *node : nodes) {
     SculptUndoNode *unode = SCULPT_undo_push_node(object, node, SCULPT_UNDO_COORDS);
     unode->node = nullptr;

@@ -758,6 +758,12 @@ ccl_device_inline float sin_sqr_to_one_minus_cos(const float s_sq)
   return s_sq > 0.0004f ? 1.0f - safe_sqrtf(1.0f - s_sq) : 0.5f * s_sq;
 }
 
+ccl_device_inline float one_minus_cos(const float angle)
+{
+  /* Using second-order Taylor expansion at small angles for better accuracy. */
+  return angle > 0.02f ? 1.0f - cosf(angle) : 0.5f * sqr(angle);
+}
+
 ccl_device_inline float pow20(float a)
 {
   return sqr(sqr(sqr(sqr(a)) * a));

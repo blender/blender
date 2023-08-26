@@ -2217,7 +2217,7 @@ static const EnumPropertyItem *bpy_prop_enum_itemf_fn(bContext *C,
   else {
     PyC_Err_PrintWithFunc(py_func);
 
-    eitems = DummyRNA_NULL_items;
+    eitems = rna_enum_dummy_NULL_items;
   }
 
   if (C) {
@@ -4231,7 +4231,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
     }
 
     is_itemf = true;
-    eitems = DummyRNA_NULL_items;
+    eitems = rna_enum_dummy_NULL_items;
   }
   else {
     if (!(items_fast = PySequence_Fast(

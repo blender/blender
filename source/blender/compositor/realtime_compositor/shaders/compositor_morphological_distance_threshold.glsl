@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* The Morphological Distance Threshold operation is effectively three consecutive operations
  * implemented as a single operation. The three operations are as follows:
  *

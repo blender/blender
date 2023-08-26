@@ -632,10 +632,19 @@ static void idprop_ui_data_to_dict_string(IDProperty *property, PyObject *dict)
 
 static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
 {
-  IDPropertyUIDataID *ui_data = (IDPropertyUIDataID *)property->ui_data;
+  IDPropertyUIDataID *ui_data = reinterpret_cast<IDPropertyUIDataID *>(property->ui_data);
+
+  short id_type_value = ui_data->id_type;
+  if (id_type_value == 0) {
+    /* While UI exposed custom properties do not allow the 'all ID types' `0` value, in py-defined
+     * IDProperties it is accepted. So force defining a valid id_type value when this function is
+     * called. */
+    ID *id = IDP_Id(property);
+    id_type_value = id ? GS(id->name) : ID_OB;
+  }
 
   const char *id_type = nullptr;
-  RNA_enum_identifier(rna_enum_id_type_items, ui_data->id_type, &id_type);
+  RNA_enum_identifier(rna_enum_id_type_items, id_type_value, &id_type);
   PyObject *item = PyUnicode_FromString(id_type);
   PyDict_SetItemString(dict, "id_type", item);
   Py_DECREF(item);

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
@@ -196,7 +199,7 @@ vec4 spherical_harmonics_L2_evaluate(vec3 direction, SphericalHarmonicBandL2 L2)
 
 SphericalHarmonicBandL0 spherical_harmonics_L0_rotate(mat3x3 rotation, SphericalHarmonicBandL0 L0)
 {
-  /* L0 band being a constant function (i.e: there is no directionallity) there is nothing to
+  /* L0 band being a constant function (i.e: there is no directionality) there is nothing to
    * rotate. This is a no-op. */
   return L0;
 }
@@ -341,11 +344,9 @@ void spherical_harmonics_pack(SphericalHarmonicL1 sh,
 SphericalHarmonicL1 spherical_harmonics_triple_product(SphericalHarmonicL1 a,
                                                        SphericalHarmonicL1 b)
 {
-  /**
-   * Addapted from :
+  /* Adapted from:
    * "Code Generation and Factoring for Fast Evaluation of Low-order Spherical Harmonic Products
-   * and Squares" Function "SH_product_3"
-   */
+   * and Squares" Function "SH_product_3". */
   SphericalHarmonicL1 sh;
   sh.L0.M0 = 0.282094792 * a.L0.M0 * b.L0.M0;
 

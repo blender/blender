@@ -82,7 +82,7 @@ ccl_device int bsdf_sheen_sample(ccl_private const ShaderClosure *sc,
   const float3 N = bsdf->N, T = bsdf->T, B = bsdf->B;
   float a = bsdf->transformA, b = bsdf->transformB;
 
-  float2 disk = concentric_sample_disk(rand);
+  float2 disk = sample_uniform_disk(rand);
   float diskZ = safe_sqrtf(1.0f - dot(disk, disk));
   float3 localO = normalize(make_float3((disk.x - diskZ * b) / a, disk.y / a, diskZ));
 

@@ -9,7 +9,6 @@
  */
 
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
@@ -179,6 +178,9 @@ void BKE_constraints_copy_ex(struct ListBase *dst,
                              bool do_extern);
 /**
  * Run the given callback on all ID-blocks in list of constraints.
+ *
+ * \param flag the `IDWALK_` flags controlling the behavior of the foreach_id code, see
+ * `BKE_lib_query.h`
  */
 void BKE_constraints_id_loop(struct ListBase *list,
                              ConstraintIDFunc func,
@@ -369,10 +371,6 @@ void BKE_constraint_blend_write(struct BlendWriter *writer, struct ListBase *con
 void BKE_constraint_blend_read_data(struct BlendDataReader *reader,
                                     struct ID *id_owner,
                                     struct ListBase *lb);
-void BKE_constraint_blend_read_lib(struct BlendLibReader *reader,
-                                   struct ID *id,
-                                   struct ListBase *conlist);
-void BKE_constraint_blend_read_expand(struct BlendExpander *expander, struct ListBase *lb);
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(engine_eevee_shared_defines.h)
 #pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)

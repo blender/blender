@@ -2507,34 +2507,6 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifier
   }
 }
 
-void BKE_fmodifiers_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fmodifiers)
-{
-  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
-    /* data for specific modifiers */
-    switch (fcm->type) {
-      case FMODIFIER_TYPE_PYTHON: {
-        FMod_Python *data = (FMod_Python *)fcm->data;
-        BLO_read_id_address(reader, id, &data->script);
-        break;
-      }
-    }
-  }
-}
-
-void BKE_fmodifiers_blend_read_expand(BlendExpander *expander, ListBase *fmodifiers)
-{
-  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
-    /* library data for specific F-Modifier types */
-    switch (fcm->type) {
-      case FMODIFIER_TYPE_PYTHON: {
-        FMod_Python *data = (FMod_Python *)fcm->data;
-        BLO_expand(expander, data->script);
-        break;
-      }
-    }
-  }
-}
-
 void BKE_fcurve_blend_write(BlendWriter *writer, ListBase *fcurves)
 {
   BLO_write_struct_list(writer, FCurve, fcurves);
@@ -2627,51 +2599,6 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
     /* modifiers */
     BLO_read_list(reader, &fcu->modifiers);
     BKE_fmodifiers_blend_read_data(reader, &fcu->modifiers, fcu);
-  }
-}
-
-void BKE_fcurve_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *fcurves)
-{
-  if (fcurves == nullptr) {
-    return;
-  }
-
-  /* relink ID-block references... */
-  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    /* driver data */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          BLO_read_id_address(reader, id, &dtar->id);
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* modifiers */
-    BKE_fmodifiers_blend_read_lib(reader, id, &fcu->modifiers);
-  }
-}
-
-void BKE_fcurve_blend_read_expand(BlendExpander *expander, ListBase *fcurves)
-{
-  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    /* Driver targets if there is a driver */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          /* TODO: only expand those that are going to get used? */
-          BLO_expand(expander, dtar->id);
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* F-Curve Modifiers */
-    BKE_fmodifiers_blend_read_expand(expander, &fcu->modifiers);
   }
 }
 

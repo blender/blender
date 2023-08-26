@@ -350,7 +350,7 @@ const EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C,
   int i = 0;
 
   if (ELEM(nullptr, C, gpd)) {
-    return DummyRNA_DEFAULT_items;
+    return rna_enum_dummy_DEFAULT_items;
   }
 
   /* Existing layers */
@@ -387,7 +387,7 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
   int i = 0;
 
   if (ELEM(nullptr, C, gpd)) {
-    return DummyRNA_DEFAULT_items;
+    return rna_enum_dummy_DEFAULT_items;
   }
 
   /* Create new layer */
@@ -438,7 +438,7 @@ const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
   int i = 0;
 
   if (ELEM(nullptr, C, ob)) {
-    return DummyRNA_DEFAULT_items;
+    return rna_enum_dummy_DEFAULT_items;
   }
 
   /* Existing materials */

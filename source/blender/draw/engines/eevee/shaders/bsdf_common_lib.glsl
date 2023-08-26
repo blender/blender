@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
@@ -75,7 +78,7 @@ vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
 vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
   /* Unreal specular matching : if specular color is below 2% intensity,
-   * treat as shadowning */
+   * treat as shadowing. */
   return lut.y * f90 + lut.x * f0;
 }
 

@@ -38,13 +38,13 @@ endif()
 set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
+  ../../blenkernel
+  ../../blenlib
+  ../../depsgraph
+  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../nodes
-  ../../blenlib
-  ../../depsgraph
-  ../../blenkernel
-  ../../imbuf
   ../../io/usd
   ../../gpu
   ../../gpu/intern
@@ -87,6 +87,7 @@ set(SRC
   light_tasks_delegate.h
   preview_engine.h
   render_task_delegate.h
+  settings.h
   viewport_engine.h
 )
 

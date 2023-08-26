@@ -4835,6 +4835,16 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "overlay while animation is played back");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "playback_fps_samples", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "playback_fps_samples");
+  RNA_def_property_range(prop, 0, 200);
+  RNA_def_property_ui_text(
+      prop,
+      "FPS Average Samples",
+      "The number of frames to use for calculating FPS average. "
+      "Zero to calculate this automatically, where the number of samples matches the target FPS");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
+
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
   prop = RNA_def_property(srna, "show_addons_enabled_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
@@ -6961,13 +6971,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "use_grease_pencil_version3", 1);
   RNA_def_property_ui_text(prop, "Grease Pencil 3.0", "Enable the new grease pencil 3.0 codebase");
 
-  prop = RNA_def_property(srna, "enable_workbench_next", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "enable_workbench_next", 1);
-  RNA_def_property_ui_text(prop,
-                           "Workbench Next",
-                           "Enable the new Workbench codebase, requires "
-                           "restart");
-
   prop = RNA_def_property(srna, "use_viewport_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_viewport_debug", 1);
   RNA_def_property_ui_text(prop,
@@ -6992,19 +6995,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "New Volume Nodes", "Enables visibility of the new Volume nodes in the UI");
 
-  prop = RNA_def_property(srna, "use_rotation_socket", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Rotation Socket", "Enable the new rotation node socket type");
-
   prop = RNA_def_property(srna, "use_node_group_operators", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Node Group Operators", "Enable using geometry nodes as edit operators");
-
-  prop = RNA_def_property(srna, "use_asset_shelf", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(prop,
-                           "Asset Shelf",
-                           "Enables the asset shelf regions in the 3D view. Used by the Pose "
-                           "Library add-on in Pose Mode only");
-  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
   prop = RNA_def_property(srna, "use_shader_node_previews", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

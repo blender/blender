@@ -1811,6 +1811,8 @@ def km_graph_editor_generic(params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
         ),
         ("graph.extrapolation_type", {"type": 'E', "value": 'PRESS', "shift": True}, None),
+        ("graph.fmodifier_add", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True},
+         {"properties": [("only_active", False)]}),
         ("anim.channels_select_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
         *_template_items_hide_reveal_actions("graph.hide", "graph.reveal"),
         ("wm.context_set_enum", {"type": 'TAB', "value": 'PRESS', "ctrl": True},
@@ -1915,8 +1917,6 @@ def km_graph_editor(params):
         ("graph.view_selected", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("graph.view_frame", {"type": 'NUMPAD_0', "value": 'PRESS'}, None),
         op_menu_pie("GRAPH_MT_view_pie", {"type": 'ACCENT_GRAVE', "value": 'PRESS'}),
-        ("graph.fmodifier_add", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True},
-         {"properties": [("only_active", False)]}),
         ("anim.channels_editable_toggle", {"type": 'TAB', "value": 'PRESS'}, None),
         ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("transform.translate", {"type": params.select_mouse, "value": 'CLICK_DRAG'}, None),
@@ -4562,6 +4562,12 @@ def km_grease_pencil_edit(params):
         ("grease_pencil.select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("grease_pencil.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("grease_pencil.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        # Delete menu
+        op_menu("VIEW3D_MT_edit_greasepencil_delete", {"type": 'X', "value": 'PRESS'}),
+        op_menu("VIEW3D_MT_edit_greasepencil_delete", {"type": 'DEL', "value": 'PRESS'}),
+        # Dissolve
+        ("grease_pencil.dissolve", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
+        ("grease_pencil.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap

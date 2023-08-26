@@ -14,6 +14,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_function_ref.hh"
 #include "BLI_ghash.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -211,7 +212,6 @@ BLI_INLINE PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int index)
 /**
  * Returns true if the search should continue from this node, false otherwise.
  */
-typedef bool (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BKE_pbvh_HitCallback)(PBVHNode *node, void *data);
 typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *tmin);
@@ -300,8 +300,7 @@ void BKE_pbvh_set_stroke_id(PBVH *pbvh, int stroke_id);
  */
 
 void BKE_pbvh_search_callback(PBVH *pbvh,
-                              BKE_pbvh_SearchCallback scb,
-                              void *search_data,
+                              blender::FunctionRef<bool(PBVHNode &)> scb,
                               BKE_pbvh_HitCallback hcb,
                               void *hit_data);
 
@@ -490,11 +489,11 @@ float BKE_pbvh_node_get_tmin(PBVHNode *node);
 /**
  * Test if AABB is at least partially inside the #PBVHFrustumPlanes volume.
  */
-bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
+bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, PBVHFrustumPlanes *frustum);
 /**
  * Test if AABB is at least partially outside the #PBVHFrustumPlanes volume.
  */
-bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
+bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, PBVHFrustumPlanes *frustum);
 
 blender::bke::dyntopo::DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
 blender::bke::dyntopo::DyntopoSet<BMVert> *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
@@ -567,7 +566,7 @@ struct PBVHVertexIter {
 
   /* mesh */
   blender::MutableSpan<blender::float3> vert_positions;
-  blender::MutableSpan<blender::float3> vert_normals;
+  blender::Span<blender::float3> vert_normals;
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
@@ -588,8 +587,8 @@ struct PBVHVertexIter {
    * that compiler optimization's will skip the ones we don't use */
   BMVert *bm_vert;
   float *co;
-  float *no;
-  float *fno;
+  const float *no;
+  const float *fno;
   float *mask;
   bool visible;
 };
@@ -951,8 +950,7 @@ bool check_vert_boundary(PBVH *pbvh, PBVHVertRef vertex);
 bool check_edge_boundary(PBVH *pbvh, PBVHEdgeRef edge);
 
 Vector<PBVHNode *> search_gather(PBVH *pbvh,
-                                 BKE_pbvh_SearchCallback scb,
-                                 void *search_data,
+                                 FunctionRef<bool(PBVHNode &)> scb,
                                  PBVHNodeFlags leaf_flag = PBVH_Leaf);
 Vector<PBVHNode *> gather_proxies(PBVH *pbvh);
 Vector<PBVHNode *> get_flagged_nodes(PBVH *pbvh, int flag);

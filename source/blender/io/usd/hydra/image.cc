@@ -8,6 +8,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_appdir.h"
 #include "BKE_image.h"
@@ -55,7 +56,7 @@ static std::string cache_image_file(
       opts.im_format = scene->r.im_format;
     }
 
-    snprintf(file_name, sizeof(file_name), "img_%p%s", image, r_ext);
+    SNPRINTF(file_name, "img_%p%s", image, r_ext);
 
     file_path = get_cache_file(file_name);
     if (check_exist && BLI_exists(file_path.c_str())) {
@@ -89,7 +90,7 @@ std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, Ima
     std::string dir_path = image_cache_file_path();
     char *cached_path;
     char subfolder[FILE_MAXDIR];
-    snprintf(subfolder, sizeof(subfolder), "unpack_%p", image);
+    SNPRINTF(subfolder, "unpack_%p", image);
     LISTBASE_FOREACH (ImagePackedFile *, ipf, &image->packedfiles) {
       char path[FILE_MAX];
       BLI_path_join(
@@ -128,8 +129,7 @@ std::string cache_or_get_image_file(Main *bmain, Scene *scene, Image *image, Ima
 std::string cache_image_color(float color[4])
 {
   char name[128];
-  snprintf(name,
-           sizeof(name),
+  SNPRINTF(name,
            "color_%02d%02d%02d.hdr",
            int(color[0] * 255),
            int(color[1] * 255),

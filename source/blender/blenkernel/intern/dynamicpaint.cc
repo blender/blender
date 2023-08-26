@@ -5694,7 +5694,7 @@ static void dynamic_paint_wave_step_cb(void *__restrict userdata,
     wPoint->height = (dt * wave_speed * avg_n_height + wPoint->height * avg_dist) /
                      (avg_dist + dt * wave_speed);
   }
-  /* else do wave eq */
+  /* Else do wave equation. */
   else {
     /* add force towards zero height based on average dist */
     if (avg_dist) {

@@ -1,7 +1,10 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Load an input lightgrid cache texture into the atlas.
- * Takes care of dilating valid lighting into invalid samples and composite lightprobes.
+ * Load an input light-grid cache texture into the atlas.
+ * Takes care of dilating valid lighting into invalid samples and composite light-probes.
  *
  * Each thread group will load a brick worth of data and add the needed padding texels.
  */
@@ -57,7 +60,7 @@ void main()
 
   float validity = texelFetch(validity_tx, input_coord, 0).r;
   if (validity > dilation_threshold) {
-    /* Grid sample is valid. Simgle load. */
+    /* Grid sample is valid. Single load. */
     sh_local = irradiance_load(input_coord);
   }
   else {

@@ -216,4 +216,4 @@ bool ED_transform_snap_sequencer_to_closest_strip_calc(Scene *scene,
                                                        int *r_snap_distance,
                                                        float *r_snap_frame);
 
-void ED_draw_sequencer_snap_point(bContext *C, float snap_point);
+void ED_draw_sequencer_snap_point(struct ARegion *region, float snap_point);

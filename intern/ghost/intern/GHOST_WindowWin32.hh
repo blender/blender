@@ -108,6 +108,12 @@ class GHOST_WindowWin32 : public GHOST_Window {
   HWND getHWND() const;
 
   /**
+   * Returns the handle of the window.
+   * \return The handle of the window.
+   */
+  void *getOSWindow() const;
+
+  /**
    * Sets the title displayed in the title bar.
    * \param title: The title to display in the title bar.
    */

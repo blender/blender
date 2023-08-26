@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Tone mapping based on equation (1) and the trilinear interpolation between equations (6) and (7)
  * from Reinhard, Erik, and Kate Devlin. "Dynamic range reduction inspired by photoreceptor
  * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */

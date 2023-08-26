@@ -18,7 +18,6 @@ extern "C" {
 
 struct BPathForeachPathData;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct ID;
@@ -101,8 +100,7 @@ typedef void (*IDTypeBlendWriteFunction)(struct BlendWriter *writer,
                                          struct ID *id,
                                          const void *id_address);
 typedef void (*IDTypeBlendReadDataFunction)(struct BlendDataReader *reader, struct ID *id);
-typedef void (*IDTypeBlendReadLibFunction)(struct BlendLibReader *reader, struct ID *id);
-typedef void (*IDTypeBlendReadExpandFunction)(struct BlendExpander *expander, struct ID *id);
+typedef void (*IDTypeBlendReadAfterLiblinkFunction)(struct BlendLibReader *reader, struct ID *id);
 
 typedef void (*IDTypeBlendReadUndoPreserve)(struct BlendLibReader *reader,
                                             struct ID *id_new,
@@ -207,14 +205,12 @@ typedef struct IDTypeInfo {
   IDTypeBlendReadDataFunction blend_read_data;
 
   /**
-   * Update pointers to other id data blocks.
+   * Used to do some validation and/or complex processing on the ID after it has been fully read
+   * and its ID pointers have been updated to valid values (lib linking process).
+   *
+   * Note that this is still called _before_ the `do_versions_after_linking` versioning code.
    */
-  IDTypeBlendReadLibFunction blend_read_lib;
-
-  /**
-   * Specify which other id data blocks should be loaded when the current one is loaded.
-   */
-  IDTypeBlendReadExpandFunction blend_read_expand;
+  IDTypeBlendReadAfterLiblinkFunction blend_read_after_liblink;
 
   /**
    * Allow an ID type to preserve some of its data across (memfile) undo steps.

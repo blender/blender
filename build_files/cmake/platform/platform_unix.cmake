@@ -783,8 +783,11 @@ if(WITH_GHOST_X11)
 
   if(WITH_X11_XINPUT)
     if(NOT X11_Xinput_LIB)
-      message(FATAL_ERROR "LibXi not found. Disable WITH_X11_XINPUT if you
-      want to build without tablet support")
+      message(
+        FATAL_ERROR
+        "LibXi not found. "
+        "Disable WITH_X11_XINPUT if you want to build without tablet support"
+      )
     endif()
   endif()
 
@@ -793,15 +796,21 @@ if(WITH_GHOST_X11)
     find_library(X11_Xxf86vmode_LIB Xxf86vm   ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xxf86vmode_LIB)
     if(NOT X11_Xxf86vmode_LIB)
-      message(FATAL_ERROR "libXxf86vm not found. Disable WITH_X11_XF86VMODE if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXxf86vm not found. "
+        "Disable WITH_X11_XF86VMODE if you want to build without"
+      )
     endif()
   endif()
 
   if(WITH_X11_XFIXES)
     if(NOT X11_Xfixes_LIB)
-      message(FATAL_ERROR "libXfixes not found. Disable WITH_X11_XFIXES if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXfixes not found. "
+        "Disable WITH_X11_XFIXES if you want to build without"
+      )
     endif()
   endif()
 
@@ -809,8 +818,11 @@ if(WITH_GHOST_X11)
     find_library(X11_Xrender_LIB Xrender ${X11_LIB_SEARCH_PATH})
     mark_as_advanced(X11_Xrender_LIB)
     if(NOT X11_Xrender_LIB)
-      message(FATAL_ERROR "libXrender not found. Disable WITH_X11_ALPHA if you
-      want to build without")
+      message(
+        FATAL_ERROR
+        "libXrender not found. "
+        "Disable WITH_X11_ALPHA if you want to build without"
+      )
     endif()
   endif()
 

@@ -100,8 +100,7 @@ IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
 
     /*blend_write*/ nullptr,
     /*blend_read_data*/ nullptr,
-    /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

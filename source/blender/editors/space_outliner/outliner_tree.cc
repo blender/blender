@@ -271,6 +271,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_R_LAYER) {
     id = &static_cast<ViewLayerElementCreateData *>(idv)->scene->id;
   }
+  else if (type == TSE_POSE_CHANNEL) {
+    id = &static_cast<PoseChannelElementCreateData *>(idv)->object->id;
+  }
+  else if (type == TSE_LAYER_COLLECTION) {
+    id = &static_cast<LayerCollection *>(idv)->collection->id;
+  }
   else if (type == TSE_MODIFIER) {
     id = &static_cast<ModifierCreateElementData *>(idv)->object->id;
   }
@@ -344,7 +350,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_CONSTRAINT, TSE_CONSTRAINT_BASE)) {
     /* pass */
   }
-  else if (type == TSE_POSE_BASE) {
+  else if (ELEM(type, TSE_POSE_BASE, TSE_POSE_CHANNEL)) {
     /* pass */
   }
   else if (ELEM(type, TSE_POSEGRP, TSE_POSEGRP_BASE)) {
@@ -417,6 +423,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_CONSTRAINT,
                 TSE_CONSTRAINT_BASE,
                 TSE_POSE_BASE,
+                TSE_POSE_CHANNEL,
                 TSE_POSEGRP,
                 TSE_POSEGRP_BASE,
                 TSE_R_LAYER,
@@ -424,7 +431,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_MODIFIER,
                 TSE_MODIFIER_BASE,
                 TSE_GREASE_PENCIL_NODE,
-                TSE_LINKED_OB))
+                TSE_LINKED_OB) ||
+           ELEM(type, TSE_LAYER_COLLECTION, TSE_VIEW_COLLECTION_BASE))
   {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }

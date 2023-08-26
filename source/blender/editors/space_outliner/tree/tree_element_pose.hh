@@ -22,4 +22,13 @@ class TreeElementPoseBase final : public AbstractTreeElement {
   void expand(SpaceOutliner &) const override;
 };
 
+class TreeElementPoseChannel final : public AbstractTreeElement {
+  /* Not needed right now, avoid unused member variable warning. */
+  // Object &object_;
+  bPoseChannel &pchan_;
+
+ public:
+  TreeElementPoseChannel(TreeElement &legacy_te, Object &object, bPoseChannel &pchan);
+};
+
 }  // namespace blender::ed::outliner

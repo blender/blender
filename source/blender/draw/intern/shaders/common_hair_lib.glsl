@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2018-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /**
  * Library to create hairs dynamically from control points.
  * This is less bandwidth intensive than fetching the vertex attributes

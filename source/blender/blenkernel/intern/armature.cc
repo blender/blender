@@ -262,40 +262,6 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_armature_bone_hash_make(arm);
 }
 
-static void lib_link_bones(BlendLibReader *reader, ID *self_id, Bone *bone)
-{
-  IDP_BlendReadLib(reader, self_id, bone->prop);
-
-  LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    lib_link_bones(reader, self_id, curbone);
-  }
-}
-
-static void armature_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  bArmature *arm = (bArmature *)id;
-  LISTBASE_FOREACH (Bone *, curbone, &arm->bonebase) {
-    lib_link_bones(reader, id, curbone);
-  }
-}
-
-static void expand_bones(BlendExpander *expander, Bone *bone)
-{
-  IDP_BlendReadExpand(expander, bone->prop);
-
-  LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
-    expand_bones(expander, curBone);
-  }
-}
-
-static void armature_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  bArmature *arm = (bArmature *)id;
-  LISTBASE_FOREACH (Bone *, curBone, &arm->bonebase) {
-    expand_bones(expander, curBone);
-  }
-}
-
 IDTypeInfo IDType_ID_AR = {
     /*id_code*/ ID_AR,
     /*id_filter*/ FILTER_ID_AR,
@@ -318,8 +284,7 @@ IDTypeInfo IDType_ID_AR = {
 
     /*blend_write*/ armature_blend_write,
     /*blend_read_data*/ armature_blend_read_data,
-    /*blend_read_lib*/ armature_blend_read_lib,
-    /*blend_read_expand*/ armature_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

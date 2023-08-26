@@ -1242,7 +1242,7 @@ float ED_view3d_grid_view_scale(Scene *scene,
                                 const char **r_grid_unit);
 
 /**
- * \note The info that this uses is updated in #ED_refresh_viewport_fps,
+ * \note The info that this uses is updated in #ED_scene_fps_average_accumulate,
  * which currently gets called during #SCREEN_OT_animation_step.
  */
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset);

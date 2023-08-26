@@ -89,7 +89,7 @@ static void node_rna(StructRNA *srna)
                     "mode",
                     "Mode",
                     "Mode of color processing",
-                    rna_node_combsep_color_items,
+                    rna_enum_node_combsep_color_items,
                     NOD_storage_enum_accessors(mode));
 }
 

@@ -30,6 +30,9 @@ namespace blender::nodes {
 StringRef input_use_attribute_suffix();
 StringRef input_attribute_name_suffix();
 
+std::optional<StringRef> input_attribute_name_get(const IDProperty &props,
+                                                  const bNodeSocket &io_input);
+
 /**
  * \return Whether using an attribute to input values of this type is supported.
  */

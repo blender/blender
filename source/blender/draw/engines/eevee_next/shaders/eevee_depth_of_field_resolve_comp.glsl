@@ -1,10 +1,13 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Recombine Pass: Load separate convolution layer and composite with self
  * slight defocus convolution and in-focus fields.
  *
  * The halfres gather methods are fast but lack precision for small CoC areas.
- * To fix this we do a bruteforce gather to have a smooth transition between
+ * To fix this we do a brute-force gather to have a smooth transition between
  * in-focus and defocus regions.
  */
 

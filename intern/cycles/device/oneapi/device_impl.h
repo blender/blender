@@ -118,7 +118,15 @@ class OneapiDevice : public Device {
                          void *kernel_globals,
                          const char *memory_name,
                          void *memory_device_pointer);
-  bool enqueue_kernel(KernelContext *kernel_context, int kernel, size_t global_size, void **args);
+  bool enqueue_kernel(KernelContext *kernel_context,
+                      int kernel,
+                      size_t global_size,
+                      size_t local_size,
+                      void **args);
+  void get_adjusted_global_and_local_sizes(SyclQueue *queue,
+                                           const DeviceKernel kernel,
+                                           size_t &kernel_global_size,
+                                           size_t &kernel_local_size);
   SyclQueue *sycl_queue();
 
  protected:

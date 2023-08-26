@@ -110,7 +110,7 @@ class SimpleImportTest(AbstractAlembicTest):
             as_background_job=False)
 
         # The active object is probably the first one that was imported, but this
-        # behaviour is not defined. At least it should be one of the cubes, and
+        # behavior is not defined. At least it should be one of the cubes, and
         # not the sphere.
         self.assertNotEqual(sphere, bpy.context.active_object)
         self.assertTrue('Cube' in bpy.context.active_object.name)

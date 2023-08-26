@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void node_composite_alpha_over_mixed(
     float factor, vec4 color, vec4 over_color, float premultiply_factor, out vec4 result)
 {

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2020-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Based on :
  * McGuire and Bavoil, Weighted Blended Order-Independent Transparency, Journal of

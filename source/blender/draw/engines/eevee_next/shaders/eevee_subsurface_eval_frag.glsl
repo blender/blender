@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Postprocess diffuse radiance output from the diffuse evaluation pass to mimic subsurface
@@ -37,7 +40,7 @@ vec3 burley_eval(vec3 d, float r)
   /* NOTE:
    * - Surface albedo is applied at the end.
    * - This is normalized diffuse model, so the equation is multiplied
-   *   by 2*pi, which also matches cdf().
+   *   by 2*pi, which also matches `cdf()`.
    */
   return (exp_r_d + exp_r_3_d) / (4.0 * d);
 }

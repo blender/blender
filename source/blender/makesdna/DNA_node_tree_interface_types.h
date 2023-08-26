@@ -37,7 +37,6 @@ struct uiLayout;
 struct BlendWriter;
 struct BlendDataReader;
 struct BlendLibReader;
-struct BlendExpander;
 
 /** Type of interface item. */
 typedef enum NodeTreeInterfaceItemType {
@@ -211,8 +210,6 @@ typedef struct bNodeTreeInterface {
   /** Read/write blend file data. */
   void write(BlendWriter *writer);
   void read_data(BlendDataReader *reader);
-  void read_lib(BlendLibReader *reader, ID *id);
-  void read_expand(BlendExpander *expander);
 
   bNodeTreeInterfaceItem *active_item();
   const bNodeTreeInterfaceItem *active_item() const;

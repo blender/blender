@@ -18,6 +18,8 @@
 #define DYNTOPO_CD_INTERP
 #define DYNTOPO_DYNAMIC_TESS
 
+struct SculptSearchSphereData;
+
 namespace blender::bke::dyntopo {
 
 float dist_to_tri_sphere_simple(float p[3], float v1[3], float v2[3], float v3[3], float n[3]);
@@ -148,9 +150,9 @@ bool remesh_topology(blender::bke::dyntopo::BrushTester *brush_tester,
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *tester,
                            struct Object *ob,
                            PBVH *pbvh,
-                           bool (*searchcb)(PBVHNode *node, void *data),
+                           bool (*searchcb)(PBVHNode *node, SculptSearchSphereData *data),
                            void (*undopush)(PBVHNode *node, void *data),
-                           void *searchdata,
+                           SculptSearchSphereData *searchdata,
                            PBVHTopologyUpdateMode mode,
                            bool use_frontface,
                            blender::float3 view_normal,

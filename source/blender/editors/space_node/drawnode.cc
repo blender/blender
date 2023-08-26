@@ -1205,7 +1205,7 @@ static const float std_node_socket_colors[][4] = {
     {0.96, 0.96, 0.96, 1.0}, /* SOCK_COLLECTION */
     {0.62, 0.31, 0.64, 1.0}, /* SOCK_TEXTURE */
     {0.92, 0.46, 0.51, 1.0}, /* SOCK_MATERIAL */
-    {0.92, 0.46, 0.7, 1.0},  /* SOCK_ROTATION */
+    {0.65, 0.39, 0.78, 1.0}, /* SOCK_ROTATION */
 };
 
 /* common color callbacks for standard types */
@@ -1707,7 +1707,7 @@ void node_link_bezier_points_evaluated(const bNodeLink &link,
 
 #define NODELINK_GROUP_SIZE 256
 #define LINK_RESOL 24
-#define LINK_WIDTH (2.5f * UI_SCALE_FAC)
+#define LINK_WIDTH 2.5f
 #define ARROW_SIZE (7 * UI_SCALE_FAC)
 
 /* Reroute arrow shape and mute bar. These are expanded here and shrunk in the GLSL code.
@@ -1726,14 +1726,12 @@ static struct {
   uint colid_id, muted_id, start_color_id, end_color_id;
   uint dim_factor_id;
   uint thickness_id;
-  uint dash_factor_id;
-  uint dash_alpha_id;
+  uint dash_params_id;
   GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
   GPUVertBufRaw colid_step, muted_step, start_color_step, end_color_step;
   GPUVertBufRaw dim_factor_step;
   GPUVertBufRaw thickness_step;
-  GPUVertBufRaw dash_factor_step;
-  GPUVertBufRaw dash_alpha_step;
+  GPUVertBufRaw dash_params_step;
   uint count;
   bool enabled;
 } g_batch_link;
@@ -1753,9 +1751,7 @@ static void nodelink_batch_reset()
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.thickness_id, &g_batch_link.thickness_step);
   GPU_vertbuf_attr_get_raw_data(
-      g_batch_link.inst_vbo, g_batch_link.dash_factor_id, &g_batch_link.dash_factor_step);
-  GPU_vertbuf_attr_get_raw_data(
-      g_batch_link.inst_vbo, g_batch_link.dash_alpha_id, &g_batch_link.dash_alpha_step);
+      g_batch_link.inst_vbo, g_batch_link.dash_params_id, &g_batch_link.dash_params_step);
   GPU_vertbuf_attr_get_raw_data(
       g_batch_link.inst_vbo, g_batch_link.start_color_id, &g_batch_link.start_color_step);
   GPU_vertbuf_attr_get_raw_data(
@@ -1885,10 +1881,8 @@ static void nodelink_batch_init()
       &format_inst, "dim_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   g_batch_link.thickness_id = GPU_vertformat_attr_add(
       &format_inst, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  g_batch_link.dash_factor_id = GPU_vertformat_attr_add(
-      &format_inst, "dash_factor", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  g_batch_link.dash_alpha_id = GPU_vertformat_attr_add(
-      &format_inst, "dash_alpha", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  g_batch_link.dash_params_id = GPU_vertformat_attr_add(
+      &format_inst, "dash_params", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
   /* Alloc max count but only draw the range we need. */
   GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE);
@@ -1930,7 +1924,7 @@ static void nodelink_batch_draw(const SpaceNode &snode)
   UI_GetThemeColor4fv(TH_EDGE_SELECT,
                       node_link_data.colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
   UI_GetThemeColor4fv(TH_REDALERT, node_link_data.colors[nodelink_get_color_id(TH_REDALERT)]);
-  node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
+  node_link_data.aspect = snode.runtime->aspect;
   node_link_data.arrowSize = ARROW_SIZE;
 
   GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(node_link_data), &node_link_data, __func__);
@@ -1976,6 +1970,7 @@ struct NodeLinkDrawConfig {
 
   float dim_factor;
   float thickness;
+  float dash_length;
   float dash_factor;
   float dash_alpha;
 };
@@ -2008,8 +2003,8 @@ static void nodelink_batch_add_link(const SpaceNode &snode,
   muted[0] = draw_config.drawmuted;
   *(float *)GPU_vertbuf_raw_step(&g_batch_link.dim_factor_step) = draw_config.dim_factor;
   *(float *)GPU_vertbuf_raw_step(&g_batch_link.thickness_step) = draw_config.thickness;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_factor_step) = draw_config.dash_factor;
-  *(float *)GPU_vertbuf_raw_step(&g_batch_link.dash_alpha_step) = draw_config.dash_alpha;
+  float3 dash_params(draw_config.dash_length, draw_config.dash_factor, draw_config.dash_alpha);
+  copy_v3_v3((float *)GPU_vertbuf_raw_step(&g_batch_link.dash_params_step), dash_params);
 
   if (g_batch_link.count == NODELINK_GROUP_SIZE) {
     nodelink_batch_draw(snode);
@@ -2081,10 +2076,12 @@ static NodeLinkDrawConfig nodelink_get_draw_config(const bContext &C,
   const bool field_link = node_link_is_field_link(snode, link);
 
   draw_config.dash_factor = field_link ? 0.75f : 1.0f;
+  draw_config.dash_length = 10.0f * UI_SCALE_FAC;
 
   const float scale = UI_view2d_scale_get_x(&v2d);
   /* Clamp the thickness to make the links more readable when zooming out. */
-  draw_config.thickness = max_ff(scale, 1.0f) * (field_link ? 0.7f : 1.0f);
+  draw_config.thickness = LINK_WIDTH * max_ff(UI_SCALE_FAC * scale, 1.0f) *
+                          (field_link ? 0.7f : 1.0f);
   draw_config.highlighted = link.flag & NODE_LINK_TEMP_HIGHLIGHT;
   draw_config.drawarrow = ((link.tonode && (link.tonode->type == NODE_REROUTE)) &&
                            (link.fromnode && (link.fromnode->type == NODE_REROUTE)));
@@ -2171,9 +2168,10 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     node_link_data.doMuted = draw_config.drawmuted;
     node_link_data.dim_factor = draw_config.dim_factor;
     node_link_data.thickness = draw_config.thickness;
-    node_link_data.dash_factor = draw_config.dash_factor;
-    node_link_data.dash_alpha = draw_config.dash_alpha;
-    node_link_data.expandSize = snode.runtime->aspect * LINK_WIDTH;
+    node_link_data.dash_params[0] = draw_config.dash_length;
+    node_link_data.dash_params[1] = draw_config.dash_factor;
+    node_link_data.dash_params[2] = draw_config.dash_alpha;
+    node_link_data.aspect = snode.runtime->aspect;
     node_link_data.arrowSize = ARROW_SIZE;
 
     GPUBatch *batch = g_batch_link.batch_single;

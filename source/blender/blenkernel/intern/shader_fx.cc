@@ -300,8 +300,3 @@ void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
     }
   }
 }
-
-void BKE_shaderfx_blend_read_lib(BlendLibReader *reader, Object *ob)
-{
-  BKE_shaderfx_foreach_ID_link(ob, BKE_object_modifiers_lib_link_common, reader);
-}

@@ -1679,30 +1679,91 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
   return area;
 }
 
-void ED_refresh_viewport_fps(bContext *C)
+void ED_scene_fps_average_clear(Scene *scene)
 {
-  wmTimer *animtimer = CTX_wm_screen(C)->animtimer;
-  Scene *scene = CTX_data_scene(C);
+  MEM_SAFE_FREE(scene->fps_info);
+}
 
-  /* is anim playback running? */
-  if (animtimer && (U.uiflag & USER_SHOW_FPS)) {
-    ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
+void ED_scene_fps_average_accumulate(Scene *scene, const double ltime)
+{
+  if ((U.uiflag & USER_SHOW_FPS) == 0) {
+    /* Playback stopped or shouldn't be running. */
+    ED_scene_fps_average_clear(scene);
+    return;
+  }
 
-    /* if there isn't any info, init it first */
-    if (fpsi == nullptr) {
-      fpsi = static_cast<ScreenFrameRateInfo *>(
-          scene->fps_info = MEM_callocN(sizeof(ScreenFrameRateInfo),
-                                        "refresh_viewport_fps fps_info"));
+  /* Playback running. */
+  const float fps_target = float(FPS);
+
+  ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
+  const int redrawtimes_num = U.playback_fps_samples ? U.playback_fps_samples :
+                                                       max_ii(1, int(ceilf(fps_target)));
+
+  if (fpsi) {
+    /* Reset when the target FPS changes.
+     * Needed redraw times from when a different FPS was set do not contribute
+     * to an average that is over/under the new target. */
+    if ((fpsi->fps_target != fps_target) || (fpsi->redrawtimes_num != redrawtimes_num)) {
+      MEM_freeN(fpsi);
+      fpsi = nullptr;
+      scene->fps_info = nullptr;
     }
+  }
 
-    /* update the values */
-    fpsi->redrawtime = fpsi->lredrawtime;
-    fpsi->lredrawtime = animtimer->ltime;
+  /* If there isn't any info, initialize it first. */
+  if (fpsi == nullptr) {
+    scene->fps_info = MEM_callocN(sizeof(ScreenFrameRateInfo) + (sizeof(float) * redrawtimes_num),
+                                  __func__);
+    fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
+    fpsi->fps_target = fps_target;
+    fpsi->redrawtimes_num = redrawtimes_num;
+    fpsi->redrawtimes_num_set = 0;
   }
-  else {
-    /* playback stopped or shouldn't be running */
-    MEM_SAFE_FREE(scene->fps_info);
+
+  /* Update the values. */
+  fpsi->redrawtime = fpsi->lredrawtime;
+  fpsi->lredrawtime = ltime;
+
+  /* Mark as outdated. */
+  fpsi->fps_average = -1.0f;
+}
+
+bool ED_scene_fps_average_calc(const Scene *scene)
+{
+  ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
+  if (fpsi == nullptr) {
+    return false;
   }
+
+  /* Doing an average for a more robust calculation. */
+  if (fpsi->lredrawtime == 0.0 || fpsi->redrawtime == 0.0) {
+    /* The user should never see this. */
+    fpsi->fps_average = -1.0f;
+    return false;
+  }
+
+  if (fpsi->fps_average != -1.0) {
+    return true;
+  }
+
+  if (fpsi->redrawtimes_index >= fpsi->redrawtimes_num) {
+    fpsi->redrawtimes_index = 0;
+  }
+
+  /* Doing an average for a more robust calculation. */
+  fpsi->redrawtimes_fps[fpsi->redrawtimes_index] = float(1.0 /
+                                                         (fpsi->lredrawtime - fpsi->redrawtime));
+  fpsi->redrawtimes_index++;
+  if (fpsi->redrawtimes_index > fpsi->redrawtimes_num_set) {
+    fpsi->redrawtimes_num_set = fpsi->redrawtimes_index;
+  }
+  BLI_assert(fpsi->redrawtimes_num_set > 0);
+  float fps = 0.0f;
+  for (int i = 0; i < fpsi->redrawtimes_num_set; i++) {
+    fps += fpsi->redrawtimes_fps[i];
+  }
+  fpsi->fps_average = fps / float(fpsi->redrawtimes_num_set);
+  return true;
 }
 
 void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)

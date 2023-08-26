@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_tex_coord_position(out vec3 out_pos)
 {

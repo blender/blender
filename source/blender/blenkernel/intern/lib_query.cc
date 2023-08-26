@@ -148,7 +148,7 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 
 void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
-  /* Needed e.g. for callbacks handling relationships. This call shall be absolutely read-only. */
+  /* Needed e.g. for callbacks handling relationships. This call should be absolutely read-only. */
   ID *id = *id_pp;
   const int flag = data->flag;
 
@@ -205,10 +205,7 @@ static bool library_foreach_ID_link(Main *bmain,
   data.bmain = bmain;
 
   BLI_assert(inherit_data == nullptr || data.bmain == inherit_data->bmain);
-  /* `IDWALK_NO_ORIG_POINTERS_ACCESS` is mutually exclusive with both `IDWALK_READONLY` and
-   * `IDWALK_RECURSE`. */
-  BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY)) !=
-             (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY));
+  /* `IDWALK_NO_ORIG_POINTERS_ACCESS` is mutually exclusive with `IDWALK_RECURSE`. */
   BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE)) !=
              (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE));
 

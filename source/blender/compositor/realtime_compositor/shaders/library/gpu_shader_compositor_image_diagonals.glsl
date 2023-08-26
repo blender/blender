@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Computes the number of diagonals in the matrix of the given size, where the diagonals are
  * indexed from the upper left corner to the lower right corner such that their start is at the
  * left and bottom edges of the matrix as shown in the diagram below. The numbers in the diagram

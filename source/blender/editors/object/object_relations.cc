@@ -1655,7 +1655,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  prop = RNA_def_enum(ot->srna, "scene", rna_enum_dummy_NULL_items, 0, "Scene", "");
   RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
   ot->prop = prop;
@@ -2111,17 +2111,20 @@ static void tag_localizable_objects(bContext *C, const int mode)
 
   /* Also forbid making objects local if other library objects are using
    * them for modifiers or constraints.
+   *
+   * FIXME This is ignoring all other linked ID types potentially using the selected tagged
+   * objects! Probably works fine in most 'usual' cases though.
    */
   for (Object *object = static_cast<Object *>(bmain->objects.first); object;
        object = static_cast<Object *>(object->id.next))
   {
-    if ((object->id.tag & LIB_TAG_DOIT) == 0) {
+    if ((object->id.tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(object)) {
       BKE_library_foreach_ID_link(
           nullptr, &object->id, tag_localizable_looper, nullptr, IDWALK_READONLY);
     }
     if (object->data) {
       ID *data_id = (ID *)object->data;
-      if ((data_id->tag & LIB_TAG_DOIT) == 0) {
+      if ((data_id->tag & LIB_TAG_DOIT) == 0 && ID_IS_LINKED(data_id)) {
         BKE_library_foreach_ID_link(
             nullptr, data_id, tag_localizable_looper, nullptr, IDWALK_READONLY);
       }

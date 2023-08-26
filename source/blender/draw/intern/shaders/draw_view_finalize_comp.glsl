@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Compute culling data for each views of a given view buffer.

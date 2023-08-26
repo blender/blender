@@ -321,24 +321,6 @@ void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBase *list)
   }
 }
 
-void BKE_keyingsets_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_read_id_address(reader, id, &ksp->id);
-    }
-  }
-}
-
-void BKE_keyingsets_blend_read_expand(BlendExpander *expander, ListBase *list)
-{
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_expand(expander, ksp->id);
-    }
-  }
-}
-
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
 

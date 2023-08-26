@@ -346,9 +346,9 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_GaussianYBlurOperation.cc
     operations/COM_GaussianYBlurOperation.h
     operations/COM_KuwaharaAnisotropicOperation.cc
-    operations/COM_KuwaharaAnisotropicStructureTensorOperation.h
-    operations/COM_KuwaharaAnisotropicStructureTensorOperation.cc
     operations/COM_KuwaharaAnisotropicOperation.h
+    operations/COM_KuwaharaAnisotropicStructureTensorOperation.cc
+    operations/COM_KuwaharaAnisotropicStructureTensorOperation.h
     operations/COM_KuwaharaClassicOperation.cc
     operations/COM_KuwaharaClassicOperation.h
     operations/COM_MovieClipAttributeOperation.cc

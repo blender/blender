@@ -254,7 +254,7 @@ void AntiAliasingPass::draw(Manager &manager,
                             GPUTexture *color_tx)
 {
   auto draw_overlay_depth = [&](GPUTexture *target) {
-    stencil_tx_ = resources.depth_tx.stencil_view();
+    stencil_tx_ = resources.stencil_view.extract(manager, resources.depth_tx);
     overlay_depth_fb_.ensure(GPU_ATTACHMENT_TEXTURE(target));
     overlay_depth_fb_.bind();
     manager.submit(overlay_depth_ps_);

@@ -103,7 +103,7 @@ struct TransformProperties {
   float ob_dims_orig[3];
   float ob_scale_orig[3];
   float ob_dims[3];
-  float active_vertex_weight;
+  blender::Vector<float> vertex_weights;
   /* Floats only (treated as an array). */
   TransformMedian ve_median, median;
   bool tag_for_update;
@@ -278,8 +278,15 @@ static void apply_scale_factor_clamp(float *val,
 static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
 {
   if (v3d->runtime.properties_storage == nullptr) {
-    v3d->runtime.properties_storage = MEM_callocN(sizeof(TransformProperties),
-                                                  "TransformProperties");
+    TransformProperties *tfp = static_cast<TransformProperties *>(
+        MEM_callocN(sizeof(TransformProperties), "TransformProperties"));
+    /* Construct C++ structures in otherwise zero initialized struct. */
+    new (tfp) TransformProperties();
+
+    v3d->runtime.properties_storage = tfp;
+    v3d->runtime.properties_storage_free = [](void *properties_storage) {
+      MEM_delete(static_cast<TransformProperties *>(properties_storage));
+    };
   }
   return static_cast<TransformProperties *>(v3d->runtime.properties_storage);
 }
@@ -1334,7 +1341,7 @@ static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/
   MDeformVert *dv = ED_mesh_active_dvert_get_only(ob);
   const int vertex_group_index = POINTER_AS_INT(arg1);
   MDeformWeight *dw = BKE_defvert_find_index(dv, vertex_group_index);
-  dw->weight = tfp->active_vertex_weight;
+  dw->weight = tfp->vertex_weights[vertex_group_index];
 }
 
 static void view3d_panel_vgroup(const bContext *C, Panel *panel)
@@ -1382,6 +1389,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
         ob, subset_type, &vgroup_tot, &subset_count);
     const ListBase *defbase = BKE_object_defgroup_list(ob);
+    const int vgroup_num = BLI_listbase_count(defbase);
+    tfp->vertex_weights.resize(vgroup_num);
 
     for (i = 0, dg = static_cast<bDeformGroup *>(defbase->first); dg; i++, dg = dg->next) {
       bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
@@ -1419,7 +1428,8 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
           /* The weight group value */
           /* To be reworked still */
-          tfp->active_vertex_weight = dw->weight;
+          float &vertex_weight = tfp->vertex_weights[i];
+          vertex_weight = dw->weight;
           but = uiDefButF(block,
                           UI_BTYPE_NUM,
                           B_VGRP_PNL_EDIT_SINGLE + i,
@@ -1428,7 +1438,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
                           yco,
                           (x = UI_UNIT_X * 4),
                           UI_UNIT_Y,
-                          &tfp->active_vertex_weight,
+                          &vertex_weight,
                           0.0,
                           1.0,
                           0,

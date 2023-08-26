@@ -3193,7 +3193,7 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   add_relation(parameters_key, audio_key, "Parameters -> Audio");
 }
 
-using Seq_build_prop_cb_data = struct Seq_build_prop_cb_data {
+struct Seq_build_prop_cb_data {
   DepsgraphRelationBuilder *builder;
   ComponentKey sequencer_key;
   bool has_audio_strips;

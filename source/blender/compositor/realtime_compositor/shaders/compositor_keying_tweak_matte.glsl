@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_compositor_texture_utilities.glsl)
 
 void main()
@@ -6,12 +10,12 @@ void main()
 
   float matte = texture_load(input_matte_tx, texel).x;
 
-  /* Search the neighbourhood around the current matte value and identify if it lies along the
+  /* Search the neighborhood around the current matte value and identify if it lies along the
    * edges of the matte. This is needs to be computed only when we need to compute the edges output
    * or tweak the levels of the matte. */
   bool is_edge = false;
   if (compute_edges || black_level != 0.0 || white_level != 1.0) {
-    /* Count the number of neighbours whose matte is sufficiently similar to the current matte,
+    /* Count the number of neighbors whose matte is sufficiently similar to the current matte,
      * as controlled by the edge_tolerance factor. */
     int count = 0;
     for (int j = -edge_search_radius; j <= edge_search_radius; j++) {
@@ -21,8 +25,8 @@ void main()
       }
     }
 
-    /* If the number of neighbours that are sufficiently similar to the center matte is less that
-     * 90% of the total number of neighbours, then that means the variance is high in that areas
+    /* If the number of neighbors that are sufficiently similar to the center matte is less that
+     * 90% of the total number of neighbors, then that means the variance is high in that areas
      * and it is considered an edge. */
     is_edge = count < ((edge_search_radius * 2 + 1) * (edge_search_radius * 2 + 1)) * 0.9;
   }

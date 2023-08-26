@@ -194,20 +194,6 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
   tex->iuser.scene = nullptr;
 }
 
-static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Tex *tex = (Tex *)id;
-  BLO_read_id_address(reader, id, &tex->ima);
-  BLO_read_id_address(reader, id, &tex->ipo); /* XXX deprecated - old animation system */
-}
-
-static void texture_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Tex *tex = (Tex *)id;
-  BLO_expand(expander, tex->ima);
-  BLO_expand(expander, tex->ipo); /* XXX deprecated - old animation system */
-}
-
 IDTypeInfo IDType_ID_TE = {
     /*id_code*/ ID_TE,
     /*id_filter*/ FILTER_ID_TE,
@@ -230,8 +216,7 @@ IDTypeInfo IDType_ID_TE = {
 
     /*blend_write*/ texture_blend_write,
     /*blend_read_data*/ texture_blend_read_data,
-    /*blend_read_lib*/ texture_blend_read_lib,
-    /*blend_read_expand*/ texture_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

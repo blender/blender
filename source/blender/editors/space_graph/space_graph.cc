@@ -863,17 +863,6 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
 }
 
-static void graph_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceGraph *sipo = (SpaceGraph *)sl;
-  bDopeSheet *ads = sipo->ads;
-
-  if (ads) {
-    BLO_read_id_address(reader, parent_id, &ads->source);
-    BLO_read_id_address(reader, parent_id, &ads->filter_grp);
-  }
-}
-
 static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
@@ -913,7 +902,7 @@ void ED_spacetype_ipo()
   st->space_subtype_get = graph_space_subtype_get;
   st->space_subtype_set = graph_space_subtype_set;
   st->blend_read_data = graph_space_blend_read_data;
-  st->blend_read_lib = graph_space_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = graph_space_blend_write;
 
   /* regions: main window */

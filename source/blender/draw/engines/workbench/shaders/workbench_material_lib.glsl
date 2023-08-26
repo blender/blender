@@ -1,4 +1,6 @@
-
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void workbench_material_data_get(int handle,
                                  vec3 vertex_color,

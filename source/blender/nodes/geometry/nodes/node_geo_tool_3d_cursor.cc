@@ -21,12 +21,6 @@ static void node_declare(NodeDeclarationBuilder &b)
           "The rotation of the scene's 3D cursor, in the local space of the modified object");
 }
 
-static void node_update(bNodeTree *tree, bNode *node)
-{
-  bNodeSocket *rotation_socket = static_cast<bNodeSocket *>(node->outputs.last);
-  bke::nodeSetSocketAvailability(tree, rotation_socket, U.experimental.use_rotation_socket);
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   if (!check_tool_context_and_error(params)) {
@@ -37,9 +31,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const float3 location_global(cursor.location);
   const math::Quaternion rotation_global(float4(cursor.rotation_quaternion));
   params.set_output("Location", math::transform_point(world_to_object, location_global));
-  if (U.experimental.use_rotation_socket) {
-    params.set_output("Rotation", math::to_quaternion(world_to_object) * rotation_global);
-  }
+  params.set_output("Rotation", math::to_quaternion(world_to_object) * rotation_global);
 }
 
 static void node_register()
@@ -48,7 +40,6 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_TOOL_3D_CURSOR, "3D Cursor", NODE_CLASS_INPUT);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.updatefunc = node_update;
   ntype.gather_add_node_search_ops = search_link_ops_for_for_tool_node;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;
   nodeRegisterType(&ntype);

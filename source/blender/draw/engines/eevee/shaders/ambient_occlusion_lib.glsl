@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -321,8 +324,8 @@ void occlusion_eval(OcclusionData data,
   }
 }
 
-/* Multibounce approximation base on surface albedo.
- * Page 78 in the .pdf version. */
+/* Multi-bounce approximation base on surface albedo.
+ * Page 78 in the PDF version. */
 float gtao_multibounce(float visibility, vec3 albedo)
 {
   if (aoBounceFac == 0.0) {
@@ -457,7 +460,7 @@ float ambient_occlusion_eval(vec3 normal,
                              const float inverted,
                              const float sample_count)
 {
-  /* Avoid multiline define causing compiler issues. */
+  /* Avoid multi-line define causing compiler issues. */
   /* clang-format off */
 #if defined(GPU_FRAGMENT_SHADER) && (defined(MESH_SHADER) || defined(HAIR_SHADER)) && !defined(DEPTH_SHADER) && !defined(VOLUMETRICS)
   /* clang-format on */

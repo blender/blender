@@ -852,6 +852,10 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->node_preview_res = 120;
   }
 
+  if (!USER_VERSION_ATLEAST(400, 18)) {
+    userdef->playback_fps_samples = 8;
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

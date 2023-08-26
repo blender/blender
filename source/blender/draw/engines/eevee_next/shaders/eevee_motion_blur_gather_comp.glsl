@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Perform two gather blur in the 2 motion blur directions
@@ -19,7 +22,7 @@
 const int gather_sample_count = 8;
 
 /* Converts uv velocity into pixel space. Assumes velocity_tx is the same resolution as the
- * target post-fx framebuffer. */
+ * target post-FX frame-buffer. */
 vec4 motion_blur_sample_velocity(sampler2D velocity_tx, vec2 uv)
 {
   /* We can load velocity without velocity_resolve() since we resolved during the flatten pass. */

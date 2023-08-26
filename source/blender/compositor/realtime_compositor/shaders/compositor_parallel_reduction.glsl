@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* This shader reduces the given texture into a smaller texture of a size equal to the number of
  * work groups. In particular, each work group reduces its contents into a single value and writes
  * that value to a single pixel in the output image. The shader can be dispatched multiple times to

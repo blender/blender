@@ -1,11 +1,14 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Bilateral filtering of denoised raytraced radiance.
  *
  * Dispatched at fullres using a tile list.
  *
- * Input: Temporaly Stabilized Radiance, Stabilized Variance
- * Ouput: Denoised radiance
+ * Input: Temporally Stabilized Radiance, Stabilized Variance
+ * Output: Denoised radiance
  *
  * Following "Stochastic All The Things: Raytracing in Hybrid Real-Time Rendering"
  * by Tomasz Stachowiak
@@ -48,7 +51,7 @@ float bilateral_normal_weight(vec3 center_N, vec3 sample_N)
   return weight;
 }
 
-/* In order to remove some more fireflies, "tonemap" the color samples during the accumulation. */
+/* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 vec3 to_accumulation_space(vec3 color)
 {
   return color / (1.0 + dot(color, vec3(1.0)));

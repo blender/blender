@@ -154,28 +154,6 @@ static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void ipo_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  Ipo *ipo = (Ipo *)id;
-
-  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    if (icu->driver) {
-      BLO_read_id_address(reader, id, &icu->driver->ob);
-    }
-  }
-}
-
-static void ipo_blend_read_expand(BlendExpander *expander, ID *id)
-{
-  Ipo *ipo = (Ipo *)id;
-
-  LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    if (icu->driver) {
-      BLO_expand(expander, icu->driver->ob);
-    }
-  }
-}
-
 IDTypeInfo IDType_ID_IP = {
     /*id_code*/ ID_IP,
     /*id_filter*/ 0,
@@ -198,8 +176,7 @@ IDTypeInfo IDType_ID_IP = {
 
     /*blend_write*/ nullptr,
     /*blend_read_data*/ ipo_blend_read_data,
-    /*blend_read_lib*/ ipo_blend_read_lib,
-    /*blend_read_expand*/ ipo_blend_read_expand,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

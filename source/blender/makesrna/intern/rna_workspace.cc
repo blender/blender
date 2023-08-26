@@ -170,7 +170,7 @@ const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(bContext * /*C*/,
     case SPACE_SEQ:
       return rna_enum_space_sequencer_view_type_items;
   }
-  return DummyRNA_DEFAULT_items;
+  return rna_enum_dummy_DEFAULT_items;
 }
 
 static bool rna_WorkSpaceTool_use_paint_canvas_get(PointerRNA *ptr)
@@ -285,7 +285,7 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "mode");
-  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_items(prop, rna_enum_dummy_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_WorkSpace_tools_mode_itemf");
   RNA_def_property_ui_text(prop, "Tool Mode", "");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

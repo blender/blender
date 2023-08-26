@@ -874,13 +874,19 @@ void drawConstraint(TransInfo *t)
   }
 }
 
-void drawPropCircle(const bContext *C, TransInfo *t)
+void drawPropCircle(TransInfo *t)
 {
   if (t->flag & T_PROP_EDIT) {
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
+    const RegionView3D *rv3d = nullptr;
     float tmat[4][4], imat[4][4];
 
-    if (t->spacetype == SPACE_VIEW3D && rv3d != nullptr) {
+    if (t->spacetype == SPACE_VIEW3D) {
+      if (t->region && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+        rv3d = static_cast<const RegionView3D *>(t->region->regiondata);
+      }
+    }
+
+    if (rv3d != nullptr) {
       copy_m4_m4(tmat, rv3d->viewmat);
       invert_m4_m4(imat, tmat);
     }

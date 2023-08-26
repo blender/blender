@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
 
 void node_hair_info(float hair_length,

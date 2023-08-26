@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* Tone mapping based on equation (3) from Reinhard, Erik, et al. "Photographic tone reproduction
  * for digital images." Proceedings of the 29th annual conference on Computer graphics and
  * interactive techniques. 2002. */

@@ -1333,9 +1333,9 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
       RNA_property_enum_items_ex(nullptr, ptr, prop, true, &enum_item, nullptr, &free_dummy);
       BLI_assert(!free_dummy);
 
-      /* Do not print warning in case of DummyRNA_NULL_items,
+      /* Do not print warning in case of #rna_enum_dummy_NULL_items,
        * this one will never match any value... */
-      if (enum_item != DummyRNA_NULL_items) {
+      if (enum_item != rna_enum_dummy_NULL_items) {
         const char *ptr_name = RNA_struct_name_get_alloc(ptr, nullptr, 0, nullptr);
 
         /* Prefer not to fail silently in case of API errors, maybe disable it later. */

@@ -72,24 +72,22 @@ static EnumPropertyItem prop_color_filter_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static void color_filter_task_cb(void *__restrict userdata,
-                                 const int n,
-                                 const TaskParallelTLS *__restrict /*tls*/)
+static void color_filter_task(Object *ob,
+                              const int mode,
+                              const float filter_strength,
+                              const float *filter_fill_color,
+                              PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-
-  const int mode = data->filter_type;
+  SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COLOR);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->filter_cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->filter_cache->automasking, &automask_data, node);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
@@ -98,7 +96,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     float brightness, contrast, gain, delta, offset;
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
-    fade *= data->filter_strength;
+    fade *= filter_strength;
     fade *= SCULPT_automasking_factor_get(
         ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
@@ -111,7 +109,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     switch (mode) {
       case COLOR_FILTER_FILL: {
         float fill_color_rgba[4];
-        copy_v3_v3(fill_color_rgba, data->filter_fill_color);
+        copy_v3_v3(fill_color_rgba, filter_fill_color);
         fill_color_rgba[3] = 1.0f;
         fade = clamp_f(fade, 0.0f, 1.0f);
         mul_v4_fl(fill_color_rgba, fade);
@@ -223,7 +221,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     SCULPT_vertex_color_set(ss, vd.vertex, final_color);
   }
   BKE_pbvh_vertex_iter_end;
-  BKE_pbvh_node_mark_update_color(data->nodes[n]);
+  BKE_pbvh_node_mark_update_color(node);
 }
 
 static void sculpt_color_presmooth_init(SculptSession *ss)
@@ -269,7 +267,7 @@ static void sculpt_color_presmooth_init(SculptSession *ss)
 
 static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object *ob)
 {
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  using namespace blender;
   SculptSession *ss = ob->sculpt;
 
   const int mode = RNA_enum_get(op->ptr, "type");
@@ -283,20 +281,11 @@ static void sculpt_color_filter_apply(bContext *C, wmOperator *op, Object *ob)
     sculpt_color_presmooth_init(ss);
   }
 
-  SculptThreadedTaskData data{};
-  data.sd = sd;
-  data.ob = ob;
-  data.nodes = ss->filter_cache->nodes;
-  data.filter_type = mode;
-  data.filter_strength = filter_strength;
-  data.filter_fill_color = fill_color;
-
-  TaskParallelSettings settings;
-  BLI_parallel_range_settings_defaults(&settings);
-
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
-  BLI_task_parallel_range(
-      0, ss->filter_cache->nodes.size(), &data, color_filter_task_cb, &settings);
+  threading::parallel_for(ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      color_filter_task(ob, mode, filter_strength, fill_color, ss->filter_cache->nodes[i]);
+    }
+  });
 
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COLOR);
 }

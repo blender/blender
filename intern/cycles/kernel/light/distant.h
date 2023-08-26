@@ -36,8 +36,8 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
                                             ccl_private LightSample *ls)
 {
   float unused;
-  sample_uniform_cone_concentric(
-      klight->co, klight->distant.one_minus_cosangle, rand, &unused, &ls->Ng, &ls->pdf);
+  ls->Ng = sample_uniform_cone(
+      klight->co, klight->distant.one_minus_cosangle, rand, &unused, &ls->pdf);
 
   ls->P = ls->Ng;
   ls->D = -ls->Ng;

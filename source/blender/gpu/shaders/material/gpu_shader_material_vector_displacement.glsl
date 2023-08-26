@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2019-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 void node_vector_displacement_tangent(
     vec4 vector, float midlevel, float scale, vec4 T, out vec3 result)
 {

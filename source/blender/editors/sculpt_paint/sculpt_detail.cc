@@ -109,7 +109,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = tool_settings->sculpt;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
   if (nodes.is_empty()) {
     unlock_main_thread();
@@ -174,7 +174,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     BrushSphere sphere_brush_tester(center, radius);
     BrushTester *tester;
 
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
     if (!emulate_brush) {
       tester = &null_brush_tester;
@@ -206,8 +206,8 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     while (!remesher.done()) {
       remesher.step();
 
-      if (developer_mode && remesher.was_flushed() ||
-          (PIL_check_seconds_timer() - last_flush > 0.5)) {
+      if (developer_mode &&
+          (remesher.was_flushed() || (PIL_check_seconds_timer() - last_flush > 0.5))) {
         DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
         unlock_main_thread();
         update_main_thread();

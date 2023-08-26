@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2022-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
@@ -221,7 +224,7 @@ float ambient_occlusion_eval(vec3 normal,
                              const float inverted,
                              const float sample_count)
 {
-  /* Avoid multiline preprocesor conditionals.
+  /* Avoid multi-line pre-processor conditionals.
    * Some drivers don't handle them correctly. */
   // clang-format off
 #if defined(GPU_FRAGMENT_SHADER) && defined(MAT_AMBIENT_OCCLUSION) && !defined(MAT_DEPTH) && !defined(MAT_SHADOW)
@@ -297,7 +300,7 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
   float Ems = 1.0 - Ess;
   vec3 Favg = f0 + (1.0 - f0) / 21.0;
   vec3 Fms = FssEss * Favg / (1.0 - (1.0 - Ess) * Favg);
-  /* We don't do anything special for diffuse surfaces because the principle bsdf
+  /* We don't do anything special for diffuse surfaces because the principle BSDF
    * does not care about energy conservation of the specular layer for dielectrics. */
   return FssEss + Fms * Ems;
 }
@@ -305,7 +308,9 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 vec2 brdf_lut(float cos_theta, float roughness)
 {
 #ifdef EEVEE_UTILITY_TX
-  return utility_tx_sample_lut(utility_tx, vec2(cos_theta, roughness), UTIL_BSDF_LAYER).rg;
+  /* Parametrizing with `sqrt(1.0 - cos(theta))` for more precision near grazing incidence. */
+  vec2 coords = vec2(roughness, sqrt(1.0 - cos_theta));
+  return utility_tx_sample_lut(utility_tx, coords, UTIL_BSDF_LAYER).rg;
 #else
   return vec2(1.0, 0.0);
 #endif
@@ -326,7 +331,7 @@ vec2 btdf_lut(float cos_theta, float roughness, float ior)
     /* Avoid harsh transition coming from ior == 1. */
     float f90 = fast_sqrt(saturate(f0 / (F0_from_ior(eta_brdf) * 0.25)));
     float fresnel = F_brdf_single_scatter(vec3(f0), vec3(f90), split_sum).r;
-    /* Setting the BTDF to one is not really important since it is only used for multiscatter
+    /* Setting the BTDF to one is not really important since it is only used for multi-scatter
      * and it's already quite close to ground truth. */
     float btdf = 1.0;
     return vec2(btdf, fresnel);

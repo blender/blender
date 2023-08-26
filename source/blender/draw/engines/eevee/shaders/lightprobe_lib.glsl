@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(engine_eevee_legacy_shared.h)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -179,7 +182,7 @@ vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 P, vec3 N, vec3 V, float 
   /* How far the pixel is from the plane. */
   float ref_depth = 1.0; /* TODO: parameter. */
 
-  /* Compute distorded reflection vector based on the distance to the reflected object.
+  /* Compute distorted reflection vector based on the distance to the reflected object.
    * In other words find intersection between reflection vector and the sphere center
    * around point_on_plane. */
   vec3 proj_ref = reflect(reflect(-V, N) * ref_depth, pd.pl_normal);

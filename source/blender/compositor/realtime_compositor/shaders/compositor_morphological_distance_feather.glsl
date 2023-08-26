@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* The Morphological Distance Feather operation is a linear combination between the result of two
  * operations. The first operation is a Gaussian blur with a radius equivalent to the dilate/erode
  * distance, which is straightforward and implemented as a separable filter similar to the blur

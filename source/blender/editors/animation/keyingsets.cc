@@ -384,7 +384,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int index = 0;
 
-  if (UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
+  if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
@@ -503,7 +503,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 
   /* keyingset to use (dynamic enum) */
   prop = RNA_def_enum(
-      ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+      ot->srna, "type", rna_enum_dummy_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
   RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
   // RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -792,7 +792,7 @@ const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C,
   int i = 0;
 
   if (C == nullptr) {
-    return DummyRNA_DEFAULT_items;
+    return rna_enum_dummy_DEFAULT_items;
   }
 
   /* active Keying Set

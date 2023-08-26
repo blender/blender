@@ -1280,8 +1280,7 @@ class VIEW3D_MT_view(Menu):
         layout.prop(view, "show_region_toolbar")
         layout.prop(view, "show_region_ui")
         layout.prop(view, "show_region_tool_header")
-        if prefs.experimental.use_asset_shelf:
-            layout.prop(view, "show_region_asset_shelf")
+        layout.prop(view, "show_region_asset_shelf")
         layout.prop(view, "show_region_hud")
 
         layout.separator()
@@ -4806,6 +4805,15 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
         layout.operator("gpencil.delete", text="Delete Active Keyframe (Active Layer)").type = 'FRAME'
         layout.operator("gpencil.active_frames_delete_all", text="Delete Active Keyframes (All Layers)")
 
+
+class VIEW3D_MT_edit_greasepencil_delete(Menu):
+    bl_label = "Delete"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator_enum("grease_pencil.dissolve", "type")
+
 # Edit Curve
 # draw_curve is used by VIEW3D_MT_edit_curve and VIEW3D_MT_edit_surface
 
@@ -5572,7 +5580,8 @@ class VIEW3D_MT_edit_greasepencil(Menu):
     bl_label = "Grease Pencil"
 
     def draw(self, _context):
-        pass
+        layout = self.layout
+        layout.menu("VIEW3D_MT_edit_greasepencil_delete")
 
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
@@ -6088,8 +6097,8 @@ class VIEW3D_PT_collections(Panel):
 class VIEW3D_PT_object_type_visibility(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "View Object Types"
-    bl_ui_units_x = 7
+    bl_label = "Selectability & Visibility"
+    bl_ui_units_x = 8
 
     # Allows derived classes to pass view data other than context.space_data.
     # This is used by the official VR add-on, which passes XrSessionSettings
@@ -6099,33 +6108,30 @@ class VIEW3D_PT_object_type_visibility(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        layout.label(text="Object Types Visibility")
+        layout.label(text="Selectability & Visibility")
         layout.separator()
-        col = layout.column()
+        col = layout.column(align=True)
 
         attr_object_types = (
-            # Geometry
-            ("mesh", "Mesh"),
-            ("curve", "Curve"),
-            ("surf", "Surface"),
-            ("meta", "Meta"),
-            ("font", "Text"),
-            ("curves", "Hair Curves"),
-            ("pointcloud", "Point Cloud"),
-            ("volume", "Volume"),
-            ("grease_pencil", "Grease Pencil"),
-            (None, None),
-            # Other
-            ("armature", "Armature"),
-            ("lattice", "Lattice"),
-            ("empty", "Empty"),
-            ("light", "Light"),
-            ("light_probe", "Light Probe"),
-            ("camera", "Camera"),
-            ("speaker", "Speaker"),
+            ("mesh", "Mesh", "OUTLINER_OB_MESH"),
+            ("curve", "Curve", "OUTLINER_OB_CURVE"),
+            ("surf", "Surface", "OUTLINER_OB_SURFACE"),
+            ("meta", "Meta", "OUTLINER_OB_META"),
+            ("font", "Text", "OUTLINER_OB_FONT"),
+            ("curves", "Hair Curves", "OUTLINER_OB_CURVES"),
+            ("pointcloud", "Point Cloud", "OUTLINER_OB_POINTCLOUD"),
+            ("volume", "Volume", "OUTLINER_OB_VOLUME"),
+            ("grease_pencil", "Grease Pencil", "OUTLINER_OB_GREASEPENCIL"),
+            ("armature", "Armature", "OUTLINER_OB_ARMATURE"),
+            ("lattice", "Lattice", "OUTLINER_OB_LATTICE"),
+            ("empty", "Empty", "OUTLINER_OB_EMPTY"),
+            ("light", "Light", "OUTLINER_OB_LIGHT"),
+            ("light_probe", "Light Probe", "OUTLINER_OB_LIGHTPROBE"),
+            ("camera", "Camera", "OUTLINER_OB_CAMERA"),
+            ("speaker", "Speaker", "OUTLINER_OB_SPEAKER"),
         )
 
-        for attr, attr_name in attr_object_types:
+        for attr, attr_name, attr_icon in attr_object_types:
             if attr is None:
                 col.separator()
                 continue
@@ -6139,10 +6145,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
             icon_v = 'HIDE_OFF' if getattr(view, attr_v) else 'HIDE_ON'
 
             row = col.row(align=True)
-            row.alignment = 'RIGHT'
-
-            row.label(text=attr_name)
-            row.prop(view, attr_v, text="", icon=icon_v, emboss=False)
+            row.label(text=attr_name, icon=attr_icon)
 
             if show_select:
                 attr_s = "show_object_select_" + attr
@@ -6151,6 +6154,9 @@ class VIEW3D_PT_object_type_visibility(Panel):
                 rowsub = row.row(align=True)
                 rowsub.active = getattr(view, attr_v)
                 rowsub.prop(view, attr_s, text="", icon=icon_s, emboss=False)
+
+            row.prop(view, attr_v, text="", icon=icon_v, emboss=False)
+
 
     def draw(self, context):
         view = context.space_data
@@ -8324,7 +8330,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
         if not prefs.experimental.use_extended_asset_browser:
             return False
 
-        return bool(context.object and context.object.mode == 'SCULPT')
+        return context.mode == 'SCULPT'
 
     @classmethod
     def asset_poll(cls, asset):
@@ -8475,6 +8481,7 @@ classes = (
     VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_context_menu,
     VIEW3D_MT_edit_greasepencil,
+    VIEW3D_MT_edit_greasepencil_delete,
     VIEW3D_MT_edit_greasepencil_stroke,
     VIEW3D_MT_edit_curve,
     VIEW3D_MT_edit_curve_ctrlpoints,

@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2019-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef OBINFO_LIB
 void node_normal_map(vec4 tangent, float strength, vec3 texnormal, out vec3 outnormal)

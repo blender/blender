@@ -558,6 +558,160 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Dissolve Points Operator
+ * \{ */
+
+enum class DissolveMode : int8_t {
+  /* Dissolve all selected points. */
+  POINTS,
+  /* Dissolve between selected points. */
+  BETWEEN,
+  /* Dissolve unselected points. */
+  UNSELECT,
+};
+
+static const EnumPropertyItem prop_dissolve_types[] = {
+    {int(DissolveMode::POINTS), "POINTS", 0, "Dissolve", "Dissolve selected points"},
+    {int(DissolveMode::BETWEEN),
+     "BETWEEN",
+     0,
+     "Dissolve Between",
+     "Dissolve points between selected points"},
+    {int(DissolveMode::UNSELECT),
+     "UNSELECT",
+     0,
+     "Dissolve Unselect",
+     "Dissolve all unselected points"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static Array<bool> get_points_to_dissolve(bke::CurvesGeometry &curves, const DissolveMode mode)
+{
+  const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
+      ".selection", ATTR_DOMAIN_POINT, true);
+
+  Array<bool> points_to_dissolve(curves.points_num());
+  selection.materialize(points_to_dissolve);
+
+  if (mode == DissolveMode::POINTS) {
+    return points_to_dissolve;
+  }
+
+  /* Both `between` and `unselect` have the unselected point being the ones dissolved so we need to
+   * invert. */
+  BLI_assert(ELEM(mode, DissolveMode::BETWEEN, DissolveMode::UNSELECT));
+
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  /* Because we are going to invert, these become the points to keep. */
+  MutableSpan<bool> points_to_keep = points_to_dissolve.as_mutable_span();
+
+  threading::parallel_for(curves.curves_range(), 128, [&](const IndexRange range) {
+    for (const int64_t curve_i : range) {
+      const IndexRange points = points_by_curve[curve_i];
+      const Span<bool> curve_selection = points_to_dissolve.as_span().slice(points);
+      /* The unselected curves should not be dissolved. */
+      if (!curve_selection.contains(true)) {
+        points_to_keep.slice(points).fill(true);
+        continue;
+      }
+
+      /* `between` is just `unselect` but with the first and last segments not getting
+       * dissolved. */
+      if (mode != DissolveMode::BETWEEN) {
+        continue;
+      }
+
+      const Vector<IndexRange> deselection_ranges = array_utils::find_all_ranges(curve_selection,
+                                                                                 false);
+
+      if (deselection_ranges.size() != 0) {
+        const IndexRange first_range = deselection_ranges.first().shift(points.first());
+        const IndexRange last_range = deselection_ranges.last().shift(points.first());
+
+        /* Ranges should only be fill if the first/last point matches the start/end point
+         * of the segment. */
+        if (first_range.first() == points.first()) {
+          points_to_keep.slice(first_range).fill(true);
+        }
+        if (last_range.last() == points.last()) {
+          points_to_keep.slice(last_range).fill(true);
+        }
+      }
+    }
+  });
+
+  array_utils::invert_booleans(points_to_dissolve);
+
+  return points_to_dissolve;
+}
+
+static int grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender;
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const DissolveMode mode = DissolveMode(RNA_enum_get(op->ptr, "type"));
+
+  bool changed = false;
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*drawing_index*/, bke::greasepencil::Drawing &drawing) {
+        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+        if (curves.points_num() == 0) {
+          return;
+        }
+
+        if (!ed::curves::has_anything_selected(curves)) {
+          return;
+        }
+
+        const Array<bool> points_to_dissolve = get_points_to_dissolve(curves, mode);
+
+        if (points_to_dissolve.as_span().contains(true)) {
+          IndexMaskMemory memory;
+          curves.remove_points(IndexMask::from_bools(points_to_dissolve, memory));
+          drawing.tag_topology_changed();
+          changed = true;
+        }
+      });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_dissolve(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Dissolve";
+  ot->idname = "GREASE_PENCIL_OT_dissolve";
+  ot->description = "Delete selected points without splitting strokes";
+
+  /* Callbacks. */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_dissolve_exec;
+  ot->poll = editable_grease_pencil_point_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Simplify parameters. */
+  ot->prop = prop = RNA_def_enum(ot->srna,
+                                 "type",
+                                 prop_dissolve_types,
+                                 0,
+                                 "Type",
+                                 "Method used for dissolving stroke points");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -565,6 +719,7 @@ void ED_operatortypes_grease_pencil_edit()
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_smooth);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_simplify);
+  WM_operatortype_append(GREASE_PENCIL_OT_dissolve);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

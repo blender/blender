@@ -302,7 +302,7 @@ typedef enum {
   GHOST_kEventImeComposition,
   GHOST_kEventImeCompositionEnd,
 
-  GHOST_kNumEventTypes
+#define GHOST_kNumEventTypes (GHOST_kEventImeCompositionEnd + 1)
 } GHOST_TEventType;
 
 typedef enum {

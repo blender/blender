@@ -503,7 +503,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
     psys_particle_on_dm(
         ctx->mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co1, 0, 0, 0, orco1, 0);
-    BKE_mesh_orco_verts_transform(ob->data, &orco1, 1, 1);
+    BKE_mesh_orco_verts_transform(ob->data, &orco1, 1, true);
     maxw = BLI_kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     for (w = 0; w < maxw; w++) {
@@ -737,7 +737,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
                         nullptr,
                         nullptr,
                         orco1);
-    BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco1, 1, 1);
+    BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco1, 1, true);
     maxw = BLI_kdtree_3d_find_nearest_n(ctx->tree, orco1, ptn, 3);
 
     maxd = ptn[maxw - 1].dist;
@@ -993,7 +993,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
                           nullptr,
                           nullptr,
                           orco);
-      BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco, 1, 1);
+      BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &orco, 1, true);
       BLI_kdtree_3d_insert(tree, p, orco);
     }
 
@@ -1031,7 +1031,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       for (p = 0; p < totvert; p++) {
         if (orcodata) {
           copy_v3_v3(co, orcodata[p]);
-          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co, 1, 1);
+          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co, 1, true);
         }
         else {
           copy_v3_v3(co, positions[p]);
@@ -1087,12 +1087,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
         copy_v3_v3(co1, orcodata[mf->v1]);
         copy_v3_v3(co2, orcodata[mf->v2]);
         copy_v3_v3(co3, orcodata[mf->v3]);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co1, 1, 1);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co2, 1, 1);
-        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co3, 1, 1);
+        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co1, 1, true);
+        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co2, 1, true);
+        BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co3, 1, true);
         if (mf->v4) {
           copy_v3_v3(co4, orcodata[mf->v4]);
-          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co4, 1, 1);
+          BKE_mesh_orco_verts_transform(static_cast<Mesh *>(ob->data), &co4, 1, true);
         }
       }
       else {

@@ -1916,7 +1916,7 @@ static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext * /*C*/
   SpaceImage *sima = (SpaceImage *)ptr->data;
 
   if (sima->mode == SI_MODE_PAINT) {
-    return rna_enum_transform_pivot_items_full;
+    return rna_enum_transform_pivot_full_items;
   }
   else {
     return pivot_items;
@@ -5646,7 +5646,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "around");
-  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_items_full);
+  RNA_def_property_enum_items(prop, rna_enum_transform_pivot_full_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_SpaceImageEditor_pivot_itemf");
   RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
@@ -6695,10 +6695,10 @@ static void rna_def_fileselect_asset_idfilter(BlenderRNA *brna)
     const char *identifier = rna_enum_id_type_filter_items[i].identifier;
     if (is_experimental) {
       /* Create name for experimental property and store in static buffer. */
-      snprintf(experimental_prop_names[i],
-               ARRAY_SIZE(experimental_prop_names[i]),
-               "experimental_%s",
-               identifier);
+      BLI_snprintf(experimental_prop_names[i],
+                   ARRAY_SIZE(experimental_prop_names[i]),
+                   "experimental_%s",
+                   identifier);
       identifier = experimental_prop_names[i];
     }
 

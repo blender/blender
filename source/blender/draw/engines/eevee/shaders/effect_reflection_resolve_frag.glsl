@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
@@ -77,7 +80,7 @@ void resolve_reflection_sample(int planar_index,
 
   float weight = bsdf * data.ray_pdf_inv;
 
-  /* Do not reuse hitpoint from planar reflections for normal reflections and vice versa. */
+  /* Do not reuse hit-point from planar reflections for normal reflections and vice versa. */
   if ((planar_index == -1 && data.is_planar) || (planar_index != -1 && !data.is_planar)) {
     return;
   }
@@ -250,17 +253,17 @@ void main()
   if (depth == 1.0) {
 #if defined(GPU_INTEL) && defined(GPU_METAL)
     /* Divergent code execution (and sampling) causes corruption due to undefined
-     * derivative/sampling behaviour, on Intel GPUs. Using a mask factor to ensure shaders do not
+     * derivative/sampling behavior, on Intel GPUs. Using a mask factor to ensure shaders do not
      * diverge and only the final result is masked. */
     factor = 0.0f;
 #else
     /* Note: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
-     * produce undefined behaviour. This is especially prominent with derivatives if control-flow
+     * produce undefined behavior. This is especially prominent with derivatives if control-flow
      * divergence is present.
      *
-     * Adding a return call eliminates undefined behaviour and a later out-of-bounds read causing
+     * Adding a return call eliminates undefined behavior and a later out-of-bounds read causing
      * a crash on AMD platforms.
-     * This behaviour can also affect OpenGL on certain devices. */
+     * This behavior can also affect OpenGL on certain devices. */
     discard;
     return;
 #endif

@@ -71,7 +71,7 @@ using uvec4 = uint4;
 #define barrier() threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device | mem_flags::mem_texture)
 
 #ifdef MTL_USE_WORKGROUP_SIZE
-/* Compute workgroup size. */
+/* Compute work-group size. */
 struct constexp_uvec3 {
   /* Type union to cover all syntax accessors:
    * .x, .y, .z, .xy, .xyz
@@ -132,7 +132,7 @@ constexpr constexp_uvec3 __internal_workgroupsize_get()
  * NOTE: We cannot hoist the address space into the template declaration, so these must be declared
  * for each relevant address space. */
 
-/* Threadgroup memory. */
+/* Thread-group memory. */
 template<typename T> T atomicMax(threadgroup T &mem, T data)
 {
   return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
@@ -201,7 +201,7 @@ template<typename T> T atomicExchange(device T &mem, T data)
 }
 
 /* Unblock texture atomic compilation.
- * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single
+ * TODO(Metal): This is not correct for global atomic behavior, but will be safe within a single
  * thread.
  * We need to re-visit the solution for this use-case and use a 2D texture buffer instead. */
 #define imageAtomicMin(tex, coord, data) \
@@ -209,8 +209,8 @@ template<typename T> T atomicExchange(device T &mem, T data)
   _texture_write_internal(tex, coord, uint4((val < data) ? val : data)); \
   tex.texture->fence();
 
-/* Used to replace 'out' in function parameters with threadlocal reference
- * shortened to avoid expanding the glsl source string. */
+/* Used to replace 'out' in function parameters with thread-local reference
+ * shortened to avoid expanding the GLSL source string. */
 #define THD thread
 #define OUT(type, name, array) thread type(&name)[array]
 

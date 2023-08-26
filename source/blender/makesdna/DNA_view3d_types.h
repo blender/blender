@@ -257,6 +257,7 @@ typedef enum eHandleDisplay {
 typedef struct View3D_Runtime {
   /** Nkey panel stores stuff here. */
   void *properties_storage;
+  void (*properties_storage_free)(void *properties_storage);
   /** Runtime only flags. */
   int flag;
 

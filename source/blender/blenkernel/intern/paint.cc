@@ -179,8 +179,7 @@ IDTypeInfo IDType_ID_PAL = {
 
     /*blend_write*/ palette_blend_write,
     /*blend_read_data*/ palette_blend_read_data,
-    /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ palette_undo_preserve,
 
@@ -247,8 +246,7 @@ IDTypeInfo IDType_ID_PC = {
 
     /*blend_write*/ paint_curve_blend_write,
     /*blend_read_data*/ paint_curve_blend_read_data,
-    /*blend_read_lib*/ nullptr,
-    /*blend_read_expand*/ nullptr,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -1298,19 +1296,6 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
 
   p->paint_cursor = nullptr;
   BKE_paint_runtime_init(scene->toolsettings, p);
-}
-
-void BKE_paint_blend_read_lib(BlendLibReader *reader, Scene *sce, Paint *p)
-{
-  if (p) {
-    BLO_read_id_address(reader, &sce->id, &p->brush);
-    for (int i = 0; i < p->tool_slots_len; i++) {
-      if (p->tool_slots[i].brush != nullptr) {
-        BLO_read_id_address(reader, &sce->id, &p->tool_slots[i].brush);
-      }
-    }
-    BLO_read_id_address(reader, &sce->id, &p->palette);
-  }
 }
 
 bool paint_is_grid_face_hidden(const uint *grid_hidden, int gridsize, int x, int y)
@@ -2375,7 +2360,7 @@ void BKE_sculpt_update_object_before_eval(Object *ob_eval)
       BKE_sculptsession_free_vwpaint_data(ob_eval->sculpt);
     }
     else if (ss->pbvh) {
-      Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+      Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
 
       for (PBVHNode *node : nodes) {
         BKE_pbvh_node_mark_update(node);

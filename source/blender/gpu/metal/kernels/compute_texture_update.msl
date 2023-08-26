@@ -33,7 +33,7 @@ using namespace metal;
 #  define DIMS 3
 #endif
 
-/* Position dimensionality for threadgroup. */
+/* Position dimensionality for thread-group. */
 #if DIMS == 1
 #  define POSITION_TYPE uint
 #elif DIMS == 2

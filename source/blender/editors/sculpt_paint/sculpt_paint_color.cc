@@ -37,26 +37,22 @@
 using blender::Vector;
 using namespace blender::bke::paint;
 
-static void do_color_smooth_task_cb_exec(void *__restrict userdata,
-                                         const int n,
-                                         const TaskParallelTLS *__restrict tls)
+static void do_color_smooth_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
+  SculptSession *ss = ob->sculpt;
   const float bstrength = ss->cache->bstrength;
 
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -90,24 +86,28 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_paint_brush_task_cb_ex(void *__restrict userdata,
-                                      const int n,
-                                      const TaskParallelTLS *__restrict tls)
+static void do_paint_brush_task(Object *ob,
+                                const Brush *brush,
+                                const float (*mat)[4],
+                                float *wet_mix_sampled_color,
+                                PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
+  SculptSession *ss = ob->sculpt;
   const float bstrength = fabsf(ss->cache->bstrength);
 
-  const SculptAttribute *buffer_scl = data->scl;
+  const SculptAttribute *buffer_scl = ss->attrs.smear_previous;
 
   const bool do_accum = brush->flag & BRUSH_ACCUMULATE;
 
   PBVHVertexIter vd;
 
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, ob, node, SCULPT_UNDO_COLOR);
+
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -121,8 +121,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   float alpha = BKE_brush_alpha_get(ss->scene, brush);
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
   if (brush->flag & BRUSH_USE_GRADIENT) {
     switch (brush->gradient_stroke_mode) {
@@ -142,7 +141,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     }
   }
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_vertex_check_origdata(ss, vd.vertex);
 
     /* Check if we have a new stroke, in which we need to zero
@@ -161,7 +160,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     if (brush->tip_roundness < 1.0f) {
       affect_vertex = SCULPT_brush_test_cube(&test,
                                              vd.co,
-                                             data->mat,
+                                             mat,
                                              brush->tip_roundness,
                                              brush->tip_scale_x,
                                              brush->falloff_shape != PAINT_FALLOFF_SHAPE_TUBE);
@@ -206,7 +205,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     float buffer_color[4];
 
     mul_v4_v4fl(paint_color, brush_color, fade * ss->cache->paint_brush.flow);
-    mul_v4_v4fl(wet_mix_color, data->wet_mix_sampled_color, fade * ss->cache->paint_brush.flow);
+    mul_v4_v4fl(wet_mix_color, wet_mix_sampled_color, fade * ss->cache->paint_brush.flow);
 
     /* Interpolate with the wet_mix color for wet paint mixing. */
     blend_color_interpolate_float(
@@ -245,27 +244,26 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-struct SampleWetPaintTLSData {
+struct SampleWetPaintData {
   int tot_samples;
   float color[4];
 };
 
-static void do_sample_wet_paint_task_cb(void *__restrict userdata,
-                                        const int n,
-                                        const TaskParallelTLS *__restrict tls)
+static void do_sample_wet_paint_task(SculptSession *ss,
+                                     const Brush *brush,
+                                     PBVHNode *node,
+                                     SampleWetPaintData *swptd)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  SampleWetPaintTLSData *swptd = static_cast<SampleWetPaintTLSData *>(tls->userdata_chunk);
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
 
-  test.radius *= data->brush->wet_paint_radius_factor;
+  test.radius *= brush->wet_paint_radius_factor;
   test.radius_squared = test.radius * test.radius;
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -279,17 +277,6 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void sample_wet_paint_reduce(const void *__restrict /*userdata*/,
-                                    void *__restrict chunk_join,
-                                    void *__restrict chunk)
-{
-  SampleWetPaintTLSData *join = static_cast<SampleWetPaintTLSData *>(chunk_join);
-  SampleWetPaintTLSData *swptd = static_cast<SampleWetPaintTLSData *>(chunk);
-
-  join->tot_samples += swptd->tot_samples;
-  add_v4_v4(join->color, swptd->color);
-}
-
 void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Scene *scene,
                            Sculpt *sd,
@@ -297,6 +284,7 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
                            Span<PBVHNode *> nodes,
                            Span<PBVHNode *> texnodes)
 {
+  using namespace blender;
   if (SCULPT_use_image_paint_brush(paint_mode_settings, ob)) {
     SCULPT_do_paint_brush_image(paint_mode_settings, sd, ob, texnodes);
     return;
@@ -343,17 +331,11 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
-    SculptThreadedTaskData data;
-    data.sd = sd;
-    data.ob = ob;
-    data.brush = brush;
-    data.nodes = nodes;
-    data.mat = mat;
-    data.brush_color = brush_color;
-
-    TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        do_color_smooth_task(ob, brush, nodes[i]);
+      }
+    });
     return;
   }
 
@@ -362,24 +344,22 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
   /* Wet paint color sampling. */
   float wet_color[4] = {0.0f};
   if (ss->cache->paint_brush.wet_mix > 0.0f) {
-    SculptThreadedTaskData task_data;
-    task_data.sd = sd;
-    task_data.ob = ob;
-    task_data.nodes = nodes;
-    task_data.brush = brush;
-    task_data.brush_color = brush_color;
-
-    SampleWetPaintTLSData swptd;
-    swptd.tot_samples = 0;
-    zero_v4(swptd.color);
-
-    TaskParallelSettings settings_sample;
-    BKE_pbvh_parallel_range_settings(&settings_sample, true, nodes.size());
-    settings_sample.func_reduce = sample_wet_paint_reduce;
-    settings_sample.userdata_chunk = &swptd;
-    settings_sample.userdata_chunk_size = sizeof(SampleWetPaintTLSData);
-    BLI_task_parallel_range(
-        0, nodes.size(), &task_data, do_sample_wet_paint_task_cb, &settings_sample);
+    const SampleWetPaintData swptd = threading::parallel_reduce(
+        nodes.index_range(),
+        1,
+        SampleWetPaintData{},
+        [&](const IndexRange range, SampleWetPaintData swptd) {
+          for (const int i : range) {
+            do_sample_wet_paint_task(ss, brush, nodes[i], &swptd);
+          }
+          return swptd;
+        },
+        [](const SampleWetPaintData &a, const SampleWetPaintData &b) {
+          SampleWetPaintData joined{};
+          joined.tot_samples = a.tot_samples + b.tot_samples;
+          add_v4_v4v4(joined.color, a.color, b.color);
+          return joined;
+        });
 
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
       copy_v4_v4(wet_color, swptd.color);
@@ -398,12 +378,9 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
     }
   }
 
-  SculptAttribute *buffer_scl;
-
   SculptAttributeParams params = {};
-  params.stroke_only = true;
-
   SculptAttributeParams params_id = {};
+  params.stroke_only = true;
   params_id.nointerp = params.stroke_only = true;
 
   BKE_sculpt_ensure_origcolor(ob);
@@ -413,32 +390,18 @@ void SCULPT_do_paint_brush(PaintModeSettings *paint_mode_settings,
         ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(smear_previous), &params);
   }
 
-  buffer_scl = ss->attrs.smear_previous;
   SCULPT_stroke_id_ensure(ob);
 
-  /* Threaded loop over nodes. */
-  SculptThreadedTaskData data;
-  data.sd = sd;
-  data.ob = ob;
-  data.brush = brush;
-  data.nodes = nodes;
-  data.wet_mix_sampled_color = wet_color;
-  data.mat = mat;
-  data.scl = buffer_scl;
-  data.brush_color = brush_color;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
-  BLI_task_parallel_range(0, nodes.size(), &data, do_paint_brush_task_cb_ex, &settings);
+  threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+    for (const int i : range) {
+      do_paint_brush_task(ob, brush, mat, wet_color, nodes[i]);
+    }
+  });
 }
 
-static void do_smear_brush_task_cb_exec(void *__restrict userdata,
-                                        const int n,
-                                        const TaskParallelTLS *__restrict tls)
+static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-  const Brush *brush = data->brush;
+  SculptSession *ss = ob->sculpt;
   const float bstrength = ss->cache->bstrength;
 
   const float blend = brush->smear_deform_blend;
@@ -446,8 +409,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(ss, &test);
-  const int thread_id = BLI_task_parallel_thread_id(tls);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, brush->falloff_shape);
+  const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
   float brush_delta[3];
 
@@ -459,10 +423,9 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   }
 
   AutomaskingNodeData automask_data;
-  SCULPT_automasking_node_begin(
-      data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
+  SCULPT_automasking_node_begin(ob, ss, ss->cache->automasking, &automask_data, node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -483,7 +446,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     float current_disp[3];
     float current_disp_norm[3];
     float interp_color[4];
-    float *prev_color = vertex_attr_ptr<float>(vd.vertex, data->scl);
+    float *prev_color = vertex_attr_ptr<float>(vd.vertex, ss->attrs.smear_previous);
 
     copy_v4_v4(interp_color, prev_color);
 
@@ -561,7 +524,8 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
           continue;
         }
 
-        const float *neighbor_color = vertex_attr_ptr<const float>(ni.vertex, data->scl);
+        const float *neighbor_color = vertex_attr_ptr<const float>(ni.vertex,
+                                                                   ss->attrs.smear_previous);
         float color_interp = -dot_v3v3(current_disp_norm, vertex_disp_norm);
 
         /* Square directional weight to get a somewhat sharper result. */
@@ -589,22 +553,21 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
-                                                    const int n,
-                                                    const TaskParallelTLS *__restrict /*tls*/)
+static void do_smear_store_prev_colors_task(SculptSession *ss, PBVHNode *node)
 {
-  SculptThreadedTaskData *data = static_cast<SculptThreadedTaskData *>(userdata);
-  SculptSession *ss = data->ob->sculpt;
-
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    SCULPT_vertex_color_get(ss, vd.vertex, vertex_attr_ptr<float>(vd.vertex, data->scl));
+
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    SCULPT_vertex_color_get(
+        ss, vd.vertex, vertex_attr_ptr<float>(vd.vertex, ss->attrs.smear_previous));
   }
   BKE_pbvh_vertex_iter_end;
 }
 
 void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
+  using namespace blender;
+
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -622,28 +585,27 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
         ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, SCULPT_ATTRIBUTE_NAME(smear_previous), &params);
   }
 
-  SculptAttribute *prev_scl = ss->attrs.smear_previous;
-
   BKE_curvemapping_init(brush->curve);
-
-  SculptThreadedTaskData data;
-  data.sd = sd;
-  data.ob = ob;
-  data.scl = prev_scl;
-  data.brush = brush;
-  data.nodes = nodes;
-
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
 
   /* Smooth colors mode. */
   if (ss->cache->alt_smooth) {
-    BLI_task_parallel_range(0, nodes.size(), &data, do_color_smooth_task_cb_exec, &settings);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        do_color_smooth_task(ob, brush, nodes[i]);
+      }
+    });
   }
   else {
     /* Smear mode. */
-    BLI_task_parallel_range(
-        0, nodes.size(), &data, do_smear_store_prev_colors_task_cb_exec, &settings);
-    BLI_task_parallel_range(0, nodes.size(), &data, do_smear_brush_task_cb_exec, &settings);
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        do_smear_store_prev_colors_task(ss, nodes[i]);
+      }
+    });
+    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+      for (const int i : range) {
+        do_smear_brush_task(ob, brush, nodes[i]);
+      }
+    });
   }
 }

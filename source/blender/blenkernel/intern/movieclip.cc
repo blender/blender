@@ -277,35 +277,6 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
   }
 }
 
-static void lib_link_movieTracks(BlendLibReader *reader, MovieClip *clip, ListBase *tracksbase)
-{
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-    BLO_read_id_address(reader, &clip->id, &track->gpd);
-  }
-}
-
-static void lib_link_moviePlaneTracks(BlendLibReader *reader,
-                                      MovieClip *clip,
-                                      ListBase *tracksbase)
-{
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, tracksbase) {
-    BLO_read_id_address(reader, &clip->id, &plane_track->image);
-  }
-}
-
-static void movieclip_blend_read_lib(BlendLibReader *reader, ID *id)
-{
-  MovieClip *clip = (MovieClip *)id;
-  MovieTracking *tracking = &clip->tracking;
-
-  BLO_read_id_address(reader, id, &clip->gpd);
-
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    lib_link_movieTracks(reader, clip, &object->tracks);
-    lib_link_moviePlaneTracks(reader, clip, &object->plane_tracks);
-  }
-}
-
 IDTypeInfo IDType_ID_MC = {
     /*id_code*/ ID_MC,
     /*id_filter*/ FILTER_ID_MC,
@@ -328,8 +299,7 @@ IDTypeInfo IDType_ID_MC = {
 
     /*blend_write*/ movieclip_blend_write,
     /*blend_read_data*/ movieclip_blend_read_data,
-    /*blend_read_lib*/ movieclip_blend_read_lib,
-    /*blend_read_expand*/ nullptr,
+    /*blend_read_after_liblink*/ nullptr,
 
     /*blend_read_undo_preserve*/ nullptr,
 

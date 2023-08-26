@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Virtual shadowmapping: Bounds computation for directional shadows.
@@ -61,7 +64,7 @@ void main()
       /* Final result. Min/Max of the whole dispatch. */
       atomicMin(light_buf[l_idx].clip_near, global_min);
       atomicMax(light_buf[l_idx].clip_far, global_max);
-      /* TODO(fclem): This feel unecessary but we currently have no indexing from
+      /* TODO(fclem): This feel unnecessary but we currently have no indexing from
        * tilemap to lights. This is because the lights are selected by culling phase. */
       for (int i = light.tilemap_index; i <= light_tilemap_max_get(light); i++) {
         int index = tilemaps_buf[i].clip_data_index;

@@ -23,7 +23,6 @@ struct AnimData;
 struct AnimationEvalContext;
 struct BezTriple;
 struct BlendDataReader;
-struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct LibraryForeachIDData;
@@ -636,17 +635,9 @@ void BKE_fmodifiers_blend_write(struct BlendWriter *writer, struct ListBase *fmo
 void BKE_fmodifiers_blend_read_data(struct BlendDataReader *reader,
                                     ListBase *fmodifiers,
                                     struct FCurve *curve);
-void BKE_fmodifiers_blend_read_lib(struct BlendLibReader *reader,
-                                   struct ID *id,
-                                   struct ListBase *fmodifiers);
-void BKE_fmodifiers_blend_read_expand(struct BlendExpander *expander, struct ListBase *fmodifiers);
 
 void BKE_fcurve_blend_write(struct BlendWriter *writer, struct ListBase *fcurves);
 void BKE_fcurve_blend_read_data(struct BlendDataReader *reader, struct ListBase *fcurves);
-void BKE_fcurve_blend_read_lib(struct BlendLibReader *reader,
-                               struct ID *id,
-                               struct ListBase *fcurves);
-void BKE_fcurve_blend_read_expand(struct BlendExpander *expander, struct ListBase *fcurves);
 
 #ifdef __cplusplus
 }

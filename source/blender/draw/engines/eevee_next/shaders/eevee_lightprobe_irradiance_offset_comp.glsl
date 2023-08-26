@@ -1,6 +1,9 @@
+/* SPDX-FileCopyrightText: 2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * For every irradiance probe sample, check if close to a surounding surfel and try to offset the
+ * For every irradiance probe sample, check if close to a surrounding surfel and try to offset the
  * irradiance sample position. This is similar to the surfel ray but we do not actually transport
  * the light.
  *

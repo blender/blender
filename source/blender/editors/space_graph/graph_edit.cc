@@ -647,7 +647,7 @@ void GRAPH_OT_paste(wmOperatorType *ot)
                "Paste time offset of keys");
   RNA_def_enum(ot->srna,
                "value_offset",
-               rna_enum_keyframe_paste_offset_value,
+               rna_enum_keyframe_paste_offset_value_items,
                KEYFRAME_PASTE_VALUE_OFFSET_NONE,
                "Value Offset",
                "Paste keys with a value offset");
@@ -730,7 +730,7 @@ void GRAPH_OT_duplicate(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* To give to transform. */
-  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_types, TFM_TRANSLATION, "Mode", "");
+  RNA_def_enum(ot->srna, "mode", rna_enum_transform_mode_type_items, TFM_TRANSLATION, "Mode", "");
 }
 
 /** \} */
@@ -2284,6 +2284,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   BKE_scene_frame_set(scene, closest_frame);
+
+  ANIM_animdata_freelist(&anim_data);
 
   /* Set notifier that things have changed. */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);

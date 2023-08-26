@@ -120,26 +120,6 @@ void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer
   }
 }
 
-void BKE_viewer_path_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewerPath *viewer_path)
-{
-  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
-    switch (ViewerPathElemType(elem->type)) {
-      case VIEWER_PATH_ELEM_TYPE_ID: {
-        auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
-        BLO_read_id_address(reader, self_id, &typed_elem->id);
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_MODIFIER:
-      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
-      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
-      case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
-      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
-        break;
-      }
-    }
-  }
-}
-
 void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_path)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {

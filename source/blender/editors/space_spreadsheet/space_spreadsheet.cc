@@ -683,12 +683,6 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   BKE_viewer_path_blend_read_data(reader, &sspreadsheet->viewer_path);
 }
 
-static void spreadsheet_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
-{
-  SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)sl;
-  BKE_viewer_path_blend_read_lib(reader, parent_id, &sspreadsheet->viewer_path);
-}
-
 static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceSpreadsheet, sl);
@@ -729,7 +723,7 @@ void ED_spacetype_spreadsheet()
   st->id_remap = spreadsheet_id_remap;
   st->foreach_id = spreadsheet_foreach_id;
   st->blend_read_data = spreadsheet_blend_read_data;
-  st->blend_read_lib = spreadsheet_blend_read_lib;
+  st->blend_read_after_liblink = nullptr;
   st->blend_write = spreadsheet_blend_write;
 
   /* regions: main window */

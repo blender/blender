@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2020-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** This describe the entire interface of the shader. */
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)

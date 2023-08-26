@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2022 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 /* A shorthand for 1D textureSize with a zero LOD. */
 int texture_size(sampler1D sampler_1d)
 {

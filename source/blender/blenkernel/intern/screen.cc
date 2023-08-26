@@ -149,14 +149,12 @@ bool BKE_screen_blend_read_data(BlendDataReader *reader, bScreen *screen)
 
 /* NOTE: file read without screens option G_FILE_NO_UI;
  * check lib pointers in call below */
-static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
+static void screen_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 {
-  bScreen *screen = (bScreen *)id;
-  /* deprecated, but needed for versioning (will be nullptr'ed then) */
-  BLO_read_id_address(reader, id, &screen->scene);
+  bScreen *screen = reinterpret_cast<bScreen *>(id);
 
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    BKE_screen_area_blend_read_lib(reader, &screen->id, area);
+    BKE_screen_area_blend_read_after_liblink(reader, &screen->id, area);
   }
 }
 
@@ -184,8 +182,7 @@ IDTypeInfo IDType_ID_SCR = {
     /*blend_write*/ screen_blend_write,
     /* Cannot be used yet, because #direct_link_screen has a return value. */
     /*blend_read_data*/ nullptr,
-    /*blend_read_lib*/ screen_blend_read_lib,
-    /*blend_read_expand*/ nullptr,
+    /*blend_read_after_liblink*/ screen_blend_read_after_liblink,
 
     /*blend_read_undo_preserve*/ nullptr,
 
@@ -1279,15 +1276,13 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
   return true;
 }
 
-void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrArea *area)
+void BKE_screen_area_blend_read_after_liblink(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
-  BLO_read_id_address(reader, parent_id, &area->full);
-
   LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
     SpaceType *space_type = BKE_spacetype_from_id(sl->spacetype);
 
-    if (space_type && space_type->blend_read_lib) {
-      space_type->blend_read_lib(reader, parent_id, sl);
+    if (space_type && space_type->blend_read_after_liblink) {
+      space_type->blend_read_after_liblink(reader, parent_id, sl);
     }
   }
 }

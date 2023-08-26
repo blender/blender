@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2017-2023 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 const vec3 maj_axes[6] = vec3[6](vec3(1.0, 0.0, 0.0),
                                  vec3(-1.0, 0.0, 0.0),

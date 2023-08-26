@@ -309,25 +309,22 @@ static void clip_planes_from_rect(bContext *C,
  * all nodes. */
 static Vector<PBVHNode *> get_pbvh_nodes(PBVH *pbvh, float clip_planes[4][4], PartialVisArea mode)
 {
-  BKE_pbvh_SearchCallback cb = nullptr;
-
-  /* Select search callback. */
-  switch (mode) {
-    case PARTIALVIS_INSIDE:
-      cb = BKE_pbvh_node_frustum_contain_AABB;
-      break;
-    case PARTIALVIS_OUTSIDE:
-      cb = BKE_pbvh_node_frustum_exclude_AABB;
-      break;
-    case PARTIALVIS_ALL:
-    case PARTIALVIS_MASKED:
-      break;
-  }
-
   PBVHFrustumPlanes frustum{};
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
-  return blender::bke::pbvh::search_gather(pbvh, cb, &frustum);
+  return blender::bke::pbvh::search_gather(pbvh, [&](PBVHNode &node) {
+    switch (mode) {
+      case PARTIALVIS_INSIDE:
+        return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
+      case PARTIALVIS_OUTSIDE:
+        return BKE_pbvh_node_frustum_exclude_AABB(&node, &frustum);
+      case PARTIALVIS_ALL:
+      case PARTIALVIS_MASKED:
+        return true;
+    }
+    BLI_assert_unreachable();
+    return true;
+  });
 }
 
 static int hide_show_exec(bContext *C, wmOperator *op)
@@ -391,9 +388,8 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
   /* Ensure that edges and faces get hidden as well (not used by
    * sculpt but it looks wrong when entering editmode otherwise). */
-  if (pbvh_type == PBVH_FACES) {
-    BKE_mesh_flush_hidden_from_verts(me);
-    BKE_pbvh_update_hide_attributes_from_mesh(pbvh);
+  if (ELEM(pbvh_type, PBVH_FACES, PBVH_GRIDS)) {
+    BKE_pbvh_sync_visibility_from_verts(pbvh, me);
   }
 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
