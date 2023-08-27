@@ -99,10 +99,20 @@ vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 }
 
 /* GGX */
+float bxdf_ggx_D(float NH, float a2)
+{
+  return a2 / (M_PI * sqr((a2 - 1.0) * (NH * NH) + 1.0));
+}
+
 float D_ggx_opti(float NH, float a2)
 {
   float tmp = (NH * a2 - NH) * NH + 1.0;
   return M_PI * tmp * tmp; /* Doing RCP and mul a2 at the end */
+}
+
+float bxdf_ggx_smith_G1(float NX, float a2)
+{
+  return 2.0 / (1.0 + sqrt(1.0 + a2 * (1.0 / (NX * NX) - 1.0)));
 }
 
 float G1_Smith_GGX_opti(float NX, float a2)
@@ -115,6 +125,7 @@ float G1_Smith_GGX_opti(float NX, float a2)
   /* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
 }
 
+/* Compute the GGX BRDF without the Fresnel term, multiplied by the cosine foreshortening term. */
 float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
 {
   float a = roughness;
@@ -125,12 +136,11 @@ float bsdf_ggx(vec3 N, vec3 L, vec3 V, float roughness)
   float NL = max(dot(N, L), 1e-8);
   float NV = max(dot(N, V), 1e-8);
 
-  float G = G1_Smith_GGX_opti(NV, a2) * G1_Smith_GGX_opti(NL, a2); /* Doing RCP at the end */
-  float D = D_ggx_opti(NH, a2);
+  float G = bxdf_ggx_smith_G1(NV, a2) * bxdf_ggx_smith_G1(NL, a2);
+  float D = bxdf_ggx_D(NH, a2);
 
-  /* Denominator is canceled by G1_Smith */
-  /* bsdf = D * G / (4.0 * NL * NV); /* Reference function */
-  return NL * a2 / (D * G); /* NL to Fit cycles Equation : line. 345 in bsdf_microfacet.h */
+  /* brdf * NL =  `((D * G) / (4 * NV * NL)) * NL`. */
+  return (0.25 * D * G) / NV;
 }
 
 void accumulate_light(vec3 light, float fac, inout vec4 accum)
