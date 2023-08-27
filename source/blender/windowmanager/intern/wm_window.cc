@@ -160,7 +160,7 @@ enum ModSide {
  * \{ */
 
 static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool activate);
-static bool wm_window_timers_process(const bContext *C);
+static bool wm_window_timers_process(const bContext *C, int *sleep_ms);
 static uint8_t wm_ghost_modifier_query(const enum ModSide side);
 
 void wm_get_screensize(int *r_width, int *r_height)
@@ -1422,7 +1422,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
 #if defined(__APPLE__) || defined(WIN32)
             /* MACOS and WIN32 don't return to the main-loop while resize. */
-            wm_window_timers_process(C);
+            int dummy_sleep_ms = 0;
+            wm_window_timers_process(C, &dummy_sleep_ms);
             wm_event_do_handlers(C);
             wm_event_do_notifiers(C);
             wm_draw_update(C);
@@ -1584,15 +1585,22 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 /**
  * This timer system only gives maximum 1 timer event per redraw cycle,
  * to prevent queues to get overloaded.
- * Timer handlers should check for delta to decide if they just update, or follow real time.
- * Timer handlers can also set duration to match frames passed
+ * - Timer handlers should check for delta to decide if they just update, or follow real time.
+ * - Timer handlers can also set duration to match frames passed.
+ *
+ * \param sleep_ms_p: The number of milliseconds to sleep which may be reduced by this function
+ * to account for timers that would run during the anticipated sleep period.
  */
-static bool wm_window_timers_process(const bContext *C)
+static bool wm_window_timers_process(const bContext *C, int *sleep_ms_p)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  double time = PIL_check_seconds_timer();
+  const double time = PIL_check_seconds_timer();
   bool has_event = false;
+
+  const int sleep_ms = *sleep_ms_p;
+  /* The nearest time an active timer is scheduled to run.  */
+  double ntime_min = DBL_MAX;
 
   /* Mutable in case the timer gets removed. */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
@@ -1639,6 +1647,27 @@ static bool wm_window_timers_process(const bContext *C)
         has_event = true;
       }
     }
+    else {
+      if ((has_event == false) && (sleep_ms != 0)) {
+        /* The timer is not ready to run but may run shortly. */
+        if (wt->ntime < ntime_min) {
+          ntime_min = wt->ntime;
+        }
+      }
+    }
+  }
+
+  if ((has_event == false) && (sleep_ms != 0) && (ntime_min != DBL_MAX)) {
+    /* Clamp the sleep time so next execution runs earlier (if necessary).
+     * Use `ceil` so the timer is guarantee to be ready to run (not always the case with rounding).
+     * Even though using `floor` or `round` is more responsive,
+     * it causes CPU intensive loops that may run until the timer is reached, see: #111579. */
+    const double sleep_sec = (double(sleep_ms) / 1000.0);
+    const double sleep_sec_next = ntime_min - time;
+
+    if (sleep_sec_next < sleep_sec) {
+      *sleep_ms_p = int(std::ceil(sleep_sec_next * 1000.0f));
+    }
   }
 
   /* Effectively delete all timers marked for removal. */
@@ -1657,7 +1686,10 @@ void wm_window_events_process(const bContext *C)
   if (has_event) {
     GHOST_DispatchEvents(g_system);
   }
-  has_event |= wm_window_timers_process(C);
+
+  /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle. */
+  int sleep_ms = has_event ? 0 : 5;
+  has_event |= wm_window_timers_process(C, &sleep_ms);
 #ifdef WITH_XR_OPENXR
   /* XR events don't use the regular window queues. So here we don't only trigger
    * processing/dispatching but also handling. */
@@ -1665,12 +1697,10 @@ void wm_window_events_process(const bContext *C)
 #endif
   GPU_render_end();
 
-  /* When there is no event, sleep 5 milliseconds not to use too much CPU when idle.
-   *
-   * Skip sleeping when simulating events so tests don't idle unnecessarily as simulated
+  /* Skip sleeping when simulating events so tests don't idle unnecessarily as simulated
    * events are typically generated from a timer that runs in the main loop. */
-  if ((has_event == false) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
-    PIL_sleep_ms(5);
+  if ((has_event == false) && (sleep_ms != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
+    PIL_sleep_ms(sleep_ms);
   }
 }
 
