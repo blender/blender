@@ -4837,7 +4837,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "playback_fps_samples", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "playback_fps_samples");
-  RNA_def_property_range(prop, 0, 200);
+  /* NOTE(@ideasman42): this maximum is arbitrary, 5000 samples averages over the last 10 seconds
+   * for an animation playing back at 500fps, which seems like more than enough. */
+  RNA_def_property_range(prop, 0, 5000);
+  RNA_def_property_ui_range(prop, 0, 500, 1, 3);
   RNA_def_property_ui_text(
       prop,
       "FPS Average Samples",

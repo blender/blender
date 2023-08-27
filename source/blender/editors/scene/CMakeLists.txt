@@ -18,6 +18,7 @@ set(INC_SYS
 
 set(SRC
   scene_edit.cc
+  scene_fps.cc
 )
 
 set(LIB
