@@ -50,7 +50,7 @@ void ED_operatortypes_scene();
  * \param ltime: Time since the last update,
  * compatible with the result of #PIL_check_seconds_timer.
  */
-void ED_scene_fps_average_accumulate(struct Scene *scene, uchar fps_samples, double ltime)
+void ED_scene_fps_average_accumulate(struct Scene *scene, short fps_samples, double ltime)
     ATTR_NONNULL(1);
 /**
  * Calculate an average (if it's not already calculated).
