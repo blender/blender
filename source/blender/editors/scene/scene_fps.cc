@@ -8,6 +8,8 @@
  * Define `ED_scene_api_*` functions.
  */
 
+#include <cmath>
+
 #include "BLI_math_base.h"
 
 #include "DNA_scene_types.h"
