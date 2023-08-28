@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -20196,20 +20196,80 @@ msgid "Camera near clipping distance"
 msgstr "Khoảng cách gần nhất cho hiển thị đồ trong máy quay phim"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Cài Đặt Máy Quay Phim Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "Cài đặt mảy quay phim Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Kích cỡ của vật thể Máy Quay Phim trong màn 3D"
 
 
 msgid "Depth Of Field"
 msgstr "Độ Sâu Trường"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Trường nhìn cho thấu kính mắt cá"
+
+
+msgid "Fisheye Lens"
+msgstr "Thấu Kính Mắt Cá"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Tiêu điểm thấu kính (mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "Đa Thức Mắt Cá K0"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "Hệ số K0 của đa thức thấu kính"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "Đa Thức Mắt Cá K1"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "Hệ số K1 của đa thức thấu kính"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "Đa Thức Mắt Cá K2"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "Hệ số K2 của đa thức thấu kính"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "Đa Thức Mắt Cá K3"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "Hệ số K3 của đa thức thấu kính"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "Đa Thức Mắt Cá K4"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "Hệ số K4 của đa thức thấu kính"
+
+
+msgid "Max Latitude"
+msgstr "Vĩ Độ Cực Đại"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Vĩ độ cực đại (góc dọc) cho thấu kính tuyến vuông"
+
+
+msgid "Min Latitude"
+msgstr "Vĩ Độ Cực Tiểu"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Vĩ độ cực tiểu (góc dọc) cho thấu kính tuyến vuông"
 
 
 msgid "Focal Length"
@@ -20240,12 +20300,68 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Xác định thấu kính cho đặt góc của trường màn"
 
 
+msgid "Max Longitude"
+msgstr "Kinh Độ Cực Đại"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Kinh độ cực đại (góc ngang) cho thấu kính tuyến vuông"
+
+
+msgid "Min Longitude"
+msgstr "Kinh Độ Cực Tiểu"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Kinh độ cực tiểu (góc ngang) cho thấu kính tuyến vuông"
+
+
 msgid "Orthographic Scale"
 msgstr "Phóng To Trực Giao"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Phong to cho Máy Quay Phim trực giao (như phóng vào)"
+
+
+msgid "Panorama Type"
+msgstr "Loại Toàn Cảnh"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Dùng méo hóa cho tính toán"
+
+
+msgid "Equirectangular"
+msgstr "Kinh Vĩ Tuyến Vuông"
+
+
+msgid "Mirror Ball"
+msgstr "Trái Banh Gương"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Mắt Cá Đều Khoảng Cách"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Tốt cho toàn vòm, không quan tâm kích thước cảm biến"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Mắt Cá Đều Rắn"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Tương tự thấu kính mắt cá hiện đại, mà dùng kích thước cảm biến"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "Đa Thức Thấu Kính Mắt Cá"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "Chỉ định phép chiếu của thấu kính bằng một đa thức cho xấp xỉ thấu kính máy quay phim thế giới thật"
 
 
 msgid "Passepartout Alpha"
@@ -38340,10 +38456,6 @@ msgid "Display Hidden"
 msgstr "Hiển Thị Ẩn"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Gồm các kênh từ vật thể/xương không hiển thị"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Trường Sắp Thứ Tự Bảng Hoạt Hình"
 
@@ -44522,16 +44634,8 @@ msgid "Projection of the input image"
 msgstr "Phép chiếu của ảnh ngõ vào"
 
 
-msgid "Equirectangular"
-msgstr "Kinh Vĩ Tuyến Vuông"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Phép chiếu chữ nhật đều hay vĩ tuyến-kinh tuyến"
-
-
-msgid "Mirror Ball"
-msgstr "Trái Banh Gương"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -45829,6 +45933,10 @@ msgstr "Ngõ Vào Cây Giao Điểm"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Sưu Tập Ổ Cấm Cây Giao Điểm"
+
+
+msgid "Socket Type"
+msgstr "Loại Ổ Cắm"
 
 
 msgid "Node Tree Outputs"
@@ -61352,10 +61460,6 @@ msgid "Add Node Tree Interface Socket"
 msgstr "Thêm Ổ Cắm Giao Diện Cây Giao Điểm"
 
 
-msgid "Socket Type"
-msgstr "Loại Ổ Cắm"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Interface Socket Type"
 msgstr "Đổi Loại Ổ Cắm Giao Diện Cây Giao Điểm"
@@ -61988,10 +62092,6 @@ msgstr "Bật/Tắt Ngõ Vào Đặc Điểm"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "Trao đổi giữa đặc điểm và một cái giá trị cho chỉ định dữ liệu từng phần tử"
-
-
-msgid "Prop Path"
-msgstr "Đường Dẫn Đặc Tính"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -76004,6 +76104,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "Giá trị Python cho loại đặc tính tùy chọn không được hỗ trợ"
 
 
+msgid "Speaker"
+msgstr "Loa"
+
+
 msgid "Library Overridable"
 msgstr "Có Thể Vượt Quyền Bằng Thư Viện"
 
@@ -77767,10 +77871,6 @@ msgid "Viewport Sampling Presets"
 msgstr "Đặt Sẵn Mẫu Màn Chiếu"
 
 
-msgid "View Object Types"
-msgstr "Loại Vật Thể Màn"
-
-
 msgid "Film"
 msgstr "Phim"
 
@@ -79044,6 +79144,10 @@ msgstr "Tư Phân Màn"
 
 msgid "Auto-Masking"
 msgstr "Tự Động-Mặt Nạ"
+
+
+msgid "Wire Color"
+msgstr "Màu Sợi Dây"
 
 
 msgid "Compositor"
@@ -83171,122 +83275,6 @@ msgstr "Biểu Thức Chính Quy Tìm"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Dùng biểu thức chính quy để tìm văn bản trong hộp 'Tìm'"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Trường nhìn cho thấu kính mắt cá"
-
-
-msgid "Fisheye Lens"
-msgstr "Thấu Kính Mắt Cá"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Tiêu điểm thấu kính (mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "Đa Thức Mắt Cá K0"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "Hệ số K0 của đa thức thấu kính"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "Đa Thức Mắt Cá K1"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "Hệ số K1 của đa thức thấu kính"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "Đa Thức Mắt Cá K2"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "Hệ số K2 của đa thức thấu kính"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "Đa Thức Mắt Cá K3"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "Hệ số K3 của đa thức thấu kính"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "Đa Thức Mắt Cá K4"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "Hệ số K4 của đa thức thấu kính"
-
-
-msgid "Max Latitude"
-msgstr "Vĩ Độ Cực Đại"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Vĩ độ cực đại (góc dọc) cho thấu kính tuyến vuông"
-
-
-msgid "Min Latitude"
-msgstr "Vĩ Độ Cực Tiểu"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Vĩ độ cực tiểu (góc dọc) cho thấu kính tuyến vuông"
-
-
-msgid "Max Longitude"
-msgstr "Kinh Độ Cực Đại"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Kinh độ cực đại (góc ngang) cho thấu kính tuyến vuông"
-
-
-msgid "Min Longitude"
-msgstr "Kinh Độ Cực Tiểu"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Kinh độ cực tiểu (góc ngang) cho thấu kính tuyến vuông"
-
-
-msgid "Panorama Type"
-msgstr "Loại Toàn Cảnh"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Dùng méo hóa cho tính toán"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Mắt Cá Đều Khoảng Cách"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Tốt cho toàn vòm, không quan tâm kích thước cảm biến"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Mắt Cá Đều Rắn"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Tương tự thấu kính mắt cá hiện đại, mà dùng kích thước cảm biến"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "Đa Thức Thấu Kính Mắt Cá"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "Chỉ định phép chiếu của thấu kính bằng một đa thức cho xấp xỉ thấu kính máy quay phim thế giới thật"
 
 
 msgid "Form of curves"
@@ -91726,10 +91714,6 @@ msgid "Gizmo to adjust location"
 msgstr "Đồ đạc để chỉnh vị trí"
 
 
-msgid "Speaker"
-msgstr "Loa"
-
-
 msgid "Show Reconstruction"
 msgstr "Hiện Sự Xây Dựng Lại"
 
@@ -93672,10 +93656,6 @@ msgstr "Giao Điểm Vectơ"
 
 msgid "Wires"
 msgstr "Sợi Dây"
-
-
-msgid "Wire Color"
-msgstr "Màu Sợi Dây"
 
 
 msgid "Wire Select"
@@ -96404,6 +96384,10 @@ msgstr "Hiện Mốc Bờ"
 
 msgid "Show VR Camera"
 msgstr "Hiện Máy Quay Phim Sự Thật Ảo"
+
+
+msgid "Theme"
+msgstr "Phong Cách"
 
 
 msgid "X-Ray Alpha"
@@ -100436,10 +100420,6 @@ msgstr "Đã đặt lại tên cho %d của %d %s"
 
 msgid "Shortcuts"
 msgstr "Phím Tắt"
-
-
-msgid "Theme"
-msgstr "Phong Cách"
 
 
 msgctxt "Operator"
@@ -106211,10 +106191,6 @@ msgid "Camera to View"
 msgstr "Khóa Máy Quy Phim với Màn"
 
 
-msgid "Object Types Visibility"
-msgstr "Sự Hiển Thị Loại Vật Thể"
-
-
 msgid "Object Gizmos"
 msgstr "Đồ Đạc Vật Thể"
 
@@ -108032,16 +108008,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Đang xem sự hợp lệ của tập tin .blend hiện tại *TRƯỚC* lưu vào đĩa"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Đang xem sự hợp lệ của tập tin .blend hiện tại *SAU* lưu vào đĩa"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "Phiên bản dự phòng bị thất bại (tập tin lưu có @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "Không thể đổi tập tin cũ (tập tin được lưu với @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Đang xem sự hợp lệ của tập tin .blend hiện tại *SAU* lưu vào đĩa"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -115810,16 +115786,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Đăng ký lớp ổ cắm giao điểm: '%s' quá dài, bề dài tối đa là %d"
 
 
+msgid "Unable to create socket"
+msgstr "Không thể chế tạo ổ cắm"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Ổ cắm có cùng hướng ngõ vào/ngõ ra"
 
 
 msgid "Unable to locate link in node tree"
 msgstr "Không tìm được liên kết trong cây giao điểm"
-
-
-msgid "Unable to create socket"
-msgstr "Không thể chế tạo ổ cắm"
 
 
 msgid "Node tree '%s' has undefined type %s"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1389,6 +1389,10 @@ msgstr "เครื่องวาดน้ำหนัก"
 
 msgid "Depth Of Field"
 msgstr "ระยะชัดลึก"
+
+
+msgid "Panorama Type"
+msgstr "ชนิดทัศนียภาพ"
 
 
 msgid "Vertical"
@@ -3317,6 +3321,10 @@ msgid "Render Anim"
 msgstr "เรนเดอร์อนิเมชัน"
 
 
+msgid "Speaker"
+msgstr "ลำโพง"
+
+
 msgctxt "Operator"
 msgid "Quit Blender"
 msgstr "ออกจาก Blender"
@@ -3630,10 +3638,6 @@ msgid "Translate Interface"
 msgstr "แปลอินเตอร์เฟส"
 
 
-msgid "Panorama Type"
-msgstr "ชนิดทัศนียภาพ"
-
-
 msgid "View layer name"
 msgstr "แสดงชื่อชั้น"
 
@@ -3850,10 +3854,6 @@ msgstr "ขอบเขตสามมิติ"
 
 msgid "Show Empty Image"
 msgstr "แสดงภาพว่างเปล่า"
-
-
-msgid "Speaker"
-msgstr "ลำโพง"
 
 
 msgid "3D"

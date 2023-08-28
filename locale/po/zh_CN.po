@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -20803,20 +20803,80 @@ msgid "Camera near clipping distance"
 msgstr "摄像机近裁距离"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Cycles 摄像机设置"
-
-
-msgid "Cycles camera settings"
-msgstr "Cycles 摄像机设置"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "摄像机物体在 3D 视图中的感官尺寸"
 
 
 msgid "Depth Of Field"
 msgstr "景深"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "鱼眼焦距的视野范围"
+
+
+msgid "Fisheye Lens"
+msgstr "鱼眼焦距"
+
+
+msgid "Lens focal length (mm)"
+msgstr "镜头的焦距(mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "鱼眼多项式 K0"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "镜头多项式的系数K0"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "鱼眼多项式 K1"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "镜头多项式的系数K1"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "鱼眼多项式 K2"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "镜头多项式的系数K2"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "鱼眼多项式 K3"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "镜头多项式的系数K3"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "鱼眼多项式 K4"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "镜头多项式的系数K4"
+
+
+msgid "Max Latitude"
+msgstr "最大纬度"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "全景镜头的最大纬度(垂直角度)"
+
+
+msgid "Min Latitude"
+msgstr "最小纬度"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "全景镜头的最小纬度(垂直角度)"
 
 
 msgid "Focal Length"
@@ -20847,12 +20907,84 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "使用焦距定义视野角度"
 
 
+msgid "Max Longitude"
+msgstr "最大经度"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "全景镜头的最大经度(水平角度)"
+
+
+msgid "Min Longitude"
+msgstr "最小经度"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "全景镜头的最小经度(水平角度)"
+
+
 msgid "Orthographic Scale"
 msgstr "正交比例"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "正交摄像机缩放(类似放大缩小)"
+
+
+msgid "Panorama Type"
+msgstr "全景类型"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "用于计算的畸变方式"
+
+
+msgid "Equirectangular"
+msgstr "等距圆柱(ERP)"
+
+
+msgid "Spherical camera for environment maps, also known as Lat Long panorama"
+msgstr "用于环境地图的球面相机，也称为Lat Long全景"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "等角立方体贴图面"
+
+
+msgid "Single face of an equiangular cubemap"
+msgstr "等角立方体贴图的单个面"
+
+
+msgid "Mirror Ball"
+msgstr "镜像球"
+
+
+msgid "Mirror ball mapping for environment maps"
+msgstr "环境贴图的镜像球映射"
+
+
+msgid "Fisheye Equidistant"
+msgstr "鱼眼等距"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "反转面的位置"
+
+
+msgid "Fisheye Equisolid"
+msgstr "等立体角型鱼眼"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "与现代多数的鱼眼镜头相仿, 将触发器的规格考虑在内"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "鱼眼镜头多项式"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "定义镜头投影为多项式，以允许模拟真实世界的相机镜头"
 
 
 msgid "Passepartout Alpha"
@@ -39290,10 +39422,6 @@ msgid "Display Hidden"
 msgstr "显示隐藏"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "包含不可见物体 / 骨头的通道"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "动画编辑器排序部分"
 
@@ -45826,16 +45954,8 @@ msgid "Projection of the input image"
 msgstr "输入图像的投影"
 
 
-msgid "Equirectangular"
-msgstr "等距圆柱(ERP)"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "等距圆柱型或经纬型投影"
-
-
-msgid "Mirror Ball"
-msgstr "镜像球"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -47153,6 +47273,10 @@ msgstr "节点树输入"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "节点树接口集合"
+
+
+msgid "Socket Type"
+msgstr "接口类型"
 
 
 msgid "Node Tree Outputs"
@@ -63266,10 +63390,6 @@ msgid "Add an input or output to the active node tree"
 msgstr "将输入或输出添加到活动节点树"
 
 
-msgid "Socket Type"
-msgstr "接口类型"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Interface Socket Type"
 msgstr "更改节点树界面接口类型"
@@ -63932,10 +64052,6 @@ msgstr "输入属性切换"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "在属性和单个值之间切换以定义每个元素的数据"
-
-
-msgid "Prop Path"
-msgstr "属性路径"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -78289,6 +78405,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "用于不受支持的自定义属性类型的Python值"
 
 
+msgid "Speaker"
+msgstr "扬声器"
+
+
 msgid "Library Overridable"
 msgstr "库重写"
 
@@ -80140,10 +80260,6 @@ msgid "Viewport Sampling Presets"
 msgstr "视图采样预设"
 
 
-msgid "View Object Types"
-msgstr "查看物体类型"
-
-
 msgid "Film"
 msgstr "胶片"
 
@@ -81439,6 +81555,10 @@ msgstr "四格视图"
 
 msgid "Auto-Masking"
 msgstr "自动遮罩"
+
+
+msgid "Wire Color"
+msgstr "线框颜色"
 
 
 msgid "Compositor"
@@ -83648,14 +83768,6 @@ msgid "Enable the new EEVEE codebase, requires restart"
 msgstr "启用新的EEVEE代码库，需要重启"
 
 
-msgid "Workbench Next"
-msgstr "Workbench Next"
-
-
-msgid "Enable the new Workbench codebase, requires restart"
-msgstr "启用新的工作台代码库，需要重启"
-
-
 msgid "Override Auto Resync"
 msgstr "覆写自动重新同步"
 
@@ -85660,138 +85772,6 @@ msgstr "正则表达式查找"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "使用正则表达式匹配\"查找\"框中的文本"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "鱼眼焦距的视野范围"
-
-
-msgid "Fisheye Lens"
-msgstr "鱼眼焦距"
-
-
-msgid "Lens focal length (mm)"
-msgstr "镜头的焦距(mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "鱼眼多项式 K0"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "镜头多项式的系数K0"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "鱼眼多项式 K1"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "镜头多项式的系数K1"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "鱼眼多项式 K2"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "镜头多项式的系数K2"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "鱼眼多项式 K3"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "镜头多项式的系数K3"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "鱼眼多项式 K4"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "镜头多项式的系数K4"
-
-
-msgid "Max Latitude"
-msgstr "最大纬度"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "全景镜头的最大纬度(垂直角度)"
-
-
-msgid "Min Latitude"
-msgstr "最小纬度"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "全景镜头的最小纬度(垂直角度)"
-
-
-msgid "Max Longitude"
-msgstr "最大经度"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "全景镜头的最大经度(水平角度)"
-
-
-msgid "Min Longitude"
-msgstr "最小经度"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "全景镜头的最小经度(水平角度)"
-
-
-msgid "Panorama Type"
-msgstr "全景类型"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "用于计算的畸变方式"
-
-
-msgid "Spherical camera for environment maps, also known as Lat Long panorama"
-msgstr "用于环境地图的球面相机，也称为Lat Long全景"
-
-
-msgid "Equiangular Cubemap Face"
-msgstr "等角立方体贴图面"
-
-
-msgid "Single face of an equiangular cubemap"
-msgstr "等角立方体贴图的单个面"
-
-
-msgid "Mirror ball mapping for environment maps"
-msgstr "环境贴图的镜像球映射"
-
-
-msgid "Fisheye Equidistant"
-msgstr "鱼眼等距"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "反转面的位置"
-
-
-msgid "Fisheye Equisolid"
-msgstr "等立体角型鱼眼"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "与现代多数的鱼眼镜头相仿, 将触发器的规格考虑在内"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "鱼眼镜头多项式"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "定义镜头投影为多项式，以允许模拟真实世界的相机镜头"
 
 
 msgid "Form of curves"
@@ -94590,10 +94570,6 @@ msgid "Gizmo to adjust location"
 msgstr "调整位置的Gizmo"
 
 
-msgid "Speaker"
-msgstr "扬声器"
-
-
 msgid "Show Reconstruction"
 msgstr "显示重建"
 
@@ -96625,10 +96601,6 @@ msgstr "矢量节点"
 
 msgid "Wires"
 msgstr "线框"
-
-
-msgid "Wire Color"
-msgstr "线框颜色"
 
 
 msgid "Wire Select"
@@ -99485,6 +99457,10 @@ msgstr "显示地标"
 
 msgid "Show VR Camera"
 msgstr "显示VR摄像机"
+
+
+msgid "Theme"
+msgstr "主题"
 
 
 msgid "X-Ray Alpha"
@@ -104017,10 +103993,6 @@ msgstr "已重命名 %d of %d %s"
 
 msgid "Shortcuts"
 msgstr "快捷键"
-
-
-msgid "Theme"
-msgstr "主题"
 
 
 msgctxt "Operator"
@@ -109962,10 +109934,6 @@ msgid "Camera to View"
 msgstr "锁定摄像机到视图方位"
 
 
-msgid "Object Types Visibility"
-msgstr "物体类型可见性"
-
-
 msgid "Object Gizmos"
 msgstr "物体Gizmo"
 
@@ -111900,16 +111868,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "保存到磁盘 *之前* 检查当前 .blend 文件的完整性"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "保存到磁盘 *之后* 检查当前 .blend 文件的完整性"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "版本备份失败 (文件以@保存)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "无法改变旧文件(文件以@保存)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "保存到磁盘 *之后* 检查当前 .blend 文件的完整性"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -120238,6 +120206,10 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "注册节点插口类: '%s' 过长, 最大长度为 %d"
 
 
+msgid "Unable to create socket"
+msgstr "无法创建接口"
+
+
 msgid "CustomGroup"
 msgstr "自定义组"
 
@@ -120256,10 +120228,6 @@ msgstr "相同的输入 / 输出接口方向"
 
 msgid "Unable to locate link in node tree"
 msgstr "启用合成节点树"
-
-
-msgid "Unable to create socket"
-msgstr "无法创建接口"
 
 
 msgid "Cannot add socket to built-in node"
@@ -122488,12 +122456,12 @@ msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "已禁用, 未使用OpenSubdiv编译Blender"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "要输出的排序后的拐角"
-
-
 msgid "Corner Index"
 msgstr "拐角编号"
+
+
+msgid "Which of the sorted corners to output"
+msgstr "要输出的排序后的拐角"
 
 
 msgid "The face to retrieve data from. Defaults to the face from the context"

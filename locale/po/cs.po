@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -9074,20 +9074,24 @@ msgid "Camera near clipping distance"
 msgstr "Ořezová vzdálenost pro 3D pohled v popředí"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Nastavení kamery Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "Nastavení kamery Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Zdánlivá velikost Objektu Kamery ve 3D Pohledu"
 
 
 msgid "Depth Of Field"
 msgstr "Hloubka Ostrosti"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Zobrazí mód ze seznamu souborů"
+
+
+msgid "Fisheye Lens"
+msgstr "Objektiv fisheye"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Původní velikost"
 
 
 msgid "Focal Length"
@@ -9108,6 +9112,26 @@ msgstr "Milimetry"
 
 msgid "Orthographic Scale"
 msgstr "Rovnoběžné promítání"
+
+
+msgid "Panorama Type"
+msgstr "Rodič"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Počáteční snímek animace"
+
+
+msgid "Equirectangular"
+msgstr "Trojúhleníky"
+
+
+msgid "Mirror Ball"
+msgstr "Zrcadlit"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Vybrat cestu"
 
 
 msgid "Passepartout Alpha"
@@ -18337,14 +18361,6 @@ msgid "Projection of the input image"
 msgstr "Nastaví umístění 3D kurzoru"
 
 
-msgid "Equirectangular"
-msgstr "Trojúhleníky"
-
-
-msgid "Mirror Ball"
-msgstr "Zrcadlit"
-
-
 msgid "Gradient Texture"
 msgstr "Textura přechodu"
 
@@ -18711,6 +18727,10 @@ msgstr "Výchozí hodnota"
 
 msgid "Geometry socket of a node"
 msgstr "Soket geometrického uzlu"
+
+
+msgid "Socket Type"
+msgstr "Stejné typy"
 
 
 msgid "Collection of Nodes"
@@ -25778,10 +25798,6 @@ msgid "Move and Attach"
 msgstr "Přemístit a Připojit"
 
 
-msgid "Socket Type"
-msgstr "Stejné typy"
-
-
 msgid "Resize view so you can see all nodes"
 msgstr "Změnit velikost zobrazení, abyste viděli všechny uzly"
 
@@ -31861,6 +31877,10 @@ msgid "Edit Property"
 msgstr "Upravit Vlastnost"
 
 
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
 msgid "Property Name"
 msgstr "Název Vlastnosti"
 
@@ -32442,10 +32462,6 @@ msgstr "Generátory"
 
 msgid "Sampling Presets"
 msgstr "Přednastavení vzorkování"
-
-
-msgid "View Object Types"
-msgstr "Zobrazit Typy Objektů"
 
 
 msgid "Film"
@@ -35162,30 +35178,6 @@ msgstr "Transformační vlastnosti"
 
 msgid "Find"
 msgstr "Hledat"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Zobrazí mód ze seznamu souborů"
-
-
-msgid "Fisheye Lens"
-msgstr "Objektiv fisheye"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Původní velikost"
-
-
-msgid "Panorama Type"
-msgstr "Rodič"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Počáteční snímek animace"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Vybrat cestu"
 
 
 msgid "Rounded Ribbons"
@@ -38257,10 +38249,6 @@ msgid "Show reconstructed camera path"
 msgstr "Jemnost dělení"
 
 
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
 msgid "Show Reconstruction"
 msgstr "Jemnost dělení"
 
@@ -39921,6 +39909,10 @@ msgid "Method to display/shade objects in the 3D View"
 msgstr "Metoda zobrazení/stínování objektů ve 3D zobrazení"
 
 
+msgid "Theme"
+msgstr "Motiv"
+
+
 msgid "View layer"
 msgstr "Zobrazit vrstvu"
 
@@ -40468,10 +40460,6 @@ msgstr "Nastavit aktivní objekt jako kameru"
 
 msgid "Shortcuts"
 msgstr "Zkratky"
-
-
-msgid "Theme"
-msgstr "Motiv"
 
 
 msgctxt "Operator"
@@ -43561,10 +43549,6 @@ msgstr "Zobrazit označené"
 
 msgid "Local Camera"
 msgstr "Místní Kamera"
-
-
-msgid "Object Types Visibility"
-msgstr "Viditelnost Typů Objektů"
 
 
 msgid "Look At"

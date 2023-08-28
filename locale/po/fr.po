@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2023-08-15 12:46+0200\n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "Last-Translator: Damien Picard (pioverfour) <dam.pic@free.fr>\n"
 "Language-Team: French https://wiki.blender.org/wiki/Process/Translate_Blender/French_Team\n"
 "Language: fr\n"
@@ -21632,20 +21632,80 @@ msgid "Camera near clipping distance"
 msgstr "Distance de découpage proche de la caméra"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Réglages de caméra Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "Réglages de la caméra Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Taille apparente de l’objet caméra dans la vue 3D"
 
 
 msgid "Depth Of Field"
 msgstr "Profondeur de champ"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Champ de vision pour l’objectif fisheye"
+
+
+msgid "Fisheye Lens"
+msgstr "Focale fisheye"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Longueur focale de l’objectif (mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "Polynome K0 fisheye"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "Coefficient K0 du polynome de la lentille"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "Polynome K1 fisheye"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "Coefficient K1 du polynome de la lentille"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "Polynome K2 fisheye"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "Coefficient K2 du polynome de la lentille"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "Polynome K3 fisheye"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "Coefficient K3 du polynome de la lentille"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "Polynome K4 fisheye"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "Coefficient K4 du polynome de la lentille"
+
+
+msgid "Max Latitude"
+msgstr "Latitude max"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitude maximale (angle vertical) pour l’objectif équirectangulaire"
+
+
+msgid "Min Latitude"
+msgstr "Latitude min"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitude minimale (angle vertical) pour l’objectif équirectangulaire"
 
 
 msgid "Focal Length"
@@ -21676,12 +21736,84 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Spécifier la focale comme un angle de vue"
 
 
+msgid "Max Longitude"
+msgstr "Longitude max"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitude maximale (angle horizontal) pour l’objectif équirectangulaire"
+
+
+msgid "Min Longitude"
+msgstr "Longitude min"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitude minimale (angle horizontal) pour l’objectif équirectangulaire"
+
+
 msgid "Orthographic Scale"
 msgstr "Échelle orthogonale"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Échelle de la caméra orthogonale (similaire à un zoom)"
+
+
+msgid "Panorama Type"
+msgstr "Type de panorama"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Distorsion à utiliser pour le calcul"
+
+
+msgid "Equirectangular"
+msgstr "Équirectangulaire"
+
+
+msgid "Spherical camera for environment maps, also known as Lat Long panorama"
+msgstr "Caméra sphérique pour les cartes d’environnement, aussi appelée panoramas Lat Long"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "Face de carte cubique équiangulaire"
+
+
+msgid "Single face of an equiangular cubemap"
+msgstr "Une seule face d’une carte cubique équiangulaire"
+
+
+msgid "Mirror Ball"
+msgstr "Boule miroir"
+
+
+msgid "Mirror ball mapping for environment maps"
+msgstr "Placage en boule miroir pour les cartes d’environnement"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Fisheye équidistant"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Idéal pour les dômes hémisphériques, ignore les dimensions du capteur"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Fisheye équisolide"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Similaire à la plupart des objectifs fisheye modernes, prend en compte les dimensions du capteur"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "Polynome de lentille fisheye"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "Définit la projection de la lentille en tant que polynome pour permettre d’imiter des optiques de caméras réelles"
 
 
 msgid "Passepartout Alpha"
@@ -25814,10 +25946,6 @@ msgstr "Cadre entier"
 
 msgid "Composites full image result as fast as possible"
 msgstr "Compositer l’image entière aussi vite que possible"
-
-
-msgid "Realtime GPU"
-msgstr "GPU temps réel"
 
 
 msgid "Use GPU accelerated compositing with more limited functionality"
@@ -40845,10 +40973,6 @@ msgid "Display Hidden"
 msgstr "Afficher cachés"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Inclure les canaux des objets/os invisibles"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Champ de tri de feuille d’exposition"
 
@@ -47680,16 +47804,8 @@ msgid "Projection of the input image"
 msgstr "Projection de l’image d’entrée"
 
 
-msgid "Equirectangular"
-msgstr "Équirectangulaire"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Projection équirectangulaire, ou latitude-longitude"
-
-
-msgid "Mirror Ball"
-msgstr "Boule miroir"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -49098,6 +49214,10 @@ msgstr "Entrées d’arborescence de nœuds"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Collection de prises d’arborescence de nœuds"
+
+
+msgid "Socket Type"
+msgstr "Type de prise"
 
 
 msgid "Node Tree Outputs"
@@ -66124,10 +66244,6 @@ msgid "Add an input or output to the active node tree"
 msgstr "Ajouter une prise d’entrée ou de sortie à l’arborescence de nœuds active"
 
 
-msgid "Socket Type"
-msgstr "Type de prise"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Socket Subtype"
 msgstr "Changer le sous-type de la prise de l’arborescence de nœuds"
@@ -66823,10 +66939,6 @@ msgstr "(Dés)activer l’attribut en entrée"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "Basculer entre un attribut et une valeur unique pour définir les données de chaque élément"
-
-
-msgid "Prop Path"
-msgstr "Chemin de la propriété"
 
 
 msgctxt "Operator"
@@ -81967,6 +82079,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "Valeur Python pour les types de propriétés personnalisées non pris en charge"
 
 
+msgid "Speaker"
+msgstr "Haut-parleur"
+
+
 msgid "Library Overridable"
 msgstr "Redéfinissable en bibliothèque"
 
@@ -83878,10 +83994,6 @@ msgid "Viewport Sampling Presets"
 msgstr "Préréglages d’échantillonnage pour vue 3D"
 
 
-msgid "View Object Types"
-msgstr "Types d’objets de vue"
-
-
 msgid "Physical light sources"
 msgstr "Sources lumineuses physiques"
 
@@ -85260,6 +85372,10 @@ msgstr "Vue quadrants"
 
 msgid "Auto-Masking"
 msgstr "Masquage auto"
+
+
+msgid "Wire Color"
+msgstr "Couleur des liens"
 
 
 msgid "Compositor"
@@ -87525,14 +87641,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Activer le nouveau code base des surimpressions, nécessite un redémarrage"
 
 
-msgid "Workbench Next"
-msgstr "Workbench Next"
-
-
-msgid "Enable the new Workbench codebase, requires restart"
-msgstr "Activer le nouveau code base du Workbench, nécessite un redémarrage"
-
-
 msgid "Override Auto Resync"
 msgstr "Resynchro auto des redéfinitions"
 
@@ -87563,10 +87671,6 @@ msgstr "Indexation d’assets"
 
 msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
 msgstr "Désactiver l’indexation d’assets force chaque bibliothèque d’assets à rafraîchir complètement les assets depuis le disque"
-
-
-msgid "Enables the asset shelf regions in the 3D view. Used by the Pose Library add-on in Pose Mode only"
-msgstr "Activer les régions d’étagères d’assets dans la vue 3D. Utilisé par l’addon de Bibliothèque de pose en mode pose seulement"
 
 
 msgid "Cycles Debug"
@@ -87653,14 +87757,6 @@ msgid "Enable library override template in the Python API"
 msgstr "Activer les patrons de redéfinition de bibliothèque dans l’API Python"
 
 
-msgid "Rotation Socket"
-msgstr "Prise de rotation"
-
-
-msgid "Enable the new rotation node socket type"
-msgstr "Activer le nouveau type de prise de nœuds pour les rotations"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "Peinture de texture en mode sculpture"
 
@@ -87703,14 +87799,6 @@ msgstr "Bibliothèque d’assets active"
 
 msgid "Index of the asset library being edited in the Preferences UI"
 msgstr "Indice de la bibliothèque d’assets en cours d’édition dans l’interface des préférences"
-
-
-msgid "Active Extension Repo"
-msgstr "Dépôt d’extensions actif"
-
-
-msgid "Index of the extensions repo being edited in the Preferences UI"
-msgstr "Indice du dépôt d’extensions en cours d’édition dans l’interface des préférences"
 
 
 msgid "Animation Player"
@@ -87775,10 +87863,6 @@ msgstr "Intervalle de la sauvegarde auto"
 
 msgid "The time (in minutes) to wait between automatic temporary saves"
 msgstr "Temps (en minutes) entre les sauvegardes automatiques temporaires"
-
-
-msgid "Extension Repos"
-msgstr "Dépôts d’extensions"
 
 
 msgid "File Preview Type"
@@ -89953,138 +90037,6 @@ msgstr "Expression régulière pour recherche"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Utiliser des expressions régulières pour trouver le texte dans le champ « Chercher »"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Champ de vision pour l’objectif fisheye"
-
-
-msgid "Fisheye Lens"
-msgstr "Focale fisheye"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Longueur focale de l’objectif (mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "Polynome K0 fisheye"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "Coefficient K0 du polynome de la lentille"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "Polynome K1 fisheye"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "Coefficient K1 du polynome de la lentille"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "Polynome K2 fisheye"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "Coefficient K2 du polynome de la lentille"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "Polynome K3 fisheye"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "Coefficient K3 du polynome de la lentille"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "Polynome K4 fisheye"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "Coefficient K4 du polynome de la lentille"
-
-
-msgid "Max Latitude"
-msgstr "Latitude max"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitude maximale (angle vertical) pour l’objectif équirectangulaire"
-
-
-msgid "Min Latitude"
-msgstr "Latitude min"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitude minimale (angle vertical) pour l’objectif équirectangulaire"
-
-
-msgid "Max Longitude"
-msgstr "Longitude max"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitude maximale (angle horizontal) pour l’objectif équirectangulaire"
-
-
-msgid "Min Longitude"
-msgstr "Longitude min"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitude minimale (angle horizontal) pour l’objectif équirectangulaire"
-
-
-msgid "Panorama Type"
-msgstr "Type de panorama"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Distorsion à utiliser pour le calcul"
-
-
-msgid "Spherical camera for environment maps, also known as Lat Long panorama"
-msgstr "Caméra sphérique pour les cartes d’environnement, aussi appelée panoramas Lat Long"
-
-
-msgid "Equiangular Cubemap Face"
-msgstr "Face de carte cubique équiangulaire"
-
-
-msgid "Single face of an equiangular cubemap"
-msgstr "Une seule face d’une carte cubique équiangulaire"
-
-
-msgid "Mirror ball mapping for environment maps"
-msgstr "Placage en boule miroir pour les cartes d’environnement"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Fisheye équidistant"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Idéal pour les dômes hémisphériques, ignore les dimensions du capteur"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Fisheye équisolide"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Similaire à la plupart des objectifs fisheye modernes, prend en compte les dimensions du capteur"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "Polynome de lentille fisheye"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "Définit la projection de la lentille en tant que polynome pour permettre d’imiter des optiques de caméras réelles"
 
 
 msgid "Form of curves"
@@ -99359,10 +99311,6 @@ msgid "Gizmo to adjust location"
 msgstr "Gizmo permettant d’ajuster la position"
 
 
-msgid "Speaker"
-msgstr "Haut-parleur"
-
-
 msgid "Show Reconstruction"
 msgstr "Afficher la reconstitution"
 
@@ -101464,10 +101412,6 @@ msgid "Wires"
 msgstr "Liens"
 
 
-msgid "Wire Color"
-msgstr "Couleur des liens"
-
-
 msgid "Wire Select"
 msgstr "Lien sélectionné"
 
@@ -103401,10 +103345,6 @@ msgid "Use relative path when linking assets from this asset library"
 msgstr "Utiliser un chemin relatif lorsque des assets sont liés depuis cette bibliothèque d’assets"
 
 
-msgid "Extension Repo"
-msgstr "Dépôt d’extensions"
-
-
 msgid "Settings to define an extension repository"
 msgstr "Réglages définissant un dépôt d’extensions"
 
@@ -103441,14 +103381,6 @@ msgstr "Cache local"
 
 msgid "Store packages in local cache, otherwise downloaded package files are immediately deleted after installation"
 msgstr "Garder les paquets dans un cache local ; autrement les fichiers de paquets téléchargés sont supprimés tout de suite après l’installation"
-
-
-msgid "User Extension Repos"
-msgstr "Dépôts d’extensions de l’utilisateur"
-
-
-msgid "Collection of user extension repos"
-msgstr "Collection de dépôts d’extensions de l’utilisateur"
 
 
 msgid "Solid Light"
@@ -104472,6 +104404,10 @@ msgstr "Afficher les points de référence"
 
 msgid "Show VR Camera"
 msgstr "Afficher la caméra VR"
+
+
+msgid "Theme"
+msgstr "Thème"
 
 
 msgid "X-Ray Alpha"
@@ -109500,10 +109436,6 @@ msgstr "%d sur %d %s renommé(es)"
 
 msgid "Shortcuts"
 msgstr "Raccourcis"
-
-
-msgid "Theme"
-msgstr "Thème"
 
 
 msgctxt "Operator"
@@ -115688,10 +115620,6 @@ msgid "Camera to View"
 msgstr "Caméra à la vue"
 
 
-msgid "Object Types Visibility"
-msgstr "Visibilité des types d’objet"
-
-
 msgid "Object Gizmos"
 msgstr "Gizmos de l’objet"
 
@@ -118036,16 +117964,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Vérification de la validité du fichier .blend actuel *AVANT* d’enregistrer sur le disque"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Vérification de la validité du fichier .blend actuel *APRÈS* avoir enregistré sur le disque"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "La sauvegarde de version a échoué (fichier enregistré avec @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "Impossible de changer l’ancien fichier (fichier enregistré avec @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Vérification de la validité du fichier .blend actuel *APRÈS* avoir enregistré sur le disque"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -126741,14 +126669,6 @@ msgid "USD export:  couldn't copy texture from %s to %s"
 msgstr "Export USD : la texture n’a pas pu être copiée de %s vers %s"
 
 
-msgid "Unsupported type for mesh data."
-msgstr "Type non pris en charge pour les données de maillage."
-
-
-msgid "Mesh %s, Attribute %s cannot be converted to USD."
-msgstr "Maillage %s, l’attribut %s n’a pas pu être converti en USD."
-
-
 msgid "USD Export: failed to resolve .vdb file for object: %s"
 msgstr "Export USD : impossible de résoudre le fichier .vdb pour l’objet : %s"
 
@@ -127500,6 +127420,10 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Enregistrement de la classe de prise de nœud : « %s » est trop long, longueur maximum de %d"
 
 
+msgid "Unable to create socket"
+msgstr "Impossible de créer la prise"
+
+
 msgid "CustomGroup"
 msgstr "GroupePersonnalisé"
 
@@ -127543,10 +127467,6 @@ msgstr "Même direction d’entrée/sortie des prises"
 
 msgid "Unable to locate link in node tree"
 msgstr "Impossible de trouver le lien dans l’arborescence de nœuds"
-
-
-msgid "Unable to create socket"
-msgstr "Impossible de créer la prise"
 
 
 msgid "Cannot add socket to built-in node"
@@ -130089,6 +130009,10 @@ msgid "Half the width of the narrow band in voxel units"
 msgstr "La moitié de la bande étroite, en unités de voxels"
 
 
+msgid "Corner Index"
+msgstr "Indice du coin"
+
+
 msgid "The edge to retrieve data from. Defaults to the edge from the context"
 msgstr "L’arête de laquelle obtenir les données. Utilise l’arête à partir du contexte par défaut"
 
@@ -130099,10 +130023,6 @@ msgstr "Valeurs triant les coins attachés à l’arête"
 
 msgid "Which of the sorted corners to output"
 msgstr "Quels coins triés sortir"
-
-
-msgid "Corner Index"
-msgstr "Indice du coin"
 
 
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"

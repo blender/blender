@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -11853,20 +11853,40 @@ msgid "Camera near clipping distance"
 msgstr "Distância mais próxima para corte de visualização de câmara."
 
 
-msgid "Cycles Camera Settings"
-msgstr "Definições de câmara Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "As definições de câmara para o renderizador Cycles."
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Tamanho aparente do objeto câmara na janela de visualização 3D."
 
 
 msgid "Depth Of Field"
 msgstr "Profundidade de campo"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Campo de visão para a lentes tipo olho de peixe."
+
+
+msgid "Fisheye Lens"
+msgstr "Lentes olho de peixe"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Comprimento focal das lentes (milímetros)."
+
+
+msgid "Max Latitude"
+msgstr "Latitude máxima"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitude máxima (ângulo vertical) para as lentes equiretangulares."
+
+
+msgid "Min Latitude"
+msgstr "Latitude mínima"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Latitude mínima (ângulo vertical) para as lentes equiretangulares."
 
 
 msgid "Focal Length"
@@ -11889,12 +11909,60 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Especifica as lentes como o ângulo do campo de visão."
 
 
+msgid "Max Longitude"
+msgstr "Longitude máxima"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitude máxima (ângulo horizontal) para as lentes equiretangulares."
+
+
+msgid "Min Longitude"
+msgstr "Longitude mínima"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Longitude mínima (ângulo horizontal) para as lentes equiretangulares."
+
+
 msgid "Orthographic Scale"
 msgstr "Escala ortográfica"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Escala de câmara ortográfica (similar a ampliação)."
+
+
+msgid "Panorama Type"
+msgstr "Tipo de panorama"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Distorção para usar na calculação"
+
+
+msgid "Equirectangular"
+msgstr "Equiretangular"
+
+
+msgid "Mirror Ball"
+msgstr "Esfera espelhada"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Equidistante para olho de peixe"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Ideal para domos plenos, ignora as dimensões do sensor."
+
+
+msgid "Fisheye Equisolid"
+msgstr "Sólido equivalente ao olho de peixe"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Similar a maioria das lentes modernas tipo olho de peixe, leva em consideração as dimensões do sensor."
 
 
 msgid "Passepartout Alpha"
@@ -24327,10 +24395,6 @@ msgid "Display Hidden"
 msgstr "Mostrar ocultos"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Inclui os canais a partir dos objetos ou ossos que não estão visíveis."
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Ordenação de campo para tabela de animação"
 
@@ -27457,16 +27521,8 @@ msgid "Projection of the input image"
 msgstr "Projeção da imagem de entrada."
 
 
-msgid "Equirectangular"
-msgstr "Equiretangular"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Projeção de latitude-longitude ou equiretangular."
-
-
-msgid "Mirror Ball"
-msgstr "Esfera espelhada"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -28063,6 +28119,10 @@ msgstr "Entradas de árvore de nós."
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Coleção de conectores de árvore de nós"
+
+
+msgid "Socket Type"
+msgstr "Tipo de conexão"
 
 
 msgid "Node Tree Outputs"
@@ -37951,10 +38011,6 @@ msgid "Add Node Tree Interface Socket"
 msgstr "Adicionar interface de conector de árvore de nós"
 
 
-msgid "Socket Type"
-msgstr "Tipo de conexão"
-
-
 msgctxt "Operator"
 msgid "Move Node Tree Socket"
 msgstr "Mover conector de árvore de nó"
@@ -46530,6 +46586,10 @@ msgid "Edit Property"
 msgstr "Edição de propriedades"
 
 
+msgid "Speaker"
+msgstr "Alto-falante"
+
+
 msgid "Property Name"
 msgstr "Nome das propriedades"
 
@@ -47775,6 +47835,10 @@ msgstr "Captura de movimentos"
 
 msgid "Pose Library"
 msgstr "Biblioteca de poses"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
 
 
 msgid "Comb hairs"
@@ -50103,74 +50167,6 @@ msgstr "Grupo de propriedades do identificador"
 
 msgid "Case"
 msgstr "Capitalização"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Campo de visão para a lentes tipo olho de peixe."
-
-
-msgid "Fisheye Lens"
-msgstr "Lentes olho de peixe"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Comprimento focal das lentes (milímetros)."
-
-
-msgid "Max Latitude"
-msgstr "Latitude máxima"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitude máxima (ângulo vertical) para as lentes equiretangulares."
-
-
-msgid "Min Latitude"
-msgstr "Latitude mínima"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Latitude mínima (ângulo vertical) para as lentes equiretangulares."
-
-
-msgid "Max Longitude"
-msgstr "Longitude máxima"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitude máxima (ângulo horizontal) para as lentes equiretangulares."
-
-
-msgid "Min Longitude"
-msgstr "Longitude mínima"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Longitude mínima (ângulo horizontal) para as lentes equiretangulares."
-
-
-msgid "Panorama Type"
-msgstr "Tipo de panorama"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Distorção para usar na calculação"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Equidistante para olho de peixe"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Ideal para domos plenos, ignora as dimensões do sensor."
-
-
-msgid "Fisheye Equisolid"
-msgstr "Sólido equivalente ao olho de peixe"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Similar a maioria das lentes modernas tipo olho de peixe, leva em consideração as dimensões do sensor."
 
 
 msgid "Number of subdivisions used in Cardinal curve intersection (power of 2)"
@@ -55274,10 +55270,6 @@ msgid "Show reconstructed camera path"
 msgstr "Mostra o caminho reconstruído da câmara."
 
 
-msgid "Speaker"
-msgstr "Alto-falante"
-
-
 msgid "Show Reconstruction"
 msgstr "Mostrar reconstrução"
 
@@ -56540,10 +56532,6 @@ msgstr "Nós de vetores"
 
 msgid "Wires"
 msgstr "Cabos"
-
-
-msgid "Wire Color"
-msgstr "Cor dos cabos"
 
 
 msgid "Wire Select"
@@ -65456,16 +65444,16 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Registrando classe de conector de nó: '%s' é muito longo, comprimento máximo é %d."
 
 
+msgid "Unable to create socket"
+msgstr "Não é possível de criar conector"
+
+
 msgid "Same input/output direction of sockets"
 msgstr "Mesma direção de entrada ou saída de conectores."
 
 
 msgid "Unable to locate link in node tree"
 msgstr "Não é possível localizar ligação na árvore de nós"
-
-
-msgid "Unable to create socket"
-msgstr "Não é possível de criar conector"
 
 
 msgid "Node tree '%s' has undefined type %s"

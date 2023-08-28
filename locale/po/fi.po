@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7577,6 +7577,10 @@ msgid "AOV"
 msgstr "AOV"
 
 
+msgid "Theme"
+msgstr "Teema"
+
+
 msgid "Active AOV"
 msgstr "Aktiivinen AOV"
 
@@ -7848,10 +7852,6 @@ msgstr "Kameraa ei löydetty"
 
 msgid "Shortcuts"
 msgstr "Pikanäppäimet"
-
-
-msgid "Theme"
-msgstr "Teema"
 
 
 msgid "Spacebar"

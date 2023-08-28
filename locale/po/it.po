@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -11000,20 +11000,28 @@ msgid "Camera near clipping distance"
 msgstr "Distanza di taglio iniziale della camera (non mostra ciò che è più vicino)"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Impostazioni Camera Cycles"
-
-
-msgid "Cycles camera settings"
-msgstr "Impostazioni camera Cycles"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Dimensione apparente dell'oggetto Camera nella vista 3D"
 
 
 msgid "Depth Of Field"
 msgstr "Profondità di Campo"
+
+
+msgid "Fisheye Lens"
+msgstr "Fisheye"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Lunghezza focale lenti (mm)"
+
+
+msgid "Max Latitude"
+msgstr "Max Latitudine"
+
+
+msgid "Min Latitude"
+msgstr "Min Latitudine"
 
 
 msgid "Focal Length"
@@ -11032,12 +11040,40 @@ msgid "Millimeters"
 msgstr "Millimetri"
 
 
+msgid "Max Longitude"
+msgstr "Max Longitudine"
+
+
+msgid "Min Longitude"
+msgstr "Min Longitudine"
+
+
 msgid "Orthographic Scale"
 msgstr "Scala Ortografica"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Scala della Camera Ortografica (simile allo Zoom)"
+
+
+msgid "Panorama Type"
+msgstr "Tipo Panorama"
+
+
+msgid "Equirectangular"
+msgstr "Equirettangolare"
+
+
+msgid "Mirror Ball"
+msgstr "Sfera a Specchio"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Fisheye Equidistante"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Fisheye Equisolido"
 
 
 msgid "Passepartout Alpha"
@@ -21767,10 +21803,6 @@ msgid "Display Hidden"
 msgstr "Mostra Nascosti"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Include i canali da oggetti/ossa che non sono visibili"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Campo Ordinamento Dopesheet"
 
@@ -23977,16 +24009,8 @@ msgid "Projection of the input image"
 msgstr "Proiezione dell'immagine in entrata"
 
 
-msgid "Equirectangular"
-msgstr "Equirettangolare"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Equirettangolare o proiezione latitudine-longitudine"
-
-
-msgid "Mirror Ball"
-msgstr "Sfera a Specchio"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -24427,6 +24451,10 @@ msgstr "Valore minimo"
 
 msgid "Node Tree Inputs"
 msgstr "Ingressi Alberi Nodi"
+
+
+msgid "Socket Type"
+msgstr "Tipo di Connettore"
 
 
 msgid "Node Tree Outputs"
@@ -33232,10 +33260,6 @@ msgid "Go to parent node tree"
 msgstr "Torna all'albero nodi genitore"
 
 
-msgid "Socket Type"
-msgstr "Tipo di Connettore"
-
-
 msgctxt "Operator"
 msgid "Move Node Tree Socket"
 msgstr "Muovi Connettore Albero Nodi"
@@ -40986,6 +41010,10 @@ msgid "Edit Property"
 msgstr "Modifica Proprietà"
 
 
+msgid "Speaker"
+msgstr "Altoparlante"
+
+
 msgid "Property Name"
 msgstr "Nome Proprietà"
 
@@ -42391,6 +42419,10 @@ msgstr "Libreria Pose"
 
 msgid "3D-Print"
 msgstr "Stampa 3D"
+
+
+msgid "Wire Color"
+msgstr "Colore Reticolo"
 
 
 msgid "Compositor"
@@ -44613,42 +44645,6 @@ msgstr "Gruppo di proprietà ID"
 
 msgid "Case"
 msgstr "Maiuscolo/Minuscolo"
-
-
-msgid "Fisheye Lens"
-msgstr "Fisheye"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Lunghezza focale lenti (mm)"
-
-
-msgid "Max Latitude"
-msgstr "Max Latitudine"
-
-
-msgid "Min Latitude"
-msgstr "Min Latitudine"
-
-
-msgid "Max Longitude"
-msgstr "Max Longitudine"
-
-
-msgid "Min Longitude"
-msgstr "Min Longitudine"
-
-
-msgid "Panorama Type"
-msgstr "Tipo Panorama"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Fisheye Equidistante"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Fisheye Equisolido"
 
 
 msgid "CPU"
@@ -48608,10 +48604,6 @@ msgid "Show Camera Focus Distance"
 msgstr "Mostra Distanza Focale Camera"
 
 
-msgid "Speaker"
-msgstr "Altoparlante"
-
-
 msgid "Show Reconstruction"
 msgstr "Mostra Ricostruzione"
 
@@ -49634,10 +49626,6 @@ msgstr "Nodo Vettore"
 
 msgid "Wires"
 msgstr "Reticoli (fil di ferro)"
-
-
-msgid "Wire Color"
-msgstr "Colore Reticolo"
 
 
 msgid "Wire Select"

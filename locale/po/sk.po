@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'3dc93d6e3806')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5ba692898e63')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-21 09:30:35\n"
-"PO-Revision-Date: 2023-08-15 11:30+0200\n"
+"POT-Creation-Date: 2023-08-28 16:05:16\n"
+"PO-Revision-Date: 2023-08-22 15:17+0200\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
 "Language: sk_SK\n"
@@ -21633,20 +21633,80 @@ msgid "Camera near clipping distance"
 msgstr "Oreže kamere bližšie"
 
 
-msgid "Cycles Camera Settings"
-msgstr "Nastavenia cyklov kamery"
-
-
-msgid "Cycles camera settings"
-msgstr "Nastavenia cyklov kamery"
-
-
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Zdanlivá veľkosť objektu kamery v 3D zobrazení"
 
 
 msgid "Depth Of Field"
 msgstr "Hĺbka ostrosti"
+
+
+msgid "Field of view for the fisheye lens"
+msgstr "Zorné pole pre objektív Rybie oko"
+
+
+msgid "Fisheye Lens"
+msgstr "Objektív Rybie oko"
+
+
+msgid "Lens focal length (mm)"
+msgstr "Ohnisková vzdialenosť objektívu (mm)"
+
+
+msgid "Fisheye Polynomial K0"
+msgstr "Mnohočlen rybieho oka K0"
+
+
+msgid "Coefficient K0 of the lens polynomial"
+msgstr "Koeficient K0 mnohočlena šošovky"
+
+
+msgid "Fisheye Polynomial K1"
+msgstr "Mnohočlen rybieho oka K1"
+
+
+msgid "Coefficient K1 of the lens polynomial"
+msgstr "Koeficient K1 mnohočlena šošovky"
+
+
+msgid "Fisheye Polynomial K2"
+msgstr "Mnohočlen rybieho oka K2"
+
+
+msgid "Coefficient K2 of the lens polynomial"
+msgstr "Koeficient K2 mnohočlena šošovky"
+
+
+msgid "Fisheye Polynomial K3"
+msgstr "Mnohočlen rybieho oka K3"
+
+
+msgid "Coefficient K3 of the lens polynomial"
+msgstr "Koeficient K3 mnohočlena šošovky"
+
+
+msgid "Fisheye Polynomial K4"
+msgstr "Mnohočlen rybieho oka K4"
+
+
+msgid "Coefficient K4 of the lens polynomial"
+msgstr "Koeficient K4 mnohočlena šošovky"
+
+
+msgid "Max Latitude"
+msgstr "Maximálna zemepisná šírka"
+
+
+msgid "Maximum latitude (vertical angle) for the equirectangular lens"
+msgstr "Maximálna zemepisná šírka (vertikálny uhol) pre rovnosmerný objektív"
+
+
+msgid "Min Latitude"
+msgstr "Minimálna zemepisná šírka"
+
+
+msgid "Minimum latitude (vertical angle) for the equirectangular lens"
+msgstr "Minimálna zemepisná šírka (vertikálny uhol) pre rovnosmerný objektív"
 
 
 msgid "Focal Length"
@@ -21677,12 +21737,84 @@ msgid "Specify the lens as the field of view's angle"
 msgstr "Určí objektív ako uhol zorného poľa"
 
 
+msgid "Max Longitude"
+msgstr "Maximálna zemepisná dĺžka"
+
+
+msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Maximálna zemepisná dĺžka (horizontálny uhol) pre rovnosmerný objektív"
+
+
+msgid "Min Longitude"
+msgstr "Minimálna zemepisná dĺžka"
+
+
+msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
+msgstr "Minimálna zemepisná dĺžka (horizontálny uhol) pre rovnosmerný objektív"
+
+
 msgid "Orthographic Scale"
 msgstr "Ortografická mierka"
 
 
 msgid "Orthographic Camera scale (similar to zoom)"
 msgstr "Zmena veľkosti ortografickej kamery (podobne ako približovanie)"
+
+
+msgid "Panorama Type"
+msgstr "Typ posuvu"
+
+
+msgid "Distortion to use for the calculation"
+msgstr "Skreslenie použité pri výpočte"
+
+
+msgid "Equirectangular"
+msgstr "Rovnoramenné"
+
+
+msgid "Spherical camera for environment maps, also known as Lat Long panorama"
+msgstr "Sférická kamera pre mapy prostredia, známa aj ako panoráma Lat Long"
+
+
+msgid "Equiangular Cubemap Face"
+msgstr "Rovnakouhlá kocková mapa plôšky"
+
+
+msgid "Single face of an equiangular cubemap"
+msgstr "Jedna plôška rovnakouhlej kockovej mapy"
+
+
+msgid "Mirror Ball"
+msgstr "Zrkadlová guľa"
+
+
+msgid "Mirror ball mapping for environment maps"
+msgstr "Zrkadlové mapovanie lopty pre mapy prostredia"
+
+
+msgid "Fisheye Equidistant"
+msgstr "Rovnako vzdialené Rybie oko"
+
+
+msgid "Ideal for fulldomes, ignore the sensor dimensions"
+msgstr "Ideálne pre kopulovité premietanie, ignoruje rozmery senzora"
+
+
+msgid "Fisheye Equisolid"
+msgstr "Rovnoramenné rybie oko"
+
+
+msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
+msgstr "Podobne ako u väčšiny moderných objektívov Rybieho oka, berie do úvahy rozmery senzora"
+
+
+msgid "Fisheye Lens Polynomial"
+msgstr "Mnohočlenový objektív rybie oko"
+
+
+msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
+msgstr "Definuje premietanie objektívu ako mnohočlenové, aby bolo možné napodobniť objektívy kamier v reálnom svete"
 
 
 msgid "Passepartout Alpha"
@@ -25815,10 +25947,6 @@ msgstr "Plná snímka"
 
 msgid "Composites full image result as fast as possible"
 msgstr "Čo najrýchlejšie zloží celý výsledok obrázka"
-
-
-msgid "Realtime GPU"
-msgstr "GPU v reálnom čase"
 
 
 msgid "Use GPU accelerated compositing with more limited functionality"
@@ -40845,10 +40973,6 @@ msgid "Display Hidden"
 msgstr "Zobraziť skryté"
 
 
-msgid "Include channels from objects/bone that aren't visible"
-msgstr "Zahrnie kanály objektov/kostí, ktoré nie sú viditeľné"
-
-
 msgid "Dopesheet Sort Field"
 msgstr "Expozičný hárok poľa zoradenia"
 
@@ -43477,8 +43601,24 @@ msgid "Eccentricity"
 msgstr "Vystredenie"
 
 
+msgid "Controls how directional the filter is. 0 means the filter is completely omnidirectional while 2 means it is maximally directed along the edges of the image"
+msgstr "Ovláda smerovosť filtra. 0 znamená, že filter je úplne všesmerový, zatiaľ čo 2 znamená, že je maximálne nasmerovaný pozdĺž okrajov obrazu"
+
+
+msgid "Controls the sharpness of the filter. 0 means completely smooth while 1 means completely sharp"
+msgstr "Ovláda ostrosť filtra. 0 znamená úplne hladký, zatiaľ čo 1 znamená úplne ostrý"
+
+
 msgid "Size of filter. Larger values give stronger stylized effect"
 msgstr "Veľkosť filtra. Väčšie hodnoty poskytujú silnejší štylizovaný efekt"
+
+
+msgid "Uniformity"
+msgstr "Jednotnosť"
+
+
+msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions"
+msgstr "Ovláda rovnomernosť smeru filtra. Vyššie hodnoty vytvárajú rovnomernejšie smery"
 
 
 msgid "Variation of Kuwahara filter to use"
@@ -46844,6 +46984,22 @@ msgid "Physically-based, easy-to-use shader for rendering hair and fur"
 msgstr "Fyzikálne založený, ľahko použiteľný tieňovač na prekresľovanie vlasov a srsti"
 
 
+msgid "Scattering model"
+msgstr "Model rozptylu"
+
+
+msgid "Select from Chiang or Huang model"
+msgstr "Vyberte si model Chiang alebo Huang"
+
+
+msgid "Chiang"
+msgstr "Chiang"
+
+
+msgid "Huang"
+msgstr "Huang"
+
+
 msgid "Color Parametrization"
 msgstr "Parametrizácia farby"
 
@@ -47680,16 +47836,8 @@ msgid "Projection of the input image"
 msgstr "Premietne vstupný obraz"
 
 
-msgid "Equirectangular"
-msgstr "Rovnoramenné"
-
-
 msgid "Equirectangular or latitude-longitude projection"
 msgstr "Rovnoramenné premietnutie zemepisnej šírky-dĺžky"
-
-
-msgid "Mirror Ball"
-msgstr "Zrkadlová guľa"
 
 
 msgid "Projection from an orthographic photo of a mirror ball"
@@ -47826,6 +47974,10 @@ msgstr "Podobne ako hybridný multifraktál vytvára heterogénny terén, ale s 
 
 msgid "Generate fractal Perlin noise"
 msgstr "Vygenerovať fraktálny Perlinov šum"
+
+
+msgid "Normalize outputs to 0.0 to 1.0 range"
+msgstr "Normalizácia výstupov na rozsah 0,0 až 1,0"
 
 
 msgid "Generate a volumetric point for each particle or vertex of another object"
@@ -49098,6 +49250,10 @@ msgstr "Strom uzla vstupov"
 
 msgid "Collection of Node Tree Sockets"
 msgstr "Kolekcia zásuviek stromu uzla"
+
+
+msgid "Socket Type"
+msgstr "Typ zásuvky"
 
 
 msgid "Node Tree Outputs"
@@ -59684,6 +59840,19 @@ msgid "Next Keyframe"
 msgstr "Ďalší kľúč"
 
 
+msgctxt "Operator"
+msgid "Match Slope"
+msgstr "Zhodný sklon"
+
+
+msgid "Blend selected keys to the slope of neighboring ones"
+msgstr "Prelínanie vybraných kľúčov so sklonom susedných kľúčov"
+
+
+msgid "Defines which keys to use as slope and how much to blend towards them"
+msgstr "Definuje, ktoré kľúče sa majú použiť ako sklon a koľko sa ich má prelínať"
+
+
 msgid "By Values Over Cursor Value"
 msgstr "Podľa hodnoty nad hodnotou kurzora"
 
@@ -66124,10 +66293,6 @@ msgid "Add an input or output to the active node tree"
 msgstr "Pridá vstup alebo výstup do aktuálneho stromu uzla"
 
 
-msgid "Socket Type"
-msgstr "Typ zásuvky"
-
-
 msgctxt "Operator"
 msgid "Change Node Tree Socket Subtype"
 msgstr "Zmeniť podtyp zásuvky stromu uzlov"
@@ -66823,10 +66988,6 @@ msgstr "Prepnúť vstupné atribúty"
 
 msgid "Switch between an attribute and a single value to define the data for every element"
 msgstr "Prepína medzi atribútom a jednou hodnotou na definovanie údajov pre každý prvok"
-
-
-msgid "Prop Path"
-msgstr "Cesta vlastnosti"
 
 
 msgctxt "Operator"
@@ -81967,6 +82128,10 @@ msgid "Python value for unsupported custom property types"
 msgstr "Hodnota jazyka Python pre nepodporované vlastné typy vlastností"
 
 
+msgid "Speaker"
+msgstr "Reproduktor"
+
+
 msgid "Library Overridable"
 msgstr "Prepisovateľná knižnica"
 
@@ -82769,6 +82934,10 @@ msgid "Also import materials that are not used by any geometry. Note that when t
 msgstr "Importuje aj materiály, ktoré sa nepoužívajú v žiadnej geometrii. Všimnite si, že ak je táto možnosť NEPRAVDA, materiály, na ktoré sa geometria odvoláva, budú stále importované"
 
 
+msgid "Blend Shapes"
+msgstr "Prelínanie tvarov"
+
+
 msgid "Import guide geometry"
 msgstr "Import návodu geometrie"
 
@@ -82791,6 +82960,10 @@ msgstr "Import geometrie finálneho prekreslenia"
 
 msgid "Shapes"
 msgstr "Tvary"
+
+
+msgid "Skeletons"
+msgstr "Kostry"
 
 
 msgid "Import Subdivision Scheme"
@@ -83876,10 +84049,6 @@ msgstr "Predvoľby snímkovania"
 
 msgid "Viewport Sampling Presets"
 msgstr "Predvoľby snímania záberu"
-
-
-msgid "View Object Types"
-msgstr "Typ zobrazenia objektu"
 
 
 msgid "Physical light sources"
@@ -85260,6 +85429,10 @@ msgstr "Štvornásobné zobrazenie"
 
 msgid "Auto-Masking"
 msgstr "Auto maskovanie"
+
+
+msgid "Wire Color"
+msgstr "Farba drôtu"
 
 
 msgid "Compositor"
@@ -87525,14 +87698,6 @@ msgid "Enable the new Overlay codebase, requires restart"
 msgstr "Povolí novú kódovú základňu Prekrytia, vyžaduje reštart"
 
 
-msgid "Workbench Next"
-msgstr "Ďalší Pracovný stôl"
-
-
-msgid "Enable the new Workbench codebase, requires restart"
-msgstr "Povolí nový základ kódu pracovného stola, vyžaduje reštart"
-
-
 msgid "Override Auto Resync"
 msgstr "Prepísať automatickú opätovnú synchronizáciu"
 
@@ -87563,10 +87728,6 @@ msgstr "Indexovanie aktív"
 
 msgid "Disabling the asset indexer forces every asset library refresh to completely reread assets from disk"
 msgstr "Vypne vynútenie indexátora aktív pri každom obnovení knižnice aktív na úplné opätovné načítanie aktív z disku"
-
-
-msgid "Enables the asset shelf regions in the 3D view. Used by the Pose Library add-on in Pose Mode only"
-msgstr "Povolí regióny políc aktív v 3D zobrazení. Používa doplnok Knižnice póz len v režime pózy"
 
 
 msgid "Cycles Debug"
@@ -87653,14 +87814,6 @@ msgid "Enable library override template in the Python API"
 msgstr "Povolí šablóny prepisu knižnice v rozhraní API jazyka Python"
 
 
-msgid "Rotation Socket"
-msgstr "Zásuvka rotácie"
-
-
-msgid "Enable the new rotation node socket type"
-msgstr "Povolí nový typ zásuvky uzla rotácie"
-
-
 msgid "Sculpt Texture Paint"
 msgstr "Maľovanie tvarovania textúry"
 
@@ -87703,14 +87856,6 @@ msgstr "Aktívna knižnica aktív"
 
 msgid "Index of the asset library being edited in the Preferences UI"
 msgstr "Index knižnice materiálov upravovanej v Predvoľbách užívateľského rozhrania"
-
-
-msgid "Active Extension Repo"
-msgstr "Aktívny repozitár rozšírenia"
-
-
-msgid "Index of the extensions repo being edited in the Preferences UI"
-msgstr "Index repozitára rozšírení, ktorý sa upravuje v predvoľbách užívateľskeho rozhrania"
 
 
 msgid "Animation Player"
@@ -87775,10 +87920,6 @@ msgstr "Automatický čas uloženia"
 
 msgid "The time (in minutes) to wait between automatic temporary saves"
 msgstr "Čas v minútach medzi automatickým uložením záloh"
-
-
-msgid "Extension Repos"
-msgstr "Prípony repozitárov"
 
 
 msgid "File Preview Type"
@@ -89953,138 +90094,6 @@ msgstr "Vyhľadať obvyklý výraz"
 
 msgid "Use regular expressions to match text in the 'Find' field"
 msgstr "Použije obvyklé výrazy na porovnanie textu v poli „Hľadať“"
-
-
-msgid "Field of view for the fisheye lens"
-msgstr "Zorné pole pre objektív Rybie oko"
-
-
-msgid "Fisheye Lens"
-msgstr "Objektív Rybie oko"
-
-
-msgid "Lens focal length (mm)"
-msgstr "Ohnisková vzdialenosť objektívu (mm)"
-
-
-msgid "Fisheye Polynomial K0"
-msgstr "Mnohočlen rybieho oka K0"
-
-
-msgid "Coefficient K0 of the lens polynomial"
-msgstr "Koeficient K0 mnohočlena šošovky"
-
-
-msgid "Fisheye Polynomial K1"
-msgstr "Mnohočlen rybieho oka K1"
-
-
-msgid "Coefficient K1 of the lens polynomial"
-msgstr "Koeficient K1 mnohočlena šošovky"
-
-
-msgid "Fisheye Polynomial K2"
-msgstr "Mnohočlen rybieho oka K2"
-
-
-msgid "Coefficient K2 of the lens polynomial"
-msgstr "Koeficient K2 mnohočlena šošovky"
-
-
-msgid "Fisheye Polynomial K3"
-msgstr "Mnohočlen rybieho oka K3"
-
-
-msgid "Coefficient K3 of the lens polynomial"
-msgstr "Koeficient K3 mnohočlena šošovky"
-
-
-msgid "Fisheye Polynomial K4"
-msgstr "Mnohočlen rybieho oka K4"
-
-
-msgid "Coefficient K4 of the lens polynomial"
-msgstr "Koeficient K4 mnohočlena šošovky"
-
-
-msgid "Max Latitude"
-msgstr "Maximálna zemepisná šírka"
-
-
-msgid "Maximum latitude (vertical angle) for the equirectangular lens"
-msgstr "Maximálna zemepisná šírka (vertikálny uhol) pre rovnosmerný objektív"
-
-
-msgid "Min Latitude"
-msgstr "Minimálna zemepisná šírka"
-
-
-msgid "Minimum latitude (vertical angle) for the equirectangular lens"
-msgstr "Minimálna zemepisná šírka (vertikálny uhol) pre rovnosmerný objektív"
-
-
-msgid "Max Longitude"
-msgstr "Maximálna zemepisná dĺžka"
-
-
-msgid "Maximum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Maximálna zemepisná dĺžka (horizontálny uhol) pre rovnosmerný objektív"
-
-
-msgid "Min Longitude"
-msgstr "Minimálna zemepisná dĺžka"
-
-
-msgid "Minimum longitude (horizontal angle) for the equirectangular lens"
-msgstr "Minimálna zemepisná dĺžka (horizontálny uhol) pre rovnosmerný objektív"
-
-
-msgid "Panorama Type"
-msgstr "Typ posuvu"
-
-
-msgid "Distortion to use for the calculation"
-msgstr "Skreslenie použité pri výpočte"
-
-
-msgid "Spherical camera for environment maps, also known as Lat Long panorama"
-msgstr "Sférická kamera pre mapy prostredia, známa aj ako panoráma Lat Long"
-
-
-msgid "Equiangular Cubemap Face"
-msgstr "Rovnakouhlá kocková mapa plôšky"
-
-
-msgid "Single face of an equiangular cubemap"
-msgstr "Jedna plôška rovnakouhlej kockovej mapy"
-
-
-msgid "Mirror ball mapping for environment maps"
-msgstr "Zrkadlové mapovanie lopty pre mapy prostredia"
-
-
-msgid "Fisheye Equidistant"
-msgstr "Rovnako vzdialené Rybie oko"
-
-
-msgid "Ideal for fulldomes, ignore the sensor dimensions"
-msgstr "Ideálne pre kopulovité premietanie, ignoruje rozmery senzora"
-
-
-msgid "Fisheye Equisolid"
-msgstr "Rovnoramenné rybie oko"
-
-
-msgid "Similar to most fisheye modern lens, takes sensor dimensions into consideration"
-msgstr "Podobne ako u väčšiny moderných objektívov Rybieho oka, berie do úvahy rozmery senzora"
-
-
-msgid "Fisheye Lens Polynomial"
-msgstr "Mnohočlenový objektív rybie oko"
-
-
-msgid "Defines the lens projection as polynomial to allow real world camera lenses to be mimicked"
-msgstr "Definuje premietanie objektívu ako mnohočlenové, aby bolo možné napodobniť objektívy kamier v reálnom svete"
 
 
 msgid "Form of curves"
@@ -99359,10 +99368,6 @@ msgid "Gizmo to adjust location"
 msgstr "Manipulátor úpravy polohy"
 
 
-msgid "Speaker"
-msgstr "Reproduktor"
-
-
 msgid "Show Reconstruction"
 msgstr "Zobraziť rekonštrukciu"
 
@@ -101464,10 +101469,6 @@ msgid "Wires"
 msgstr "Drôty"
 
 
-msgid "Wire Color"
-msgstr "Farba drôtu"
-
-
 msgid "Wire Select"
 msgstr "Vybraný drôt"
 
@@ -103401,10 +103402,6 @@ msgid "Use relative path when linking assets from this asset library"
 msgstr "Pri prepájaní aktív z tejto knižnice aktív použite relatívnu cestu"
 
 
-msgid "Extension Repo"
-msgstr "Repozitár rozšírení"
-
-
 msgid "Settings to define an extension repository"
 msgstr "Nastaví definovanie úložiska rozšírení"
 
@@ -103441,14 +103438,6 @@ msgstr "Miestny zásobník"
 
 msgid "Store packages in local cache, otherwise downloaded package files are immediately deleted after installation"
 msgstr "Uloží balíky do miestneho zásobníka, inak sa stiahnuté súbory balíkov po inštalácii okamžite odstránia."
-
-
-msgid "User Extension Repos"
-msgstr "Užívateľské úložiská rozšírení"
-
-
-msgid "Collection of user extension repos"
-msgstr "Kolekcia užívateľských repozitárov rozšírení"
 
 
 msgid "Solid Light"
@@ -104472,6 +104461,10 @@ msgstr "Zobraziť orientačné body"
 
 msgid "Show VR Camera"
 msgstr "Zobraziť kameru VR"
+
+
+msgid "Theme"
+msgstr "Motív"
 
 
 msgid "X-Ray Alpha"
@@ -109504,10 +109497,6 @@ msgid "Shortcuts"
 msgstr "Klávesové skratky"
 
 
-msgid "Theme"
-msgstr "Motív"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Otvoriť..."
@@ -114277,6 +114266,14 @@ msgid "Use Custom Colors"
 msgstr "Použiť vlastné farby"
 
 
+msgid "Auto-Offset Margin"
+msgstr "Automatické odsadenie okrajov"
+
+
+msgid "Preview Resolution"
+msgstr "Rozlíšenie náhľadu"
+
+
 msgid "Sculpt Overlay Color"
 msgstr "Farba prekrytia tvarovania"
 
@@ -115688,10 +115685,6 @@ msgstr "Lokálna kamera"
 
 msgid "Camera to View"
 msgstr "Kamera do pohľadu"
-
-
-msgid "Object Types Visibility"
-msgstr "Viditeľnosť typov objektov"
 
 
 msgid "Object Gizmos"
@@ -118038,16 +118031,16 @@ msgid "Checking sanity of current .blend file *BEFORE* save to disk"
 msgstr "Kontrola zdravia aktuálneho .blend súboru *PRED* uložením na disk"
 
 
+msgid "Checking sanity of current .blend file *AFTER* save to disk"
+msgstr "Kontrola zdravia aktuálneho .blend súboru *PO* uložení na disk"
+
+
 msgid "Version backup failed (file saved with @)"
 msgstr "Zálohovanie verzie zlyhalo (súbor uložený s @)"
 
 
 msgid "Cannot change old file (file saved with @)"
 msgstr "Nemožno zmeniť starý súbor (súbor uložený s @)"
-
-
-msgid "Checking sanity of current .blend file *AFTER* save to disk"
-msgstr "Kontrola zdravia aktuálneho .blend súboru *PO* uložení na disk"
 
 
 msgid "Cannot open file %s for writing: %s"
@@ -123876,19 +123869,19 @@ msgstr "%d kanál(ov) pohyblivej čiarky"
 
 
 msgid " RGBA float"
-msgstr " RGBA pláv"
+msgstr " RGBA na pohyblivej čiarke"
 
 
 msgid " RGB float"
-msgstr " RGB pláv"
+msgstr " RGB na pohyblivej čiarke"
 
 
 msgid " RGBA byte"
-msgstr " RGBA byt"
+msgstr " RGBA bajt"
 
 
 msgid " RGB byte"
-msgstr " RGB byt"
+msgstr " RGB bajt"
 
 
 msgid ",  %s"
@@ -124141,6 +124134,10 @@ msgstr "Žiadna platná akcia na pridanie"
 
 msgid "Needs at least a pair of adjacent selected strips with a gap between them"
 msgstr "Vyžadovaných aspoň pár priľahlých vybraných pásov s medzerou medzi nimi"
+
+
+msgid "Cannot swap selected strips because they will overlap each other in their new places"
+msgstr "Vybrané pásy nie je možné vymeniť, pretože sa budú na nových miestach navzájom prekrývať"
 
 
 msgid "Cannot swap selected strips as they will not be able to fit in their new places"
@@ -124768,8 +124765,28 @@ msgid "). Click here to proceed..."
 msgstr "). Kliknite tu pre pokračovanie..."
 
 
+msgid "Not an editable name"
+msgstr "Neupraviteľný názov"
+
+
+msgid "Sequence names are not editable from the Outliner"
+msgstr "Názvy sekvencií v Líniovom prehľade nemožno upravovať"
+
+
+msgid "External library data is not editable"
+msgstr "Nemožno upravovať údaje externej knižnice"
+
+
+msgid "Overridden data-blocks are not editable"
+msgstr "Prepísané bloky údajov nemožno upravovať"
+
+
 msgid "Cannot edit the path of an indirectly linked library"
 msgstr "Nemožno upraviť cestu nepriamo prepojenej knižnice"
+
+
+msgid "Library path is not editable from here anymore, use the Relocate operation instead"
+msgstr "Cesta ku knižnici sa odtiaľto už nedá upravovať, namiesto toho použite operáciu Premiestniť"
 
 
 msgid "No active item to rename"
@@ -126675,6 +126692,10 @@ msgid "An exception occurred invoking USD hook '%s'"
 msgstr "Pri vyvolaní háčika USD '%s' došlo k výnimke"
 
 
+msgid "Unsupported type %s for mesh data"
+msgstr "Nepodporovaný typ %s pre údaje povrchové siete"
+
+
 msgid "Unsupported domain for mesh data type %s"
 msgstr "Nepodporovaná doména pre typ údajov povrchovej siete %s"
 
@@ -126711,8 +126732,96 @@ msgid "Skipping primvar %s, mesh %s -- no value"
 msgstr "Vynechanie prvotnej premennej %s, povrchová sieť %s -- žiadna hodnota"
 
 
+msgid "%s: Couldn't compute geom bind transform for %s"
+msgstr "%s: Nepodarilo sa vypočítať geografickú väzbu transformácie pre %s"
+
+
 msgid "Unhandled Gprim type: %s (%s)"
 msgstr "Typ Gprim bez manipulácie: %s (%s)"
+
+
+msgid "%s: Couldn't find armature object corresponding to USD skeleton %s"
+msgstr "%s: Nepodarilo sa nájsť objekt armatúry zodpovedajúci kostre USD %s"
+
+
+msgid "%s: Couldn't get world bind transforms for skeleton %s"
+msgstr "%s: Nepodarilo sa získať transformácie väzby sveta pre kostru %s"
+
+
+msgid "%s: Number of bind transforms doesn't match the number of joints for skeleton %s"
+msgstr "%s: Počet väzieb transformácií sa nezhoduje s počtom kĺbov pre kostru %s"
+
+
+msgid "%s: Couldn't get blendshape targets for prim %s"
+msgstr "%s: Nepodarilo sa získať ciele prelínaných tvarov pre primárne %s"
+
+
+msgid "%s: Number of blendshapes doesn't match number of blendshape targets for prim %s"
+msgstr "%s: Počet prelínaných tvarov sa nezhoduje s počtom cieľov prelínaných tvarov pre primárne %s"
+
+
+msgid "%s: Couldn't get stage for prim %s"
+msgstr "%s: Nepodarilo sa získať fázu pre primárne %s"
+
+
+msgid "%s: Couldn't get offsets for blend shape %s"
+msgstr "%s: Nepodarilo sa získať posuvy pre prelínané tvary %s"
+
+
+msgid "%s: No offsets for blend shape %s"
+msgstr "%s: Žiadne posuny pre prelínaný tvar %s"
+
+
+msgid "%s: Number of offsets greater than number of mesh vertices for blend shape %s"
+msgstr "%s: Počet posuvov väčší ako počet vrcholov povrchovej siete pre prelínaný tvar %s"
+
+
+msgid "%s: Couldn't query skeleton %s"
+msgstr "%s: Nepodarilo sa vyžiadať kostru %s"
+
+
+msgid "%s: Topology and joint order size mismatch for skeleton %s"
+msgstr "%s: Nesúlad topológie a veľkosti kĺbov pre kostru %s"
+
+
+msgid "%s: Couldn't add bone for joint %s"
+msgstr "%s: Nepodarilo sa pridať kosť pre kĺb %s"
+
+
+msgid "%s: Mismatch in bone and joint counts for skeleton %s"
+msgstr "%s: Nesúlad v počte kostí a kĺbov pre kostru %s"
+
+
+msgid "%s:  Mismatch in bind xforms and joint counts for skeleton %s"
+msgstr "%s:  Nesúlad vo väzbách x-form a počtoch kĺbov pre kostru %s"
+
+
+msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s.Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation.  The skeletal animation won't be imported"
+msgstr "USD Import kostry: v prvku %s boli zistené matice kostí so zápornými determinantmi. Takéto matice môžu indikovať záporné váhy, pravdepodobne v dôsledku operácií zrkadlenia, a v súčasnosti ich nemožno previesť na reprezentáciu kostí v Blenderi.  Animácia kostry sa neimportuje"
+
+
+msgid "%s: Joint weights and joint indices element size mismatch for prim %s"
+msgstr "%s: Nesúlad veľkosti prvkov spoločných váh a spoločných indexov pre primárne %s"
+
+
+msgid "%s: Joint weights and joint indices size mismatch size mismatch for prim %s"
+msgstr "%s: Nesúlad veľkosti spoločných váh a spoločných indexov pre primárne %s"
+
+
+msgid "%s: Unexpected joint weights interpolation type %s for prim %s"
+msgstr "%s: Neočakávaný typ interpolácie spoločných váh %s pre primárne %s"
+
+
+msgid "%s: Joint weights of unexpected size for vertex interpolation for prim %s"
+msgstr "%s: Spoločné váhy neočakávanej veľkosti pre interpoláciu vrcholov pre primárne %s"
+
+
+msgid "%s: Joint weights of unexpected size for constant interpolation for prim %s"
+msgstr "%s: Spoločné váhy neočakávanej veľkosti pre konštantnú interpoláciu pre primárne %s"
+
+
+msgid "%s: Error creating deform group data for mesh %s"
+msgstr "%s: Chyba pri vytváraní údajov deformačnej skupiny pre povrchovú sieť %s"
 
 
 msgid "USD Export: no bounds could be computed for %s"
@@ -126745,14 +126854,6 @@ msgstr "Export USD: nepodarilo sa skopírovať dlaždicu textúry z %s do %s"
 
 msgid "USD export:  couldn't copy texture from %s to %s"
 msgstr "Export USD: nepodarilo sa skopírovať textúru z %s do %s"
-
-
-msgid "Unsupported type for mesh data."
-msgstr "Nepodporovaný typ pre údaje povrchovej siete."
-
-
-msgid "Mesh %s, Attribute %s cannot be converted to USD."
-msgstr "Povrchová sieť %s, atribút %s nemožno konvertovať na USD."
 
 
 msgid "USD Export: failed to resolve .vdb file for object: %s"
@@ -127506,6 +127607,10 @@ msgid "Registering node socket class: '%s' is too long, maximum length is %d"
 msgstr "Registrácia triedy zásuvky uzla: %s je príliš dlhá, maximálna dĺžka je %d"
 
 
+msgid "Unable to create socket"
+msgstr "Nemožno vytvoriť zásuvku"
+
+
 msgid "CustomGroup"
 msgstr "Vlastná skupina"
 
@@ -127549,10 +127654,6 @@ msgstr "Rovnaký smer vstupu/výstupu zásuviek"
 
 msgid "Unable to locate link in node tree"
 msgstr "Nepodarilo sa nájsť prepojenie v strome uzla"
-
-
-msgid "Unable to create socket"
-msgstr "Nemožno vytvoriť zásuvku"
 
 
 msgid "Cannot add socket to built-in node"
@@ -130095,6 +130196,10 @@ msgid "Half the width of the narrow band in voxel units"
 msgstr "Polovica šírky úzkeho pásma vo voxelových jednotkách"
 
 
+msgid "Corner Index"
+msgstr "Index rohov"
+
+
 msgid "The edge to retrieve data from. Defaults to the edge from the context"
 msgstr "Hrana, z ktorej sa majú načítať údaje. Predvolené nastavenie je hrana z kontextu"
 
@@ -130105,10 +130210,6 @@ msgstr "Hodnoty, ktoré triedia rohy pripojené k hrane"
 
 msgid "Which of the sorted corners to output"
 msgstr "Určuje, ktorý zo zoradených rohov na výstup"
-
-
-msgid "Corner Index"
-msgstr "Index rohov"
 
 
 msgid "A corner of the input edge in its face's winding order, chosen by the sort index"
@@ -130679,6 +130780,54 @@ msgid "Random Roughness"
 msgstr "Náhodné zdrsnenie"
 
 
+msgid "Secondary Reflection"
+msgstr "Druhotný odraz"
+
+
+msgid "The RGB color of the strand. Only used in Direct Coloring"
+msgstr "Farba RGB vlákna. Používa sa len pri priamom farbení"
+
+
+msgid "Hair pigment. Specify its absolute quantity between 0 and 1"
+msgstr "Pigment vlasov. Zadajte jeho absolútne množstvo medzi 0 a 1"
+
+
+msgid "Fraction of pheomelanin in melanin, gives yellowish to reddish color, as opposed to the brownish to black color of eumelanin"
+msgstr "Frakcia feomelanínu v melaníne, dáva žltkastú až červenkastú farbu, na rozdiel od hnedastej až čiernej farby eumelanínu"
+
+
+msgid "For elliptical hair cross-section, the aspect ratio is the ratio of the minor axis to the major axis (the major axis is aligned with the curve normal). Recommended values are 0.8~1 for Asian hair, 0.65~0.9 for Caucasian hair, 0.5~0.65 for African hair. Set this to 1 for circular cross-section"
+msgstr "Pri eliptickom priereze vlasu je pomer strán pomerom vedľajšej osi k hlavnej osi (hlavná os je zarovnaná s normálou krivky). Odporúčané hodnoty sú 0,8 ~ 1 pre ázijské vlasy, 0,65 ~ 0,9 pre kaukazské vlasy, 0,5 ~ 0,65 pre africké vlasy. Nastavte túto hodnotu na 1 pre kruhový prierez"
+
+
+msgid "Index of refraction determines how much the ray is bent. At 1.0 rays pass straight through like in a transparent material; higher values cause larger deflection in angle. Default value is 1.55 (the IOR of keratin)"
+msgstr "Index lomu určuje, ako veľmi je lúč ohnutý. Pri hodnote 1,0 lúče prechádzajú priamo ako v priehľadnom materiáli; vyššie hodnoty spôsobujú väčšie uhlové vychýlenie. Predvolená hodnota je 1,55 (IOR keratínu)"
+
+
+msgid "The tilt angle of the cuticle scales (the outermost part of the hair). They are always tilted towards the hair root. The value is usually between 2 and 4 for human hair"
+msgstr "Uhol sklonu šupiniek kutikuly (najvrchnejšia časť vlasu). Sú vždy naklonené ku korienku vlasu. U ľudských vlasov sa zvyčajne pohybuje medzi 2 a 4"
+
+
+msgid "Vary the melanin concentration for each strand"
+msgstr "Rôzne koncentrácie melanínu pre každé vlákno"
+
+
+msgid "Vary roughness values for each strand"
+msgstr "Rôzne hodnoty drsnosti pre každé vlákno"
+
+
+msgid "Optional factor for modulating the first light bounce off the hair surface. The color of this component is always white. Keep this 1.0 for physical correctness"
+msgstr "Voliteľný faktor na moduláciu prvého odrazu svetla od povrchu vlasov. Farba tejto zložky je vždy biela. Kvôli fyzikálnej správnosti ponechajte hodnotu 1,0"
+
+
+msgid "Optional factor for modulating the transmission component. Picks up the color of the pigment inside the hair. Keep this 1.0 for physical correctness"
+msgstr "Voliteľný faktor modulácie prenosovej zložky. Zachytáva farbu pigmentu vo vnútri vlasu. Kvôli fyzikálnej správnosti ponechajte hodnotu 1,0"
+
+
+msgid "Optional factor for modulating the component which is transmitted into the hair, reflected off the backside of the hair and then transmitted out of the hair. This component is oriented approximately around the incoming direction, and picks up the color of the pigment inside the hair. Keep this 1.0 for physical correctness"
+msgstr "Voliteľný faktor modulácie prenosovej zložky. Zachytáva farbu pigmentu vo vnútri vlasu. Kvôli fyzikálnej správnosti ponechajte hodnotu 1,0"
+
+
 msgid "Subsurface"
 msgstr "Podpovrchová hodnota"
 
@@ -130901,6 +131050,10 @@ msgstr "Šírka tehál"
 
 msgid "Row Height"
 msgstr "Výška radu"
+
+
+msgid "The scale of a Perlin noise octave relative to that of the previous octave"
+msgstr "Stupnica oktávy Perlinovho šumu v porovnaní s predchádzajúcou oktávou"
 
 
 msgid "Sun disc not available in Eevee"
@@ -131585,6 +131738,11 @@ msgstr "Grafická karta:"
 msgctxt "WindowManager"
 msgid "Platform Unsupported"
 msgstr "Platforma nie je podporovaná"
+
+
+msgctxt "WindowManager"
+msgid "Upgrading to the latest macOS version may improve Blender support"
+msgstr "Aktualizácia na najnovšiu verziu systému macOS môže zlepšiť podporu Blenderu"
 
 
 msgctxt "WindowManager"
