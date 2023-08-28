@@ -441,7 +441,11 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_shading_wire_color_type_items[] = {
-    {V3D_SHADING_SINGLE_COLOR, "THEME", 0, "Theme", "Show scene wireframes with the theme's wire color"},
+    {V3D_SHADING_SINGLE_COLOR,
+     "THEME",
+     0,
+     "Theme",
+     "Show scene wireframes with the theme's wire color"},
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color on wireframe"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color on wireframe"},
     {0, nullptr, 0, nullptr, nullptr},
