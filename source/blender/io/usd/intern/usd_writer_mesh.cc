@@ -147,7 +147,7 @@ static std::optional<pxr::SdfValueTypeName> convert_blender_type_to_usd(
     case CD_PROP_QUATERNION:
       return pxr::SdfValueTypeNames->QuatfArray;
     default:
-      WM_reportf(RPT_WARNING, "Unsupported type for mesh data.");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
@@ -165,7 +165,7 @@ static const std::optional<pxr::TfToken> convert_blender_domain_to_usd(
 
     /* Notice: Edge types are not supported in USD! */
     default:
-      WM_reportf(RPT_WARNING, "Unsupported type for mesh data.");
+      WM_reportf(RPT_WARNING, "Unsupported type for mesh data");
       return std::nullopt;
   }
 }
@@ -243,7 +243,7 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
 
   if (!prim_varying || !prim_attr_type) {
     WM_reportf(RPT_WARNING,
-               "Mesh %s, Attribute %s cannot be converted to USD.",
+               "Mesh %s, Attribute %s cannot be converted to USD",
                &mesh->id.name[2],
                attribute_id.name().data());
     return;

@@ -32,14 +32,14 @@ static void node_declare(NodeDeclarationBuilder &b)
           "the brownish to black color of eumelanin");
   b.add_input<decl::Color>("Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Additional color used for dyeing the hair.");
+      .description("Additional color used for dyeing the hair");
   b.add_input<decl::Vector>("Absorption Coefficient")
       .default_value({0.245531f, 0.52f, 1.365f})
       .min(0.0f)
       .max(1000.0f)
       .description(
           "Specifies energy absorption per unit length as light passes through the hair. A higher "
-          "value leads to a darker color.");
+          "value leads to a darker color");
   b.add_input<decl::Float>("Aspect Ratio")
       .default_value(0.85f)
       .min(0.0f)
@@ -55,7 +55,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Hair roughness. A low value leads to a metallic look.");
+      .description("Hair roughness. A low value leads to a metallic look");
   b.add_input<decl::Float>("Radial Roughness")
       .default_value(0.3f)
       .min(0.0f)
@@ -69,7 +69,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "Simulate a shiny coat by reducing the roughness to the given factor only for the first "
           "light bounce (diffuse). Range [0, 1] is equivalent to a reduction of [0%, 100%] of the "
-          "original roughness.");
+          "original roughness");
   b.add_input<decl::Float>("IOR").default_value(1.55f).min(0.0f).max(1000.0f).description(
       "Index of refraction determines how much the ray is bent. At 1.0 rays pass straight through "
       "like in a transparent material; higher values cause larger deflection in angle. Default "

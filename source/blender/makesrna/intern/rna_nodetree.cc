@@ -4291,13 +4291,13 @@ static const EnumPropertyItem node_principled_hair_model_items[] = {
      "CHIANG",
      0,
      "Chiang",
-     "Near-field hair scattering model by Chiang et. al 2016, suitable for close-up looks, but is "
+     "Near-field hair scattering model by Chiang et al. 2016, suitable for close-up looks, but is "
      "more noisy when viewing from a distance"},
     {SHD_PRINCIPLED_HAIR_HUANG,
      "HUANG",
      0,
      "Huang",
-     "Far-field hair scattering model by Huang et. al 2022, suitable for viewing from a distance, "
+     "Far-field hair scattering model by Huang et al. 2022, suitable for viewing from a distance, "
      "supports elliptical cross-sections and has more precise highlight in forward scattering "
      "directions"},
     {0, nullptr, 0, nullptr, nullptr},

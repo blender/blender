@@ -390,7 +390,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.x - area->v1->vec.x < tolerance &&
           (area->v1->vec.x == xmin || area->v3->vec.x == xmax))
       {
-        WM_report(RPT_ERROR, "A narrow vertical area interferes with this operation.");
+        WM_report(RPT_ERROR, "A narrow vertical area interferes with this operation");
         return false;
       }
     }
@@ -405,7 +405,7 @@ static bool screen_areas_can_align(bScreen *screen, ScrArea *sa1, ScrArea *sa2, 
       if (area->v3->vec.y - area->v1->vec.y < tolerance &&
           (area->v1->vec.y == ymin || area->v3->vec.y == ymax))
       {
-        WM_report(RPT_ERROR, "A narrow horizontal area interferes with this operation.");
+        WM_report(RPT_ERROR, "A narrow horizontal area interferes with this operation");
         return false;
       }
     }
