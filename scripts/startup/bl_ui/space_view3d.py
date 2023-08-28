@@ -6308,13 +6308,8 @@ class VIEW3D_PT_shading_lighting(Panel):
 class VIEW3D_PT_shading_color(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Color"
+    bl_label = "Wire Color"
     bl_parent_id = 'VIEW3D_PT_shading'
-
-    @classmethod
-    def poll(cls, context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type in {'WIREFRAME', 'SOLID'}
 
     def _draw_color_type(self, context):
         layout = self.layout
@@ -6334,13 +6329,19 @@ class VIEW3D_PT_shading_color(Panel):
             layout.row().prop(shading, "background_color", text="")
 
     def draw(self, context):
+        layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
-        if shading.type == 'WIREFRAME':
-            self.layout.row().prop(shading, "wireframe_color_type", expand=True)
-        else:
+
+        self.layout.row().prop(shading, "wireframe_color_type", expand=True)
+        self.layout.separator()
+
+        if shading.type == 'SOLID':
+            layout.row().label(text="Color")
             self._draw_color_type(context)
             self.layout.separator()
-        self._draw_background_color(context)
+            self._draw_background_color(context)
+        elif shading.type == 'WIREFRAME':
+            self._draw_background_color(context)
 
 
 class VIEW3D_PT_shading_options(Panel):
