@@ -45,6 +45,12 @@ void ED_operatortypes_scene();
 /** \name Scene FPS Management
  * \{ */
 
+struct SceneFPS_State {
+  float fps_average;
+  float fps_target;
+  bool fps_target_is_fractional;
+};
+
 /**
  * Update frame rate info for viewport drawing.
  * \param ltime: Time since the last update,
@@ -54,9 +60,10 @@ void ED_scene_fps_average_accumulate(struct Scene *scene, short fps_samples, dou
     ATTR_NONNULL(1);
 /**
  * Calculate an average (if it's not already calculated).
- * \return the average FPS or -1.0 on failure.
+ * \return false on failure otherwise all values in `state` are initialized.
  */
-float ED_scene_fps_average_calc(const struct Scene *scene, float *r_fps_target) ATTR_NONNULL(1, 2);
+bool ED_scene_fps_average_calc(const struct Scene *scene, SceneFPS_State *state)
+    ATTR_NONNULL(1, 2);
 /**
  * Clear run-time data for accumulating animation playback average times.
  */
