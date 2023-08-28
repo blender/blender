@@ -1406,6 +1406,39 @@ static bool do_history(const char *filepath, ReportList *reports)
   return true;
 }
 
+static void write_file_main_validate_pre(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
+
+  BLO_main_validate_shapekeys(bmain, reports);
+  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
+               "(see console for details)");
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
+static void write_file_main_validate_post(Main *bmain, ReportList *reports)
+{
+  if (!bmain->lock) {
+    return;
+  }
+
+  if (G.debug & G_DEBUG_IO) {
+    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* save to disk");
+    BLO_main_validate_libraries(bmain, reports);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1436,17 +1469,7 @@ bool BLO_write_file(Main *mainvar,
   const eBPathForeachFlag path_list_flag = (BKE_BPATH_FOREACH_PATH_SKIP_LINKED |
                                             BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE);
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-    BLO_main_validate_shapekeys(mainvar, reports);
-    if (!BKE_main_namemap_validate_and_fix(mainvar)) {
-      BKE_report(reports,
-                 RPT_ERROR,
-                 "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
-                 "(see console for details)");
-    }
-  }
+  write_file_main_validate_pre(mainvar, reports);
 
   /* open temporary file, so we preserve the original in case we crash */
   SNPRINTF(tempname, "%s@", filepath);
@@ -1574,10 +1597,7 @@ bool BLO_write_file(Main *mainvar,
     return false;
   }
 
-  if (G.debug & G_DEBUG_IO && mainvar->lock != nullptr) {
-    BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* save to disk");
-    BLO_main_validate_libraries(mainvar, reports);
-  }
+  write_file_main_validate_post(mainvar, reports);
 
   return true;
 }
