@@ -41,7 +41,7 @@
 #include "BKE_node.h"
 #include "BKE_text.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

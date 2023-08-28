@@ -21,7 +21,7 @@
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
- * `bh.code`       `char[4]` see `BLO_blend_defs.h` for a list of known types.
+ * `bh.code`       `char[4]` see `BLO_blend_defs.hh` for a list of known types.
  * `bh.len`        `int32` length data after #BHead in bytes.
  * `bh.old`        `void *` old pointer (the address at the time of writing the file).
  * `bh.SDNAnr`     `int32` struct index of structs stored in #DNA1 data.
@@ -112,14 +112,14 @@
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
-#include "BLO_blend_defs.h"
-#include "BLO_blend_validate.h"
-#include "BLO_read_write.h"
+#include "BLO_blend_defs.hh"
+#include "BLO_blend_validate.hh"
+#include "BLO_read_write.hh"
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh"
+#include "BLO_writefile.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include <zstd.h>
 

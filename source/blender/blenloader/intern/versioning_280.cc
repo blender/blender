@@ -101,11 +101,11 @@
 
 #include "BLT_translation.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 #include "BLO_readfile.h"
-#include "readfile.h"
+#include "readfile.hh"
 
-#include "versioning_common.h"
+#include "versioning_common.hh"
 
 #include "MEM_guardedalloc.h"
 

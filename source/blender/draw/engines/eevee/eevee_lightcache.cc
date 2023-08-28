@@ -34,7 +34,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "wm_window.hh"
 

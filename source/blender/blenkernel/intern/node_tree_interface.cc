@@ -14,7 +14,7 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"

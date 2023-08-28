@@ -28,7 +28,7 @@
 #include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
-#include "BLO_undofile.h"
+#include "BLO_undofile.hh"
 
 #include "BKE_lib_id.h"
 #include "BKE_main.h"

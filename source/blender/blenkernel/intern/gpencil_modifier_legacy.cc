@@ -49,7 +49,7 @@
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_gpencil_legacy_modifiertypes.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "CLG_log.h"
 

@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <stdio.h> /* Include header using off_t before poisoning it below. */
+#include <cstdio> /* Include header using off_t before poisoning it below. */
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -20,20 +20,22 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLO_readfile.h"
 
+struct BlendFileData;
+struct BlendFileReadParams;
+struct BlendFileReadReport;
 struct BLOCacheStorage;
+struct BHeadSort;
+struct DNA_ReconstructInfo;
 struct IDNameLib_Map;
 struct Key;
+struct Main;
 struct MemFile;
 struct Object;
 struct OldNewMap;
 struct ReportList;
 struct UserDef;
-
-typedef struct IDNameLib_Map IDNameLib_Map;
 
 enum eFileDataFlag {
   FD_FLAGS_SWITCH_ENDIAN = 1 << 0,
@@ -51,7 +53,7 @@ ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_NOT_MY_LIBMAP)
 #  pragma GCC poison off_t
 #endif
 
-typedef struct FileData {
+struct FileData {
   /** Linked list of BHeadN's. */
   ListBase bhead_list;
   enum eFileDataFlag flags;
@@ -67,11 +69,11 @@ typedef struct FileData {
   char relabase[FILE_MAX];
 
   /** General reading variables. */
-  struct SDNA *filesdna;
-  const struct SDNA *memsdna;
+  SDNA *filesdna;
+  const SDNA *memsdna;
   /** Array of #eSDNA_StructCompare. */
   const char *compflags;
-  struct DNA_ReconstructInfo *reconstruct_info;
+  DNA_ReconstructInfo *reconstruct_info;
 
   int fileversion;
   /** Used to retrieve ID names from (bhead+1). */
@@ -93,24 +95,24 @@ typedef struct FileData {
    */
   int id_tag_extra;
 
-  struct OldNewMap *datamap;
-  struct OldNewMap *globmap;
+  OldNewMap *datamap;
+  OldNewMap *globmap;
 
   /**
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
    * typically from value in `bhead->old` to address in memory where the ID was read.
    * Used during library-linking process (see #lib_link_all).
    */
-  struct OldNewMap *libmap;
+  OldNewMap *libmap;
 
-  struct OldNewMap *packedmap;
-  struct BLOCacheStorage *cache_storage;
+  OldNewMap *packedmap;
+  BLOCacheStorage *cache_storage;
 
-  struct BHeadSort *bheadmap;
+  BHeadSort *bheadmap;
   int tot_bheadmap;
 
   /** See: #USE_GHASH_BHEAD. */
-  struct GHash *bhead_idname_hash;
+  GHash *bhead_idname_hash;
 
   ListBase *mainlist;
   /** Used for undo. */
@@ -118,7 +120,7 @@ typedef struct FileData {
   /**
    * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
-  struct IDNameLib_Map *old_idmap_uuid;
+  IDNameLib_Map *old_idmap_uuid;
   /**
    * IDMap using uuids as keys of the IDs read (or moved) in the new main(s).
    *
@@ -128,49 +130,46 @@ typedef struct FileData {
    *
    * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
    * read memfile. */
-  struct IDNameLib_Map *new_idmap_uuid;
+  IDNameLib_Map *new_idmap_uuid;
 
-  struct BlendFileReadReport *reports;
-} FileData;
+  BlendFileReadReport *reports;
+};
 
 #define SIZEOFBLENDERHEADER 12
 
 /***/
-struct Main;
 void blo_join_main(ListBase *mainlist);
-void blo_split_main(ListBase *mainlist, struct Main *main);
+void blo_split_main(ListBase *mainlist, Main *main);
 
-struct BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
+BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 /**
  * On each new library added, it now checks for the current #FileData and expands relativeness
  *
  * cannot be called with relative paths anymore!
  */
-FileData *blo_filedata_from_file(const char *filepath, struct BlendFileReadReport *reports);
-FileData *blo_filedata_from_memory(const void *mem,
-                                   int memsize,
-                                   struct BlendFileReadReport *reports);
-FileData *blo_filedata_from_memfile(struct MemFile *memfile,
-                                    const struct BlendFileReadParams *params,
-                                    struct BlendFileReadReport *reports);
+FileData *blo_filedata_from_file(const char *filepath, BlendFileReadReport *reports);
+FileData *blo_filedata_from_memory(const void *mem, int memsize, BlendFileReadReport *reports);
+FileData *blo_filedata_from_memfile(MemFile *memfile,
+                                    const BlendFileReadParams *params,
+                                    BlendFileReadReport *reports);
 
-void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_make_packed_pointer_map(FileData *fd, Main *oldmain);
 /**
  * Set old main packed data to zero if it has been restored
  * this works because freeing old main only happens after this call.
  */
-void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
+void blo_end_packed_pointer_map(FileData *fd, Main *oldmain);
 /**
  * Build a #GSet of old main (we only care about local data here,
  * so we can do that after #blo_split_main() call.
  */
-void blo_make_old_idmap_from_main(FileData *fd, struct Main *bmain);
+void blo_make_old_idmap_from_main(FileData *fd, Main *bmain);
 
-BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, struct AssetMetaData **r_asset_data);
+BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_asset_data);
 
-void blo_cache_storage_init(FileData *fd, struct Main *bmain);
-void blo_cache_storage_old_bmain_clear(FileData *fd, struct Main *bmain_old);
+void blo_cache_storage_init(FileData *fd, Main *bmain);
+void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old);
 void blo_cache_storage_end(FileData *fd);
 
 void blo_filedata_free(FileData *fd);
@@ -186,7 +185,7 @@ const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
 /**
  * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
  */
-struct AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead);
+AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const BHead *bhead);
 
 /* do versions stuff */
 
@@ -199,16 +198,13 @@ struct AssetMetaData *blo_bhead_id_asset_data_address(const FileData *fd, const 
  *
  * \attention ONLY USE THIS KIND OF VERSIONING WHEN `dna_rename_defs.h` ISN'T SUFFICIENT.
  */
-void blo_do_versions_dna(struct SDNA *sdna, int versionfile, int subversionfile);
+void blo_do_versions_dna(SDNA *sdna, int versionfile, int subversionfile);
 
-void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
-                                      const void *oldaddr,
-                                      void *newaddr,
-                                      int nr);
+void blo_do_versions_oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr, int nr);
 /**
  * Only library data.
  */
-void *blo_do_versions_newlibadr(struct FileData *fd,
+void *blo_do_versions_newlibadr(FileData *fd,
                                 ID *self_id,
                                 const bool is_linked_only,
                                 const void *adr);
@@ -217,34 +213,34 @@ void *blo_do_versions_newlibadr(struct FileData *fd,
  * \note this version patch is intended for versions < 2.52.2,
  * but was initially introduced in 2.27 already.
  */
-void blo_do_version_old_trackto_to_constraints(struct Object *ob);
-void blo_do_versions_key_uidgen(struct Key *key);
+void blo_do_version_old_trackto_to_constraints(Object *ob);
+void blo_do_versions_key_uidgen(Key *key);
 
 /**
  * Patching #UserDef struct and Themes.
  */
-void blo_do_versions_userdef(struct UserDef *userdef);
+void blo_do_versions_userdef(UserDef *userdef);
 
-void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_250(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_260(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_270(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_280(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_290(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_300(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_400(struct FileData *fd, struct Library *lib, struct Main *bmain);
-void blo_do_versions_cycles(struct FileData *fd, struct Library *lib, struct Main *bmain);
+void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_260(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_270(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_280(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_290(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_300(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_400(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_cycles(FileData *fd, Library *lib, Main *bmain);
 
-void do_versions_after_linking_250(struct Main *bmain);
-void do_versions_after_linking_260(struct Main *bmain);
-void do_versions_after_linking_270(struct Main *bmain);
-void do_versions_after_linking_280(struct FileData *fd, struct Main *bmain);
-void do_versions_after_linking_290(struct FileData *fd, struct Main *bmain);
-void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
-void do_versions_after_linking_400(struct FileData *fd, struct Main *bmain);
-void do_versions_after_linking_cycles(struct Main *bmain);
+void do_versions_after_linking_250(Main *bmain);
+void do_versions_after_linking_260(Main *bmain);
+void do_versions_after_linking_270(Main *bmain);
+void do_versions_after_linking_280(FileData *fd, Main *bmain);
+void do_versions_after_linking_290(FileData *fd, Main *bmain);
+void do_versions_after_linking_300(FileData *fd, Main *bmain);
+void do_versions_after_linking_400(FileData *fd, Main *bmain);
+void do_versions_after_linking_cycles(Main *bmain);
 
-void do_versions_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
+void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports);
 
 /**
  * Direct data-blocks with global linking.
@@ -252,12 +248,8 @@ void do_versions_after_setup(struct Main *new_bmain, struct BlendFileReadReport 
  * \note This is rather unfortunate to have to expose this here,
  * but better use that nasty hack in do_version than readfile itself.
  */
-void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);
+void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr);
 
 /* Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
  * data should be discarded). Also add an error report to `fd` including given `message`. */
-void blo_readfile_invalidate(struct FileData *fd, struct Main *bmain, const char *message);
-
-#ifdef __cplusplus
-}
-#endif
+void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message);

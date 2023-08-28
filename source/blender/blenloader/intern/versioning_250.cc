@@ -73,9 +73,9 @@
 
 #include "BLO_readfile.h"
 
-#include "readfile.h"
+#include "readfile.hh"
 
-#include "versioning_common.h"
+#include "versioning_common.hh"
 
 #include <cerrno>
 

@@ -68,8 +68,8 @@
 #include "SEQ_transform.h"
 
 #include "BLO_readfile.h"
-#include "readfile.h"
-#include "versioning_common.h"
+#include "readfile.hh"
+#include "versioning_common.hh"
 
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))

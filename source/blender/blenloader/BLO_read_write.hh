@@ -33,15 +33,10 @@
 
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct BlendDataReader BlendDataReader;
-typedef struct BlendLibReader BlendLibReader;
-typedef struct BlendWriter BlendWriter;
-
+struct BlendDataReader;
 struct BlendFileReadReport;
+struct BlendLibReader;
+struct BlendWriter;
 struct LibraryIDLinkCallbackData;
 struct Main;
 
@@ -142,20 +137,15 @@ void BLO_write_struct_array_at_address_by_id(
 /**
  * Write struct list.
  */
-void BLO_write_struct_list_by_name(BlendWriter *writer,
-                                   const char *struct_name,
-                                   struct ListBase *list);
-void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, struct ListBase *list);
+void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name, ListBase *list);
+void BLO_write_struct_list_by_id(BlendWriter *writer, int struct_id, ListBase *list);
 #define BLO_write_struct_list(writer, struct_name, list_ptr) \
   BLO_write_struct_list_by_id(writer, BLO_get_struct_id(writer, struct_name), list_ptr)
 
 /**
  * Write id struct.
  */
-void blo_write_id_struct(BlendWriter *writer,
-                         int struct_id,
-                         const void *id_address,
-                         const struct ID *id);
+void blo_write_id_struct(BlendWriter *writer, int struct_id, const void *id_address, const ID *id);
 #define BLO_write_id_struct(writer, struct_name, id_address, id) \
   blo_write_id_struct(writer, BLO_get_struct_id(writer, struct_name), id_address, id)
 
@@ -167,13 +157,11 @@ void blo_write_id_struct(BlendWriter *writer,
  * \note Once there is a better generic handling of embedded IDs,
  * this may go back to private code in `writefile.cc`.
  */
-typedef struct BLO_Write_IDBuffer BLO_Write_IDBuffer;
+struct BLO_Write_IDBuffer;
 
 BLO_Write_IDBuffer *BLO_write_allocate_id_buffer(void);
-void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer,
-                                      struct ID *id,
-                                      const bool is_undo);
-struct ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer);
+void BLO_write_init_id_buffer_from_id(BLO_Write_IDBuffer *id_buffer, ID *id, const bool is_undo);
+ID *BLO_write_get_id_buffer_temp_id(BLO_Write_IDBuffer *id_buffer);
 void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
 
 /**
@@ -242,8 +230,8 @@ typedef void (*BlendReadListFn)(BlendDataReader *reader, void *data);
  * Updates the `list->first` and `list->last` pointers.
  * When not NULL, calls the callback on every element.
  */
-void BLO_read_list_cb(BlendDataReader *reader, struct ListBase *list, BlendReadListFn callback);
-void BLO_read_list(BlendDataReader *reader, struct ListBase *list);
+void BLO_read_list_cb(BlendDataReader *reader, ListBase *list, BlendReadListFn callback);
+void BLO_read_list(BlendDataReader *reader, ListBase *list);
 
 /* Update data pointers and correct byte-order if necessary. */
 
@@ -261,8 +249,8 @@ int BLO_read_fileversion_get(BlendDataReader *reader);
 bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
-void BLO_read_glob_list(BlendDataReader *reader, struct ListBase *list);
-struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
+void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
+BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
 struct Library *BLO_read_data_current_library(BlendDataReader *reader);
 
 /** \} */
@@ -283,10 +271,10 @@ struct Library *BLO_read_data_current_library(BlendDataReader *reader);
  * prevent linked data to point to local IDs.
  * \return the new address of the given ID pointer, or null if not found.
  */
-struct ID *BLO_read_get_new_id_address(BlendLibReader *reader,
-                                       struct ID *self_id,
-                                       const bool do_linked_only,
-                                       struct ID *id) ATTR_NONNULL(2);
+ID *BLO_read_get_new_id_address(BlendLibReader *reader,
+                                ID *self_id,
+                                const bool do_linked_only,
+                                ID *id) ATTR_NONNULL(2);
 
 /**
  * Search for the new address of the ID for the given `session_uuid`.
@@ -299,14 +287,14 @@ struct ID *BLO_read_get_new_id_address(BlendLibReader *reader,
  * coming from the previous, existing Main data, when it is preserved in newly read Main.
  * See e.g. the #scene_undo_preserve code-path.
  */
-struct ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
     ATTR_NONNULL(1);
 
 /* Misc. */
 
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
-struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
-struct BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader);
+Main *BLO_read_lib_get_main(BlendLibReader *reader);
+BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader);
 
 /** \} */
 
@@ -321,13 +309,7 @@ struct BlendFileReadReport *BLO_read_lib_reports(BlendLibReader *reader);
  * NOTE(@ideasman42) a kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing.
  */
-void BLO_reportf_wrap(struct BlendFileReadReport *reports,
-                      eReportType type,
-                      const char *format,
-                      ...) ATTR_PRINTF_FORMAT(3, 4);
+void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char *format, ...)
+    ATTR_PRINTF_FORMAT(3, 4);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

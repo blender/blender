@@ -64,7 +64,7 @@
 
 #include "RNA_access.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "atomic_ops.h"
 

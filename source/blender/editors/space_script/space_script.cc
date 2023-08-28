@@ -26,7 +26,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #ifdef WITH_PYTHON
 #endif

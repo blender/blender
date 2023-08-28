@@ -31,7 +31,7 @@
 #include "SEQ_modifier.h"
 #include "SEQ_render.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "render.h"
 

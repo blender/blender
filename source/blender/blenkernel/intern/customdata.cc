@@ -52,7 +52,7 @@
 #include "BKE_multires.hh"
 #include "BKE_subsurf.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "bmesh.h"
 

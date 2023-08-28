@@ -49,7 +49,7 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "intern/CCGSubSurf.h"
 

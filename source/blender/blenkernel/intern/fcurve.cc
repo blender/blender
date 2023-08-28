@@ -36,7 +36,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_nla.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"

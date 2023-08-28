@@ -46,7 +46,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void lattice_init_data(ID *id)
 {

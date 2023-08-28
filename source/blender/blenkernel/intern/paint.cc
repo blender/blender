@@ -68,7 +68,7 @@
 
 #include "RNA_enum_types.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "bmesh.h"
 

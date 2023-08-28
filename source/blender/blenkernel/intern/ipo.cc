@@ -62,7 +62,7 @@
 
 #include "SEQ_iterator.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */

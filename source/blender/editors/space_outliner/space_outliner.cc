@@ -39,7 +39,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"

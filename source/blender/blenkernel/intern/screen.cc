@@ -51,7 +51,7 @@
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
  * a #ARegionType callback. */

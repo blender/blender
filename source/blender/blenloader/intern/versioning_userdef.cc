@@ -42,7 +42,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "readfile.h" /* Own include. */
+#include "readfile.hh" /* Own include. */
 
 #include "WM_types.hh"
 #include "wm_event_types.hh"

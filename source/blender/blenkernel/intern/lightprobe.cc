@@ -26,7 +26,7 @@
 
 #include "BLT_translation.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void lightprobe_init_data(ID *id)
 {

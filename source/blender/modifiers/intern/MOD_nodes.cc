@@ -60,7 +60,7 @@
 #include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

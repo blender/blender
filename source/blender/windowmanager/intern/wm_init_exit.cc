@@ -35,8 +35,8 @@
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_undofile.h"
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh"
+#include "BLO_writefile.hh"
 
 #include "BKE_blender.h"
 #include "BKE_blendfile.h"

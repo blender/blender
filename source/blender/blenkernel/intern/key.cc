@@ -51,7 +51,7 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void shapekey_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {

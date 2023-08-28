@@ -46,7 +46,7 @@
 #include "BKE_vfont.h"
 #include "BKE_vfontdata.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static CLG_LogRef LOG = {"bke.data_transfer"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;

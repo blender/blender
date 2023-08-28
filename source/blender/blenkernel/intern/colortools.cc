@@ -28,7 +28,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* ********************************* color curve ********************* */
 

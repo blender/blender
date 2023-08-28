@@ -36,7 +36,7 @@
 
 #include "FX_shader_types.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static ShaderFxTypeInfo *shader_fx_types[NUM_SHADER_FX_TYPES] = {nullptr};
 

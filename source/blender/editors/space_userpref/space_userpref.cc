@@ -28,7 +28,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* ******************** default callbacks for userpref space ***************** */
 

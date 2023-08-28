@@ -84,8 +84,8 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "BLO_undofile.h" /* to save from an undo memfile */
-#include "BLO_writefile.h"
+#include "BLO_undofile.hh" /* to save from an undo memfile */
+#include "BLO_writefile.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

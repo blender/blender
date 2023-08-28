@@ -21,7 +21,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -90,7 +90,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "PIL_time.h"
 

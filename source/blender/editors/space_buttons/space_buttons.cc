@@ -39,7 +39,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "buttons_intern.h" /* own include */
 

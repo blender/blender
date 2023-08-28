@@ -72,7 +72,7 @@
 #include "NOD_composite.h"
 #include "NOD_socket.hh"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include "MEM_guardedalloc.h"
 

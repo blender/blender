@@ -136,7 +136,7 @@
 
 #include "DRW_engine.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 #include "BLO_readfile.h"
 
 #include "SEQ_sequencer.h"

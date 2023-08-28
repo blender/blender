@@ -95,7 +95,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /* for image user iteration */
 #include "DNA_node_types.h"

@@ -33,7 +33,7 @@
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 
-#include "BLO_blend_validate.h"
+#include "BLO_blend_validate.hh"
 
 #include "ED_asset.hh"
 #include "ED_gpencil_legacy.hh"

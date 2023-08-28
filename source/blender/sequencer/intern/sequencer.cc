@@ -45,7 +45,7 @@
 #include "SEQ_time.h"
 #include "SEQ_utils.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "image_cache.h"
 #include "prefetch.h"

@@ -59,7 +59,7 @@
 #include "BKE_workspace.h"
 
 #include "BLO_readfile.h"
-#include "BLO_writefile.h"
+#include "BLO_writefile.hh"
 
 #include "RNA_access.hh"
 

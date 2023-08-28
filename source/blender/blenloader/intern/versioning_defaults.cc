@@ -65,7 +65,7 @@
 
 #include "BLT_translation.h"
 
-#include "versioning_common.h"
+#include "versioning_common.hh"
 
 /* Make preferences read-only, use `versioning_userdef.cc`. */
 #define U (*((const UserDef *)&U))

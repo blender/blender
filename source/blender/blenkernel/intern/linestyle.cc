@@ -38,7 +38,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_texture.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void linestyle_init_data(ID *id)
 {

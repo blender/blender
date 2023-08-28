@@ -47,7 +47,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "atomic_ops.h"
 

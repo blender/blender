@@ -53,7 +53,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"

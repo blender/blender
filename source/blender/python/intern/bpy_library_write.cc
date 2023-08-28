@@ -23,7 +23,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
-#include "BLO_writefile.h"
+#include "BLO_writefile.hh"
 
 #include "RNA_types.hh"
 

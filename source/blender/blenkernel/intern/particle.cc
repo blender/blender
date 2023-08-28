@@ -78,7 +78,7 @@
 
 #include "RE_texture.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "particle_private.h"
 

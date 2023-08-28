@@ -13,7 +13,7 @@
 
 #include "BKE_asset.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "DNA_asset_types.h"
 

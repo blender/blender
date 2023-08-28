@@ -42,7 +42,7 @@
 
 #include "RE_texture.h" /* RE_texture_evaluate */
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 static void brush_init_data(ID *id)
 {

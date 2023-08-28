@@ -80,7 +80,7 @@
 
 #include "BLO_readfile.h"
 
-#include "readfile.h"
+#include "readfile.hh"
 
 #include "SEQ_channels.h"
 #include "SEQ_effects.h"
@@ -89,7 +89,7 @@
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
 
-#include "versioning_common.h"
+#include "versioning_common.hh"
 
 static CLG_LogRef LOG = {"blo.readfile.doversion"};
 

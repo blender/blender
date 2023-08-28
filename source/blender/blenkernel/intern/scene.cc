@@ -105,7 +105,7 @@
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 #include "engines/eevee/eevee_lightcache.h"
 

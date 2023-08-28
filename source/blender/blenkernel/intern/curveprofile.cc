@@ -21,7 +21,7 @@
 #include "BKE_curve.h"
 #include "BKE_curveprofile.h"
 
-#include "BLO_read_write.h"
+#include "BLO_read_write.hh"
 
 /** Number of points in high resolution table is dynamic up to a maximum. */
 #define PROF_TABLE_MAX 512
