@@ -2201,7 +2201,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode)
   }
 
   /* Set up insert offset data, it needs stuff from here. */
-  if ((snode.flag & SNODE_SKIP_INSOFFSET) == 0) {
+  if (U.uiflag & USER_NODE_AUTO_OFFSET) {
     BLI_assert(snode.runtime->iofsd == nullptr);
     NodeInsertOfsData *iofsd = MEM_cnew<NodeInsertOfsData>(__func__);
 
@@ -2603,7 +2603,7 @@ static int node_insert_offset_invoke(bContext *C, wmOperator *op, const wmEvent 
     return OPERATOR_CANCELLED;
   }
 
-  BLI_assert((snode->flag & SNODE_SKIP_INSOFFSET) == 0);
+  BLI_assert(U.uiflag & USER_NODE_AUTO_OFFSET);
 
   iofsd->ntree = snode->edittree;
   iofsd->anim_timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);

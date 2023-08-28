@@ -262,11 +262,6 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
-        # Auto-offset nodes (called "insert_offset" in code)
-        layout.prop(snode, "use_insert_offset")
-
-        layout.separator()
-
         sub = layout.column()
         sub.operator_context = 'EXEC_REGION_WIN'
         sub.operator("view2d.zoom_in")

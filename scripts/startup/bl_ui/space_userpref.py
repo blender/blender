@@ -499,6 +499,7 @@ class USERPREF_PT_edit_node_editor(EditingPanel, CenterAlignMixIn, Panel):
         edit = prefs.edit
 
         col = layout.column()
+        col.prop(edit, "node_use_insert_offset", text="Auto-Offset")
         col.prop(edit, "node_margin", text="Auto-Offset Margin")
         col.prop(edit, "node_preview_resolution", text="Preview Resolution")
 
