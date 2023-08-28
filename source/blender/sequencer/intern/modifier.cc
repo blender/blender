@@ -1553,6 +1553,8 @@ void SEQ_modifier_list_copy(Sequence *seqn, Sequence *seq)
 
     smdn->next = smdn->prev = nullptr;
     BLI_addtail(&seqn->modifiers, smdn);
+    BLI_uniquename(
+        &seqn->modifiers, smdn, "Strip Modifier", '.', offsetof(SequenceModifierData, name), 64);
   }
 }
 
