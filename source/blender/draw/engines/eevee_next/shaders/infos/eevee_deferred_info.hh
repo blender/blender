@@ -44,6 +44,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light_base)
            Qualifier::READ,
            ImageType::FLOAT_2D,
            "indirect_refraction_img")
+    .define("SSS_TRANSMITTANCE")
     .additional_info("eevee_shared",
                      "eevee_utility_texture",
                      "eevee_sampling_data",
@@ -52,7 +53,6 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light_base)
                      "eevee_lightprobe_data",
                      "eevee_shadow_data",
                      "eevee_deferred_base",
-                     "eevee_transmittance_data",
                      "eevee_hiz_data",
                      "eevee_render_pass_out",
                      "draw_view",

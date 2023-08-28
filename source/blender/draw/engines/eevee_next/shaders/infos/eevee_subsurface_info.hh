@@ -5,10 +5,6 @@
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_CREATE_INFO(eevee_transmittance_data)
-    .define("SSS_TRANSMITTANCE")
-    .sampler(SSS_TRANSMITTANCE_TEX_SLOT, ImageType::FLOAT_1D, "sss_transmittance_tx");
-
 GPU_SHADER_CREATE_INFO(eevee_subsurface_eval)
     .do_static_compilation(true)
     .additional_info("eevee_shared", "eevee_render_pass_out")

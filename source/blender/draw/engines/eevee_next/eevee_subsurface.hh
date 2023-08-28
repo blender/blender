@@ -35,8 +35,6 @@ struct SubsurfaceModule {
   Instance &inst_;
   /** Contains samples locations. */
   SubsurfaceDataBuf data_;
-  /** Contains translucence profile for a single color channel. */
-  Texture transmittance_tx_;
   /** Scene diffuse irradiance. Pointer binded at sync time, set at render time. */
   GPUTexture *diffuse_light_tx_;
   /** Subsurface eval pass. Runs after the deferred pass. */
@@ -51,6 +49,9 @@ struct SubsurfaceModule {
 
   ~SubsurfaceModule(){};
 
+  /** Contains translucence profile for a single color channel. */
+  static const Vector<float> &transmittance_profile();
+
   void end_sync();
 
   void render(View &view, Framebuffer &fb, Texture &diffuse_light_tx);
@@ -60,14 +61,8 @@ struct SubsurfaceModule {
     pass->bind_ubo("sss_buf", data_);
   }
 
-  GPUTexture **transmittance_tx_get()
-  {
-    return &transmittance_tx_;
-  }
-
  private:
   void precompute_samples_location();
-  void precompute_transmittance_profile();
 
   /** Christensen-Burley implementation. */
   static float burley_setup(float radius, float albedo);

@@ -10,7 +10,6 @@
  * - light_tile_buf
  * - shadow_atlas_tx
  * - shadow_tilemaps_tx
- * - sss_transmittance_tx
  * - utility_tx
  */
 
@@ -53,14 +52,8 @@ void light_eval_ex(ClosureDiffuse diffuse,
       float delta = max(thickness, -(samp.occluder_delta + samp.bias));
 
       vec3 intensity = visibility * light.transmit_power *
-                       light_translucent(sss_transmittance_tx,
-                                         is_directional,
-                                         light,
-                                         diffuse.N,
-                                         L,
-                                         dist,
-                                         diffuse.sss_radius,
-                                         delta);
+                       light_translucent(
+                           is_directional, light, diffuse.N, L, dist, diffuse.sss_radius, delta);
       out_diffuse += light.color * intensity;
     }
 #endif
