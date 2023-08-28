@@ -4846,6 +4846,15 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       "Zero to calculate this automatically, where the number of samples matches the target FPS");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  prop = RNA_def_property(srna, "use_fresnel_edit", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "gpu_flag", USER_GPU_FLAG_FRESNEL_EDIT);
+  RNA_def_property_ui_text(prop,
+                           "Edit Mode",
+                           "Enable a fresnel effect on edit mesh overlays.\n"
+                           "It improves shape readability of very dense meshes, "
+                           "but increases eye fatigue when modeling lower poly");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
+
   USERDEF_TAG_DIRTY_PROPERTY_UPDATE_DISABLE;
   prop = RNA_def_property(srna, "show_addons_enabled_only", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(

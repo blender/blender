@@ -103,7 +103,8 @@ void main()
   facing = 1.0 - abs(facing) * 0.2;
 
   /* Do interpolation in a non-linear space to have a better visual result. */
-  finalColor.rgb = non_linear_blend_color(colorEditMeshMiddle.rgb, finalColor.rgb, facing);
+  finalColor.rgb = mix(finalColor.rgb, non_linear_blend_color(colorEditMeshMiddle.rgb,
+                                                              finalColor.rgb, facing), fresnelMixEdit);
 #endif
 
   view_clipping_distances(world_pos);
