@@ -76,6 +76,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_main.h" /* for Main */
 #include "BKE_main_idmap.h"
+#include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.h"
@@ -3365,17 +3366,25 @@ static void lib_link_all(FileData *fd, Main *bmain)
  * Those operations cannot perform properly in a split bmain case, since some data from other
  * bmain's (aka libraries) may not have been processed yet.
  */
-static void after_liblink_merged_bmain_process(Main *bmain)
+static void after_liblink_merged_bmain_process(Main *bmain, BlendFileReadReport *reports)
 {
   /* We only expect a merged Main here, not a split one. */
   BLI_assert((bmain->prev == nullptr) && (bmain->next == nullptr));
+
+  if (!BKE_main_namemap_validate_and_fix(bmain)) {
+    BKE_report(
+        reports ? reports->reports : nullptr,
+        RPT_ERROR,
+        "Critical blendfile corruption: Conflicts and/or otherwise invalid data-blocks names "
+        "(see console for details)");
+  }
 
   /* Check for possible cycles in scenes' 'set' background property. */
   lib_link_scenes_check_set(bmain);
 
   /* We could integrate that to mesh/curve/lattice lib_link, but this is really cheap process,
    * so simpler to just use it directly in this single call. */
-  BLO_main_validate_shapekeys(bmain, nullptr);
+  BLO_main_validate_shapekeys(bmain, reports ? reports->reports : nullptr);
 
   /* We have to rebuild that runtime information *after* all data-blocks have been properly linked.
    */
@@ -3703,7 +3712,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     blo_join_main(&mainlist);
 
     lib_link_all(fd, bfd->main);
-    after_liblink_merged_bmain_process(bfd->main);
+    after_liblink_merged_bmain_process(bfd->main, fd->reports);
 
     if (is_undo) {
       /* Ensure ID usages of reused 'no undo' IDs remain valid. */
@@ -4369,7 +4378,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   }
 
   lib_link_all(*fd, mainvar);
-  after_liblink_merged_bmain_process(mainvar);
+  after_liblink_merged_bmain_process(mainvar, (*fd)->reports);
 
   /* Some versioning code does expect some proper userrefcounting, e.g. in conversion from
    * groups to collections... We could optimize out that first call when we are reading a
