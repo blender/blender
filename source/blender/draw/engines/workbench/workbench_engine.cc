@@ -427,7 +427,10 @@ class Instance {
     });
   }
 
-  void draw(Manager &manager, GPUTexture *depth_tx, GPUTexture *color_tx)
+  void draw(Manager &manager,
+            GPUTexture *depth_tx,
+            GPUTexture *depth_in_front_tx,
+            GPUTexture *color_tx)
   {
     view.sync(DRW_view_default_get());
 
@@ -435,7 +438,8 @@ class Instance {
 
     if (scene_state.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps.draw(manager, view, resources, resolution, depth_tx, color_tx);
+      anti_aliasing_ps.draw(
+          manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
       return;
     }
 
@@ -455,18 +459,13 @@ class Instance {
     fb.bind();
     GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
 
-    if (!transparent_ps.accumulation_in_front_ps_.is_empty()) {
+    bool needs_depth_in_front = !transparent_ps.accumulation_in_front_ps_.is_empty() ||
+                                scene_state.sample == 0;
+    if (needs_depth_in_front) {
       resources.depth_in_front_tx.acquire(resolution,
                                           GPU_DEPTH24_STENCIL8,
                                           GPU_TEXTURE_USAGE_SHADER_READ |
                                               GPU_TEXTURE_USAGE_ATTACHMENT);
-      if (opaque_ps.gbuffer_in_front_ps_.is_empty()) {
-        /* Clear only if it wont be overwritten by `opaque_ps`. */
-        Framebuffer fb = Framebuffer("Workbench.Clear");
-        fb.ensure(GPU_ATTACHMENT_TEXTURE(resources.depth_in_front_tx));
-        fb.bind();
-        GPU_framebuffer_clear_depth_stencil(fb, 1.0f, 0x00);
-      }
     }
 
     opaque_ps.draw(
@@ -477,16 +476,20 @@ class Instance {
     volume_ps.draw(manager, view, resources);
     outline_ps.draw(manager, resources);
     dof_ps.draw(manager, view, resources, resolution);
-    anti_aliasing_ps.draw(manager, view, resources, resolution, depth_tx, color_tx);
+    anti_aliasing_ps.draw(
+        manager, view, resources, resolution, depth_tx, depth_in_front_tx, color_tx);
 
     resources.color_tx.release();
     resources.object_id_tx.release();
     resources.depth_in_front_tx.release();
   }
 
-  void draw_viewport(Manager &manager, GPUTexture *depth_tx, GPUTexture *color_tx)
+  void draw_viewport(Manager &manager,
+                     GPUTexture *depth_tx,
+                     GPUTexture *depth_in_front_tx,
+                     GPUTexture *color_tx)
   {
-    this->draw(manager, depth_tx, color_tx);
+    this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
 
     if (scene_state.sample + 1 < scene_state.samples_len) {
       DRW_viewport_request_redraw();
@@ -568,7 +571,7 @@ static void workbench_draw_scene(void *vedata)
   }
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
-  ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->color);
+  ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
 }
 
 static void workbench_instance_free(void *instance)

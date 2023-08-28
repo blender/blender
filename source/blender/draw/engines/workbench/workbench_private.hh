@@ -509,6 +509,7 @@ class AntiAliasingPass {
   float weights_sum_ = 0;
 
   Texture sample0_depth_tx_ = {"sample0_depth_tx"};
+  Texture sample0_depth_in_front_tx_ = {"sample0_depth_in_front_tx"};
   GPUTexture *stencil_tx_ = nullptr;
 
   Texture taa_accumulation_tx_ = {"taa_accumulation_tx"};
@@ -550,6 +551,7 @@ class AntiAliasingPass {
             SceneResources &resources,
             int2 resolution,
             GPUTexture *depth_tx,
+            GPUTexture *depth_in_front_tx,
             GPUTexture *color_tx);
 };
 

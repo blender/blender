@@ -172,10 +172,10 @@ void OpaquePass::draw(Manager &manager,
     opaque_fb.bind();
 
     manager.submit(gbuffer_in_front_ps_, view);
-    if (resources.depth_in_front_tx.is_valid()) {
-      /* Only needed when transparent infront is needed */
-      GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
-    }
+  }
+
+  if (resources.depth_in_front_tx.is_valid()) {
+    GPU_texture_copy(resources.depth_in_front_tx, resources.depth_tx);
   }
 
   if (!gbuffer_ps_.is_empty()) {
