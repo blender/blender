@@ -95,6 +95,7 @@
 #include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
+
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
@@ -107,6 +108,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -1438,6 +1440,12 @@ bool BLO_write_file(Main *mainvar,
     BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk");
     BLO_main_validate_libraries(mainvar, reports);
     BLO_main_validate_shapekeys(mainvar, reports);
+    if (!BKE_main_namemap_validate_and_fix(mainvar)) {
+      BKE_report(reports,
+                 RPT_ERROR,
+                 "Critical data corruption: Conflicts and/or otherwise invalid data-blocks names "
+                 "(see console for details)");
+    }
   }
 
   /* open temporary file, so we preserve the original in case we crash */
