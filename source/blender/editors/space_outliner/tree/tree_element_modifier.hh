@@ -40,7 +40,6 @@ class TreeElementModifierBase final : public AbstractTreeElement {
 class TreeElementModifier final : public AbstractTreeElement {
   /* Not needed right now, avoid unused member variable warning. */
   Object &object_;
-  // std::variant<ModifierData *, GpencilModifierData *> md_;
   ModifierDataStoreElem &md_;
 
  public:
