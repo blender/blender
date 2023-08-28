@@ -729,8 +729,9 @@ static void weld_poly_split_recursive(int poly_loop_len,
   int loop_kill = 0;
   // WeldLoop *wla_prev = &wloop[loop_end_ctx]; /* UNUSED. */
 
-  for (int la = start_loop_from; la <= loop_end; la++) {
-    int loop_ctx_a = loop_map[la];
+  int loop_ctx_a, loop_ctx_a_prev = loop_map[loop_end];
+  for (int la = start_loop_from; la <= loop_end; loop_ctx_a_prev = loop_ctx_a, la++) {
+    loop_ctx_a = loop_map[la];
     if (loop_ctx_a == OUT_OF_CONTEXT) {
       continue;
     }
@@ -748,8 +749,9 @@ static void weld_poly_split_recursive(int poly_loop_len,
   wa_continue:
     // WeldLoop *wlb_prev = wla; /* UNUSED. */
     int killed_ab = 0;
-    for (int lb = la + 1; lb <= loop_end; lb++) {
-      int loop_ctx_b = loop_map[lb];
+    int loop_ctx_b, loop_ctx_b_prev = loop_ctx_a_prev;
+    for (int lb = la + 1; lb <= loop_end; loop_ctx_b_prev = loop_ctx_b, lb++) {
+      loop_ctx_b = loop_map[lb];
       if (loop_ctx_b == OUT_OF_CONTEXT) {
         continue;
       }
@@ -774,26 +776,40 @@ static void weld_poly_split_recursive(int poly_loop_len,
         BLI_assert((wla->flag == ELEM_COLLAPSED) || (wlb->flag == ELEM_COLLAPSED));
       }
       else if (dist_a == 2 && dist_b == 2) {
-        r_wp->flag = ELEM_COLLAPSED;
-        *r_poly_kill += 1;
+        /* All loops are "collapsed".
+         * They could be flagged, but just the face is enough.
+         *
+         * \code{.cc}
+         * WeldLoop *wla_prev = &wloop[loop_ctx_a_prev];
+         * WeldLoop *wlb_prev = &wloop[loop_ctx_b_prev];
+         * wla_prev->flag = ELEM_COLLAPSED;
+         * wla->flag = ELEM_COLLAPSED;
+         * wlb_prev->flag = ELEM_COLLAPSED;
+         * wlb->flag = ELEM_COLLAPSED;
+         * \endcode */
         loop_kill += 4;
         dist_b = 0;
+        r_wp->flag = ELEM_COLLAPSED;
+        *r_poly_kill += 1;
+        *r_loop_kill += loop_kill;
+        /* Since all the loops are collapsed, avoid looping through them.
+        * This may result in wrong poly_kill counts. */
+        return;
       }
       else {
         if (dist_a == 2) {
-          WeldLoop *wl_next = wla + 1;
-          BLI_assert(wl_next->flag != ELEM_COLLAPSED);
-          BLI_assert(wl_next->loop_orig == (wla->loop_orig + 1));
+          WeldLoop *wlb_prev = &wloop[loop_ctx_b_prev];
+          BLI_assert(wlb_prev->flag != ELEM_COLLAPSED);
           wla->flag = ELEM_COLLAPSED;
-          wl_next->flag = ELEM_COLLAPSED;
+          wlb_prev->flag = ELEM_COLLAPSED;
           loop_kill += 2;
           dist_a = dist_b;
         }
         else if (dist_b == 2) {
-          WeldLoop *wl_next = wla - 1;
-          BLI_assert(wl_next->flag != ELEM_COLLAPSED);
+          WeldLoop *wla_prev = &wloop[loop_ctx_a_prev];
+          BLI_assert(wla_prev->flag != ELEM_COLLAPSED);
           wlb->flag = ELEM_COLLAPSED;
-          wl_next->flag = ELEM_COLLAPSED;
+          wla_prev->flag = ELEM_COLLAPSED;
           loop_kill += 2;
           dist_b = dist_a;
           lb = la;
