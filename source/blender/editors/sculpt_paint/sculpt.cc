@@ -1074,7 +1074,7 @@ PBVHVertRef SCULPT_nearest_vertex_get(
   return threading::parallel_reduce(
              nodes.index_range(),
              1,
-             NearestVertexData{PBVH_REF_NONE, FLT_MAX},
+             NearestVertexData{{PBVH_REF_NONE}, FLT_MAX},
              [&](const IndexRange range, NearestVertexData nearest) {
                for (const int i : range) {
                  nearest_vertex_get_node(ss->pbvh, co, max_distance_sq, nodes[i], &nearest);
