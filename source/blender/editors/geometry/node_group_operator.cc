@@ -696,7 +696,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   for (const asset_system::AssetRepresentation *asset : assets) {
     uiLayout *col = uiLayoutColumn(layout, false);
     wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
-    const std::unique_ptr<AssetWeakReference> weak_ref = asset->make_weak_reference();
+    AssetWeakReference *weak_ref = asset->make_weak_reference();
     PointerRNA props_ptr;
     uiItemFullO_ptr(col,
                     ot,
@@ -709,6 +709,8 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     RNA_enum_set(&props_ptr, "asset_library_type", weak_ref->asset_library_type);
     RNA_string_set(&props_ptr, "asset_library_identifier", weak_ref->asset_library_identifier);
     RNA_string_set(&props_ptr, "relative_asset_identifier", weak_ref->relative_asset_identifier);
+
+    BKE_asset_weak_reference_free(&weak_ref);
   }
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
