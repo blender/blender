@@ -356,7 +356,7 @@ struct USDMeshData {
   pxr::VtArray<pxr::GfVec3f> points;
   pxr::VtIntArray face_vertex_counts;
   pxr::VtIntArray face_indices;
-  std::map<short, pxr::VtIntArray> face_groups;
+  Map<short, pxr::VtIntArray> face_groups;
 
   /* The length of this array specifies the number of creases on the surface. Each element gives
    * the number of (must be adjacent) vertices in each crease, whose indices are linearly laid out
@@ -512,7 +512,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   if (!material_indices.is_single() && mesh->totcol > 1) {
     const VArraySpan<int> indices_span(material_indices);
     for (const int i : indices_span.index_range()) {
-      usd_mesh_data.face_groups[indices_span[i]].push_back(i);
+      usd_mesh_data.face_groups.lookup_or_add_default(indices_span[i]).push_back(i);
     }
   }
 
@@ -629,9 +629,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   }
 
   /* Define a geometry subset per material. */
-  for (const MaterialFaceGroups::value_type &face_group : usd_face_groups) {
-    short material_number = face_group.first;
-    const pxr::VtIntArray &face_indices = face_group.second;
+  for (const MaterialFaceGroups::Item &face_group : usd_face_groups.items()) {
+    short material_number = face_group.key;
+    const pxr::VtIntArray &face_indices = face_group.value;
 
     Material *material = BKE_object_material_get(context.object, material_number + 1);
     if (material == nullptr) {
