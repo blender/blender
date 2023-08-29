@@ -1274,7 +1274,7 @@ float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
 float4 utility_tx_sample_lut(sampler2DArray util_tx, float cos_theta, float roughness, float layer)
 {
   /* LUTs are parametrized by `sqrt(1.0 - cos_theta)` for more precision near grazing incidence. */
-  vec2 coords = vec2(roughness, sqrt(saturate(1.0 - cos_theta)));
+  vec2 coords = vec2(roughness, sqrt(clamp(1.0 - cos_theta, 0.0, 1.0)));
   return utility_tx_sample_lut(util_tx, coords, layer);
 }
 
